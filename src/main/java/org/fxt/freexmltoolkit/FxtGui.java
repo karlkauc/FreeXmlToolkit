@@ -4,23 +4,38 @@ import com.pixelduke.control.Ribbon;
 import com.pixelduke.control.ribbon.RibbonGroup;
 import com.pixelduke.control.ribbon.RibbonTab;
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 
 
 public class FxtGui extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+
+
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
+            var scene = new Scene(root, 800, 600);
+
+            primaryStage.setScene(scene);
+            primaryStage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+/*
         primaryStage.setTitle("Hello World!");
 
         Ribbon ribbon = new Ribbon();
@@ -102,13 +117,6 @@ public class FxtGui extends Application {
         String url = "file:/C:/Data/src/XMLTEST/output.html";
         webEngine.load(url);
 
-        /*
-        File file = new File("C:/test/a.html");
-        URL url= file.toURI().toURL();
-
-        // file:/C:/test/a.html
-        webEngine.load(url.toString());
-         */
 
         VBox root = new VBox();
         root.getChildren().add(ribbon);
@@ -119,6 +127,8 @@ public class FxtGui extends Application {
 
         primaryStage.setScene(scene);
         primaryStage.show();
+
+ */
 
     }
 
