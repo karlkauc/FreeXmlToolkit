@@ -10,7 +10,11 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+
 
 
 public class FxtGui extends Application {
@@ -18,10 +22,6 @@ public class FxtGui extends Application {
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Hello World!");
-        Button btn = new Button();
-        btn.setText("Say 'Hello World'");
-        btn.setOnAction(event -> System.out.println("Hello World!"));
-
 
         Ribbon ribbon = new Ribbon();
 
@@ -58,27 +58,24 @@ public class FxtGui extends Application {
         xmlPrettyPrint.setContentDisplay(ContentDisplay.TOP);
         var i3 = new ImageView(new Image(getClass().getResourceAsStream("img/icons8-save-file-128.png"), 16, 16, true, true));
         i3.maxHeight(20);
-        xmlPrettyPrint.setGraphic(i2);
+        xmlPrettyPrint.setGraphic(i3);
         ribbonGroupXml.getNodes().add(xmlPrettyPrint);
 
         Button xmlValidateSchema = new Button("validate schema");
         xmlValidateSchema.setContentDisplay(ContentDisplay.TOP);
         var i4 = new ImageView(new Image(getClass().getResourceAsStream("img/icons8-save-file-128.png"), 16, 16, true, true));
         i4.maxHeight(20);
-        xmlValidateSchema.setGraphic(i2);
+        xmlValidateSchema.setGraphic(i4);
         ribbonGroupXml.getNodes().add(xmlValidateSchema);
 
         Button xmlXquery = new Button("xquery");
         xmlXquery.setContentDisplay(ContentDisplay.TOP);
         var i5 = new ImageView(new Image(getClass().getResourceAsStream("img/icons8-save-file-128.png"), 16, 16, true, true));
         i5.maxHeight(20);
-        xmlXquery.setGraphic(i2);
+        xmlXquery.setGraphic(i5);
         ribbonGroupXml.getNodes().add(xmlXquery);
 
         ribbonTabXML.getRibbonGroups().add(ribbonGroupXml);
-
-
-
 
 
         RibbonTab ribbonTabXSD = new RibbonTab("XSD");
@@ -97,23 +94,37 @@ public class FxtGui extends Application {
 
 
 
-        StackPane root = new StackPane();
-        root.getChildren().add(btn);
+
+        WebView browser = new WebView();
+        WebEngine webEngine = browser.getEngine();
+
+        System.out.println("webEngine = " + webEngine.getUserAgent());
+        String url = "file:/C:/Data/src/XMLTEST/output.html";
+        webEngine.load(url);
+
+        /*
+        File file = new File("C:/test/a.html");
+        URL url= file.toURI().toURL();
+
+        // file:/C:/test/a.html
+        webEngine.load(url.toString());
+         */
+
+        VBox root = new VBox();
         root.getChildren().add(ribbon);
+        root.getChildren().add(browser);
 
         var scene = new Scene(root, 800, 600);
         scene.getStylesheets().add(FxtGui.class.getResource("ribbon_fxt.css").toExternalForm());
 
-
         primaryStage.setScene(scene);
         primaryStage.show();
-
-
-
 
     }
 
     public static void main(String[] args) {
+        System.setProperty("http.proxy","proxy-eb1.s-mxs.net");
+        System.setProperty("http.proxyPort","8080");
         launch();
     }
 
