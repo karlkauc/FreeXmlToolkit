@@ -29,7 +29,12 @@ javafx {
 }
 
 dependencies {
-    implementation ("com.pixelduke:fxribbon:1.2.2")
+    // implementation ("com.pixelduke:fxribbon:1.2.2")
+
+    // XSLT
+    implementation("net.sf.saxon:Saxon-HE:10.6")
+
+
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")

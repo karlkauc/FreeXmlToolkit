@@ -1,12 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="org.fxt.freexmltoolkit.MainController"
-            prefHeight="600.0" prefWidth="800.0">
-    <Button text="test"/>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.fxt.freexmltoolkit.MainController">
+    <MenuBar>
+        <menus>
+            <Menu text="File">
+                <items>
+                    <MenuItem text="New"/>
+                    <MenuItem text="Open"/>
+                    <MenuItem text="Save"/>
+                    <MenuItem text="Save As"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Exit"/>
+                </items>
+            </Menu>
+            <Menu text="Edit">
+                <items>
+                    <MenuItem text="Copy"/>
+                    <MenuItem text="Cut"/>
+                    <MenuItem text="Paste"/>
+                </items>
+            </Menu>
 
+            <Menu text="Help">
+                <items>
+                    <MenuItem text="Search" disable="true"/>
+                    <MenuItem text="Online Manual" visible="false"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Settings"/>
+                    <MenuItem text="About"/>
+                </items>
+            </Menu>
+        </menus>
+    </MenuBar>
+    <ToolBar>
+        <Button text="New" contentDisplay="GRAPHIC_ONLY">
+            <graphic>
+                <ImageView preserveRatio="true" fitHeight="16">
+                    <Image url="@img/icons8-datei-24.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+        <Button text="Save" contentDisplay="GRAPHIC_ONLY">
+            <graphic>
+                <ImageView preserveRatio="true" fitHeight="16">
+                    <Image url="@img/icons8-speichern-50.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+        <Button text="Oranges"/>
+        <Button text="Help"/>
+    </ToolBar>
+    <TabPane>
+        <tabs>
+            <Tab text="XML" closable="false">
+                <fx:include source="tab_xml.fxml"/>
+            </Tab>
+            <Tab text="XSLT" closable="false">
+                <fx:include source="tab_xslt.fxml"/>
+            </Tab>
+            <Tab text="XSD" closable="false"/>
+            <Tab text="FOP" closable="false"/>
+            <Tab text="About">
+                <AnchorPane>
+                    <Label>asdfasdfasdf</Label>
+                </AnchorPane>
 
-</AnchorPane>
+            </Tab>
+        </tabs>
+    </TabPane>
+</VBox>
