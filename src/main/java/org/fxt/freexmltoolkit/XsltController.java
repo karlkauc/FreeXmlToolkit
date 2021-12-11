@@ -1,20 +1,83 @@
 package org.fxt.freexmltoolkit;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.scene.control.ListView;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import net.sf.saxon.TransformerFactoryImpl;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 
 public class XsltController {
+
+    public XsltController() {
+
+    }
+
+    @FXML
+    ListView xmlFiles;
+
+    @FXML
+    ListView xsltFiles;
+
+    @FXML
+    WebView webView;
+
+    public final ObservableList xmlFileList =
+            FXCollections.observableArrayList();
+    public final ObservableList xsdFileList =
+            FXCollections.observableArrayList();
+
+    private ObservableList getFileNames(String path, String pattern) {
+        File dir = new File(path);
+        File[] files = dir.listFiles((dir1, name) -> name.endsWith(pattern));
+        return FXCollections.observableArrayList(files);
+    }
+
+    @FXML
+    private void initialize() {
+        xmlFileList.addAll(getFileNames("output/testfiles", ".xml"));
+        xsdFileList.addAll(getFileNames("output", ".xslt"));
+
+
+        xmlFiles.setItems(xmlFileList);
+        xsltFiles.setItems(xsdFileList);
+
+        xmlFiles.setOnMouseClicked(event -> {
+            System.out.println("clicked on " + xmlFiles.getSelectionModel().getSelectedItem());
+            if (xsltFiles.getSelectionModel().getSelectedItem() != null) {
+                renderFile(xmlFiles.getSelectionModel().getSelectedItem().toString(), xsltFiles.getSelectionModel().getSelectedItem().toString());
+            }
+        });
+        xsltFiles.setOnMouseClicked(event -> {
+            System.out.println("clicked on " + xsltFiles.getSelectionModel().getSelectedItem());
+            if (xmlFiles.getSelectionModel().getSelectedItem() != null) {
+                renderFile(xmlFiles.getSelectionModel().getSelectedItem().toString(), xsltFiles.getSelectionModel().getSelectedItem().toString());
+            }
+        });
+    }
+
+    private void renderFile(String xmlFileName, String xsdFileName) {
+
+        String output = null;
+        try {
+            output = saxonTransform(xmlFileName, xsdFileName);
+
+            WebEngine engine = webView.getEngine();
+            engine.loadContent(output);
+
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
         try {
