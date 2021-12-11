@@ -13,13 +13,19 @@
 <?import javafx.scene.image.Image?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="org.fxt.freexmltoolkit.XsltController">
-    <HBox>
-        <VBox>
+            fx:controller="org.fxt.freexmltoolkit.XsltController"
+            fx:id="anchorPane"
+            style="-fx-padding: 5;">
+    <HBox AnchorPane.topAnchor="0"
+          AnchorPane.bottomAnchor="0"
+          AnchorPane.leftAnchor="0"
+          AnchorPane.rightAnchor="0">
+        <VBox prefWidth="250" maxWidth="250" minWidth="250"
+              HBox.hgrow="ALWAYS" style="-fx-padding: 0 5 0 0;">
             <HBox>
                 <Label>XML Files</Label>
-                <TextField text="directroy...." />
-                <Button>
+                <TextField fx:id="xmlFileDir" text="directroy...." />
+                <Button fx:id="xmlDirChooserButton">
                     <graphic>
                         <ImageView preserveRatio="true" fitHeight="16">
                             <Image url="@img/icons8-opened_folder.png"/>
@@ -32,8 +38,8 @@
 
             <HBox>
                 <Label>XSLT Files</Label>
-                <TextField text="directroy...." />
-                <Button>
+                <TextField fx:id="xsltFileDir" text="directroy...." />
+                <Button fx:id="xsltChooserButton">
                     <graphic>
                         <ImageView preserveRatio="true" fitHeight="16">
                             <Image url="@img/icons8-opened_folder.png"/>
@@ -44,6 +50,6 @@
             <ListView fx:id="xsltFiles" prefHeight="100"/>
         </VBox>
 
-        <WebView fx:id="webView" />
+        <WebView fx:id="webView" HBox.hgrow="ALWAYS" />
     </HBox>
 </AnchorPane>

@@ -9,6 +9,10 @@
             <body>
                 <h1>test report</h1>
                 <h2><xsl:value-of select="/root/test/asdf" /></h2>
+                <hr/>
+                <TextArea>
+                    <xsl:copy-of select="." />
+                </TextArea>
             </body>
         </html>
     </xsl:template>

@@ -3,9 +3,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.AnchorPane?>
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="org.fxt.freexmltoolkit.MainController">
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.fxt.freexmltoolkit.MainController">
     <MenuBar>
         <menus>
             <Menu text="File">
@@ -61,7 +62,7 @@
         </Button>
         <Button text="Help" />
     </ToolBar>
-    <TabPane>
+    <TabPane VBox.vgrow="ALWAYS">
         <tabs>
             <Tab text="XSLT" closable="false">
                 <fx:include source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
@@ -79,4 +80,4 @@
             </Tab>
         </tabs>
     </TabPane>
-</AnchorPane>
+</VBox>

@@ -17,7 +17,7 @@ public class FxtGui extends Application {
 
         try {
             Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("main.fxml")));
-            var scene = new Scene(root, 800, 600);
+            var scene = new Scene(root, 1024, 768);
 
             primaryStage.setScene(scene);
             primaryStage.show();

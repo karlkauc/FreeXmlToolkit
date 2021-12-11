@@ -4,9 +4,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 import net.sf.saxon.TransformerFactoryImpl;
 
 import javax.xml.XMLConstants;
@@ -17,12 +23,24 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.EventObject;
 
 public class XsltController {
 
     public XsltController() {
 
     }
+
+    DirectoryChooser directoryChooser = new DirectoryChooser();
+
+    @FXML
+    AnchorPane anchorPane;
+
+    @FXML
+    TextField xmlFileDir, xsltFileDir;
+
+    @FXML
+    Button xmlDirChooserButton, xsltChooserButton;
 
     @FXML
     ListView xmlFiles;
@@ -42,8 +60,7 @@ public class XsltController {
 
         if (!Files.exists(Path.of(path))) {
             throw new FileNotFoundException();
-        }
-        else {
+        } else {
             File dir = new File(path);
             File[] files = dir.listFiles((dir1, name) -> name.endsWith(pattern));
             return FXCollections.observableArrayList(files);
@@ -52,14 +69,23 @@ public class XsltController {
 
     @FXML
     private void initialize() {
-        try {
-            var x = getFileNames("output/testfiles", ".xml");
-            xmlFileList.addAll(x);
-            xsdFileList.addAll(getFileNames("output", ".xslt"));
-        }
-        catch (FileNotFoundException fileNotFoundException) {
-            System.out.println("FILE NOT FOUND");
-        }
+        // directoryChooser.setInitialDirectory(new File("output"));
+        loadFiles();
+
+        xmlDirChooserButton.setOnAction(e -> {
+            Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
+            File selectedDirectory = directoryChooser.showDialog(stage);
+            xmlFileDir.textProperty().setValue(selectedDirectory.getAbsolutePath());
+            loadFiles();
+        });
+
+        xsltChooserButton.setOnAction(e -> {
+            Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
+            File selectedDirectory = directoryChooser.showDialog(stage);
+            xsltFileDir.textProperty().setValue(selectedDirectory.getAbsolutePath());
+            loadFiles();
+        });
+
 
         xmlFiles.setItems(xmlFileList);
         xsltFiles.setItems(xsdFileList);
@@ -70,12 +96,25 @@ public class XsltController {
                 renderFile(xmlFiles.getSelectionModel().getSelectedItem().toString(), xsltFiles.getSelectionModel().getSelectedItem().toString());
             }
         });
+
         xsltFiles.setOnMouseClicked(event -> {
             System.out.println("clicked on " + xsltFiles.getSelectionModel().getSelectedItem());
             if (xmlFiles.getSelectionModel().getSelectedItem() != null) {
                 renderFile(xmlFiles.getSelectionModel().getSelectedItem().toString(), xsltFiles.getSelectionModel().getSelectedItem().toString());
             }
         });
+    }
+
+    private void loadFiles() {
+        try {
+            xsdFileList.clear();
+            xmlFileList.clear();
+
+            xmlFileList.addAll(getFileNames(xmlFileDir.getText(), ".xml"));
+            xsdFileList.addAll(getFileNames(xsltFileDir.getText(), ".xslt"));
+        } catch (FileNotFoundException fileNotFoundException) {
+            System.out.println("FILE NOT FOUND");
+        }
     }
 
     private void renderFile(String xmlFileName, String xsdFileName) {
