@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.Objects;
 
 
 public class FxtGui extends Application {
@@ -14,9 +15,8 @@ public class FxtGui extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
+            Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("main.fxml")));
             var scene = new Scene(root, 800, 600);
 
             primaryStage.setScene(scene);

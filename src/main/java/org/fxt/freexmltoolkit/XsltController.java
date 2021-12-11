@@ -15,6 +15,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class XsltController {
@@ -32,22 +33,33 @@ public class XsltController {
     @FXML
     WebView webView;
 
-    public final ObservableList xmlFileList =
+    public final ObservableList<Object> xmlFileList =
             FXCollections.observableArrayList();
-    public final ObservableList xsdFileList =
+    public final ObservableList<Object> xsdFileList =
             FXCollections.observableArrayList();
 
-    private ObservableList getFileNames(String path, String pattern) {
-        File dir = new File(path);
-        File[] files = dir.listFiles((dir1, name) -> name.endsWith(pattern));
-        return FXCollections.observableArrayList(files);
+    private ObservableList<File> getFileNames(String path, String pattern) throws FileNotFoundException {
+
+        if (!Files.exists(Path.of(path))) {
+            throw new FileNotFoundException();
+        }
+        else {
+            File dir = new File(path);
+            File[] files = dir.listFiles((dir1, name) -> name.endsWith(pattern));
+            return FXCollections.observableArrayList(files);
+        }
     }
 
     @FXML
     private void initialize() {
-        xmlFileList.addAll(getFileNames("output/testfiles", ".xml"));
-        xsdFileList.addAll(getFileNames("output", ".xslt"));
-
+        try {
+            var x = getFileNames("output/testfiles", ".xml");
+            xmlFileList.addAll(x);
+            xsdFileList.addAll(getFileNames("output", ".xslt"));
+        }
+        catch (FileNotFoundException fileNotFoundException) {
+            System.out.println("FILE NOT FOUND");
+        }
 
         xmlFiles.setItems(xmlFileList);
         xsltFiles.setItems(xsdFileList);
@@ -72,6 +84,10 @@ public class XsltController {
         String output;
         try {
             output = saxonTransform(xmlFileName, xsdFileName);
+
+            output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "");
+            output = output.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
+
             WebEngine engine = webView.getEngine();
             Files.writeString(Paths.get(outputFile), output);
             System.out.println("write successful");
@@ -90,19 +106,6 @@ public class XsltController {
         } catch (TransformerException | IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        try {
-            var result = saxonTransform("C:\\Data\\src\\XMLTEST\\LU0622306495_EUR_20210930_v4_1_5.xml", "C:\\Data\\src\\XMLTEST\\Check_FundsXML_File.xslt");
-            result = result.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "");
-            result = result.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
-
-            System.out.println("result = " + result);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 
     public static String saxonTransform(String source, String xslt) throws TransformerException, FileNotFoundException {

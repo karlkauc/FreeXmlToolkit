@@ -5,13 +5,45 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.web.WebView?>
+<?import javafx.scene.layout.VBox?>
+
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.fxt.freexmltoolkit.XsltController">
-
     <HBox>
-        <ListView fx:id="xmlFiles"/>
-        <ListView fx:id="xsltFiles"/>
+        <VBox>
+            <HBox>
+                <Label>XML Files</Label>
+                <TextField text="directroy...." />
+                <Button>
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@img/icons8-opened_folder.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </HBox>
+
+            <ListView fx:id="xmlFiles" prefHeight="100"/>
+
+            <HBox>
+                <Label>XSLT Files</Label>
+                <TextField text="directroy...." />
+                <Button>
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@img/icons8-opened_folder.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </HBox>
+            <ListView fx:id="xsltFiles" prefHeight="100"/>
+        </VBox>
+
         <WebView fx:id="webView" />
     </HBox>
 </AnchorPane>

@@ -54,16 +54,22 @@
                 </ImageView>
             </graphic>
         </Button>
-        <Button text="Oranges"/>
-        <Button text="Help"/>
+        <Button text="pretty print" contentDisplay="GRAPHIC_ONLY">
+            <graphic>
+                <ImageView preserveRatio="true" fitHeight="16">
+                    <Image url="@img/icons8-align_center.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+        <Button text="Help" />
     </ToolBar>
     <TabPane>
         <tabs>
-            <Tab text="XML" closable="false">
-                <fx:include source="tab_xml.fxml"/>
-            </Tab>
             <Tab text="XSLT" closable="false">
                 <fx:include source="tab_xslt.fxml"/>
+            </Tab>
+            <Tab text="XML" closable="false">
+                <fx:include source="tab_xml.fxml"/>
             </Tab>
             <Tab text="XSD" closable="false"/>
             <Tab text="FOP" closable="false"/>
