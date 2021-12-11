@@ -6,13 +6,16 @@ import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.text.Text;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import net.sf.saxon.TransformerFactoryImpl;
 
 import javax.xml.XMLConstants;
@@ -43,17 +46,20 @@ public class XsltController {
     Button xmlDirChooserButton, xsltChooserButton;
 
     @FXML
-    ListView xmlFiles;
+    ListView<File> xmlFiles;
 
     @FXML
-    ListView xsltFiles;
+    ListView<File> xsltFiles;
 
     @FXML
     WebView webView;
 
-    public final ObservableList<Object> xmlFileList =
+    @FXML
+    Text status;
+
+    public final ObservableList<File> xmlFileList =
             FXCollections.observableArrayList();
-    public final ObservableList<Object> xsdFileList =
+    public final ObservableList<File> xsdFileList =
             FXCollections.observableArrayList();
 
     private ObservableList<File> getFileNames(String path, String pattern) throws FileNotFoundException {
@@ -69,35 +75,54 @@ public class XsltController {
 
     @FXML
     private void initialize() {
-        // directoryChooser.setInitialDirectory(new File("output"));
-        loadFiles();
+
+        xmlFiles.setCellFactory(new Callback<>() {
+            @Override
+            public ListCell<File> call(ListView<File> param) {
+                return new ListCell<>() {
+                    @Override
+                    protected void updateItem(File item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (item != null) {
+                            setText(item.getName() + " (" + String.format("%.2f", item.length() / (1024f * 1024f)) + " MB)");
+                        } else {
+                            setText("");
+                        }
+                    }
+                };
+            }
+        });
+
+        loadXmlFiles();
+        loadXsdFiles();
 
         xmlDirChooserButton.setOnAction(e -> {
             Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
             File selectedDirectory = directoryChooser.showDialog(stage);
             xmlFileDir.textProperty().setValue(selectedDirectory.getAbsolutePath());
-            loadFiles();
+            loadXmlFiles();
         });
 
         xsltChooserButton.setOnAction(e -> {
             Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
             File selectedDirectory = directoryChooser.showDialog(stage);
             xsltFileDir.textProperty().setValue(selectedDirectory.getAbsolutePath());
-            loadFiles();
+            loadXsdFiles();
         });
-
 
         xmlFiles.setItems(xmlFileList);
         xsltFiles.setItems(xsdFileList);
 
         xmlFiles.setOnMouseClicked(event -> {
             System.out.println("clicked on " + xmlFiles.getSelectionModel().getSelectedItem());
+            status.setText("Loading File: " + xmlFiles.getSelectionModel().getSelectedItem());
             if (xsltFiles.getSelectionModel().getSelectedItem() != null) {
                 renderFile(xmlFiles.getSelectionModel().getSelectedItem().toString(), xsltFiles.getSelectionModel().getSelectedItem().toString());
             }
         });
 
         xsltFiles.setOnMouseClicked(event -> {
+            status.setText("Loading File: " + xsltFiles.getSelectionModel().getSelectedItem());
             System.out.println("clicked on " + xsltFiles.getSelectionModel().getSelectedItem());
             if (xmlFiles.getSelectionModel().getSelectedItem() != null) {
                 renderFile(xmlFiles.getSelectionModel().getSelectedItem().toString(), xsltFiles.getSelectionModel().getSelectedItem().toString());
@@ -105,12 +130,19 @@ public class XsltController {
         });
     }
 
-    private void loadFiles() {
+    // ToDo: zellen rendern: nur Filename (ohne Pfad) und Größe anzeigen
+    private void loadXmlFiles() {
+        try {
+            xmlFileList.clear();
+            xmlFileList.addAll(getFileNames(xmlFileDir.getText(), ".xml"));
+        } catch (FileNotFoundException fileNotFoundException) {
+            System.out.println("FILE NOT FOUND");
+        }
+    }
+
+    private void loadXsdFiles() {
         try {
             xsdFileList.clear();
-            xmlFileList.clear();
-
-            xmlFileList.addAll(getFileNames(xmlFileDir.getText(), ".xml"));
             xsdFileList.addAll(getFileNames(xsltFileDir.getText(), ".xslt"));
         } catch (FileNotFoundException fileNotFoundException) {
             System.out.println("FILE NOT FOUND");
@@ -122,19 +154,26 @@ public class XsltController {
 
         String output;
         try {
+            status.setText("Starting...");
             output = saxonTransform(xmlFileName, xsdFileName);
 
             output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "");
             output = output.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
 
+            status.setText("finished transforming");
+
             WebEngine engine = webView.getEngine();
             Files.writeString(Paths.get(outputFile), output);
             System.out.println("write successful");
+            status.setText("write successful");
+
+            // ToDo: auf Loader Balken umändern
 
             engine.getLoadWorker().stateProperty().addListener(
                     (ov, oldState, newState) -> {
                         if (newState == State.SUCCEEDED) {
                             System.out.println("FERTIG: " + engine.getLocation());
+                            status.setText("rendering finished");
                         }
                     });
 
