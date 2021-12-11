@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.web.WebEngine;
@@ -13,6 +14,8 @@ import javax.xml.transform.*;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class XsltController {
 
@@ -64,17 +67,27 @@ public class XsltController {
     }
 
     private void renderFile(String xmlFileName, String xsdFileName) {
+        final String outputFile = "output/output.html";
 
-        String output = null;
+        String output;
         try {
             output = saxonTransform(xmlFileName, xsdFileName);
-
             WebEngine engine = webView.getEngine();
-            engine.loadContent(output);
+            Files.writeString(Paths.get(outputFile), output);
+            System.out.println("write successful");
 
-        } catch (TransformerException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
+            engine.getLoadWorker().stateProperty().addListener(
+                    (ov, oldState, newState) -> {
+                        if (newState == State.SUCCEEDED) {
+                            System.out.println("FERTIG: " + engine.getLocation());
+                        }
+                    });
+
+            engine.load(new File(outputFile).toURI().toURL().toString());
+
+            System.out.println("Loaded Content");
+
+        } catch (TransformerException | IOException e) {
             e.printStackTrace();
         }
     }
@@ -82,7 +95,8 @@ public class XsltController {
     public static void main(String[] args) {
         try {
             var result = saxonTransform("C:\\Data\\src\\XMLTEST\\LU0622306495_EUR_20210930_v4_1_5.xml", "C:\\Data\\src\\XMLTEST\\Check_FundsXML_File.xslt");
-            result = result.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "");
+            result = result.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "");
+            result = result.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
 
             System.out.println("result = " + result);
         } catch (Exception e) {
