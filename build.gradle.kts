@@ -29,11 +29,11 @@ javafx {
 }
 
 dependencies {
-    // implementation ("com.pixelduke:fxribbon:1.2.2")
-
     // XSLT
     implementation("net.sf.saxon:Saxon-HE:10.6")
 
+    // Richtext
+    implementation("org.fxmisc.richtext:richtextfx:0.10.7")
 
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")

@@ -53,7 +53,14 @@
                 </ImageView>
             </graphic>
         </Button>
-        <Button text="pretty print" contentDisplay="GRAPHIC_ONLY">
+        <Button text="Open" contentDisplay="GRAPHIC_ONLY">
+            <graphic>
+                <ImageView preserveRatio="true" fitHeight="16">
+                    <Image url="@img/icons8-geöffnete-datei-unter-cursor-48.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+        <Button text="pretty print" contentDisplay="LEFT" fx:id="prettyPrint">
             <graphic>
                 <ImageView preserveRatio="true" fitHeight="16">
                     <Image url="@img/icons8-align_center.png"/>
@@ -68,7 +75,7 @@
                 <fx:include source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
             </Tab>
             <Tab text="XML" closable="false">
-                <fx:include source="tab_xml.fxml"/>
+                <fx:include fx:id="tabXml" source="tab_xml.fxml"/>
             </Tab>
             <Tab text="XSD" closable="false"/>
             <Tab text="FOP" closable="false"/>
