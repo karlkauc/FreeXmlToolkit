@@ -75,7 +75,6 @@ public class XsltController {
 
     @FXML
     private void initialize() {
-
         xmlFiles.setCellFactory(new Callback<>() {
             @Override
             public ListCell<File> call(ListView<File> param) {
@@ -159,6 +158,7 @@ public class XsltController {
 
             output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "");
             output = output.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
+            output = output.replace("  >", "");
 
             status.setText("finished transforming");
 
@@ -197,24 +197,4 @@ public class XsltController {
         t.transform(src, res);
         return res.getOutputStream().toString();
     }
-
-    public static String prettyFormat(String input, int indent) {
-        try {
-            Source xmlInput = new StreamSource(new StringReader(input));
-            StringWriter stringWriter = new StringWriter();
-            StreamResult xmlOutput = new StreamResult(stringWriter);
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            transformerFactory.setAttribute("indent-number", indent);
-            transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-            Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.transform(xmlInput, xmlOutput);
-            return xmlOutput.getWriter().toString();
-        } catch (Exception e) {
-            throw new RuntimeException(e); // simple exception handling, please review it
-        }
-    }
-
-
 }

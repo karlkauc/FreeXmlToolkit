@@ -30,10 +30,10 @@ public class XmlController {
     private static final int GROUP_EQUAL_SYMBOL = 2;
     private static final int GROUP_ATTRIBUTE_VALUE = 3;
 
-    private static final String sampleCode = String.join("\n", new String[] {
+    private String sampleCode = String.join("\n", new String[] {
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>",
             "<!-- Sample XML -->",
-            "< orders >",
+            "<orders>",
             "	<Order number=\"1\" table=\"center\">",
             "		<items>",
             "			<Item>",
@@ -65,16 +65,28 @@ public class XmlController {
             "</orders>"
     });
 
+    CodeArea codeArea = new CodeArea();
+
+    String myText;
+
     @FXML
     StackPane stackPane;
 
+
+    public String getXMLContent() {
+        return myText;
+    }
+
+
+
     @FXML
     private void initialize() {
-        CodeArea codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
 
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             codeArea.setStyleSpans(0, computeHighlighting(newText));
+            myText = obs.getValue();
+            System.out.println("obs = " + obs.getValue());
         });
         codeArea.replaceText(0, 0, sampleCode);
         stackPane.getChildren().add(new VirtualizedScrollPane<>(codeArea));
