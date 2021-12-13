@@ -5,10 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebEngine;
@@ -33,6 +30,9 @@ public class XsltController {
     public XsltController() {
 
     }
+
+    @FXML
+    ProgressBar progressBar;
 
     DirectoryChooser directoryChooser = new DirectoryChooser();
 
@@ -63,7 +63,6 @@ public class XsltController {
             FXCollections.observableArrayList();
 
     private ObservableList<File> getFileNames(String path, String pattern) throws FileNotFoundException {
-
         if (!Files.exists(Path.of(path))) {
             throw new FileNotFoundException();
         } else {
@@ -75,6 +74,7 @@ public class XsltController {
 
     @FXML
     private void initialize() {
+        progressBar.setProgress(0);
         xmlFiles.setCellFactory(new Callback<>() {
             @Override
             public ListCell<File> call(ListView<File> param) {
@@ -116,6 +116,7 @@ public class XsltController {
             System.out.println("clicked on " + xmlFiles.getSelectionModel().getSelectedItem());
             status.setText("Loading File: " + xmlFiles.getSelectionModel().getSelectedItem());
             if (xsltFiles.getSelectionModel().getSelectedItem() != null) {
+                progressBar.setProgress(0.1);
                 renderFile(xmlFiles.getSelectionModel().getSelectedItem().toString(), xsltFiles.getSelectionModel().getSelectedItem().toString());
             }
         });
@@ -124,6 +125,7 @@ public class XsltController {
             status.setText("Loading File: " + xsltFiles.getSelectionModel().getSelectedItem());
             System.out.println("clicked on " + xsltFiles.getSelectionModel().getSelectedItem());
             if (xmlFiles.getSelectionModel().getSelectedItem() != null) {
+                progressBar.setProgress(0.1);
                 renderFile(xmlFiles.getSelectionModel().getSelectedItem().toString(), xsltFiles.getSelectionModel().getSelectedItem().toString());
             }
         });
@@ -154,7 +156,9 @@ public class XsltController {
         String output;
         try {
             status.setText("Starting...");
+            progressBar.setProgress(0.1);
             output = saxonTransform(xmlFileName, xsdFileName);
+            progressBar.setProgress(0.5);
 
             output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "");
             output = output.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
@@ -164,6 +168,7 @@ public class XsltController {
 
             WebEngine engine = webView.getEngine();
             Files.writeString(Paths.get(outputFile), output);
+            progressBar.setProgress(0.6);
             System.out.println("write successful");
             status.setText("write successful");
 
@@ -174,6 +179,7 @@ public class XsltController {
                         if (newState == State.SUCCEEDED) {
                             System.out.println("FERTIG: " + engine.getLocation());
                             status.setText("rendering finished");
+                            progressBar.setProgress(1);
                         }
                     });
 

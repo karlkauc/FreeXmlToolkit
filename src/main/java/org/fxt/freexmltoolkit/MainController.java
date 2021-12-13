@@ -34,6 +34,9 @@ public class MainController {
     Button prettyPrint;
 
     @FXML
+    Button exit;
+
+    @FXML
     private void initialize() {
         FXMLLoader fxmlLoader = new FXMLLoader();
         try {
@@ -43,6 +46,7 @@ public class MainController {
             e.printStackTrace();
         }
 
+        exit.setOnAction(e -> System.exit(0));
 
         prettyPrint.setOnAction(event -> {
             System.out.println("Hello World!");

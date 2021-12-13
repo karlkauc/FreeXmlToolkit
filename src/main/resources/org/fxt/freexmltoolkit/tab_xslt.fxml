@@ -12,6 +12,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.text.Text?>
+<?import javafx.scene.control.ProgressBar?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.fxt.freexmltoolkit.XsltController"
@@ -51,6 +52,7 @@
             <ListView fx:id="xsltFiles" prefHeight="100"/>
 
             <Text fx:id="status"/>
+            <ProgressBar fx:id="progressBar" prefWidth="300" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>
         </VBox>
 
         <WebView fx:id="webView" HBox.hgrow="ALWAYS" />

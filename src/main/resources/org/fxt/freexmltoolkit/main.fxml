@@ -68,6 +68,13 @@
             </graphic>
         </Button>
         <Button text="Help" />
+        <Button text="Exit" contentDisplay="LEFT" fx:id="exit">
+            <graphic>
+                <ImageView preserveRatio="true" fitHeight="16">
+                    <Image url="@img/icons8-exit-64.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
     </ToolBar>
     <TabPane VBox.vgrow="ALWAYS">
         <tabs>
