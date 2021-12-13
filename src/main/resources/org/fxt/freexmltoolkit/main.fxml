@@ -71,10 +71,10 @@
     </ToolBar>
     <TabPane VBox.vgrow="ALWAYS">
         <tabs>
-            <Tab text="XSLT" closable="false">
+            <Tab text="XSLT" closable="false" fx:id="tabPaneXslt">
                 <fx:include source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
             </Tab>
-            <Tab text="XML" closable="false">
+            <Tab text="XML" closable="false" fx:id="tabPaneXml">
                 <fx:include fx:id="tabXml" source="tab_xml.fxml"/>
             </Tab>
             <Tab text="XSD" closable="false"/>

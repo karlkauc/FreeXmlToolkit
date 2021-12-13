@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Tab;
 import javafx.scene.layout.StackPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
