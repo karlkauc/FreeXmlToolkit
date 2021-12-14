@@ -67,7 +67,7 @@
                 </ImageView>
             </graphic>
         </Button>
-        <Button text="Help" />
+        <Button text="Help"/>
         <Button text="Exit" contentDisplay="LEFT" fx:id="exit">
             <graphic>
                 <ImageView preserveRatio="true" fitHeight="16">
@@ -79,10 +79,10 @@
     <TabPane VBox.vgrow="ALWAYS">
         <tabs>
             <Tab text="XSLT" closable="false" fx:id="tabPaneXslt">
-                <fx:include source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
+                <fx:include fx:id="xslt" source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
             </Tab>
             <Tab text="XML" closable="false" fx:id="tabPaneXml">
-                <fx:include fx:id="tabXml" source="tab_xml.fxml"/>
+                <fx:include fx:id="xml" source="tab_xml.fxml"/>
             </Tab>
             <Tab text="XSD" closable="false"/>
             <Tab text="FOP" closable="false"/>

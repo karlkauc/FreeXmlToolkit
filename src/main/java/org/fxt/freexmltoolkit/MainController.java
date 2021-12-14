@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
+import javafx.stage.Window;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.OutputKeys;
@@ -19,10 +20,8 @@ import java.io.StringWriter;
 
 public class MainController {
 
-
-
     @FXML
-    private Parent tabXml, tabXslt;
+    private Parent xml, tabXslt;
 
     @FXML
     private XmlController xmlController;
@@ -56,32 +55,14 @@ public class MainController {
             if (tabPaneXml.isSelected()) {
                 if (xmlController != null) {
                     String f = xmlController.getXMLContent();
-                    System.out.println("f = " + f);
-
-                    System.out.println(prettyFormat(f, 2));
-
+                    System.out.println(f);
+                    xmlController.setPrettyText();
                 }
+                else
+                    System.out.println("XMLController is null");
             }
         });
     }
 
-
-    public static String prettyFormat(String input, int indent) {
-        try {
-            Source xmlInput = new StreamSource(new StringReader(input));
-            StringWriter stringWriter = new StringWriter();
-            StreamResult xmlOutput = new StreamResult(stringWriter);
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            // transformerFactory.setAttribute("indent-number", indent);
-            transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-            Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.transform(xmlInput, xmlOutput);
-            return xmlOutput.getWriter().toString();
-        } catch (Exception e) {
-            throw new RuntimeException(e); // simple exception handling, please review it
-        }
-    }
 
 }
