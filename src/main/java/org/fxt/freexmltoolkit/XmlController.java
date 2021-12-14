@@ -86,7 +86,6 @@ public class XmlController {
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             codeArea.setStyleSpans(0, computeHighlighting(newText));
             myText = obs.getValue();
-            System.out.println("obs = " + obs.getValue());
         });
         codeArea.replaceText(0, 0, sampleCode);
         stackPane.getChildren().add(new VirtualizedScrollPane<>(codeArea));

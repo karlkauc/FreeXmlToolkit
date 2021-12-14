@@ -14,16 +14,18 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import net.sf.saxon.TransformerFactoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.xml.XMLConstants;
-import javax.xml.transform.*;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
+import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.EventObject;
 
 public class XsltController {
 
@@ -31,10 +33,14 @@ public class XsltController {
 
     }
 
+    private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
     @FXML
     ProgressBar progressBar;
 
-    DirectoryChooser directoryChooser = new DirectoryChooser();
+    DirectoryChooser directoryChooserXML = new DirectoryChooser();
+    DirectoryChooser directoryChooserXSLT = new DirectoryChooser();
+
 
     @FXML
     AnchorPane anchorPane;
@@ -62,18 +68,28 @@ public class XsltController {
     public final ObservableList<File> xsdFileList =
             FXCollections.observableArrayList();
 
-    private ObservableList<File> getFileNames(String path, String pattern) throws FileNotFoundException {
-        if (!Files.exists(Path.of(path))) {
-            throw new FileNotFoundException();
-        } else {
-            File dir = new File(path);
-            File[] files = dir.listFiles((dir1, name) -> name.endsWith(pattern));
-            return FXCollections.observableArrayList(files);
-        }
+    private ObservableList<File> getFileNames(String path, String patternString) throws FileNotFoundException {
+        if (path != null) {
+            System.out.println("path = " + path);
+            System.out.println("Path.of(path) = " + Path.of(path));
+            if (!Files.exists(Path.of(path))) {
+                throw new FileNotFoundException();
+            } else {
+                File dir = new File(path);
+                File[] files = dir.listFiles((dir1, name) -> name.matches(patternString));
+                return FXCollections.observableArrayList(files);
+            }
+        } else return FXCollections.emptyObservableList();
     }
 
     @FXML
     private void initialize() {
+        directoryChooserXML.setInitialDirectory(new File("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles"));
+        directoryChooserXSLT.setInitialDirectory(new File("C:\\Data\\src\\FreeXmlToolkit\\output"));
+
+        xsltFileDir.textProperty().setValue(directoryChooserXSLT.getInitialDirectory().getAbsolutePath());
+        xmlFileDir.textProperty().setValue(directoryChooserXML.getInitialDirectory().getAbsolutePath());
+
         progressBar.setProgress(0);
         xmlFiles.setCellFactory(new Callback<>() {
             @Override
@@ -92,21 +108,25 @@ public class XsltController {
             }
         });
 
-        loadXmlFiles();
-        loadXsdFiles();
+        loadFilesFromDirectory(xmlFileList, xmlFileDir.getText(), ".*\\.xml$");
+        loadFilesFromDirectory(xsdFileList, xsltFileDir.getText(), ".*\\.xslt$");
 
         xmlDirChooserButton.setOnAction(e -> {
             Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-            File selectedDirectory = directoryChooser.showDialog(stage);
-            xmlFileDir.textProperty().setValue(selectedDirectory.getAbsolutePath());
-            loadXmlFiles();
+            File selectedDirectory = directoryChooserXML.showDialog(stage);
+            if (selectedDirectory != null && selectedDirectory.isDirectory()) {
+                xmlFileDir.textProperty().setValue(selectedDirectory.getAbsolutePath());
+                loadXmlFiles();
+            }
         });
 
         xsltChooserButton.setOnAction(e -> {
             Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-            File selectedDirectory = directoryChooser.showDialog(stage);
-            xsltFileDir.textProperty().setValue(selectedDirectory.getAbsolutePath());
-            loadXsdFiles();
+            File selectedDirectory = directoryChooserXSLT.showDialog(stage);
+            if (selectedDirectory != null && selectedDirectory.isDirectory()) {
+                xsltFileDir.textProperty().setValue(selectedDirectory.getAbsolutePath());
+                loadXsdFiles();
+            }
         });
 
         xmlFiles.setItems(xmlFileList);
@@ -122,16 +142,30 @@ public class XsltController {
         });
 
         xsltFiles.setOnMouseClicked(event -> {
-            status.setText("Loading File: " + xsltFiles.getSelectionModel().getSelectedItem());
-            System.out.println("clicked on " + xsltFiles.getSelectionModel().getSelectedItem());
+            // System.out.println("clicked on " + xsltFiles.getSelectionModel().getSelectedItem());
+            logger.debug("clicked on " + xsltFiles.getSelectionModel().getSelectedItem());
             if (xmlFiles.getSelectionModel().getSelectedItem() != null) {
+                status.setText("Loading File: " + xsltFiles.getSelectionModel().getSelectedItem());
                 progressBar.setProgress(0.1);
-                renderFile(xmlFiles.getSelectionModel().getSelectedItem().toString(), xsltFiles.getSelectionModel().getSelectedItem().toString());
+                renderFile(xmlFiles.getSelectionModel().getSelectedItem().getAbsolutePath(), xsltFiles.getSelectionModel().getSelectedItem().toString());
             }
         });
+
+
     }
 
-    // ToDo: zellen rendern: nur Filename (ohne Pfad) und Größe anzeigen
+    private void loadFilesFromDirectory(ObservableList<File> files, String pfad, String pattern) {
+        try {
+            files.clear();
+            var x = getFileNames(pfad, pattern);
+            // System.out.println("x = " + x.stream().toArray().length);
+            files.addAll(x);
+        } catch (FileNotFoundException fileNotFoundException) {
+            System.out.println("FILE NOT FOUND");
+        }
+
+    }
+
     private void loadXmlFiles() {
         try {
             xmlFileList.clear();
@@ -172,12 +206,11 @@ public class XsltController {
             System.out.println("write successful");
             status.setText("write successful");
 
-            // ToDo: auf Loader Balken umändern
-
             engine.getLoadWorker().stateProperty().addListener(
                     (ov, oldState, newState) -> {
                         if (newState == State.SUCCEEDED) {
-                            System.out.println("FERTIG: " + engine.getLocation());
+                            // System.out.println("FERTIG: " + engine.getLocation());
+                            logger.debug("FERTIG: " + engine.getLocation());
                             status.setText("rendering finished");
                             progressBar.setProgress(1);
                         }

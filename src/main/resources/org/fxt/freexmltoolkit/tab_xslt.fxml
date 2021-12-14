@@ -26,7 +26,7 @@
               HBox.hgrow="ALWAYS" style="-fx-padding: 0 5 0 0;">
             <HBox>
                 <Label>XML Files</Label>
-                <TextField fx:id="xmlFileDir" text="directroy...." />
+                <TextField fx:id="xmlFileDir" />
                 <Button fx:id="xmlDirChooserButton">
                     <graphic>
                         <ImageView preserveRatio="true" fitHeight="16">
@@ -36,11 +36,11 @@
                 </Button>
             </HBox>
 
-            <ListView fx:id="xmlFiles" prefHeight="100"/>
+            <ListView fx:id="xmlFiles" prefHeight="300"/>
 
             <HBox>
                 <Label>XSLT Files</Label>
-                <TextField fx:id="xsltFileDir" text="directroy...." />
+                <TextField fx:id="xsltFileDir" />
                 <Button fx:id="xsltChooserButton">
                     <graphic>
                         <ImageView preserveRatio="true" fitHeight="16">
@@ -49,7 +49,7 @@
                     </graphic>
                 </Button>
             </HBox>
-            <ListView fx:id="xsltFiles" prefHeight="100"/>
+            <ListView fx:id="xsltFiles" prefHeight="300"/>
 
             <Text fx:id="status"/>
             <ProgressBar fx:id="progressBar" prefWidth="300" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>

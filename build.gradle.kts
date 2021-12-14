@@ -35,6 +35,12 @@ dependencies {
     // Richtext
     implementation("org.fxmisc.richtext:richtextfx:0.10.7")
 
+    // Logging
+    implementation("org.slf4j:log4j-over-slf4j:2.0.0-alpha5")
+
+    implementation("org.apache.logging.log4j:log4j-api:2.16.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.16.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.16.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")

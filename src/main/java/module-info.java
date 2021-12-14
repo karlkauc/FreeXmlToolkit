@@ -5,9 +5,7 @@ module org.fxt.freexmltoolkit {
     requires Saxon.HE;
     requires org.fxmisc.richtext;
     requires flowless;
-//     requires fxribbon;
-
-
+    requires org.slf4j;
 
     opens org.fxt.freexmltoolkit to javafx.fxml;
     exports org.fxt.freexmltoolkit;
