@@ -13,6 +13,7 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.layout.BorderPane?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.fxt.freexmltoolkit.XsltController"
@@ -21,40 +22,48 @@
     <HBox AnchorPane.topAnchor="0"
           AnchorPane.bottomAnchor="0"
           AnchorPane.leftAnchor="0"
-          AnchorPane.rightAnchor="0">
-        <VBox prefWidth="300" maxWidth="300" minWidth="300"
-              HBox.hgrow="ALWAYS" style="-fx-padding: 0 5 0 0;">
-            <HBox>
-                <Label>XML Files</Label>
-                <TextField fx:id="xmlFileDir" />
-                <Button fx:id="xmlDirChooserButton">
-                    <graphic>
-                        <ImageView preserveRatio="true" fitHeight="16">
-                            <Image url="@img/icons8-opened_folder.png"/>
-                        </ImageView>
-                    </graphic>
-                </Button>
-            </HBox>
+          AnchorPane.rightAnchor="0"
+          fillHeight="true">
+        <BorderPane prefWidth="300" maxWidth="300" minWidth="300"
+                    HBox.hgrow="ALWAYS" style="-fx-padding: 0 5 0 0;">
+            <top>
+                <VBox>
+                    <HBox>
+                        <Label>XML Files</Label>
+                        <TextField fx:id="xmlFileDir"/>
+                        <Button fx:id="xmlDirChooserButton">
+                            <graphic>
+                                <ImageView preserveRatio="true" fitHeight="16">
+                                    <Image url="@img/icons8-opened_folder.png"/>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                    </HBox>
 
-            <ListView fx:id="xmlFiles" prefHeight="300"/>
+                    <ListView fx:id="xmlFiles" prefHeight="200" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </top>
+            <bottom>
+                <VBox>
+                    <HBox>
+                        <Label>XSLT Files</Label>
+                        <TextField fx:id="xsltFileDir"/>
+                        <Button fx:id="xsltChooserButton">
+                            <graphic>
+                                <ImageView preserveRatio="true" fitHeight="16">
+                                    <Image url="@img/icons8-opened_folder.png"/>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                    <ListView fx:id="xsltFiles" prefHeight="200" VBox.vgrow="ALWAYS"/>
 
-            <HBox>
-                <Label>XSLT Files</Label>
-                <TextField fx:id="xsltFileDir" />
-                <Button fx:id="xsltChooserButton">
-                    <graphic>
-                        <ImageView preserveRatio="true" fitHeight="16">
-                            <Image url="@img/icons8-opened_folder.png"/>
-                        </ImageView>
-                    </graphic>
-                </Button>
-            </HBox>
-            <ListView fx:id="xsltFiles" prefHeight="300"/>
+                    <Text fx:id="status"/>
+                    <ProgressBar fx:id="progressBar" prefWidth="300" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>
+                </VBox>
+            </bottom>
+        </BorderPane>
 
-            <Text fx:id="status"/>
-            <ProgressBar fx:id="progressBar" prefWidth="300" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>
-        </VBox>
-
-        <WebView fx:id="webView" HBox.hgrow="ALWAYS" />
+        <WebView fx:id="webView" HBox.hgrow="ALWAYS"/>
     </HBox>
 </AnchorPane>
