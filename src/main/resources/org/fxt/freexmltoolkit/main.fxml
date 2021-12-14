@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
+      fx:id="mainBox"
       fx:controller="org.fxt.freexmltoolkit.MainController">
     <MenuBar>
         <menus>
@@ -53,7 +54,7 @@
                 </ImageView>
             </graphic>
         </Button>
-        <Button text="Open" contentDisplay="GRAPHIC_ONLY">
+        <Button onAction="#openFile" text="Open" contentDisplay="GRAPHIC_ONLY">
             <graphic>
                 <ImageView preserveRatio="true" fitHeight="16">
                     <Image url="@img/icons8-geöffnete-datei-unter-cursor-48.png"/>

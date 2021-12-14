@@ -1,14 +1,12 @@
 package org.fxt.freexmltoolkit;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Tab;
 import javafx.scene.layout.StackPane;
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
-import org.fxmisc.flowless.VirtualizedScrollPane;
-
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.OutputKeys;
@@ -76,15 +74,8 @@ public class XmlController {
 
     CodeArea codeArea = new CodeArea();
 
-    String myText;
-
     @FXML
     StackPane stackPane;
-
-
-    public String getXMLContent() {
-        return prettyFormat(codeArea.getText(), 2);
-    }
 
     public void setPrettyText() {
         var temp = codeArea.getText();
@@ -118,7 +109,6 @@ public class XmlController {
 
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             codeArea.setStyleSpans(0, computeHighlighting(newText));
-            myText = obs.getValue();
         });
         codeArea.replaceText(0, 0, sampleCode);
         stackPane.getChildren().add(new VirtualizedScrollPane<>(codeArea));
