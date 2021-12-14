@@ -63,6 +63,8 @@ public class XsltController {
     @FXML
     Text status;
 
+
+
     public final ObservableList<File> xmlFileList =
             FXCollections.observableArrayList();
     public final ObservableList<File> xsdFileList =

@@ -41,7 +41,6 @@ public class MainController {
         FXMLLoader fxmlLoader = new FXMLLoader();
         try {
             fxmlLoader.load(getClass().getResource("tab_xml.fxml").openStream());
-            xmlController = fxmlLoader.getController();
         } catch (IOException e) {
             e.printStackTrace();
         }
