@@ -24,7 +24,10 @@ public class MainController {
     private XmlController xmlController;
 
     @FXML
-    Tab tabPaneXml, tabPaneXslt;
+    private Xml2Controller xml2Controller;
+
+    @FXML
+    Tab tabPaneXml, tabPaneXslt, tabPaneXml2;
 
     @FXML
     Button prettyPrint;
@@ -37,17 +40,48 @@ public class MainController {
     @FXML
     VBox mainBox;
 
+
+    String textContent;
+
+
+    @FXML
+    private void openFile2(ActionEvent e) {
+        Stage stage = (Stage) mainBox.getScene().getWindow();
+        File selectedFile = fileChooser.showOpenDialog(stage);
+        System.out.println(selectedFile.getAbsolutePath());
+        String fileContent;
+
+        if (selectedFile.exists()) {
+            try {
+                fileContent = Files.readString(Path.of(selectedFile.getAbsolutePath()));
+                System.out.println("fileContent.length() = " + String.format("%.2f", fileContent.length() / (1024f * 1024f)) + " MB");
+                xml2Controller.setText(fileContent);
+                textContent = fileContent;
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+
+
     @FXML
     private void openFile(ActionEvent e) {
         Stage stage = (Stage) mainBox.getScene().getWindow();
         File selectedFile = fileChooser.showOpenDialog(stage);
         System.out.println(selectedFile.getAbsolutePath());
+        String fileContent;
 
-        xmlController.codeArea.clear();
-        try {
-            xmlController.codeArea.replaceText(0,0, Files.readString(Path.of(selectedFile.getAbsolutePath())));
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        if (selectedFile.exists()) {
+            try {
+                fileContent = Files.readString(Path.of(selectedFile.getAbsolutePath()));
+                System.out.println("fileContent.length() = " + String.format("%.2f", fileContent.length() / (1024f * 1024f)) + " MB");
+                xmlController.codeArea.clear();
+                System.out.println("Clear fertig");
+                xmlController.codeArea.replaceText(0,0, fileContent);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
@@ -58,6 +92,7 @@ public class MainController {
                 new FileChooser.ExtensionFilter("XML Files", "*.xml")
                 ,new FileChooser.ExtensionFilter("XSLT Files", "*.xslt")
         );
+        fileChooser.setInitialDirectory(new File("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles"));
 
         FXMLLoader fxmlLoader = new FXMLLoader();
         try {
@@ -80,6 +115,11 @@ public class MainController {
                 }
                 else
                     System.out.println("XMLController is null");
+            }
+
+            if (tabPaneXml2.isSelected()) {
+                var temp = XmlController.prettyFormat(textContent, 2);
+                xml2Controller.setText(temp);
             }
         });
     }
