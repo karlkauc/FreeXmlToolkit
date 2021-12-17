@@ -17,6 +17,9 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://repo.eclipse.org/content/groups/releases/")
+    }
 }
 
 // sourceCompatibility = "17"
@@ -42,9 +45,24 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-core:2.16.0")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.16.0")
 
+    // Lemminx
+    /*implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.18.2") {
+        exclude(group = "xml.apis", module = "xml.apis")
+        exclude(group ="java.xml", module ="java.xml")
+    }
+     */
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 }
+
+configurations {
+    all {
+        exclude(group = "xml.apis", module = "xml.apis")
+        exclude(group = "java.xml", module = "java.xml")
+    }
+}
+
+
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
