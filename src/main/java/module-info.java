@@ -5,12 +5,13 @@ module org.fxt.freexmltoolkit {
     requires Saxon.HE;
     requires org.fxmisc.richtext;
     requires flowless;
-    requires org.slf4j;
+    // requires org.slf4j;
+    requires org.apache.logging.log4j;
+    requires org.apache.logging.log4j.core;
+    requires org.apache.logging.log4j.slf4j;
+    requires java.desktop;
 
-    requires org.eclipse.lemminx;
-    requires org.eclipse.lsp4j;
-    requires org.eclipse.lsp4j.generator;
-    requires org.eclipse.lsp4j.jsonrpc;
+    requires org.apache.commons.lang3;
 
     opens org.fxt.freexmltoolkit to javafx.fxml;
     exports org.fxt.freexmltoolkit;

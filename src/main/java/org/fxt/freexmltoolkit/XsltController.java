@@ -14,8 +14,9 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import net.sf.saxon.TransformerFactoryImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.SystemUtils;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -26,6 +27,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 
 public class XsltController {
 
@@ -33,7 +35,10 @@ public class XsltController {
 
     }
 
-    private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+
+    private final static String XML_PATTERN = ".*\\.xml$";
+    private final static String XSLT_PATTERN = ".*\\.xslt";
 
     @FXML
     ProgressBar progressBar;
@@ -64,7 +69,6 @@ public class XsltController {
     Text status;
 
 
-
     public final ObservableList<File> xmlFileList =
             FXCollections.observableArrayList();
     public final ObservableList<File> xsdFileList =
@@ -79,6 +83,7 @@ public class XsltController {
             } else {
                 File dir = new File(path);
                 File[] files = dir.listFiles((dir1, name) -> name.matches(patternString));
+                logger.info("loaded {} files from Directory {} with pattern {}", files.length, path, patternString);
                 return FXCollections.observableArrayList(files);
             }
         } else return FXCollections.emptyObservableList();
@@ -86,11 +91,17 @@ public class XsltController {
 
     @FXML
     private void initialize() {
-        directoryChooserXML.setInitialDirectory(new File("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles"));
-        directoryChooserXSLT.setInitialDirectory(new File("C:\\Data\\src\\FreeXmlToolkit\\output"));
 
-        xsltFileDir.textProperty().setValue(directoryChooserXSLT.getInitialDirectory().getAbsolutePath());
-        xmlFileDir.textProperty().setValue(directoryChooserXML.getInitialDirectory().getAbsolutePath());
+        if (SystemUtils.OS_NAME.toUpperCase(Locale.ROOT).startsWith("WINDOWS")) {
+            if (new File("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles").exists()) {
+                directoryChooserXML.setInitialDirectory(new File("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles"));
+                xmlFileDir.textProperty().setValue(directoryChooserXML.getInitialDirectory().getAbsolutePath());
+            }
+            if (new File("C:\\Data\\src\\FreeXmlToolkit\\output").exists()) {
+                directoryChooserXSLT.setInitialDirectory(new File("C:\\Data\\src\\FreeXmlToolkit\\output"));
+                xsltFileDir.textProperty().setValue(directoryChooserXSLT.getInitialDirectory().getAbsolutePath());
+            }
+        }
 
         progressBar.setProgress(0);
         xmlFiles.setCellFactory(new Callback<>() {
@@ -110,8 +121,12 @@ public class XsltController {
             }
         });
 
-        loadFilesFromDirectory(xmlFileList, xmlFileDir.getText(), ".*\\.xml$");
-        loadFilesFromDirectory(xsdFileList, xsltFileDir.getText(), ".*\\.xslt$");
+        if (xmlFileDir.getText() != null && new File(xmlFileDir.getText()).exists()) {
+            loadFilesFromDirectory(xmlFileList, xmlFileDir.getText(), XML_PATTERN);
+        }
+        if (xsltFileDir.getText() != null && new File(xsltFileDir.getText()).exists()) {
+            loadFilesFromDirectory(xsdFileList, xsltFileDir.getText(), XSLT_PATTERN);
+        }
 
         xmlDirChooserButton.setOnAction(e -> {
             Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
@@ -171,7 +186,7 @@ public class XsltController {
     private void loadXmlFiles() {
         try {
             xmlFileList.clear();
-            xmlFileList.addAll(getFileNames(xmlFileDir.getText(), ".xml"));
+            xmlFileList.addAll(getFileNames(xmlFileDir.getText(), XML_PATTERN));
         } catch (FileNotFoundException fileNotFoundException) {
             System.out.println("FILE NOT FOUND");
         }
@@ -180,7 +195,7 @@ public class XsltController {
     private void loadXsdFiles() {
         try {
             xsdFileList.clear();
-            xsdFileList.addAll(getFileNames(xsltFileDir.getText(), ".xslt"));
+            xsdFileList.addAll(getFileNames(xsltFileDir.getText(), XSLT_PATTERN));
         } catch (FileNotFoundException fileNotFoundException) {
             System.out.println("FILE NOT FOUND");
         }

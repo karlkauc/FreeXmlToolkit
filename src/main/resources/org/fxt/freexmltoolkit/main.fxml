@@ -4,86 +4,58 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.HBox?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:id="mainBox"
       fx:controller="org.fxt.freexmltoolkit.MainController">
-    <MenuBar>
-        <menus>
-            <Menu text="File">
-                <items>
-                    <MenuItem text="New"/>
-                    <MenuItem text="Open"/>
-                    <MenuItem text="Save"/>
-                    <MenuItem text="Save As"/>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="Exit"/>
-                </items>
-            </Menu>
-            <Menu text="Edit">
-                <items>
-                    <MenuItem text="Copy"/>
-                    <MenuItem text="Cut"/>
-                    <MenuItem text="Paste"/>
-                </items>
-            </Menu>
+    <HBox VBox.vgrow="NEVER">
+        <children>
+            <ToolBar HBox.hgrow="ALWAYS">
+                <Button text="New" contentDisplay="GRAPHIC_ONLY">
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@img/icons8-datei-24.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button text="Save" contentDisplay="GRAPHIC_ONLY">
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@img/icons8-speichern-50.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button onAction="#openFile" text="Open" contentDisplay="LEFT">
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@img/icons8-geöffnete-datei-unter-cursor-48.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button text="pretty print" contentDisplay="LEFT" fx:id="prettyPrint">
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@img/icons8-align_center.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </ToolBar>
+            <ToolBar HBox.hgrow="NEVER">
+                <Button text="Help" onAction="#openHelpPage"/>
+                <Button text="About" fx:id="about" onAction="#pressAboutButton"/>
 
-            <Menu text="Help">
-                <items>
-                    <MenuItem text="Search" disable="true"/>
-                    <MenuItem text="Online Manual" visible="false"/>
-                    <SeparatorMenuItem/>
-                    <MenuItem text="Settings"/>
-                    <MenuItem text="About"/>
-                </items>
-            </Menu>
-        </menus>
-    </MenuBar>
-    <ToolBar>
-        <Button text="New" contentDisplay="GRAPHIC_ONLY">
-            <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
-                    <Image url="@img/icons8-datei-24.png"/>
-                </ImageView>
-            </graphic>
-        </Button>
-        <Button text="Save" contentDisplay="GRAPHIC_ONLY">
-            <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
-                    <Image url="@img/icons8-speichern-50.png"/>
-                </ImageView>
-            </graphic>
-        </Button>
-        <Button onAction="#openFile" text="Open" contentDisplay="LEFT">
-            <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
-                    <Image url="@img/icons8-geöffnete-datei-unter-cursor-48.png"/>
-                </ImageView>
-            </graphic>
-        </Button>
-        <Button onAction="#openFile2" text="Open" contentDisplay="LEFT">
-            <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
-                    <Image url="@img/icons8-geöffnete-datei-unter-cursor-48.png"/>
-                </ImageView>
-            </graphic>
-        </Button>
-        <Button text="pretty print" contentDisplay="LEFT" fx:id="prettyPrint">
-            <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
-                    <Image url="@img/icons8-align_center.png"/>
-                </ImageView>
-            </graphic>
-        </Button>
-        <Button text="Help"/>
-        <Button text="Exit" contentDisplay="LEFT" fx:id="exit">
-            <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
-                    <Image url="@img/icons8-exit-64.png"/>
-                </ImageView>
-            </graphic>
-        </Button>
-    </ToolBar>
+                <Button text="Exit" contentDisplay="LEFT" fx:id="exit">
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@img/icons8-exit-64.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </ToolBar>
+        </children>
+    </HBox>
     <TabPane VBox.vgrow="ALWAYS">
         <tabs>
             <Tab text="XSLT" closable="false" fx:id="tabPaneXslt">
@@ -92,18 +64,8 @@
             <Tab text="XML" closable="false" fx:id="tabPaneXml">
                 <fx:include fx:id="xml" source="tab_xml.fxml"/>
             </Tab>
-            <Tab text="XML2" closable="false" fx:id="tabPaneXml2">
-                <fx:include fx:id="xml2" source="tab_xml2.fxml"/>
-            </Tab>
-
             <Tab text="XSD" closable="false"/>
             <Tab text="FOP" closable="false"/>
-            <Tab text="About">
-                <AnchorPane>
-                    <Label>asdfasdfasdf</Label>
-                </AnchorPane>
-
-            </Tab>
         </tabs>
     </TabPane>
 </VBox>
