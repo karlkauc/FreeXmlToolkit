@@ -53,6 +53,7 @@
             </ToolBar>
         </children>
     </HBox>
+
     <TabPane VBox.vgrow="ALWAYS">
         <tabs>
             <Tab text="XSLT" closable="false" fx:id="tabPaneXslt">
