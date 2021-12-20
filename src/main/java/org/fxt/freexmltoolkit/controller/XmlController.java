@@ -1,4 +1,4 @@
-package org.fxt.freexmltoolkit;
+package org.fxt.freexmltoolkit.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;

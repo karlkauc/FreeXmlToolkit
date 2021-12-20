@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.StackPane?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="org.fxt.freexmltoolkit.XmlController">
+            fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <StackPane fx:id="stackPane" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" stylesheets="@xml-highlighting.css"/>
 </AnchorPane>

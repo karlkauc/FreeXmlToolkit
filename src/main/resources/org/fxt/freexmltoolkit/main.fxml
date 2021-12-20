@@ -2,14 +2,11 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.*?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:id="mainBox"
-      fx:controller="org.fxt.freexmltoolkit.MainController">
+      fx:controller="org.fxt.freexmltoolkit.controller.MainController">
     <HBox VBox.vgrow="NEVER">
         <children>
             <ToolBar HBox.hgrow="ALWAYS">
@@ -59,13 +56,35 @@
     <TabPane VBox.vgrow="ALWAYS">
         <tabs>
             <Tab text="XSLT" closable="false" fx:id="tabPaneXslt">
+                <graphic>
+                    <ImageView preserveRatio="true" fitHeight="16">
+                        <Image url="@img/icons8-transform-64.png"/>
+                    </ImageView>
+                </graphic>
                 <fx:include fx:id="xslt" source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
             </Tab>
             <Tab text="XML" closable="false" fx:id="tabPaneXml">
+                <graphic>
+                    <ImageView preserveRatio="true" fitHeight="16">
+                        <Image url="@img/icons8-xml-64.png"/>
+                    </ImageView>
+                </graphic>
                 <fx:include fx:id="xml" source="tab_xml.fxml"/>
             </Tab>
-            <Tab text="XSD" closable="false"/>
-            <Tab text="FOP" closable="false"/>
+            <Tab text="XSD" closable="false">
+                <graphic>
+                    <ImageView preserveRatio="true" fitHeight="16">
+                        <Image url="@img/icons8-middle-column-rectangular-bar-with-side-strips-24.png"/>
+                    </ImageView>
+                </graphic>
+            </Tab>
+            <Tab text="FOP" closable="false">
+                <graphic>
+                    <ImageView preserveRatio="true" fitHeight="16">
+                        <Image url="@img/icons8-pdf-16.png"/>
+                    </ImageView>
+                </graphic>
+            </Tab>
         </tabs>
     </TabPane>
 </VBox>

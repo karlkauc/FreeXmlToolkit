@@ -1,8 +1,7 @@
-package org.fxt.freexmltoolkit;
+package org.fxt.freexmltoolkit.controller;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -12,8 +11,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
 
-import java.awt.Desktop;
-
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -77,7 +75,7 @@ public class MainController {
                 System.out.println("fileContent.length() = " + String.format("%.2f", fileContent.length() / (1024f * 1024f)) + " MB");
                 xmlController.codeArea.clear();
                 System.out.println("Clear fertig");
-                xmlController.codeArea.replaceText(0,0, fileContent);
+                xmlController.codeArea.replaceText(0, 0, fileContent);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -89,34 +87,23 @@ public class MainController {
     private void initialize() {
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML Files", "*.xml")
-                ,new FileChooser.ExtensionFilter("XSLT Files", "*.xslt")
+                , new FileChooser.ExtensionFilter("XSLT Files", "*.xslt")
         );
 
         if (SystemUtils.OS_NAME.toUpperCase(Locale.ROOT).startsWith("WINDOWS") && new File(("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles")).exists()) {
             fileChooser.setInitialDirectory(new File("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles"));
         }
 
-
-        FXMLLoader fxmlLoader = new FXMLLoader();
-        try {
-            fxmlLoader.load(getClass().getResource("tab_xml.fxml").openStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         exit.setOnAction(e -> System.exit(0));
 
         prettyPrint.setOnAction(event -> {
-            System.out.println("Hello World!");
-            System.out.println("event.getSource() = " + event.getSource());
             System.out.println("tabPaneXml.isSelected() = " + tabPaneXml.isSelected());
             System.out.println("tabPaneXslt.isSelected() = " + tabPaneXslt.isSelected());
 
             if (tabPaneXml.isSelected()) {
                 if (xmlController != null) {
                     xmlController.setPrettyText();
-                }
-                else
+                } else
                     System.out.println("XMLController is null");
             }
         });
