@@ -4,11 +4,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebEngine;
@@ -20,6 +22,7 @@ import net.sf.saxon.TransformerFactoryImpl;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.fxt.freexmltoolkit.FilePathTreeItem;
 import org.fxt.freexmltoolkit.SimpleFileTreeItem;
 
 import javax.xml.transform.Transformer;
@@ -28,6 +31,9 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.lang.invoke.MethodHandles;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -108,6 +114,7 @@ public class XsltController {
                 xsltFileDir.textProperty().setValue(directoryChooserXSLT.getInitialDirectory().getAbsolutePath());
             }
         }
+
         treeViewXml.setRoot(new SimpleFileTreeItem(new File("/Users/karlkauc/IdeaProjects/FreeXmlToolkit/output"), XML_PATTERN));
         treeViewXml.setCellFactory(param -> new TreeCell<>() {
             @Override
@@ -116,30 +123,36 @@ public class XsltController {
                 if (file == null || empty) {
                     setGraphic(null);
                 } else {
-                    VBox vb = new VBox();
+                    HBox hBox = new HBox();
+                    hBox.setSpacing(3);
+
                     Text t = new Text();
                     if (file.isDirectory()) {
                         ImageView imgVw = new ImageView();
-                        InputStream is = getClass().getResourceAsStream("/img/icons8-opened_folder.png");
+                        var i = new Image(getClass().getResourceAsStream("/img/icons8-opened_folder.png"));
+                        imgVw.setImage(i);
+                        imgVw.setFitHeight(16);
+                        imgVw.setFitWidth(16);
 
-                        if (is == null) {
-                            logger.error("IS IS NULL");
-                        }
-                        else {
-                            logger.debug("IS NOT NULL");
-                            Image i = new Image(is);
-                            imgVw.setImage(i);
-                            vb.getChildren().add(imgVw);
-                        }
+                        hBox.getChildren().add(imgVw);
                         t.setText(file.getName());
-                        vb.getChildren().add(t);
-                    }
-                    else {
+                        hBox.getChildren().add(t);
+                    } else {
+                        if (file.getName().toLowerCase(Locale.ROOT).endsWith(".xml")) {
+                            ImageView imgVw = new ImageView();
+                            var i = new Image(getClass().getResourceAsStream("/img/icons8-xml-64.png"));
+                            imgVw.setImage(i);
+                            imgVw.setFitHeight(16);
+                            imgVw.setFitWidth(16);
+
+                            hBox.getChildren().add(imgVw);
+
+                        }
                         t.setText(file.getName() + ":" + file.length());
-                        vb.getChildren().add(t);
+                        hBox.getChildren().add(t);
                     }
 
-                    setGraphic(vb);
+                    setGraphic(hBox);
                 }
             }
         });

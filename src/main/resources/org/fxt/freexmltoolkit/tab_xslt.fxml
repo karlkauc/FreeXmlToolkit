@@ -37,7 +37,7 @@
                         <Button fx:id="xmlDirChooserButton">
                             <graphic>
                                 <ImageView preserveRatio="true" fitHeight="16">
-                                    <Image url="@img/icons8-opened_folder.png"/>
+                                    <Image url="@../../../img/icons8-opened_folder.png"/>
                                 </ImageView>
                             </graphic>
                         </Button>
@@ -53,7 +53,7 @@
                         <Button fx:id="xsltChooserButton">
                             <graphic>
                                 <ImageView preserveRatio="true" fitHeight="16">
-                                    <Image url="@img/icons8-opened_folder.png"/>
+                                    <Image url="@../../../img/icons8-opened_folder.png"/>
                                 </ImageView>
                             </graphic>
                         </Button>
