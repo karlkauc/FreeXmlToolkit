@@ -5,9 +5,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+import org.apache.commons.io.*;
 
 import java.io.File;
 import java.util.Locale;
+import java.util.Objects;
 
 public class FileTreeCell extends TreeCell<File> {
     @Override
@@ -22,7 +24,7 @@ public class FileTreeCell extends TreeCell<File> {
             Text t = new Text();
             if (file.isDirectory()) {
                 ImageView imgVw = new ImageView();
-                var i = new Image(getClass().getResourceAsStream("/img/icons8-opened_folder.png"));
+                var i = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/icons8-opened_folder.png")));
                 imgVw.setImage(i);
                 imgVw.setFitHeight(16);
                 imgVw.setFitWidth(16);
@@ -33,7 +35,7 @@ public class FileTreeCell extends TreeCell<File> {
             } else {
                 if (file.getName().toLowerCase(Locale.ROOT).endsWith(".xml")) {
                     ImageView imgVw = new ImageView();
-                    var i = new Image(getClass().getResourceAsStream("/img/icons8-xml-64.png"));
+                    var i = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/icons8-xml-64.png")));
                     imgVw.setImage(i);
                     imgVw.setFitHeight(16);
                     imgVw.setFitWidth(16);
@@ -41,7 +43,7 @@ public class FileTreeCell extends TreeCell<File> {
                     hBox.getChildren().add(imgVw);
 
                 }
-                t.setText(file.getName() + ":" + file.length());
+                t.setText(file.getName() + " (" +  FileUtils.byteCountToDisplaySize(file.length()) + ")");
                 hBox.getChildren().add(t);
             }
             setGraphic(hBox);

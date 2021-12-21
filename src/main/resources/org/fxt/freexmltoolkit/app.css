@@ -1,0 +1,8 @@
+.my-tree-view .tree-cell .tree-disclosure-node .arrow {
+    -fx-background-color: black;
+    -fx-shape: "M24 9h-9v-9h-6v9h-9v6h9v9h6v-9h9z";
+}
+.my-tree-view .tree-cell:expanded .tree-disclosure-node .arrow {
+    -fx-background-color: black;
+    -fx-shape: "M0 9h24v6h-24z";
+}

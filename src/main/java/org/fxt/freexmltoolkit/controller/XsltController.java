@@ -43,32 +43,31 @@ public class XsltController {
     @FXML
     ProgressBar progressBar;
 
-    DirectoryChooser directoryChooserXSLT = new DirectoryChooser();
-
     @FXML
     AnchorPane anchorPane;
-
-    @FXML
-    TextField xsltFileDir;
 
     @FXML
     WebView webView;
 
     @FXML
+    TextField xmlTextField;
+
+    @FXML
     private void initialize() {
+        String userHome = System.getProperty("user.home");
+
         if (SystemUtils.OS_NAME.toUpperCase(Locale.ROOT).startsWith("WINDOWS")) {
             if (new File("C:\\Data\\src\\FreeXmlToolkit\\output").exists()) {
-                directoryChooserXSLT.setInitialDirectory(new File("C:\\Data\\src\\FreeXmlToolkit\\output"));
-                xsltFileDir.textProperty().setValue(directoryChooserXSLT.getInitialDirectory().getAbsolutePath());
+                userHome = "C:\\Data\\src\\FreeXmlToolkit\\output";
             }
         }
 
-        String userHome = System.getProperty("user.home");
-        userHome = ".";
+        // userHome = ".";
         treeViewXml.setRoot(new SimpleFileTreeItem(new File(userHome), XML_PATTERN));
         treeViewXml.setOnMouseClicked(ae -> {
             if (treeViewXml.getSelectionModel().getSelectedItem() != null) {
                 System.out.println("treeViewXml = " + treeViewXml.getSelectionModel().getSelectedItem().toString());
+                xmlTextField.textProperty().setValue(treeViewXml.getSelectionModel().getSelectedItem().valueProperty().getValue().getAbsolutePath());
                 var file = treeViewXml.getSelectionModel().getSelectedItem().getValue();
                 if (file.isFile() && treeViewXslt.getSelectionModel().getSelectedItem() != null) {
                     progressBar.setProgress(0.1);
@@ -90,7 +89,6 @@ public class XsltController {
             }
         });
         treeViewXslt.setCellFactory(param -> new FileTreeCell());
-
         progressBar.setProgress(0);
     }
 
@@ -109,30 +107,25 @@ public class XsltController {
             output = output.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
             output = output.replace("  >", "");
 
-            // status.setText("finished transforming");
-
             WebEngine engine = webView.getEngine();
             Files.writeString(Paths.get(outputFile), output);
             progressBar.setProgress(0.6);
             System.out.println("write successful");
-            // status.setText("write successful");
 
             engine.getLoadWorker().stateProperty().addListener(
                     (ov, oldState, newState) -> {
                         if (newState == State.SUCCEEDED) {
-                            // System.out.println("FERTIG: " + engine.getLocation());
                             logger.debug("FERTIG: " + engine.getLocation());
-                            // status.setText("rendering finished");
                             progressBar.setProgress(1);
                         }
                     });
 
             engine.load(new File(outputFile).toURI().toURL().toString());
-
-            System.out.println("Loaded Content");
+            logger.debug("Loaded Content");
 
         } catch (TransformerException | IOException e) {
             e.printStackTrace();
+            logger.error(e.getLocalizedMessage());
         }
     }
 

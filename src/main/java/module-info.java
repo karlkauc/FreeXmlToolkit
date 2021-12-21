@@ -11,6 +11,7 @@ module org.fxt.freexmltoolkit {
     requires java.desktop;
 
     requires org.apache.commons.lang3;
+    requires org.apache.commons.io;
 
     opens org.fxt.freexmltoolkit to javafx.fxml;
     exports org.fxt.freexmltoolkit;
