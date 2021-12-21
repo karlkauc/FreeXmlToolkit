@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
 
 public class SimpleFileTreeItem extends TreeItem<File> {
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
@@ -78,8 +79,6 @@ public class SimpleFileTreeItem extends TreeItem<File> {
      *         handed TreeItem is a leaf, an empty list is returned.
      */
     private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> TreeItem) {
-        logger.debug("buildChildren");
-        logger.debug("PATTERN " + this.pattern);
         File f = TreeItem.getValue();
         if (f != null && f.isDirectory()) {
             File[] files;
@@ -88,6 +87,10 @@ public class SimpleFileTreeItem extends TreeItem<File> {
             }
             else {
                 files = f.listFiles();
+            }
+
+            if (files != null) {
+                Arrays.sort(files);
             }
 
             if (files != null) {

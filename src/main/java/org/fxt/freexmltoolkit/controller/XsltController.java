@@ -1,28 +1,19 @@
 package org.fxt.freexmltoolkit.controller;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.scene.Node;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TreeView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Stage;
-import javafx.util.Callback;
 import net.sf.saxon.TransformerFactoryImpl;
 import org.apache.commons.lang3.SystemUtils;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.fxt.freexmltoolkit.FilePathTreeItem;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.FileTreeCell;
 import org.fxt.freexmltoolkit.SimpleFileTreeItem;
 
 import javax.xml.transform.Transformer;
@@ -31,14 +22,9 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
 import java.lang.invoke.MethodHandles;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
-import java.util.Objects;
 
 public class XsltController {
 
@@ -52,216 +38,69 @@ public class XsltController {
     private final static String XSLT_PATTERN = ".*\\.xslt";
 
     @FXML
-    TreeView<File> treeViewXml;
+    TreeView<File> treeViewXml, treeViewXslt;
 
     @FXML
     ProgressBar progressBar;
 
-    DirectoryChooser directoryChooserXML = new DirectoryChooser();
     DirectoryChooser directoryChooserXSLT = new DirectoryChooser();
 
     @FXML
     AnchorPane anchorPane;
 
     @FXML
-    TextField xmlFileDir, xsltFileDir;
-
-    @FXML
-    Button xmlDirChooserButton, xsltChooserButton;
-
-    @FXML
-    ListView<File> xmlFiles;
-
-    @FXML
-    ListView<File> xsltFiles;
+    TextField xsltFileDir;
 
     @FXML
     WebView webView;
 
     @FXML
-    Text status;
-
-
-    public final ObservableList<File> xmlFileList =
-            FXCollections.observableArrayList();
-    public final ObservableList<File> xsdFileList =
-            FXCollections.observableArrayList();
-
-    private ObservableList<File> getFileNames(String path, String patternString) throws FileNotFoundException {
-        if (path != null) {
-            System.out.println("path = " + path);
-            System.out.println("Path.of(path) = " + Path.of(path));
-            if (!Files.exists(Path.of(path))) {
-                throw new FileNotFoundException();
-            } else {
-                File dir = new File(path);
-                File[] files = dir.listFiles((dir1, name) -> name.matches(patternString));
-                logger.info("loaded {} files from Directory {} with pattern {}", files.length, path, patternString);
-                return FXCollections.observableArrayList(files);
-            }
-        } else return FXCollections.emptyObservableList();
-    }
-
-    @FXML
     private void initialize() {
         if (SystemUtils.OS_NAME.toUpperCase(Locale.ROOT).startsWith("WINDOWS")) {
-            if (new File("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles").exists()) {
-                directoryChooserXML.setInitialDirectory(new File("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles"));
-                xmlFileDir.textProperty().setValue(directoryChooserXML.getInitialDirectory().getAbsolutePath());
-            }
             if (new File("C:\\Data\\src\\FreeXmlToolkit\\output").exists()) {
                 directoryChooserXSLT.setInitialDirectory(new File("C:\\Data\\src\\FreeXmlToolkit\\output"));
                 xsltFileDir.textProperty().setValue(directoryChooserXSLT.getInitialDirectory().getAbsolutePath());
             }
         }
 
-        treeViewXml.setRoot(new SimpleFileTreeItem(new File("/Users/karlkauc/IdeaProjects/FreeXmlToolkit/output"), XML_PATTERN));
-        treeViewXml.setCellFactory(param -> new TreeCell<>() {
-            @Override
-            protected void updateItem(File file, boolean empty) {
-                super.updateItem(file, empty);
-                if (file == null || empty) {
-                    setGraphic(null);
-                } else {
-                    HBox hBox = new HBox();
-                    hBox.setSpacing(3);
-
-                    Text t = new Text();
-                    if (file.isDirectory()) {
-                        ImageView imgVw = new ImageView();
-                        var i = new Image(getClass().getResourceAsStream("/img/icons8-opened_folder.png"));
-                        imgVw.setImage(i);
-                        imgVw.setFitHeight(16);
-                        imgVw.setFitWidth(16);
-
-                        hBox.getChildren().add(imgVw);
-                        t.setText(file.getName());
-                        hBox.getChildren().add(t);
-                    } else {
-                        if (file.getName().toLowerCase(Locale.ROOT).endsWith(".xml")) {
-                            ImageView imgVw = new ImageView();
-                            var i = new Image(getClass().getResourceAsStream("/img/icons8-xml-64.png"));
-                            imgVw.setImage(i);
-                            imgVw.setFitHeight(16);
-                            imgVw.setFitWidth(16);
-
-                            hBox.getChildren().add(imgVw);
-
-                        }
-                        t.setText(file.getName() + ":" + file.length());
-                        hBox.getChildren().add(t);
-                    }
-
-                    setGraphic(hBox);
+        String userHome = System.getProperty("user.home");
+        userHome = ".";
+        treeViewXml.setRoot(new SimpleFileTreeItem(new File(userHome), XML_PATTERN));
+        treeViewXml.setOnMouseClicked(ae -> {
+            if (treeViewXml.getSelectionModel().getSelectedItem() != null) {
+                System.out.println("treeViewXml = " + treeViewXml.getSelectionModel().getSelectedItem().toString());
+                var file = treeViewXml.getSelectionModel().getSelectedItem().getValue();
+                if (file.isFile() && treeViewXslt.getSelectionModel().getSelectedItem() != null) {
+                    progressBar.setProgress(0.1);
+                    renderFile(file.getAbsolutePath(), treeViewXslt.getSelectionModel().getSelectedItem().getValue().getAbsolutePath());
                 }
             }
         });
+        treeViewXml.setCellFactory(param -> new FileTreeCell());
 
+        treeViewXslt.setRoot(new SimpleFileTreeItem(new File(userHome), XSLT_PATTERN));
+        treeViewXslt.setOnMouseClicked(ae -> {
+            if (treeViewXslt.getSelectionModel().getSelectedItem() != null) {
+                System.out.println("treeViewXml = " + treeViewXslt.getSelectionModel().getSelectedItem().toString());
+                var file = treeViewXslt.getSelectionModel().getSelectedItem().getValue();
+                if (file.isFile() && treeViewXml.getSelectionModel().getSelectedItem() != null) {
+                    progressBar.setProgress(0.1);
+                    renderFile(treeViewXml.getSelectionModel().getSelectedItem().getValue().getAbsolutePath(), file.getAbsolutePath());
+                }
+            }
+        });
+        treeViewXslt.setCellFactory(param -> new FileTreeCell());
 
         progressBar.setProgress(0);
-        xmlFiles.setCellFactory(new Callback<>() {
-            @Override
-            public ListCell<File> call(ListView<File> param) {
-                return new ListCell<>() {
-                    @Override
-                    protected void updateItem(File item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (item != null) {
-                            setText(item.getName() + " (" + String.format("%.2f", item.length() / (1024f * 1024f)) + " MB)");
-                        } else {
-                            setText("");
-                        }
-                    }
-                };
-            }
-        });
-
-        if (xmlFileDir.getText() != null && new File(xmlFileDir.getText()).exists()) {
-            loadFilesFromDirectory(xmlFileList, xmlFileDir.getText(), XML_PATTERN);
-        }
-        if (xsltFileDir.getText() != null && new File(xsltFileDir.getText()).exists()) {
-            loadFilesFromDirectory(xsdFileList, xsltFileDir.getText(), XSLT_PATTERN);
-        }
-
-        xmlDirChooserButton.setOnAction(e -> {
-            Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-            File selectedDirectory = directoryChooserXML.showDialog(stage);
-            if (selectedDirectory != null && selectedDirectory.isDirectory()) {
-                xmlFileDir.textProperty().setValue(selectedDirectory.getAbsolutePath());
-                loadXmlFiles();
-            }
-        });
-
-        xsltChooserButton.setOnAction(e -> {
-            Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-            File selectedDirectory = directoryChooserXSLT.showDialog(stage);
-            if (selectedDirectory != null && selectedDirectory.isDirectory()) {
-                xsltFileDir.textProperty().setValue(selectedDirectory.getAbsolutePath());
-                loadXsdFiles();
-            }
-        });
-
-        xmlFiles.setItems(xmlFileList);
-        xsltFiles.setItems(xsdFileList);
-
-        xmlFiles.setOnMouseClicked(event -> {
-            System.out.println("clicked on " + xmlFiles.getSelectionModel().getSelectedItem());
-            status.setText("Loading File: " + xmlFiles.getSelectionModel().getSelectedItem());
-            if (xsltFiles.getSelectionModel().getSelectedItem() != null) {
-                progressBar.setProgress(0.1);
-                renderFile(xmlFiles.getSelectionModel().getSelectedItem().toString(), xsltFiles.getSelectionModel().getSelectedItem().toString());
-            }
-        });
-
-        xsltFiles.setOnMouseClicked(event -> {
-            // System.out.println("clicked on " + xsltFiles.getSelectionModel().getSelectedItem());
-            logger.debug("clicked on " + xsltFiles.getSelectionModel().getSelectedItem());
-            if (xmlFiles.getSelectionModel().getSelectedItem() != null) {
-                status.setText("Loading File: " + xsltFiles.getSelectionModel().getSelectedItem());
-                progressBar.setProgress(0.1);
-                renderFile(xmlFiles.getSelectionModel().getSelectedItem().getAbsolutePath(), xsltFiles.getSelectionModel().getSelectedItem().toString());
-            }
-        });
-
-
     }
 
-    private void loadFilesFromDirectory(ObservableList<File> files, String pfad, String pattern) {
-        try {
-            files.clear();
-            var x = getFileNames(pfad, pattern);
-            // System.out.println("x = " + x.stream().toArray().length);
-            files.addAll(x);
-        } catch (FileNotFoundException fileNotFoundException) {
-            System.out.println("FILE NOT FOUND");
-        }
-
-    }
-
-    private void loadXmlFiles() {
-        try {
-            xmlFileList.clear();
-            xmlFileList.addAll(getFileNames(xmlFileDir.getText(), XML_PATTERN));
-        } catch (FileNotFoundException fileNotFoundException) {
-            System.out.println("FILE NOT FOUND");
-        }
-    }
-
-    private void loadXsdFiles() {
-        try {
-            xsdFileList.clear();
-            xsdFileList.addAll(getFileNames(xsltFileDir.getText(), XSLT_PATTERN));
-        } catch (FileNotFoundException fileNotFoundException) {
-            System.out.println("FILE NOT FOUND");
-        }
-    }
 
     private void renderFile(String xmlFileName, String xsdFileName) {
         final String outputFile = "output/output.html";
 
         String output;
         try {
-            status.setText("Starting...");
+            // status.setText("Starting...");
             progressBar.setProgress(0.1);
             output = saxonTransform(xmlFileName, xsdFileName);
             progressBar.setProgress(0.5);
@@ -270,20 +109,20 @@ public class XsltController {
             output = output.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
             output = output.replace("  >", "");
 
-            status.setText("finished transforming");
+            // status.setText("finished transforming");
 
             WebEngine engine = webView.getEngine();
             Files.writeString(Paths.get(outputFile), output);
             progressBar.setProgress(0.6);
             System.out.println("write successful");
-            status.setText("write successful");
+            // status.setText("write successful");
 
             engine.getLoadWorker().stateProperty().addListener(
                     (ov, oldState, newState) -> {
                         if (newState == State.SUCCEEDED) {
                             // System.out.println("FERTIG: " + engine.getLocation());
                             logger.debug("FERTIG: " + engine.getLocation());
-                            status.setText("rendering finished");
+                            // status.setText("rendering finished");
                             progressBar.setProgress(1);
                         }
                     });

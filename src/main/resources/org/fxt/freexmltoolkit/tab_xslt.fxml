@@ -31,6 +31,7 @@
             <top>
                 <VBox>
                     <TreeView fx:id="treeViewXml" />
+                    <!--
                     <HBox>
                         <Label>XML Files</Label>
                         <TextField fx:id="xmlFileDir"/>
@@ -43,11 +44,15 @@
                         </Button>
                     </HBox>
                     <ListView fx:id="xmlFiles" prefHeight="200" VBox.vgrow="ALWAYS"/>
+                    -->
                 </VBox>
             </top>
             <bottom>
                 <VBox>
+                    <TreeView fx:id="treeViewXslt" />
+                    <!--
                     <HBox>
+
                         <Label>XSLT Files</Label>
                         <TextField fx:id="xsltFileDir"/>
                         <Button fx:id="xsltChooserButton">
@@ -57,10 +62,12 @@
                                 </ImageView>
                             </graphic>
                         </Button>
+
                     </HBox>
                     <ListView fx:id="xsltFiles" prefHeight="200" VBox.vgrow="ALWAYS"/>
-
                     <Text fx:id="status"/>
+                    -->
+
                     <ProgressBar fx:id="progressBar" prefWidth="300" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>
                 </VBox>
             </bottom>
