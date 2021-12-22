@@ -23,11 +23,13 @@ import java.util.Locale;
 public class MainController {
 
     @FXML
-    private Parent xml, tabXslt;
+    private Parent xml, xslt;
 
     @FXML
     private XmlController xmlController;
 
+    @FXML
+    private XsltController xsltController;
 
     @FXML
     Tab tabPaneXml, tabPaneXslt;

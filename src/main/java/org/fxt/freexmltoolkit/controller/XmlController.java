@@ -78,6 +78,11 @@ public class XmlController {
     @FXML
     StackPane stackPane;
 
+    public void setNewText(String text){
+        codeArea.clear();
+        codeArea.replaceText(0,0, prettyFormat(text, 2));
+    }
+
     public void setPrettyText() {
         var temp = codeArea.getText();
         codeArea.clear();

@@ -8,7 +8,6 @@ import javafx.scene.control.TreeView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import javafx.stage.DirectoryChooser;
 import net.sf.saxon.TransformerFactoryImpl;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
@@ -27,6 +26,9 @@ import java.nio.file.Paths;
 import java.util.Locale;
 
 public class XsltController {
+
+    @FXML
+    private XmlController xmlController;
 
     public XsltController() {
 
@@ -52,8 +54,26 @@ public class XsltController {
     @FXML
     TextField xmlTextField;
 
+    File currentFile;
+
     @FXML
     private void initialize() {
+        if (xmlController != null) {
+            logger.debug("XML Controller ist befüllt");
+            if (currentFile != null && currentFile.exists()) {
+                try {
+                    var fileContent = Files.readString(currentFile.toPath());
+                    logger.debug("File content size: " + fileContent.length());
+                    xmlController.setNewText(fileContent);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        else {
+            logger.debug("XML Controller is null");
+        }
+
         String userHome = System.getProperty("user.home");
 
         if (SystemUtils.OS_NAME.toUpperCase(Locale.ROOT).startsWith("WINDOWS")) {
@@ -70,6 +90,7 @@ public class XsltController {
                 xmlTextField.textProperty().setValue(treeViewXml.getSelectionModel().getSelectedItem().valueProperty().getValue().getAbsolutePath());
                 var file = treeViewXml.getSelectionModel().getSelectedItem().getValue();
                 if (file.isFile() && treeViewXslt.getSelectionModel().getSelectedItem() != null) {
+                    currentFile = file;
                     progressBar.setProgress(0.1);
                     renderFile(file.getAbsolutePath(), treeViewXslt.getSelectionModel().getSelectedItem().getValue().getAbsolutePath());
                 }

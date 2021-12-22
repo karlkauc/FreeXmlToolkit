@@ -9,15 +9,14 @@
 <?import javafx.scene.control.Button?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            stylesheets="@app.css"
+            stylesheets="@../css/app.css"
             fx:controller="org.fxt.freexmltoolkit.controller.XsltController"
             fx:id="anchorPane"
             style="-fx-padding: 5;">
     <HBox AnchorPane.topAnchor="0"
           AnchorPane.bottomAnchor="0"
           AnchorPane.leftAnchor="0"
-          AnchorPane.rightAnchor="0"
-          fillHeight="true">
+          AnchorPane.rightAnchor="0">
         <BorderPane prefWidth="300" maxWidth="300" minWidth="300"
                     HBox.hgrow="ALWAYS" style="-fx-padding: 0 5 0 0;">
             <top>
