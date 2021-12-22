@@ -3,6 +3,9 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.StackPane;
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
@@ -18,6 +21,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -25,8 +29,11 @@ import java.util.regex.Pattern;
 
 public class XmlController {
 
+    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+
+
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
-            +"|(?<COMMENT><!--[^<>]+-->)");
+            + "|(?<COMMENT><!--[^<>]+-->)");
 
     private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
 
@@ -38,7 +45,7 @@ public class XmlController {
     private static final int GROUP_EQUAL_SYMBOL = 2;
     private static final int GROUP_ATTRIBUTE_VALUE = 3;
 
-    private String sampleCode = String.join("\n", new String[] {
+    private String sampleCode = String.join("\n", new String[]{
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>",
             "<!-- Sample XML -->",
             "<orders>",
@@ -78,15 +85,22 @@ public class XmlController {
     @FXML
     StackPane stackPane;
 
-    public void setNewText(String text){
+    String textContent;
+
+    public void setNewText(String text) {
+        textContent = text;
+        logger.debug("Text Länge: {}", FileUtils.byteCountToDisplaySize(text.length()));
+
         codeArea.clear();
-        codeArea.replaceText(0,0, prettyFormat(text, 2));
+        logger.debug("Clear fertig");
+        codeArea.replaceText(0, 0, textContent);
+        logger.debug("FERTIG");
     }
 
     public void setPrettyText() {
         var temp = codeArea.getText();
         codeArea.clear();
-        codeArea.replaceText(0,0, prettyFormat(temp, 2));
+        codeArea.replaceText(0, 0, prettyFormat(temp, 2));
     }
 
     public static String prettyFormat(String input, int indent) {
@@ -103,54 +117,63 @@ public class XmlController {
             transformer.transform(xmlInput, xmlOutput);
             return xmlOutput.getWriter().toString();
         } catch (Exception e) {
-            throw new RuntimeException(e); // simple exception handling, please review it
+            logger.error(e.getLocalizedMessage());
+            return null;
         }
     }
-
 
 
     @FXML
     private void initialize() {
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
 
+        /*
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             codeArea.setStyleSpans(0, computeHighlighting(newText));
         });
+         */
+
+        if (codeArea.getText() == null) {
+            sampleCode = textContent;
+            System.out.println("TEXTCONTENT = " + textContent.length());
+        }
+        else {
+            System.out.println("Textcontent war null");
+        }
+
         codeArea.replaceText(0, 0, sampleCode);
         stackPane.getChildren().add(new VirtualizedScrollPane<>(codeArea));
     }
 
     private static StyleSpans<Collection<String>> computeHighlighting(String text) {
-
         Matcher matcher = XML_TAG.matcher(text);
         int lastKwEnd = 0;
         StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-        while(matcher.find()) {
+        while (matcher.find()) {
 
             spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
-            if(matcher.group("COMMENT") != null) {
+            if (matcher.group("COMMENT") != null) {
                 spansBuilder.add(Collections.singleton("comment"), matcher.end() - matcher.start());
-            }
-            else {
-                if(matcher.group("ELEMENT") != null) {
+            } else {
+                if (matcher.group("ELEMENT") != null) {
                     String attributesText = matcher.group(GROUP_ATTRIBUTES_SECTION);
 
                     spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_OPEN_BRACKET) - matcher.start(GROUP_OPEN_BRACKET));
                     spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
 
-                    if(!attributesText.isEmpty()) {
+                    if (!attributesText.isEmpty()) {
 
                         lastKwEnd = 0;
 
                         Matcher amatcher = ATTRIBUTES.matcher(attributesText);
-                        while(amatcher.find()) {
+                        while (amatcher.find()) {
                             spansBuilder.add(Collections.emptyList(), amatcher.start() - lastKwEnd);
                             spansBuilder.add(Collections.singleton("attribute"), amatcher.end(GROUP_ATTRIBUTE_NAME) - amatcher.start(GROUP_ATTRIBUTE_NAME));
                             spansBuilder.add(Collections.singleton("tagmark"), amatcher.end(GROUP_EQUAL_SYMBOL) - amatcher.end(GROUP_ATTRIBUTE_NAME));
                             spansBuilder.add(Collections.singleton("avalue"), amatcher.end(GROUP_ATTRIBUTE_VALUE) - amatcher.end(GROUP_EQUAL_SYMBOL));
                             lastKwEnd = amatcher.end();
                         }
-                        if(attributesText.length() > lastKwEnd)
+                        if (attributesText.length() > lastKwEnd)
                             spansBuilder.add(Collections.emptyList(), attributesText.length() - lastKwEnd);
                     }
 

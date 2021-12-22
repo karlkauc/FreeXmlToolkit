@@ -2,6 +2,8 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
@@ -72,10 +74,22 @@ public class XsltController {
         }
         else {
             logger.debug("XML Controller is null");
+            if (this.currentFile != null) {
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_xml.fxml"));
+                    XmlController test = (XmlController) loader.getController();
+
+                    var fileContent = Files.readString(currentFile.toPath());
+                    logger.debug("File content size: " + fileContent.length());
+                    xmlController.setNewText(fileContent);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
-        String userHome = System.getProperty("user.home");
 
+        String userHome = System.getProperty("user.home");
         if (SystemUtils.OS_NAME.toUpperCase(Locale.ROOT).startsWith("WINDOWS")) {
             if (new File("C:\\Data\\src\\FreeXmlToolkit\\output").exists()) {
                 userHome = "C:\\Data\\src\\FreeXmlToolkit\\output";
@@ -93,6 +107,23 @@ public class XsltController {
                     currentFile = file;
                     progressBar.setProgress(0.1);
                     renderFile(file.getAbsolutePath(), treeViewXslt.getSelectionModel().getSelectedItem().getValue().getAbsolutePath());
+                }
+                else {
+                    logger.debug("WAR NULL");
+                    logger.debug("FILE: " + file.isFile());
+                }
+                if (file.isFile()) {
+                    try {
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_xml.fxml"));
+                        Parent root = loader.load();
+                        xmlController = loader.getController();
+
+                        var fileContent = Files.readString(file.toPath());
+                        logger.debug("File content size: " + fileContent.length());
+                        xmlController.setNewText(fileContent);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });

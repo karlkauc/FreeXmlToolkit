@@ -69,7 +69,7 @@
                     <Image url="@../img/icons8-xml-64.png"/>
                 </ImageView>
             </graphic>
-            <fx:include fx:id="xml" source="tab_xml.fxml"/>
+            <fx:include fx:id="xml" source="tab_xml.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
         </Tab>
         <Tab text="XSD" closable="false">
             <graphic>
