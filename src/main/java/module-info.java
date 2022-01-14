@@ -12,10 +12,15 @@ module org.fxt.freexmltoolkit {
 
     requires org.apache.commons.lang3;
     requires org.apache.commons.io;
+    requires com.google.guice;
 
-    opens org.fxt.freexmltoolkit to javafx.fxml;
+    opens org.fxt.freexmltoolkit.controller;
+    opens org.fxt.freexmltoolkit.service;
+
+    // opens org.fxt.freexmltoolkit to javafx.fxml;
     exports org.fxt.freexmltoolkit;
     exports org.fxt.freexmltoolkit.controller;
-    opens org.fxt.freexmltoolkit.controller to javafx.fxml;
+    // opens org.fxt.freexmltoolkit.controller to javafx.fxml, com.google.guice;
+
 
 }

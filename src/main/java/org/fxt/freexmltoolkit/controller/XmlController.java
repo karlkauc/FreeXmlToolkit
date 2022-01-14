@@ -1,7 +1,7 @@
 package org.fxt.freexmltoolkit.controller;
 
+import com.google.inject.Inject;
 import javafx.fxml.FXML;
-import javafx.scene.control.TextArea;
 import javafx.scene.layout.StackPane;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -11,6 +11,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.service.XmlService;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.OutputKeys;
@@ -29,8 +30,10 @@ import java.util.regex.Pattern;
 
 public class XmlController {
 
-    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+    @Inject
+    XmlService xmlService;
 
+    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
             + "|(?<COMMENT><!--[^<>]+-->)");
@@ -45,56 +48,35 @@ public class XmlController {
     private static final int GROUP_EQUAL_SYMBOL = 2;
     private static final int GROUP_ATTRIBUTE_VALUE = 3;
 
-    private String sampleCode = String.join("\n", new String[]{
-            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>",
-            "<!-- Sample XML -->",
-            "<orders>",
-            "	<Order number=\"1\" table=\"center\">",
-            "		<items>",
-            "			<Item>",
-            "				<type>ESPRESSO</type>",
-            "				<shots>2</shots>",
-            "				<iced>false</iced>",
-            "				<orderNumber>1</orderNumber>",
-            "			</Item>",
-            "			<Item>",
-            "				<type>CAPPUCCINO</type>",
-            "				<shots>1</shots>",
-            "				<iced>false</iced>",
-            "				<orderNumber>1</orderNumber>",
-            "			</Item>",
-            "			<Item>",
-            "			<type>LATTE</type>",
-            "				<shots>2</shots>",
-            "				<iced>false</iced>",
-            "				<orderNumber>1</orderNumber>",
-            "			</Item>",
-            "			<Item>",
-            "				<type>MOCHA</type>",
-            "				<shots>3</shots>",
-            "				<iced>true</iced>",
-            "				<orderNumber>1</orderNumber>",
-            "			</Item>",
-            "		</items>",
-            "	</Order>",
-            "</orders>"
-    });
-
     CodeArea codeArea = new CodeArea();
+    VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     @FXML
     StackPane stackPane;
 
-    String textContent;
-
     public void setNewText(String text) {
-        textContent = text;
+        xmlService.setCurrentXml(text);
         logger.debug("Text Länge: {}", FileUtils.byteCountToDisplaySize(text.length()));
 
-        codeArea.clear();
+        //codeArea.clear();
+        codeArea.replaceText(text);
         logger.debug("Clear fertig");
-        codeArea.replaceText(0, 0, textContent);
-        logger.debug("FERTIG");
+
+        virtualizedScrollPane.removeContent();
+        virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
+        logger.debug("FERTIG mit Text ersetzung");
+    }
+
+    @FXML
+    private void initialize() {
+        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+        /*
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            codeArea.setStyleSpans(0, computeHighlighting(newText));
+        });
+         */
+        virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
+        stackPane.getChildren().add(virtualizedScrollPane);
     }
 
     public void setPrettyText() {
@@ -120,29 +102,6 @@ public class XmlController {
             logger.error(e.getLocalizedMessage());
             return null;
         }
-    }
-
-
-    @FXML
-    private void initialize() {
-        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-
-        /*
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            codeArea.setStyleSpans(0, computeHighlighting(newText));
-        });
-         */
-
-        if (codeArea.getText() == null) {
-            sampleCode = textContent;
-            System.out.println("TEXTCONTENT = " + textContent.length());
-        }
-        else {
-            System.out.println("Textcontent war null");
-        }
-
-        codeArea.replaceText(0, 0, sampleCode);
-        stackPane.getChildren().add(new VirtualizedScrollPane<>(codeArea));
     }
 
     private static StyleSpans<Collection<String>> computeHighlighting(String text) {

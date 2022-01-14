@@ -39,13 +39,14 @@ dependencies {
     implementation("org.fxmisc.richtext:richtextfx:0.10.7")
 
     // Logging
-    implementation("org.apache.logging.log4j:log4j-api:2.16.0")
-    implementation("org.apache.logging.log4j:log4j-core:2.16.0")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.16.0")
+    implementation("org.apache.logging.log4j:log4j-api:2.17.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.17.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
 
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
 
+    implementation("com.google.inject:guice:5.0.1")
 
     // Lemminx
     /*

@@ -1,8 +1,12 @@
 package org.fxt.freexmltoolkit.controller;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
@@ -10,12 +14,16 @@ import javafx.scene.control.TreeView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.util.BuilderFactory;
+import javafx.util.Callback;
 import net.sf.saxon.TransformerFactoryImpl;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.FileTreeCell;
 import org.fxt.freexmltoolkit.SimpleFileTreeItem;
+import org.fxt.freexmltoolkit.service.ModuleBindings;
+import org.fxt.freexmltoolkit.service.XmlService;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -28,6 +36,13 @@ import java.nio.file.Paths;
 import java.util.Locale;
 
 public class XsltController {
+
+    @Inject
+    XmlService xmlService;
+
+    final Injector injector = Guice.createInjector(new ModuleBindings());
+    BuilderFactory builderFactory = new JavaFXBuilderFactory();
+    Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
 
     @FXML
     private XmlController xmlController;
@@ -60,34 +75,14 @@ public class XsltController {
 
     @FXML
     private void initialize() {
-        if (xmlController != null) {
-            logger.debug("XML Controller ist befüllt");
-            if (currentFile != null && currentFile.exists()) {
-                try {
-                    var fileContent = Files.readString(currentFile.toPath());
-                    logger.debug("File content size: " + fileContent.length());
-                    xmlController.setNewText(fileContent);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        if (currentFile != null && currentFile.exists()) {
+            try {
+                xmlService.setCurrentXml(Files.readString(currentFile.toPath()));
+            } catch (IOException e) {
+                logger.error(e.getLocalizedMessage());
+                e.printStackTrace();
             }
         }
-        else {
-            logger.debug("XML Controller is null");
-            if (this.currentFile != null) {
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_xml.fxml"));
-                    XmlController test = (XmlController) loader.getController();
-
-                    var fileContent = Files.readString(currentFile.toPath());
-                    logger.debug("File content size: " + fileContent.length());
-                    xmlController.setNewText(fileContent);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
 
         String userHome = System.getProperty("user.home");
         if (SystemUtils.OS_NAME.toUpperCase(Locale.ROOT).startsWith("WINDOWS")) {
@@ -114,7 +109,7 @@ public class XsltController {
                 }
                 if (file.isFile()) {
                     try {
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_xml.fxml"));
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_xml.fxml"), null, builderFactory, guiceControllerFactory);
                         Parent root = loader.load();
                         xmlController = loader.getController();
 
@@ -175,6 +170,7 @@ public class XsltController {
             engine.load(new File(outputFile).toURI().toURL().toString());
             logger.debug("Loaded Content");
 
+            xmlService.setCurrentXml(Files.readString(currentFile.toPath()));
         } catch (TransformerException | IOException e) {
             e.printStackTrace();
             logger.error(e.getLocalizedMessage());
