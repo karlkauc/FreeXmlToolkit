@@ -14,15 +14,6 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.service.XmlService;
 
-import javax.xml.XMLConstants;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.Collections;
@@ -92,26 +83,10 @@ public class XmlController {
     public void setPrettyText() {
         var temp = codeArea.getText();
         codeArea.clear();
-        codeArea.replaceText(0, 0, prettyFormat(temp, 2));
-    }
 
-    public static String prettyFormat(String input, int indent) {
-        try {
-            Source xmlInput = new StreamSource(new StringReader(input));
-            StringWriter stringWriter = new StringWriter();
-            StreamResult xmlOutput = new StreamResult(stringWriter);
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            // transformerFactory.setAttribute("indent-number", indent);
-            transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-            Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.transform(xmlInput, xmlOutput);
-            return xmlOutput.getWriter().toString();
-        } catch (Exception e) {
-            logger.error(e.getLocalizedMessage());
-            return null;
-        }
+        String tempFormat = XmlService.prettyFormat(temp, 5);
+        logger.debug("Format String length: {}", tempFormat.length());
+        codeArea.replaceText(0, 0, XmlService.prettyFormat(temp, 2));
     }
 
     private static StyleSpans<Collection<String>> computeHighlighting(String text) {

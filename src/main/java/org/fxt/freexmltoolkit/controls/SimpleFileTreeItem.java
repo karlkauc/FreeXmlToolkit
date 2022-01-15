@@ -1,4 +1,4 @@
-package org.fxt.freexmltoolkit;
+package org.fxt.freexmltoolkit.controls;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

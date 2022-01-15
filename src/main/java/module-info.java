@@ -17,10 +17,7 @@ module org.fxt.freexmltoolkit {
     opens org.fxt.freexmltoolkit.controller;
     opens org.fxt.freexmltoolkit.service;
 
-    // opens org.fxt.freexmltoolkit to javafx.fxml;
     exports org.fxt.freexmltoolkit;
     exports org.fxt.freexmltoolkit.controller;
-    // opens org.fxt.freexmltoolkit.controller to javafx.fxml, com.google.guice;
-
-
+    exports org.fxt.freexmltoolkit.controls;
 }

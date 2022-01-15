@@ -18,8 +18,8 @@ import net.sf.saxon.TransformerFactoryImpl;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.FileTreeCell;
-import org.fxt.freexmltoolkit.SimpleFileTreeItem;
+import org.fxt.freexmltoolkit.controls.FileTreeCell;
+import org.fxt.freexmltoolkit.controls.SimpleFileTreeItem;
 import org.fxt.freexmltoolkit.service.ModuleBindings;
 import org.fxt.freexmltoolkit.service.XmlService;
 

@@ -1,11 +1,11 @@
-package org.fxt.freexmltoolkit;
+package org.fxt.freexmltoolkit.controls;
 
 import javafx.scene.control.TreeCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
-import org.apache.commons.io.*;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.Locale;

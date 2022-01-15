@@ -1,5 +1,10 @@
-package org.fxt.freexmltoolkit;
+package org.fxt.freexmltoolkit.controls;
 
+
+import javafx.event.EventHandler;
+import javafx.scene.control.TreeItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,17 +13,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-
-import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.scene.control.TreeItem;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import java.util.Objects;
 
 public class FilePathTreeItem extends TreeItem<String> {
-    public Image folderCollapseImage = new Image(getClass().getResourceAsStream("/img/folder.png"));
-    public Image folderExpandImage = new Image(getClass().getResourceAsStream("/img/folder-open.png"));
-    public Image fileImage = new Image(getClass().getResourceAsStream("/img/text-x-generic.png"));
+    public Image folderCollapseImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/folder.png")));
+    public Image folderExpandImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/folder-open.png")));
+    public Image fileImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/text-x-generic.png")));
 
     //this stores the full path to the file or directory
     private final String fullPath;
@@ -91,7 +91,6 @@ public class FilePathTreeItem extends TreeItem<String> {
                 iv.setImage(folderCollapseImage);
             }
         });
-
     }
 }
 
