@@ -44,11 +44,10 @@ public class XsltController {
     BuilderFactory builderFactory = new JavaFXBuilderFactory();
     Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
 
-    @FXML
-    private XmlController xmlController;
+    private MainController parentController;
 
-    public XsltController() {
-
+    public void setParentController(MainController parentController) {
+        this.parentController = parentController;
     }
 
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
@@ -90,6 +89,9 @@ public class XsltController {
                 userHome = "C:\\Data\\src\\FreeXmlToolkit\\output";
             }
         }
+        else {
+            userHome = "/Users/karlkauc/IdeaProjects/XMLTEST";
+        }
 
         // userHome = ".";
         treeViewXml.setRoot(new SimpleFileTreeItem(new File(userHome), XML_PATTERN));
@@ -109,13 +111,10 @@ public class XsltController {
                 }
                 if (file.isFile()) {
                     try {
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_xml.fxml"), null, builderFactory, guiceControllerFactory);
-                        Parent root = loader.load();
-                        xmlController = loader.getController();
-
                         var fileContent = Files.readString(file.toPath());
+                        parentController.getXmlController().setNewText(fileContent);
+
                         logger.debug("File content size: " + fileContent.length());
-                        xmlController.setNewText(fileContent);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -145,7 +144,6 @@ public class XsltController {
 
         String output;
         try {
-            // status.setText("Starting...");
             progressBar.setProgress(0.1);
             output = saxonTransform(xmlFileName, xsdFileName);
             progressBar.setProgress(0.5);

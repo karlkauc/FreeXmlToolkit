@@ -64,6 +64,14 @@ public class MainController {
         alert.showAndWait();
     }
 
+    public XmlController getXmlController() {
+        return xmlController;
+    }
+
+    public XsltController getXsltController() {
+        return xsltController;
+    }
+
     @FXML
     private void openFile(ActionEvent e) {
         Stage stage = (Stage) mainBox.getScene().getWindow();
@@ -87,6 +95,9 @@ public class MainController {
 
     @FXML
     private void initialize() {
+        xmlController.setParentController(this);
+        xsltController.setParentController(this);
+
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML Files", "*.xml")
                 , new FileChooser.ExtensionFilter("XSLT Files", "*.xslt")

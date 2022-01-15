@@ -33,6 +33,8 @@ public class XmlController {
     @Inject
     XmlService xmlService;
 
+    private MainController parentController;
+
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
@@ -54,16 +56,16 @@ public class XmlController {
     @FXML
     StackPane stackPane;
 
+    public void setParentController(MainController parentController) {
+        this.parentController = parentController;
+    }
+
+
     public void setNewText(String text) {
         xmlService.setCurrentXml(text);
         logger.debug("Text Länge: {}", FileUtils.byteCountToDisplaySize(text.length()));
-
-        //codeArea.clear();
         codeArea.replaceText(text);
         logger.debug("Clear fertig");
-
-        virtualizedScrollPane.removeContent();
-        virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
         logger.debug("FERTIG mit Text ersetzung");
     }
 
@@ -75,6 +77,14 @@ public class XmlController {
             codeArea.setStyleSpans(0, computeHighlighting(newText));
         });
          */
+
+        codeArea.replaceText("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" +
+                "<notiz>\n" +
+                " <an>Blubb</an>\n" +
+                " <von>Bla</von>\n" +
+                " <ueberschrift>Dings</ueberschrift>\n" +
+                " <inhalt>Palaver Palaver Rhabarber.</inhalt>\n" +
+                "</notiz>");
         virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
         stackPane.getChildren().add(virtualizedScrollPane);
     }
