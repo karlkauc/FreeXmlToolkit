@@ -14,13 +14,17 @@ import org.fxt.freexmltoolkit.service.ModuleBindings;
 
 import java.io.IOException;
 import java.util.Objects;
-
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class FxtGui extends Application {
 
     final Injector injector = Guice.createInjector(new ModuleBindings());
     BuilderFactory builderFactory = new JavaFXBuilderFactory();
     Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
+
+    public static ExecutorService executorService = Executors.newFixedThreadPool(4);
 
     @Override
     public void start(Stage primaryStage) {
@@ -36,9 +40,19 @@ public class FxtGui extends Application {
         }
     }
 
+    @Override
+    public void stop() {
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+        }
+    }
+
     public static void main(String[] args) {
-        System.setProperty("http.proxy","proxy-eb1.s-mxs.net");
-        System.setProperty("http.proxyPort","8080");
         launch();
     }
 

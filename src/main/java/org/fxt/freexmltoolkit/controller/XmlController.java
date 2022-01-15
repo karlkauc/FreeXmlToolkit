@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controller;
 
 import com.google.inject.Inject;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.layout.StackPane;
 import org.apache.commons.io.FileUtils;
@@ -60,7 +61,6 @@ public class XmlController {
         this.parentController = parentController;
     }
 
-
     public void setNewText(String text) {
         xmlService.setCurrentXml(text);
         logger.debug("Text Länge: {}", FileUtils.byteCountToDisplaySize(text.length()));
@@ -72,11 +72,11 @@ public class XmlController {
     @FXML
     private void initialize() {
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-        /*
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            codeArea.setStyleSpans(0, computeHighlighting(newText));
+            if (newText.length() < 1024 * 1024) {
+                Platform.runLater(() -> codeArea.setStyleSpans(0, computeHighlighting(newText)));
+            }
         });
-         */
 
         codeArea.replaceText("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" +
                 "<notiz>\n" +
