@@ -10,10 +10,13 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -44,6 +47,8 @@ public class MainController {
 
     @FXML
     VBox mainBox;
+
+    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     @FXML
     private void openHelpPage(ActionEvent e) {
@@ -110,14 +115,12 @@ public class MainController {
         exit.setOnAction(e -> System.exit(0));
 
         prettyPrint.setOnAction(event -> {
-            System.out.println("tabPaneXml.isSelected() = " + tabPaneXml.isSelected());
-            System.out.println("tabPaneXslt.isSelected() = " + tabPaneXslt.isSelected());
-
             if (tabPaneXml.isSelected()) {
                 if (xmlController != null) {
-                    xmlController.setPrettyText();
-                } else
-                    System.out.println("XMLController is null");
+                    xmlController.formatXmlText();
+                } else {
+                    logger.error("XMLController is null");
+                }
             }
         });
     }

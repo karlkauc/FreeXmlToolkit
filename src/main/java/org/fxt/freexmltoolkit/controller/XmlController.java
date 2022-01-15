@@ -53,10 +53,10 @@ public class XmlController {
     }
 
     public void setNewText(String text) {
-        xmlService.setCurrentXml(text);
+        xmlService.setCurrentXml(text.trim());
         logger.debug("Text Länge: {}", FileUtils.byteCountToDisplaySize(text.length()));
-        codeArea.replaceText(text);
-        logger.debug("Clear fertig");
+        codeArea.clear();
+        codeArea.replaceText(0, 0, text.trim());
         logger.debug("FERTIG mit Text ersetzung");
     }
 
@@ -80,13 +80,13 @@ public class XmlController {
         stackPane.getChildren().add(virtualizedScrollPane);
     }
 
-    public void setPrettyText() {
+    public void formatXmlText() {
         var temp = codeArea.getText();
         codeArea.clear();
 
-        String tempFormat = XmlService.prettyFormat(temp, 5);
+        final String tempFormat = XmlService.prettyFormat(temp, 20);
         logger.debug("Format String length: {}", tempFormat.length());
-        codeArea.replaceText(0, 0, XmlService.prettyFormat(temp, 2));
+        codeArea.replaceText(0, 0, tempFormat);
     }
 
     private static StyleSpans<Collection<String>> computeHighlighting(String text) {

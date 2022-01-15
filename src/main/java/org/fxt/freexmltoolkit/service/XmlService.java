@@ -20,21 +20,17 @@ public interface XmlService {
 
     static String prettyFormat(String input, int indent) {
         try {
-            Transformer serializer = SAXTransformerFactory.newInstance().newTransformer();
-            serializer.setOutputProperty(OutputKeys.INDENT, "yes");
-            //serializer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            try {
-                serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
-            } catch (Exception e) {
-                System.out.println("INDENT HAT NICHT FUNKTIONIERT");
-            }
+            Transformer transformer = SAXTransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            //transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
 
-            //serializer.setOutputProperty("{http://xml.customer.org/xslt}indent-amount", "2");
             Source xmlSource = new SAXSource(new InputSource(new ByteArrayInputStream(input.getBytes())));
             StreamResult res = new StreamResult(new ByteArrayOutputStream());
-            serializer.transform(xmlSource, res);
+            transformer.transform(xmlSource, res);
             return res.getOutputStream().toString();
         } catch (Exception e) {
+            System.out.println("FEHLER");
             System.out.println(e.getMessage());
             return input;
         }

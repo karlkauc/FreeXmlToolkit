@@ -6,12 +6,19 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 public class FileTreeCell extends TreeCell<File> {
+    static final Map<String, String> FILE_ICONS = Map.of(
+            "xml", "/img/icons8-xml-64.png",
+            "xslt", "/img/icons8-transform-64.png"
+    );
+
     @Override
     protected void updateItem(File file, boolean empty) {
         super.updateItem(file, empty);
@@ -21,7 +28,7 @@ public class FileTreeCell extends TreeCell<File> {
             HBox hBox = new HBox();
             hBox.setSpacing(3);
 
-            Text t = new Text();
+            Text displayText = new Text();
             if (file.isDirectory()) {
                 ImageView imgVw = new ImageView();
                 var i = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/icons8-opened_folder.png")));
@@ -30,21 +37,21 @@ public class FileTreeCell extends TreeCell<File> {
                 imgVw.setFitWidth(16);
 
                 hBox.getChildren().add(imgVw);
-                t.setText(file.getName());
-                hBox.getChildren().add(t);
+                displayText.setText(file.getName());
+                hBox.getChildren().add(displayText);
             } else {
-                if (file.getName().toLowerCase(Locale.ROOT).endsWith(".xml")) {
-                    ImageView imgVw = new ImageView();
-                    var i = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/icons8-xml-64.png")));
-                    imgVw.setImage(i);
-                    imgVw.setFitHeight(16);
-                    imgVw.setFitWidth(16);
+                var ext = FilenameUtils.getExtension(file.getName()).toLowerCase(Locale.ROOT);
+                if (FILE_ICONS.containsKey(ext)) {
+                    ImageView imageView = new ImageView();
+                    var image = new Image(Objects.requireNonNull(getClass().getResourceAsStream(FILE_ICONS.get(ext))));
+                    imageView.setImage(image);
+                    imageView.setFitHeight(16);
+                    imageView.setFitWidth(16);
 
-                    hBox.getChildren().add(imgVw);
-
+                    hBox.getChildren().add(imageView);
                 }
-                t.setText(file.getName() + " (" +  FileUtils.byteCountToDisplaySize(file.length()) + ")");
-                hBox.getChildren().add(t);
+                displayText.setText(file.getName() + " (" + FileUtils.byteCountToDisplaySize(file.length()) + ")");
+                hBox.getChildren().add(displayText);
             }
             setGraphic(hBox);
         }
