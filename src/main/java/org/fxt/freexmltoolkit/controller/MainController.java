@@ -35,6 +35,9 @@ public class MainController {
     private XsltController xsltController;
 
     @FXML
+    private XsdController xsdController;
+
+    @FXML
     Tab tabPaneXml, tabPaneXslt;
 
     @FXML
@@ -102,6 +105,7 @@ public class MainController {
     private void initialize() {
         xmlController.setParentController(this);
         xsltController.setParentController(this);
+        xsdController.setParentController(this);
 
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML Files", "*.xml")

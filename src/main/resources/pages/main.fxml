@@ -77,6 +77,7 @@
                     <Image url="@../img/icons8-middle-column-rectangular-bar-with-side-strips-24.png"/>
                 </ImageView>
             </graphic>
+            <fx:include fx:id="xsd" source="tab_xsd.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
         </Tab>
         <Tab text="FOP" closable="false">
             <graphic>
