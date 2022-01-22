@@ -27,6 +27,10 @@ public class XsdController {
 
     @FXML
     private void initialize() {
+        logger.debug("Height: {}", myFileChooserTree.getLayoutBounds().getCenterY());
+        logger.debug("Width: {}", myFileChooserTree.getLayoutBounds().getCenterX());
+
+        myFileChooserTree.setNewItem("/Users/karlkauc/IdeaProjects/XMLTEST");
         myFileChooserTree.setNewItem("/Users/karlkauc/IdeaProjects/XMLTEST");
     }
 }
