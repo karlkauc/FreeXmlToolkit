@@ -25,12 +25,8 @@ public class XsdController {
         this.parentController = parentController;
     }
 
-
     @FXML
     private void initialize() {
-        myFileChooserTree = new MyFileChooserTree();
         myFileChooserTree.setNewItem("/Users/karlkauc/IdeaProjects/XMLTEST");
     }
-
-
 }
