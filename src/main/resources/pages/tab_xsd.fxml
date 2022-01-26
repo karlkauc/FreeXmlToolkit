@@ -7,6 +7,9 @@
             fx:controller="org.fxt.freexmltoolkit.controller.XsdController"
             prefHeight="400.0" prefWidth="600.0">
 
-    <MyFileChooserTree fx:id="myFileChooserTree" prefWidth="200" prefHeight="600"/>
+    <MyFileChooserTree fx:id="myFileChooserTree"
+                       style="-fx-background-color: red"
+                       prefWidth="200" prefHeight="600"
+    />
 
 </AnchorPane>

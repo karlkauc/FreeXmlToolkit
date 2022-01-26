@@ -166,7 +166,10 @@ public class XsltController {
             engine.load(new File(outputFile).toURI().toURL().toString());
             logger.debug("Loaded Content");
 
-            xmlService.setCurrentXml(Files.readString(currentFile.toPath()));
+            if (currentFile != null && currentFile.exists()) {
+                logger.debug("CURRENT FILE: {}", currentFile.getAbsolutePath());
+                xmlService.setCurrentXml(Files.readString(currentFile.toPath()));
+            }
         } catch (TransformerException | IOException e) {
             e.printStackTrace();
             logger.error(e.getLocalizedMessage());

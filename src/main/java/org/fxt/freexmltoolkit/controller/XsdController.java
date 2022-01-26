@@ -28,8 +28,10 @@ public class XsdController {
 
     @FXML
     private void initialize() {
+        myFileChooserTree.setTest();
+        myFileChooserTree.setTest();
         myFileChooserTree = new MyFileChooserTree();
-        myFileChooserTree.setNewItem("/Users/karlkauc/IdeaProjects/XMLTEST");
+        myFileChooserTree.setNewItem("C:\\Data\\src\\FreeXmlToolkit\\output");
     }
 
 
