@@ -22,6 +22,7 @@ public class FileTreeCell extends TreeCell<File> {
     @Override
     protected void updateItem(File file, boolean empty) {
         super.updateItem(file, empty);
+
         if (file == null || empty) {
             setGraphic(null);
         } else {
