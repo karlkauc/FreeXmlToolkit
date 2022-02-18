@@ -29,6 +29,8 @@ public class SimpleFileTreeItem extends TreeItem<File> {
     public SimpleFileTreeItem(File f, String pattern) {
         super(f);
         this.pattern = pattern;
+
+        logger.debug("File: {} - Pattern: {}", f.getAbsolutePath(), pattern);
     }
 
 
