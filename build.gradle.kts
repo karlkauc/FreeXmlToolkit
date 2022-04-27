@@ -2,9 +2,9 @@ plugins {
     java
     idea
     application
-    id("org.openjfx.javafxplugin") version "0.0.10"
-    id("edu.sc.seis.launch4j") version "2.5.1"
-    id("com.github.ben-manes.versions") version "0.39.0"
+    id("org.openjfx.javafxplugin") version "0.0.12"
+    id("edu.sc.seis.launch4j") version "2.5.3"
+    id("com.github.ben-manes.versions") version "0.42.0"
 }
 
 application {
@@ -22,31 +22,27 @@ repositories {
     }
 }
 
-// sourceCompatibility = "17"
-// targetCompatibility = "17"
-
-
 javafx {
-    version = "17.0.2-ea+1"
+    version = "17.0.2"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
 dependencies {
     // XSLT
-    implementation("net.sf.saxon:Saxon-HE:10.6")
+    implementation("net.sf.saxon:Saxon-HE:10.8")
 
     // Richtext
-    implementation("org.fxmisc.richtext:richtextfx:0.10.7")
+    implementation("org.fxmisc.richtext:richtextfx:0.10.9")
 
     // Logging
-    implementation("org.apache.logging.log4j:log4j-api:2.17.0")
-    implementation("org.apache.logging.log4j:log4j-core:2.17.0")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
+    implementation("org.apache.logging.log4j:log4j-api:2.17.2")
+    implementation("org.apache.logging.log4j:log4j-core:2.17.2")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
 
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
 
-    implementation("com.google.inject:guice:5.0.1")
+    implementation("com.google.inject:guice:5.1.0")
 
     // Lemminx
     /*

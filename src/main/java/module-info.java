@@ -4,11 +4,11 @@ module org.fxt.freexmltoolkit {
     requires javafx.web;
     requires Saxon.HE;
     requires org.fxmisc.richtext;
-    requires flowless;
     requires org.apache.logging.log4j;
     requires org.apache.logging.log4j.core;
     requires org.apache.logging.log4j.slf4j;
     requires java.desktop;
+    // requires org.xmlresolver.xmlresolver;
 
     requires org.apache.commons.lang3;
     requires org.apache.commons.io;
