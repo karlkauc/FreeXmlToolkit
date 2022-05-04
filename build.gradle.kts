@@ -42,6 +42,9 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
 
+    //  xml signature
+    implementation("org.apache.santuario:xmlsec:2.3.0")
+
     implementation("com.google.inject:guice:5.1.0")
 
     // Lemminx
@@ -62,6 +65,38 @@ configurations {
     }
 }
 
+tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
+    outfile = "FreeXMLToolkit.exe"
+    mainClassName = "SolvencyUI" // SolvencyUI
+    headerType = "gui" // gui / console
+    // icon = "${projectDir}/ico/logo.ico"
+    maxHeapSize = 2048
+    copyright = System.getProperty("user.name")
+
+    // https://bell-sw.com/pages/libericajdk/
+    bundledJrePath = "jdk"
+    bundledJre64Bit = true
+    jreMinVersion = "17"
+
+    doLast {
+        println("Copy resources...")
+        copy {
+            from (
+                    layout.buildDirectory.file("resources/log4j2.xml")
+            )
+            into(layout.buildDirectory.dir("launch4j"))
+        }
+        println("Copy JDK...")
+        copy {
+            from (zipTree("jdk/jre-17-full.zip"))
+            into (layout.buildDirectory.dir("launch4j/jdk"))
+        }
+    }
+}
+
+tasks.jar {
+    exclude("**/*.txt")
+}
 
 
 tasks.named<Test>("test") {
