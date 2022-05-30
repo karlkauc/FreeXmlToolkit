@@ -26,7 +26,7 @@ import java.util.Locale;
 public class MainController {
 
     @FXML
-    private Parent xml, xslt;
+    private Parent xml, xslt, xsd, fop, signature;
 
     @FXML
     private XmlController xmlController;

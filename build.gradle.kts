@@ -27,6 +27,10 @@ javafx {
     modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
+run {
+    // jvmArgs = [" -Xmx8g", "-Dfile.encoding=utf-8"]
+}
+
 dependencies {
     // XSLT
     implementation("net.sf.saxon:Saxon-HE:10.8")
@@ -67,7 +71,7 @@ configurations {
 
 tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     outfile = "FreeXMLToolkit.exe"
-    mainClassName = "SolvencyUI" // SolvencyUI
+    mainClassName = "org.fxt.freexmltoolkit.FxtGui" // SolvencyUI
     headerType = "gui" // gui / console
     // icon = "${projectDir}/ico/logo.ico"
     maxHeapSize = 2048
@@ -76,7 +80,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     // https://bell-sw.com/pages/libericajdk/
     bundledJrePath = "jdk"
     bundledJre64Bit = true
-    jreMinVersion = "17"
+    jreMinVersion = "18"
 
     doLast {
         println("Copy resources...")
@@ -88,7 +92,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
         }
         println("Copy JDK...")
         copy {
-            from (zipTree("jdk/jre-17-full.zip"))
+            from (zipTree("jdk/jre-18.0.1-full.zip"))
             into (layout.buildDirectory.dir("launch4j/jdk"))
         }
     }

@@ -13,6 +13,7 @@ module org.fxt.freexmltoolkit {
     requires org.apache.commons.lang3;
     requires org.apache.commons.io;
     requires com.google.guice;
+    requires org.fxmisc.flowless;
 
     opens org.fxt.freexmltoolkit.controller;
     opens org.fxt.freexmltoolkit.service;

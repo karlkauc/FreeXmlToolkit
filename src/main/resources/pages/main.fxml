@@ -86,5 +86,13 @@
                 </ImageView>
             </graphic>
         </Tab>
+        <Tab text="Signature" closable="false">
+            <graphic>
+                <ImageView preserveRatio="true" fitHeight="16">
+                    <Image url="@../img/signature.png"/>
+                </ImageView>
+            </graphic>
+            <fx:include fx:id="signature" source="tab_signature.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
+        </Tab>
     </TabPane>
 </VBox>
