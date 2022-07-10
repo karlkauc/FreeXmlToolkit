@@ -26,10 +26,16 @@ import java.util.Locale;
 public class MainController {
 
     @FXML
-    private Parent xml, xslt, xsd, fop, signature;
+    private Parent xml, xslt, xsd, fop, signature, validation;
 
     @FXML
     private XmlController xmlController;
+
+    @FXML
+    private SignatureController signatureController;
+
+    @FXML
+    private XsdValidationController xsdValidationController;
 
     @FXML
     private XsltController xsltController;
@@ -80,6 +86,10 @@ public class MainController {
         return xsltController;
     }
 
+    public XsdValidationController getXsdValidationController() { return xsdValidationController; }
+
+    public SignatureController getSignatureController() { return signatureController; }
+
     @FXML
     private void openFile(ActionEvent e) {
         Stage stage = (Stage) mainBox.getScene().getWindow();
@@ -106,6 +116,8 @@ public class MainController {
         xmlController.setParentController(this);
         xsltController.setParentController(this);
         xsdController.setParentController(this);
+        xsdValidationController.setParentController(this);
+        signatureController.setParentController(this);
 
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML Files", "*.xml")

@@ -55,6 +55,14 @@
     </HBox>
 
     <TabPane VBox.vgrow="ALWAYS">
+        <Tab text="XSLT" closable="false" fx:id="tabPaneXsdValidation">
+            <graphic>
+                <ImageView preserveRatio="true" fitHeight="16">
+                    <Image url="@../img/icons8-transform-64.png"/>
+                </ImageView>
+            </graphic>
+            <fx:include fx:id="validation" source="tab_validation.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
+        </Tab>
         <Tab text="XSLT" closable="false" fx:id="tabPaneXslt">
             <graphic>
                 <ImageView preserveRatio="true" fitHeight="16">
