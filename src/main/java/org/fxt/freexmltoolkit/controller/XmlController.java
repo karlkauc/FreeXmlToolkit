@@ -49,6 +49,7 @@ public class XmlController {
     StackPane stackPane;
 
     public void setParentController(MainController parentController) {
+        logger.debug("XML Controller - set parent controller");
         this.parentController = parentController;
     }
 
@@ -62,6 +63,9 @@ public class XmlController {
 
     @FXML
     private void initialize() {
+        logger.debug("Bin im xmlController init");
+
+
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             if (newText.length() < 1024 * 1024) {

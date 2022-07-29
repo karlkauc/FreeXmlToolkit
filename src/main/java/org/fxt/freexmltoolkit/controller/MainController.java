@@ -26,7 +26,7 @@ import java.util.Locale;
 public class MainController {
 
     @FXML
-    private Parent xml, xslt, xsd, fop, signature, validation;
+    private Parent xml, xslt, xsd, fop, signature, xsdValidation;
 
     @FXML
     private XmlController xmlController;
@@ -44,7 +44,7 @@ public class MainController {
     private XsdController xsdController;
 
     @FXML
-    Tab tabPaneXml, tabPaneXslt;
+    Tab tabPaneXml, tabPaneXslt, tabPaneXsdValidation;
 
     @FXML
     Button prettyPrint;
@@ -117,7 +117,7 @@ public class MainController {
         xsltController.setParentController(this);
         xsdController.setParentController(this);
         xsdValidationController.setParentController(this);
-        signatureController.setParentController(this);
+        // signatureController.setParentController(this);
 
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML Files", "*.xml")

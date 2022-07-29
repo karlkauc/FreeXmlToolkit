@@ -8,50 +8,48 @@
       fx:id="mainBox"
       fx:controller="org.fxt.freexmltoolkit.controller.MainController">
     <HBox VBox.vgrow="NEVER">
-        <children>
-            <ToolBar HBox.hgrow="ALWAYS">
-                <Button text="New" contentDisplay="GRAPHIC_ONLY">
-                    <graphic>
-                        <ImageView preserveRatio="true" fitHeight="16">
-                            <Image url="@../img/icons8-datei-24.png"/>
-                        </ImageView>
-                    </graphic>
-                </Button>
-                <Button text="Save" contentDisplay="GRAPHIC_ONLY">
-                    <graphic>
-                        <ImageView preserveRatio="true" fitHeight="16">
-                            <Image url="@../img/icons8-speichern-50.png"/>
-                        </ImageView>
-                    </graphic>
-                </Button>
-                <Button onAction="#openFile" text="Open">
-                    <graphic>
-                        <ImageView preserveRatio="true" fitHeight="16">
-                            <Image url="@../img/icons8-geöffnete-datei-unter-cursor-48.png"/>
-                        </ImageView>
-                    </graphic>
-                </Button>
-                <Button text="pretty print" fx:id="prettyPrint">
-                    <graphic>
-                        <ImageView preserveRatio="true" fitHeight="16">
-                            <Image url="@../img/icons8-align_center.png"/>
-                        </ImageView>
-                    </graphic>
-                </Button>
-            </ToolBar>
-            <ToolBar HBox.hgrow="NEVER">
-                <Button text="Help" onAction="#openHelpPage"/>
-                <Button text="About" fx:id="about" onAction="#pressAboutButton"/>
+        <ToolBar HBox.hgrow="ALWAYS">
+            <Button text="New" contentDisplay="GRAPHIC_ONLY">
+                <graphic>
+                    <ImageView preserveRatio="true" fitHeight="16">
+                        <Image url="@../img/icons8-datei-24.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+            <Button text="Save" contentDisplay="GRAPHIC_ONLY">
+                <graphic>
+                    <ImageView preserveRatio="true" fitHeight="16">
+                        <Image url="@../img/icons8-speichern-50.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+            <Button onAction="#openFile" text="Open">
+                <graphic>
+                    <ImageView preserveRatio="true" fitHeight="16">
+                        <Image url="@../img/icons8-geöffnete-datei-unter-cursor-48.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+            <Button text="pretty print" fx:id="prettyPrint">
+                <graphic>
+                    <ImageView preserveRatio="true" fitHeight="16">
+                        <Image url="@../img/icons8-align_center.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+        </ToolBar>
+        <ToolBar HBox.hgrow="NEVER">
+            <Button text="Help" onAction="#openHelpPage"/>
+            <Button text="About" fx:id="about" onAction="#pressAboutButton"/>
 
-                <Button text="Exit" contentDisplay="LEFT" fx:id="exit">
-                    <graphic>
-                        <ImageView preserveRatio="true" fitHeight="16">
-                            <Image url="@../img/icons8-exit-64.png"/>
-                        </ImageView>
-                    </graphic>
-                </Button>
-            </ToolBar>
-        </children>
+            <Button text="Exit" contentDisplay="LEFT" fx:id="exit">
+                <graphic>
+                    <ImageView preserveRatio="true" fitHeight="16">
+                        <Image url="@../img/icons8-exit-64.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+        </ToolBar>
     </HBox>
 
     <TabPane VBox.vgrow="ALWAYS">
@@ -61,7 +59,7 @@
                     <Image url="@../img/icons8-transform-64.png"/>
                 </ImageView>
             </graphic>
-            <fx:include fx:id="validation" source="tab_validation.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
+            <fx:include fx:id="xsdValidation" source="tab_validation.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
         </Tab>
         <Tab text="XSLT" closable="false" fx:id="tabPaneXslt">
             <graphic>

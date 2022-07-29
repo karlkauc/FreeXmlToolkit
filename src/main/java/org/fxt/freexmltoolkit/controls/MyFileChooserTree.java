@@ -16,7 +16,7 @@ public class MyFileChooserTree extends TreeView<File> {
     private final static String XSLT_PATTERN = ".*\\.xslt";
 
     public MyFileChooserTree() {
-        logger.debug("CONSTRUCTOR");
+        logger.debug("MY FILE CHOOSER TREE - CONSTRUCTOR");
 
         rootItem.setExpanded(false);
         this.setRoot(rootItem);
