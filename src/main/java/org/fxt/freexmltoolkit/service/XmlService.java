@@ -10,9 +10,19 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 
 
 public interface XmlService {
+
+    File getCurrentXmlFile();
+
+    void setCurrentXmlFile(File currentXmlFile);
+
+    File getCurrentXsltFile();
+
+    void setCurrentXsltFile(File currentXsltFile);
+
 
     String getCurrentXml();
 

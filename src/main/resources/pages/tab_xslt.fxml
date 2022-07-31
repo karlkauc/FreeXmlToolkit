@@ -1,47 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.ProgressBar?>
-<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.Button?>
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            stylesheets="@../css/app.css"
-            fx:controller="org.fxt.freexmltoolkit.controller.XsltController"
-            fx:id="anchorPane"
-            style="-fx-padding: 5;">
-    <HBox AnchorPane.topAnchor="0"
-          AnchorPane.bottomAnchor="0"
-          AnchorPane.leftAnchor="0"
-          AnchorPane.rightAnchor="0">
-        <BorderPane prefWidth="300" maxWidth="300" minWidth="300"
-                    HBox.hgrow="ALWAYS" style="-fx-padding: 0 5 0 0;">
+<?import org.fxt.freexmltoolkit.controls.FileLoader?>
+<AnchorPane fx:id="anchorPane" style="-fx-padding: 5;" stylesheets="@../css/app.css"
+            xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.fxt.freexmltoolkit.controller.XsltController">
+    <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <BorderPane maxWidth="300" minWidth="300" prefWidth="300" style="-fx-padding: 0 5 0 0;" HBox.hgrow="ALWAYS">
             <top>
                 <VBox>
-                    <BorderPane>
-                        <left>
-                            <Label text="XML" />
-                        </left>
-                        <center>
-                            <TextField fx:id="xmlTextField" text="dir..." />
-                        </center>
-                        <right>
-                            <Button text="load" />
-                        </right>
-                    </BorderPane>
-                    <TreeView fx:id="treeViewXml" styleClass="my-tree-view"/>
+                    <FileLoader fx:id="xmlFileLoader"/>
+                    <FileLoader fx:id="xsltFileLoader"/>
                 </VBox>
-
             </top>
-            <bottom>
-                <VBox>
-                    <TreeView fx:id="treeViewXslt" styleClass="my-tree-view"/>
-                    <ProgressBar fx:id="progressBar" prefWidth="300" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"/>
-                </VBox>
-            </bottom>
         </BorderPane>
 
         <WebView fx:id="webView" HBox.hgrow="ALWAYS"/>
