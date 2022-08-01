@@ -53,7 +53,7 @@
     </HBox>
 
     <TabPane VBox.vgrow="ALWAYS">
-        <Tab text="XSLT" closable="false" fx:id="tabPaneXsdValidation">
+        <Tab text="XSD Validation" closable="false" fx:id="tabPaneXsdValidation">
             <graphic>
                 <ImageView preserveRatio="true" fitHeight="16">
                     <Image url="@../img/icons8-transform-64.png"/>

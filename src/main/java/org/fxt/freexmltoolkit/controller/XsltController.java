@@ -6,6 +6,7 @@ import com.google.inject.Injector;
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
 import javafx.fxml.JavaFXBuilderFactory;
+import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
@@ -37,6 +38,9 @@ public class XsltController {
     @FXML
     FileLoader xmlFileLoader, xsltFileLoader;
 
+    @FXML
+    Button reload;
+
     final Injector injector = Guice.createInjector(new ModuleBindings());
     BuilderFactory builderFactory = new JavaFXBuilderFactory();
     Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
@@ -48,10 +52,6 @@ public class XsltController {
     }
 
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
-
-    private final static String XML_PATTERN = ".*\\.xml$";
-    private final static String XSLT_PATTERN = ".*\\.xslt";
-
 
     @FXML
     ProgressBar progressBar;
@@ -69,6 +69,9 @@ public class XsltController {
 
     @FXML
     private void initialize() {
+        progressBar.setDisable(true);
+        progressBar.setVisible(false);
+
         xmlFileLoader.setLoadPattern("*.xml");
         xmlFileLoader.getLoadButton().setOnAction(ae -> {
             xmlFile = xmlFileLoader.getFileAction();
@@ -84,10 +87,9 @@ public class XsltController {
             xmlService.setCurrentXsltFile(xsltFile);
             checkFiles();
         });
-
-
     }
 
+    @FXML
     private void checkFiles() {
         if (xmlFile != null && xmlFile.exists()) {
             try {
@@ -111,9 +113,12 @@ public class XsltController {
 
         String output;
         try {
-            // progressBar.setProgress(0.1);
+            progressBar.setDisable(false);
+            progressBar.setVisible(true);
+
+            progressBar.setProgress(0.1);
             output = saxonTransform(xmlFileName, xsdFileName);
-            // progressBar.setProgress(0.5);
+            progressBar.setProgress(0.5);
 
             output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "");
             output = output.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
@@ -121,19 +126,22 @@ public class XsltController {
 
             WebEngine engine = webView.getEngine();
             Files.writeString(Paths.get(outputFile), output);
-            // progressBar.setProgress(0.6);
+            progressBar.setProgress(0.6);
             System.out.println("write successful");
 
             engine.getLoadWorker().stateProperty().addListener(
                     (ov, oldState, newState) -> {
                         if (newState == State.SUCCEEDED) {
                             logger.debug("FERTIG: " + engine.getLocation());
-                            // progressBar.setProgress(1);
+                            progressBar.setProgress(1);
                         }
                     });
 
             engine.load(new File(outputFile).toURI().toURL().toString());
             logger.debug("Loaded Content");
+
+            progressBar.setDisable(true);
+            progressBar.setVisible(false);
 
             if (xmlFile != null && xmlFile.exists()) {
                 logger.debug("CURRENT FILE: {}", xmlFile.getAbsolutePath());

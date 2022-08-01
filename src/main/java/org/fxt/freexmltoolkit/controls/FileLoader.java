@@ -6,6 +6,8 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 
 public class FileLoader extends VBox {
     FileChooser fileChooser = new FileChooser();
@@ -33,6 +35,9 @@ public class FileLoader extends VBox {
         if (loadPattern != null && !loadPattern.isEmpty()) {
             fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("PDF Files", loadPattern));
         }
+
+        Path path = FileSystems.getDefault().getPath(".");
+        fileChooser.setInitialDirectory(path.toFile());
 
         file = fileChooser.showOpenDialog(null);
         filePath.setText(file.getAbsolutePath());
