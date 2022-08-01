@@ -5,13 +5,14 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.FileLoader;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.xml.sax.SAXParseException;
 
-import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -78,22 +79,42 @@ public class XsdValidationController {
         }
 
         auswertung.add(new Text("XSD validity:"), 0, 2);
+        TextArea errors = new TextArea();
+        errors.setWrapText(true);
+
+        errors.textProperty().addListener((obs, old, niu) -> {
+            Text t = new Text(old + niu);
+            t.setFont(errors.getFont());
+            StackPane pane = new StackPane(t);
+            pane.layout();
+            double height = t.getLayoutBounds().getHeight();
+            double padding = 100;
+            logger.debug("NEW HEIGHT: {}", height);
+
+            errors.setPrefHeight(height + padding);
+            errors.setMinHeight(height + padding);
+        });
+
+        auswertung.add(errors, 1, 2);
+
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists() &&
                 xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
             var exceptionList = xmlService.validate();
             if (exceptionList != null) {
+                StringBuilder temp = new StringBuilder();
+
                 logger.warn(Arrays.toString(exceptionList.toArray()));
-                auswertung.add(new TextArea(Arrays.toString(exceptionList.toArray())), 1, 2);
-            }
-            else {
+                for (SAXParseException saxParseException : exceptionList) {
+                    temp.append(saxParseException.getLocalizedMessage()).append(System.lineSeparator());
+                }
+                errors.textProperty().set(temp.toString());
+                logger.debug("HEIGHT ERRORS: {}", errors.getMinHeight());
+            } else {
                 logger.warn("KEINE ERRORS");
-                auswertung.add(new TextArea("No Errors found"), 1, 2);
+                errors.setText("NO ERRORS FOUND");
             }
-        }
-        else {
+        } else {
             logger.debug("war nicht alles ausgewählt!!");
-            // logger.debug("Current XML File: {}", xmlService.getCurrentXsdFile().getName());
-            // logger.debug("Current XSD File: {}", xmlService.getCurrentXsdFile().getName());
         }
     }
 
