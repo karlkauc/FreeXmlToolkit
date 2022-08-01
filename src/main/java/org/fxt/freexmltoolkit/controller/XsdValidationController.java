@@ -2,8 +2,10 @@ package org.fxt.freexmltoolkit.controller;
 
 import com.google.inject.Inject;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
@@ -27,10 +29,16 @@ public class XsdValidationController {
     FileLoader xmlFileLoader, xsdFileLoader;
 
     @FXML
+    BorderPane borderPane;
+
+    @FXML
     ProgressBar progressBar;
 
     @FXML
     GridPane auswertung;
+
+    @FXML
+    Button toggleButton;
 
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -115,6 +123,19 @@ public class XsdValidationController {
             }
         } else {
             logger.debug("war nicht alles ausgewählt!!");
+        }
+    }
+
+    @FXML
+    private void toggleBorderPane() {
+        if (borderPane.isVisible()) {
+            borderPane.setVisible(false);
+            borderPane.setDisable(true);
+            toggleButton.setText(">>");
+        } else {
+            borderPane.setVisible(true);
+            borderPane.setDisable(false);
+            toggleButton.setText("<<");
         }
     }
 

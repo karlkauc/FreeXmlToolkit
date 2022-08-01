@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ProgressBar?>
-<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
@@ -11,10 +9,10 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController">
     <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <BorderPane maxWidth="300" minWidth="300" prefWidth="300" style="-fx-padding: 0 5 0 0;" HBox.hgrow="ALWAYS">
+        <BorderPane prefWidth="300" style="-fx-padding: 5 5 5 5;" HBox.hgrow="SOMETIMES" fx:id="borderPane">
             <top>
-                <VBox>
-                    <FileLoader fx:id="xmlFileLoader"/>
+                <VBox HBox.hgrow="ALWAYS" style="-fx-background-color: red">
+                    <FileLoader fx:id="xmlFileLoader" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS"/>
                     <Separator/>
                     <FileLoader fx:id="xsdFileLoader"/>
                     <Separator/>
@@ -25,16 +23,17 @@
                             </ImageView>
                         </graphic>
                     </Button>
-                    <Button text="TEST" onAction="#test" />
+                    <Button text="TEST" onAction="#test"/>
                 </VBox>
             </top>
             <bottom>
                 <ProgressBar fx:id="progressBar" prefWidth="300" visible="false"/>
             </bottom>
         </BorderPane>
-        <GridPane fx:id="auswertung" />
-
-        <!-- hier auswertung -->
+        <HBox style="-fx-background-color: yellow" prefWidth="20">
+            <Button onAction="#toggleBorderPane" text="--" style="-fx-font-size: 7px;" fx:id="toggleButton"/>
+        </HBox>
+        <GridPane fx:id="auswertung" style="-fx-background-color: blue;" HBox.hgrow="NEVER"/>
     </HBox>
 </AnchorPane>
 

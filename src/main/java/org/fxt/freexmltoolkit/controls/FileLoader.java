@@ -5,14 +5,20 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextBoundsType;
 import javafx.stage.FileChooser;
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.lang.invoke.MethodHandles;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
 public class FileLoader extends VBox {
+    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+
     FileChooser fileChooser = new FileChooser();
     Button loadButton = new Button("LOAD");
     GridPane fileInfo = new GridPane();
@@ -23,6 +29,7 @@ public class FileLoader extends VBox {
     public FileLoader() {
         this.getChildren().add(loadButton);
         this.getChildren().add(fileInfo);
+
     }
 
     public void setButtonText(String buttonText) {
@@ -32,6 +39,7 @@ public class FileLoader extends VBox {
     public void setLoadPattern(String loadPattern, String displayText) {
         this.loadPattern = loadPattern;
         this.displayText = displayText;
+        setLayout();
     }
 
     public File getFileAction() {
@@ -45,15 +53,30 @@ public class FileLoader extends VBox {
         file = fileChooser.showOpenDialog(null);
 
         fileInfo.getChildren().clear();
-        fileInfo.add(new Label("Filename:"),0,0);
-        fileInfo.add(new Label(file.getName()),1,0);
+        Text labelFileName = new Text("Filename:");
+        Text labelFileNameValue = new Text(file.getName());
+        fileInfo.add(labelFileName, 0, 0);
+        fileInfo.add(labelFileNameValue, 1, 0);
 
-        fileInfo.add(new Label("Size:"),0,1);
-        fileInfo.add(new Label(FileUtils.byteCountToDisplaySize(file.length())),1,1);
+        labelFileNameValue.setBoundsType(TextBoundsType.VISUAL);
+        labelFileName.setBoundsType(TextBoundsType.VISUAL);
 
+        logger.debug("File Name Label Bound: {}", labelFileName.getLayoutBounds().getWidth());
+        logger.debug("File Name Value Bound: {}", labelFileNameValue.getLayoutBounds().getWidth());
+
+
+        fileInfo.add(new Label("Size:"), 0, 1);
+        fileInfo.add(new Label(FileUtils.byteCountToDisplaySize(file.length())), 1, 1);
 
         // filePath.setText(file.getAbsolutePath());
         return file;
+    }
+
+    private void setLayout() {
+        this.setStyle("-fx-padding: 7px; ");
+        fileInfo.setHgap(10);
+        fileInfo.setVgap(10);
+        fileInfo.setGridLinesVisible(true);
     }
 
     public Button getLoadButton() {
