@@ -8,26 +8,23 @@ import javafx.fxml.FXML;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.util.BuilderFactory;
 import javafx.util.Callback;
-import net.sf.saxon.TransformerFactoryImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.FileLoader;
 import org.fxt.freexmltoolkit.service.ModuleBindings;
 import org.fxt.freexmltoolkit.service.XmlService;
 
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class XsltController {
@@ -62,9 +59,6 @@ public class XsltController {
     @FXML
     WebView webView;
 
-    @FXML
-    TextField xmlTextField;
-
     File xmlFile, xsltFile;
 
     @FXML
@@ -72,7 +66,8 @@ public class XsltController {
         progressBar.setDisable(true);
         progressBar.setVisible(false);
 
-        xmlFileLoader.setLoadPattern("*.xml");
+        xmlFileLoader.setLoadPattern("*.xml", "XML File");
+        xmlFileLoader.setButtonText("XML File");
         xmlFileLoader.getLoadButton().setOnAction(ae -> {
             xmlFile = xmlFileLoader.getFileAction();
             logger.debug("Loaded XML File: {}", xmlFile.getAbsolutePath());
@@ -80,7 +75,8 @@ public class XsltController {
             checkFiles();
         });
 
-        xsltFileLoader.setLoadPattern("*.xslt");
+        xsltFileLoader.setLoadPattern("*.xslt", "XSLT File");
+        xsltFileLoader.setButtonText("XSLT File");
         xsltFileLoader.getLoadButton().setOnAction(ae -> {
             xsltFile = xsltFileLoader.getFileAction();
             logger.debug("Loaded XSLT File: {}", xsltFile.getAbsolutePath());
@@ -90,42 +86,58 @@ public class XsltController {
     }
 
     @FXML
+    private void test() {
+        xmlFile = Path.of("C:/Data/src/FreeXmlToolkit/output/!FundsXML AMUNDI FLOATING RATE EURO CORP ESG as of 2021-12-30 v2.xml").toFile();
+        xsltFile = Path.of("C:/Data/src/FreeXmlToolkit/output/Check_FundsXML_File.xslt").toFile();
+
+        xmlService.setCurrentXmlFile(xmlFile);
+        xmlService.setCurrentXsltFile(xsltFile);
+
+        checkFiles();
+        parentController.getXmlController().reloadXmlText();
+    }
+
+    @FXML
     private void checkFiles() {
         if (xmlFile != null && xmlFile.exists()) {
             try {
                 xmlService.setCurrentXml(Files.readString(xmlFile.toPath()));
+                xmlService.setCurrentXmlFile(xmlFile);
             } catch (IOException e) {
                 logger.error(e.getLocalizedMessage());
                 e.printStackTrace();
             }
         }
 
+        if (xsltFile != null && xsltFile.exists()) {
+            xmlService.setCurrentXsltFile(xsltFile);
+        }
+
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()
                 && xmlService.getCurrentXsltFile() != null && xmlService.getCurrentXsltFile().exists()) {
             logger.debug("RENDER FILE");
-            renderFile(xmlService.getCurrentXmlFile().getAbsolutePath(), xmlService.getCurrentXsltFile().getAbsolutePath());
+            renderFile();
         }
     }
 
 
-    private void renderFile(String xmlFileName, String xsdFileName) {
-        final String outputFile = "output/output.html";
+    private void renderFile() {
+        final String outputFileName = "output/output.html";
 
         String output;
         try {
-            progressBar.setDisable(false);
             progressBar.setVisible(true);
 
             progressBar.setProgress(0.1);
-            output = saxonTransform(xmlFileName, xsdFileName);
+            output = xmlService.saxonTransform();
             progressBar.setProgress(0.5);
 
-            output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "");
-            output = output.replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
-            output = output.replace("  >", "");
+            output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "")
+                    .replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "")
+                    .replace("  >", "");
 
             WebEngine engine = webView.getEngine();
-            Files.writeString(Paths.get(outputFile), output);
+            Files.writeString(Paths.get(outputFileName), output);
             progressBar.setProgress(0.6);
             System.out.println("write successful");
 
@@ -137,11 +149,8 @@ public class XsltController {
                         }
                     });
 
-            engine.load(new File(outputFile).toURI().toURL().toString());
+            engine.load(new File(outputFileName).toURI().toURL().toString());
             logger.debug("Loaded Content");
-
-            progressBar.setDisable(true);
-            progressBar.setVisible(false);
 
             if (xmlFile != null && xmlFile.exists()) {
                 logger.debug("CURRENT FILE: {}", xmlFile.getAbsolutePath());
@@ -153,15 +162,4 @@ public class XsltController {
         }
     }
 
-    public static String saxonTransform(String source, String xslt) throws TransformerException, FileNotFoundException {
-        TransformerFactoryImpl f = new TransformerFactoryImpl();
-        f.setAttribute("http://saxon.sf.net/feature/version-warning", Boolean.FALSE);
-
-        StreamSource xsrc = new StreamSource(new FileInputStream(xslt));
-        Transformer t = f.newTransformer(xsrc);
-        StreamSource src = new StreamSource(new FileInputStream(source));
-        StreamResult res = new StreamResult(new ByteArrayOutputStream());
-        t.transform(src, res);
-        return res.getOutputStream().toString();
-    }
 }

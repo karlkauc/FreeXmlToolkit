@@ -14,7 +14,9 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.service.XmlService;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -53,18 +55,23 @@ public class XmlController {
         this.parentController = parentController;
     }
 
-    public void setNewText(String text) {
-        xmlService.setCurrentXml(text.trim());
-        logger.debug("Text Länge: {}", FileUtils.byteCountToDisplaySize(text.length()));
+    public void reloadXmlText() {
         codeArea.clear();
-        codeArea.replaceText(0, 0, text.trim());
-        logger.debug("FERTIG mit Text ersetzung");
+        try {
+            if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
+                codeArea.replaceText(0, 0, Files.readString(xmlService.getCurrentXmlFile().toPath()));
+            }
+            else {
+                logger.warn("FILE IS NULL");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
-
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {

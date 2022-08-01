@@ -16,21 +16,22 @@
             <top>
                 <VBox>
                     <FileLoader fx:id="xmlFileLoader"/>
-                    <Separator />
+                    <Separator/>
                     <FileLoader fx:id="xsltFileLoader"/>
-                    <Separator />
-                <Button text="Reload" fx:id="reload" onAction="#checkFiles">
-                    <graphic>
-                        <ImageView fitHeight="20" fitWidth="20">
-                            <Image url="@../img/icons8-aktualisieren-48.png" />
-                        </ImageView>
-
-                    </graphic>
-                </Button>
-                    <Separator />
-                    <ProgressBar fx:id="progressBar" prefWidth="300" />
+                    <Separator/>
+                    <Button text="Reload" fx:id="reload" onAction="#checkFiles">
+                        <graphic>
+                            <ImageView fitHeight="20" fitWidth="20">
+                                <Image url="@../img/icons8-aktualisieren-48.png"/>
+                            </ImageView>
+                        </graphic>
+                    </Button>
+                    <!--<Button text="TEST" onAction="#test" />-->
                 </VBox>
             </top>
+            <bottom>
+                <ProgressBar fx:id="progressBar" prefWidth="300"/>
+            </bottom>
         </BorderPane>
 
         <WebView fx:id="webView" HBox.hgrow="ALWAYS"/>
