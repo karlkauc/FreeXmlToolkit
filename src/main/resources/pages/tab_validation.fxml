@@ -11,7 +11,7 @@
     <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <BorderPane prefWidth="300" style="-fx-padding: 5 5 5 5;" HBox.hgrow="SOMETIMES" fx:id="borderPane">
             <top>
-                <VBox HBox.hgrow="ALWAYS" style="-fx-background-color: red">
+                <VBox prefWidth="300" style="-fx-background-color: red">
                     <FileLoader fx:id="xmlFileLoader" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS"/>
                     <Separator/>
                     <FileLoader fx:id="xsdFileLoader"/>
@@ -33,7 +33,7 @@
         <HBox style="-fx-background-color: yellow" prefWidth="20">
             <Button onAction="#toggleBorderPane" text="--" style="-fx-font-size: 7px;" fx:id="toggleButton"/>
         </HBox>
-        <GridPane fx:id="auswertung" style="-fx-background-color: blue;" HBox.hgrow="NEVER"/>
+        <GridPane fx:id="auswertung" style="-fx-background-color: #6363ff;" HBox.hgrow="ALWAYS"/>
     </HBox>
 </AnchorPane>
 

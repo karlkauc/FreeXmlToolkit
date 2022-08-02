@@ -2,11 +2,14 @@ package org.fxt.freexmltoolkit.controller;
 
 import com.google.inject.Inject;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
@@ -39,6 +42,9 @@ public class XsdValidationController {
 
     @FXML
     Button toggleButton;
+
+    @FXML
+    HBox toggleWrapper;
 
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -128,15 +134,34 @@ public class XsdValidationController {
 
     @FXML
     private void toggleBorderPane() {
+        showBounds("borderPane", borderPane);
+        showBounds("auswertung", auswertung);
+
         if (borderPane.isVisible()) {
             borderPane.setVisible(false);
             borderPane.setDisable(true);
+            borderPane.setPrefWidth(0);
+
+            progressBar.setVisible(false);
+            progressBar.setDisable(true);
+            progressBar.setPrefWidth(0);
+
             toggleButton.setText(">>");
         } else {
             borderPane.setVisible(true);
             borderPane.setDisable(false);
+            borderPane.setPrefWidth(300);
             toggleButton.setText("<<");
+
+            // toggleWrapper.setLayoutX(320);
+            // toggleWrapper.setMaxWidth(800);
         }
+    }
+
+    public void showBounds(String title, Node n) {
+        Bounds b = n.getLayoutBounds();
+
+        logger.debug(String.format("%s: min %.0f,%.0f max %.0f,%.0f", title, b.getMinX(), b.getMinY(), b.getMaxX(), b.getMaxY()));
     }
 
     @FXML
