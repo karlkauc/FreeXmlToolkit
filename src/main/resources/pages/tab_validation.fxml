@@ -7,12 +7,14 @@
 <?import org.fxt.freexmltoolkit.controls.FileLoader?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController">
-    <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <BorderPane prefWidth="300" style="-fx-padding: 5 5 5 5;" HBox.hgrow="SOMETIMES" fx:id="borderPane">
+            fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController"
+            style="-fx-background-color: #7f7f1a; -fx-padding: 0;">
+    <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
+          style="-fx-padding: 0;-fx-background-color: #491818">
+        <BorderPane prefWidth="300" style="-fx-padding: 0; -fx-background-color: yellow" fx:id="borderPane">
             <top>
                 <VBox prefWidth="300" style="-fx-background-color: red">
-                    <FileLoader fx:id="xmlFileLoader" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS"/>
+                    <FileLoader fx:id="xmlFileLoader"/>
                     <Separator/>
                     <FileLoader fx:id="xsdFileLoader"/>
                     <Separator/>
@@ -30,8 +32,9 @@
                 <ProgressBar fx:id="progressBar" prefWidth="300" visible="false"/>
             </bottom>
         </BorderPane>
-        <HBox style="-fx-background-color: yellow" prefWidth="20">
-            <Button onAction="#toggleBorderPane" text="--" style="-fx-font-size: 7px;" fx:id="toggleButton"/>
+        <HBox style="-fx-background-color: #9b5067; -fx-padding: 0" prefWidth="30" HBox.hgrow="NEVER">
+            <Button onAction="#toggleBorderPane" style="-fx-font-size: 9px;" fx:id="toggleButton" text="&lt;&lt;"
+                    HBox.hgrow="ALWAYS"/>
         </HBox>
         <GridPane fx:id="auswertung" style="-fx-background-color: #6363ff;" HBox.hgrow="ALWAYS"/>
     </HBox>

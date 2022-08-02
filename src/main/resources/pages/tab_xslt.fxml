@@ -9,7 +9,7 @@
             xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.XsltController">
     <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <BorderPane maxWidth="300" minWidth="300" prefWidth="300" style="-fx-padding: 0 5 0 0;" HBox.hgrow="ALWAYS">
+        <BorderPane maxWidth="300" minWidth="300" prefWidth="300" style="-fx-padding: 0 5 0 0;">
             <top>
                 <VBox>
                     <FileLoader fx:id="xmlFileLoader"/>
@@ -31,29 +31,31 @@
             </bottom>
         </BorderPane>
 
-        <TabPane VBox.vgrow="ALWAYS">
-            <Tab text="HTML View" closable="false">
-                <graphic>
-                    <ImageView preserveRatio="true" fitHeight="16">
-                        <Image url="@../img/icons8-transform-64.png"/>
-                    </ImageView>
-                </graphic>
-                <WebView fx:id="webView" HBox.hgrow="ALWAYS"/>
-            </Tab>
-            <Tab text="CSV View" closable="false">
-                <graphic>
-                    <ImageView preserveRatio="true" fitHeight="16">
-                        <Image url="@../img/icons8-transform-64.png"/>
-                    </ImageView>
-                </graphic>
-            </Tab>
-            <Tab text="Text View" closable="false">
-                <graphic>
-                    <ImageView preserveRatio="true" fitHeight="16">
-                        <Image url="@../img/icons8-transform-64.png"/>
-                    </ImageView>
-                </graphic>
-            </Tab>
-        </TabPane>
+        <VBox HBox.hgrow="ALWAYS">
+            <TabPane VBox.vgrow="ALWAYS">
+                <Tab text="HTML View" closable="false">
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@../img/icons8-transform-64.png"/>
+                        </ImageView>
+                    </graphic>
+                    <WebView fx:id="webView" HBox.hgrow="ALWAYS"/>
+                </Tab>
+                <Tab text="CSV View" closable="false">
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@../img/icons8-transform-64.png"/>
+                        </ImageView>
+                    </graphic>
+                </Tab>
+                <Tab text="Text View" closable="false">
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@../img/icons8-transform-64.png"/>
+                        </ImageView>
+                    </graphic>
+                </Tab>
+            </TabPane>
+        </VBox>
     </HBox>
 </AnchorPane>
