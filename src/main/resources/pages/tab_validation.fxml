@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.layout.*?>
-<?import org.fxt.freexmltoolkit.controls.FileLoader?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
+            fx:id="anchorPane"
             fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController"
             style="-fx-background-color: #7f7f1a; -fx-padding: 0;">
     <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
-          style="-fx-padding: 0;-fx-background-color: #491818">
-        <BorderPane prefWidth="300" style="-fx-padding: 0; -fx-background-color: yellow" fx:id="borderPane">
+          style="-fx-padding: 0;-fx-background-color: #3db297;-fx-spacing: 0">
+        <BorderPane prefWidth="300" style="-fx-padding: 0; -fx-background-color: yellow; -fx-spacing: 0" fx:id="borderPane">
             <top>
-                <VBox prefWidth="300" style="-fx-background-color: red">
-                    <FileLoader fx:id="xmlFileLoader"/>
+                <VBox prefWidth="300" style="-fx-background-color: red; -fx-padding: 0; -fx-spacing: 0" fx:id="fileChooserContainer">
+                    <Button text="TEST" />
+
+                    <!-- <FileLoader fx:id="xmlFileLoader" style="-fx-background-color: #d519ff"/> -->
+                    <!--
                     <Separator/>
                     <FileLoader fx:id="xsdFileLoader"/>
                     <Separator/>
+                    -->
+                    <!--
                     <Button text="Reload" fx:id="reload" onAction="#reload">
                         <graphic>
                             <ImageView fitHeight="20" fitWidth="20">
@@ -25,14 +29,15 @@
                             </ImageView>
                         </graphic>
                     </Button>
-                    <Button text="TEST" onAction="#test"/>
+                    -->
+                    <!-- <Button text="TEST" onAction="#test"/> -->
                 </VBox>
             </top>
             <bottom>
                 <ProgressBar fx:id="progressBar" prefWidth="300" visible="false"/>
             </bottom>
         </BorderPane>
-        <HBox style="-fx-background-color: #9b5067; -fx-padding: 0" prefWidth="30" HBox.hgrow="NEVER">
+        <HBox style="-fx-background-color: #f182a0; -fx-padding: 0" prefWidth="30" HBox.hgrow="NEVER">
             <Button onAction="#toggleBorderPane" style="-fx-font-size: 9px;" fx:id="toggleButton" text="&lt;&lt;"
                     HBox.hgrow="ALWAYS"/>
         </HBox>

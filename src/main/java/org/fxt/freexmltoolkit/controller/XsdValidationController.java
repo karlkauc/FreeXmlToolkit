@@ -7,10 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,6 +26,9 @@ public class XsdValidationController {
     private MainController parentController;
 
     @FXML
+    AnchorPane anchorPane;
+
+    @FXML
     FileLoader xmlFileLoader, xsdFileLoader;
 
     @FXML
@@ -44,7 +44,7 @@ public class XsdValidationController {
     Button toggleButton;
 
     @FXML
-    HBox toggleWrapper;
+    VBox fileChooserContainer;
 
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -55,6 +55,9 @@ public class XsdValidationController {
     @FXML
     private void initialize() {
         logger.debug("BIN IM XSD VALIDATION CONTROLLER");
+
+        xsdFileLoader = new FileLoader();
+        xmlFileLoader = new FileLoader();
 
         progressBar.setDisable(true);
         progressBar.setVisible(false);
@@ -118,8 +121,9 @@ public class XsdValidationController {
                 StringBuilder temp = new StringBuilder();
 
                 logger.warn(Arrays.toString(exceptionList.toArray()));
+                int i = 0;
                 for (SAXParseException saxParseException : exceptionList) {
-                    temp.append(saxParseException.getLocalizedMessage()).append(System.lineSeparator());
+                    temp.append("#").append(++i).append(": ").append(saxParseException.getLocalizedMessage()).append(System.lineSeparator());
                 }
                 errors.textProperty().set(temp.toString());
                 logger.debug("HEIGHT ERRORS: {}", errors.getMinHeight());
@@ -134,33 +138,32 @@ public class XsdValidationController {
 
     @FXML
     private void toggleBorderPane() {
-        showBounds("borderPane", borderPane);
-        showBounds("auswertung", auswertung);
-
         if (borderPane.isVisible()) {
             borderPane.setVisible(false);
-            borderPane.setDisable(true);
-            borderPane.setPrefWidth(0);
 
-            progressBar.setVisible(false);
-            progressBar.setDisable(true);
+            borderPane.setPrefWidth(0);
+            fileChooserContainer.setPrefWidth(0);
+
             progressBar.setPrefWidth(0);
+            xsdFileLoader.setPrefWidth(0);
+            xmlFileLoader.setPrefWidth(0);
+
+            xmlFileLoader.getChildren().clear();
 
             toggleButton.setText(">>");
         } else {
             borderPane.setVisible(true);
-            borderPane.setDisable(false);
             borderPane.setPrefWidth(300);
             toggleButton.setText("<<");
 
-            // toggleWrapper.setLayoutX(320);
-            // toggleWrapper.setMaxWidth(800);
+            fileChooserContainer.setPrefWidth(300);
         }
+        xmlFileLoader.toggleLoadButton();
+        xsdFileLoader.toggleLoadButton();
     }
 
     public void showBounds(String title, Node n) {
         Bounds b = n.getLayoutBounds();
-
         logger.debug(String.format("%s: min %.0f,%.0f max %.0f,%.0f", title, b.getMinX(), b.getMinY(), b.getMaxX(), b.getMaxY()));
     }
 

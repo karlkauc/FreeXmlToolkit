@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -20,16 +21,39 @@ public class FileLoader extends VBox {
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     FileChooser fileChooser = new FileChooser();
-    Button loadButton = new Button("LOAD");
+    Button loadButton = new Button();
     GridPane fileInfo = new GridPane();
     private String loadPattern, displayText;
-
     File file;
+    Boolean isComponentVisible = true;
 
     public FileLoader() {
         this.getChildren().add(loadButton);
         this.getChildren().add(fileInfo);
+    }
 
+    public void toggleLoadButton() {
+        logger.debug("Component Visible: {}", isComponentVisible);
+
+        if (isComponentVisible) {
+            this.getChildren().removeAll(loadButton, fileInfo);
+
+            for (Node child : this.getChildren()) {
+                logger.debug("Entferne Übergebliebene Komponente: {}", child.getId());
+                this.getChildren().remove(child);
+            }
+            this.getChildren().clear();
+            this.setVisible(false);
+            this.setPrefWidth(0);
+            this.setDisable(true);
+        }
+        else {
+            this.getChildren().addAll(loadButton, fileInfo);
+            this.setVisible(true);
+            this.setPrefWidth(300);
+            this.setDisable(false);
+        }
+        isComponentVisible = !isComponentVisible;
     }
 
     public void setButtonText(String buttonText) {
@@ -60,10 +84,6 @@ public class FileLoader extends VBox {
 
         labelFileNameValue.setBoundsType(TextBoundsType.VISUAL);
         labelFileName.setBoundsType(TextBoundsType.VISUAL);
-
-        logger.debug("File Name Label Bound: {}", labelFileName.getLayoutBounds().getWidth());
-        logger.debug("File Name Value Bound: {}", labelFileNameValue.getLayoutBounds().getWidth());
-
 
         fileInfo.add(new Label("Size:"), 0, 1);
         fileInfo.add(new Label(FileUtils.byteCountToDisplaySize(file.length())), 1, 1);
