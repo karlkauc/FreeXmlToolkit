@@ -2,7 +2,7 @@ plugins {
     java
     idea
     application
-    id("org.openjfx.javafxplugin") version "0.0.12"
+    id("org.openjfx.javafxplugin") version "0.0.13"
     id("edu.sc.seis.launch4j") version "2.5.3"
     id("com.github.ben-manes.versions") version "0.42.0"
 }
@@ -39,15 +39,15 @@ dependencies {
     implementation("org.fxmisc.richtext:richtextfx:0.10.9")
 
     // Logging
-    implementation("org.apache.logging.log4j:log4j-api:2.17.2")
-    implementation("org.apache.logging.log4j:log4j-core:2.17.2")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.2")
+    implementation("org.apache.logging.log4j:log4j-api:2.18.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.18.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.18.0")
 
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
 
     //  xml signature
-    implementation("org.apache.santuario:xmlsec:2.3.0")
+    implementation("org.apache.santuario:xmlsec:3.0.0")
 
     implementation("com.google.inject:guice:5.1.0")
 
@@ -58,8 +58,8 @@ dependencies {
         exclude(group ="java.xml", module ="java.xml")
     }
      */
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
 }
 
 configurations {

@@ -37,10 +37,14 @@
                 <ProgressBar fx:id="progressBar" prefWidth="300" visible="false"/>
             </bottom>
         </BorderPane>
-        <HBox style="-fx-background-color: #f182a0; -fx-padding: 0" prefWidth="30" HBox.hgrow="NEVER">
+        <VBox style="-fx-background-color: #f182a0; -fx-padding: 0" prefWidth="30" HBox.hgrow="NEVER">
             <Button onAction="#toggleBorderPane" style="-fx-font-size: 9px;" fx:id="toggleButton" text="&lt;&lt;"
                     HBox.hgrow="ALWAYS"/>
-        </HBox>
+
+            <Button onAction="#toggleBorderPane" style="-fx-font-size: 9px;" text="&lt;"
+                    HBox.hgrow="ALWAYS"/>
+
+        </VBox>
         <GridPane fx:id="auswertung" style="-fx-background-color: #6363ff;" HBox.hgrow="ALWAYS"/>
     </HBox>
 </AnchorPane>

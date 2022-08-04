@@ -56,7 +56,7 @@
         <Tab text="XSD Validation" closable="false" fx:id="tabPaneXsdValidation">
             <graphic>
                 <ImageView preserveRatio="true" fitHeight="16">
-                    <Image url="@../img/icons8-transform-64.png"/>
+                    <Image url="@../img/icons8-daten-angekommen-32.png"/>
                 </ImageView>
             </graphic>
             <fx:include fx:id="xsdValidation" source="tab_validation.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
