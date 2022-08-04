@@ -6,3 +6,23 @@
     -fx-background-color: black;
     -fx-shape: "M0 9h24v6h-24z";
 }
+
+.fileChooserActive {
+    -fx-padding: 0;
+    -fx-background-color: yellow;
+    -fx-spacing: 0;
+
+    -fx-pref-width: 300;
+    -fx-min-width: 300;
+    -fx-max-width: 300;
+}
+
+.fileChooserInactive {
+    -fx-padding: 0;
+    -fx-background-color: yellow;
+    -fx-spacing: 0;
+
+    -fx-pref-width: 0;
+    -fx-min-width: 0;
+    -fx-max-width: 0;
+}

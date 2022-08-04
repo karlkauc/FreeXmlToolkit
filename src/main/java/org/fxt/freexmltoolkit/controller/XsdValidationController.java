@@ -2,8 +2,6 @@ package org.fxt.freexmltoolkit.controller;
 
 import com.google.inject.Inject;
 import javafx.fxml.FXML;
-import javafx.geometry.Bounds;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
@@ -139,32 +137,31 @@ public class XsdValidationController {
     @FXML
     private void toggleBorderPane() {
         if (borderPane.isVisible()) {
+
             borderPane.setVisible(false);
+            borderPane.getStyleClass().add("fileChooserInactive");
 
-            borderPane.setPrefWidth(0);
+            // borderPane.setPrefWidth(0);
+/*
             fileChooserContainer.setPrefWidth(0);
-
             progressBar.setPrefWidth(0);
             xsdFileLoader.setPrefWidth(0);
             xmlFileLoader.setPrefWidth(0);
-
-            xmlFileLoader.getChildren().clear();
+ */
+            //xmlFileLoader.getChildren().clear();
 
             toggleButton.setText(">>");
         } else {
             borderPane.setVisible(true);
+            borderPane.getStyleClass().add("fileChooserActive");
+
             borderPane.setPrefWidth(300);
             toggleButton.setText("<<");
 
-            fileChooserContainer.setPrefWidth(300);
+            //fileChooserContainer.setPrefWidth(300);
         }
         xmlFileLoader.toggleLoadButton();
         xsdFileLoader.toggleLoadButton();
-    }
-
-    public void showBounds(String title, Node n) {
-        Bounds b = n.getLayoutBounds();
-        logger.debug(String.format("%s: min %.0f,%.0f max %.0f,%.0f", title, b.getMinX(), b.getMinY(), b.getMaxX(), b.getMaxY()));
     }
 
     @FXML

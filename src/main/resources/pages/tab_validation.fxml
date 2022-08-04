@@ -2,15 +2,18 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:id="anchorPane"
             fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController"
+            stylesheets="@../css/app.css"
             style="-fx-background-color: #7f7f1a; -fx-padding: 0;">
     <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
           style="-fx-padding: 0;-fx-background-color: #3db297;-fx-spacing: 0">
-        <BorderPane prefWidth="300" style="-fx-padding: 0; -fx-background-color: yellow; -fx-spacing: 0" fx:id="borderPane">
+        <BorderPane fx:id="borderPane" styleClass="fileChooserActive" HBox.hgrow="ALWAYS">
             <top>
                 <VBox prefWidth="300" style="-fx-background-color: red; -fx-padding: 0; -fx-spacing: 0" fx:id="fileChooserContainer">
                     <Button text="TEST" />
@@ -41,8 +44,14 @@
             <Button onAction="#toggleBorderPane" style="-fx-font-size: 9px;" fx:id="toggleButton" text="&lt;&lt;"
                     HBox.hgrow="ALWAYS"/>
 
-            <Button onAction="#toggleBorderPane" style="-fx-font-size: 9px;" text="&lt;"
-                    HBox.hgrow="ALWAYS"/>
+            <Button onAction="#toggleBorderPane">
+                <graphic>
+                    <ImageView fitHeight="20" fitWidth="20">
+                        <Image url="@../img/icons8-minimize-64.png"/>
+                    </ImageView>
+                </graphic>
+
+            </Button>
 
         </VBox>
         <GridPane fx:id="auswertung" style="-fx-background-color: #6363ff;" HBox.hgrow="ALWAYS"/>
