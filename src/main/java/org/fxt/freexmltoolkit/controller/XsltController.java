@@ -67,7 +67,7 @@ public class XsltController {
         progressBar.setVisible(false);
 
         xmlFileLoader.setLoadPattern("*.xml", "XML File");
-        xmlFileLoader.setButtonText("XML File");
+        xmlFileLoader.getLoadButton().setText("XML File");
         xmlFileLoader.getLoadButton().setOnAction(ae -> {
             xmlFile = xmlFileLoader.getFileAction();
             logger.debug("Loaded XML File: {}", xmlFile.getAbsolutePath());
@@ -76,7 +76,7 @@ public class XsltController {
         });
 
         xsltFileLoader.setLoadPattern("*.xslt", "XSLT File");
-        xsltFileLoader.setButtonText("XSLT File");
+        xsltFileLoader.getLoadButton().setText("XSLT File");
         xsltFileLoader.getLoadButton().setOnAction(ae -> {
             xsltFile = xsltFileLoader.getFileAction();
             logger.debug("Loaded XSLT File: {}", xsltFile.getAbsolutePath());

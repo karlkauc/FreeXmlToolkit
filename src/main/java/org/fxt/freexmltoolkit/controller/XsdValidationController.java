@@ -5,8 +5,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.*;
-import javafx.scene.text.Text;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.FileLoader;
@@ -44,6 +49,12 @@ public class XsdValidationController {
     @FXML
     VBox fileChooserContainer;
 
+    @FXML
+    TextField xmlFileName, xsltFileName, schemaValid;
+
+    @FXML
+    TextArea errorList;
+
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     public void setParentController(MainController parentController) {
@@ -58,73 +69,55 @@ public class XsdValidationController {
         progressBar.setVisible(false);
 
         xmlFileLoader.setLoadPattern("*.xml", "XML File");
-        xmlFileLoader.setButtonText("XML File");
+        xmlFileLoader.getLoadButton().setText("XML File");
         xmlFileLoader.getLoadButton().setOnAction(ae -> {
             var xmlFile = xmlFileLoader.getFileAction();
             logger.debug("Loaded XML File: {}", xmlFile.getAbsolutePath());
             xmlService.setCurrentXmlFile(xmlFile);
             reload();
         });
+        xmlFileLoader.setImageView(new ImageView(new Image(getClass().getResource("/img/icons8-xml-64.png").toString(), 20, 20, true, true)));
 
         xsdFileLoader.setLoadPattern("*.xsd", "XSD File");
-        xsdFileLoader.setButtonText("XSD File");
+        xsdFileLoader.getLoadButton().setText("XSD File");
         xsdFileLoader.getLoadButton().setOnAction(ae -> {
             var xsdFile = xsdFileLoader.getFileAction();
             logger.debug("Loaded XSLT File: {}", xsdFile.getAbsolutePath());
             xmlService.setCurrentXsdFile(xsdFile);
             reload();
         });
+        xsdFileLoader.setImageView(new ImageView(new Image(getClass().getResource("/img/icons8-daten-angekommen-32.png").toString(), 20, 20, true, true)));
 
         reload();
     }
 
     @FXML
     private void reload() {
-        auswertung.add(new Text("XML File:"), 0, 0);
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
-            auswertung.add(new Text(xmlService.getCurrentXmlFile().getName()), 1, 0);
+            xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
         }
 
-        auswertung.add(new Text("XSLT File:"), 0, 1);
         if (xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
-            auswertung.add(new Text(xmlService.getCurrentXsdFile().getName()), 1, 1);
+            xsltFileName.setText(xmlService.getCurrentXsdFile().getName());
         }
-
-        auswertung.add(new Text("XSD validity:"), 0, 2);
-        TextArea errors = new TextArea();
-        errors.setWrapText(true);
-
-        errors.textProperty().addListener((obs, old, niu) -> {
-            Text t = new Text(old + niu);
-            t.setFont(errors.getFont());
-            StackPane pane = new StackPane(t);
-            pane.layout();
-            double height = t.getLayoutBounds().getHeight();
-            double padding = 100;
-            logger.debug("NEW HEIGHT: {}", height);
-
-            errors.setPrefHeight(height + padding);
-            errors.setMinHeight(height + padding);
-        });
-
-        auswertung.add(errors, 1, 2);
 
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists() &&
                 xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
             var exceptionList = xmlService.validate();
             if (exceptionList != null) {
-                StringBuilder temp = new StringBuilder();
+                StringBuilder errorListString = new StringBuilder();
 
                 logger.warn(Arrays.toString(exceptionList.toArray()));
                 int i = 0;
                 for (SAXParseException saxParseException : exceptionList) {
-                    temp.append("#").append(++i).append(": ").append(saxParseException.getLocalizedMessage()).append(System.lineSeparator());
+                    errorListString.append("#").append(++i).append(": ").append(saxParseException.getLocalizedMessage()).append(System.lineSeparator());
                 }
-                errors.textProperty().set(temp.toString());
-                logger.debug("HEIGHT ERRORS: {}", errors.getMinHeight());
+                schemaValid.setText("NO");
+                errorList.setText(errorListString.toString());
+
             } else {
                 logger.warn("KEINE ERRORS");
-                errors.setText("NO ERRORS FOUND");
+                schemaValid.setText("YES");
             }
         } else {
             logger.debug("war nicht alles ausgewählt!!");

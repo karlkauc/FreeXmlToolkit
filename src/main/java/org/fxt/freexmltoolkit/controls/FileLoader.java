@@ -2,19 +2,21 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextBoundsType;
 import javafx.stage.FileChooser;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public class FileLoader extends VBox {
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
@@ -31,33 +33,8 @@ public class FileLoader extends VBox {
         this.getChildren().add(fileInfo);
     }
 
-    public void toggleLoadButton() {
-        logger.debug("Component Visible: {}", isComponentVisible);
-
-        if (isComponentVisible) {
-            // this.getChildren().removeAll(loadButton, fileInfo);
-
-            /*for (Node child : this.getChildren()) {
-                logger.debug("Entferne Übergebliebene Komponente: {}", child.getId());
-                this.getChildren().remove(child);
-            }
-            this.getChildren().clear();
-            this.setVisible(false);
-            this.setPrefWidth(0);
-            this.setDisable(true);
-             */
-        }
-        else {
-            this.getChildren().addAll(loadButton, fileInfo);
-            this.setVisible(true);
-            this.setPrefWidth(300);
-            this.setDisable(false);
-        }
-        isComponentVisible = !isComponentVisible;
-    }
-
-    public void setButtonText(String buttonText) {
-        loadButton.setText(buttonText);
+    public void setImageView(ImageView imageView) {
+        loadButton.setGraphic(imageView);
     }
 
     public void setLoadPattern(String loadPattern, String displayText) {
@@ -76,20 +53,28 @@ public class FileLoader extends VBox {
 
         file = fileChooser.showOpenDialog(null);
 
-        fileInfo.getChildren().clear();
-        Text labelFileName = new Text("Filename:");
-        Text labelFileNameValue = new Text(file.getName());
-        fileInfo.add(labelFileName, 0, 0);
-        fileInfo.add(labelFileNameValue, 1, 0);
+        if (file != null) {
+            fileInfo.getChildren().clear();
 
-        labelFileNameValue.setBoundsType(TextBoundsType.VISUAL);
-        labelFileName.setBoundsType(TextBoundsType.VISUAL);
+            fileInfo.add(new Label("Size:"), 0, 0);
+            fileInfo.add(new Label(FileUtils.byteCountToDisplaySize(file.length())), 1, 0);
 
-        fileInfo.add(new Label("Size:"), 0, 1);
-        fileInfo.add(new Label(FileUtils.byteCountToDisplaySize(file.length())), 1, 1);
+            try {
+                BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
 
-        // filePath.setText(file.getAbsolutePath());
-        return file;
+                fileInfo.add(new Label("creation Time:"), 0, 1);
+                fileInfo.add(new Label(attr.creationTime().toString()), 1, 1);
+
+                fileInfo.add(new Label("lastModifiedTime:"), 0, 2);
+                fileInfo.add(new Label(attr.lastModifiedTime().toString()), 1, 2);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            return file;
+        }
+
+        return null;
     }
 
     private void setLayout() {

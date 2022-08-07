@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
 <?import org.fxt.freexmltoolkit.controls.FileLoader?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -34,11 +36,50 @@
                 <ProgressBar fx:id="progressBar" prefWidth="300" visible="false"/>
             </bottom>
         </BorderPane>
-        <VBox style="-fx-padding: 0;-fx-background-color: #bdbdbd" prefWidth="30" HBox.hgrow="NEVER">
+        <VBox alignment="TOP_CENTER" style="-fx-padding: 0;-fx-background-color: #bdbdbd;" prefWidth="30"
+              HBox.hgrow="NEVER">
             <Button onAction="#toggleBorderPane" style="-fx-font-size: 9px;" fx:id="toggleButton" text="&lt;&lt;"
                     HBox.hgrow="ALWAYS"/>
         </VBox>
-        <GridPane fx:id="auswertung" HBox.hgrow="ALWAYS"/>
+        <GridPane fx:id="auswertung" HBox.hgrow="ALWAYS" hgap="10" vgap="10">
+            <padding>
+                <Insets top="25" right="25" bottom="25" left="25"/>
+            </padding>
+
+            <Text id="welcome-text" text="Schema Validation Report"
+                  style="-fx-font: 24 arial;"
+                  GridPane.columnIndex="0" GridPane.rowIndex="0"
+                  GridPane.columnSpan="2"/>
+
+            <Label text="XML File:"
+                   GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="xmlFileName"
+                       GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+            <Label text="XSLT File:"
+                   GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextField fx:id="xsltFileName" prefWidth="500"
+                       GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+            <Label text="is XML File Schema Valid:"
+                   GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <TextField fx:id="schemaValid"
+                       GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+            <Label text="Details:"
+                   GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+            <TextArea fx:id="errorList"
+                      GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+            <Button text="Reload" onAction="#reload" GridPane.columnIndex="0" GridPane.rowIndex="5">
+                <graphic>
+                    <ImageView fitHeight="20" fitWidth="20">
+                        <Image url="@../img/icons8-aktualisieren-48.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+
+        </GridPane>
     </HBox>
 </AnchorPane>
 
