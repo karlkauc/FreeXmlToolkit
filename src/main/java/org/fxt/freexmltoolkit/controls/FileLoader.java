@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls;
 
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -36,9 +35,9 @@ public class FileLoader extends VBox {
         logger.debug("Component Visible: {}", isComponentVisible);
 
         if (isComponentVisible) {
-            this.getChildren().removeAll(loadButton, fileInfo);
+            // this.getChildren().removeAll(loadButton, fileInfo);
 
-            for (Node child : this.getChildren()) {
+            /*for (Node child : this.getChildren()) {
                 logger.debug("Entferne Übergebliebene Komponente: {}", child.getId());
                 this.getChildren().remove(child);
             }
@@ -46,6 +45,7 @@ public class FileLoader extends VBox {
             this.setVisible(false);
             this.setPrefWidth(0);
             this.setDisable(true);
+             */
         }
         else {
             this.getChildren().addAll(loadButton, fileInfo);

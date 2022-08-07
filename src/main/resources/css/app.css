@@ -13,8 +13,6 @@
     -fx-spacing: 0;
 
     -fx-pref-width: 300;
-    -fx-min-width: 300;
-    -fx-max-width: 300;
 }
 
 .fileChooserInactive {
@@ -23,6 +21,4 @@
     -fx-spacing: 0;
 
     -fx-pref-width: 0;
-    -fx-min-width: 0;
-    -fx-max-width: 0;
 }

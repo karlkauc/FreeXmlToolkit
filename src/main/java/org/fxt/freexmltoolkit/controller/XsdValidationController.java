@@ -54,9 +54,6 @@ public class XsdValidationController {
     private void initialize() {
         logger.debug("BIN IM XSD VALIDATION CONTROLLER");
 
-        xsdFileLoader = new FileLoader();
-        xmlFileLoader = new FileLoader();
-
         progressBar.setDisable(true);
         progressBar.setVisible(false);
 
@@ -137,31 +134,13 @@ public class XsdValidationController {
     @FXML
     private void toggleBorderPane() {
         if (borderPane.isVisible()) {
-
-            borderPane.setVisible(false);
-            borderPane.getStyleClass().add("fileChooserInactive");
-
-            // borderPane.setPrefWidth(0);
-/*
-            fileChooserContainer.setPrefWidth(0);
-            progressBar.setPrefWidth(0);
-            xsdFileLoader.setPrefWidth(0);
-            xmlFileLoader.setPrefWidth(0);
- */
-            //xmlFileLoader.getChildren().clear();
-
+            borderPane.setPrefWidth(0);
             toggleButton.setText(">>");
         } else {
-            borderPane.setVisible(true);
-            borderPane.getStyleClass().add("fileChooserActive");
-
             borderPane.setPrefWidth(300);
             toggleButton.setText("<<");
-
-            //fileChooserContainer.setPrefWidth(300);
         }
-        xmlFileLoader.toggleLoadButton();
-        xsdFileLoader.toggleLoadButton();
+        borderPane.setVisible(!borderPane.isVisible());
     }
 
     @FXML
