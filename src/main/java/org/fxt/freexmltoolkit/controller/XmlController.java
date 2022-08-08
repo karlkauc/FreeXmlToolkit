@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.layout.StackPane;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -56,10 +55,14 @@ public class XmlController {
     }
 
     public void reloadXmlText() {
+        logger.debug("Reload XML Text");
         codeArea.clear();
         try {
             if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
                 codeArea.replaceText(0, 0, Files.readString(xmlService.getCurrentXmlFile().toPath()));
+
+                logger.debug("Caret Position: {}", codeArea.getCaretPosition());
+                logger.debug("Caret Column: {}", codeArea.getCaretColumn());
             }
             else {
                 logger.warn("FILE IS NULL");

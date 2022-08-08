@@ -89,6 +89,8 @@ public class XsdValidationController {
                     }
                 }
                 reload();
+
+                parentController.getXmlController().reloadXmlText();
             }
         });
 
