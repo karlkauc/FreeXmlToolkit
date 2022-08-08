@@ -30,14 +30,15 @@ public interface XmlService {
     File getCurrentXsdFile();
     void setCurrentXsdFile(File xsdFile);
 
-
     String getCurrentXml();
 
     void setCurrentXml(String currentXml);
 
     String saxonTransform() throws TransformerException, FileNotFoundException;
 
-    public List<SAXParseException> validate();
+    List<SAXParseException> validate();
+
+    String getSchemaFromXMLFile();
 
     static String prettyFormat(String input, int indent) {
         try {

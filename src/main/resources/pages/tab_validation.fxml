@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.SVGPath?>
 <?import javafx.scene.text.Text?>
 <AnchorPane fx:id="anchorPane" style="-fx-padding: 0;" stylesheets="@../css/app.css"
             xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
@@ -42,7 +43,9 @@
         <TextField prefWidth="500" GridPane.columnIndex="2" GridPane.rowIndex="3" fx:id="xsdFileName" disable="true"/>
 
         <Label text="is XML File Schema Valid:" GridPane.rowIndex="4"/>
-        <TextField fx:id="schemaValid" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
+        <!-- <TextField fx:id="schemaValid" GridPane.columnIndex="2" GridPane.rowIndex="4"/> -->
+
+        <SVGPath fx:id="isValid" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
 
         <Label text="Details:" GridPane.rowIndex="5"/>
         <TextArea fx:id="errorList" GridPane.columnIndex="2" GridPane.rowIndex="5"/>

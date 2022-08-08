@@ -8,9 +8,11 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.shape.SVGPath;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.xml.sax.SAXParseException;
 
@@ -24,6 +26,10 @@ public class XsdValidationController {
 
     @Inject
     XmlService xmlService;
+
+    @Inject
+    PropertiesService propertiesService;
+
     private MainController parentController;
 
     @FXML
@@ -41,6 +47,9 @@ public class XsdValidationController {
     TextField xmlFileName, xsdFileName, schemaValid;
 
     @FXML
+    SVGPath isValid;
+
+    @FXML
     TextArea errorList;
 
     @FXML
@@ -54,8 +63,6 @@ public class XsdValidationController {
 
     @FXML
     private void toggleAutoDetection() {
-        logger.debug("AUTO DETECT!");
-
         xsdLoadButton.setDisable(!xsdLoadButton.isDisable());
         xsdFileName.setDisable(!xsdFileName.isDisable());
     }
@@ -72,6 +79,13 @@ public class XsdValidationController {
                 logger.debug("Loaded XML File: {}", tempFile.getAbsolutePath());
                 xmlService.setCurrentXmlFile(tempFile);
                 xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
+
+                if (autodetect.isSelected()) {
+                    var schemaName = xmlService.getSchemaFromXMLFile();
+                    if (schemaName != null && !schemaName.isEmpty()) {
+                        xsdFileName.setText(schemaName);
+                    }
+                }
                 reload();
             }
         });
@@ -102,12 +116,14 @@ public class XsdValidationController {
                 for (SAXParseException saxParseException : exceptionList) {
                     errorListString.append("#").append(++i).append(": ").append(saxParseException.getLocalizedMessage()).append(System.lineSeparator());
                 }
-                schemaValid.setText("NO");
+                isValid.setContent("M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z");
+                // schemaValid.setText("NO");
                 errorList.setText(errorListString.toString());
 
             } else {
                 logger.warn("KEINE ERRORS");
-                schemaValid.setText("YES");
+                // schemaValid.setText("YES");
+                isValid.setContent("M40.6 12.1L17 35.7 7.4 26.1 4.6 29 17 41.3 43.4 14.9z");
                 errorList.clear();
             }
         } else {

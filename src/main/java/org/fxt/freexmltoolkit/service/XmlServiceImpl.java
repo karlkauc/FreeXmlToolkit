@@ -1,13 +1,20 @@
 package org.fxt.freexmltoolkit.service;
 
+import com.google.inject.Inject;
 import net.sf.saxon.TransformerFactoryImpl;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
@@ -17,14 +24,22 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.*;
 import java.lang.invoke.MethodHandles;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
 import java.util.List;
 
 public class XmlServiceImpl implements XmlService {
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
-    File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
+    @Inject
+    PropertiesService propertiesService;
 
+    File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
 
     private String currentXML;
 
@@ -123,5 +138,59 @@ public class XmlServiceImpl implements XmlService {
     public void setCurrentXml(String currentXml) {
         logger.debug("set XML Content {}", currentXml.length());
         this.currentXML = currentXml;
+    }
+
+    @Override
+    public String getSchemaFromXMLFile() {
+        var prop = propertiesService.loadProperties();
+        logger.debug("Properties: {}", prop);
+
+        if (this.currentXmlFile != null && this.currentXmlFile.exists()) {
+            try {
+                FileInputStream fileIS = new FileInputStream(this.currentXmlFile);
+                DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder = builderFactory.newDocumentBuilder();
+                Document xmlDocument = builder.parse(fileIS);
+
+                Element root = xmlDocument.getDocumentElement();
+                logger.debug("ROOT: {}", root);
+
+                var possibleSchemaLocation = root.getAttribute("xsi:noNamespaceSchemaLocation");
+                if (!possibleSchemaLocation.isEmpty()) {
+                    logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
+                    if (possibleSchemaLocation.trim().toLowerCase().startsWith("http://") ||
+                            possibleSchemaLocation.trim().toLowerCase().startsWith("https://")) {
+
+                        URL url = new URL(possibleSchemaLocation);
+                        URLConnection connection;
+
+                        if (!prop.get("http.proxy.host").toString().isEmpty() && !prop.get("http.proxy.port").toString().isEmpty()) {
+                            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(prop.get("http.proxy.host").toString(), Integer.parseInt(prop.get("http.proxy.port").toString())));
+                            connection = url.openConnection(proxy);
+                        } else {
+                            connection = url.openConnection();
+                        }
+                        InputStream is = connection.getInputStream();
+                        String newFileName = FilenameUtils.getName(url.getPath());
+
+                        File newFile = new File(newFileName);
+                        Files.copy(is, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        this.setCurrentXsdFile(newFile);
+                        logger.debug("Loaded file to: {}", newFile.getAbsolutePath());
+
+                        return newFile.getName();
+                    }
+                } else {
+                    logger.debug("No possible Schema Location found!");
+                }
+
+            } catch (IOException | ParserConfigurationException | SAXException exception) {
+                logger.error(exception.getMessage());
+            }
+        } else {
+            logger.debug("Kein XML File ausgewählt!");
+        }
+
+        return null;
     }
 }
