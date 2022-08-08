@@ -3,22 +3,19 @@ package org.fxt.freexmltoolkit.controller;
 import com.google.inject.Inject;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.FileLoader;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.xml.sax.SAXParseException;
 
 import java.lang.invoke.MethodHandles;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
@@ -31,26 +28,16 @@ public class XsdValidationController {
     @FXML
     AnchorPane anchorPane;
 
-    @FXML
-    FileLoader xmlFileLoader, xsdFileLoader;
-
-    @FXML
-    BorderPane borderPane;
-
-    @FXML
-    ProgressBar progressBar;
+    FileChooser xmlFileChooser = new FileChooser(), xsdFileChooser = new FileChooser();
 
     @FXML
     GridPane auswertung;
 
     @FXML
-    Button toggleButton;
+    Button xmlLoadButton, xsdLoadButton;
 
     @FXML
-    VBox fileChooserContainer;
-
-    @FXML
-    TextField xmlFileName, xsltFileName, schemaValid;
+    TextField xmlFileName, xsdFileName, schemaValid;
 
     @FXML
     TextArea errorList;
@@ -63,48 +50,39 @@ public class XsdValidationController {
 
     @FXML
     private void initialize() {
-        logger.debug("BIN IM XSD VALIDATION CONTROLLER");
+        final Path path = FileSystems.getDefault().getPath(".");
 
-        progressBar.setDisable(true);
-        progressBar.setVisible(false);
-
-        xmlFileLoader.setLoadPattern("*.xml", "XML File");
-        xmlFileLoader.getLoadButton().setText("XML File");
-        xmlFileLoader.getLoadButton().setOnAction(ae -> {
-            var xmlFile = xmlFileLoader.getFileAction();
-            logger.debug("Loaded XML File: {}", xmlFile.getAbsolutePath());
-            xmlService.setCurrentXmlFile(xmlFile);
-            reload();
+        xmlFileChooser.setInitialDirectory(path.toFile());
+        xmlFileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML File", "*.xml"));
+        xmlLoadButton.setOnAction(ae -> {
+            var tempFile = xmlFileChooser.showOpenDialog(null);
+            if (tempFile != null) {
+                logger.debug("Loaded XML File: {}", tempFile.getAbsolutePath());
+                xmlService.setCurrentXmlFile(tempFile);
+                xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
+                reload();
+            }
         });
-        xmlFileLoader.setImageView(new ImageView(new Image(getClass().getResource("/img/icons8-xml-64.png").toString(), 20, 20, true, true)));
 
-        xsdFileLoader.setLoadPattern("*.xsd", "XSD File");
-        xsdFileLoader.getLoadButton().setText("XSD File");
-        xsdFileLoader.getLoadButton().setOnAction(ae -> {
-            var xsdFile = xsdFileLoader.getFileAction();
-            logger.debug("Loaded XSLT File: {}", xsdFile.getAbsolutePath());
-            xmlService.setCurrentXsdFile(xsdFile);
-            reload();
+        xsdFileChooser.setInitialDirectory(path.toFile());
+        xsdFileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XSD File", "*.xsd"));
+        xsdLoadButton.setOnAction(ae -> {
+            var tempFile = xsdFileChooser.showOpenDialog(null);
+            if (tempFile != null) {
+                logger.debug("Loaded XSLT File: {}", tempFile.getAbsolutePath());
+                xmlService.setCurrentXsdFile(tempFile);
+                xsdFileName.setText(xmlService.getCurrentXsdFile().getName());
+                reload();
+            }
         });
-        xsdFileLoader.setImageView(new ImageView(new Image(getClass().getResource("/img/icons8-daten-angekommen-32.png").toString(), 20, 20, true, true)));
-
-        reload();
     }
 
     @FXML
     private void reload() {
-        if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
-            xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
-        }
-
-        if (xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
-            xsltFileName.setText(xmlService.getCurrentXsdFile().getName());
-        }
-
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists() &&
                 xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
             var exceptionList = xmlService.validate();
-            if (exceptionList != null) {
+            if (exceptionList != null && exceptionList.size() > 0) {
                 StringBuilder errorListString = new StringBuilder();
 
                 logger.warn(Arrays.toString(exceptionList.toArray()));
@@ -118,22 +96,11 @@ public class XsdValidationController {
             } else {
                 logger.warn("KEINE ERRORS");
                 schemaValid.setText("YES");
+                errorList.clear();
             }
         } else {
             logger.debug("war nicht alles ausgewählt!!");
         }
-    }
-
-    @FXML
-    private void toggleBorderPane() {
-        if (borderPane.isVisible()) {
-            borderPane.setPrefWidth(0);
-            toggleButton.setText(">>");
-        } else {
-            borderPane.setPrefWidth(300);
-            toggleButton.setText("<<");
-        }
-        borderPane.setVisible(!borderPane.isVisible());
     }
 
     @FXML
@@ -142,6 +109,5 @@ public class XsdValidationController {
         xmlService.setCurrentXsdFile(Paths.get("C:/Data/src/schema/FundsXML4.xsd").toFile());
         reload();
     }
-
 
 }
