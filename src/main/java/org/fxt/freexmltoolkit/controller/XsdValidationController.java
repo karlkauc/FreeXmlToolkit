@@ -16,8 +16,10 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.xml.sax.SAXParseException;
 
+import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -115,8 +117,20 @@ public class XsdValidationController {
                 int i = 0;
                 for (SAXParseException saxParseException : exceptionList) {
                     errorListString.append("#").append(++i).append(": ").append(saxParseException.getLocalizedMessage()).append(System.lineSeparator());
+                    errorListString.append("Line#: ").append(saxParseException.getLineNumber()).append(" Col#: ").append(saxParseException.getColumnNumber()).append(System.lineSeparator());
+
+                    try {
+                        var lineBevore = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber()-1).trim();
+                        var line = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber()).trim();
+                        var lineAfter = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber()+1).trim();
+                        errorListString.append(lineBevore).append(System.lineSeparator()).append(line).append(System.lineSeparator()).append(lineAfter).append(System.lineSeparator());
+                    }
+                    catch (IOException exception) {
+                        logger.error("Exception: {}", exception.getMessage());
+                    }
+                    errorListString.append(System.lineSeparator());
                 }
-                isValid.setContent("M44,24c0,11.045-8.955,20-20,20S4,35.045,4,24S12.955,4,24,4S44,12.955,44,24z");
+                isValid.setContent("M21.5 4.5H26.501V43.5H21.5z ");
                 // schemaValid.setText("NO");
                 errorList.setText(errorListString.toString());
 
