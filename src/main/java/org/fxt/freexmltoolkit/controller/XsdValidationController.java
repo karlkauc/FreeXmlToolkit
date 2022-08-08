@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controller;
 import com.google.inject.Inject;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
@@ -42,10 +43,21 @@ public class XsdValidationController {
     @FXML
     TextArea errorList;
 
+    @FXML
+    CheckBox autodetect;
+
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
+    }
+
+    @FXML
+    private void toggleAutoDetection() {
+        logger.debug("AUTO DETECT!");
+
+        xsdLoadButton.setDisable(!xsdLoadButton.isDisable());
+        xsdFileName.setDisable(!xsdFileName.isDisable());
     }
 
     @FXML
