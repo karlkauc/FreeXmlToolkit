@@ -9,6 +9,7 @@ module org.fxt.freexmltoolkit {
     requires org.apache.logging.log4j.slf4j;
     requires java.desktop;
     // requires org.xmlresolver.xmlresolver;
+    requires java.net.http;
 
     requires org.apache.commons.lang3;
     requires org.apache.commons.io;

@@ -6,9 +6,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.shape.SVGPath;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,16 +47,16 @@ public class XsdValidationController {
     Button xmlLoadButton, xsdLoadButton;
 
     @FXML
-    TextField xmlFileName, xsdFileName, schemaValid;
-
-    @FXML
-    SVGPath isValid;
+    TextField xmlFileName, xsdFileName, remoteXsdLocation;
 
     @FXML
     TextArea errorList;
 
     @FXML
     CheckBox autodetect;
+
+    @FXML
+    ImageView statusImage;
 
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -111,6 +112,8 @@ public class XsdValidationController {
     private void reload() {
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists() &&
                 xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
+            remoteXsdLocation.setText(xmlService.getRemoteXsdLocation());
+
             var exceptionList = xmlService.validate();
             if (exceptionList != null && exceptionList.size() > 0) {
                 StringBuilder errorListString = new StringBuilder();
@@ -132,14 +135,14 @@ public class XsdValidationController {
                     }
                     errorListString.append(System.lineSeparator());
                 }
-                isValid.setContent("M21.5 4.5H26.501V43.5H21.5z ");
-                // schemaValid.setText("NO");
+                Image image = new Image(getClass().getResource("/img/icons8-stornieren-48.png").toString());
+                statusImage.setImage(image);
                 errorList.setText(errorListString.toString());
 
             } else {
                 logger.warn("KEINE ERRORS");
-                // schemaValid.setText("YES");
-                isValid.setContent("M40.6 12.1L17 35.7 7.4 26.1 4.6 29 17 41.3 43.4 14.9z");
+                Image image = new Image(getClass().getResource("/img/icons8-ok-48.png").toString());
+                statusImage.setImage(image);
                 errorList.clear();
             }
         } else {

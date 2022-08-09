@@ -4,72 +4,65 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.shape.SVGPath?>
 <?import javafx.scene.text.Text?>
-<AnchorPane fx:id="anchorPane" style="-fx-padding: 0;" stylesheets="@../css/app.css"
-            xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController">
+<AnchorPane fx:id="anchorPane" style="-fx-padding: 0;" stylesheets="@../css/app.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController">
     <GridPane fx:id="auswertung" hgap="10" vgap="10">
         <padding>
-            <Insets bottom="25" left="25" right="25" top="25"/>
+            <Insets bottom="25" left="25" right="25" top="25" />
         </padding>
 
-        <Text id="welcome-text" style="-fx-font: 24 arial;" text="Schema Validation Report" wrappingWidth="293.82421875"
-              GridPane.columnSpan="3" GridPane.rowIndex="0"/>
+        <Text id="welcome-text" style="-fx-font: 24 arial;" text="Schema Validation Report" wrappingWidth="293.82421875" GridPane.columnSpan="3" GridPane.rowIndex="0" />
 
-        <Label text="XML File:" GridPane.rowIndex="1"/>
-        <Button mnemonicParsing="false" text="Load File" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                GridPane.vgrow="ALWAYS" fx:id="xmlLoadButton">
+        <Label text="XML File:" GridPane.rowIndex="1" />
+        <Button mnemonicParsing="false" text="Load File" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" fx:id="xmlLoadButton">
             <graphic>
                 <ImageView fitHeight="20" fitWidth="20">
-                    <Image url="@../img/icons8-xml-64.png"/>
+                    <Image url="@../img/icons8-xml-64.png" />
                 </ImageView>
             </graphic>
         </Button>
 
-        <Label text="autodetect Schema" GridPane.rowIndex="2"/>
-        <CheckBox fx:id="autodetect" onAction="#toggleAutoDetection" selected="true" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-        <TextField GridPane.columnIndex="2" GridPane.rowIndex="1" fx:id="xmlFileName"/>
+        <Label text="autodetect Schema" GridPane.rowIndex="2" />
+        <CheckBox fx:id="autodetect" mnemonicParsing="false" onAction="#toggleAutoDetection" selected="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+        <TextField GridPane.columnIndex="2" GridPane.rowIndex="1" fx:id="xmlFileName" />
 
-        <Label text="XSD File:" GridPane.rowIndex="3"/>
-        <Button mnemonicParsing="false" text="Load File" GridPane.columnIndex="1" GridPane.rowIndex="3"
-                fx:id="xsdLoadButton" disable="true">
+        <Label text="XSD File:" GridPane.rowIndex="3" />
+        <Button disable="true" mnemonicParsing="false" text="Load File" GridPane.columnIndex="1" GridPane.rowIndex="3" fx:id="xsdLoadButton">
             <graphic>
                 <ImageView fitHeight="20" fitWidth="20">
-                    <Image url="@../img/icons8-daten-angekommen-32.png"/>
+                    <Image url="@../img/icons8-daten-angekommen-32.png" />
                 </ImageView>
             </graphic>
         </Button>
-        <TextField prefWidth="500" GridPane.columnIndex="2" GridPane.rowIndex="3" fx:id="xsdFileName" disable="true"/>
+        <TextField disable="true" prefWidth="500" GridPane.columnIndex="2" GridPane.rowIndex="3" fx:id="xsdFileName" />
 
-        <Label text="is XML File Schema Valid:" GridPane.rowIndex="4"/>
-        <!-- <TextField fx:id="schemaValid" GridPane.columnIndex="2" GridPane.rowIndex="4"/> -->
+        <Label text="is XML File Schema Valid:" GridPane.rowIndex="4" />
+        <ImageView fx:id="statusImage" fitHeight="40" fitWidth="40" GridPane.columnIndex="2" GridPane.rowIndex="4" />
 
-        <SVGPath fx:id="isValid" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
-
-        <Label text="Details:" GridPane.rowIndex="5"/>
-        <TextArea fx:id="errorList" GridPane.columnIndex="2" GridPane.rowIndex="5"/>
+        <Label text="Details:" GridPane.rowIndex="5" />
+        <TextArea fx:id="errorList" GridPane.columnIndex="2" GridPane.rowIndex="5" />
 
         <Button onAction="#reload" text="Reload" GridPane.rowIndex="6">
             <graphic>
                 <ImageView fitHeight="20" fitWidth="20">
-                    <Image url="@../img/icons8-aktualisieren-48.png"/>
+                    <Image url="@../img/icons8-aktualisieren-48.png" />
                 </ImageView>
             </graphic>
         </Button>
+      <TextField fx:id="remoteXsdLocation" disable="true" GridPane.columnIndex="2" GridPane.rowIndex="2" />
         <columnConstraints>
-            <ColumnConstraints/>
-            <ColumnConstraints minWidth="10.0" prefWidth="100.0"/>
-            <ColumnConstraints/>
+            <ColumnConstraints />
+            <ColumnConstraints minWidth="10.0" prefWidth="100.0" />
+            <ColumnConstraints />
         </columnConstraints>
         <rowConstraints>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
         </rowConstraints>
 
     </GridPane>

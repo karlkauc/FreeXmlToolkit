@@ -25,11 +25,13 @@ import javax.xml.validation.Validator;
 import java.io.*;
 import java.lang.invoke.MethodHandles;
 import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.net.ProxySelector;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,6 +44,8 @@ public class XmlServiceImpl implements XmlService {
     File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
 
     private String currentXML;
+
+    private String remoteXsdLocation;
 
     @Override
     public File getCurrentXmlFile() {
@@ -66,6 +70,11 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public File getCurrentXsdFile() {
         return this.currentXsdFile;
+    }
+
+    @Override
+    public String getRemoteXsdLocation() {
+        return this.remoteXsdLocation;
     }
 
     @Override
@@ -129,7 +138,7 @@ public class XmlServiceImpl implements XmlService {
             return exceptions;
 
         } catch (SAXException | IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             return exceptions;
         }
     }
@@ -161,30 +170,48 @@ public class XmlServiceImpl implements XmlService {
                     if (possibleSchemaLocation.trim().toLowerCase().startsWith("http://") ||
                             possibleSchemaLocation.trim().toLowerCase().startsWith("https://")) {
 
-                        URL url = new URL(possibleSchemaLocation);
-                        URLConnection connection;
-
+                        var proxySelector = ProxySelector.getDefault();
                         if (!prop.get("http.proxy.host").toString().isEmpty() && !prop.get("http.proxy.port").toString().isEmpty()) {
-                            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(prop.get("http.proxy.host").toString(), Integer.parseInt(prop.get("http.proxy.port").toString())));
-                            connection = url.openConnection(proxy);
-                        } else {
-                            connection = url.openConnection();
+                            proxySelector = ProxySelector.of(
+                                    new InetSocketAddress(
+                                            prop.get("http.proxy.host").toString(),
+                                            Integer.parseInt(prop.get("http.proxy.port").toString())));
                         }
-                        InputStream is = connection.getInputStream();
-                        String newFileName = FilenameUtils.getName(url.getPath());
 
-                        File newFile = new File(newFileName);
-                        Files.copy(is, newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        this.setCurrentXsdFile(newFile);
-                        logger.debug("Loaded file to: {}", newFile.getAbsolutePath());
+                        HttpClient client = HttpClient.newBuilder()
+                                .version(HttpClient.Version.HTTP_2)
+                                .followRedirects(HttpClient.Redirect.NORMAL)
+                                .connectTimeout(Duration.ofSeconds(20))
+                                .proxy(proxySelector)
+                                .build();
 
-                        return newFile.getName();
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(possibleSchemaLocation))
+                                .build();
+
+                        String fileNameNew = FilenameUtils.getName(possibleSchemaLocation);
+                        var pathNew = Path.of(fileNameNew);
+                        var response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
+                        logger.debug("HTTP Status Code: {}", response.statusCode());
+                        // System.out.println(response.statusCode());
+                        // System.out.println(response.body());
+
+                        logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
+                        if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
+                            this.setCurrentXsdFile(pathNew.toFile());
+                            this.remoteXsdLocation = possibleSchemaLocation;
+                            return pathNew.toFile().getName();
+                        }
+                        else {
+                            logger.error("File nicht gefunden oder kein Fileinhalt: {}", pathNew.getFileName());
+                        }
+                        return null;
                     }
                 } else {
                     logger.debug("No possible Schema Location found!");
                 }
 
-            } catch (IOException | ParserConfigurationException | SAXException exception) {
+            } catch (IOException | ParserConfigurationException | SAXException | InterruptedException exception) {
                 logger.error(exception.getMessage());
             }
         } else {

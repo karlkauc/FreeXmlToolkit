@@ -28,6 +28,9 @@ public interface XmlService {
     void setCurrentXsltFile(File currentXsltFile);
 
     File getCurrentXsdFile();
+
+    String getRemoteXsdLocation();
+
     void setCurrentXsdFile(File xsdFile);
 
     String getCurrentXml();
