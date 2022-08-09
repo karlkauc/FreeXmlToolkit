@@ -13,7 +13,6 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.xml.sax.SAXParseException;
 
@@ -29,9 +28,6 @@ public class XsdValidationController {
 
     @Inject
     XmlService xmlService;
-
-    @Inject
-    PropertiesService propertiesService;
 
     private MainController parentController;
 

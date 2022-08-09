@@ -81,7 +81,7 @@ public class FileLoader extends VBox {
         this.setStyle("-fx-padding: 7px; ");
         fileInfo.setHgap(10);
         fileInfo.setVgap(10);
-        fileInfo.setGridLinesVisible(true);
+        fileInfo.setGridLinesVisible(false);
     }
 
     public Button getLoadButton() {

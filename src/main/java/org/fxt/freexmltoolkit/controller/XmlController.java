@@ -103,7 +103,7 @@ public class XmlController {
         codeArea.replaceText(0, 0, tempFormat);
     }
 
-    private static StyleSpans<Collection<String>> computeHighlighting(String text) {
+    static StyleSpans<Collection<String>> computeHighlighting(String text) {
         Matcher matcher = XML_TAG.matcher(text);
         int lastKwEnd = 0;
         StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();

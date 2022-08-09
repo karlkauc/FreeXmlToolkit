@@ -32,28 +32,30 @@
         </BorderPane>
 
         <VBox HBox.hgrow="ALWAYS">
-            <TabPane VBox.vgrow="ALWAYS">
-                <Tab text="HTML View" closable="false">
+            <TabPane fx:id="outputMethodSwitch" VBox.vgrow="ALWAYS">
+                <Tab fx:id="tabText" text="Text View" closable="false">
                     <graphic>
                         <ImageView preserveRatio="true" fitHeight="16">
-                            <Image url="@../img/icons8-transform-64.png"/>
+                            <Image url="@../img/icons8-txt-26.png"/>
+                        </ImageView>
+                    </graphic>
+                    <StackPane fx:id="textView" HBox.hgrow="ALWAYS" />
+                </Tab>
+                <Tab fx:id="tabWeb" text="HTML View" closable="false">
+                    <graphic>
+                        <ImageView preserveRatio="true" fitHeight="16">
+                            <Image url="@../img/icons8-www-32.png"/>
                         </ImageView>
                     </graphic>
                     <WebView fx:id="webView" HBox.hgrow="ALWAYS"/>
                 </Tab>
-                <Tab text="CSV View" closable="false">
+                <Tab fx:id="tabCsv" text="CSV View" closable="false">
                     <graphic>
                         <ImageView preserveRatio="true" fitHeight="16">
-                            <Image url="@../img/icons8-transform-64.png"/>
+                            <Image url="@../img/icons8-csv-export-16.png"/>
                         </ImageView>
                     </graphic>
-                </Tab>
-                <Tab text="Text View" closable="false">
-                    <graphic>
-                        <ImageView preserveRatio="true" fitHeight="16">
-                            <Image url="@../img/icons8-transform-64.png"/>
-                        </ImageView>
-                    </graphic>
+                    <TableView fx:id="csvView" HBox.hgrow="ALWAYS" />
                 </Tab>
             </TabPane>
         </VBox>

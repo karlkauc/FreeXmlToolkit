@@ -3,18 +3,22 @@ package org.fxt.freexmltoolkit.controller;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import javafx.application.Platform;
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
 import javafx.fxml.JavaFXBuilderFactory;
-import javafx.scene.control.Button;
-import javafx.scene.control.ProgressBar;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.util.BuilderFactory;
 import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxmisc.flowless.VirtualizedScrollPane;
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.FileLoader;
 import org.fxt.freexmltoolkit.service.ModuleBindings;
 import org.fxt.freexmltoolkit.service.XmlService;
@@ -59,10 +63,29 @@ public class XsltController {
     @FXML
     WebView webView;
 
+    @FXML
+    StackPane textView;
+
+    @FXML
+    TableView csvView;
+
+    @FXML
+    TabPane outputMethodSwitch;
+
+    @FXML
+    Tab tabWeb, tabText, tabCsv;
+
     File xmlFile, xsltFile;
+
+    CodeArea codeArea = new CodeArea();
+    VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     @FXML
     private void initialize() {
+        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+        virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
+        textView.getChildren().add(virtualizedScrollPane);
+
         progressBar.setDisable(true);
         progressBar.setVisible(false);
 
@@ -116,12 +139,52 @@ public class XsltController {
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()
                 && xmlService.getCurrentXsltFile() != null && xmlService.getCurrentXsltFile().exists()) {
             logger.debug("RENDER FILE");
-            renderFile();
+
+            renderHTML();
+            renderXML();
+            renderText();
+
+            var outputMethod = xmlService.getXsltOutputMethod();
+            logger.debug("Output Method: {}", outputMethod);
+            switch (outputMethod) {
+                case "html", "xhtml" -> {
+                    logger.debug("BIN IM HTML");
+                    outputMethodSwitch.getSelectionModel().select(tabWeb);
+                }
+                case "xml" -> outputMethodSwitch.getSelectionModel().select(tabText);
+                case "text" -> outputMethodSwitch.getSelectionModel().select(tabText);
+                default -> outputMethodSwitch.getSelectionModel().select(tabText);
+            }
+        }
+    }
+
+    private void renderXML() {
+        renderText();
+
+        try {
+            var newText = Files.readString(xmlService.getCurrentXmlFile().toPath());
+
+            if (newText.length() < 1024 * 1024) {
+                Platform.runLater(() -> codeArea.setStyleSpans(0, XmlController.computeHighlighting(newText)));
+            }
+        }
+        catch (IOException exception) {
+            logger.error("Exception in renderText: {}", exception.getMessage());
+        }
+    }
+
+    private void renderText() {
+        try {
+            codeArea.clear();
+            codeArea.replaceText(0, 0, Files.readString(xmlService.getCurrentXmlFile().toPath()));
+        }
+        catch (IOException exception) {
+            logger.error("Exception in renderText: {}", exception.getMessage());
         }
     }
 
 
-    private void renderFile() {
+    private void renderHTML() {
         final String outputFileName = "output/output.html";
 
         String output;

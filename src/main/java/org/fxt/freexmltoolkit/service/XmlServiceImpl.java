@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -22,6 +23,10 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.*;
 import java.lang.invoke.MethodHandles;
 import java.net.InetSocketAddress;
@@ -47,6 +52,12 @@ public class XmlServiceImpl implements XmlService {
 
     private String remoteXsdLocation;
 
+    private String xsltOutputMethod;
+
+    DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder;
+    Document xmlDocument;
+
     @Override
     public File getCurrentXmlFile() {
         return currentXmlFile;
@@ -65,6 +76,23 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public void setCurrentXsltFile(File currentXsltFile) {
         this.currentXsltFile = currentXsltFile;
+
+        // output methode ermitteln!!
+        try {
+            FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
+            builder = builderFactory.newDocumentBuilder();
+            xmlDocument = builder.parse(fileIS);
+
+            String expression = "/stylesheet/output/@method";
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            var nodeList = (NodeList) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODESET);
+            logger.debug("Output Method: {}", nodeList.item(0).getNodeValue());
+
+            this.xsltOutputMethod = nodeList.item(0).getNodeValue();
+        } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException e) {
+            logger.error("Could not detect output Method: ");
+            logger.error(e.getMessage());
+        }
     }
 
     @Override
@@ -78,9 +106,13 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
+    public String getXsltOutputMethod() {
+        return this.xsltOutputMethod;
+    }
+
+    @Override
     public void setCurrentXsdFile(File xsdFile) {
         this.currentXsdFile = xsdFile;
-
     }
 
     @Override
@@ -157,9 +189,8 @@ public class XmlServiceImpl implements XmlService {
         if (this.currentXmlFile != null && this.currentXmlFile.exists()) {
             try {
                 FileInputStream fileIS = new FileInputStream(this.currentXmlFile);
-                DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder builder = builderFactory.newDocumentBuilder();
-                Document xmlDocument = builder.parse(fileIS);
+                builder = builderFactory.newDocumentBuilder();
+                xmlDocument = builder.parse(fileIS);
 
                 Element root = xmlDocument.getDocumentElement();
                 logger.debug("ROOT: {}", root);
