@@ -95,6 +95,7 @@ public class XsltController {
             xmlFile = xmlFileLoader.getFileAction();
             logger.debug("Loaded XML File: {}", xmlFile.getAbsolutePath());
             xmlService.setCurrentXmlFile(xmlFile);
+            parentController.getXmlController().reloadXmlText();
             checkFiles();
         });
 
@@ -140,61 +141,54 @@ public class XsltController {
                 && xmlService.getCurrentXsltFile() != null && xmlService.getCurrentXsltFile().exists()) {
             logger.debug("RENDER FILE");
 
-            renderHTML();
-            renderXML();
-            renderText();
+            try {
+                String output = xmlService.saxonTransform();
 
-            var outputMethod = xmlService.getXsltOutputMethod();
-            logger.debug("Output Method: {}", outputMethod);
-            switch (outputMethod) {
-                case "html", "xhtml" -> {
-                    logger.debug("BIN IM HTML");
-                    outputMethodSwitch.getSelectionModel().select(tabWeb);
+                progressBar.setVisible(true);
+                progressBar.setProgress(0.1);
+                renderHTML(output);
+                progressBar.setProgress(0.6);
+                renderXML(output);
+                progressBar.setProgress(0.8);
+                renderText(output);
+                progressBar.setProgress(1);
+
+                var outputMethod = xmlService.getXsltOutputMethod();
+                logger.debug("Output Method: {}", outputMethod);
+                switch (outputMethod) {
+                    case "html", "xhtml" -> {
+                        logger.debug("BIN IM HTML");
+                        outputMethodSwitch.getSelectionModel().select(tabWeb);
+                    }
+                    case "xml" -> outputMethodSwitch.getSelectionModel().select(tabText);
+                    case "text" -> outputMethodSwitch.getSelectionModel().select(tabText);
+                    default -> outputMethodSwitch.getSelectionModel().select(tabText);
                 }
-                case "xml" -> outputMethodSwitch.getSelectionModel().select(tabText);
-                case "text" -> outputMethodSwitch.getSelectionModel().select(tabText);
-                default -> outputMethodSwitch.getSelectionModel().select(tabText);
+            }
+            catch (IOException | TransformerException exception) {
+                logger.error("Exception: {}", exception.getMessage());
             }
         }
     }
 
-    private void renderXML() {
-        renderText();
+    private void renderXML(String output) {
+        renderText(output);
 
-        try {
-            var newText = Files.readString(xmlService.getCurrentXmlFile().toPath());
-
-            if (newText.length() < 1024 * 1024) {
-                Platform.runLater(() -> codeArea.setStyleSpans(0, XmlController.computeHighlighting(newText)));
-            }
-        }
-        catch (IOException exception) {
-            logger.error("Exception in renderText: {}", exception.getMessage());
-        }
+        // if (output.length() < 1024 * 1024) {
+            Platform.runLater(() -> codeArea.setStyleSpans(0, XmlController.computeHighlighting(output)));
+        // }
     }
 
-    private void renderText() {
-        try {
-            codeArea.clear();
-            codeArea.replaceText(0, 0, Files.readString(xmlService.getCurrentXmlFile().toPath()));
-        }
-        catch (IOException exception) {
-            logger.error("Exception in renderText: {}", exception.getMessage());
-        }
+    private void renderText(String output) {
+        codeArea.clear();
+        codeArea.replaceText(0, 0, output);
     }
 
 
-    private void renderHTML() {
+    private void renderHTML(String output) {
         final String outputFileName = "output/output.html";
 
-        String output;
         try {
-            progressBar.setVisible(true);
-
-            progressBar.setProgress(0.1);
-            output = xmlService.saxonTransform();
-            progressBar.setProgress(0.5);
-
             output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "")
                     .replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "")
                     .replace("  >", "");
@@ -219,7 +213,7 @@ public class XsltController {
                 logger.debug("CURRENT FILE: {}", xmlFile.getAbsolutePath());
                 xmlService.setCurrentXml(Files.readString(xmlFile.toPath()));
             }
-        } catch (TransformerException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             logger.error(e.getLocalizedMessage());
         }

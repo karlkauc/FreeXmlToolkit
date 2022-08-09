@@ -44,6 +44,9 @@ public class MainController {
     private XsdController xsdController;
 
     @FXML
+    private FopController fopController;
+
+    @FXML
     Tab tabPaneXml, tabPaneXslt, tabPaneXsdValidation;
 
     @FXML
@@ -90,6 +93,8 @@ public class MainController {
 
     public SignatureController getSignatureController() { return signatureController; }
 
+    public FopController getFopController() { return this.fopController; }
+
     @FXML
     private void openFile(ActionEvent e) {
         Stage stage = (Stage) mainBox.getScene().getWindow();
@@ -118,6 +123,7 @@ public class MainController {
         xsdController.setParentController(this);
         xsdValidationController.setParentController(this);
         // signatureController.setParentController(this);
+        fopController.setParentController(this);
 
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML Files", "*.xml")

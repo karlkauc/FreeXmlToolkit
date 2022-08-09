@@ -91,6 +91,7 @@
                     <Image url="@../img/icons8-pdf-16.png"/>
                 </ImageView>
             </graphic>
+            <fx:include source="tab_fop.fxml" fx:id="fop" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" />
         </Tab>
         <Tab text="Signature" closable="false">
             <graphic>
