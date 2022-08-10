@@ -4,21 +4,11 @@ import com.google.inject.Inject;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
-import org.apache.fop.apps.FOUserAgent;
-import org.apache.fop.apps.Fop;
-import org.apache.fop.apps.FopFactory;
-import org.apache.fop.apps.MimeConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.XmlService;
-import org.xml.sax.SAXException;
 
-import javax.xml.transform.*;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 
 public class FopController {
@@ -49,7 +39,7 @@ public class FopController {
     private void buttonConversion() throws IOException {
         logger.debug("Start Conversion!");
 
-
+        /*
         try {
             // Setup directories
             File baseDir = new File(".");
@@ -102,6 +92,7 @@ public class FopController {
         } catch (TransformerException | SAXException e) {
             throw new RuntimeException(e);
         }
+         */
     }
 
 }

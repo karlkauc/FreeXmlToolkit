@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.Preferences;
 
 import java.awt.*;
 import java.io.File;
@@ -53,7 +54,7 @@ public class MainController {
     Button prettyPrint;
 
     @FXML
-    Button exit, about;
+    Button exit, about, preferences;
 
     FileChooser fileChooser = new FileChooser();
 
@@ -69,6 +70,16 @@ public class MainController {
         } catch (IOException | URISyntaxException ex) {
             ex.printStackTrace();
         }
+    }
+
+    @FXML
+    private void openSetting() {
+        logger.debug("SETTINGS");
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+
+        Preferences preferences1 = new Preferences();
+        a.setGraphic(preferences1);
+        a.showAndWait();
     }
 
     @FXML
@@ -89,11 +100,17 @@ public class MainController {
         return xsltController;
     }
 
-    public XsdValidationController getXsdValidationController() { return xsdValidationController; }
+    public XsdValidationController getXsdValidationController() {
+        return xsdValidationController;
+    }
 
-    public SignatureController getSignatureController() { return signatureController; }
+    public SignatureController getSignatureController() {
+        return signatureController;
+    }
 
-    public FopController getFopController() { return this.fopController; }
+    public FopController getFopController() {
+        return this.fopController;
+    }
 
     @FXML
     private void openFile(ActionEvent e) {

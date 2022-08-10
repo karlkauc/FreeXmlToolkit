@@ -3,48 +3,47 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:id="mainBox"
+<VBox fx:id="mainBox" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.MainController">
     <HBox VBox.vgrow="NEVER">
         <ToolBar HBox.hgrow="ALWAYS">
-            <Button text="New" contentDisplay="GRAPHIC_ONLY">
+            <Button contentDisplay="GRAPHIC_ONLY" text="New">
                 <graphic>
-                    <ImageView preserveRatio="true" fitHeight="16">
+                    <ImageView fitHeight="16" preserveRatio="true">
                         <Image url="@../img/icons8-datei-24.png"/>
                     </ImageView>
                 </graphic>
             </Button>
-            <Button text="Save" contentDisplay="GRAPHIC_ONLY">
+            <Button contentDisplay="GRAPHIC_ONLY" text="Save">
                 <graphic>
-                    <ImageView preserveRatio="true" fitHeight="16">
+                    <ImageView fitHeight="16" preserveRatio="true">
                         <Image url="@../img/icons8-speichern-50.png"/>
                     </ImageView>
                 </graphic>
             </Button>
             <Button onAction="#openFile" text="Open">
                 <graphic>
-                    <ImageView preserveRatio="true" fitHeight="16">
+                    <ImageView fitHeight="16" preserveRatio="true">
                         <Image url="@../img/icons8-geöffnete-datei-unter-cursor-48.png"/>
                     </ImageView>
                 </graphic>
             </Button>
-            <Button text="pretty print" fx:id="prettyPrint">
+            <Button fx:id="prettyPrint" text="pretty print">
                 <graphic>
-                    <ImageView preserveRatio="true" fitHeight="16">
+                    <ImageView fitHeight="16" preserveRatio="true">
                         <Image url="@../img/icons8-align_center.png"/>
                     </ImageView>
                 </graphic>
             </Button>
         </ToolBar>
         <ToolBar HBox.hgrow="NEVER">
-            <Button text="Help" onAction="#openHelpPage"/>
-            <Button text="About" fx:id="about" onAction="#pressAboutButton"/>
+            <Button onAction="#openSetting" text="Settings"/>
+            <Button onAction="#openHelpPage" text="Help"/>
+            <Button fx:id="about" onAction="#pressAboutButton" text="About"/>
 
-            <Button text="Exit" contentDisplay="LEFT" fx:id="exit">
+            <Button fx:id="exit" contentDisplay="LEFT" text="Exit">
                 <graphic>
-                    <ImageView preserveRatio="true" fitHeight="16">
+                    <ImageView fitHeight="16" preserveRatio="true">
                         <Image url="@../img/icons8-exit-64.png"/>
                     </ImageView>
                 </graphic>
@@ -53,53 +52,55 @@
     </HBox>
 
     <TabPane VBox.vgrow="ALWAYS">
-        <Tab text="XSD Validation" closable="false" fx:id="tabPaneXsdValidation">
+        <Tab fx:id="tabPaneXsdValidation" closable="false" text="XSD Validation">
             <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
+                <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/icons8-daten-angekommen-32.png"/>
                 </ImageView>
             </graphic>
-            <fx:include fx:id="xsdValidation" source="tab_validation.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
+            <fx:include source="tab_validation.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
+                        fx:id="xsdValidation"/>
         </Tab>
-        <Tab text="XSLT" closable="false" fx:id="tabPaneXslt">
+        <Tab fx:id="tabPaneXslt" closable="false" text="XSLT">
             <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
+                <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/icons8-transform-64.png"/>
                 </ImageView>
             </graphic>
-            <fx:include fx:id="xslt" source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
+            <fx:include source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xslt"/>
         </Tab>
-        <Tab text="XML" closable="false" fx:id="tabPaneXml">
+        <Tab fx:id="tabPaneXml" closable="false" text="XML">
             <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
+                <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/icons8-xml-64.png"/>
                 </ImageView>
             </graphic>
-            <fx:include fx:id="xml" source="tab_xml.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
+            <fx:include source="tab_xml.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xml"/>
         </Tab>
-        <Tab text="XSD" closable="false">
+        <Tab closable="false" text="XSD">
             <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
+                <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/icons8-middle-column-rectangular-bar-with-side-strips-24.png"/>
                 </ImageView>
             </graphic>
-            <fx:include fx:id="xsd" source="tab_xsd.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
+            <fx:include source="tab_xsd.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xsd"/>
         </Tab>
-        <Tab text="FOP" closable="false">
+        <Tab closable="false" text="FOP">
             <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
+                <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/icons8-pdf-16.png"/>
                 </ImageView>
             </graphic>
-            <fx:include source="tab_fop.fxml" fx:id="fop" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" />
+            <fx:include fx:id="fop" source="tab_fop.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
         </Tab>
-        <Tab text="Signature" closable="false">
+        <Tab closable="false" text="Signature">
             <graphic>
-                <ImageView preserveRatio="true" fitHeight="16">
+                <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/signature.png"/>
                 </ImageView>
             </graphic>
-            <fx:include fx:id="signature" source="tab_signature.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
+            <fx:include fx:id="signature" source="tab_signature.fxml" AnchorPane.bottomAnchor="0"
+                        AnchorPane.topAnchor="0"/>
         </Tab>
     </TabPane>
 </VBox>

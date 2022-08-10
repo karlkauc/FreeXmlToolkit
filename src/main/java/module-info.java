@@ -18,8 +18,9 @@ module org.fxt.freexmltoolkit {
 
     // requires org.mozilla.rhino;
     // requires fop.core;
-    requires fop.core;
-    requires fop.events;
+    // requires fop.events;
+
+    requires com.dlsc.preferencesfx;
 
     opens org.fxt.freexmltoolkit.controller;
     opens org.fxt.freexmltoolkit.service;

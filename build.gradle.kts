@@ -46,6 +46,7 @@ dependencies {
     }
      */
 
+    /*
     implementation("org.apache.xmlgraphics:fop-events:2.7") {
         exclude(group = "org.apache.ant", module = "*")
         exclude(group = "xml-apis", module = "*")
@@ -74,7 +75,10 @@ dependencies {
         exclude(group = "org.mozilla")
         exclude(group = "org.python")
     }
+     */
 
+    // Preferences
+    implementation("com.dlsc.preferencesfx:preferencesfx-core:11.9.1")
 
     // Richtext
     implementation("org.fxmisc.richtext:richtextfx:0.10.9")
