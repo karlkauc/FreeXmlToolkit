@@ -1,19 +1,25 @@
 package org.fxt.freexmltoolkit.controller;
 
 import com.google.inject.Inject;
-import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import org.apache.commons.io.FileUtils;
+import org.apache.fop.apps.FOUserAgent;
+import org.apache.fop.apps.Fop;
+import org.apache.fop.apps.FopFactory;
+import org.apache.fop.apps.MimeConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.xml.sax.SAXException;
 
+import javax.xml.transform.*;
+import javax.xml.transform.sax.SAXResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
-import java.util.Base64;
 
 public class FopController {
 
@@ -24,9 +30,8 @@ public class FopController {
     GridPane settings;
 
     @FXML
-    WebView pdfView;
+    Button startConversion;
 
-    WebEngine engine;
     private MainController parentController;
 
     public void setParentController(MainController parentController) {
@@ -38,59 +43,65 @@ public class FopController {
     @FXML
     private void initialize() {
         logger.debug("BIN IM FOP CONTROLLER");
-        engine = pdfView.getEngine();
+    }
 
-        String url = getClass().getResource("/web/viewer.html").toExternalForm();
-        // connect CSS styles to customize pdf.js appearance
-        // engine.setUserStyleSheetLocation(getClass().getResource("/web.css").toExternalForm());
+    @FXML
+    private void buttonConversion() throws IOException {
+        logger.debug("Start Conversion!");
 
-        engine.setJavaScriptEnabled(true);
-        engine.load(url);
-
-        engine.getLoadWorker()
-                .stateProperty()
-                .addListener((observable, oldValue, newValue) -> {
-                    // to debug JS code by showing console.log() calls in IDE console
-                    // JSObject window = (JSObject) engine.executeScript("window");
-                    // window.setMember("java", new JSLogListener());
-                    engine.executeScript("window");
-                    engine.executeScript("console.log = function(message){ java.log(message); };");
-
-                    // this pdf file will be opened on application startup
-                    if (newValue == Worker.State.SUCCEEDED) {
-                        try {
-                            // readFileToByteArray() comes from commons-io library
-                            byte[] data = FileUtils.readFileToByteArray(new File("test.pdf"));
-                            String base64 = Base64.getEncoder().encodeToString(data);
-                            // call JS function from Java code
-                            engine.executeScript("openFileFromBase64('" + base64 + "')");
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
 
         try {
-            byte[] data = FileUtils.readFileToByteArray(new File("test.pdf"));
-            String base64 = Base64.getEncoder().encodeToString(data);
-            engine.executeScript("openFileFromBase64('" + base64 + "')");
-        } catch (Exception e) {
-            e.printStackTrace();
+            // Setup directories
+            File baseDir = new File(".");
+            File outDir = new File(baseDir, "out");
+            outDir.mkdirs();
+
+            // Setup input and output files
+            File xmlfile = new File(baseDir, "projectteam.xml");
+            File xsltfile = new File(baseDir, "projectteam2fo.xsl");
+            File pdffile = new File(outDir, "ResultXML2PDF.pdf");
+
+            System.out.println("Input: XML (" + xmlfile + ")");
+            System.out.println("Stylesheet: " + xsltfile);
+            System.out.println("Output: PDF (" + pdffile + ")");
+            System.out.println();
+            System.out.println("Transforming...");
+
+            // configure fopFactory as desired
+            final FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
+
+            FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
+            // configure foUserAgent as desired
+
+            // Setup output
+            OutputStream out = new java.io.FileOutputStream(pdffile);
+            out = new java.io.BufferedOutputStream(out);
+
+
+            // Construct fop with desired output format
+            Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
+
+            // Setup XSLT
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer transformer = factory.newTransformer(new StreamSource(xsltfile));
+
+            // Set the value of a <param> in the stylesheet
+            transformer.setParameter("versionParam", "2.0");
+
+            // Setup input for XSLT transformation
+            Source src = new StreamSource(xmlfile);
+
+            // Resulting SAX events (the generated FO) must be piped through to FOP
+            Result res = new SAXResult(fop.getDefaultHandler());
+
+            // Start XSLT transformation and FOP processing
+            transformer.transform(src, res);
+
+            out.close();
+
+        } catch (TransformerException | SAXException e) {
+            throw new RuntimeException(e);
         }
-
-        // this file will be opened on button click
-        /*
-        btn.setOnAction(actionEvent -> {
-            try {
-                byte[] data = FileUtils.readFileToByteArray(new File("/path/to/another/file"));
-                String base64 = Base64.getEncoder().encodeToString(data);
-                engine.executeScript("openFileFromBase64('" + base64 + "')");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-         */
     }
 
 }

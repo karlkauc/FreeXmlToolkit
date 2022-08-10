@@ -16,6 +16,11 @@ module org.fxt.freexmltoolkit {
     requires com.google.guice;
     requires org.fxmisc.flowless;
 
+    // requires org.mozilla.rhino;
+    // requires fop.core;
+    requires fop.core;
+    requires fop.events;
+
     opens org.fxt.freexmltoolkit.controller;
     opens org.fxt.freexmltoolkit.service;
 

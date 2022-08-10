@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.fxt.freexmltoolkit.controller.SignatureController">
-    <TextArea text="asdafsdfasdfa">asdafsdf</TextArea>
+    <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <GridPane prefWidth="200" style="-fx-background-color: #f8f816;">
+            <padding>
+                <Insets bottom="25" left="25" right="25" top="25"/>
+            </padding>
+            <Text id="welcome-text" style="-fx-font: 24 arial;" text="Comming soon" wrappingWidth="293.82421875"
+                  GridPane.columnSpan="3" GridPane.rowIndex="0"/>
+        </GridPane>
+    </VBox>
 </AnchorPane>

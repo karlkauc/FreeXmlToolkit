@@ -33,7 +33,48 @@ run {
 
 dependencies {
     // XSLT
-    implementation("net.sf.saxon:Saxon-HE:10.8")
+    implementation("net.sf.saxon:Saxon-HE:11.4") {
+        exclude(group = "xml-apis", module = "xml-apis")
+    }
+
+    // FOP
+    // implementation("org.mozilla:rhino:1.7.14")
+    /*implementation("org.apache.xmlgraphics:fop:2.7") {
+        exclude(group="xml-apis", module = "xml-apis")
+        exclude(group="xml-apis", module = "*")
+        exclude(group="xalan", module = "xalan")
+    }
+     */
+
+    implementation("org.apache.xmlgraphics:fop-events:2.7") {
+        exclude(group = "org.apache.ant", module = "*")
+        exclude(group = "xml-apis", module = "*")
+    }
+    implementation("org.apache.xmlgraphics:fop-util:2.7")
+    implementation("org.apache.xmlgraphics:fop-core:2.7") {
+        exclude(group = "xalan", module = "*")
+        exclude(group = "xml-apis", module = "*")
+        exclude(group = "org.apache.ant", module = "*")
+        exclude(group = "javax.servlet", module = "*")
+        exclude(group = "javax.media", module = "*")
+        exclude(group = "com.sun.media", module = "*")
+        exclude(group = "org.apache.fop.events", module = "*")
+    }
+
+    implementation("org.apache.xmlgraphics:batik-transcoder:1.14") {
+        exclude(group = "xalan")
+        exclude(group = "org.mozilla")
+        exclude(group = "org.python")
+    }
+    implementation("org.apache.xmlgraphics:batik-constants:1.14") {
+        exclude(group = "org.mozilla")
+        exclude(group = "org.python")
+    }
+    implementation("org.apache.xmlgraphics:batik-i18n:1.14") {
+        exclude(group = "org.mozilla")
+        exclude(group = "org.python")
+    }
+
 
     // Richtext
     implementation("org.fxmisc.richtext:richtextfx:0.10.9")
@@ -43,12 +84,14 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-core:2.18.0")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.18.0")
 
+    // Misc
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
 
     //  xml signature
     implementation("org.apache.santuario:xmlsec:3.0.0")
 
+    // Injection
     implementation("com.google.inject:guice:5.1.0")
 
     // Lemminx
@@ -85,15 +128,15 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     doLast {
         println("Copy resources...")
         copy {
-            from (
-                    layout.buildDirectory.file("resources/log4j2.xml")
+            from(
+                layout.buildDirectory.file("resources/log4j2.xml")
             )
             into(layout.buildDirectory.dir("launch4j"))
         }
         println("Copy JDK...")
         copy {
-            from (zipTree("jdk/jre-18.0.1-full.zip"))
-            into (layout.buildDirectory.dir("launch4j/jdk"))
+            from(zipTree("jdk/jre-18.0.1-full.zip"))
+            into(layout.buildDirectory.dir("launch4j/jdk"))
         }
     }
 }

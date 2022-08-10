@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import javafx.fxml.FXML;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.MyFileChooserTree;
 import org.fxt.freexmltoolkit.service.XmlService;
 
 import java.lang.invoke.MethodHandles;
@@ -14,8 +13,7 @@ public class XsdController {
     @Inject
     XmlService xmlService;
 
-    @FXML
-    MyFileChooserTree myFileChooserTree;
+    //@FXML  MyFileChooserTree myFileChooserTree;
 
     private MainController parentController;
 
@@ -28,8 +26,8 @@ public class XsdController {
 
     @FXML
     private void initialize() {
-        myFileChooserTree.setNewItem("C:\\Data\\src\\FreeXmlToolkit");
-        myFileChooserTree.setNewItem("C:\\Data\\src\\FreeXmlToolkit\\output");
+        // myFileChooserTree.setNewItem("C:\\Data\\src\\FreeXmlToolkit");
+        // myFileChooserTree.setNewItem("C:\\Data\\src\\FreeXmlToolkit\\output");
     }
 
 }

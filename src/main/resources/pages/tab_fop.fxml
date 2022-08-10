@@ -1,22 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
-<?import javafx.scene.web.WebView?>
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
+<AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.FopController">
     <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-            <GridPane fx:id="settings" prefWidth="200" style="-fx-background-color: yellow;">
-                <padding>
-                    <Insets bottom="25" left="25" right="25" top="25"/>
-                </padding>
-                <Text id="welcome-text" style="-fx-font: 24 arial;" text="FOP" wrappingWidth="293.82421875"
-                      GridPane.columnSpan="3" GridPane.rowIndex="0"/>
+        <GridPane fx:id="settings" hgap="10" vgap="10">
+            <padding>
+                <Insets bottom="25" left="25" right="25" top="25"/>
+            </padding>
 
-            </GridPane>
-        <Text text="asdfsfda" />
-        <WebView fx:id="pdfView" HBox.hgrow="ALWAYS" style="-fx-background-color: red;"/>
+            <Text id="welcome-text" style="-fx-font: 24 arial;" text="FOP" wrappingWidth="293.82421875"
+                  GridPane.columnSpan="3" GridPane.rowIndex="0"/>
+
+            <Label text="XML File" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+            <Button text="XML" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="1" />
+
+            <Label text="XSLT File" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+            <Button text="XSLT" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="2" />
+
+            <Label text="PDF Output" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+            <Button text="PDF" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="3" />
+
+            <Label text="FO Output" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+            <Button text="FO" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="4" />
+
+            <Button text="Options" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+            <Button fx:id="startConversion" onAction="#buttonConversion"  text="Go" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+
+            <columnConstraints>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+                <ColumnConstraints minWidth="10.0" prefWidth="100.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints/>
+                <RowConstraints minHeight="10.0" prefHeight="30.0"/>
+            </rowConstraints>
+        </GridPane>
+
     </VBox>
 </AnchorPane>
