@@ -3,6 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <VBox fx:id="mainBox" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.MainController">
     <HBox VBox.vgrow="NEVER">
@@ -37,11 +38,20 @@
             </Button>
         </ToolBar>
         <ToolBar HBox.hgrow="NEVER">
-            <Button onAction="#openSetting" text="Settings"/>
-            <Button onAction="#openHelpPage" text="Help"/>
+            <Button onAction="#openSetting" text="Settings">
+                <graphic>
+                    <FontIcon iconLiteral="bi-gear-fill" iconSize="16"/>
+                </graphic>
+            </Button>
+
+            <Button onAction="#openHelpPage" text="Help">
+                <graphic>
+                    <FontIcon iconLiteral="bi-question-square" iconSize="16" iconColor="coral"/>
+                </graphic>
+            </Button>
             <Button fx:id="about" onAction="#pressAboutButton" text="About"/>
 
-            <Button fx:id="exit" contentDisplay="LEFT" text="Exit">
+            <Button fx:id="exit" text="Exit">
                 <graphic>
                     <ImageView fitHeight="16" preserveRatio="true">
                         <Image url="@../img/icons8-exit-64.png"/>

@@ -1,18 +1,25 @@
 package org.fxt.freexmltoolkit.controller;
 
+import com.google.inject.Inject;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.Tab;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.Preferences;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 
 import java.awt.*;
 import java.io.File;
@@ -23,8 +30,12 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Properties;
 
 public class MainController {
+
+    @Inject
+    PropertiesService propertiesService;
 
     @FXML
     private Parent xml, xslt, xsd, fop, signature, xsdValidation;
@@ -75,11 +86,58 @@ public class MainController {
     @FXML
     private void openSetting() {
         logger.debug("SETTINGS");
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        Alert settingsDialog = new Alert(Alert.AlertType.NONE, null, ButtonType.CANCEL, ButtonType.OK);
 
-        Preferences preferences1 = new Preferences();
-        a.setGraphic(preferences1);
-        a.showAndWait();
+        Properties p = propertiesService.loadProperties();
+
+        GridPane gridPane = new GridPane();
+        gridPane.setPadding(new Insets(10, 10, 10, 10));
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+
+        gridPane.add(new Label("HTTP Proxy Host"), 0, 0);
+        TextField httpProxy = new TextField();
+        httpProxy.setText(p.getProperty("http.proxy.host"));
+        gridPane.add(httpProxy, 1, 0);
+        httpProxy.textProperty().addListener(cl -> {
+            p.setProperty("http.proxy.host", ((StringProperty) cl).get());
+            System.out.println("p = " + p);
+        });
+
+        httpProxy.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                System.out.println("changed " + oldValue + "->" + newValue);
+                p.setProperty("http.proxy.host", newValue);
+            }
+        });
+
+        gridPane.add(new Label("HTTP Proxy Port"), 0, 1);
+        TextField httpProxyPort = new TextField();
+        httpProxyPort.setText(p.getProperty("http.proxy.port"));
+        gridPane.add(httpProxyPort, 1, 1);
+        httpProxyPort.textProperty().addListener(cl -> {
+            p.setProperty("http.proxy.port", ((StringProperty) cl).get());
+            System.out.println("p = " + p);
+        });
+
+        settingsDialog.setGraphic(gridPane);
+
+        var result = settingsDialog.showAndWait();
+        result.ifPresent(System.out::println);
+
+        if (result.isPresent()) {
+            var buttonType = result.get();
+            if (!buttonType.getButtonData().isCancelButton()) {
+                logger.debug("Save Properties: {}", p);
+                // Save Properties to File!
+            }
+            else {
+                logger.debug("Do not save properties: {}", p);
+                p = propertiesService.loadProperties();
+                logger.debug("Loading default properties: {}", p);
+            }
+        }
     }
 
     @FXML
