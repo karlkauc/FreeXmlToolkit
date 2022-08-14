@@ -2,8 +2,6 @@ package org.fxt.freexmltoolkit.controller;
 
 import com.google.inject.Inject;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -100,25 +98,16 @@ public class MainController {
         httpProxy.setText(p.getProperty("http.proxy.host"));
         gridPane.add(httpProxy, 1, 0);
         httpProxy.textProperty().addListener(cl -> {
-            p.setProperty("http.proxy.host", ((StringProperty) cl).get());
-            System.out.println("p = " + p);
+            System.out.println("p = " + ((StringProperty) cl).get());
         });
 
-        httpProxy.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                System.out.println("changed " + oldValue + "->" + newValue);
-                p.setProperty("http.proxy.host", newValue);
-            }
-        });
 
         gridPane.add(new Label("HTTP Proxy Port"), 0, 1);
         TextField httpProxyPort = new TextField();
         httpProxyPort.setText(p.getProperty("http.proxy.port"));
         gridPane.add(httpProxyPort, 1, 1);
         httpProxyPort.textProperty().addListener(cl -> {
-            p.setProperty("http.proxy.port", ((StringProperty) cl).get());
-            System.out.println("p = " + p);
+            System.out.println("p = " + ((StringProperty) cl).get());
         });
 
         settingsDialog.setGraphic(gridPane);
@@ -130,12 +119,14 @@ public class MainController {
             var buttonType = result.get();
             if (!buttonType.getButtonData().isCancelButton()) {
                 logger.debug("Save Properties: {}", p);
-                // Save Properties to File!
+                p.setProperty("http.proxy.host", httpProxy.getText());
+                p.setProperty("http.proxy.port", httpProxyPort.getText());
+                propertiesService.saveProperties(p);
             }
             else {
                 logger.debug("Do not save properties: {}", p);
-                p = propertiesService.loadProperties();
                 logger.debug("Loading default properties: {}", p);
+                p = propertiesService.loadProperties();
             }
         }
     }

@@ -196,13 +196,28 @@ public class XmlServiceImpl implements XmlService {
                 logger.debug("ROOT: {}", root);
 
                 var possibleSchemaLocation = root.getAttribute("xsi:noNamespaceSchemaLocation");
+
+                if (possibleSchemaLocation.isEmpty()) {
+                    logger.debug("noNamespaceSchemaLocation not set. Trying schemaLocation");
+                    // xsi:schemaLocation="http://example/note example.xsd"
+                    possibleSchemaLocation = root.getAttribute("xsi:schemaLocation");
+                    logger.debug("Schema Location: {}", possibleSchemaLocation);
+                    if (possibleSchemaLocation.contains(" ")) {
+                        var temp = possibleSchemaLocation.split(" ");
+                        if (temp.length == 2) {
+                            possibleSchemaLocation = temp[1];
+                        }
+                    }
+                }
+
                 if (!possibleSchemaLocation.isEmpty()) {
                     logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
                     if (possibleSchemaLocation.trim().toLowerCase().startsWith("http://") ||
                             possibleSchemaLocation.trim().toLowerCase().startsWith("https://")) {
 
                         var proxySelector = ProxySelector.getDefault();
-                        if (!prop.get("http.proxy.host").toString().isEmpty() && !prop.get("http.proxy.port").toString().isEmpty()) {
+
+                        if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
                             proxySelector = ProxySelector.of(
                                     new InetSocketAddress(
                                             prop.get("http.proxy.host").toString(),
@@ -224,16 +239,13 @@ public class XmlServiceImpl implements XmlService {
                         var pathNew = Path.of(fileNameNew);
                         var response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
                         logger.debug("HTTP Status Code: {}", response.statusCode());
-                        // System.out.println(response.statusCode());
-                        // System.out.println(response.body());
-
                         logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
+
                         if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
                             this.setCurrentXsdFile(pathNew.toFile());
                             this.remoteXsdLocation = possibleSchemaLocation;
                             return pathNew.toFile().getName();
-                        }
-                        else {
+                        } else {
                             logger.error("File nicht gefunden oder kein Fileinhalt: {}", pathNew.getFileName());
                         }
                         return null;
