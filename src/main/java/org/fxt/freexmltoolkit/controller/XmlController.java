@@ -78,18 +78,13 @@ public class XmlController {
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText.length() < 1024 * 1024) {
+            if (newText.length() < 1024 * 1024 * 10) { // MAX 2 MB große Files
+                logger.debug("Format Text begin!");
                 Platform.runLater(() -> codeArea.setStyleSpans(0, computeHighlighting(newText)));
+                logger.debug("Format Text fertig!");
             }
         });
 
-        codeArea.replaceText("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" +
-                "<notiz>\n" +
-                " <an>Blubb</an>\n" +
-                " <von>Bla</von>\n" +
-                " <ueberschrift>Dings</ueberschrift>\n" +
-                " <inhalt>Palaver Palaver Rhabarber.</inhalt>\n" +
-                "</notiz>");
         virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
         stackPane.getChildren().add(virtualizedScrollPane);
     }

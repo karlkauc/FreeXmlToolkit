@@ -1,7 +1,6 @@
 package org.fxt.freexmltoolkit.controller;
 
 import com.google.inject.Inject;
-import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -36,7 +35,7 @@ public class MainController {
     PropertiesService propertiesService;
 
     @FXML
-    private Parent xml, xslt, xsd, fop, signature, xsdValidation;
+    private Parent xml, xslt, xsd, fop, signature, xsdValidation, schematron;
 
     @FXML
     private XmlController xmlController;
@@ -57,7 +56,7 @@ public class MainController {
     private FopController fopController;
 
     @FXML
-    Tab tabPaneXml, tabPaneXslt, tabPaneXsdValidation;
+    Tab tabPaneXml, tabPaneXslt, tabPaneXsdValidation, tabXsd, tabSignature, tabFop, tabSchematron;
 
     @FXML
     Button prettyPrint;
@@ -83,7 +82,7 @@ public class MainController {
 
     @FXML
     private void openSetting() {
-        logger.debug("SETTINGS");
+        logger.debug("Open Settings");
         Alert settingsDialog = new Alert(Alert.AlertType.NONE, null, ButtonType.CANCEL, ButtonType.OK);
 
         Properties p = propertiesService.loadProperties();
@@ -97,42 +96,35 @@ public class MainController {
         TextField httpProxy = new TextField();
         httpProxy.setText(p.getProperty("http.proxy.host"));
         gridPane.add(httpProxy, 1, 0);
-        httpProxy.textProperty().addListener(cl -> {
-            System.out.println("p = " + ((StringProperty) cl).get());
-        });
-
 
         gridPane.add(new Label("HTTP Proxy Port"), 0, 1);
         TextField httpProxyPort = new TextField();
         httpProxyPort.setText(p.getProperty("http.proxy.port"));
         gridPane.add(httpProxyPort, 1, 1);
-        httpProxyPort.textProperty().addListener(cl -> {
-            System.out.println("p = " + ((StringProperty) cl).get());
-        });
 
         settingsDialog.setGraphic(gridPane);
 
         var result = settingsDialog.showAndWait();
-        result.ifPresent(System.out::println);
-
         if (result.isPresent()) {
             var buttonType = result.get();
             if (!buttonType.getButtonData().isCancelButton()) {
                 logger.debug("Save Properties: {}", p);
-                p.setProperty("http.proxy.host", httpProxy.getText());
-                p.setProperty("http.proxy.port", httpProxyPort.getText());
+                if (httpProxy.getText() != null) {
+                    p.setProperty("http.proxy.host", httpProxy.getText());
+                }
+                if (httpProxyPort.getText() != null) {
+                    p.setProperty("http.proxy.port", httpProxyPort.getText());
+                }
                 propertiesService.saveProperties(p);
             }
             else {
                 logger.debug("Do not save properties: {}", p);
-                logger.debug("Loading default properties: {}", p);
-                p = propertiesService.loadProperties();
             }
         }
     }
 
     @FXML
-    private void pressAboutButton(ActionEvent e) {
+    private void pressAboutButton() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Information Dialog");
         alert.setHeaderText("Look, an Information Dialog");

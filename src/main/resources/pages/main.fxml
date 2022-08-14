@@ -87,7 +87,7 @@
             </graphic>
             <fx:include source="tab_xml.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xml"/>
         </Tab>
-        <Tab closable="false" text="XSD">
+        <Tab fx:id="tabXsd" closable="false" text="XSD">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/icons8-middle-column-rectangular-bar-with-side-strips-24.png"/>
@@ -95,7 +95,7 @@
             </graphic>
             <fx:include source="tab_xsd.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xsd"/>
         </Tab>
-        <Tab closable="false" text="FOP">
+        <Tab fx:id="tabFop" closable="false" text="FOP">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/icons8-pdf-16.png"/>
@@ -103,13 +103,22 @@
             </graphic>
             <fx:include fx:id="fop" source="tab_fop.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
         </Tab>
-        <Tab closable="false" text="Signature">
+        <Tab fx:id="tabSignature" closable="false" text="Signature">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/signature.png"/>
                 </ImageView>
             </graphic>
             <fx:include fx:id="signature" source="tab_signature.fxml" AnchorPane.bottomAnchor="0"
+                        AnchorPane.topAnchor="0"/>
+        </Tab>
+        <Tab fx:id="tabSchematron" closable="false" text="Schematron">
+            <graphic>
+                <ImageView fitHeight="16" preserveRatio="true">
+                    <Image url="@../img/schematron.jpeg"/>
+                </ImageView>
+            </graphic>
+            <fx:include fx:id="schematron" source="tab_signature.fxml" AnchorPane.bottomAnchor="0"
                         AnchorPane.topAnchor="0"/>
         </Tab>
     </TabPane>
