@@ -21,8 +21,7 @@ public class PropertiesServiceImpl implements PropertiesService {
     WatchService watchService;
 
     public PropertiesServiceImpl() {
-        logger.debug("BIM IM CONSTRUCTOR!!!");
-
+        logger.debug("BIM IM PropertiesServiceImpl CONSTRUCTOR!!!");
     }
 
     @Override

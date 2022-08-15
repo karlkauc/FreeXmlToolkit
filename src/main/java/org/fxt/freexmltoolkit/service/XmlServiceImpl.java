@@ -58,6 +58,9 @@ public class XmlServiceImpl implements XmlService {
     DocumentBuilder builder;
     Document xmlDocument;
 
+    HttpClient client;
+    HttpRequest request;
+
     @Override
     public File getCurrentXmlFile() {
         return currentXmlFile;
@@ -202,21 +205,21 @@ public class XmlServiceImpl implements XmlService {
                     // xsi:schemaLocation="http://example/note example.xsd"
                     possibleSchemaLocation = root.getAttribute("xsi:schemaLocation");
                     logger.debug("Schema Location: {}", possibleSchemaLocation);
-                    if (possibleSchemaLocation.contains(" ")) {
-                        var temp = possibleSchemaLocation.split(" ");
-                        if (temp.length == 2) {
-                            possibleSchemaLocation = temp[1];
-                        }
-                    }
                 }
 
                 if (!possibleSchemaLocation.isEmpty()) {
+                    if (possibleSchemaLocation.contains(" ")) {
+                        var temp = possibleSchemaLocation.split(" ");
+                        if (temp.length > 0) {
+                            possibleSchemaLocation = temp[temp.length - 1];
+                        }
+                    }
+
                     logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
                     if (possibleSchemaLocation.trim().toLowerCase().startsWith("http://") ||
                             possibleSchemaLocation.trim().toLowerCase().startsWith("https://")) {
 
                         var proxySelector = ProxySelector.getDefault();
-
                         if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
                             proxySelector = ProxySelector.of(
                                     new InetSocketAddress(
@@ -224,14 +227,14 @@ public class XmlServiceImpl implements XmlService {
                                             Integer.parseInt(prop.get("http.proxy.port").toString())));
                         }
 
-                        HttpClient client = HttpClient.newBuilder()
+                        client = HttpClient.newBuilder()
                                 .version(HttpClient.Version.HTTP_2)
                                 .followRedirects(HttpClient.Redirect.NORMAL)
                                 .connectTimeout(Duration.ofSeconds(20))
                                 .proxy(proxySelector)
                                 .build();
 
-                        HttpRequest request = HttpRequest.newBuilder()
+                        request = HttpRequest.newBuilder()
                                 .uri(URI.create(possibleSchemaLocation))
                                 .build();
 

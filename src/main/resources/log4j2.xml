@@ -2,7 +2,8 @@
 <Configuration status="INFO">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%highlight{[%-5level]} %d{yyyy-MM-dd HH:mm:ss} - %msg%n" disableAnsi="false" />
+            <PatternLayout pattern="%highlight{[%-5level]} %d{yyyy-MM-dd HH:mm:ss} - [%C][%M] - %msg%n"
+                           disableAnsi="false"/>
         </Console>
     </Appenders>
     <Loggers>

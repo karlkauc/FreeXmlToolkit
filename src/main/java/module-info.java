@@ -22,6 +22,7 @@ module org.fxt.freexmltoolkit {
 
     requires com.dlsc.preferencesfx;
 
+    opens org.fxt.freexmltoolkit;
     opens org.fxt.freexmltoolkit.controller;
     opens org.fxt.freexmltoolkit.service;
 
