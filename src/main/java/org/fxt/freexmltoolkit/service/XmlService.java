@@ -43,7 +43,9 @@ public interface XmlService {
 
     List<SAXParseException> validate();
 
-    String getSchemaFromXMLFile();
+    String getSchemaNameFromCurrentXMLFile();
+
+    boolean loadSchemaFromXMLFile();
 
     static String prettyFormat(String input, int indent) {
         try {

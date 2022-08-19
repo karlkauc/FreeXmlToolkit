@@ -185,10 +185,59 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
-    public String getSchemaFromXMLFile() {
+    public boolean loadSchemaFromXMLFile() {
         var prop = propertiesService.loadProperties();
         logger.debug("Properties: {}", prop);
 
+        String possibleSchemaLocation = getSchemaNameFromCurrentXMLFile();
+
+        if (possibleSchemaLocation.trim().toLowerCase().startsWith("http://") ||
+                possibleSchemaLocation.trim().toLowerCase().startsWith("https://")) {
+
+            var proxySelector = ProxySelector.getDefault();
+            if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
+                proxySelector = ProxySelector.of(
+                        new InetSocketAddress(
+                                prop.get("http.proxy.host").toString(),
+                                Integer.parseInt(prop.get("http.proxy.port").toString())));
+            }
+
+            client = HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_2)
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .connectTimeout(Duration.ofSeconds(20))
+                    .proxy(proxySelector)
+                    .build();
+
+            request = HttpRequest.newBuilder()
+                    .uri(URI.create(possibleSchemaLocation))
+                    .build();
+
+            String fileNameNew = FilenameUtils.getName(possibleSchemaLocation);
+            var pathNew = Path.of(fileNameNew);
+
+            try {
+                HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
+                logger.debug("HTTP Status Code: {}", response.statusCode());
+                logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
+
+                if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
+                    this.setCurrentXsdFile(pathNew.toFile());
+                    this.remoteXsdLocation = possibleSchemaLocation;
+                    return true;
+                } else {
+                    logger.error("File nicht gefunden oder kein Fileinhalt: {}", pathNew.getFileName());
+                }
+            } catch (IOException | InterruptedException exception) {
+                logger.error(exception.getMessage());
+            }
+            return false;
+        }
+        return false;
+    }
+
+    @Override
+    public String getSchemaNameFromCurrentXMLFile() {
         if (this.currentXmlFile != null && this.currentXmlFile.exists()) {
             try {
                 FileInputStream fileIS = new FileInputStream(this.currentXmlFile);
@@ -216,48 +265,13 @@ public class XmlServiceImpl implements XmlService {
                     }
 
                     logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
-                    if (possibleSchemaLocation.trim().toLowerCase().startsWith("http://") ||
-                            possibleSchemaLocation.trim().toLowerCase().startsWith("https://")) {
+                    return possibleSchemaLocation;
 
-                        var proxySelector = ProxySelector.getDefault();
-                        if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
-                            proxySelector = ProxySelector.of(
-                                    new InetSocketAddress(
-                                            prop.get("http.proxy.host").toString(),
-                                            Integer.parseInt(prop.get("http.proxy.port").toString())));
-                        }
-
-                        client = HttpClient.newBuilder()
-                                .version(HttpClient.Version.HTTP_2)
-                                .followRedirects(HttpClient.Redirect.NORMAL)
-                                .connectTimeout(Duration.ofSeconds(20))
-                                .proxy(proxySelector)
-                                .build();
-
-                        request = HttpRequest.newBuilder()
-                                .uri(URI.create(possibleSchemaLocation))
-                                .build();
-
-                        String fileNameNew = FilenameUtils.getName(possibleSchemaLocation);
-                        var pathNew = Path.of(fileNameNew);
-                        var response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
-                        logger.debug("HTTP Status Code: {}", response.statusCode());
-                        logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
-
-                        if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
-                            this.setCurrentXsdFile(pathNew.toFile());
-                            this.remoteXsdLocation = possibleSchemaLocation;
-                            return pathNew.toFile().getName();
-                        } else {
-                            logger.error("File nicht gefunden oder kein Fileinhalt: {}", pathNew.getFileName());
-                        }
-                        return null;
-                    }
                 } else {
                     logger.debug("No possible Schema Location found!");
                 }
 
-            } catch (IOException | ParserConfigurationException | SAXException | InterruptedException exception) {
+            } catch (IOException | ParserConfigurationException | SAXException exception) {
                 logger.error(exception.getMessage());
             }
         } else {

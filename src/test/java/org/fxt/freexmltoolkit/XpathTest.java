@@ -18,18 +18,21 @@ public class XpathTest {
 
     @BeforeEach
     public void setUp() {
-        System.out.println("setUp()");
         Injector injector = Guice.createInjector(new ModuleBindings());
         xmlService = injector.getInstance(XmlServiceImpl.class);
-
     }
+
+
 
     @Test
     void xpathTest1() {
         var f = new File("src/test/resources/test01.xml");
 
+        assert (xmlService != null);
         xmlService.setCurrentXmlFile(f);
-        System.out.println("xmlService = " + xmlService.getSchemaFromXMLFile());
-        System.out.println("xmlService.getCurrentXmlFile() = " + xmlService.getCurrentXmlFile());
+        assert (xmlService.getSchemaNameFromCurrentXMLFile().equals("https://fdp-service.oekb.at/FundsXML_4.1.7_AI.xsd"));
+        assert (xmlService.getCurrentXmlFile().getPath().equals("src/test/resources/test01.xml"));
+
+
     }
 }

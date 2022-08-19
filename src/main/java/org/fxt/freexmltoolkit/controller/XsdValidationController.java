@@ -80,7 +80,7 @@ public class XsdValidationController {
                 xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
 
                 if (autodetect.isSelected()) {
-                    var schemaName = xmlService.getSchemaFromXMLFile();
+                    var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
                     if (schemaName != null && !schemaName.isEmpty()) {
                         xsdFileName.setText(schemaName);
                     }
