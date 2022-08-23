@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
@@ -16,8 +17,11 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -182,6 +186,33 @@ public class XmlServiceImpl implements XmlService {
     public void setCurrentXml(String currentXml) {
         logger.debug("set XML Content {}", currentXml.length());
         this.currentXML = currentXml;
+    }
+
+    @Override
+    public String getXmlFromXpath(String xPath) {
+        try {
+            FileInputStream fileIS = new FileInputStream(this.getCurrentXmlFile());
+            DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = builderFactory.newDocumentBuilder();
+            Document xmlDocument = builder.parse(fileIS);
+            XPath xPathPath = XPathFactory.newInstance().newXPath();
+            var nodeList = (NodeList) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODESET);
+
+            Node elem = nodeList.item(0);//Your Node
+            StringWriter buf = new StringWriter();
+            Transformer xform = TransformerFactory.newInstance().newTransformer();
+            xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes"); // optional
+            xform.setOutputProperty(OutputKeys.INDENT, "yes"); // optional
+            xform.transform(new DOMSource(elem), new StreamResult(buf));
+
+            logger.debug(buf.toString());
+
+            return buf.toString();
+        } catch (XPathExpressionException | ParserConfigurationException |
+                 TransformerException | IOException | SAXException e) {
+            logger.error(e.getMessage());
+        }
+        return null;
     }
 
     @Override

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
-    <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <TabPane HBox.hgrow="ALWAYS">
+    <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <TabPane VBox.vgrow="ALWAYS">
             <Tab text="Text">
-                <StackPane fx:id="stackPane" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+                <StackPane fx:id="stackPane"
+                           AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                            AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
                            stylesheets="@../css/xml-highlighting.css"/>
             </Tab>
@@ -17,6 +17,13 @@
 
             </Tab>
         </TabPane>
-    </HBox>
+        <HBox prefHeight="100">
+            <TextArea fx:id="xpathText" HBox.hgrow="ALWAYS" text="/FundsXML4/ControlData"/>
+            <VBox>
+                <Button text="XPath" fx:id="xpath" onAction="#evaluateXpath"/>
+                <Button text="reload" onAction="#reloadXmlText"/>
+            </VBox>
+        </HBox>
+    </VBox>
 
 </AnchorPane>

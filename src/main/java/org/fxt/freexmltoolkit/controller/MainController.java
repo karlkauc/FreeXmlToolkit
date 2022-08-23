@@ -17,6 +17,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.XmlService;
 
 import java.awt.*;
 import java.io.File;
@@ -33,6 +34,9 @@ public class MainController {
 
     @Inject
     PropertiesService propertiesService;
+
+    @Inject
+    XmlService xmlService;
 
     @FXML
     private Parent xml, xslt, xsd, fop, signature, xsdValidation, schematron;
@@ -157,19 +161,25 @@ public class MainController {
     private void openFile(ActionEvent e) {
         Stage stage = (Stage) mainBox.getScene().getWindow();
         File selectedFile = fileChooser.showOpenDialog(stage);
-        System.out.println(selectedFile.getAbsolutePath());
-        String fileContent;
 
-        if (selectedFile.exists()) {
-            try {
-                fileContent = Files.readString(Path.of(selectedFile.getAbsolutePath()));
-                System.out.println("fileContent.length() = " + String.format("%.2f", fileContent.length() / (1024f * 1024f)) + " MB");
-                xmlController.codeArea.clear();
-                System.out.println("Clear fertig");
-                xmlController.codeArea.replaceText(0, 0, fileContent);
-            } catch (IOException ex) {
-                ex.printStackTrace();
+        if (selectedFile != null) {
+            logger.debug("Selected File from Menue: {}", selectedFile.getAbsolutePath());
+            String fileContent;
+
+            if (selectedFile.exists()) {
+                this.xmlService.setCurrentXmlFile(selectedFile);
+
+                try {
+                    fileContent = Files.readString(Path.of(selectedFile.getAbsolutePath()));
+                    logger.debug("fileContent.length: {}", String.format("%.2f", fileContent.length() / (1024f * 1024f)) + " MB");
+                    xmlController.codeArea.clear();
+                    xmlController.codeArea.replaceText(0, 0, fileContent);
+                } catch (IOException ex) {
+                    logger.error(ex.getMessage());
+                }
             }
+        } else {
+            logger.debug("No file selected");
         }
     }
 

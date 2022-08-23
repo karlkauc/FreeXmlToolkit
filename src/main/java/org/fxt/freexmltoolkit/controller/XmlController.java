@@ -3,7 +3,15 @@ package org.fxt.freexmltoolkit.controller;
 import com.google.inject.Inject;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -49,22 +57,62 @@ public class XmlController {
     @FXML
     StackPane stackPane;
 
+    @FXML
+    Button xpath;
+
+    @FXML
+    TextArea xpathText;
+
+    @FXML
+    private void evaluateXpath() {
+        var newString = this.xmlService.getXmlFromXpath(xpathText.getText());
+        logger.debug("New String: {}", newString);
+        codeArea.clear();
+        codeArea.replaceText(0, 0, newString);
+        codeArea.setBackground(new Background(
+                new BackgroundFill(
+                        new LinearGradient(0, 0, 0, 1, true,
+                                CycleMethod.NO_CYCLE,
+                                new Stop(0, Color.web("#4568DC")),
+                                new Stop(1, Color.web("#B06AB3"))
+                        ), CornerRadii.EMPTY, Insets.EMPTY
+                ),
+                new BackgroundFill(
+                        new ImagePattern(
+                                new Image("https://edencoding.com/resources/wp-content/uploads/2021/02/Stars_128.png"),
+                                0, 0, 128, 128, false
+                        ), CornerRadii.EMPTY, Insets.EMPTY
+                ),
+                new BackgroundFill(
+                        new RadialGradient(
+                                0, 0, 0.5, 0.5, 0.5, true,
+                                CycleMethod.NO_CYCLE,
+                                new Stop(0, Color.web("#FFFFFF33")),
+                                new Stop(1, Color.web("#00000033"))),
+                        CornerRadii.EMPTY, Insets.EMPTY
+                )
+        ));
+    }
+
+
     public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.parentController = parentController;
     }
 
+    @FXML
     public void reloadXmlText() {
         logger.debug("Reload XML Text");
         codeArea.clear();
+        codeArea.setBackground(null);
+
         try {
             if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
                 codeArea.replaceText(0, 0, Files.readString(xmlService.getCurrentXmlFile().toPath()));
 
                 logger.debug("Caret Position: {}", codeArea.getCaretPosition());
                 logger.debug("Caret Column: {}", codeArea.getCaretColumn());
-            }
-            else {
+            } else {
                 logger.warn("FILE IS NULL");
             }
         } catch (IOException e) {

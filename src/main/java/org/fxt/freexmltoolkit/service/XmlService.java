@@ -47,6 +47,8 @@ public interface XmlService {
 
     boolean loadSchemaFromXMLFile();
 
+    String getXmlFromXpath(String xPath);
+
     static String prettyFormat(String input, int indent) {
         try {
             Transformer transformer = SAXTransformerFactory.newInstance().newTransformer();
