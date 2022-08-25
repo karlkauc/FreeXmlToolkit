@@ -116,7 +116,7 @@ public class XmlController {
                 logger.warn("FILE IS NULL");
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.error(e.getMessage());
         }
     }
 
@@ -126,9 +126,12 @@ public class XmlController {
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText.length() < 1024 * 1024 * 10) { // MAX 2 MB große Files
+            if (newText.length() < 1024 * 1024 * 2) { // MAX 2 MB große Files
                 logger.debug("Format Text begin!");
-                Platform.runLater(() -> codeArea.setStyleSpans(0, computeHighlighting(newText)));
+                Platform.runLater(() -> {
+                    codeArea.setStyleSpans(0, computeHighlighting(newText));
+                    logger.debug("FINISH 1");
+                });
                 logger.debug("Format Text fertig!");
             }
         });

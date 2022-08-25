@@ -77,17 +77,24 @@ public class XsdValidationController {
             if (tempFile != null) {
                 logger.debug("Loaded XML File: {}", tempFile.getAbsolutePath());
                 xmlService.setCurrentXmlFile(tempFile);
+
                 xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
 
                 if (autodetect.isSelected()) {
                     var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
                     if (schemaName != null && !schemaName.isEmpty()) {
                         xsdFileName.setText(schemaName);
+                        if (xmlService.loadSchemaFromXMLFile()) {
+                            logger.debug("Loading remote schema successfull!");
+                        } else {
+                            logger.debug("Could not load remote schema");
+                        }
                     }
                 }
                 reload();
 
                 parentController.getXmlController().reloadXmlText();
+                // parentController.getXsdValidationController().reload(); TODO: hier file laden
             }
         });
 
@@ -143,6 +150,8 @@ public class XsdValidationController {
             }
         } else {
             logger.debug("war nicht alles ausgewählt!!");
+            logger.debug("Current XML File: {}", xmlService.getCurrentXmlFile());
+            logger.debug("Current XSD File: {}", xmlService.getCurrentXsdFile());
         }
     }
 
