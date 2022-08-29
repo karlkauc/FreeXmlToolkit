@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<VBox prefHeight="400" prefWidth="600" style="-fx-background-color: yellow;">
+    <TabPane HBox.hgrow="ALWAYS" style="-fx-background-color: red;">
+        <Tab text="HTTP Proxy" closable="false">
+            <Text>HTTP Proxy</Text>
+        </Tab>
+
+        <Tab text="FOP" closable="false">
+            <Text>FOP Setting</Text>
+        </Tab>
+        <Tab text="Temp Files" closable="false">
+        </Tab>
+
+    </TabPane>
+
+</VBox>

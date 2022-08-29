@@ -83,7 +83,7 @@ dependencies {
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Preferences
-    implementation("com.dlsc.preferencesfx:preferencesfx-core:11.9.1")
+    // implementation("com.dlsc.preferencesfx:preferencesfx-core:11.9.1")
 
     // Richtext
     implementation("org.fxmisc.richtext:richtextfx:0.10.9")

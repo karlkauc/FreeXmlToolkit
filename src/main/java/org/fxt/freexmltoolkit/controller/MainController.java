@@ -1,21 +1,26 @@
 package org.fxt.freexmltoolkit.controller;
 
+import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Tab;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.BuilderFactory;
+import javafx.util.Callback;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.ModuleBindings;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XmlService;
 
@@ -28,9 +33,13 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.Properties;
+import java.util.Objects;
 
 public class MainController {
+
+    final Injector injector = Guice.createInjector(new ModuleBindings());
+    BuilderFactory builderFactory = new JavaFXBuilderFactory();
+    Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
 
     @Inject
     PropertiesService propertiesService;
@@ -89,6 +98,16 @@ public class MainController {
         logger.debug("Open Settings");
         Alert settingsDialog = new Alert(Alert.AlertType.NONE, null, ButtonType.CANCEL, ButtonType.OK);
 
+        try {
+            Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/pages/popup_settings.fxml")), null, builderFactory, guiceControllerFactory);
+            settingsDialog.setGraphic(root);
+        } catch (IOException e) {
+            logger.error("Error loading Settings Dialog: {}", e.getMessage());
+        }
+
+        settingsDialog.showAndWait();
+/*
+
         Properties p = propertiesService.loadProperties();
 
         GridPane gridPane = new GridPane();
@@ -108,6 +127,7 @@ public class MainController {
 
         settingsDialog.setGraphic(gridPane);
 
+
         var result = settingsDialog.showAndWait();
         if (result.isPresent()) {
             var buttonType = result.get();
@@ -125,6 +145,8 @@ public class MainController {
                 logger.debug("Do not save properties: {}", p);
             }
         }
+
+ */
     }
 
     @FXML

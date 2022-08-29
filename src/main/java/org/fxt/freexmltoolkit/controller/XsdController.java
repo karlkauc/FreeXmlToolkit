@@ -2,6 +2,8 @@ package org.fxt.freexmltoolkit.controller;
 
 import com.google.inject.Inject;
 import javafx.fxml.FXML;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.XmlService;
@@ -13,7 +15,10 @@ public class XsdController {
     @Inject
     XmlService xmlService;
 
-    //@FXML  MyFileChooserTree myFileChooserTree;
+    static GraphicsContext graphicsContext;
+
+    @FXML
+    Canvas canvas;
 
     private MainController parentController;
 
@@ -26,8 +31,17 @@ public class XsdController {
 
     @FXML
     private void initialize() {
-        // myFileChooserTree.setNewItem("C:\\Data\\src\\FreeXmlToolkit");
-        // myFileChooserTree.setNewItem("C:\\Data\\src\\FreeXmlToolkit\\output");
+        graphicsContext = canvas.getGraphicsContext2D();
+
+        logger.debug("height: {}", canvas.getGraphicsContext2D().getCanvas().getHeight());
+        logger.debug("width: {}", canvas.getGraphicsContext2D().getCanvas().getWidth());
+
+        canvas.setHeight(200);
+        canvas.setWidth(200);
+        canvas.setStyle("-fx-background-color: red;");
+        canvas.getGraphicsContext2D().fillText("text", 0, 0);
+
+
     }
 
 }

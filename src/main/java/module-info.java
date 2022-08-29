@@ -20,7 +20,7 @@ module org.fxt.freexmltoolkit {
     // requires fop.core;
     // requires fop.events;
 
-    requires com.dlsc.preferencesfx;
+    requires org.kordamp.ikonli.javafx;
 
     opens org.fxt.freexmltoolkit;
     opens org.fxt.freexmltoolkit.controller;
