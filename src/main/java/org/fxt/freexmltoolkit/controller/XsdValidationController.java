@@ -2,14 +2,16 @@ package org.fxt.freexmltoolkit.controller;
 
 import com.google.inject.Inject;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class XsdValidationController {
 
@@ -46,7 +49,7 @@ public class XsdValidationController {
     TextField xmlFileName, xsdFileName, remoteXsdLocation;
 
     @FXML
-    TextArea errorList;
+    VBox errorListBox;
 
     @FXML
     CheckBox autodetect;
@@ -94,6 +97,7 @@ public class XsdValidationController {
                 reload();
 
                 parentController.getXmlController().reloadXmlText();
+                parentController.getXsdController().reloadXmlText();
                 // parentController.getXsdValidationController().reload(); TODO: hier file laden
             }
         });
@@ -117,6 +121,8 @@ public class XsdValidationController {
                 xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
             remoteXsdLocation.setText(xmlService.getRemoteXsdLocation());
 
+            errorListBox.getChildren().clear();
+
             var exceptionList = xmlService.validate();
             if (exceptionList != null && exceptionList.size() > 0) {
                 StringBuilder errorListString = new StringBuilder();
@@ -124,29 +130,44 @@ public class XsdValidationController {
                 logger.warn(Arrays.toString(exceptionList.toArray()));
                 int i = 0;
                 for (SAXParseException saxParseException : exceptionList) {
-                    errorListString.append("#").append(++i).append(": ").append(saxParseException.getLocalizedMessage()).append(System.lineSeparator());
-                    errorListString.append("Line#: ").append(saxParseException.getLineNumber()).append(" Col#: ").append(saxParseException.getColumnNumber()).append(System.lineSeparator());
+                    TextFlow textFlowPane = new TextFlow();
+                    textFlowPane.setLineSpacing(5.0);
+
+                    Text headerText = new Text("#" + i++ + ": " + saxParseException.getLocalizedMessage() + System.lineSeparator());
+                    headerText.setFont(Font.font("Verdana", 20));
+
+                    textFlowPane.getChildren().add(headerText);
+
+                    Text lineText = new Text("Line#: " + saxParseException.getLineNumber() + " Col#: " + saxParseException.getColumnNumber() + System.lineSeparator());
+                    textFlowPane.getChildren().add(lineText);
 
                     try {
-                        var lineBevore = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber()-1).trim();
+                        var lineBevore = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() - 1).trim();
+                        textFlowPane.getChildren().add(new Text(lineBevore + System.lineSeparator()));
+
                         var line = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber()).trim();
-                        var lineAfter = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber()+1).trim();
-                        errorListString.append(lineBevore).append(System.lineSeparator()).append(line).append(System.lineSeparator()).append(lineAfter).append(System.lineSeparator());
-                    }
-                    catch (IOException exception) {
+                        textFlowPane.getChildren().add(new Text(line + System.lineSeparator()));
+
+                        var lineAfter = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() + 1).trim();
+                        textFlowPane.getChildren().add(new Text(lineAfter + System.lineSeparator()));
+
+                        // errorListString.append(lineBevore).append(System.lineSeparator()).append(line).append(System.lineSeparator()).append(lineAfter).append(System.lineSeparator());
+                    } catch (IOException exception) {
                         logger.error("Exception: {}", exception.getMessage());
                     }
-                    errorListString.append(System.lineSeparator());
+                    errorListBox.getChildren().add(textFlowPane);
+                    errorListBox.getChildren().add(new Separator());
                 }
-                Image image = new Image(getClass().getResource("/img/icons8-stornieren-48.png").toString());
+
+                Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-stornieren-48.png")).toString());
                 statusImage.setImage(image);
-                errorList.setText(errorListString.toString());
+                // errorList.setText(errorListString.toString());
 
             } else {
                 logger.warn("KEINE ERRORS");
-                Image image = new Image(getClass().getResource("/img/icons8-ok-48.png").toString());
+                Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-ok-48.png")).toString());
                 statusImage.setImage(image);
-                errorList.clear();
+                // errorList.clear();
             }
         } else {
             logger.debug("war nicht alles ausgewählt!!");

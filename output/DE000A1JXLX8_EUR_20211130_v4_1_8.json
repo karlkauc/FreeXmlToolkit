@@ -1,0 +1,31 @@
+{
+  "filename" : "DE000A1JXLX8_EUR_20211130_v4_1_8.xml",
+  "status" : "ERROR",
+  "dqChecks" : [ {
+    "name" : "The values of all Share Class Portfolio positions must equal the Share Class Total Asset Value",
+    "status" : "ERROR",
+    "message" : "Inconsistent positions",
+    "detail" : "The sum of the \"total amount\" of the share class positions does equal the share class total asset value"
+  }, {
+    "name" : "The file must have at least one portfolio",
+    "status" : "OK"
+  }, {
+    "name" : "The percentage of positions within all portfolios must add up to 100%",
+    "status" : "OK"
+  }, {
+    "name" : "Asset Account ID",
+    "status" : "OK"
+  }, {
+    "name" : "The share class positions should be available in the fund currency",
+    "status" : "OK"
+  }, {
+    "name" : "The fund should have a LEI",
+    "status" : "OK"
+  }, {
+    "name" : "The share class positions must be available in the share class currency",
+    "status" : "OK"
+  }, {
+    "name" : "Fund Total Asset Value in fund currency",
+    "status" : "OK"
+  } ]
+}

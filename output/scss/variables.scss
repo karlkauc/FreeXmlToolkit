@@ -1,0 +1,48 @@
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 200;
+  src: local("Open Sans Light"), local("OpenSans-Light");
+  src: url(../OpenSans/webfonts/opensans_light/OpenSans-Light-webfont.eot);
+  src: url(../OpenSans/webfonts/opensans_light/OpenSans-Light-webfont.eot?#iefix) format("embedded-opentype"), url(../OpenSans/webfonts/opensans_light/OpenSans-Light-webfont.woff) format("woff"), url(../OpenSans/webfonts/opensans_light/OpenSans-Light-webfont.ttf) format("truetype"), url(../OpenSans/webfonts/opensans_light/OpenSans-Light-webfont.svg#open_sanslight) format("svg")
+}
+
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Open Sans Regular"), local("OpenSans-Regular");
+  src: url(../OpenSans/webfonts/opensans_regular/OpenSans-Regular-webfont.eot);
+  src: url(../OpenSans/webfonts/opensans_regular/OpenSans-Regular-webfont.eot?#iefix) format("embedded-opentype"), url(../OpenSans/webfonts/opensans_regular/OpenSans-Regular-webfont.woff) format("woff"), url(../OpenSans/webfonts/opensans_regular/OpenSans-Regular-webfont.ttf) format("truetype"), url(../OpenSans/webfonts/opensans_regular/OpenSans-Regular-webfont.svg#open_sansregular) format("svg")
+}
+
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 600;
+  src: local("Open Sans SemiBold"), local("OpenSans-SemiBold");
+  src: url(../OpenSans/webfonts/opensans_semibold/OpenSans-Semibold-webfont.eot);
+  src: url(../OpenSans/webfonts/opensans_semibold/OpenSans-Semibold-webfont.eot?#iefix) format("embedded-opentype"), url(../OpenSans/webfonts/opensans_semibold/OpenSans-Semibold-webfont.woff) format("woff"), url(../OpenSans/webfonts/opensans_semibold/OpenSans-Semibold-webfont.ttf) format("truetype"), url(../OpenSans/webfonts/opensans_semibold/OpenSans-Semibold-webfont.svg#open_sansbold) format("svg")
+}
+
+@import "../node_modules/bootstrap/scss/_functions";
+@import "../node_modules/bootstrap/scss/_variables";
+
+
+$custom-colors: (
+        "custom-color": #900,
+        "purple": #9c72e1,
+        "myGreen": $green-300
+);
+
+
+$primary: #0074d9;
+$danger: #f55;
+$success: $green-300;
+
+// Merge the maps
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
+$font-family-sans-serif: "Open Sans", Roboto, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+$enable-cssgrid: true;

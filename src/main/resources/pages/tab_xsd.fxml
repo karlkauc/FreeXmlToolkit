@@ -4,20 +4,22 @@
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.Tab?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.fxt.freexmltoolkit.controller.XsdController">
-
     <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <GridPane prefWidth="200" style="-fx-background-color: #f8f816;">
-            <padding>
-                <Insets bottom="25" left="25" right="25" top="25"/>
-            </padding>
-            <Text id="welcome-text" style="-fx-font: 24 arial;" text="Comming soon" wrappingWidth="293.82421875"
-                  GridPane.columnSpan="3" GridPane.rowIndex="0"/>
-        </GridPane>
+        <TabPane VBox.vgrow="ALWAYS">
+            <Tab text="XSD" closable="false">
+                <StackPane fx:id="stackPane"
+                           AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+                           AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
+                           stylesheets="@../css/xml-highlighting.css"/>
+            </Tab>
+            <Tab text="Documentation" closable="false" disable="true">
+
+            </Tab>
+        </TabPane>
     </VBox>
-
-    <Canvas fx:id="canvas" width="400" height="400"/>
-
 </AnchorPane>

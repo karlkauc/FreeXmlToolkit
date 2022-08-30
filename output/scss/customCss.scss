@@ -1,0 +1,101 @@
+@import "variables";
+
+.block {
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #e9ecef;
+  border-left-width: .25rem;
+  border-radius: .25rem;
+}
+
+.block0 {
+  border-left-color: $info;
+}
+
+.block0:hover {
+  background-color: #d6efe3;
+}
+
+.block1 {
+  border-left-color: $purple;
+}
+
+.block2 {
+  border-left-color: $indigo-700;
+}
+
+.AssetMasterData .block0 {
+  border-left-color: #0a53be;
+}
+
+.AssetMasterData .block0:hover {
+  border-left-color: #b8ceef;
+  background-color: #dde7bf;
+}
+
+.AssetMasterData .block1 {
+  border-left-color: #94d95b;
+}
+
+
+.AssetMasterData .block1:hover {
+  border-left-color: #ff7171;
+  background-color: #ffc760;
+}
+
+
+.AssetMasterData {
+  padding-right: 5px;
+  border-right: 5px solid #329bc9;
+}
+
+.AssetMasterData table {
+
+}
+
+.table {
+  padding: 0.1rem;
+}
+
+.bd-callout-info {
+  border-left-color: #5bc0de;
+}
+
+.bd-callout {
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #e9ecef;
+  border-left-width: .25rem;
+  border-radius: .25rem;
+}
+
+.bd-callout-info {
+  border-left-color: $info;
+}
+
+.fs-small {
+  font-size: 0.8rem !important;
+}
+
+.bg-success {
+  color: white;
+}
+
+.accordion-bodyNoBorder {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.accordion-bodyNoBorderTop {
+  padding-top: 0;
+}
+
+.accordion-button svg {
+  padding-right: 10px;
+}
+
+.sticky-top-eam {
+  background-color: #bebebf;
+}

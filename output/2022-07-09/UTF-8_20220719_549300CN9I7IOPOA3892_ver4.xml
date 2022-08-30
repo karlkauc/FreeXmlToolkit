@@ -1,0 +1,4049 @@
+<FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://fdp-service.oekb.at/FundsXML_4.1.7_AI.xsd">
+	<ControlData>
+		<UniqueDocumentID>AMSLSP_549300CN9I7IOPOA3892_20220726</UniqueDocumentID>
+		<DocumentGenerated>2022-07-26T11:38:12</DocumentGenerated>
+		<ContentDate>2022-07-19</ContentDate>
+		<DataSupplier>
+			<SystemCountry>SK</SystemCountry>
+			<Short>AMSLSP</Short>
+			<Name>Asset Management Slovenskej sporiteľne, správ. spol., a.s.</Name>
+			<Type>ASSET MANAGER</Type>
+		</DataSupplier>
+		<DataOperation>INITIAL</DataOperation>
+	</ControlData>
+	<Funds>
+		<Fund>
+			<Identifiers>
+				<LEI>549300CN9I7IOPOA3892</LEI>
+			</Identifiers>
+			<Names>
+				<OfficialName>AM SLSP Fond maximalizovaných výnosov, o.p.f.</OfficialName>
+			</Names>
+			<Currency>EUR</Currency>
+			<SingleFundFlag>true</SingleFundFlag>
+			<FundStaticData>
+				<InceptionDate>2007-04-03</InceptionDate>
+			</FundStaticData>
+			<FundDynamicData>
+				<TotalAssetValues>
+					<TotalAssetValue>
+						<NavDate>2022-07-19</NavDate>
+						<TotalAssetNature>OFFICIAL</TotalAssetNature>
+						<TotalNetAssetValue>
+							<Amount ccy="EUR">482797613.32</Amount>
+						</TotalNetAssetValue>
+					</TotalAssetValue>
+				</TotalAssetValues>
+				<Portfolios>
+					<Portfolio>
+						<NavDate>2022-07-19</NavDate>
+						<Positions>
+							<Position>
+								<UniqueID>CA21037X1006CAD</UniqueID>
+								<Identifiers>
+									<ISIN>CA21037X1006</ISIN>
+								</Identifiers>
+								<Currency>CAD</Currency>
+								<TotalValue>
+									<Amount ccy="CAD">11619590.4</Amount>
+									<Amount ccy="EUR">8760246.08</Amount>
+								</TotalValue>
+								<TotalPercentage>1.814476</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="CAD">11619590.4</Amount>
+											<Amount ccy="EUR">8760246.08</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="CAD" toCcy="EUR" mulDiv="D">1.3264</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>5940</Units>
+									<Price>
+										<Amount ccy="CAD">1956.16</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="CAD">11619590.4</Amount>
+										<Amount ccy="EUR">8760246.08</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>CA89072T1021CAD</UniqueID>
+								<Identifiers>
+									<ISIN>CA89072T1021</ISIN>
+								</Identifiers>
+								<Currency>CAD</Currency>
+								<TotalValue>
+									<Amount ccy="CAD">731430</Amount>
+									<Amount ccy="EUR">551439.99</Amount>
+								</TotalValue>
+								<TotalPercentage>0.114218</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="CAD">731430</Amount>
+											<Amount ccy="EUR">551439.99</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="CAD" toCcy="EUR" mulDiv="D">1.3264</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>8127</Units>
+									<Price>
+										<Amount ccy="CAD">90</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="CAD">731430</Amount>
+										<Amount ccy="EUR">551439.99</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>CA8911605092CAD</UniqueID>
+								<Identifiers>
+									<ISIN>CA8911605092</ISIN>
+								</Identifiers>
+								<Currency>CAD</Currency>
+								<TotalValue>
+									<Amount ccy="CAD">9250623.2</Amount>
+									<Amount ccy="EUR">6974233.41</Amount>
+								</TotalValue>
+								<TotalPercentage>1.444546</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="CAD">9250623.2</Amount>
+											<Amount ccy="EUR">6974233.41</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="CAD" toCcy="EUR" mulDiv="D">1.3264</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>112840</Units>
+									<Price>
+										<Amount ccy="CAD">81.98</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="CAD">9250623.2</Amount>
+										<Amount ccy="EUR">6974233.41</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>CH0013841017CHF</UniqueID>
+								<Identifiers>
+									<ISIN>CH0013841017</ISIN>
+								</Identifiers>
+								<Currency>CHF</Currency>
+								<TotalValue>
+									<Amount ccy="CHF">7737168</Amount>
+									<Amount ccy="EUR">7801137.33</Amount>
+								</TotalValue>
+								<TotalPercentage>1.615819</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="CHF">7737168</Amount>
+											<Amount ccy="EUR">7801137.33</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="CHF" toCcy="EUR" mulDiv="D">0.9918</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>13470</Units>
+									<Price>
+										<Amount ccy="CHF">574.4</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="CHF">7737168</Amount>
+										<Amount ccy="EUR">7801137.33</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>CH0418792922CHF</UniqueID>
+								<Identifiers>
+									<ISIN>CH0418792922</ISIN>
+								</Identifiers>
+								<Currency>CHF</Currency>
+								<TotalValue>
+									<Amount ccy="CHF">6684270</Amount>
+									<Amount ccy="EUR">6739534.18</Amount>
+								</TotalValue>
+								<TotalPercentage>1.395934</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="CHF">6684270</Amount>
+											<Amount ccy="EUR">6739534.18</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="CHF" toCcy="EUR" mulDiv="D">0.9918</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>29100</Units>
+									<Price>
+										<Amount ccy="CHF">229.7</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="CHF">6684270</Amount>
+										<Amount ccy="EUR">6739534.18</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>DE000SYM9999EUR</UniqueID>
+								<Identifiers>
+									<ISIN>DE000SYM9999</ISIN>
+								</Identifiers>
+								<Currency>EUR</Currency>
+								<TotalValue>
+									<Amount ccy="EUR">8765542.5</Amount>
+								</TotalValue>
+								<TotalPercentage>1.815573</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="EUR">8765542.5</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="EUR" toCcy="EUR" mulDiv="D">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>81730</Units>
+									<Price>
+										<Amount ccy="EUR">107.25</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="EUR">8765542.5</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>DK0060534915DKK</UniqueID>
+								<Identifiers>
+									<ISIN>DK0060534915</ISIN>
+								</Identifiers>
+								<Currency>DKK</Currency>
+								<TotalValue>
+									<Amount ccy="DKK">74241258</Amount>
+									<Amount ccy="EUR">9972096.07</Amount>
+								</TotalValue>
+								<TotalPercentage>2.065482</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="DKK">74241258</Amount>
+											<Amount ccy="EUR">9972096.07</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="DKK" toCcy="EUR" mulDiv="D">7.4449</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>88530</Units>
+									<Price>
+										<Amount ccy="DKK">838.6</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="DKK">74241258</Amount>
+										<Amount ccy="EUR">9972096.07</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>DK0061539921DKK</UniqueID>
+								<Identifiers>
+									<ISIN>DK0061539921</ISIN>
+								</Identifiers>
+								<Currency>DKK</Currency>
+								<TotalValue>
+									<Amount ccy="DKK">51596930</Amount>
+									<Amount ccy="EUR">6930506.79</Amount>
+								</TotalValue>
+								<TotalPercentage>1.435489</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="DKK">51596930</Amount>
+											<Amount ccy="EUR">6930506.79</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="DKK" toCcy="EUR" mulDiv="D">7.4449</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>310750</Units>
+									<Price>
+										<Amount ccy="DKK">166.04</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="DKK">51596930</Amount>
+										<Amount ccy="EUR">6930506.79</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>ES0105066007EUR</UniqueID>
+								<Identifiers>
+									<ISIN>ES0105066007</ISIN>
+								</Identifiers>
+								<Currency>EUR</Currency>
+								<TotalValue>
+									<Amount ccy="EUR">8894280</Amount>
+								</TotalValue>
+								<TotalPercentage>1.842238</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="EUR">8894280</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="EUR" toCcy="EUR" mulDiv="D">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>214320</Units>
+									<Price>
+										<Amount ccy="EUR">41.5</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="EUR">8894280</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>FI0009013296EUR</UniqueID>
+								<Identifiers>
+									<ISIN>FI0009013296</ISIN>
+								</Identifiers>
+								<Currency>EUR</Currency>
+								<TotalValue>
+									<Amount ccy="EUR">9893185.5</Amount>
+								</TotalValue>
+								<TotalPercentage>2.049137</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="EUR">9893185.5</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="EUR" toCcy="EUR" mulDiv="D">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>216150</Units>
+									<Price>
+										<Amount ccy="EUR">45.77</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="EUR">9893185.5</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>FR0000121014EUR</UniqueID>
+								<Identifiers>
+									<ISIN>FR0000121014</ISIN>
+								</Identifiers>
+								<Currency>EUR</Currency>
+								<TotalValue>
+									<Amount ccy="EUR">7436704</Amount>
+								</TotalValue>
+								<TotalPercentage>1.540336</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="EUR">7436704</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="EUR" toCcy="EUR" mulDiv="D">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>11840</Units>
+									<Price>
+										<Amount ccy="EUR">628.1</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="EUR">7436704</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>FR0014003TT8EUR</UniqueID>
+								<Identifiers>
+									<ISIN>FR0014003TT8</ISIN>
+								</Identifiers>
+								<Currency>EUR</Currency>
+								<TotalValue>
+									<Amount ccy="EUR">7718787.5</Amount>
+								</TotalValue>
+								<TotalPercentage>1.598763</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="EUR">7718787.5</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="EUR" toCcy="EUR" mulDiv="D">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>202460</Units>
+									<Price>
+										<Amount ccy="EUR">38.125</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="EUR">7718787.5</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>GB0009895292GBP</UniqueID>
+								<Identifiers>
+									<ISIN>GB0009895292</ISIN>
+								</Identifiers>
+								<Currency>GBP</Currency>
+								<TotalValue>
+									<Amount ccy="GBP">8931686.4</Amount>
+									<Amount ccy="EUR">10470541.95</Amount>
+								</TotalValue>
+								<TotalPercentage>2.168723</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="GBP">8931686.4</Amount>
+											<Amount ccy="EUR">10470541.95</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="GBP" toCcy="EUR" mulDiv="D">0.85303</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>79520</Units>
+									<Price>
+										<Amount ccy="GBP">112.32</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="GBP">8931686.4</Amount>
+										<Amount ccy="EUR">10470541.95</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>GB00BZ09BD16USD</UniqueID>
+								<Identifiers>
+									<ISIN>GB00BZ09BD16</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">5747700</Amount>
+									<Amount ccy="EUR">5610248.9</Amount>
+								</TotalValue>
+								<TotalPercentage>1.162029</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">5747700</Amount>
+											<Amount ccy="EUR">5610248.9</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>30000</Units>
+									<Price>
+										<Amount ccy="USD">191.59</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">5747700</Amount>
+										<Amount ccy="EUR">5610248.9</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>IE0004906560EUR</UniqueID>
+								<Identifiers>
+									<ISIN>IE0004906560</ISIN>
+								</Identifiers>
+								<Currency>EUR</Currency>
+								<TotalValue>
+									<Amount ccy="EUR">4668600</Amount>
+								</TotalValue>
+								<TotalPercentage>0.966989</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="EUR">4668600</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="EUR" toCcy="EUR" mulDiv="D">1</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>77810</Units>
+									<Price>
+										<Amount ccy="EUR">60</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="EUR">4668600</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>IE00BLP1HW54USD</UniqueID>
+								<Identifiers>
+									<ISIN>IE00BLP1HW54</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">8885488.7</Amount>
+									<Amount ccy="EUR">8673000.2</Amount>
+								</TotalValue>
+								<TotalPercentage>1.796405</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">8885488.7</Amount>
+											<Amount ccy="EUR">8673000.2</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>32230</Units>
+									<Price>
+										<Amount ccy="USD">275.69</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">8885488.7</Amount>
+										<Amount ccy="EUR">8673000.2</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>JP3162600005JPY</UniqueID>
+								<Identifiers>
+									<ISIN>JP3162600005</ISIN>
+								</Identifiers>
+								<Currency>JPY</Currency>
+								<TotalValue>
+									<Amount ccy="JPY">1036616600</Amount>
+									<Amount ccy="EUR">7351369.41</Amount>
+								</TotalValue>
+								<TotalPercentage>1.522661</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="JPY">1036616600</Amount>
+											<Amount ccy="EUR">7351369.41</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="JPY" toCcy="EUR" mulDiv="D">141.01</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>16820</Units>
+									<Price>
+										<Amount ccy="JPY">61630</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="JPY">1036616600</Amount>
+										<Amount ccy="EUR">7351369.41</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>JP3435000009JPY</UniqueID>
+								<Identifiers>
+									<ISIN>JP3435000009</ISIN>
+								</Identifiers>
+								<Currency>JPY</Currency>
+								<TotalValue>
+									<Amount ccy="JPY">1009722550</Amount>
+									<Amount ccy="EUR">7160644.99</Amount>
+								</TotalValue>
+								<TotalPercentage>1.483157</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="JPY">1009722550</Amount>
+											<Amount ccy="EUR">7160644.99</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="JPY" toCcy="EUR" mulDiv="D">141.01</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>88070</Units>
+									<Price>
+										<Amount ccy="JPY">11465</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="JPY">1009722550</Amount>
+										<Amount ccy="EUR">7160644.99</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>JP3481800005JPY</UniqueID>
+								<Identifiers>
+									<ISIN>JP3481800005</ISIN>
+								</Identifiers>
+								<Currency>JPY</Currency>
+								<TotalValue>
+									<Amount ccy="JPY">1061638950</Amount>
+									<Amount ccy="EUR">7528820.3</Amount>
+								</TotalValue>
+								<TotalPercentage>1.559415</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="JPY">1061638950</Amount>
+											<Amount ccy="EUR">7528820.3</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="JPY" toCcy="EUR" mulDiv="D">141.01</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>47490</Units>
+									<Price>
+										<Amount ccy="JPY">22355</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="JPY">1061638950</Amount>
+										<Amount ccy="EUR">7528820.3</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>NO0003054108NOK</UniqueID>
+								<Identifiers>
+									<ISIN>NO0003054108</ISIN>
+								</Identifiers>
+								<Currency>NOK</Currency>
+								<TotalValue>
+									<Amount ccy="NOK">80952696</Amount>
+									<Amount ccy="EUR">7955257.08</Amount>
+								</TotalValue>
+								<TotalPercentage>1.647742</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="NOK">80952696</Amount>
+											<Amount ccy="EUR">7955257.08</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="NOK" toCcy="EUR" mulDiv="D">10.176</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>365640</Units>
+									<Price>
+										<Amount ccy="NOK">221.4</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="NOK">80952696</Amount>
+										<Amount ccy="EUR">7955257.08</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>SE0011166610SEK</UniqueID>
+								<Identifiers>
+									<ISIN>SE0011166610</ISIN>
+								</Identifiers>
+								<Currency>SEK</Currency>
+								<TotalValue>
+									<Amount ccy="SEK">29080800</Amount>
+									<Amount ccy="EUR">2770549.9</Amount>
+								</TotalValue>
+								<TotalPercentage>0.573853</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="SEK">29080800</Amount>
+											<Amount ccy="EUR">2770549.9</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="SEK" toCcy="EUR" mulDiv="D">10.4964</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>161560</Units>
+									<Price>
+										<Amount ccy="SEK">180</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="SEK">29080800</Amount>
+										<Amount ccy="EUR">2770549.9</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>SE0015658109SEK</UniqueID>
+								<Identifiers>
+									<ISIN>SE0015658109</ISIN>
+								</Identifiers>
+								<Currency>SEK</Currency>
+								<TotalValue>
+									<Amount ccy="SEK">73782691.5</Amount>
+									<Amount ccy="EUR">7029333.06</Amount>
+								</TotalValue>
+								<TotalPercentage>1.455959</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="SEK">73782691.5</Amount>
+											<Amount ccy="EUR">7029333.06</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="SEK" toCcy="EUR" mulDiv="D">10.4964</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>432870</Units>
+									<Price>
+										<Amount ccy="SEK">170.45</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="SEK">73782691.5</Amount>
+										<Amount ccy="EUR">7029333.06</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>SE0015961909SEK</UniqueID>
+								<Identifiers>
+									<ISIN>SE0015961909</ISIN>
+								</Identifiers>
+								<Currency>SEK</Currency>
+								<TotalValue>
+									<Amount ccy="SEK">75137368.5</Amount>
+									<Amount ccy="EUR">7158394.16</Amount>
+								</TotalValue>
+								<TotalPercentage>1.482690</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="SEK">75137368.5</Amount>
+											<Amount ccy="EUR">7158394.16</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="SEK" toCcy="EUR" mulDiv="D">10.4964</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>670570</Units>
+									<Price>
+										<Amount ccy="SEK">112.05</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="SEK">75137368.5</Amount>
+										<Amount ccy="EUR">7158394.16</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US00507V1098USD</UniqueID>
+								<Identifiers>
+									<ISIN>US00507V1098</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">11004000</Amount>
+									<Amount ccy="EUR">10740849.19</Amount>
+								</TotalValue>
+								<TotalPercentage>2.224710</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">11004000</Amount>
+											<Amount ccy="EUR">10740849.19</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>110040</Units>
+									<Price>
+										<Amount ccy="USD">100</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">11004000</Amount>
+										<Amount ccy="EUR">10740849.19</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US00724F1012USD</UniqueID>
+								<Identifiers>
+									<ISIN>US00724F1012</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7473484.1</Amount>
+									<Amount ccy="EUR">7294762.42</Amount>
+								</TotalValue>
+								<TotalPercentage>1.510936</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7473484.1</Amount>
+											<Amount ccy="EUR">7294762.42</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>19270</Units>
+									<Price>
+										<Amount ccy="USD">387.83</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7473484.1</Amount>
+										<Amount ccy="EUR">7294762.42</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US01609W1027USD</UniqueID>
+								<Identifiers>
+									<ISIN>US01609W1027</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">8199830</Amount>
+									<Amount ccy="EUR">8003738.41</Amount>
+								</TotalValue>
+								<TotalPercentage>1.657783</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">8199830</Amount>
+											<Amount ccy="EUR">8003738.41</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>78280</Units>
+									<Price>
+										<Amount ccy="USD">104.75</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">8199830</Amount>
+										<Amount ccy="EUR">8003738.41</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US02079K1079USD</UniqueID>
+								<Identifiers>
+									<ISIN>US02079K1079</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">438077.64</Amount>
+									<Amount ccy="EUR">427601.41</Amount>
+								</TotalValue>
+								<TotalPercentage>0.088567</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">438077.64</Amount>
+											<Amount ccy="EUR">427601.41</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>3822</Units>
+									<Price>
+										<Amount ccy="USD">114.62</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">438077.64</Amount>
+										<Amount ccy="EUR">427601.41</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US0231351067USD</UniqueID>
+								<Identifiers>
+									<ISIN>US0231351067</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">419645.5</Amount>
+									<Amount ccy="EUR">409610.05</Amount>
+								</TotalValue>
+								<TotalPercentage>0.084841</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">419645.5</Amount>
+											<Amount ccy="EUR">409610.05</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>3550</Units>
+									<Price>
+										<Amount ccy="USD">118.21</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">419645.5</Amount>
+										<Amount ccy="EUR">409610.05</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US0378331005USD</UniqueID>
+								<Identifiers>
+									<ISIN>US0378331005</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">9895030</Amount>
+									<Amount ccy="EUR">9658399.22</Amount>
+								</TotalValue>
+								<TotalPercentage>2.000507</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">9895030</Amount>
+											<Amount ccy="EUR">9658399.22</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>65530</Units>
+									<Price>
+										<Amount ccy="USD">151</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">9895030</Amount>
+										<Amount ccy="EUR">9658399.22</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US09247X1019USD</UniqueID>
+								<Identifiers>
+									<ISIN>US09247X1019</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7426978.8</Amount>
+									<Amount ccy="EUR">7249369.25</Amount>
+								</TotalValue>
+								<TotalPercentage>1.501534</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7426978.8</Amount>
+											<Amount ccy="EUR">7249369.25</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>11820</Units>
+									<Price>
+										<Amount ccy="USD">628.34</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7426978.8</Amount>
+										<Amount ccy="EUR">7249369.25</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US09857L1089USD</UniqueID>
+								<Identifiers>
+									<ISIN>US09857L1089</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7614420</Amount>
+									<Amount ccy="EUR">7432327.96</Amount>
+								</TotalValue>
+								<TotalPercentage>1.539429</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7614420</Amount>
+											<Amount ccy="EUR">7432327.96</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>4150</Units>
+									<Price>
+										<Amount ccy="USD">1834.8</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7614420</Amount>
+										<Amount ccy="EUR">7432327.96</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US21036P1084USD</UniqueID>
+								<Identifiers>
+									<ISIN>US21036P1084</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">11267369.2</Amount>
+									<Amount ccy="EUR">10997920.16</Amount>
+								</TotalValue>
+								<TotalPercentage>2.277957</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">11267369.2</Amount>
+											<Amount ccy="EUR">10997920.16</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>46040</Units>
+									<Price>
+										<Amount ccy="USD">244.73</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">11267369.2</Amount>
+										<Amount ccy="EUR">10997920.16</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US2546871060USD</UniqueID>
+								<Identifiers>
+									<ISIN>US2546871060</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">6671877.8</Amount>
+									<Amount ccy="EUR">6512325.82</Amount>
+								</TotalValue>
+								<TotalPercentage>1.348873</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">6671877.8</Amount>
+											<Amount ccy="EUR">6512325.82</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>66980</Units>
+									<Price>
+										<Amount ccy="USD">99.61</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">6671877.8</Amount>
+										<Amount ccy="EUR">6512325.82</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US28176E1082USD</UniqueID>
+								<Identifiers>
+									<ISIN>US28176E1082</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">8111348.8</Amount>
+									<Amount ccy="EUR">7917373.16</Amount>
+								</TotalValue>
+								<TotalPercentage>1.639895</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">8111348.8</Amount>
+											<Amount ccy="EUR">7917373.16</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>80120</Units>
+									<Price>
+										<Amount ccy="USD">101.24</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">8111348.8</Amount>
+										<Amount ccy="EUR">7917373.16</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US29444U7000USD</UniqueID>
+								<Identifiers>
+									<ISIN>US29444U7000</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">9662680.8</Amount>
+									<Amount ccy="EUR">9431606.44</Amount>
+								</TotalValue>
+								<TotalPercentage>1.953532</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">9662680.8</Amount>
+											<Amount ccy="EUR">9431606.44</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>15160</Units>
+									<Price>
+										<Amount ccy="USD">637.38</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">9662680.8</Amount>
+										<Amount ccy="EUR">9431606.44</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US30303M1027USD</UniqueID>
+								<Identifiers>
+									<ISIN>US30303M1027</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7864397.2</Amount>
+									<Amount ccy="EUR">7676327.18</Amount>
+								</TotalValue>
+								<TotalPercentage>1.589968</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7864397.2</Amount>
+											<Amount ccy="EUR">7676327.18</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>44740</Units>
+									<Price>
+										<Amount ccy="USD">175.78</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7864397.2</Amount>
+										<Amount ccy="EUR">7676327.18</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US3377381088USD</UniqueID>
+								<Identifiers>
+									<ISIN>US3377381088</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">9654537.6</Amount>
+									<Amount ccy="EUR">9423657.98</Amount>
+								</TotalValue>
+								<TotalPercentage>1.951886</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">9654537.6</Amount>
+											<Amount ccy="EUR">9423657.98</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>98960</Units>
+									<Price>
+										<Amount ccy="USD">97.56</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">9654537.6</Amount>
+										<Amount ccy="EUR">9423657.98</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US4228061093USD</UniqueID>
+								<Identifiers>
+									<ISIN>US4228061093</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">9498980.82</Amount>
+									<Amount ccy="EUR">9271821.2</Amount>
+								</TotalValue>
+								<TotalPercentage>1.920436</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">9498980.82</Amount>
+											<Amount ccy="EUR">9271821.2</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>67278</Units>
+									<Price>
+										<Amount ccy="USD">141.19</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">9498980.82</Amount>
+										<Amount ccy="EUR">9271821.2</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US4370761029USD</UniqueID>
+								<Identifiers>
+									<ISIN>US4370761029</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">8332275.7</Amount>
+									<Amount ccy="EUR">8133016.79</Amount>
+								</TotalValue>
+								<TotalPercentage>1.684560</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">8332275.7</Amount>
+											<Amount ccy="EUR">8133016.79</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>27790</Units>
+									<Price>
+										<Amount ccy="USD">299.83</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">8332275.7</Amount>
+										<Amount ccy="EUR">8133016.79</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US45866F1049USD</UniqueID>
+								<Identifiers>
+									<ISIN>US45866F1049</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7240419.9</Amount>
+									<Amount ccy="EUR">7067271.74</Amount>
+								</TotalValue>
+								<TotalPercentage>1.463817</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7240419.9</Amount>
+											<Amount ccy="EUR">7067271.74</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>74790</Units>
+									<Price>
+										<Amount ccy="USD">96.81</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7240419.9</Amount>
+										<Amount ccy="EUR">7067271.74</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US46120E6023USD</UniqueID>
+								<Identifiers>
+									<ISIN>US46120E6023</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">6754860</Amount>
+									<Amount ccy="EUR">6593323.57</Amount>
+								</TotalValue>
+								<TotalPercentage>1.365650</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">6754860</Amount>
+											<Amount ccy="EUR">6593323.57</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>31500</Units>
+									<Price>
+										<Amount ccy="USD">214.44</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">6754860</Amount>
+										<Amount ccy="EUR">6593323.57</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US46266C1053USD</UniqueID>
+								<Identifiers>
+									<ISIN>US46266C1053</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7957845</Amount>
+									<Amount ccy="EUR">7767540.26</Amount>
+								</TotalValue>
+								<TotalPercentage>1.608861</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7957845</Amount>
+											<Amount ccy="EUR">7767540.26</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>36090</Units>
+									<Price>
+										<Amount ccy="USD">220.5</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7957845</Amount>
+										<Amount ccy="EUR">7767540.26</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US46625H1005USD</UniqueID>
+								<Identifiers>
+									<ISIN>US46625H1005</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7009926.4</Amount>
+									<Amount ccy="EUR">6842290.29</Amount>
+								</TotalValue>
+								<TotalPercentage>1.417217</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7009926.4</Amount>
+											<Amount ccy="EUR">6842290.29</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>61190</Units>
+									<Price>
+										<Amount ccy="USD">114.56</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7009926.4</Amount>
+										<Amount ccy="EUR">6842290.29</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US5128071082USD</UniqueID>
+								<Identifiers>
+									<ISIN>US5128071082</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">8116430.4</Amount>
+									<Amount ccy="EUR">7922333.24</Amount>
+								</TotalValue>
+								<TotalPercentage>1.640922</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">8116430.4</Amount>
+											<Amount ccy="EUR">7922333.24</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>18160</Units>
+									<Price>
+										<Amount ccy="USD">446.94</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">8116430.4</Amount>
+										<Amount ccy="EUR">7922333.24</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US5184391044USD</UniqueID>
+								<Identifiers>
+									<ISIN>US5184391044</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7983804</Amount>
+									<Amount ccy="EUR">7792878.48</Amount>
+								</TotalValue>
+								<TotalPercentage>1.614109</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7983804</Amount>
+											<Amount ccy="EUR">7792878.48</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>31260</Units>
+									<Price>
+										<Amount ccy="USD">255.4</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7983804</Amount>
+										<Amount ccy="EUR">7792878.48</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US5949181045USD</UniqueID>
+								<Identifiers>
+									<ISIN>US5949181045</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">9932213.1</Amount>
+									<Amount ccy="EUR">9694693.12</Amount>
+								</TotalValue>
+								<TotalPercentage>2.008024</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">9932213.1</Amount>
+											<Amount ccy="EUR">9694693.12</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>38270</Units>
+									<Price>
+										<Amount ccy="USD">259.53</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">9932213.1</Amount>
+										<Amount ccy="EUR">9694693.12</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US6174464486USD</UniqueID>
+								<Identifiers>
+									<ISIN>US6174464486</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7557524</Amount>
+									<Amount ccy="EUR">7376792.58</Amount>
+								</TotalValue>
+								<TotalPercentage>1.527926</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7557524</Amount>
+											<Amount ccy="EUR">7376792.58</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>92560</Units>
+									<Price>
+										<Amount ccy="USD">81.65</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7557524</Amount>
+										<Amount ccy="EUR">7376792.58</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US6541061031USD</UniqueID>
+								<Identifiers>
+									<ISIN>US6541061031</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7260043.1</Amount>
+									<Amount ccy="EUR">7086425.67</Amount>
+								</TotalValue>
+								<TotalPercentage>1.467784</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7260043.1</Amount>
+											<Amount ccy="EUR">7086425.67</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>66490</Units>
+									<Price>
+										<Amount ccy="USD">109.19</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7260043.1</Amount>
+										<Amount ccy="EUR">7086425.67</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US67066G1040USD</UniqueID>
+								<Identifiers>
+									<ISIN>US67066G1040</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">6665961.6</Amount>
+									<Amount ccy="EUR">6506551.1</Amount>
+								</TotalValue>
+								<TotalPercentage>1.347677</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">6665961.6</Amount>
+											<Amount ccy="EUR">6506551.1</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>39230</Units>
+									<Price>
+										<Amount ccy="USD">169.92</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">6665961.6</Amount>
+										<Amount ccy="EUR">6506551.1</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US7433151039USD</UniqueID>
+								<Identifiers>
+									<ISIN>US7433151039</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">10470499.2</Amount>
+									<Amount ccy="EUR">10220106.59</Amount>
+								</TotalValue>
+								<TotalPercentage>2.116851</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">10470499.2</Amount>
+											<Amount ccy="EUR">10220106.59</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>93520</Units>
+									<Price>
+										<Amount ccy="USD">111.96</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">10470499.2</Amount>
+										<Amount ccy="EUR">10220106.59</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US7766961061USD</UniqueID>
+								<Identifiers>
+									<ISIN>US7766961061</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">3108000</Amount>
+									<Amount ccy="EUR">3033674.96</Amount>
+								</TotalValue>
+								<TotalPercentage>0.628353</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">3108000</Amount>
+											<Amount ccy="EUR">3033674.96</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>20720</Units>
+									<Price>
+										<Amount ccy="USD">150</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">3108000</Amount>
+										<Amount ccy="EUR">3033674.96</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US78409V1044USD</UniqueID>
+								<Identifiers>
+									<ISIN>US78409V1044</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">8524931.8</Amount>
+									<Amount ccy="EUR">8321065.69</Amount>
+								</TotalValue>
+								<TotalPercentage>1.723510</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">8524931.8</Amount>
+											<Amount ccy="EUR">8321065.69</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>23870</Units>
+									<Price>
+										<Amount ccy="USD">357.14</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">8524931.8</Amount>
+										<Amount ccy="EUR">8321065.69</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US79466L3024USD</UniqueID>
+								<Identifiers>
+									<ISIN>US79466L3024</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7875331.1</Amount>
+									<Amount ccy="EUR">7686999.61</Amount>
+								</TotalValue>
+								<TotalPercentage>1.592178</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7875331.1</Amount>
+											<Amount ccy="EUR">7686999.61</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>45310</Units>
+									<Price>
+										<Amount ccy="USD">173.81</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7875331.1</Amount>
+										<Amount ccy="EUR">7686999.61</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US81762P1021USD</UniqueID>
+								<Identifiers>
+									<ISIN>US81762P1021</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">7262760.4</Amount>
+									<Amount ccy="EUR">7089077.99</Amount>
+								</TotalValue>
+								<TotalPercentage>1.468333</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">7262760.4</Amount>
+											<Amount ccy="EUR">7089077.99</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>16660</Units>
+									<Price>
+										<Amount ccy="USD">435.94</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">7262760.4</Amount>
+										<Amount ccy="EUR">7089077.99</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US8243481061USD</UniqueID>
+								<Identifiers>
+									<ISIN>US8243481061</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">8715750.64</Amount>
+									<Amount ccy="EUR">8507321.27</Amount>
+								</TotalValue>
+								<TotalPercentage>1.762089</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">8715750.64</Amount>
+											<Amount ccy="EUR">8507321.27</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>35218</Units>
+									<Price>
+										<Amount ccy="USD">247.48</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">8715750.64</Amount>
+										<Amount ccy="EUR">8507321.27</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US82669G1040USD</UniqueID>
+								<Identifiers>
+									<ISIN>US82669G1040</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">5655856</Amount>
+									<Amount ccy="EUR">5520601.27</Amount>
+								</TotalValue>
+								<TotalPercentage>1.143461</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">5655856</Amount>
+											<Amount ccy="EUR">5520601.27</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>30200</Units>
+									<Price>
+										<Amount ccy="USD">187.28</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">5655856</Amount>
+										<Amount ccy="EUR">5520601.27</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US8835561023USD</UniqueID>
+								<Identifiers>
+									<ISIN>US8835561023</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">8332222.4</Amount>
+									<Amount ccy="EUR">8132964.76</Amount>
+								</TotalValue>
+								<TotalPercentage>1.684549</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">8332222.4</Amount>
+											<Amount ccy="EUR">8132964.76</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>15520</Units>
+									<Price>
+										<Amount ccy="USD">536.87</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">8332222.4</Amount>
+										<Amount ccy="EUR">8132964.76</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US91324P1021USD</UniqueID>
+								<Identifiers>
+									<ISIN>US91324P1021</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">10492961.5</Amount>
+									<Amount ccy="EUR">10242031.72</Amount>
+								</TotalValue>
+								<TotalPercentage>2.121392</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">10492961.5</Amount>
+											<Amount ccy="EUR">10242031.72</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>19670</Units>
+									<Price>
+										<Amount ccy="USD">533.45</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">10492961.5</Amount>
+										<Amount ccy="EUR">10242031.72</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US92532F1003USD</UniqueID>
+								<Identifiers>
+									<ISIN>US92532F1003</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">11201728</Amount>
+									<Amount ccy="EUR">10933848.71</Amount>
+								</TotalValue>
+								<TotalPercentage>2.264686</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">11201728</Amount>
+											<Amount ccy="EUR">10933848.71</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>38680</Units>
+									<Price>
+										<Amount ccy="USD">289.6</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">11201728</Amount>
+										<Amount ccy="EUR">10933848.71</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+							<Position>
+								<UniqueID>US92826C8394USD</UniqueID>
+								<Identifiers>
+									<ISIN>US92826C8394</ISIN>
+								</Identifiers>
+								<Currency>USD</Currency>
+								<TotalValue>
+									<Amount ccy="USD">9234385.2</Amount>
+									<Amount ccy="EUR">9013553.15</Amount>
+								</TotalValue>
+								<TotalPercentage>1.866942</TotalPercentage>
+								<Exposures>
+									<Exposure>
+										<Type>commitment approach</Type>
+										<Value>
+											<Amount ccy="USD">9234385.2</Amount>
+											<Amount ccy="EUR">9013553.15</Amount>
+										</Value>
+									</Exposure>
+								</Exposures>
+								<FXRates>
+									<FXRate fromCcy="USD" toCcy="EUR" mulDiv="D">1.0245</FXRate>
+								</FXRates>
+								<Equity>
+									<Units>43220</Units>
+									<Price>
+										<Amount ccy="USD">213.66</Amount>
+									</Price>
+									<MarketValue>
+										<Amount ccy="USD">9234385.2</Amount>
+										<Amount ccy="EUR">9013553.15</Amount>
+									</MarketValue>
+								</Equity>
+							</Position>
+						</Positions>
+					</Portfolio>
+				</Portfolios>
+			</FundDynamicData>
+			<SingleFund>
+				<ShareClasses>
+					<ShareClass>
+						<Identifiers>
+							<ISIN>SK3110000377</ISIN>
+						</Identifiers>
+						<Names>
+							<OfficialName>AM SLSP Fond maximalizovaných výnosov, o.p.f.</OfficialName>
+						</Names>
+						<Currency>EUR</Currency>
+						<ShareClassType>
+							<Code>R</Code>
+							<EarningUse>R</EarningUse>
+						</ShareClassType>
+						<InceptionDate>2007-04-03</InceptionDate>
+						<Prices>
+							<Price>
+								<ActionCode>C</ActionCode>
+								<NavDate>2022-07-19</NavDate>
+								<PriceCurrency>EUR</PriceCurrency>
+								<PriceNature>OFFICIAL</PriceNature>
+								<NavPrice>0.062844</NavPrice>
+							</Price>
+						</Prices>
+						<TotalAssetValues>
+							<TotalAssetValue>
+								<NavDate>2022-07-19</NavDate>
+								<TotalAssetNature>OFFICIAL</TotalAssetNature>
+								<TotalNetAssetValue>
+									<Amount ccy="EUR" isFundCcy="true" isShareClassCcy="true">482797613.32</Amount>
+								</TotalNetAssetValue>
+								<SharesOutstanding>7682524094</SharesOutstanding>
+								<Ratio>100</Ratio>
+							</TotalAssetValue>
+						</TotalAssetValues>
+					</ShareClass>
+				</ShareClasses>
+			</SingleFund>
+		</Fund>
+	</Funds>
+	<AssetMasterData>
+		<Asset>
+			<UniqueID>US6541061031USD</UniqueID>
+			<Identifiers>
+				<ISIN>US6541061031</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>NIKE INC -CL B</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>787RXPR0UX0O0XUXPZ81</LEI>
+						</Identifiers>
+						<Name>Nike Inc</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>IE0004906560EUR</UniqueID>
+			<Identifiers>
+				<ISIN>IE0004906560</ISIN>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>IE</Country>
+			<Name>KERRY GROUP PLC-A</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>635400TLVVBNXLFHWC59</LEI>
+						</Identifiers>
+						<Name>KERRY GROUP PLC-A</Name>
+						<Address>
+							<Country>IE</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>FR0014003TT8EUR</UniqueID>
+			<Identifiers>
+				<ISIN>FR0014003TT8</ISIN>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>FR</Country>
+			<Name>DASSAULT SYSTEMES SA</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>96950065LBWY0APQIM86</LEI>
+						</Identifiers>
+						<Name>DASSAULT SYSTEMES SA</Name>
+						<Address>
+							<Country>FR</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>ES0105066007EUR</UniqueID>
+			<Identifiers>
+				<ISIN>ES0105066007</ISIN>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>ES</Country>
+			<Name>CELLNEX TELECOM SA</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>5493008T4YG3AQUI7P67</LEI>
+						</Identifiers>
+						<Name>CELLNEX TELECOM SA</Name>
+						<Address>
+							<Country>ES</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>FR0000121014EUR</UniqueID>
+			<Identifiers>
+				<ISIN>FR0000121014</ISIN>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>FR</Country>
+			<Name>LVMH MOET HENNESSY LOUIS VUI</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>IOG4E947OATN0KJYSD45</LEI>
+						</Identifiers>
+						<Name>LVMH MOET HENNESSY LOUIS VUI</Name>
+						<Address>
+							<Country>FR</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>JP3162600005JPY</UniqueID>
+			<Identifiers>
+				<ISIN>JP3162600005</ISIN>
+			</Identifiers>
+			<Currency>JPY</Currency>
+			<Country>JP</Country>
+			<Name>SMC CORP</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>353800O40V08DOZ70X62</LEI>
+						</Identifiers>
+						<Name>SMC CORP</Name>
+						<Address>
+							<Country>JP</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US78409V1044USD</UniqueID>
+			<Identifiers>
+				<ISIN>US78409V1044</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>S&amp;P GLOBAL INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>Y6X4K52KMJMZE7I7MY94</LEI>
+						</Identifiers>
+						<Name>S&amp;P GLOBAL INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>DK0061539921DKK</UniqueID>
+			<Identifiers>
+				<ISIN>DK0061539921</ISIN>
+			</Identifiers>
+			<Currency>DKK</Currency>
+			<Country>DK</Country>
+			<Name>VESTAS WIND SYSTEM AS</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300DYMC8BGZZC8844</LEI>
+						</Identifiers>
+						<Name>VESTAS WIND SYSTEM AS</Name>
+						<Address>
+							<Country>DK</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>JP3481800005JPY</UniqueID>
+			<Identifiers>
+				<ISIN>JP3481800005</ISIN>
+			</Identifiers>
+			<Currency>JPY</Currency>
+			<Country>JP</Country>
+			<Name>DAIKIN INDUSTRIES LTD</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300Y7FWSTSHMW5Y57</LEI>
+						</Identifiers>
+						<Name>Daikin Industries Ltd</Name>
+						<Address>
+							<Country>JP</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US5128071082USD</UniqueID>
+			<Identifiers>
+				<ISIN>US5128071082</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>LAM RESEARCH CORP</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300I4GMO6D34U1T02</LEI>
+						</Identifiers>
+						<Name>LAM RESEARCH CORP</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US28176E1082USD</UniqueID>
+			<Identifiers>
+				<ISIN>US28176E1082</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>EDWARDS LIFESCIENCES CORP</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>YA13X31F3V31L8TMPR58</LEI>
+						</Identifiers>
+						<Name>EDWARDS LIFESCIENCES CORP</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>FI0009013296EUR</UniqueID>
+			<Identifiers>
+				<ISIN>FI0009013296</ISIN>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>FI</Country>
+			<Name>NESTE OYJ</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>5493009GY1X8GQ66AM14</LEI>
+						</Identifiers>
+						<Name>NESTE OYJ</Name>
+						<Address>
+							<Country>FI</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US45866F1049USD</UniqueID>
+			<Identifiers>
+				<ISIN>US45866F1049</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>INTERCONTINENTAL EXCHANGE INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>5493000F4ZO33MV32P92</LEI>
+						</Identifiers>
+						<Name>INTERCONTINENTAL EXCHANGE INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>CA21037X1006CAD</UniqueID>
+			<Identifiers>
+				<ISIN>CA21037X1006</ISIN>
+			</Identifiers>
+			<Currency>CAD</Currency>
+			<Country>CA</Country>
+			<Name>CONSTELLATION SOFTWARE INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300B6PYHMCTDWQV29</LEI>
+						</Identifiers>
+						<Name>CONSTELLATION SOFTWARE INC</Name>
+						<Address>
+							<Country>CA</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US79466L3024USD</UniqueID>
+			<Identifiers>
+				<ISIN>US79466L3024</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>SALESFORCE.COM INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>RCGZFPDMRW58VJ54VR07</LEI>
+						</Identifiers>
+						<Name>SALESFORCE.COM INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>CA89072T1021CAD</UniqueID>
+			<Identifiers>
+				<ISIN>CA89072T1021</ISIN>
+			</Identifiers>
+			<Currency>CAD</Currency>
+			<Country>CA</Country>
+			<Name>TOPICUS.COM INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300B6PYHMCTDWQV29</LEI>
+						</Identifiers>
+						<Name>TOPICUS.COM INC</Name>
+						<Address>
+							<Country>CA</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US3377381088USD</UniqueID>
+			<Identifiers>
+				<ISIN>US3377381088</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>FISERV INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>GI7UBEJLXYLGR2C7GV83</LEI>
+						</Identifiers>
+						<Name>Fiserv Inc</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US7433151039USD</UniqueID>
+			<Identifiers>
+				<ISIN>US7433151039</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>PROGRESSIVE CORP</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>529900TACNVLY9DCR586</LEI>
+						</Identifiers>
+						<Name>Progressive Corp/The</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US8243481061USD</UniqueID>
+			<Identifiers>
+				<ISIN>US8243481061</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>SHERWIN-WILLIAMS CO/THE</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>Z15BMIOX8DDH0X2OBP21</LEI>
+						</Identifiers>
+						<Name>Sherwin-Williams Co/The</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US30303M1027USD</UniqueID>
+			<Identifiers>
+				<ISIN>US30303M1027</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>FACEBOOK INC-A</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers/>
+						<Name>FACEBOOK INC-A</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>GB00BZ09BD16USD</UniqueID>
+			<Identifiers>
+				<ISIN>GB00BZ09BD16</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>GB</Country>
+			<Name>ATLASSIAN CORP PLC-CLASS A</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300AGBII4MWBVJY22</LEI>
+						</Identifiers>
+						<Name>ATLASSIAN CORP PLC-CLASS A</Name>
+						<Address>
+							<Country>GB</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SE0011166610SEK</UniqueID>
+			<Identifiers>
+				<ISIN>SE0011166610</ISIN>
+			</Identifiers>
+			<Currency>SEK</Currency>
+			<Country>SE</Country>
+			<Name>ATLAS COPCO AB</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>213800T8PC8Q4FYJZR07</LEI>
+						</Identifiers>
+						<Name>ATLAS COPCO AB</Name>
+						<Address>
+							<Country>SE</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>CH0418792922CHF</UniqueID>
+			<Identifiers>
+				<ISIN>CH0418792922</ISIN>
+			</Identifiers>
+			<Currency>CHF</Currency>
+			<Country>CH</Country>
+			<Name>SIKA AG-REG</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300R3N69ECGYPU434</LEI>
+						</Identifiers>
+						<Name>SIKA AG-REG</Name>
+						<Address>
+							<Country>CH</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>CH0013841017CHF</UniqueID>
+			<Identifiers>
+				<ISIN>CH0013841017</ISIN>
+			</Identifiers>
+			<Currency>CHF</Currency>
+			<Country>CH</Country>
+			<Name>LONZA GROUP AG-REG</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300EFW4H2TCZ71055</LEI>
+						</Identifiers>
+						<Name>LONZA GROUP AG-REG</Name>
+						<Address>
+							<Country>CH</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US02079K1079USD</UniqueID>
+			<Identifiers>
+				<ISIN>US02079K1079</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>ALPHABET INC-CL C</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>5493006MHB84DD0ZWV18</LEI>
+						</Identifiers>
+						<Name>ALPHABET INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US81762P1021USD</UniqueID>
+			<Identifiers>
+				<ISIN>US81762P1021</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>SERVICENOW INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300HJTQM36M0E1G39</LEI>
+						</Identifiers>
+						<Name>SERVICENOW INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US4228061093USD</UniqueID>
+			<Identifiers>
+				<ISIN>US4228061093</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>HEICO CORP</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>529900O1DTDLCJ7L0I14</LEI>
+						</Identifiers>
+						<Name>HEICO CORP</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SE0015658109SEK</UniqueID>
+			<Identifiers>
+				<ISIN>SE0015658109</ISIN>
+			</Identifiers>
+			<Currency>SEK</Currency>
+			<Country>SE</Country>
+			<Name>EPIROC AB-A</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>5493004Q73OEYW1SPE91</LEI>
+						</Identifiers>
+						<Name>EPIROC AB-A</Name>
+						<Address>
+							<Country>SE</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US0378331005USD</UniqueID>
+			<Identifiers>
+				<ISIN>US0378331005</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>APPLE INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>HWUPKR0MPOU8FGXBT394</LEI>
+						</Identifiers>
+						<Name>APPLE INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US6174464486USD</UniqueID>
+			<Identifiers>
+				<ISIN>US6174464486</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>MORGAN STANLEY</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>IGJSJL3JD5P30I6NJZ34</LEI>
+						</Identifiers>
+						<Name>MORGAN STANLEY</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US21036P1084USD</UniqueID>
+			<Identifiers>
+				<ISIN>US21036P1084</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>CONSTELLATION BRANDS INC-A</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>5493005GKEG8QCVY7037</LEI>
+						</Identifiers>
+						<Name>Constellation Brands Inc</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US5184391044USD</UniqueID>
+			<Identifiers>
+				<ISIN>US5184391044</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>ESTEE LAUDER COMPANIES-CL A</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300VFZ8XJ9NUPU221</LEI>
+						</Identifiers>
+						<Name>ESTEE LAUDER COMPANIES-CL A</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>CA8911605092CAD</UniqueID>
+			<Identifiers>
+				<ISIN>CA8911605092</ISIN>
+			</Identifiers>
+			<Currency>CAD</Currency>
+			<Country>CA</Country>
+			<Name>TORONTO-DOMINION BANK</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>PT3QB789TSUIDF371261</LEI>
+						</Identifiers>
+						<Name>TORONTO-DOMINION BANK</Name>
+						<Address>
+							<Country>CA</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>DE000SYM9999EUR</UniqueID>
+			<Identifiers>
+				<ISIN>DE000SYM9999</ISIN>
+			</Identifiers>
+			<Currency>EUR</Currency>
+			<Country>DE</Country>
+			<Name>SYMRISE AG</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>529900D82I6R9601CF26</LEI>
+						</Identifiers>
+						<Name>SYMRISE AG</Name>
+						<Address>
+							<Country>DE</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US8835561023USD</UniqueID>
+			<Identifiers>
+				<ISIN>US8835561023</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>THERMO ELECTRON CORP</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>HCHV7422L5HDJZCRFL38</LEI>
+						</Identifiers>
+						<Name>Thermo Fisher Scientific Inc</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>GB0009895292GBP</UniqueID>
+			<Identifiers>
+				<ISIN>GB0009895292</ISIN>
+			</Identifiers>
+			<Currency>GBP</Currency>
+			<Country>GB</Country>
+			<Name>ASTRAZENECA              </Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>PY6ZZQWO2IZFZC3IOL08</LEI>
+						</Identifiers>
+						<Name>AstraZeneca PLC</Name>
+						<Address>
+							<Country>GB</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US67066G1040USD</UniqueID>
+			<Identifiers>
+				<ISIN>US67066G1040</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>NVIDIA CORP</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300S4KLFTLO7GSQ80</LEI>
+						</Identifiers>
+						<Name>Nvidia Corp</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>NO0003054108NOK</UniqueID>
+			<Identifiers>
+				<ISIN>NO0003054108</ISIN>
+			</Identifiers>
+			<Currency>NOK</Currency>
+			<Country>NO</Country>
+			<Name>MOWI ASA</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300W1OGQF5LZIH349</LEI>
+						</Identifiers>
+						<Name>MOWI ASA</Name>
+						<Address>
+							<Country>NO</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US2546871060USD</UniqueID>
+			<Identifiers>
+				<ISIN>US2546871060</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>THE WALT DISNEY CO.</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300GZKULIZ0WOW665</LEI>
+						</Identifiers>
+						<Name>Walt Disney Co/The</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US00724F1012USD</UniqueID>
+			<Identifiers>
+				<ISIN>US00724F1012</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>ADOBE SYSTEMS INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>FU4LY2G4933NH2E1CP29</LEI>
+						</Identifiers>
+						<Name>Adobe Systems Inc</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US0231351067USD</UniqueID>
+			<Identifiers>
+				<ISIN>US0231351067</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>AMAZON.COM INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>ZXTILKJKG63JELOEG630</LEI>
+						</Identifiers>
+						<Name>Amazon.com Inc</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>JP3435000009JPY</UniqueID>
+			<Identifiers>
+				<ISIN>JP3435000009</ISIN>
+			</Identifiers>
+			<Currency>JPY</Currency>
+			<Country>JP</Country>
+			<Name>SONY CORP</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>529900R5WX9N2OI2N910</LEI>
+						</Identifiers>
+						<Name>SONY CORP</Name>
+						<Address>
+							<Country>JP</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US5949181045USD</UniqueID>
+			<Identifiers>
+				<ISIN>US5949181045</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>MICROSOFT CORP</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>INR2EJN1ERAN0W5ZP974</LEI>
+						</Identifiers>
+						<Name>MICROSOFT CORP</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US4370761029USD</UniqueID>
+			<Identifiers>
+				<ISIN>US4370761029</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>HOME DEPOT INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>QEKMOTMBBKA8I816DO57</LEI>
+						</Identifiers>
+						<Name>HOME DEPOT INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US7766961061USD</UniqueID>
+			<Identifiers>
+				<ISIN>US7766961061</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>ROPER TECHNOLOGIES INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>54930003T4SXCIWVXY35</LEI>
+						</Identifiers>
+						<Name>ROPER TECHNOLOGIES INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US92826C8394USD</UniqueID>
+			<Identifiers>
+				<ISIN>US92826C8394</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>VISA INC-CLASS A SHARES</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300JZ4OKEHW3DPJ59</LEI>
+						</Identifiers>
+						<Name>VISA INC-CLASS A SHARES</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SE0015961909SEK</UniqueID>
+			<Identifiers>
+				<ISIN>SE0015961909</ISIN>
+			</Identifiers>
+			<Currency>SEK</Currency>
+			<Country>SE</Country>
+			<Name>HEXAGON AB-B SHS</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300WJFW6ILNI4TA80</LEI>
+						</Identifiers>
+						<Name>HEXAGON AB-B SHS</Name>
+						<Address>
+							<Country>SE</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US00507V1098USD</UniqueID>
+			<Identifiers>
+				<ISIN>US00507V1098</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>ACTIVISION BLIZZARD INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300TPQQDBP9GNOF40</LEI>
+						</Identifiers>
+						<Name>ACTIVISION BLIZZARD INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US09247X1019USD</UniqueID>
+			<Identifiers>
+				<ISIN>US09247X1019</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>BLACKROCK INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300LRIF3NWCU26A80</LEI>
+						</Identifiers>
+						<Name>BLACKROCK INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US46120E6023USD</UniqueID>
+			<Identifiers>
+				<ISIN>US46120E6023</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>INTUITIVE SURGICAL INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>54930052SRG011710797</LEI>
+						</Identifiers>
+						<Name>INTUITIVE SURGICAL INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US46625H1005USD</UniqueID>
+			<Identifiers>
+				<ISIN>US46625H1005</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>JP MORGAN CHASE &amp; CO</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>8I5DZWZKVSZI1NUHU748</LEI>
+						</Identifiers>
+						<Name>JP MORGAN CHASE &amp; CO</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US01609W1027USD</UniqueID>
+			<Identifiers>
+				<ISIN>US01609W1027</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>KY</Country>
+			<Name>ALIBABA GROUP HOLDING</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>5493001NTNQJDH60PM02</LEI>
+						</Identifiers>
+						<Name>ALIBABA GROUP HOLDING</Name>
+						<Address>
+							<Country>KY</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US92532F1003USD</UniqueID>
+			<Identifiers>
+				<ISIN>US92532F1003</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>VETEX PHARMACEUTICALS INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>54930015RAQRRZ5ZGJ91</LEI>
+						</Identifiers>
+						<Name>VETEX PHARMACEUTICALS INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US91324P1021USD</UniqueID>
+			<Identifiers>
+				<ISIN>US91324P1021</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>UNITEDHEALTH GROUP INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300GHBMY8T5GXDE41</LEI>
+						</Identifiers>
+						<Name>UNITEDHEALTH GROUP INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US46266C1053USD</UniqueID>
+			<Identifiers>
+				<ISIN>US46266C1053</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>IQVIA HOLDINGS INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300W3R20NM4KQPH86</LEI>
+						</Identifiers>
+						<Name>IQVIA HOLDINGS INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US29444U7000USD</UniqueID>
+			<Identifiers>
+				<ISIN>US29444U7000</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>EQUINIX INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300EVUN2BTLJ3GT74</LEI>
+						</Identifiers>
+						<Name>EQUINIX INC</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>DK0060534915DKK</UniqueID>
+			<Identifiers>
+				<ISIN>DK0060534915</ISIN>
+			</Identifiers>
+			<Currency>DKK</Currency>
+			<Country>DK</Country>
+			<Name>NOVO NORDISK A/S-B</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>549300DAQ1CVT6CXN342</LEI>
+						</Identifiers>
+						<Name>NOVO NORDISK A/S-B</Name>
+						<Address>
+							<Country>DK</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US09857L1089USD</UniqueID>
+			<Identifiers>
+				<ISIN>US09857L1089</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>BOOKING HOLDINGS INC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>FXM8FAOHMYDIPD38UZ17</LEI>
+						</Identifiers>
+						<Name>BKNG US</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>IE00BLP1HW54USD</UniqueID>
+			<Identifiers>
+				<ISIN>IE00BLP1HW54</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>IE</Country>
+			<Name>AON PLC</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>635400FALWQYX5E6QC64</LEI>
+						</Identifiers>
+						<Name>AON PLC</Name>
+						<Address>
+							<Country>IE</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>US82669G1040USD</UniqueID>
+			<Identifiers>
+				<ISIN>US82669G1040</ISIN>
+			</Identifiers>
+			<Currency>USD</Currency>
+			<Country>US</Country>
+			<Name>SIGNATURE BANK</Name>
+			<AssetType>EQ</AssetType>
+			<AssetDetails>
+				<Equity>
+					<ClassOfBusiness>
+						<Offeror/>
+						<Date/>
+						<Value/>
+					</ClassOfBusiness>
+					<Issuer>
+						<Identifiers>
+							<LEI>VLP5AP0XK2GM6GKD1007</LEI>
+						</Identifiers>
+						<Name>SIGNATURE BANK</Name>
+						<Address>
+							<Country>US</Country>
+						</Address>
+					</Issuer>
+				</Equity>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SK1409000000000634223193</UniqueID>
+			<Currency>JPY</Currency>
+			<Country>SK</Country>
+			<Name>SK1409000000000634223193</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<AccountNumber>1409000000000634223193</AccountNumber>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+							<SwiftBIC>GIBASKBX</SwiftBIC>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SK2909000000005127522204</UniqueID>
+			<Currency>DKK</Currency>
+			<Country>SK</Country>
+			<Name>SK2909000000005127522204</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<AccountNumber>2909000000005127522204</AccountNumber>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+							<SwiftBIC>GIBASKBX</SwiftBIC>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SK5609000000005127522300</UniqueID>
+			<Currency>CHF</Currency>
+			<Country>SK</Country>
+			<Name>SK5609000000005127522300</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<AccountNumber>5609000000005127522300</AccountNumber>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+							<SwiftBIC>GIBASKBX</SwiftBIC>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SK1309000000005127522298</UniqueID>
+			<Currency>AUD</Currency>
+			<Country>SK</Country>
+			<Name>SK1309000000005127522298</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<AccountNumber>1309000000005127522298</AccountNumber>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+							<SwiftBIC>GIBASKBX</SwiftBIC>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SK6709000000005124273863</UniqueID>
+			<Currency>EUR</Currency>
+			<Country>SK</Country>
+			<Name>SK6709000000005124273863</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<AccountNumber>6709000000005124273863</AccountNumber>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+							<SwiftBIC>GIBASKBX</SwiftBIC>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SK9109000000000632007200</UniqueID>
+			<Currency>USD</Currency>
+			<Country>SK</Country>
+			<Name>SK9109000000000632007200</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<AccountNumber>9109000000000632007200</AccountNumber>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+							<SwiftBIC>GIBASKBX</SwiftBIC>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SK8409000000005108805452</UniqueID>
+			<Currency>CAD</Currency>
+			<Country>SK</Country>
+			<Name>SK8409000000005108805452</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<AccountNumber>8409000000005108805452</AccountNumber>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+							<SwiftBIC>GIBASKBX</SwiftBIC>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SK5609000000005047849119</UniqueID>
+			<Currency>GBP</Currency>
+			<Country>SK</Country>
+			<Name>SK5609000000005047849119</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<AccountNumber>5609000000005047849119</AccountNumber>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+							<SwiftBIC>GIBASKBX</SwiftBIC>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SK8309000000005152767422</UniqueID>
+			<Currency>NOK</Currency>
+			<Country>SK</Country>
+			<Name>SK8309000000005152767422</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<AccountNumber>8309000000005152767422</AccountNumber>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+							<SwiftBIC>GIBASKBX</SwiftBIC>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>SK4409000000005143531784</UniqueID>
+			<Currency>SEK</Currency>
+			<Country>SK</Country>
+			<Name>SK4409000000005143531784</Name>
+			<AssetType>AC</AssetType>
+			<AssetDetails>
+				<Account>
+					<AccountNumber>4409000000005143531784</AccountNumber>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+							<SwiftBIC>GIBASKBX</SwiftBIC>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Account>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>ID_41_MNG</UniqueID>
+			<Currency>EUR</Currency>
+			<Country>SK</Country>
+			<Name>Management Fee</Name>
+			<AssetType>FE</AssetType>
+			<AssetDetails>
+				<Fee>
+					<Type>MNG</Type>
+					<Counterparty>
+						<Identifiers>
+							<LEI>097900BEMQ0000006410</LEI>
+						</Identifiers>
+						<Name>Asset Management Slovenskej sporiteľne, správ. spol., a. s., SR</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Fee>
+			</AssetDetails>
+		</Asset>
+		<Asset>
+			<UniqueID>ID_41_DEP</UniqueID>
+			<Currency>EUR</Currency>
+			<Country>SK</Country>
+			<Name>Depository Fee</Name>
+			<AssetType>FE</AssetType>
+			<AssetDetails>
+				<Fee>
+					<Type>DEP</Type>
+					<Counterparty>
+						<Identifiers>
+							<LEI>549300S2T3FWVVXWJI89</LEI>
+						</Identifiers>
+						<Name>Slovenská sporiteľňa</Name>
+						<Address>
+							<Country>SK</Country>
+						</Address>
+					</Counterparty>
+				</Fee>
+			</AssetDetails>
+		</Asset>
+	</AssetMasterData>
+</FundsXML4>

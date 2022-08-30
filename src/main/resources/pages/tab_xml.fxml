@@ -7,13 +7,13 @@
             fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <TabPane VBox.vgrow="ALWAYS">
-            <Tab text="Text">
+            <Tab text="Text" closable="false">
                 <StackPane fx:id="stackPane"
                            AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                            AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
                            stylesheets="@../css/xml-highlighting.css"/>
             </Tab>
-            <Tab text="Graphic">
+            <Tab text="Graphic" closable="false" disable="true">
 
             </Tab>
         </TabPane>

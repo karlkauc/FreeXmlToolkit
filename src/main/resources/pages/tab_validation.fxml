@@ -8,7 +8,8 @@
 <AnchorPane fx:id="anchorPane" style="-fx-padding: 0;" stylesheets="@../css/app.css"
             xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController">
-    <GridPane fx:id="auswertung" hgap="10" vgap="10">
+    <GridPane fx:id="auswertung" hgap="10" vgap="10"
+              AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0" >
         <padding>
             <Insets bottom="25" left="25" right="25" top="25"/>
         </padding>
@@ -48,7 +49,7 @@
         <ImageView fx:id="statusImage" fitHeight="40" fitWidth="40" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
 
         <Label text="Details:" GridPane.rowIndex="5"/>
-        <TextArea fx:id="errorList" GridPane.columnIndex="2" GridPane.rowIndex="5"/>
+        <VBox fx:id="errorListBox" GridPane.columnIndex="2" GridPane.rowIndex="5" />
 
         <Button onAction="#reload" text="Reload" GridPane.rowIndex="6">
             <graphic>

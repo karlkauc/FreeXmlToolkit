@@ -179,6 +179,8 @@ public class MainController {
         return this.fopController;
     }
 
+    public XsdController getXsdController() { return this.xsdController; }
+
     @FXML
     private void openFile(ActionEvent e) {
         Stage stage = (Stage) mainBox.getScene().getWindow();
@@ -212,7 +214,6 @@ public class MainController {
         xsltController.setParentController(this);
         xsdController.setParentController(this);
         xsdValidationController.setParentController(this);
-        // signatureController.setParentController(this);
         fopController.setParentController(this);
 
         fileChooser.getExtensionFilters().addAll(

@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:noNamespaceSchemaLocation="http://www.finee.at/xsd/FundsXML_4_1_8.xsd">
+  <ControlData>
+    <UniqueDocumentID>20210930_3984689</UniqueDocumentID>
+    <DocumentGenerated>2021-12-13T10:29:10.866657+01:00</DocumentGenerated>
+    <Version>4.1.8</Version>
+    <ContentDate>2021-09-30</ContentDate>
+    <DataSupplier>
+      <SystemCountry>AT</SystemCountry>
+      <Short>FIN</Short>
+      <Name>Finee GmbH.</Name>
+      <Type>VENDOR</Type>
+      <Contact>
+        <Email>office@finee.at</Email>
+      </Contact>
+    </DataSupplier>
+    <Language>DE</Language>
+    <CountrySpecificData>
+      <AT>
+        <FundDataPortalContent>FUND</FundDataPortalContent>
+      </AT>
+    </CountrySpecificData>
+  </ControlData>
+  <Funds>
+    <Fund>
+      <Identifiers>
+        <ISIN>YY7240837620</ISIN>
+        <OtherID FreeType="FineeID">YY7240837620_EUR</OtherID>
+        <OtherID FreeType="AlternativeTicker">PE27873 FH Equity</OtherID>
+        <OtherID FreeType="PRIVATE EQUITY ID">YY7240837620_EUR</OtherID>
+      </Identifiers>
+      <Names>
+        <OfficialName>TCEE Fund IV S.C.A. SICAR</OfficialName>
+      </Names>
+      <Currency>EUR</Currency>
+      <SingleFundFlag>true</SingleFundFlag>
+      <FundStaticData>
+        <DomicileCountry>IE</DomicileCountry>
+        <ListedLegalStructure>SPV</ListedLegalStructure>
+        <Administrator>
+          <Identifiers>
+            <OtherID FreeType="Bloomberg Company Identifier">69771167</OtherID>
+            <OtherID FreeType="Finee Issuer ID">1001962</OtherID>
+            <OtherID FreeType="NACE Rev 2">K6430</OtherID>
+          </Identifiers>
+          <Name>3TS Capital Partners Ltd</Name>
+          <Address>
+            <StreetName>Kaisaniemenkatu 2B, 8th floor</StreetName>
+            <CityName>Helsinki</CityName>
+            <CityCode>00100</CityCode>
+            <Country>FI</Country>
+          </Address>
+          <OtherClassification ListedType="NACE Rev 2">K6430</OtherClassification>
+          <OtherClassification FreeType="FineeCompanyCurrency">EUR</OtherClassification>
+        </Administrator>
+      </FundStaticData>
+      <FundDynamicData>
+        <TotalAssetValues>
+          <TotalAssetValue>
+            <NavDate>2021-09-30</NavDate>
+            <TotalAssetNature>OFFICIAL</TotalAssetNature>
+            <TotalNetAssetValue>
+              <Amount ccy="EUR">1925000</Amount>
+            </TotalNetAssetValue>
+          </TotalAssetValue>
+        </TotalAssetValues>
+      </FundDynamicData>
+      <SingleFund>
+        <ShareClasses>
+          <ShareClass>
+            <Identifiers>
+              <ISIN>YY7240837620</ISIN>
+              <OtherID FreeType="FineeID">YY7240837620_EUR</OtherID>
+              <OtherID FreeType="AlternativeTicker">PE27873 FH Equity</OtherID>
+              <OtherID FreeType="PRIVATE EQUITY ID">YY7240837620_EUR</OtherID>
+            </Identifiers>
+            <Names>
+              <OfficialName>TCEE Fund IV S.C.A. SICAR</OfficialName>
+            </Names>
+            <Currency>EUR</Currency>
+            <ShareClassType>
+              <Code>T</Code>
+              <EarningUse>R</EarningUse>
+            </ShareClassType>
+            <Prices>
+              <Price>
+                <ActionCode>M</ActionCode>
+                <NavDate>2021-09-30</NavDate>
+                <PriceCurrency>EUR</PriceCurrency>
+                <PriceNature>OFFICIAL</PriceNature>
+                <NavPrice>1925000</NavPrice>
+              </Price>
+            </Prices>
+            <TotalAssetValues>
+              <TotalAssetValue>
+                <NavDate>2021-09-30</NavDate>
+                <TotalAssetNature>OFFICIAL</TotalAssetNature>
+                <TotalNetAssetValue>
+                  <Amount ccy="EUR">1925000</Amount>
+                </TotalNetAssetValue>
+                <SharesOutstanding>1</SharesOutstanding>
+              </TotalAssetValue>
+            </TotalAssetValues>
+            <Portfolios>
+              <Portfolio>
+                <NavDate>2021-09-30</NavDate>
+                <Positions>
+                  <Position>
+                    <UniqueID>U3984753</UniqueID>
+                    <Identifiers>
+                      <ISIN>YYBR47977091</ISIN>
+                      <Bloomberg>
+                        <BBGID>BBG012JLL1Q3</BBGID>
+                      </Bloomberg>
+                      <OtherID FreeType="FineeID">YYBR47977091_EUR</OtherID>
+                      <OtherID FreeType="BloombergUniqueID">EQ0000000089999082</OtherID>
+                      <OtherID FreeType="Bloomberg.ID_BB">BR4797709</OtherID>
+                      <OtherID FreeType="AlternativeTicker">1919225D FF EQUITY</OtherID>
+                      <OtherID FreeType="PRIVATE EQUITY ID">YYBR47977091_EUR</OtherID>
+                    </Identifiers>
+                    <Currency>EUR</Currency>
+                    <TotalValue>
+                      <Amount ccy="EUR">1925000</Amount>
+                    </TotalValue>
+                    <TotalPercentage>100</TotalPercentage>
+                    <Exposures>
+                      <Exposure>
+                        <Type>Exposure</Type>
+                        <Value>
+                          <Amount ccy="EUR">1925000</Amount>
+                        </Value>
+                      </Exposure>
+                    </Exposures>
+                    <FXRates>
+                      <FXRate fromCcy="EUR" toCcy="EUR" mulDiv="M">1</FXRate>
+                    </FXRates>
+                    <PrivateEquity />
+                  </Position>
+                </Positions>
+              </Portfolio>
+            </Portfolios>
+          </ShareClass>
+        </ShareClasses>
+      </SingleFund>
+    </Fund>
+  </Funds>
+  <AssetMasterData>
+    <Asset>
+      <UniqueID>U3984753</UniqueID>
+      <Identifiers>
+        <ISIN>YYBR47977091</ISIN>
+        <Bloomberg>
+          <BBGID>BBG012JLL1Q3</BBGID>
+        </Bloomberg>
+        <OtherID FreeType="FineeID">YYBR47977091_EUR</OtherID>
+        <OtherID FreeType="BloombergUniqueID">EQ0000000089999082</OtherID>
+        <OtherID FreeType="Bloomberg.ID_BB">BR4797709</OtherID>
+        <OtherID FreeType="AlternativeTicker">1919225D FF EQUITY</OtherID>
+        <OtherID FreeType="PRIVATE EQUITY ID">YYBR47977091_EUR</OtherID>
+      </Identifiers>
+      <Currency>EUR</Currency>
+      <Country>FI</Country>
+      <Name>Tosibox Oy</Name>
+      <AssetType>PE</AssetType>
+      <AssetDetails>
+        <PrivateEquity>
+          <Company>
+            <Identifiers>
+              <LEI>7437006H7TUZW2DJNP45</LEI>
+              <OtherID FreeType="Bloomberg Company Identifier">61140863</OtherID>
+              <OtherID FreeType="Finee Issuer ID">1001963</OtherID>
+              <OtherID FreeType="NACE Rev 2">J58</OtherID>
+            </Identifiers>
+            <Name>Tosibox Oy</Name>
+            <Address>
+              <StreetName>Teknologiantie 12 A</StreetName>
+              <CityName>OULU</CityName>
+              <CityCode>FI-90590</CityCode>
+              <Country>FI</Country>
+            </Address>
+            <OtherClassification ListedType="NACE Rev 2">J58</OtherClassification>
+            <OtherClassification FreeType="FineeCompanyCurrency">EUR</OtherClassification>
+          </Company>
+        </PrivateEquity>
+      </AssetDetails>
+      <Securitized>false</Securitized>
+      <IsInfrastructureInvestment>false</IsInfrastructureInvestment>
+      <CustomAttributes>
+        <Attribute>
+          <Name>Finee Instrument Type, based on WM GD198C, ID</Name>
+          <Type>T</Type>
+          <ValueText>1099</ValueText>
+        </Attribute>
+        <Attribute>
+          <Name>Finee Instrument Type, based on WM GD198C, Text DE</Name>
+          <Type>T</Type>
+          <ValueText>Private Equity</ValueText>
+        </Attribute>
+      </CustomAttributes>
+    </Asset>
+  </AssetMasterData>
+</FundsXML4>
+<!--
+YY7240837620_EUR_20210930_v4_1_8.xml
+2021-12-13 10:29:12
+Generated by Finee GmbH.
+office@finee.at
+Finee.Data.Services 1.0.0.0
+Prod Environment
+FileContents: AssetMasterDataCustomAttributeCDSType, AssetMasterDataCustomAttributeFineeInstrumentType, RealEstateTypeOfUseEAM, ShareclassHoldings, Subfunds
+-->

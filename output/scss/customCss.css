@@ -1,0 +1,115 @@
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 200;
+  src: local("Open Sans Light"), local("OpenSans-Light");
+  src: url(../OpenSans/webfonts/opensans_light/OpenSans-Light-webfont.eot);
+  src: url(../OpenSans/webfonts/opensans_light/OpenSans-Light-webfont.eot?#iefix) format("embedded-opentype"), url(../OpenSans/webfonts/opensans_light/OpenSans-Light-webfont.woff) format("woff"), url(../OpenSans/webfonts/opensans_light/OpenSans-Light-webfont.ttf) format("truetype"), url(../OpenSans/webfonts/opensans_light/OpenSans-Light-webfont.svg#open_sanslight) format("svg");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Open Sans Regular"), local("OpenSans-Regular");
+  src: url(../OpenSans/webfonts/opensans_regular/OpenSans-Regular-webfont.eot);
+  src: url(../OpenSans/webfonts/opensans_regular/OpenSans-Regular-webfont.eot?#iefix) format("embedded-opentype"), url(../OpenSans/webfonts/opensans_regular/OpenSans-Regular-webfont.woff) format("woff"), url(../OpenSans/webfonts/opensans_regular/OpenSans-Regular-webfont.ttf) format("truetype"), url(../OpenSans/webfonts/opensans_regular/OpenSans-Regular-webfont.svg#open_sansregular) format("svg");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 600;
+  src: local("Open Sans SemiBold"), local("OpenSans-SemiBold");
+  src: url(../OpenSans/webfonts/opensans_semibold/OpenSans-Semibold-webfont.eot);
+  src: url(../OpenSans/webfonts/opensans_semibold/OpenSans-Semibold-webfont.eot?#iefix) format("embedded-opentype"), url(../OpenSans/webfonts/opensans_semibold/OpenSans-Semibold-webfont.woff) format("woff"), url(../OpenSans/webfonts/opensans_semibold/OpenSans-Semibold-webfont.ttf) format("truetype"), url(../OpenSans/webfonts/opensans_semibold/OpenSans-Semibold-webfont.svg#open_sansbold) format("svg");
+}
+.block {
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #e9ecef;
+  border-left-width: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.block0 {
+  border-left-color: #0dcaf0;
+}
+
+.block0:hover {
+  background-color: #d6efe3;
+}
+
+.block1 {
+  border-left-color: #6f42c1;
+}
+
+.block2 {
+  border-left-color: #3d0a91;
+}
+
+.AssetMasterData .block0 {
+  border-left-color: #0a53be;
+}
+
+.AssetMasterData .block0:hover {
+  border-left-color: #b8ceef;
+  background-color: #dde7bf;
+}
+
+.AssetMasterData .block1 {
+  border-left-color: #94d95b;
+}
+
+.AssetMasterData .block1:hover {
+  border-left-color: #ff7171;
+  background-color: #ffc760;
+}
+
+.AssetMasterData {
+  padding-right: 5px;
+  border-right: 5px solid #329bc9;
+}
+
+.table {
+  padding: 0.1rem;
+}
+
+.bd-callout-info {
+  border-left-color: #5bc0de;
+}
+
+.bd-callout {
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #e9ecef;
+  border-left-width: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.bd-callout-info {
+  border-left-color: #0dcaf0;
+}
+
+.fs-small {
+  font-size: 0.8rem !important;
+}
+
+.bg-success {
+  color: white;
+}
+
+.accordion-bodyNoBorder {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.accordion-bodyNoBorderTop {
+  padding-top: 0;
+}
+
+.accordion-button svg {
+  padding-right: 10px;
+}
+
+/*# sourceMappingURL=customCss.css.map */

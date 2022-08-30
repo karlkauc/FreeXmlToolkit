@@ -49,7 +49,7 @@
                     </graphic>
                     <WebView fx:id="webView" HBox.hgrow="ALWAYS"/>
                 </Tab>
-                <Tab fx:id="tabCsv" text="CSV View" closable="false">
+                <Tab fx:id="tabCsv" text="CSV View" closable="false" disable="true">
                     <graphic>
                         <ImageView preserveRatio="true" fitHeight="16">
                             <Image url="@../img/icons8-csv-export-16.png"/>
