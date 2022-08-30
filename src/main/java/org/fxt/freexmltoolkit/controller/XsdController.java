@@ -3,8 +3,6 @@ package org.fxt.freexmltoolkit.controller;
 import com.google.inject.Inject;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.StackPane;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,7 +14,6 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
-import java.util.regex.Pattern;
 
 import static org.fxt.freexmltoolkit.controller.XmlController.computeHighlighting;
 
@@ -25,25 +22,11 @@ public class XsdController {
     @Inject
     XmlService xmlService;
 
-    private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
-            + "|(?<COMMENT><!--[^<>]+-->)");
-
-    private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
-
-    private static final int GROUP_OPEN_BRACKET = 2;
-    private static final int GROUP_ELEMENT_NAME = 3;
-    private static final int GROUP_ATTRIBUTES_SECTION = 4;
-    private static final int GROUP_CLOSE_BRACKET = 5;
-    private static final int GROUP_ATTRIBUTE_NAME = 1;
-    private static final int GROUP_EQUAL_SYMBOL = 2;
-    private static final int GROUP_ATTRIBUTE_VALUE = 3;
-
     CodeArea codeArea = new CodeArea();
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     @FXML
     StackPane stackPane;
-
 
     private MainController parentController;
 

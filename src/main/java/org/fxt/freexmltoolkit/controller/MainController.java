@@ -85,7 +85,7 @@ public class MainController {
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
     @FXML
-    private void openHelpPage(ActionEvent e) {
+    private void openHelpPage() {
         try {
             Desktop.getDesktop().browse(new URI("https://www.google.at"));
         } catch (IOException | URISyntaxException ex) {

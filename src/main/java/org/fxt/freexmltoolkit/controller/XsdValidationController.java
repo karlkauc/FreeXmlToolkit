@@ -1,20 +1,30 @@
 package org.fxt.freexmltoolkit.controller;
 
+import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.JavaFXBuilderFactory;
+import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
+import javafx.util.BuilderFactory;
+import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.ModuleBindings;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.xml.sax.SAXParseException;
 
@@ -28,6 +38,10 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public class XsdValidationController {
+
+    final Injector injector = Guice.createInjector(new ModuleBindings());
+    BuilderFactory builderFactory = new JavaFXBuilderFactory();
+    Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
 
     @Inject
     XmlService xmlService;
@@ -125,8 +139,6 @@ public class XsdValidationController {
 
             var exceptionList = xmlService.validate();
             if (exceptionList != null && exceptionList.size() > 0) {
-                StringBuilder errorListString = new StringBuilder();
-
                 logger.warn(Arrays.toString(exceptionList.toArray()));
                 int i = 0;
                 for (SAXParseException saxParseException : exceptionList) {
@@ -150,12 +162,20 @@ public class XsdValidationController {
 
                         var lineAfter = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() + 1).trim();
                         textFlowPane.getChildren().add(new Text(lineAfter + System.lineSeparator()));
-
-                        // errorListString.append(lineBevore).append(System.lineSeparator()).append(line).append(System.lineSeparator()).append(lineAfter).append(System.lineSeparator());
                     } catch (IOException exception) {
                         logger.error("Exception: {}", exception.getMessage());
                     }
                     errorListBox.getChildren().add(textFlowPane);
+                    Button goToError = new Button("Go to error");
+                    goToError.setOnAction(ae -> {
+                        try {
+                            Parent loader = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/pages/tab_xml.fxml")), null, builderFactory, guiceControllerFactory);
+                            goToError.getScene().setRoot(loader);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                    errorListBox.getChildren().add(goToError);
                     errorListBox.getChildren().add(new Separator());
                 }
 

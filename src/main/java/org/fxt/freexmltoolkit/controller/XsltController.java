@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class XsltController {
@@ -107,18 +106,6 @@ public class XsltController {
             xmlService.setCurrentXsltFile(xsltFile);
             checkFiles();
         });
-    }
-
-    @FXML
-    private void test() {
-        xmlFile = Path.of("C:/Data/src/FreeXmlToolkit/output/!FundsXML AMUNDI FLOATING RATE EURO CORP ESG as of 2021-12-30 v2.xml").toFile();
-        xsltFile = Path.of("C:/Data/src/FreeXmlToolkit/output/Check_FundsXML_File.xslt").toFile();
-
-        xmlService.setCurrentXmlFile(xmlFile);
-        xmlService.setCurrentXsltFile(xsltFile);
-
-        checkFiles();
-        parentController.getXmlController().reloadXmlText();
     }
 
     @FXML
@@ -214,7 +201,6 @@ public class XsltController {
                 xmlService.setCurrentXml(Files.readString(xmlFile.toPath()));
             }
         } catch (IOException e) {
-            e.printStackTrace();
             logger.error(e.getLocalizedMessage());
         }
     }
