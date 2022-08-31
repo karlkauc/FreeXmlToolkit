@@ -24,6 +24,8 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -118,6 +120,27 @@ public class XmlController {
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
+    }
+
+    public boolean saveCurrentChanges() {
+        if (this.codeArea.getText() != null) {
+            if (this.xmlService.getCurrentXmlFile() != null) {
+                try {
+                    Path path = Paths.get(this.xmlService.getCurrentXmlFile().getPath());
+                    byte[] strToBytes = codeArea.getText().getBytes();
+                    Files.write(path, strToBytes);
+
+                    this.xmlService.setCurrentXmlFile(path.toFile());
+                    return true;
+                } catch (Exception e) {
+                    logger.error("Exception in writing File: {}", e.getMessage());
+                    logger.error("File: {}", this.xmlService.getCurrentXmlFile().getAbsolutePath());
+                }
+            }
+        } else {
+            logger.debug("No Text");
+        }
+        return false;
     }
 
     @FXML

@@ -49,7 +49,9 @@
         <ImageView fx:id="statusImage" fitHeight="40" fitWidth="40" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
 
         <Label text="Details:" GridPane.rowIndex="5"/>
-        <VBox fx:id="errorListBox" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+        <ScrollPane GridPane.columnIndex="2" GridPane.rowIndex="5">
+            <VBox fx:id="errorListBox"/>
+        </ScrollPane>
 
         <Button onAction="#reload" text="Reload" GridPane.rowIndex="6">
             <graphic>
@@ -60,9 +62,9 @@
         </Button>
 
         <columnConstraints>
-            <ColumnConstraints/>
-            <ColumnConstraints minWidth="10.0" prefWidth="100.0"/>
-            <ColumnConstraints/>
+            <ColumnConstraints minWidth="180" maxWidth="180" prefWidth="180"/>
+            <ColumnConstraints minWidth="150" maxWidth="150" prefWidth="150"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
         </columnConstraints>
         <rowConstraints>
             <RowConstraints/>
@@ -73,6 +75,5 @@
             <RowConstraints/>
             <RowConstraints/>
         </rowConstraints>
-
     </GridPane>
 </AnchorPane>

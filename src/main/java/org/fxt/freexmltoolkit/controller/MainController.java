@@ -69,13 +69,10 @@ public class MainController {
     private FopController fopController;
 
     @FXML
-    Tab tabPaneXml, tabPaneXslt, tabPaneXsdValidation, tabXsd, tabSignature, tabFop, tabSchematron;
+    Tab tabPaneXml, tabPaneXslt, tabPaneXsdValidation, tabPaneXsd, tabSignature, tabFop, tabSchematron;
 
     @FXML
-    Button prettyPrint;
-
-    @FXML
-    Button exit, about, preferences;
+    Button prettyPrint, newFile, saveFile, exit, about;
 
     FileChooser fileChooser = new FileChooser();
 
@@ -147,6 +144,27 @@ public class MainController {
         }
 
  */
+    }
+
+    @FXML
+    private void saveFile() {
+        logger.debug("SAVE FILE!!");
+        if (this.tabPaneXml.isSelected()) {
+            logger.debug("Save XML File");
+            var success = xmlController.saveCurrentChanges();
+            if (success) {
+                Alert successMessage = new Alert(Alert.AlertType.INFORMATION);
+                successMessage.setContentText("Writing successful");
+                successMessage.showAndWait();
+            } else {
+                Alert fail = new Alert(Alert.AlertType.ERROR);
+                fail.setContentText("Error in writing File!");
+                fail.showAndWait();
+            }
+        }
+        if (this.tabPaneXsd.isSelected()) {
+            logger.debug("Save XSD File");
+        }
     }
 
     @FXML

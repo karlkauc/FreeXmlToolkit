@@ -32,6 +32,8 @@ public class FxtGui extends Application {
             Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/pages/main.fxml")), null, builderFactory, guiceControllerFactory);
             var scene = new Scene(root, 1024, 768);
 
+            scene.setOnKeyPressed(ke -> System.out.println("Key Pressed: " + ke.getCode()));
+
             primaryStage.setScene(scene);
             primaryStage.setMaximized(true);
             primaryStage.show();

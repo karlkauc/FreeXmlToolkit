@@ -8,14 +8,14 @@
       fx:controller="org.fxt.freexmltoolkit.controller.MainController">
     <HBox VBox.vgrow="NEVER">
         <ToolBar HBox.hgrow="ALWAYS">
-            <Button contentDisplay="GRAPHIC_ONLY" text="New">
+            <Button fx:id="newFile" contentDisplay="GRAPHIC_ONLY" text="New">
                 <graphic>
                     <ImageView fitHeight="16" preserveRatio="true">
                         <Image url="@../img/icons8-datei-24.png"/>
                     </ImageView>
                 </graphic>
             </Button>
-            <Button contentDisplay="GRAPHIC_ONLY" text="Save">
+            <Button fx:id="saveFile" onAction="#saveFile" contentDisplay="GRAPHIC_ONLY" text="Save">
                 <graphic>
                     <ImageView fitHeight="16" preserveRatio="true">
                         <Image url="@../img/icons8-speichern-50.png"/>
@@ -87,7 +87,7 @@
             </graphic>
             <fx:include source="tab_xml.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xml"/>
         </Tab>
-        <Tab fx:id="tabXsd" closable="false" text="XSD">
+        <Tab fx:id="tabPaneXsd" closable="false" text="XSD">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/icons8-middle-column-rectangular-bar-with-side-strips-24.png"/>
