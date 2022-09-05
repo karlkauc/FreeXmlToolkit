@@ -73,25 +73,11 @@ public class XmlController {
         codeArea.replaceText(0, 0, newString);
         codeArea.setBackground(new Background(
                 new BackgroundFill(
-                        new LinearGradient(0, 0, 0, 1, true,
+                        new LinearGradient(0, 0, 1, 1, true,
                                 CycleMethod.NO_CYCLE,
-                                new Stop(0, Color.web("#4568DC")),
-                                new Stop(1, Color.web("#B06AB3"))
+                                new Stop(0, Color.web("#81c483")),
+                                new Stop(1, Color.web("#fcc200"))
                         ), CornerRadii.EMPTY, Insets.EMPTY
-                ),
-                new BackgroundFill(
-                        new ImagePattern(
-                                new Image("https://edencoding.com/resources/wp-content/uploads/2021/02/Stars_128.png"),
-                                0, 0, 128, 128, false
-                        ), CornerRadii.EMPTY, Insets.EMPTY
-                ),
-                new BackgroundFill(
-                        new RadialGradient(
-                                0, 0, 0.5, 0.5, 0.5, true,
-                                CycleMethod.NO_CYCLE,
-                                new Stop(0, Color.web("#FFFFFF33")),
-                                new Stop(1, Color.web("#00000033"))),
-                        CornerRadii.EMPTY, Insets.EMPTY
                 )
         ));
     }

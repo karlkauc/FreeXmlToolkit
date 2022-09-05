@@ -12,6 +12,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tab;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -147,7 +148,7 @@ public class MainController {
     }
 
     @FXML
-    private void saveFile() {
+    public void saveFile() {
         logger.debug("SAVE FILE!!");
         if (this.tabPaneXml.isSelected()) {
             logger.debug("Save XML File");

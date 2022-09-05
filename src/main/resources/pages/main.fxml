@@ -71,14 +71,7 @@
             <fx:include source="tab_validation.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
                         fx:id="xsdValidation"/>
         </Tab>
-        <Tab fx:id="tabPaneXslt" closable="false" text="XSLT">
-            <graphic>
-                <ImageView fitHeight="16" preserveRatio="true">
-                    <Image url="@../img/icons8-transform-64.png"/>
-                </ImageView>
-            </graphic>
-            <fx:include source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xslt"/>
-        </Tab>
+
         <Tab fx:id="tabPaneXml" closable="false" text="XML">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
@@ -87,6 +80,7 @@
             </graphic>
             <fx:include source="tab_xml.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xml"/>
         </Tab>
+
         <Tab fx:id="tabPaneXsd" closable="false" text="XSD">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
@@ -95,6 +89,16 @@
             </graphic>
             <fx:include source="tab_xsd.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xsd"/>
         </Tab>
+
+        <Tab fx:id="tabPaneXslt" closable="false" text="XSLT">
+            <graphic>
+                <ImageView fitHeight="16" preserveRatio="true">
+                    <Image url="@../img/icons8-transform-64.png"/>
+                </ImageView>
+            </graphic>
+            <fx:include source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xslt"/>
+        </Tab>
+
         <Tab fx:id="tabFop" closable="false" text="FOP">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
@@ -103,6 +107,7 @@
             </graphic>
             <fx:include fx:id="fop" source="tab_fop.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
         </Tab>
+
         <Tab fx:id="tabSignature" closable="false" text="Signature">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
@@ -112,6 +117,7 @@
             <fx:include fx:id="signature" source="tab_signature.fxml" AnchorPane.bottomAnchor="0"
                         AnchorPane.topAnchor="0"/>
         </Tab>
+
         <Tab fx:id="tabSchematron" closable="false" text="Schematron">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">

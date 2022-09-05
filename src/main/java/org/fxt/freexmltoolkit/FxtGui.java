@@ -3,13 +3,19 @@ package org.fxt.freexmltoolkit;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.util.BuilderFactory;
 import javafx.util.Callback;
+import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.service.ModuleBindings;
 
 import java.io.IOException;
@@ -26,13 +32,26 @@ public class FxtGui extends Application {
 
     public static ExecutorService executorService = Executors.newFixedThreadPool(4);
 
+    final KeyCombination safeFileKey = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
+
+
     @Override
     public void start(Stage primaryStage) {
         try {
-            Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/pages/main.fxml")), null, builderFactory, guiceControllerFactory);
+
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/pages/main.fxml")), null, builderFactory, guiceControllerFactory);
+            Parent root = loader.load();
+            MainController mainController = loader.getController();
+
             var scene = new Scene(root, 1024, 768);
 
-            scene.setOnKeyPressed(ke -> System.out.println("Key Pressed: " + ke.getCode()));
+            scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
+                if (safeFileKey.match(e)) {
+                    System.out.println("SAVE PRESSED");
+                    mainController.saveFile();
+                    e.consume();
+                }
+            });
 
             primaryStage.setScene(scene);
             primaryStage.setMaximized(true);
