@@ -6,12 +6,14 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
-import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.*;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -33,6 +35,7 @@ import java.util.regex.Pattern;
 
 public class XmlController {
 
+    public static final int MAX_SIZE_FOR_FORMATING = 1024 * 1024 * 2;
     @Inject
     XmlService xmlService;
 
@@ -82,10 +85,13 @@ public class XmlController {
         ));
     }
 
-
     public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.parentController = parentController;
+    }
+
+    public void strollToPixel() {
+
     }
 
     @FXML
@@ -97,9 +103,7 @@ public class XmlController {
         try {
             if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
                 codeArea.replaceText(0, 0, Files.readString(xmlService.getCurrentXmlFile().toPath()));
-
-                logger.debug("Caret Position: {}", codeArea.getCaretPosition());
-                logger.debug("Caret Column: {}", codeArea.getCaretColumn());
+                codeArea.scrollToPixel(1, 1);
             } else {
                 logger.warn("FILE IS NULL");
             }
@@ -135,13 +139,12 @@ public class XmlController {
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText.length() < 1024 * 1024 * 2) { // MAX 2 MB große Files
+            if (newText.length() < MAX_SIZE_FOR_FORMATING) {
                 logger.debug("Format Text begin!");
                 Platform.runLater(() -> {
                     codeArea.setStyleSpans(0, computeHighlighting(newText));
-                    logger.debug("FINISH 1");
+                    logger.debug("FINISH REFORMAT TEXT in XmlController");
                 });
-                logger.debug("Format Text fertig!");
             }
         });
 

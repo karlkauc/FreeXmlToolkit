@@ -12,13 +12,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tab;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.BuilderFactory;
 import javafx.util.Callback;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.ModuleBindings;
@@ -33,7 +31,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
 import java.util.Objects;
 
 public class MainController {
@@ -240,9 +237,7 @@ public class MainController {
                 , new FileChooser.ExtensionFilter("XSLT Files", "*.xslt")
         );
 
-        if (SystemUtils.OS_NAME.toUpperCase(Locale.ROOT).startsWith("WINDOWS") && new File(("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles")).exists()) {
-            fileChooser.setInitialDirectory(new File("C:\\Data\\TEMP\\2021-12-14_FundsXMLTestFiles"));
-        }
+        fileChooser.setTitle("Loading XML File");
 
         exit.setOnAction(e -> System.exit(0));
 
@@ -255,6 +250,8 @@ public class MainController {
                 }
             }
         });
+
+
     }
 
 

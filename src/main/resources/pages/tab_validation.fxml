@@ -61,6 +61,14 @@
             </graphic>
         </Button>
 
+        <Button onAction="#test" text="test" GridPane.rowIndex="7">
+            <graphic>
+                <ImageView fitHeight="20" fitWidth="20">
+                    <Image url="@../img/icons8-aktualisieren-48.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+
         <columnConstraints>
             <ColumnConstraints minWidth="180" maxWidth="180" prefWidth="180"/>
             <ColumnConstraints minWidth="150" maxWidth="150" prefWidth="150"/>

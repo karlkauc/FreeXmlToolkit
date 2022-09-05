@@ -4,13 +4,8 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
-import javafx.scene.Parent;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -112,7 +107,6 @@ public class XsdValidationController {
 
                 parentController.getXmlController().reloadXmlText();
                 parentController.getXsdController().reloadXmlText();
-                // parentController.getXsdValidationController().reload(); TODO: hier file laden
             }
         });
 
@@ -128,6 +122,7 @@ public class XsdValidationController {
             }
         });
     }
+
 
     @FXML
     private void reload() {
@@ -166,13 +161,23 @@ public class XsdValidationController {
                         logger.error("Exception: {}", exception.getMessage());
                     }
                     errorListBox.getChildren().add(textFlowPane);
+
                     Button goToError = new Button("Go to error");
                     goToError.setOnAction(ae -> {
                         try {
-                            Parent loader = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/pages/tab_xml.fxml")), null, builderFactory, guiceControllerFactory);
-                            goToError.getScene().setRoot(loader);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            var p = (TabPane) anchorPane.getParent().getParent();
+                            var t = p.getTabs();
+                            t.forEach(e -> {
+                                if (Objects.equals(e.getId(), "tabPaneXml")) {
+                                    this.parentController.getXmlController().codeArea.scrollToPixel(saxParseException.getLineNumber(), saxParseException.getColumnNumber());
+                                    this.parentController.getXmlController().codeArea.requestFocus();
+
+                                    p.getSelectionModel().select(e);
+                                }
+                            });
+
+                        } catch (Exception e) {
+                            logger.error(e.getMessage());
                         }
                     });
                     errorListBox.getChildren().add(goToError);
@@ -181,13 +186,11 @@ public class XsdValidationController {
 
                 Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-stornieren-48.png")).toString());
                 statusImage.setImage(image);
-                // errorList.setText(errorListString.toString());
 
             } else {
                 logger.warn("KEINE ERRORS");
                 Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-ok-48.png")).toString());
                 statusImage.setImage(image);
-                // errorList.clear();
             }
         } else {
             logger.debug("war nicht alles ausgewählt!!");
@@ -199,8 +202,17 @@ public class XsdValidationController {
     @FXML
     private void test() {
         xmlService.setCurrentXmlFile(Paths.get("C:/Data/src/FreeXmlToolkit/output/!FundsXML AMUNDI FLOATING RATE EURO CORP ESG as of 2021-12-30 v2.xml").toFile());
+        xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
+
         xmlService.setCurrentXsdFile(Paths.get("C:/Data/src/schema/FundsXML4.xsd").toFile());
+        xsdFileName.setText(xmlService.getCurrentXsdFile().getName());
+
         reload();
+
+        if (parentController != null) {
+            parentController.getXmlController().reloadXmlText();
+            parentController.getXsdController().reloadXmlText();
+        }
     }
 
 }

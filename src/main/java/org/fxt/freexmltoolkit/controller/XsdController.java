@@ -68,6 +68,7 @@ public class XsdController {
         try {
             if (xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
                 codeArea.replaceText(0, 0, Files.readString(xmlService.getCurrentXsdFile().toPath()));
+                codeArea.scrollToPixel(1, 1);
 
                 logger.debug("Caret Position: {}", codeArea.getCaretPosition());
                 logger.debug("Caret Column: {}", codeArea.getCaretColumn());
