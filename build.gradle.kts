@@ -56,6 +56,9 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
 
+    // XSD Parser
+    implementation("com.github.xmlet:xsdParser:1.2.4")
+
     //  xml signature
     implementation("org.apache.santuario:xmlsec:3.0.0")
 

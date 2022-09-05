@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -15,8 +14,11 @@
                            stylesheets="@../css/xml-highlighting.css"/>
             </Tab>
             <Tab text="Graphic" closable="false" disable="true"/>
-            <Tab text="Documentation" closable="false" disable="true">
-
+            <Tab text="Documentation" closable="false">
+                <HBox>
+                    <Button text="generate" onAction="#generateDocumentation"/>
+                    <TextArea fx:id="documentation"/>
+                </HBox>
             </Tab>
         </TabPane>
     </VBox>

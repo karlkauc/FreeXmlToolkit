@@ -22,6 +22,9 @@ module org.fxt.freexmltoolkit {
 
     requires org.kordamp.ikonli.javafx;
 
+    // XSD Parser
+    requires xsdParser;
+
     opens org.fxt.freexmltoolkit;
     opens org.fxt.freexmltoolkit.controller;
     opens org.fxt.freexmltoolkit.service;
