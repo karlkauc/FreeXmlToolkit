@@ -3,37 +3,29 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import org.kordamp.ikonli.javafx.*?>
 <VBox fx:id="mainBox" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.MainController">
     <HBox VBox.vgrow="NEVER">
         <ToolBar HBox.hgrow="ALWAYS">
-            <Button fx:id="newFile" contentDisplay="GRAPHIC_ONLY" text="New">
+            <Button fx:id="newFile" text="New">
                 <graphic>
-                    <ImageView fitHeight="16" preserveRatio="true">
-                        <Image url="@../img/icons8-datei-24.png"/>
-                    </ImageView>
+                    <FontIcon iconLiteral="bi-file-earmark" iconSize="16"/>
                 </graphic>
             </Button>
-            <Button fx:id="saveFile" onAction="#saveFile" contentDisplay="GRAPHIC_ONLY" text="Save">
+            <Button fx:id="saveFile" onAction="#saveFile" text="Save">
                 <graphic>
-                    <ImageView fitHeight="16" preserveRatio="true">
-                        <Image url="@../img/icons8-speichern-50.png"/>
-                    </ImageView>
+                    <FontIcon iconLiteral="bi-hdd" iconSize="16"/>
                 </graphic>
             </Button>
             <Button onAction="#openFile" text="Open">
                 <graphic>
-                    <ImageView fitHeight="16" preserveRatio="true">
-                        <Image url="@../img/icons8-geöffnete-datei-unter-cursor-48.png"/>
-                    </ImageView>
+                    <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                 </graphic>
             </Button>
             <Button fx:id="prettyPrint" text="pretty print">
                 <graphic>
-                    <ImageView fitHeight="16" preserveRatio="true">
-                        <Image url="@../img/icons8-align_center.png"/>
-                    </ImageView>
+                    <FontIcon iconLiteral="bi-bricks" iconSize="16"/>
                 </graphic>
             </Button>
         </ToolBar>
@@ -53,9 +45,7 @@
 
             <Button fx:id="exit" text="Exit">
                 <graphic>
-                    <ImageView fitHeight="16" preserveRatio="true">
-                        <Image url="@../img/icons8-exit-64.png"/>
-                    </ImageView>
+                    <FontIcon iconLiteral="bi-door-closed" iconSize="16" iconColor="darkslategray"/>
                 </graphic>
             </Button>
         </ToolBar>
@@ -64,9 +54,7 @@
     <TabPane VBox.vgrow="ALWAYS">
         <Tab fx:id="tabPaneXsdValidation" closable="false" text="XSD Validation">
             <graphic>
-                <ImageView fitHeight="16" preserveRatio="true">
-                    <Image url="@../img/icons8-daten-angekommen-32.png"/>
-                </ImageView>
+                <FontIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
             </graphic>
             <fx:include source="tab_validation.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
                         fx:id="xsdValidation"/>
@@ -74,18 +62,14 @@
 
         <Tab fx:id="tabPaneXml" closable="false" text="XML">
             <graphic>
-                <ImageView fitHeight="16" preserveRatio="true">
-                    <Image url="@../img/icons8-xml-64.png"/>
-                </ImageView>
+                <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
             </graphic>
             <fx:include source="tab_xml.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xml"/>
         </Tab>
 
         <Tab fx:id="tabPaneXsd" closable="false" text="XSD">
             <graphic>
-                <ImageView fitHeight="16" preserveRatio="true">
-                    <Image url="@../img/icons8-middle-column-rectangular-bar-with-side-strips-24.png"/>
-                </ImageView>
+                <FontIcon iconLiteral="bi-diagram-3" iconSize="16" iconColor="dodgerblue"/>
             </graphic>
             <fx:include source="tab_xsd.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xsd"/>
         </Tab>

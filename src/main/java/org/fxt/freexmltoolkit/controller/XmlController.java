@@ -90,10 +90,6 @@ public class XmlController {
         this.parentController = parentController;
     }
 
-    public void strollToPixel() {
-
-    }
-
     @FXML
     public void reloadXmlText() {
         logger.debug("Reload XML Text");
