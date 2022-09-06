@@ -3,20 +3,18 @@ package org.fxt.freexmltoolkit.controller;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Tab;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.BuilderFactory;
 import javafx.util.Callback;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.ModuleBindings;
@@ -29,8 +27,6 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Objects;
 
 public class MainController {
@@ -76,6 +72,9 @@ public class MainController {
 
     @FXML
     VBox mainBox;
+
+    @FXML
+    TabPane tabPane;
 
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -197,33 +196,40 @@ public class MainController {
         return this.fopController;
     }
 
-    public XsdController getXsdController() { return this.xsdController; }
+    public XsdController getXsdController() {
+        return this.xsdController;
+    }
 
     @FXML
-    private void openFile(ActionEvent e) {
+    private void openFile() {
         Stage stage = (Stage) mainBox.getScene().getWindow();
 
+        logger.debug("Last open Dir: {}", lastOpenDir);
         if (lastOpenDir != null) {
             fileChooser.setInitialDirectory(new File(lastOpenDir));
         }
         File selectedFile = fileChooser.showOpenDialog(stage);
 
-        if (selectedFile != null) {
+        if (selectedFile != null && selectedFile.exists()) {
             logger.debug("Selected File from Menue: {}", selectedFile.getAbsolutePath());
-            String fileContent;
+            this.lastOpenDir = selectedFile.getParent();
 
-            if (selectedFile.exists()) {
-                this.xmlService.setCurrentXmlFile(selectedFile);
-                this.lastOpenDir = selectedFile.getAbsolutePath();
+            final var fileExtension = FilenameUtils.getExtension(selectedFile.getName()).toLowerCase();
+            switch (fileExtension) {
+                case "xml":
+                    xmlService.setCurrentXmlFile(selectedFile);
+                    xmlController.reloadXmlText();
 
-                try {
-                    fileContent = Files.readString(Path.of(selectedFile.getAbsolutePath()));
-                    logger.debug("fileContent.length: {}", String.format("%.2f", fileContent.length() / (1024f * 1024f)) + " MB");
-                    xmlController.codeArea.clear();
-                    xmlController.codeArea.replaceText(0, 0, fileContent);
-                } catch (IOException ex) {
-                    logger.error(ex.getMessage());
-                }
+                    tabPane.getSelectionModel().select(tabPaneXml);
+                    break;
+                case "xsd":
+                    xmlService.setCurrentXsdFile(selectedFile);
+                    xsdController.reloadXmlText();
+
+                    tabPane.getSelectionModel().select(tabPaneXsd);
+                    break;
+                case "fo":
+                    break;
             }
         } else {
             logger.debug("No file selected");
@@ -242,6 +248,8 @@ public class MainController {
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML Files", "*.xml")
                 , new FileChooser.ExtensionFilter("XSLT Files", "*.xslt")
+                , new FileChooser.ExtensionFilter("XSD Files", "*.xsd")
+                , new FileChooser.ExtensionFilter("FOP Files", "*.fo")
         );
 
         fileChooser.setTitle("Loading XML File");

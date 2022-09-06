@@ -51,7 +51,7 @@
         </ToolBar>
     </HBox>
 
-    <TabPane VBox.vgrow="ALWAYS">
+    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS">
         <Tab fx:id="tabPaneXsdValidation" closable="false" text="XSD Validation">
             <graphic>
                 <FontIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
