@@ -16,8 +16,11 @@
             <Tab text="Graphic" closable="false" disable="true"/>
             <Tab text="Documentation" closable="false">
                 <HBox>
-                    <Button text="generate" onAction="#generateDocumentation"/>
-                    <TextArea fx:id="documentation"/>
+                    <VBox>
+                        <Button text="generate" onAction="#generateDocumentation"/>
+                        <Button text="test" onAction="#test"/>
+                    </VBox>
+                    <TextArea fx:id="documentation" HBox.hgrow="ALWAYS"/>
                 </HBox>
             </Tab>
         </TabPane>

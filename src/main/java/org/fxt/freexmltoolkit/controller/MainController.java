@@ -24,9 +24,9 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.Objects;
 
 public class MainController {
@@ -76,7 +76,7 @@ public class MainController {
     @FXML
     TabPane tabPane;
 
-    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+    private final static Logger logger = LogManager.getLogger(MainController.class);
 
     public String lastOpenDir;
 
@@ -205,9 +205,10 @@ public class MainController {
         Stage stage = (Stage) mainBox.getScene().getWindow();
 
         logger.debug("Last open Dir: {}", lastOpenDir);
-        if (lastOpenDir != null) {
-            fileChooser.setInitialDirectory(new File(lastOpenDir));
+        if (lastOpenDir == null) {
+            lastOpenDir = Path.of(".").toString();
         }
+        fileChooser.setInitialDirectory(new File(lastOpenDir));
         File selectedFile = fileChooser.showOpenDialog(stage);
 
         if (selectedFile != null && selectedFile.exists()) {
@@ -245,11 +246,9 @@ public class MainController {
         xsdValidationController.setParentController(this);
         fopController.setParentController(this);
 
+        // TODO: auf showOpenMultipleDialog umbauen!!
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("XML Files", "*.xml")
-                , new FileChooser.ExtensionFilter("XSLT Files", "*.xslt")
-                , new FileChooser.ExtensionFilter("XSD Files", "*.xsd")
-                , new FileChooser.ExtensionFilter("FOP Files", "*.fo")
+                new FileChooser.ExtensionFilter("XML Files", "*.xml", "*.xslt", "*.xsd")
         );
 
         fileChooser.setTitle("Loading XML File");
@@ -262,6 +261,11 @@ public class MainController {
                     xmlController.formatXmlText();
                 } else {
                     logger.error("XMLController is null");
+                }
+            }
+            if (tabPaneXsd.isSelected()) {
+                if (xsdController != null) {
+                    // null;
                 }
             }
         });

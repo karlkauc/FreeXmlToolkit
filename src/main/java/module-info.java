@@ -8,17 +8,12 @@ module org.fxt.freexmltoolkit {
     requires org.apache.logging.log4j.core;
     requires org.apache.logging.log4j.slf4j;
     requires java.desktop;
-    // requires org.xmlresolver.xmlresolver;
     requires java.net.http;
 
     requires org.apache.commons.lang3;
     requires org.apache.commons.io;
     requires com.google.guice;
     requires org.fxmisc.flowless;
-
-    // requires org.mozilla.rhino;
-    // requires fop.core;
-    // requires fop.events;
 
     requires org.kordamp.ikonli.javafx;
 

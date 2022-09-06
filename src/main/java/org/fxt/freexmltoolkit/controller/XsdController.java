@@ -18,6 +18,7 @@ import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdEnumeration;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +38,8 @@ public class XsdController {
 
     @FXML
     TextArea documentation;
+
+    String documentationString;
 
 
     private MainController parentController;
@@ -96,6 +99,12 @@ public class XsdController {
     }
 
     @FXML
+    private void test() {
+        xmlService.setCurrentXsdFile(Paths.get("C:/Data/src/schema/FundsXML4.xsd").toFile());
+        generateDocumentation();
+    }
+
+    @FXML
     private void generateDocumentation() {
         documentation.setText("TEST");
 
@@ -104,14 +113,19 @@ public class XsdController {
 
         parser = new XsdParser(xmlService.getCurrentXsdFile().getAbsolutePath());
         elements = parser.getResultXsdElements().collect(Collectors.toList());
-        List<XsdSchema> xmlSchema = parser.getResultXsdSchemas().collect(Collectors.toList());
+        List<XsdSchema> xmlSchema = parser.getResultXsdSchemas().toList();
 
         xsdComplexTypes = xmlSchema.get(0).getChildrenComplexTypes().collect(Collectors.toList());
         xsdSimpleTypes = xmlSchema.get(0).getChildrenSimpleTypes().collect(Collectors.toList());
 
+        documentation.clear();
+        documentationString = "";
+
         for (XsdElement xsdElement : elements) {
             getXsdAbstractElementInfo(0, xsdElement, List.of(xsdElement.getName()), List.of());
         }
+
+        documentation.setText(documentationString);
     }
 
     void getXsdAbstractElementInfo(int level, XsdAbstractElement xsdAbstractElement, List<String> prevElementTypes, List<String> prevElementPath) {
@@ -119,16 +133,20 @@ public class XsdController {
         if (level > MAX_ALLOWED_DEPTH) {
             logger.error("Too many elements");
             System.err.println("Too many elements");
-            System.exit(0);
         }
 
         if (xsdAbstractElement instanceof XsdElement currentXsdElement) {
             final String currentXpath = "/" + String.join("/", prevElementPath) + "/" + currentXsdElement.getName();
             logger.debug("Current XPath = {}", currentXpath);
 
+            documentationString += System.lineSeparator() + "XPATH: " + currentXpath;
+
             var currentType = currentXsdElement.getType();
             logger.debug("Current Type: " + currentType);
             logger.debug("Current Name: {}", currentXsdElement.getRawName());
+
+            documentationString += System.lineSeparator() + "Type: " + currentType;
+            documentationString += System.lineSeparator() + "Name: " + currentXsdElement.getRawName();
 
             if (currentXsdElement.getAnnotation() != null && currentXsdElement.getAnnotation().getDocumentations() != null) {
                 for (XsdAppInfo xsdAppInfo : currentXsdElement.getAnnotation().getAppInfoList()) {
@@ -138,6 +156,9 @@ public class XsdController {
                 for (XsdDocumentation xsdDocumentation : currentXsdElement.getAnnotation().getDocumentations()) {
                     logger.debug("Documentation: {}", xsdDocumentation.getContent());
                     logger.debug("Documentation Attributest: {}", xsdDocumentation.getAttributesMap());
+
+                    documentationString += System.lineSeparator() + "Documentation: " + xsdDocumentation.getContent();
+                    documentationString += System.lineSeparator() + "Documentation Attributest: " + xsdDocumentation.getAttributesMap();
                 }
             }
 
@@ -256,6 +277,7 @@ public class XsdController {
             System.out.println("((XsdSequence) xsdAbstractElement).getId() = " + xsdSequence.getId());
             System.out.println("sequence = " + xsdSequence.getAttributesMap());
         }
-    }
 
+        documentationString += System.lineSeparator() + "----------------------" + System.lineSeparator();
+    }
 }
