@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox fx:id="mainBox" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
@@ -25,7 +26,7 @@
             </Button>
             <Button fx:id="prettyPrint" text="pretty print">
                 <graphic>
-                    <FontIcon iconLiteral="bi-bricks" iconSize="16"/>
+                    <FontIcon iconLiteral="fth-align-center" iconSize="16"/>
                 </graphic>
             </Button>
         </ToolBar>
@@ -76,9 +77,7 @@
 
         <Tab fx:id="tabPaneXslt" closable="false" text="XSLT">
             <graphic>
-                <ImageView fitHeight="16" preserveRatio="true">
-                    <Image url="@../img/icons8-transform-64.png"/>
-                </ImageView>
+                <FontIcon iconLiteral="fth-git-pull-request" iconSize="16" iconColor="#e27429"/>
             </graphic>
             <fx:include source="tab_xslt.fxml" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" fx:id="xslt"/>
         </Tab>
@@ -94,9 +93,7 @@
 
         <Tab fx:id="tabSignature" closable="false" text="Signature">
             <graphic>
-                <ImageView fitHeight="16" preserveRatio="true">
-                    <Image url="@../img/signature.png"/>
-                </ImageView>
+                <FontIcon iconLiteral="win10-key" iconSize="16" iconColor="#578013"/>
             </graphic>
             <fx:include fx:id="signature" source="tab_signature.fxml" AnchorPane.bottomAnchor="0"
                         AnchorPane.topAnchor="0"/>

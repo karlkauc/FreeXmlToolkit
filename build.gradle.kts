@@ -42,6 +42,8 @@ dependencies {
     // Icons
     implementation("org.kordamp.ikonli:ikonli-javafx:12.3.1")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-win10-pack:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-feather-pack:12.3.1")
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Richtext

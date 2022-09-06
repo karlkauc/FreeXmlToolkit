@@ -2,12 +2,16 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.fxt.freexmltoolkit.controller.XsdController">
     <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <TabPane VBox.vgrow="ALWAYS">
             <Tab text="Text" closable="false">
+                <graphic>
+                    <FontIcon iconLiteral="win10-paragraph" iconSize="16"/>
+                </graphic>
                 <StackPane fx:id="stackPane"
                            AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                            AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
@@ -15,6 +19,9 @@
             </Tab>
             <Tab text="Graphic" closable="false" disable="true"/>
             <Tab text="Documentation" closable="false">
+                <graphic>
+                    <FontIcon iconLiteral="win10-notebook" iconSize="16"/>
+                </graphic>
                 <HBox>
                     <VBox>
                         <Button text="generate" onAction="#generateDocumentation"/>

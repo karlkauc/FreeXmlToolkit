@@ -8,6 +8,8 @@ import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -97,26 +99,33 @@ public class XsdValidationController {
             var tempFile = xmlFileChooser.showOpenDialog(null);
             if (tempFile != null) {
                 logger.debug("Loaded XML File: {}", tempFile.getAbsolutePath());
-                xmlService.setCurrentXmlFile(tempFile);
-
-                xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
-
-                if (autodetect.isSelected()) {
-                    var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
-                    if (schemaName != null && !schemaName.isEmpty()) {
-                        xsdFileName.setText(schemaName);
-                        if (xmlService.loadSchemaFromXMLFile()) {
-                            logger.debug("Loading remote schema successfull!");
-                        } else {
-                            logger.debug("Could not load remote schema");
-                        }
-                    }
-                }
-                reload();
+                processXmlFile(tempFile);
 
                 parentController.getXmlController().reloadXmlText();
                 parentController.getXsdController().reloadXmlText();
             }
+        });
+
+        xmlLoadButton.setOnDragOver(event -> {
+            Dragboard db = event.getDragboard();
+            if (db.hasFiles()) {
+                event.acceptTransferModes(TransferMode.COPY);
+            } else {
+                event.consume();
+            }
+        });
+
+        xmlLoadButton.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasFiles()) {
+                success = true;
+                for (File file : db.getFiles()) {
+                    processXmlFile(file);
+                }
+            }
+            event.setDropCompleted(success);
+            event.consume();
         });
 
         xsdLoadButton.setOnAction(ae -> {
@@ -128,6 +137,28 @@ public class XsdValidationController {
                 reload();
             }
         });
+    }
+
+    private void processXmlFile(File file) {
+        xmlService.setCurrentXmlFile(file);
+        xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
+
+        if (autodetect.isSelected()) {
+            var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
+            if (schemaName != null && !schemaName.isEmpty()) {
+                xsdFileName.setText(schemaName);
+                if (xmlService.loadSchemaFromXMLFile()) {
+                    logger.debug("Loading remote schema successfull!");
+                } else {
+                    logger.debug("Could not load remote schema");
+                }
+            }
+        }
+        reload();
+        if (parentController != null) {
+            parentController.getXmlController().reloadXmlText();
+            parentController.getXsdController().reloadXmlText();
+        }
     }
 
 
