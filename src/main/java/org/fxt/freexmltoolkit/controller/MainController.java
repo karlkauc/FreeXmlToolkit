@@ -79,6 +79,8 @@ public class MainController {
 
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
+    public String lastOpenDir;
+
     @FXML
     private void openHelpPage() {
         try {
@@ -200,6 +202,10 @@ public class MainController {
     @FXML
     private void openFile(ActionEvent e) {
         Stage stage = (Stage) mainBox.getScene().getWindow();
+
+        if (lastOpenDir != null) {
+            fileChooser.setInitialDirectory(new File(lastOpenDir));
+        }
         File selectedFile = fileChooser.showOpenDialog(stage);
 
         if (selectedFile != null) {
@@ -208,6 +214,7 @@ public class MainController {
 
             if (selectedFile.exists()) {
                 this.xmlService.setCurrentXmlFile(selectedFile);
+                this.lastOpenDir = selectedFile.getAbsolutePath();
 
                 try {
                     fileContent = Files.readString(Path.of(selectedFile.getAbsolutePath()));

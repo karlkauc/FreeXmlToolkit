@@ -3,7 +3,6 @@ package org.fxt.freexmltoolkit;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;

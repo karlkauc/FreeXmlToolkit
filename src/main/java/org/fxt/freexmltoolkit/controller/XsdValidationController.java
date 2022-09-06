@@ -23,6 +23,7 @@ import org.fxt.freexmltoolkit.service.ModuleBindings;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.xml.sax.SAXParseException;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.FileSystems;
@@ -80,10 +81,18 @@ public class XsdValidationController {
 
     @FXML
     private void initialize() {
-        final Path path = FileSystems.getDefault().getPath(".");
+        if (parentController != null && parentController.lastOpenDir != null) {
+            xmlFileChooser.setInitialDirectory(new File(parentController.lastOpenDir));
+            xsdFileChooser.setInitialDirectory(new File(parentController.lastOpenDir));
+        } else {
+            final Path path = FileSystems.getDefault().getPath(".");
+            xmlFileChooser.setInitialDirectory(path.toFile());
+            xsdFileChooser.setInitialDirectory(path.toFile());
+        }
 
-        xmlFileChooser.setInitialDirectory(path.toFile());
         xmlFileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML File", "*.xml"));
+        xsdFileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XSD File", "*.xsd"));
+
         xmlLoadButton.setOnAction(ae -> {
             var tempFile = xmlFileChooser.showOpenDialog(null);
             if (tempFile != null) {
@@ -110,8 +119,6 @@ public class XsdValidationController {
             }
         });
 
-        xsdFileChooser.setInitialDirectory(path.toFile());
-        xsdFileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XSD File", "*.xsd"));
         xsdLoadButton.setOnAction(ae -> {
             var tempFile = xsdFileChooser.showOpenDialog(null);
             if (tempFile != null) {
