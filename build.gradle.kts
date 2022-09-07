@@ -10,7 +10,7 @@ plugins {
 }
 
 application {
-    mainModule.set("org.fxt.freexmltoolkit")
+    // mainModule.set("org.fxt.freexmltoolkit")
     mainClass.set("org.fxt.freexmltoolkit.FxtGui")
 }
 
@@ -21,6 +21,12 @@ repositories {
     mavenCentral()
     maven {
         url = uri("https://repo.eclipse.org/content/groups/releases/")
+    }
+    maven {
+        url = uri("https://repo.eclipse.org/content/repositories/lemminx-releases/")
+    }
+    maven {
+        url = uri("https://maven.bestsolution.at/efxclipse-releases/")
     }
 }
 
@@ -48,6 +54,9 @@ dependencies {
 
     // Richtext
     implementation("org.fxmisc.richtext:richtextfx:0.10.9")
+    // UI Controls
+    implementation("at.bestsolution.efxclipse.rt:org.eclipse.fx.ui.controls:3.8.0.202204150819")
+
 
     // Logging
     implementation("org.apache.logging.log4j:log4j-api:2.18.0")
@@ -68,22 +77,19 @@ dependencies {
     implementation("com.google.inject:guice:5.1.0")
 
     // Lemminx
-    /*
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.18.2") {
-        exclude(group = "xml.apis", module = "xml.apis")
-        exclude(group ="java.xml", module ="java.xml")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.21.0") {
+        // exclude(group = "xml-apis", module = "xml-apis")
+        // exclude(group = "xerces", module = "xercesImpl")
+        // exclude(group = "jdk.xml.dom", module = "*")
     }
-     */
+
+    // FOP
+    implementation("org.apache.xmlgraphics:fop:2.7")
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
 }
 
-configurations {
-    all {
-        exclude(group = "xml.apis", module = "xml.apis")
-        exclude(group = "java.xml", module = "java.xml")
-    }
-}
 
 tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     outfile = "FreeXMLToolkit.exe"
@@ -123,9 +129,8 @@ tasks.named<Test>("test") {
 }
 
 jlink {
-    launcher{
+    launcher {
         name = "hello"
         forceMerge("log4j-api")
-        //forceMerge("log4j-core")
     }
 }
