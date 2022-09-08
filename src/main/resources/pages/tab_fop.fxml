@@ -2,11 +2,14 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.FopController">
-    <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+    <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <GridPane fx:id="settings" hgap="10" vgap="10">
             <padding>
                 <Insets bottom="25" left="25" right="25" top="25"/>
@@ -15,36 +18,64 @@
             <Text id="welcome-text" style="-fx-font: 24 arial;" text="FOP" wrappingWidth="293.82421875"
                   GridPane.columnSpan="3" GridPane.rowIndex="0"/>
 
-            <Label text="XML File" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-            <Button text="XML" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="1" />
+            <Label GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <Button text="XML" GridPane.rowIndex="1">
+                <graphic>
+                    <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                </graphic>
+            </Button>
+            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+            <Button text="XSLT" GridPane.rowIndex="2">
+                <graphic>
+                    <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
+                </graphic>
+            </Button>
+            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+            <Button text="PDF" GridPane.rowIndex="3">
+                <graphic>
+                    <ImageView fitHeight="16" preserveRatio="true">
+                        <Image url="@../img/icons8-pdf-16.png"/>
+                    </ImageView>
+                </graphic>
+            </Button>
+            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="3"/>
 
-            <Label text="XSLT File" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-            <Button text="XSLT" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="2" />
-
-            <Label text="PDF Output" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-            <Button text="PDF" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="3" />
-
-            <Label text="FO Output" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-            <Button text="FO" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="4" />
-
-            <Button text="Options" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-            <Button fx:id="startConversion" onAction="#buttonConversion"  text="Go" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+            <Button text="Options" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+            <Button fx:id="startConversion" onAction="#buttonConversion" text="Go" GridPane.columnIndex="0"
+                    GridPane.rowIndex="6"/>
 
             <columnConstraints>
                 <ColumnConstraints/>
                 <ColumnConstraints/>
                 <ColumnConstraints/>
-                <ColumnConstraints minWidth="10.0" prefWidth="100.0"/>
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints/>
                 <RowConstraints minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
             </rowConstraints>
         </GridPane>
+        <SplitPane dividerPositions="0.29797979797979796, 0.5" HBox.hgrow="ALWAYS">
+            <items>
+                <AnchorPane fx:id="xml">
+                    <StackPane fx:id="stackPaneXml"
+                               AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+                               AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
+                               stylesheets="@../css/xml-highlighting.css"/>
+                </AnchorPane>
+                <AnchorPane fx:id="xslt">
+                    <StackPane fx:id="stackPaneXslt"
+                               AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+                               AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
+                               stylesheets="@../css/xml-highlighting.css"/>
+                </AnchorPane>
+                <AnchorPane fx:id="pdf"/>
+            </items>
+        </SplitPane>
 
-    </VBox>
+    </HBox>
 </AnchorPane>

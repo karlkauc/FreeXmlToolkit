@@ -54,9 +54,6 @@ dependencies {
 
     // Richtext
     implementation("org.fxmisc.richtext:richtextfx:0.10.9")
-    // UI Controls
-    implementation("at.bestsolution.efxclipse.rt:org.eclipse.fx.ui.controls:3.8.0.202204150819")
-
 
     // Logging
     implementation("org.apache.logging.log4j:log4j-api:2.18.0")
