@@ -31,7 +31,7 @@ repositories {
 }
 
 javafx {
-    version = "17.0.2"
+    version = "18.0.2"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
@@ -60,28 +60,24 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-core:2.18.0")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.18.0")
 
-    // Misc
-    implementation("org.apache.commons:commons-lang3:3.12.0")
-    implementation("commons-io:commons-io:2.11.0")
-
     // XSD Parser
     implementation("com.github.xmlet:xsdParser:1.2.4")
 
     //  xml signature
     implementation("org.apache.santuario:xmlsec:3.0.0")
 
-    // Injection
-    implementation("com.google.inject:guice:5.1.0")
-
     // Lemminx
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.21.0") {
-        // exclude(group = "xml-apis", module = "xml-apis")
-        // exclude(group = "xerces", module = "xercesImpl")
-        // exclude(group = "jdk.xml.dom", module = "*")
-    }
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.21.0")
 
     // FOP
     implementation("org.apache.xmlgraphics:fop:2.7")
+
+    // Injection
+    implementation("com.google.inject:guice:5.1.0")
+
+    // Misc
+    implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("commons-io:commons-io:2.11.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
