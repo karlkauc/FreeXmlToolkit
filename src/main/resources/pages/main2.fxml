@@ -4,59 +4,59 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <AnchorPane prefHeight="800.0" prefWidth="1400.0" stylesheets="@../css/mainTheme.css"
             xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.Main2Controller">
-    <children>
-        <BorderPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-                    AnchorPane.topAnchor="0">
-            <top>
-                <MenuBar BorderPane.alignment="CENTER">
-                    <menus>
-                        <Menu mnemonicParsing="false" text="File">
-                            <items>
-                                <MenuItem mnemonicParsing="false" text="New..."/>
-                                <MenuItem mnemonicParsing="false" text="Open"/>
-                                <MenuItem mnemonicParsing="false" text="Close"/>
-                            </items>
-                        </Menu>
-                        <Menu mnemonicParsing="false" text="Edit">
-                            <items>
-                                <MenuItem mnemonicParsing="false" text="Delete"/>
-                            </items>
-                        </Menu>
-                        <Menu mnemonicParsing="false" text="Help">
-                            <items>
-                                <MenuItem mnemonicParsing="false" text="About"/>
-                            </items>
-                        </Menu>
-                    </menus>
-                </MenuBar>
-            </top>
-            <bottom>
-                <HBox prefHeight="20" style="-fx-background-color: yellow" BorderPane.alignment="CENTER">
-                    <children>
-                        <VBox alignment="CENTER_LEFT">
-                            <children>
-                                <Label fx:id="version" contentDisplay="CENTER" text="Version">
-                                    <font>
-                                        <Font size="10.0"/>
-                                    </font>
-                                    <opaqueInsets>
-                                        <Insets/>
-                                    </opaqueInsets>
-                                    <VBox.margin>
-                                        <Insets left="10.0"/>
-                                    </VBox.margin>
-                                </Label>
-                            </children>
-                        </VBox>
-                    </children>
-                    <opaqueInsets>
-                        <Insets/>
-                    </opaqueInsets>
-                </HBox>
-            </bottom>
-        </BorderPane>
-    </children>
+    <BorderPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+                AnchorPane.topAnchor="0">
+        <top>
+            <MenuBar BorderPane.alignment="CENTER">
+                <Menu mnemonicParsing="false" text="File">
+                    <MenuItem mnemonicParsing="false" text="New...">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-file-earmark" iconSize="16"/>
+                        </graphic>
+                    </MenuItem>
+                    <MenuItem mnemonicParsing="false" text="Open">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                        </graphic>
+                    </MenuItem>
+                    <MenuItem mnemonicParsing="false" text="Close"/>
+                    <MenuItem mnemonicParsing="false" text="Exit">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-door-closed" iconSize="16" iconColor="darkslategray"/>
+                        </graphic>
+                    </MenuItem>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Edit">
+                    <MenuItem mnemonicParsing="false" text="Delete"/>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Help">
+                    <MenuItem mnemonicParsing="false" text="About"/>
+                </Menu>
+            </MenuBar>
+        </top>
+        <bottom>
+            <HBox prefHeight="20" BorderPane.alignment="CENTER">
+                <opaqueInsets>
+                    <Insets/>
+                </opaqueInsets>
+                <VBox alignment="CENTER_LEFT">
+                    <Label fx:id="version" contentDisplay="CENTER" text="Version">
+                        <font>
+                            <Font size="10.0"/>
+                        </font>
+                        <opaqueInsets>
+                            <Insets/>
+                        </opaqueInsets>
+                        <VBox.margin>
+                            <Insets left="10.0"/>
+                        </VBox.margin>
+                    </Label>
+                </VBox>
+            </HBox>
+        </bottom>
+    </BorderPane>
 </AnchorPane>

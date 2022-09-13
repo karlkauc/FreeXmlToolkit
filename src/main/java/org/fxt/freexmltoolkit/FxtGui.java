@@ -16,6 +16,7 @@ import javafx.util.BuilderFactory;
 import javafx.util.Callback;
 import org.fxt.freexmltoolkit.service.ModuleBindings;
 
+import java.awt.*;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -50,6 +51,11 @@ public class FxtGui extends Application {
                     e.consume();
                 }
             });
+
+            final Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
+            final Taskbar taskbar = Taskbar.getTaskbar();
+            var x = defaultToolkit.getImage(FxtGui.class.getClassLoader().getResource("img/xml-file-format-symbol.png"));
+            taskbar.setIconImage(x);
 
             primaryStage.setScene(scene);
             primaryStage.setMaximized(true);
