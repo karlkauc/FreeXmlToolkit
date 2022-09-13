@@ -14,7 +14,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.util.BuilderFactory;
 import javafx.util.Callback;
-import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.service.ModuleBindings;
 
 import java.io.IOException;
@@ -38,16 +37,16 @@ public class FxtGui extends Application {
     public void start(Stage primaryStage) {
         try {
 
-            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/pages/main.fxml")), null, builderFactory, guiceControllerFactory);
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/pages/main2.fxml")), null, builderFactory, guiceControllerFactory);
             Parent root = loader.load();
-            MainController mainController = loader.getController();
+            // MainController mainController = loader.getController();
 
             var scene = new Scene(root, 1024, 768);
 
             scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
                 if (safeFileKey.match(e)) {
                     System.out.println("SAVE PRESSED");
-                    mainController.saveFile();
+                    // mainController.saveFile();
                     e.consume();
                 }
             });
