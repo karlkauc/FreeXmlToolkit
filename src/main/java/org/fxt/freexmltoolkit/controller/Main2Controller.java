@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,6 +13,10 @@ public class Main2Controller {
     @FXML
     Label version;
 
+
+    @FXML
+    MenuItem exit;
+
     @FXML
     void initialize() {
         version.setText("Version: 0.0.1");
@@ -21,6 +26,8 @@ public class Main2Controller {
                 " \t \t " + Runtime.getRuntime().maxMemory());
 
         // oder MemoryMXBean
+
+        exit.setOnAction(e -> System.exit(0));
 
     }
 

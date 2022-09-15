@@ -24,9 +24,9 @@
                         </graphic>
                     </MenuItem>
                     <MenuItem mnemonicParsing="false" text="Close"/>
-                    <MenuItem mnemonicParsing="false" text="Exit">
+                    <MenuItem fx:id="exit" mnemonicParsing="false" text="Exit">
                         <graphic>
-                            <FontIcon iconLiteral="bi-door-closed" iconSize="16" iconColor="darkslategray"/>
+                            <FontIcon iconColor="darkslategray" iconLiteral="bi-door-closed" iconSize="16"/>
                         </graphic>
                     </MenuItem>
                 </Menu>
@@ -39,10 +39,7 @@
             </MenuBar>
         </top>
         <bottom>
-            <HBox prefHeight="20" BorderPane.alignment="CENTER">
-                <opaqueInsets>
-                    <Insets/>
-                </opaqueInsets>
+            <HBox styleClass="bottom_line" BorderPane.alignment="CENTER">
                 <VBox alignment="CENTER_LEFT">
                     <Label fx:id="version" contentDisplay="CENTER" text="Version">
                         <font>
@@ -58,5 +55,14 @@
                 </VBox>
             </HBox>
         </bottom>
+        <left>
+            <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+                <Button mnemonicParsing="false" text="XSLT" VBox.vgrow="ALWAYS" styleClass="menue_button">
+                    <graphic>
+                        <FontIcon iconLiteral="fth-git-pull-request" iconSize="16" iconColor="#e27429"/>
+                    </graphic>
+                </Button>
+            </VBox>
+        </left>
     </BorderPane>
 </AnchorPane>

@@ -29,10 +29,11 @@ public class FxtGui extends Application {
     BuilderFactory builderFactory = new JavaFXBuilderFactory();
     Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
 
-    public static ExecutorService executorService = Executors.newFixedThreadPool(4);
+    public static ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     final KeyCombination safeFileKey = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
 
+    final static String APP_ICON_PATH = "img/xml-file-format-symbol.png";
 
     @Override
     public void start(Stage primaryStage) {
@@ -52,10 +53,20 @@ public class FxtGui extends Application {
                 }
             });
 
-            final Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
-            final Taskbar taskbar = Taskbar.getTaskbar();
-            var x = defaultToolkit.getImage(FxtGui.class.getClassLoader().getResource("img/xml-file-format-symbol.png"));
-            taskbar.setIconImage(x);
+            // MAC Taskbar Image
+            try {
+                final Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
+                final Taskbar taskbar = Taskbar.getTaskbar();
+                taskbar.setIconImage(defaultToolkit.getImage(FxtGui.class.getClassLoader().getResource(APP_ICON_PATH)));
+            } catch (UnsupportedOperationException ignore) {
+            }
+
+            // Icon in Taskbar WINDOWS
+            try {
+                primaryStage.getIcons().add(new javafx.scene.image.Image(Objects.requireNonNull(FxtGui.class.getResourceAsStream("/" + APP_ICON_PATH))));
+            } catch (Exception ignore) {
+            }
+
 
             primaryStage.setScene(scene);
             primaryStage.setMaximized(true);

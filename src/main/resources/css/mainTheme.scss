@@ -14,3 +14,17 @@ $baby-pink: #e8c1c5ff;
 .root {
   -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $color3 0%, lighten($color3, 50) 100%);
 }
+
+.bottom_line {
+  -fx-background-color: $color4;
+  -fx-pref-height: 20;
+  -fx-max-height: 20;
+  -fx-min-height: 20;
+}
+
+.menue_button {
+  -fx-pref-height: 50;
+  -fx-pref-width: 200;
+  -fx-border-width: 2px, 0, 0, 0;
+  -fx-border-color: $color2;
+}

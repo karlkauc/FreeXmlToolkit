@@ -2,4 +2,18 @@
     -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ff9100 0%, white 100%);
 }
 
+.bottom_line {
+    -fx-background-color: #ffde38;
+    -fx-pref-height: 20;
+    -fx-max-height: 20;
+    -fx-min-height: 20;
+}
+
+.menue_button {
+    -fx-pref-height: 50;
+    -fx-pref-width: 200;
+    -fx-border-width: 2px, 0, 0, 0;
+    -fx-border-color: #1f585f;
+}
+
 /*# sourceMappingURL=mainTheme.css.map */
