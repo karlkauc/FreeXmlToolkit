@@ -22,9 +22,20 @@ $baby-pink: #e8c1c5ff;
   -fx-min-height: 20;
 }
 
+.menue_box {
+  -fx-background-color: #f33535;
+}
+
 .menue_button {
+  -fx-alignment: LEFT;
   -fx-pref-height: 50;
   -fx-pref-width: 200;
   -fx-border-width: 2px, 0, 0, 0;
-  -fx-border-color: $color2;
+  -fx-border-color: $color3;
+  -fx-background-color: transparent;
+}
+
+.menue_button:hover {
+  -fx-background-color: $color5;
+  -fx-alignment: RIGHT;
 }

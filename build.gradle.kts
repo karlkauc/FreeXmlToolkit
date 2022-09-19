@@ -82,6 +82,8 @@ dependencies {
     // Hardware Info
     implementation("com.github.oshi:oshi-core:6.2.2")
 
+    // CSS reload
+    implementation("fr.brouillard.oss:cssfx:11.5.1")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")

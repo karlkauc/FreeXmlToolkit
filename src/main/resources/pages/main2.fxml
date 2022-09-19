@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import org.kordamp.ikonli.javafx.*?>
 <AnchorPane prefHeight="800.0" prefWidth="1400.0" stylesheets="@../css/mainTheme.css"
             xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.Main2Controller">
@@ -56,10 +56,16 @@
             </HBox>
         </bottom>
         <left>
-            <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+            <VBox styleClass="menue_box" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
                 <Button mnemonicParsing="false" text="XSLT" VBox.vgrow="ALWAYS" styleClass="menue_button">
                     <graphic>
                         <FontIcon iconLiteral="fth-git-pull-request" iconSize="16" iconColor="#e27429"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="reloadButton" mnemonicParsing="false" text="XML" VBox.vgrow="ALWAYS"
+                        styleClass="menue_button" onAction="#reloadCss">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
                     </graphic>
                 </Button>
             </VBox>

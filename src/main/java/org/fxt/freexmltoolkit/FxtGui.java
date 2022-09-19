@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import fr.brouillard.oss.cssfx.CSSFX;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
@@ -67,6 +68,8 @@ public class FxtGui extends Application {
             } catch (Exception ignore) {
             }
 
+            scene.getStylesheets().add("C:\\Data\\src\\FreeXmlToolkit\\src\\main\\resources\\css\\mainTheme.css");
+            CSSFX.start();
 
             primaryStage.setScene(scene);
             primaryStage.setMaximized(true);
