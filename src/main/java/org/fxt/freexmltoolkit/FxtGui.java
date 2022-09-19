@@ -15,6 +15,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.util.BuilderFactory;
 import javafx.util.Callback;
+import org.fxt.freexmltoolkit.controller.Main2Controller;
 import org.fxt.freexmltoolkit.service.ModuleBindings;
 
 import java.awt.*;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class FxtGui extends Application {
@@ -31,10 +33,13 @@ public class FxtGui extends Application {
     Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
 
     public static ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     final KeyCombination safeFileKey = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
 
     final static String APP_ICON_PATH = "img/xml-file-format-symbol.png";
+
+    Main2Controller main2Controller;
 
     @Override
     public void start(Stage primaryStage) {
@@ -43,6 +48,7 @@ public class FxtGui extends Application {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/pages/main2.fxml")), null, builderFactory, guiceControllerFactory);
             Parent root = loader.load();
             // MainController mainController = loader.getController();
+            main2Controller = loader.getController();
 
             var scene = new Scene(root, 1024, 768);
 
@@ -82,6 +88,7 @@ public class FxtGui extends Application {
     @Override
     public void stop() {
         executorService.shutdown();
+        scheduler.shutdown();
         try {
             if (!executorService.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
                 executorService.shutdownNow();
@@ -89,6 +96,14 @@ public class FxtGui extends Application {
         } catch (InterruptedException e) {
             executorService.shutdownNow();
         }
+        try {
+            if (!scheduler.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+        }
+
     }
 
     public static void main(String[] args) {

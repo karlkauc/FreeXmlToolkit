@@ -1,5 +1,5 @@
 .root {
-    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ff9100 0%, white 100%);
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #dcdcdc 0%, white 100%);
 }
 
 .bottom_line {
@@ -10,7 +10,7 @@
 }
 
 .menue_box {
-    -fx-background-color: #f33535;
+    -fx-background-color: #dcdcdc;
 }
 
 .menue_button {

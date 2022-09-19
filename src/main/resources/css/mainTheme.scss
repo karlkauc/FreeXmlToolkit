@@ -10,9 +10,11 @@ $purpureus: #9055a2ff;
 $kobi: #d499b9ff;
 $baby-pink: #e8c1c5ff;
 
+$background-color: #dcdcdc;
+
 
 .root {
-  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $color3 0%, lighten($color3, 50) 100%);
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $background-color 0%, lighten($background-color, 50) 100%);
 }
 
 .bottom_line {
@@ -23,7 +25,7 @@ $baby-pink: #e8c1c5ff;
 }
 
 .menue_box {
-  -fx-background-color: #f33535;
+  -fx-background-color: $background-color;
 }
 
 .menue_button {
