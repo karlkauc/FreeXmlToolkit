@@ -2,6 +2,8 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.*?>
@@ -56,16 +58,45 @@
             </HBox>
         </bottom>
         <left>
-            <VBox styleClass="menue_box" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
-                <Button mnemonicParsing="false" text="XSLT" VBox.vgrow="ALWAYS" styleClass="menue_button">
+            <VBox styleClass="menu_box" BorderPane.alignment="CENTER">
+                <Button mnemonicParsing="false" text="XSLT" VBox.vgrow="ALWAYS" styleClass="menu_button">
                     <graphic>
                         <FontIcon iconLiteral="fth-git-pull-request" iconSize="16" iconColor="#e27429"/>
                     </graphic>
                 </Button>
                 <Button fx:id="reloadButton" mnemonicParsing="false" text="XML" VBox.vgrow="ALWAYS"
-                        styleClass="menue_button" onAction="#reloadCss">
+                        styleClass="menu_button" onAction="#reloadCss">
                     <graphic>
                         <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button mnemonicParsing="false" text="XSD" VBox.vgrow="ALWAYS" styleClass="menu_button">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-diagram-3" iconSize="16" iconColor="dodgerblue"/>
+                    </graphic>
+                </Button>
+                <Button mnemonicParsing="false" text="XSD Validation" VBox.vgrow="ALWAYS" styleClass="menu_button">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Button mnemonicParsing="false" text="FOP" VBox.vgrow="ALWAYS" styleClass="menu_button">
+                    <graphic>
+                        <ImageView fitHeight="16" preserveRatio="true">
+                            <Image url="@../img/icons8-pdf-16.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button mnemonicParsing="false" text="Signature" VBox.vgrow="ALWAYS" styleClass="menu_button">
+                    <graphic>
+                        <FontIcon iconLiteral="win10-key" iconSize="16" iconColor="#578013"/>
+                    </graphic>
+                </Button>
+                <Button mnemonicParsing="false" text="Schematron" VBox.vgrow="ALWAYS" styleClass="menu_button">
+                    <graphic>
+                        <ImageView fitHeight="16" preserveRatio="true">
+                            <Image url="@../img/schematron.jpeg"/>
+                        </ImageView>
                     </graphic>
                 </Button>
             </VBox>

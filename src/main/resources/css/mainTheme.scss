@@ -24,20 +24,23 @@ $background-color: #dcdcdc;
   -fx-min-height: 20;
 }
 
-.menue_box {
+.menu_box {
   -fx-background-color: $background-color;
+  -fx-pref-width: 150;
+  -fx-font-weight: bold;
 }
 
-.menue_button {
+.menu_button {
   -fx-alignment: LEFT;
   -fx-pref-height: 50;
-  -fx-pref-width: 200;
-  -fx-border-width: 2px, 0, 0, 0;
+  -fx-pref-width: 250;
+  -fx-border-width: 0 0 0 5px;
   -fx-border-color: $color3;
   -fx-background-color: transparent;
+  -fx-border-style: solid;
 }
 
-.menue_button:hover {
-  -fx-background-color: $color5;
-  -fx-alignment: RIGHT;
+.menu_button:hover {
+  -fx-border-color: $color5;
+  // -fx-alignment: RIGHT;
 }

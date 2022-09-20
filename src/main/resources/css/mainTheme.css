@@ -1,30 +1,32 @@
 .root {
-    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #dcdcdc 0%, white 100%);
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #dcdcdc 0%, white 100%);
 }
 
 .bottom_line {
-    -fx-background-color: #ffde38;
-    -fx-pref-height: 20;
-    -fx-max-height: 20;
-    -fx-min-height: 20;
+  -fx-background-color: #ffde38;
+  -fx-pref-height: 20;
+  -fx-max-height: 20;
+  -fx-min-height: 20;
 }
 
-.menue_box {
-    -fx-background-color: #dcdcdc;
+.menu_box {
+  -fx-background-color: #dcdcdc;
+  -fx-pref-width: 150;
+  -fx-font-weight: bold;
 }
 
-.menue_button {
-    -fx-alignment: LEFT;
-    -fx-pref-height: 50;
-    -fx-pref-width: 200;
-    -fx-border-width: 2px, 0, 0, 0;
-    -fx-border-color: #ff9100;
-    -fx-background-color: transparent;
+.menu_button {
+  -fx-alignment: LEFT;
+  -fx-pref-height: 50;
+  -fx-pref-width: 250;
+  -fx-border-width: 0 0 0 5px;
+  -fx-border-color: #ff9100;
+  -fx-background-color: transparent;
+  -fx-border-style: solid;
 }
 
-.menue_button:hover {
-    -fx-background-color: #fffba6;
-    -fx-alignment: RIGHT;
+.menu_button:hover {
+  -fx-border-color: #fffba6;
 }
 
 /*# sourceMappingURL=mainTheme.css.map */
