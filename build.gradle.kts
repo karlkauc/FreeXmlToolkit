@@ -7,7 +7,7 @@ plugins {
     id("com.github.ben-manes.versions") version "0.42.0"
 
     id("org.beryx.jlink") version "2.25.0"
-    id("org.jreleaser") version "1.2.0"
+    // id("org.jreleaser") version "1.2.0"
 }
 
 application {
@@ -57,15 +57,15 @@ dependencies {
     implementation("org.fxmisc.richtext:richtextfx:0.10.9")
 
     // Logging
-    implementation("org.apache.logging.log4j:log4j-api:2.18.0")
-    implementation("org.apache.logging.log4j:log4j-core:2.18.0")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.18.0")
+    implementation("org.apache.logging.log4j:log4j-api:2.19.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.19.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.19.0")
 
     // XSD Parser
     implementation("com.github.xmlet:xsdParser:1.2.4")
 
     //  xml signature
-    implementation("org.apache.santuario:xmlsec:3.0.0")
+    implementation("org.apache.santuario:xmlsec:3.0.1")
 
     // Lemminx
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.21.0")
@@ -95,7 +95,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     outfile = "FreeXMLToolkit.exe"
     mainClassName = "org.fxt.freexmltoolkit.FxtGui" // SolvencyUI
     headerType = "gui" // gui / console
-    // icon = "${projectDir}/ico/logo.ico"
+    icon = "${projectDir}/src/main/resources/img/logo.ico"
     maxHeapSize = 2048
     copyright = System.getProperty("user.name")
 
