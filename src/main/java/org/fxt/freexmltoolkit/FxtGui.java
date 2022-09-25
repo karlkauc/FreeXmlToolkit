@@ -5,7 +5,6 @@ import com.google.inject.Injector;
 import fr.brouillard.oss.cssfx.CSSFX;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
@@ -13,27 +12,26 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
-import javafx.util.BuilderFactory;
-import javafx.util.Callback;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.Main2Controller;
 import org.fxt.freexmltoolkit.service.ModuleBindings;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class FxtGui extends Application {
 
-    final Injector injector = Guice.createInjector(new ModuleBindings());
-    BuilderFactory builderFactory = new JavaFXBuilderFactory();
-    Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
+    private final static Logger logger = LogManager.getLogger(FxtGui.class);
+
 
     public static ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     final KeyCombination safeFileKey = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
 
@@ -44,14 +42,14 @@ public class FxtGui extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
+            final Injector injector = Guice.createInjector(new ModuleBindings());
 
-            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("/pages/main2.fxml")), null, builderFactory, guiceControllerFactory);
-            Parent root = loader.load();
-            // MainController mainController = loader.getController();
-            main2Controller = loader.getController();
+            FXMLLoader fxmlLoader = injector.getInstance(FXMLLoader.class);
+            InputStream fxmlInputStream = ClassLoader.getSystemResourceAsStream("pages/main2.fxml");
+            Parent root = fxmlLoader.load(fxmlInputStream);
+            main2Controller = fxmlLoader.getController();
 
             var scene = new Scene(root, 1024, 768);
-
             scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
                 if (safeFileKey.match(e)) {
                     System.out.println("SAVE PRESSED");
@@ -74,7 +72,16 @@ public class FxtGui extends Application {
             } catch (Exception ignore) {
             }
 
-            scene.getStylesheets().add("C:\\Data\\src\\FreeXmlToolkit\\src\\main\\resources\\css\\mainTheme.css");
+            if (new File("C:\\Data\\src\\FreeXmlToolkit\\src\\main\\resources\\css\\mainTheme.css").exists()) {
+                scene.getStylesheets().add("C:\\Data\\src\\FreeXmlToolkit\\src\\main\\resources\\css\\mainTheme.css");
+            }
+            if (new File("/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/resources/css/mainTheme.css").exists()) {
+                logger.debug("File exists.");
+                scene.getStylesheets().add("/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/resources/css/mainTheme.css");
+            } else {
+                logger.debug("File do not exists");
+            }
+
             CSSFX.start();
 
             primaryStage.setScene(scene);
@@ -88,7 +95,7 @@ public class FxtGui extends Application {
     @Override
     public void stop() {
         executorService.shutdown();
-        scheduler.shutdown();
+        main2Controller.scheduler.shutdown();
         try {
             if (!executorService.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
                 executorService.shutdownNow();
@@ -97,11 +104,11 @@ public class FxtGui extends Application {
             executorService.shutdownNow();
         }
         try {
-            if (!scheduler.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                scheduler.shutdownNow();
+            if (!main2Controller.scheduler.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
+                main2Controller.scheduler.shutdownNow();
             }
         } catch (InterruptedException e) {
-            scheduler.shutdownNow();
+            main2Controller.scheduler.shutdownNow();
         }
 
     }

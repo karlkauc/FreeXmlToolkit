@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.service;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import net.sf.saxon.TransformerFactoryImpl;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -44,6 +45,7 @@ import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 
+@Singleton
 public class XmlServiceImpl implements XmlService {
     private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -64,6 +66,10 @@ public class XmlServiceImpl implements XmlService {
 
     HttpClient client;
     HttpRequest request;
+
+    public XmlServiceImpl() {
+        logger.debug("BIN IM XML SERVICE IMPL CONSTRUCTOR");
+    }
 
     @Override
     public File getCurrentXmlFile() {

@@ -16,17 +16,22 @@
 }
 
 .menu_button {
-  -fx-alignment: LEFT;
-  -fx-pref-height: 50;
-  -fx-pref-width: 250;
-  -fx-border-width: 0 0 0 5px;
-  -fx-border-color: #ff9100;
-  -fx-background-color: transparent;
-  -fx-border-style: solid;
+    -fx-alignment: center-left;
+    -fx-pref-height: 50;
+    -fx-pref-width: 250;
+    -fx-border-width: 0 0 0 5px;
+    -fx-border-color: #ff9100;
+    -fx-background-color: transparent;
+    -fx-border-style: solid;
 }
 
 .menu_button:hover {
-  -fx-border-color: #fffba6;
+    -fx-border-color: #fffba6;
+}
+
+.button_pane_button {
+    -fx-border-color: black;
+    -fx-border-width: 2px;
 }
 
 /*# sourceMappingURL=mainTheme.css.map */

@@ -1,4 +1,5 @@
 package org.fxt.freexmltoolkit.service;
+
 import com.google.inject.AbstractModule;
 
 public class ModuleBindings extends AbstractModule {

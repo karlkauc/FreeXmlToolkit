@@ -102,47 +102,6 @@ public class MainController {
         }
 
         settingsDialog.showAndWait();
-/*
-
-        Properties p = propertiesService.loadProperties();
-
-        GridPane gridPane = new GridPane();
-        gridPane.setPadding(new Insets(10, 10, 10, 10));
-        gridPane.setHgap(10);
-        gridPane.setVgap(10);
-
-        gridPane.add(new Label("HTTP Proxy Host"), 0, 0);
-        TextField httpProxy = new TextField();
-        httpProxy.setText(p.getProperty("http.proxy.host"));
-        gridPane.add(httpProxy, 1, 0);
-
-        gridPane.add(new Label("HTTP Proxy Port"), 0, 1);
-        TextField httpProxyPort = new TextField();
-        httpProxyPort.setText(p.getProperty("http.proxy.port"));
-        gridPane.add(httpProxyPort, 1, 1);
-
-        settingsDialog.setGraphic(gridPane);
-
-
-        var result = settingsDialog.showAndWait();
-        if (result.isPresent()) {
-            var buttonType = result.get();
-            if (!buttonType.getButtonData().isCancelButton()) {
-                logger.debug("Save Properties: {}", p);
-                if (httpProxy.getText() != null) {
-                    p.setProperty("http.proxy.host", httpProxy.getText());
-                }
-                if (httpProxyPort.getText() != null) {
-                    p.setProperty("http.proxy.port", httpProxyPort.getText());
-                }
-                propertiesService.saveProperties(p);
-            }
-            else {
-                logger.debug("Do not save properties: {}", p);
-            }
-        }
-
- */
     }
 
     @FXML

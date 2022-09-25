@@ -14,6 +14,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
+import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -22,7 +23,9 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
@@ -60,6 +63,9 @@ public class XmlController {
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     @FXML
+    Button openFile, saveFile, prettyPrint, newFile;
+
+    @FXML
     StackPane stackPane;
 
     @FXML
@@ -67,6 +73,9 @@ public class XmlController {
 
     @FXML
     TextArea xpathText;
+
+    String lastOpenDir;
+    FileChooser fileChooser = new FileChooser();
 
     @FXML
     private void evaluateXpath() {
@@ -133,6 +142,9 @@ public class XmlController {
     private void initialize() {
         logger.debug("Bin im xmlController init");
 
+        xmlService = new XmlServiceImpl();
+
+
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             if (newText.length() < MAX_SIZE_FOR_FORMATING) {
@@ -156,6 +168,29 @@ public class XmlController {
         logger.debug("Format String length: {}", tempFormat.length());
         codeArea.replaceText(0, 0, tempFormat);
     }
+
+    @FXML
+    private void openFile() {
+        // Stage stage = (Stage) mainBox.getScene().getWindow();
+
+        logger.debug("Last open Dir: {}", lastOpenDir);
+        if (lastOpenDir == null) {
+            lastOpenDir = Path.of(".").toString();
+        }
+        fileChooser.setInitialDirectory(new File(lastOpenDir));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
+        File selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile != null && selectedFile.exists()) {
+            logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
+            this.lastOpenDir = selectedFile.getParent();
+
+            xmlService.setCurrentXmlFile(selectedFile);
+        } else {
+            logger.debug("No file selected");
+        }
+    }
+
 
     static StyleSpans<Collection<String>> computeHighlighting(String text) {
         Matcher matcher = XML_TAG.matcher(text);

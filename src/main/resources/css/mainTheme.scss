@@ -28,19 +28,26 @@ $background-color: #dcdcdc;
   -fx-background-color: $background-color;
   -fx-pref-width: 150;
   -fx-font-weight: bold;
+
 }
 
 .menu_button {
-  -fx-alignment: LEFT;
+  -fx-alignment: center-left;
   -fx-pref-height: 50;
   -fx-pref-width: 250;
   -fx-border-width: 0 0 0 5px;
   -fx-border-color: $color3;
   -fx-background-color: transparent;
   -fx-border-style: solid;
+
 }
 
 .menu_button:hover {
   -fx-border-color: $color5;
   // -fx-alignment: RIGHT;
+}
+
+.button_pane_button {
+  -fx-border-color: black;
+  -fx-border-width: 2px;
 }
