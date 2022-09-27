@@ -32,7 +32,7 @@ repositories {
 }
 
 javafx {
-    version = "18.0.2"
+    version = "19"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
@@ -86,8 +86,8 @@ dependencies {
     // CSS reload
     implementation("fr.brouillard.oss:cssfx:11.5.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
 }
 
 

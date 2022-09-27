@@ -14,34 +14,6 @@
     <BorderPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                 AnchorPane.topAnchor="0">
         <top>
-            <!--
-            <MenuBar BorderPane.alignment="CENTER">
-                <Menu mnemonicParsing="false" text="File">
-                    <MenuItem mnemonicParsing="false" text="New...">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-file-earmark" iconSize="16"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem mnemonicParsing="false" text="Open">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
-                        </graphic>
-                    </MenuItem>
-                    <MenuItem mnemonicParsing="false" text="Close"/>
-                    <MenuItem fx:id="exit" mnemonicParsing="false" text="Exit">
-                        <graphic>
-                            <FontIcon iconColor="darkslategray" iconLiteral="bi-door-closed" iconSize="16"/>
-                        </graphic>
-                    </MenuItem>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Edit">
-                    <MenuItem mnemonicParsing="false" text="Delete"/>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Help">
-                    <MenuItem mnemonicParsing="false" text="About"/>
-                </Menu>
-            </MenuBar>
-            -->
         </top>
         <bottom>
             <HBox styleClass="bottom_line" BorderPane.alignment="CENTER">
@@ -110,7 +82,6 @@
                                     </ImageView>
                                 </graphic>
                             </Button>
-
                         </VBox>
                     </top>
                     <bottom>
@@ -120,14 +91,12 @@
                                     <FontIcon iconLiteral="bi-question-square" iconSize="16" iconColor="coral"/>
                                 </graphic>
                             </Button>
-
                             <Button mnemonicParsing="false" text="Settings" VBox.vgrow="ALWAYS"
                                     styleClass="menu_button">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-gear-fill" iconSize="16"/>
                                 </graphic>
                             </Button>
-
                             <Button fx:id="exit" text="Exit" VBox.vgrow="ALWAYS" styleClass="menu_button">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-door-closed" iconSize="16" iconColor="darkslategray"/>
@@ -137,10 +106,9 @@
                     </bottom>
                 </BorderPane>
             </VBox>
-
         </left>
         <center>
-            <AnchorPane fx:id="centerPane"
+            <AnchorPane fx:id="contentPane"
                         AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                         AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"/>
         </center>

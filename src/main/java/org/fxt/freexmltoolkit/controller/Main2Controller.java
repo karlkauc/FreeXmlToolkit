@@ -27,8 +27,7 @@ public class Main2Controller {
     Label version;
 
     @FXML
-    AnchorPane centerPane;
-
+    AnchorPane contentPane;
     StringProperty memoryInfo = new SimpleStringProperty();
 
     @FXML
@@ -55,7 +54,7 @@ public class Main2Controller {
     private void loadXML() {
         try {
             Pane newLoadedPane = FXMLLoader.load(getClass().getResource("/pages/tab_xml.fxml"));
-            centerPane.getChildren().add(newLoadedPane);
+            contentPane.getChildren().add(newLoadedPane);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
