@@ -37,44 +37,49 @@
                 <BorderPane VBox.vgrow="ALWAYS">
                     <top>
                         <VBox BorderPane.alignment="CENTER">
-                            <Button mnemonicParsing="false" text="XSLT" VBox.vgrow="ALWAYS" styleClass="menu_button">
+                            <Button fx:id="xslt" onAction="#loadPage" mnemonicParsing="false" text="XSLT"
+                                    VBox.vgrow="ALWAYS" styleClass="menu_button">
                                 <graphic>
                                     <FontIcon iconLiteral="fth-git-pull-request" iconSize="16" iconColor="#e27429"/>
                                 </graphic>
                             </Button>
-                            <Button onAction="#loadXML" fx:id="xml" mnemonicParsing="false" text="XML"
-                                    VBox.vgrow="ALWAYS"
+                            <Button onAction="#loadPage" fx:id="xml" mnemonicParsing="false" text="XML"
                                     styleClass="menu_button">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
                                 </graphic>
                             </Button>
-                            <Button mnemonicParsing="false" text="XSD" VBox.vgrow="ALWAYS" styleClass="menu_button">
+                            <Button fx:id="xsd" onAction="#loadPage" text="XSD" VBox.vgrow="ALWAYS"
+                                    styleClass="menu_button">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-diagram-3" iconSize="16" iconColor="dodgerblue"/>
                                 </graphic>
                             </Button>
-                            <Button mnemonicParsing="false" text="XSD Validation" VBox.vgrow="ALWAYS"
+                            <Button fx:id="xsdValidation" onAction="#loadPage" mnemonicParsing="false"
+                                    text="XSD Validation" VBox.vgrow="ALWAYS"
                                     styleClass="menu_button">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
                                 </graphic>
                             </Button>
 
-                            <Button mnemonicParsing="false" text="FOP" VBox.vgrow="ALWAYS" styleClass="menu_button">
+                            <Button fx:id="fop" onAction="#loadPage" mnemonicParsing="false" text="FOP"
+                                    VBox.vgrow="ALWAYS" styleClass="menu_button">
                                 <graphic>
                                     <ImageView fitHeight="16" preserveRatio="true">
                                         <Image url="/img/icons8-pdf-16.png"/>
                                     </ImageView>
                                 </graphic>
                             </Button>
-                            <Button mnemonicParsing="false" text="Signature" VBox.vgrow="ALWAYS"
+                            <Button fx:id="signature" onAction="#loadPage" mnemonicParsing="false" text="Signature"
+                                    VBox.vgrow="ALWAYS"
                                     styleClass="menu_button">
                                 <graphic>
                                     <FontIcon iconLiteral="win10-key" iconSize="16" iconColor="#578013"/>
                                 </graphic>
                             </Button>
-                            <Button mnemonicParsing="false" text="Schematron" VBox.vgrow="ALWAYS"
+                            <Button fx:id="schematron" onAction="#loadPage" mnemonicParsing="false" text="Schematron"
+                                    VBox.vgrow="ALWAYS"
                                     styleClass="menu_button">
                                 <graphic>
                                     <ImageView fitHeight="16" preserveRatio="true">
@@ -86,12 +91,14 @@
                     </top>
                     <bottom>
                         <VBox>
-                            <Button mnemonicParsing="false" text="Help" VBox.vgrow="ALWAYS" styleClass="menu_button">
+                            <Button fx:id="help" onAction="#loadPage" mnemonicParsing="false" text="Help"
+                                    VBox.vgrow="ALWAYS" styleClass="menu_button">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-question-square" iconSize="16" iconColor="coral"/>
                                 </graphic>
                             </Button>
-                            <Button mnemonicParsing="false" text="Settings" VBox.vgrow="ALWAYS"
+                            <Button fx:id="settings" onAction="#loadPage" mnemonicParsing="false" text="Settings"
+                                    VBox.vgrow="ALWAYS"
                                     styleClass="menu_button">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-gear-fill" iconSize="16"/>

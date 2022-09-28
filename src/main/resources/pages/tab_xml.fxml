@@ -6,37 +6,35 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="org.fxt.freexmltoolkit.controller.XmlController"
-      stylesheets="@../css/mainTheme.css"
       AnchorPane.bottomAnchor="0"
       AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
       AnchorPane.topAnchor="0">
     <HBox>
+        <HBox VBox.vgrow="ALWAYS" prefHeight="20">
+            <Button fx:id="newFile" styleClass="button_pane_button">
+                <graphic>
+                    <FontIcon iconLiteral="bi-file-earmark" iconSize="16" iconColor="black"/>
+                </graphic>
+            </Button>
 
-        <ButtonBar VBox.vgrow="ALWAYS">
-            <buttons>
-                <Button fx:id="newFile" text="New" styleClass="button_pane_button">
-                    <graphic>
-                        <FontIcon iconLiteral="bi-file-earmark" iconSize="16" iconColor="black"/>
-                    </graphic>
-                </Button>
-                <Button fx:id="openFile" onAction="#openFile" text="Open" styleClass="button_pane_button">
-                    <graphic>
-                        <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="black"/>
-                    </graphic>
-                </Button>
-                <Button fx:id="saveFile" text="Save" styleClass="button_pane_button">
-                    <graphic>
-                        <FontIcon iconLiteral="bi-hdd" iconSize="16"/>
-                    </graphic>
-                </Button>
-                <Button fx:id="prettyPrint" text="pretty print" styleClass="button_pane_button"
-                        ButtonBar.buttonData="RIGHT">
-                    <graphic>
-                        <FontIcon iconLiteral="fth-align-center" iconSize="16" iconColor="darkorange"/>
-                    </graphic>
-                </Button>
-            </buttons>
-        </ButtonBar>
+            <Button fx:id="openFile" onAction="#openFile" styleClass="button_pane_button">
+                <graphic>
+                    <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="black"/>
+                </graphic>
+            </Button>
+            <Button fx:id="saveFile" styleClass="button_pane_button">
+                <graphic>
+                    <FontIcon iconLiteral="bi-hdd" iconSize="16"/>
+                </graphic>
+            </Button>
+
+            <Button fx:id="prettyPrint" styleClass="button_pane_button"
+                    ButtonBar.buttonData="RIGHT">
+                <graphic>
+                    <FontIcon iconLiteral="fth-align-center" iconSize="16" iconColor="darkorange"/>
+                </graphic>
+            </Button>
+        </HBox>
 
     </HBox>
     <TabPane VBox.vgrow="ALWAYS">
