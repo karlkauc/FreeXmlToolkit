@@ -8,14 +8,15 @@
 <?import javafx.scene.text.Text?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 <AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.fxt.freexmltoolkit.controller.FopController">
+            fx:controller="org.fxt.freexmltoolkit.controller.FopController"
+            AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
     <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <GridPane fx:id="settings" hgap="10" vgap="10">
             <padding>
                 <Insets bottom="25" left="25" right="25" top="25"/>
             </padding>
 
-            <Text id="welcome-text" style="-fx-font: 24 arial;" text="FOP" wrappingWidth="293.82421875"
+            <Text id="welcome-text" style="-fx-font: 24 arial;" text="FOP" wrappingWidth="300"
                   GridPane.columnSpan="3" GridPane.rowIndex="0"/>
 
             <Label GridPane.columnIndex="0" GridPane.rowIndex="1"/>
@@ -59,7 +60,7 @@
                 <RowConstraints/>
             </rowConstraints>
         </GridPane>
-        <SplitPane dividerPositions="0.29797979797979796, 0.5" HBox.hgrow="ALWAYS">
+        <SplitPane dividerPositions="0.3" HBox.hgrow="ALWAYS">
             <items>
                 <AnchorPane fx:id="xml">
                     <StackPane fx:id="stackPaneXml"

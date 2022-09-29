@@ -67,8 +67,14 @@ public class XmlServiceImpl implements XmlService {
     HttpClient client;
     HttpRequest request;
 
-    public XmlServiceImpl() {
+    private static final XmlServiceImpl instance = new XmlServiceImpl();
+
+    private XmlServiceImpl() {
         logger.debug("BIN IM XML SERVICE IMPL CONSTRUCTOR");
+    }
+
+    public static XmlServiceImpl getInstance() {
+        return instance;
     }
 
     @Override

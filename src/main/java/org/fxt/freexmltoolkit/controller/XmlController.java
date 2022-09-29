@@ -141,9 +141,7 @@ public class XmlController {
     @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
-
-        xmlService = new XmlServiceImpl();
-
+        xmlService = XmlServiceImpl.getInstance();
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
@@ -171,8 +169,6 @@ public class XmlController {
 
     @FXML
     private void openFile() {
-        // Stage stage = (Stage) mainBox.getScene().getWindow();
-
         logger.debug("Last open Dir: {}", lastOpenDir);
         if (lastOpenDir == null) {
             lastOpenDir = Path.of(".").toString();
@@ -186,6 +182,7 @@ public class XmlController {
             this.lastOpenDir = selectedFile.getParent();
 
             xmlService.setCurrentXmlFile(selectedFile);
+            reloadXmlText();
         } else {
             logger.debug("No file selected");
         }

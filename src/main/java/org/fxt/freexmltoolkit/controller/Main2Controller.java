@@ -43,15 +43,7 @@ public class Main2Controller {
             Platform.runLater(() -> version.setText(new Date().toString()));
         }, 1, 2, TimeUnit.SECONDS);
 
-/*
-        System.out.println(Runtime.getRuntime().freeMemory() +
-                " \t \t " + Runtime.getRuntime().totalMemory() +
-                " \t \t " + Runtime.getRuntime().maxMemory());
-*/
-
-        // oder MemoryMXBean
         exit.setOnAction(e -> System.exit(0));
-
     }
 
     @FXML
