@@ -35,7 +35,7 @@ public class FxtGui extends Application {
 
     final KeyCombination safeFileKey = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
 
-    final static String APP_ICON_PATH = "img/xml-file-format-symbol.png";
+    final static String APP_ICON_PATH = "img/logo.png";
 
     Main2Controller main2Controller;
 
