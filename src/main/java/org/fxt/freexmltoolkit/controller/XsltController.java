@@ -1,39 +1,31 @@
 package org.fxt.freexmltoolkit.controller;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import javafx.application.Platform;
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
-import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import javafx.util.BuilderFactory;
-import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.FileLoader;
-import org.fxt.freexmltoolkit.service.ModuleBindings;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
 import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class XsltController {
 
-    @Inject
-    XmlService xmlService;
+    XmlService xmlService = XmlServiceImpl.getInstance();
 
     @FXML
     FileLoader xmlFileLoader, xsltFileLoader;
@@ -41,17 +33,13 @@ public class XsltController {
     @FXML
     Button reload;
 
-    final Injector injector = Guice.createInjector(new ModuleBindings());
-    BuilderFactory builderFactory = new JavaFXBuilderFactory();
-    Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
-
     private MainController parentController;
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
 
-    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+    private final static Logger logger = LogManager.getLogger(XsltController.class);
 
     @FXML
     ProgressBar progressBar;
@@ -94,7 +82,6 @@ public class XsltController {
             xmlFile = xmlFileLoader.getFileAction();
             logger.debug("Loaded XML File: {}", xmlFile.getAbsolutePath());
             xmlService.setCurrentXmlFile(xmlFile);
-            parentController.getXmlController().reloadXmlText();
             checkFiles();
         });
 

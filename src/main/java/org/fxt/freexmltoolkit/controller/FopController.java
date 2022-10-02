@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controller;
 
-import com.google.inject.Inject;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
@@ -9,13 +8,13 @@ import javafx.scene.layout.StackPane;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
 import java.io.IOException;
 
 public class FopController {
 
-    @Inject
-    XmlService xmlService;
+    XmlService xmlService = XmlServiceImpl.getInstance();
 
     @FXML
     GridPane settings;
@@ -45,11 +44,6 @@ public class FopController {
     @FXML
     private void buttonConversion() throws IOException {
         logger.debug("Start Conversion!");
-
-        if (parentController != null) {
-            stackPaneXml.getChildren().add(parentController.getXmlController().virtualizedScrollPane);
-            parentController.getXmlController().reloadXmlText();
-        }
 
     }
 

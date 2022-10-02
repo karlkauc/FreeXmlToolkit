@@ -1,10 +1,6 @@
 package org.fxt.freexmltoolkit.controller;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import javafx.fxml.FXML;
-import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -17,17 +13,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
-import javafx.util.BuilderFactory;
-import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.service.ModuleBindings;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.xml.sax.SAXParseException;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,12 +30,7 @@ import java.util.Objects;
 
 public class XsdValidationController {
 
-    final Injector injector = Guice.createInjector(new ModuleBindings());
-    BuilderFactory builderFactory = new JavaFXBuilderFactory();
-    Callback<Class<?>, Object> guiceControllerFactory = injector::getInstance;
-
-    @Inject
-    XmlService xmlService;
+    XmlService xmlService = XmlServiceImpl.getInstance();
 
     private MainController parentController;
 
@@ -69,7 +57,7 @@ public class XsdValidationController {
     @FXML
     ImageView statusImage;
 
-    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+    private final static Logger logger = LogManager.getLogger(XsdValidationController.class);
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
@@ -83,14 +71,11 @@ public class XsdValidationController {
 
     @FXML
     private void initialize() {
-        if (parentController != null && parentController.lastOpenDir != null) {
-            xmlFileChooser.setInitialDirectory(new File(parentController.lastOpenDir));
-            xsdFileChooser.setInitialDirectory(new File(parentController.lastOpenDir));
-        } else {
-            final Path path = FileSystems.getDefault().getPath(".");
-            xmlFileChooser.setInitialDirectory(path.toFile());
-            xsdFileChooser.setInitialDirectory(path.toFile());
-        }
+
+        final Path path = FileSystems.getDefault().getPath(".");
+        xmlFileChooser.setInitialDirectory(path.toFile());
+        xsdFileChooser.setInitialDirectory(path.toFile());
+
 
         xmlFileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML File", "*.xml"));
         xsdFileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XSD File", "*.xsd"));
@@ -101,8 +86,8 @@ public class XsdValidationController {
                 logger.debug("Loaded XML File: {}", tempFile.getAbsolutePath());
                 processXmlFile(tempFile);
 
-                parentController.getXmlController().reloadXmlText();
-                parentController.getXsdController().reloadXmlText();
+                // parentController.getXmlController().reloadXmlText();
+                // parentController.getXsdController().reloadXmlText();
             }
         });
 
@@ -156,8 +141,8 @@ public class XsdValidationController {
         }
         reload();
         if (parentController != null) {
-            parentController.getXmlController().reloadXmlText();
-            parentController.getXsdController().reloadXmlText();
+            //parentController.getXmlController().reloadXmlText();
+            //parentController.getXsdController().reloadXmlText();
         }
     }
 
@@ -207,8 +192,8 @@ public class XsdValidationController {
                             var t = p.getTabs();
                             t.forEach(e -> {
                                 if (Objects.equals(e.getId(), "tabPaneXml")) {
-                                    this.parentController.getXmlController().codeArea.scrollToPixel(saxParseException.getLineNumber(), saxParseException.getColumnNumber());
-                                    this.parentController.getXmlController().codeArea.requestFocus();
+                                    //this.parentController.getXmlController().codeArea.scrollToPixel(saxParseException.getLineNumber(), saxParseException.getColumnNumber());
+                                    //this.parentController.getXmlController().codeArea.requestFocus();
 
                                     p.getSelectionModel().select(e);
                                 }
@@ -248,8 +233,8 @@ public class XsdValidationController {
         reload();
 
         if (parentController != null) {
-            parentController.getXmlController().reloadXmlText();
-            parentController.getXsdController().reloadXmlText();
+            //parentController.getXmlController().reloadXmlText();
+            //parentController.getXsdController().reloadXmlText();
         }
     }
 

@@ -7,20 +7,24 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.WatchService;
 import java.util.Properties;
 
 public class PropertiesServiceImpl implements PropertiesService {
-
-    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+    private final static Logger logger = LogManager.getLogger(PropertiesService.class);
     public static final String FREE_XML_TOOLKIT_PROPERTIES = "FreeXmlToolkit.properties";
 
     Properties properties = new Properties();
 
     WatchService watchService;
 
-    public PropertiesServiceImpl() {
+    private static final PropertiesService instance = new PropertiesServiceImpl();
+
+    public static PropertiesService getInstance() {
+        return instance;
+    }
+
+    private PropertiesServiceImpl() {
         logger.debug("BIM IM PropertiesServiceImpl CONSTRUCTOR!!!");
     }
 

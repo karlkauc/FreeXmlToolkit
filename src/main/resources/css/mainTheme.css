@@ -1,3 +1,4 @@
+@import "xml-highlighting.css";
 .root {
   -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #dcdcdc 0%, white 100%);
 }

@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controller;
 
-import com.google.inject.Inject;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
@@ -11,12 +10,12 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdEnumeration;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -27,10 +26,9 @@ import static org.fxt.freexmltoolkit.controller.XmlController.computeHighlightin
 
 public class XsdController {
 
-    @Inject
-    XmlService xmlService;
+    XmlService xmlService = XmlServiceImpl.getInstance();
 
-    CodeArea codeArea = new CodeArea();
+    CodeArea codeArea;
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     @FXML
@@ -44,7 +42,7 @@ public class XsdController {
 
     private MainController parentController;
 
-    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+    private final static Logger logger = LogManager.getLogger(XsdController.class);
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
@@ -59,6 +57,7 @@ public class XsdController {
     private void initialize() {
         logger.debug("Bin im xsdController init");
 
+        codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             if (newText.length() < 1024 * 1024 * 2) { // MAX 2 MB große Files
@@ -71,11 +70,15 @@ public class XsdController {
             }
         });
 
-        virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
-        stackPane.getChildren().add(virtualizedScrollPane);
-        reloadXmlText();
-    }
+        try {
+            virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
+            stackPane.getChildren().add(virtualizedScrollPane);
+            reloadXmlText();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
 
+    }
 
     @FXML
     public void reloadXmlText() {
@@ -94,6 +97,7 @@ public class XsdController {
                 logger.warn("FILE IS NULL");
             }
         } catch (IOException e) {
+            logger.error("Error in reloadXMLText: ");
             logger.error(e.getMessage());
         }
     }

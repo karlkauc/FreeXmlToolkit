@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import fr.brouillard.oss.cssfx.CSSFX;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -14,13 +12,11 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controller.Main2Controller;
-import org.fxt.freexmltoolkit.service.ModuleBindings;
+import org.fxt.freexmltoolkit.controller.MainController;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,23 +33,19 @@ public class FxtGui extends Application {
 
     final static String APP_ICON_PATH = "img/logo.png";
 
-    Main2Controller main2Controller;
+    MainController main2Controller;
 
     @Override
     public void start(Stage primaryStage) {
         try {
-            final Injector injector = Guice.createInjector(new ModuleBindings());
-
-            FXMLLoader fxmlLoader = injector.getInstance(FXMLLoader.class);
-            InputStream fxmlInputStream = ClassLoader.getSystemResourceAsStream("pages/main2.fxml");
-            Parent root = fxmlLoader.load(fxmlInputStream);
-            main2Controller = fxmlLoader.getController();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
+            Parent root = loader.load();
+            main2Controller = loader.getController();
 
             var scene = new Scene(root, 1024, 768);
             scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
                 if (safeFileKey.match(e)) {
                     System.out.println("SAVE PRESSED");
-                    // mainController.saveFile();
                     e.consume();
                 }
             });

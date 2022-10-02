@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controller;
 
-import com.google.inject.Inject;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -39,8 +38,7 @@ import java.util.regex.Pattern;
 public class XmlController {
 
     public static final int MAX_SIZE_FOR_FORMATING = 1024 * 1024 * 2;
-    @Inject
-    XmlService xmlService;
+    XmlService xmlService = XmlServiceImpl.getInstance();
 
     private MainController parentController;
 

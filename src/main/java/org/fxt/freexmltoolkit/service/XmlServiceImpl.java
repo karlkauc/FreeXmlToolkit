@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.service;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import net.sf.saxon.TransformerFactoryImpl;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -33,7 +31,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
-import java.lang.invoke.MethodHandles;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -45,12 +42,10 @@ import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 
-@Singleton
 public class XmlServiceImpl implements XmlService {
-    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+    private final static Logger logger = LogManager.getLogger(XmlService.class);
 
-    @Inject
-    PropertiesService propertiesService;
+    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
 

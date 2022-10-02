@@ -1,13 +1,11 @@
 package org.fxt.freexmltoolkit.controller;
 
-import com.google.inject.Inject;
 import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 public class SettingsController {
 
-
-    @Inject
-    PropertiesService propertiesService;
+    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
 
 }
