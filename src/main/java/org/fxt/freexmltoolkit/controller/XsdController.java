@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import static org.fxt.freexmltoolkit.controller.XmlController.computeHighlighting;
 
 public class XsdController {
-
     XmlService xmlService = XmlServiceImpl.getInstance();
 
     CodeArea codeArea;

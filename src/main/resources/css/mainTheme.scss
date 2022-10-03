@@ -20,14 +20,14 @@ $background-color: #dcdcdc;
 }
 
 .bottom_line {
-  -fx-background-color: $color4;
+  -fx-background-color: $color2;
   -fx-pref-height: 20;
   -fx-max-height: 20;
   -fx-min-height: 20;
 }
 
 .menu_box {
-  -fx-background-color: $background-color;
+  -fx-background-color: $kobi;
   -fx-pref-width: 150;
   -fx-font-weight: bold;
 
@@ -38,7 +38,7 @@ $background-color: #dcdcdc;
   -fx-pref-height: 50;
   -fx-pref-width: 250;
   -fx-border-width: 0 0 0 5px;
-  -fx-border-color: $color3;
+  -fx-border-color: $color5;
   -fx-background-color: transparent;
   -fx-border-style: solid;
 

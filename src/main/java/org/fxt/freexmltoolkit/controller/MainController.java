@@ -14,7 +14,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Date;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 public class MainController {
 
     private final static Logger logger = LogManager.getLogger(MainController.class);
+
+    XsdController xsdController;
 
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -44,6 +45,8 @@ public class MainController {
         }, 1, 2, TimeUnit.SECONDS);
 
         exit.setOnAction(e -> System.exit(0));
+
+        loadPageFromPath("/pages/welcome.fxml");
     }
 
     @FXML
@@ -62,13 +65,21 @@ public class MainController {
         };
 
         if (pagePath != null) {
-            try {
-                Pane newLoadedPane = FXMLLoader.load(Objects.requireNonNull(getClass().getResource(pagePath)));
-                contentPane.getChildren().clear();
-                contentPane.getChildren().add(newLoadedPane);
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
+            loadPageFromPath(pagePath);
+        }
+    }
+
+    private void loadPageFromPath(String pagePath) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(pagePath));
+            Pane newLoadedPane = loader.load(); // FXMLLoader.load(Objects.requireNonNull(getClass().getResource(pagePath)));
+            contentPane.getChildren().clear();
+            contentPane.getChildren().add(newLoadedPane);
+
+            var controller = loader.getController();
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
         }
     }
 

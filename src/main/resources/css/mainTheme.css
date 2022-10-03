@@ -4,14 +4,14 @@
 }
 
 .bottom_line {
-  -fx-background-color: #ffde38;
+  -fx-background-color: #1f585f;
   -fx-pref-height: 20;
   -fx-max-height: 20;
   -fx-min-height: 20;
 }
 
 .menu_box {
-  -fx-background-color: #dcdcdc;
+  -fx-background-color: #d499b9ff;
   -fx-pref-width: 150;
   -fx-font-weight: bold;
 }
@@ -21,7 +21,7 @@
   -fx-pref-height: 50;
   -fx-pref-width: 250;
   -fx-border-width: 0 0 0 5px;
-  -fx-border-color: #ff9100;
+  -fx-border-color: #fffba6;
   -fx-background-color: transparent;
   -fx-border-style: solid;
 }

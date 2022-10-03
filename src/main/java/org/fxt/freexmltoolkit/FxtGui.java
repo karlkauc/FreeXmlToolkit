@@ -26,21 +26,20 @@ public class FxtGui extends Application {
 
     private final static Logger logger = LogManager.getLogger(FxtGui.class);
 
-
     public static ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     final KeyCombination safeFileKey = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
 
     final static String APP_ICON_PATH = "img/logo.png";
 
-    MainController main2Controller;
+    MainController mainController;
 
     @Override
     public void start(Stage primaryStage) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
             Parent root = loader.load();
-            main2Controller = loader.getController();
+            mainController = loader.getController();
 
             var scene = new Scene(root, 1024, 768);
             scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
@@ -87,7 +86,7 @@ public class FxtGui extends Application {
     @Override
     public void stop() {
         executorService.shutdown();
-        main2Controller.scheduler.shutdown();
+        mainController.scheduler.shutdown();
         try {
             if (!executorService.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
                 executorService.shutdownNow();
@@ -96,13 +95,12 @@ public class FxtGui extends Application {
             executorService.shutdownNow();
         }
         try {
-            if (!main2Controller.scheduler.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                main2Controller.scheduler.shutdownNow();
+            if (!mainController.scheduler.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
+                mainController.scheduler.shutdownNow();
             }
         } catch (InterruptedException e) {
-            main2Controller.scheduler.shutdownNow();
+            mainController.scheduler.shutdownNow();
         }
-
     }
 
     public static void main(String[] args) {
