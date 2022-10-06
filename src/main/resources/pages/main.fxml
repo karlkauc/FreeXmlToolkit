@@ -94,7 +94,7 @@
                             <Button fx:id="help" onAction="#loadPage" mnemonicParsing="false" text="Help"
                                     VBox.vgrow="ALWAYS" styleClass="menu_button">
                                 <graphic>
-                                    <FontIcon iconLiteral="bi-question-square" iconSize="16" iconColor="coral"/>
+                                    <FontIcon iconLiteral="bi-question-square" iconSize="16" iconColor="#5151e8"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="settings" onAction="#loadPage" mnemonicParsing="false" text="Settings"

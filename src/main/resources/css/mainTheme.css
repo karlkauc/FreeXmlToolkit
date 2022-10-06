@@ -27,7 +27,7 @@
 }
 
 .menu_button:hover {
-  -fx-border-color: #fffba6;
+    -fx-border-color: #ff9100;
 }
 
 .button_pane_button {
