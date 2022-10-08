@@ -1,22 +1,15 @@
 @import "xml-highlighting.css";
 
-$color2: #1f585f;
-$color3: #ff9100;
-$color4: #ffde38;
-$color1: #1e1d15;
-$color5: #fffba6;
-
-$oxford-blue: #011638ff;
-$space-cadet: #2e294eff;
-$purpureus: #9055a2ff;
-$kobi: #d499b9ff;
-$baby-pink: #e8c1c5ff;
+$color1: #264653;
+$color2: #2A9D8F;
+$color3: #E9C46A;
+$color4: #F4A261;
+$color5: #E76F51;
 
 $background-color: #dcdcdc;
 
-
 .root {
-  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $background-color 0%, lighten($background-color, 50) 100%);
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $background-color 0%, lighten($color3, 50) 100%);
 }
 
 .bottom_line {
@@ -27,7 +20,7 @@ $background-color: #dcdcdc;
 }
 
 .menu_box {
-  -fx-background-color: $kobi;
+  -fx-background-color: $color3;
   -fx-pref-width: 150;
   -fx-font-weight: bold;
 

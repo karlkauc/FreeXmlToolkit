@@ -1,8 +1,6 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -31,13 +29,13 @@ public class MainController {
 
     @FXML
     AnchorPane contentPane;
-    StringProperty memoryInfo = new SimpleStringProperty();
 
     @FXML
     Button xslt, xml, xsd, xsdValidation, fop, signature, schematron, help, settings, exit;
 
+
     @FXML
-    void initialize() {
+    public void initialize() {
         version.setText("Version: 0.0.1");
 
         scheduler.scheduleAtFixedRate(() -> {
@@ -72,15 +70,18 @@ public class MainController {
     private void loadPageFromPath(String pagePath) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(pagePath));
-            Pane newLoadedPane = loader.load(); // FXMLLoader.load(Objects.requireNonNull(getClass().getResource(pagePath)));
+            Pane newLoadedPane = loader.load();
             contentPane.getChildren().clear();
             contentPane.getChildren().add(newLoadedPane);
 
-            var controller = loader.getController();
+            // var controller = loader.getController();
 
         } catch (Exception e) {
             logger.error(e.getMessage());
+            logger.error(e.getCause());
+            logger.error(e.getStackTrace());
         }
     }
+
 
 }

@@ -10,9 +10,12 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.MainController;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 import java.awt.*;
 import java.io.File;
@@ -32,10 +35,16 @@ public class FxtGui extends Application {
 
     final static String APP_ICON_PATH = "img/logo.png";
 
+    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+
     MainController mainController;
+
+    StopWatch startWatch = new StopWatch();
 
     @Override
     public void start(Stage primaryStage) {
+        startWatch.start();
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
             Parent root = loader.load();
@@ -101,6 +110,18 @@ public class FxtGui extends Application {
         } catch (InterruptedException e) {
             mainController.scheduler.shutdownNow();
         }
+
+        startWatch.stop();
+        long currentDuration = startWatch.getTime() / 1000;
+
+        var prop = propertiesService.loadProperties();
+        var oldSeconds = Integer.parseInt(prop.getProperty("usageDuration"));
+        var newSeconds = oldSeconds + currentDuration;
+        prop.setProperty("usageDuration", String.valueOf(newSeconds));
+        propertiesService.saveProperties(prop);
+
+        logger.debug("Duration: {}", currentDuration);
+        logger.debug("Duration overall: {}", newSeconds);
     }
 
     public static void main(String[] args) {
