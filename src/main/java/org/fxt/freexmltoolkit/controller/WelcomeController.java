@@ -31,10 +31,15 @@ public class WelcomeController {
 
     @FXML
     private void initialize() {
-        versionUpdate.setVisible(true);
-
         var prop = propertiesService.loadProperties();
         var oldSeconds = Integer.valueOf(prop.getProperty("usageDuration"));
+
+        if (prop.get("version") != null && prop.getProperty("version").equals("20221008")) {
+            versionUpdate.setVisible(true);
+        } else {
+            logger.debug("not visible");
+            versionUpdate.setVisible(false);
+        }
 
         duration.setText(duration.getText().replace("{duration}", oldSeconds + " seconds"));
     }
@@ -44,7 +49,7 @@ public class WelcomeController {
         try {
             Desktop.getDesktop().browse(new URL("https://github.com/karlkauc/FreeXmlToolkit").toURI());
         } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
     }
 
