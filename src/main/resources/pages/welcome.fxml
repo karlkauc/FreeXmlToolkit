@@ -48,6 +48,8 @@
             <CheckBox fx:id="sendUsageStatistics" mnemonicParsing="false"/>
         </HBox>
 
+        <Label>xxx Items in cache...</Label>
+        <Button text="delete cache"/>
 
         <Label>Settings...</Label>
         <padding>

@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.StackPane;
@@ -15,6 +16,7 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.xml.sax.SAXParseException;
 
 import java.io.File;
 import java.io.IOException;
@@ -173,8 +175,17 @@ public class XmlController {
         }
 
         var errors = xmlService.validate();
+        if (errors.size() > 0) {
+            Alert t = new Alert(Alert.AlertType.ERROR);
+            t.setTitle(errors.size() + " validation Errors");
+            StringBuilder temp = new StringBuilder();
+            for (SAXParseException error : errors) {
+                temp.append(error.getMessage()).append(System.lineSeparator());
+            }
 
-        logger.debug(errors);
+            t.setContentText(temp.toString());
+            t.showAndWait();
+        }
     }
 
     @FXML
