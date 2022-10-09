@@ -1,6 +1,8 @@
 package org.fxt.freexmltoolkit.service;
 
 import net.sf.saxon.TransformerFactoryImpl;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +39,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
@@ -61,6 +65,8 @@ public class XmlServiceImpl implements XmlService {
 
     HttpClient client;
     HttpRequest request;
+
+    final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
 
     private static final XmlServiceImpl instance = new XmlServiceImpl();
 
@@ -227,49 +233,80 @@ public class XmlServiceImpl implements XmlService {
         var prop = propertiesService.loadProperties();
         logger.debug("Properties: {}", prop);
 
+        try {
+            if (!new File(CACHE_DIR).exists()) {
+                logger.debug("Create cache path: {}", CACHE_DIR);
+                Files.createDirectories(Paths.get(CACHE_DIR));
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+
         String possibleSchemaLocation = getSchemaNameFromCurrentXMLFile();
 
         if (possibleSchemaLocation.trim().toLowerCase().startsWith("http://") ||
                 possibleSchemaLocation.trim().toLowerCase().startsWith("https://")) {
 
-            var proxySelector = ProxySelector.getDefault();
-            if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
-                proxySelector = ProxySelector.of(
-                        new InetSocketAddress(
-                                prop.get("http.proxy.host").toString(),
-                                Integer.parseInt(prop.get("http.proxy.port").toString())));
+            String md5Hex = DigestUtils.md5Hex(possibleSchemaLocation.trim().toLowerCase()).toUpperCase();
+            logger.debug("Cache path: {}", md5Hex);
+
+            final Path CURRENT_XSD_CACHE_PATH = Path.of(CACHE_DIR + File.separator + md5Hex);
+            if (!Files.exists(CURRENT_XSD_CACHE_PATH)) {
+                try {
+                    Files.createDirectories(CURRENT_XSD_CACHE_PATH);
+                } catch (IOException e) {
+                    logger.error(e.getMessage());
+                }
             }
-
-            client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(20))
-                    .proxy(proxySelector)
-                    .build();
-
-            request = HttpRequest.newBuilder()
-                    .uri(URI.create(possibleSchemaLocation))
-                    .build();
 
             String fileNameNew = FilenameUtils.getName(possibleSchemaLocation);
-            var pathNew = Path.of(fileNameNew);
 
-            try {
-                HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
-                logger.debug("HTTP Status Code: {}", response.statusCode());
-                logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
+            File newFile = new File(CURRENT_XSD_CACHE_PATH + File.separator + fileNameNew);
+            if (newFile.exists() && newFile.length() > 1) {
+                logger.debug("Load file from cache: {}", newFile.getAbsolutePath());
+                this.setCurrentXsdFile(newFile);
+                this.remoteXsdLocation = possibleSchemaLocation;
 
-                if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
-                    this.setCurrentXsdFile(pathNew.toFile());
-                    this.remoteXsdLocation = possibleSchemaLocation;
-                    return true;
-                } else {
-                    logger.error("File nicht gefunden oder kein Fileinhalt: {}", pathNew.getFileName());
+                return true;
+            } else {
+                var proxySelector = ProxySelector.getDefault();
+                if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
+                    proxySelector = ProxySelector.of(
+                            new InetSocketAddress(
+                                    prop.get("http.proxy.host").toString(),
+                                    Integer.parseInt(prop.get("http.proxy.port").toString())));
                 }
-            } catch (IOException | InterruptedException exception) {
-                logger.error(exception.getMessage());
+
+                client = HttpClient.newBuilder()
+                        .version(HttpClient.Version.HTTP_2)
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .connectTimeout(Duration.ofSeconds(20))
+                        .proxy(proxySelector)
+                        .build();
+
+                request = HttpRequest.newBuilder()
+                        .uri(URI.create(possibleSchemaLocation))
+                        .build();
+
+                var pathNew = Path.of(newFile.getAbsolutePath());
+
+                try {
+                    HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
+                    logger.debug("HTTP Status Code: {}", response.statusCode());
+                    logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
+
+                    if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
+                        this.setCurrentXsdFile(pathNew.toFile());
+                        this.remoteXsdLocation = possibleSchemaLocation;
+                        return true;
+                    } else {
+                        logger.error("File nicht gefunden oder kein Fileinhalt: {}", pathNew.getFileName());
+                    }
+                } catch (IOException | InterruptedException exception) {
+                    logger.error(exception.getMessage());
+                }
+                return false;
             }
-            return false;
         }
         return false;
     }

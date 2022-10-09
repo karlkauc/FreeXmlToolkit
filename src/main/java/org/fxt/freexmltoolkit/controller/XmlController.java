@@ -2,17 +2,9 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,7 +53,7 @@ public class XmlController {
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     @FXML
-    Button openFile, saveFile, prettyPrint, newFile;
+    Button openFile, saveFile, prettyPrint, newFile, validateSchema;
 
     @FXML
     StackPane stackPane;
@@ -81,6 +73,8 @@ public class XmlController {
         logger.debug("New String: {}", newString);
         codeArea.clear();
         codeArea.replaceText(0, 0, newString);
+
+        /*
         codeArea.setBackground(new Background(
                 new BackgroundFill(
                         new LinearGradient(0, 0, 1, 1, true,
@@ -90,6 +84,7 @@ public class XmlController {
                         ), CornerRadii.EMPTY, Insets.EMPTY
                 )
         ));
+         */
     }
 
     public void setParentController(MainController parentController) {
@@ -101,7 +96,7 @@ public class XmlController {
     public void reloadXmlText() {
         logger.debug("Reload XML Text");
         codeArea.clear();
-        codeArea.setBackground(null);
+        // codeArea.setBackground(null);
 
         try {
             if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
@@ -163,6 +158,23 @@ public class XmlController {
         final String tempFormat = XmlService.prettyFormat(temp, 20);
         logger.debug("Format String length: {}", tempFormat.length());
         codeArea.replaceText(0, 0, tempFormat);
+    }
+
+    @FXML
+    private void validateSchema() {
+        logger.debug("Validate Schema");
+        xmlService.loadSchemaFromXMLFile(); // schaut ob er schema selber finden kann
+        String xsdLocation = xmlService.getRemoteXsdLocation();
+        logger.debug("XSD Location: {}", xsdLocation);
+        if (xsdLocation != null) {
+            xmlService.loadSchemaFromXMLFile();
+
+            logger.debug("Schema loaded: {}", xsdLocation);
+        }
+
+        var errors = xmlService.validate();
+
+        logger.debug(errors);
     }
 
     @FXML

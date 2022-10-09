@@ -88,7 +88,7 @@ public class FxtGui extends Application {
             primaryStage.setMaximized(true);
             primaryStage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
     }
 

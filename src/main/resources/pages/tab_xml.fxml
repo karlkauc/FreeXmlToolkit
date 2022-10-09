@@ -2,58 +2,70 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="org.fxt.freexmltoolkit.controller.XmlController"
-      AnchorPane.bottomAnchor="0"
-      AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-      AnchorPane.topAnchor="0">
+<?import org.kordamp.ikonli.javafx.*?>
+<VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <HBox>
-        <HBox VBox.vgrow="ALWAYS" prefHeight="20">
-            <Button fx:id="newFile" styleClass="button_pane_button">
-                <graphic>
-                    <FontIcon iconLiteral="bi-file-earmark" iconSize="16" iconColor="black"/>
-                </graphic>
-            </Button>
+        <VBox prefHeight="20" VBox.vgrow="ALWAYS">
+            <BorderPane prefWidth="Infinity" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                <left>
+                    <HBox>
+                        <Button fx:id="newFile" styleClass="button_pane_button">
+                            <graphic>
+                                <FontIcon iconColor="black" iconLiteral="bi-file-earmark" iconSize="16"/>
+                            </graphic>
+                        </Button>
 
-            <Button fx:id="openFile" onAction="#openFile" styleClass="button_pane_button">
-                <graphic>
-                    <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="black"/>
-                </graphic>
-            </Button>
-            <Button fx:id="saveFile" styleClass="button_pane_button">
-                <graphic>
-                    <FontIcon iconLiteral="bi-hdd" iconSize="16"/>
-                </graphic>
-            </Button>
+                        <Button fx:id="openFile" onAction="#openFile" styleClass="button_pane_button">
+                            <graphic>
+                                <FontIcon iconColor="black" iconLiteral="bi-folder2-open" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="saveFile" onAction="#saveCurrentChanges" styleClass="button_pane_button">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-hdd" iconSize="16"/>
+                            </graphic>
+                        </Button>
 
-            <Button fx:id="prettyPrint" styleClass="button_pane_button"
-                    ButtonBar.buttonData="RIGHT">
-                <graphic>
-                    <FontIcon iconLiteral="fth-align-center" iconSize="16" iconColor="darkorange"/>
-                </graphic>
-            </Button>
-        </HBox>
-
-    </HBox>
-    <TabPane VBox.vgrow="ALWAYS">
-        <Tab text="Text" closable="false">
-            <StackPane fx:id="stackPane"
-                       AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-                       AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
-                       stylesheets="@../css/xml-highlighting.css"/>
-        </Tab>
-        <Tab text="Graphic" closable="false" disable="true">
-
-        </Tab>
-    </TabPane>
-    <HBox prefHeight="100">
-        <TextArea fx:id="xpathText" HBox.hgrow="ALWAYS" text="/FundsXML4/ControlData"/>
-        <VBox>
-            <Button text="XPath" fx:id="xpath" onAction="#evaluateXpath"/>
-            <Button text="reload" onAction="#reloadXmlText"/>
+                        <Button fx:id="prettyPrint" onAction="#formatXmlText" styleClass="button_pane_button"
+                                ButtonBar.buttonData="RIGHT">
+                            <graphic>
+                                <FontIcon iconColor="darkorange" iconLiteral="fth-align-center" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                </left>
+                <right>
+                    <HBox>
+                        <Button fx:id="validateSchema" onAction="#validateSchema" styleClass="button_pane_button"
+                                ButtonBar.buttonData="RIGHT">
+                            <graphic>
+                                <FontIcon iconLiteral="win10-checked" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                </right>
+            </BorderPane>
         </VBox>
     </HBox>
-</VBox>
+    <SplitPane dividerPositions="0.9" orientation="VERTICAL" VBox.vgrow="ALWAYS">
+        <TabPane VBox.vgrow="ALWAYS">
+            <Tab closable="false" text="Text">
+                <StackPane fx:id="stackPane" stylesheets="/css/xml-highlighting.css" AnchorPane.bottomAnchor="0"
+                           AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+            </Tab>
+            <Tab closable="false" disable="true" text="Graphic">
 
+            </Tab>
+        </TabPane>
+        <HBox prefHeight="100">
+            <VBox>
+                <Button onAction="#evaluateXpath" text="XPath" fx:id="xpath"/>
+                <Button onAction="#reloadXmlText" text="reload"/>
+            </VBox>
+
+            <TextArea text="/FundsXML4/ControlData" HBox.hgrow="ALWAYS" fx:id="xpathText"/>
+        </HBox>
+    </SplitPane>
+</VBox>
