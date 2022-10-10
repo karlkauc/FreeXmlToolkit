@@ -70,28 +70,36 @@ public class XmlController {
     FileChooser fileChooser = new FileChooser();
 
     @FXML
-    private void evaluateXpath() {
-        var newString = this.xmlService.getXmlFromXpath(xpathText.getText());
-        logger.debug("New String: {}", newString);
-        codeArea.clear();
-        codeArea.replaceText(0, 0, newString);
+    private void initialize() {
+        logger.debug("Bin im xmlController init");
+        xmlService = XmlServiceImpl.getInstance();
 
-        /*
-        codeArea.setBackground(new Background(
-                new BackgroundFill(
-                        new LinearGradient(0, 0, 1, 1, true,
-                                CycleMethod.NO_CYCLE,
-                                new Stop(0, Color.web("#81c483")),
-                                new Stop(1, Color.web("#fcc200"))
-                        ), CornerRadii.EMPTY, Insets.EMPTY
-                )
-        ));
-         */
+        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            if (newText.length() < MAX_SIZE_FOR_FORMATING) {
+                logger.debug("Format Text begin!");
+                Platform.runLater(() -> {
+                    codeArea.setStyleSpans(0, computeHighlighting(newText));
+                    logger.debug("FINISH REFORMAT TEXT in XmlController");
+                });
+            }
+        });
+
+        virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
+        stackPane.getChildren().add(virtualizedScrollPane);
     }
 
     public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.parentController = parentController;
+    }
+
+    @FXML
+    private void evaluateXpath() {
+        var newString = this.xmlService.getXmlFromXpath(xpathText.getText());
+        logger.debug("New String: {}", newString);
+        codeArea.clear();
+        codeArea.replaceText(0, 0, newString);
     }
 
     @FXML
@@ -133,26 +141,6 @@ public class XmlController {
         return false;
     }
 
-    @FXML
-    private void initialize() {
-        logger.debug("Bin im xmlController init");
-        xmlService = XmlServiceImpl.getInstance();
-
-        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText.length() < MAX_SIZE_FOR_FORMATING) {
-                logger.debug("Format Text begin!");
-                Platform.runLater(() -> {
-                    codeArea.setStyleSpans(0, computeHighlighting(newText));
-                    logger.debug("FINISH REFORMAT TEXT in XmlController");
-                });
-            }
-        });
-
-        virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
-        stackPane.getChildren().add(virtualizedScrollPane);
-    }
-
     public void formatXmlText() {
         var temp = codeArea.getText();
         codeArea.clear();
@@ -165,26 +153,28 @@ public class XmlController {
     @FXML
     private void validateSchema() {
         logger.debug("Validate Schema");
-        xmlService.loadSchemaFromXMLFile(); // schaut ob er schema selber finden kann
+        xmlService.loadSchemaFromXMLFile(); // schaut, ob er schema selber finden kann
         String xsdLocation = xmlService.getRemoteXsdLocation();
         logger.debug("XSD Location: {}", xsdLocation);
+
         if (xsdLocation != null) {
             xmlService.loadSchemaFromXMLFile();
-
             logger.debug("Schema loaded: {}", xsdLocation);
-        }
 
-        var errors = xmlService.validate();
-        if (errors.size() > 0) {
-            Alert t = new Alert(Alert.AlertType.ERROR);
-            t.setTitle(errors.size() + " validation Errors");
-            StringBuilder temp = new StringBuilder();
-            for (SAXParseException error : errors) {
-                temp.append(error.getMessage()).append(System.lineSeparator());
+            if (xmlService.getCurrentXsdFile().length() > 1) {
+                var errors = xmlService.validate();
+                if (errors.size() > 0) {
+                    Alert t = new Alert(Alert.AlertType.ERROR);
+                    t.setTitle(errors.size() + " validation Errors");
+                    StringBuilder temp = new StringBuilder();
+                    for (SAXParseException error : errors) {
+                        temp.append(error.getMessage()).append(System.lineSeparator());
+                    }
+
+                    t.setContentText(temp.toString());
+                    t.showAndWait();
+                }
             }
-
-            t.setContentText(temp.toString());
-            t.showAndWait();
         }
     }
 

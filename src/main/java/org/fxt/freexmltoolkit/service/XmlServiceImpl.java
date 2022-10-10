@@ -271,6 +271,8 @@ public class XmlServiceImpl implements XmlService {
             } else {
                 var proxySelector = ProxySelector.getDefault();
                 if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
+                    logger.debug("PROXY HOST: {}", prop.get("http.proxy.host"));
+                    logger.debug("PROXY PORT: {}", prop.get("http.proxy.port"));
                     proxySelector = ProxySelector.of(
                             new InetSocketAddress(
                                     prop.get("http.proxy.host").toString(),
