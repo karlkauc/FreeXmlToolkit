@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
@@ -49,8 +50,9 @@ public class MainController {
 
     @FXML
     public void loadPage(ActionEvent ae) {
-        String pagePath = switch (((Button) ae.getSource()).getId()) {
-            case "xslt" -> null;
+        Button currentButton = (Button) ae.getSource();
+        String pagePath = switch (currentButton.getId()) {
+            case "xslt" -> "/pages/tab_xslt.fxml";
             case "xml" -> "/pages/tab_xml.fxml";
             case "xsd" -> "/pages/tab_xsd.fxml";
             case "xsdValidation" -> "/pages/tab_validation.fxml";
@@ -58,13 +60,19 @@ public class MainController {
             case "signature" -> "/pages/tab_signature.fxml";
             case "schematron" -> null;
             case "help" -> null;
-            case "settings" -> null;
+            case "settings" -> "/pages/settings.fxml";
             default -> null;
         };
 
         if (pagePath != null) {
             loadPageFromPath(pagePath);
         }
+
+        for (Node node : currentButton.getParent().getChildrenUnmodifiable()) {
+            node.getStyleClass().remove("active");
+        }
+        currentButton.getStyleClass().add("active");
+
     }
 
     private void loadPageFromPath(String pagePath) {

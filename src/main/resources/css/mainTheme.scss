@@ -41,6 +41,11 @@ $background-color: #dcdcdc;
   -fx-border-color: $color1;
 }
 
+.active {
+  -fx-background-color: darken($color3, 10) 100%;
+}
+
+
 .button_pane_button {
   -fx-border-color: #a4a3a3;
   -fx-border-width: 2px;

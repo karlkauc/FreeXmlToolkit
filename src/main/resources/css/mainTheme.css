@@ -20,22 +20,26 @@
   -fx-alignment: center-left;
   -fx-pref-height: 50;
   -fx-pref-width: 250;
-  -fx-border-width: 0 0 0 5px;
-  -fx-border-color: #E76F51;
-  -fx-background-color: transparent;
-  -fx-border-style: solid;
+    -fx-border-width: 0 0 0 5px;
+    -fx-border-color: #E76F51;
+    -fx-background-color: transparent;
+    -fx-border-style: solid;
 }
 
 .menu_button:hover {
-  -fx-border-color: #264653;
+    -fx-border-color: #264653;
+}
+
+.active {
+    -fx-background-color: #e2b23e 100%;
 }
 
 .button_pane_button {
-  -fx-border-color: #a4a3a3;
-  -fx-border-width: 2px;
-  -fx-max-width: 20px;
-  -fx-pref-width: 20px;
-  -fx-pref-height: 20px;
+    -fx-border-color: #a4a3a3;
+    -fx-border-width: 2px;
+    -fx-max-width: 20px;
+    -fx-pref-width: 20px;
+    -fx-pref-height: 20px;
 }
 
 .button_pane_button:hover {
