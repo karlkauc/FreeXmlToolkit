@@ -6,14 +6,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Node;
 
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.StringWriter;
-
 public class XmlTreeCell extends TreeCell<Node> {
     private final static Logger logger = LogManager.getLogger(XmlTreeCell.class);
 
@@ -25,23 +17,8 @@ public class XmlTreeCell extends TreeCell<Node> {
                 return;
             }
             Node n = ti.getValue();
-            System.out.println("nodeToString(n) = " + nodeToString(n));
+            // ToDo: irgendwas damit anstellen!
         });
-    }
-
-    private static String nodeToString(Node node) {
-        logger.debug("Node Type: {}", node.getNodeType());
-
-        StringWriter sw = new StringWriter();
-        try {
-            Transformer t = TransformerFactory.newInstance().newTransformer();
-            t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            t.setOutputProperty(OutputKeys.INDENT, "yes");
-            t.transform(new DOMSource(node), new StreamResult(sw));
-        } catch (TransformerException te) {
-            System.out.println("nodeToString Transformer Exception");
-        }
-        return sw.toString();
     }
 
     @Override
@@ -49,16 +26,29 @@ public class XmlTreeCell extends TreeCell<Node> {
         super.updateItem(node, empty);
 
         if (node != null) {
-            // logger.debug("UPDATE: {}", node.getNodeName());
-            if (node.hasChildNodes()) {
-                setGraphic(new Text(node.getNodeName()));
+            if (node.getNodeType() == Node.ELEMENT_NODE
+                    && node.hasChildNodes()
+                    && node.getFirstChild().getNodeType() == Node.TEXT_NODE
+                    && node.getFirstChild().getTextContent().trim().length() > 1) {
+                setGraphic(new Text(node.getNodeName() + ": " + node.getFirstChild().getTextContent()));
             } else {
-                setGraphic(new Text(node.getNodeName() + ":" + node.getNodeValue()));
+                setGraphic(new Text(node.getNodeName() + " { " + countRealNodes(node) + " }"));
             }
 
         } else {
             setGraphic(null);
         }
+    }
+
+    private int countRealNodes(Node node) {
+        int i = 0;
+        for (int x = 0; x < node.getChildNodes().getLength(); x++) {
+            var temp = node.getChildNodes().item(x);
+            if (temp.getNodeType() == Node.ELEMENT_NODE) {
+                i++;
+            }
+        }
+        return i;
     }
 
 }

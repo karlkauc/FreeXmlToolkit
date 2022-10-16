@@ -11,8 +11,11 @@ public class XmlTreeItem extends TreeItem<Node> {
 
     public XmlTreeItem(Node node) {
         super(node);
-        if (node.getNodeType() == Node.ELEMENT_NODE) {
-            logger.debug("Node Value: {}", node.getNodeValue());
+        if (node.getNodeType() == Node.ELEMENT_NODE
+                && node.hasChildNodes()
+                && node.getFirstChild().getNodeType() == Node.TEXT_NODE
+                && node.getFirstChild().getTextContent().trim().length() > 1) {
+            logger.debug("Node Text: {}", node.getFirstChild().getTextContent());
         }
 
         if (node.hasChildNodes()) {
@@ -23,8 +26,5 @@ public class XmlTreeItem extends TreeItem<Node> {
                 }
             }
         }
-
     }
-
-
 }
