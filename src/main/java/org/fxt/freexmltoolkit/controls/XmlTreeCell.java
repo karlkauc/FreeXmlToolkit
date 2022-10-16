@@ -1,6 +1,8 @@
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.scene.control.TreeCell;
+import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,9 +34,20 @@ public class XmlTreeCell extends TreeCell<Node> {
                     && node.getFirstChild().getTextContent().trim().length() > 1) {
                 setGraphic(new Text(node.getNodeName() + ": " + node.getFirstChild().getTextContent()));
             } else {
-                setGraphic(new Text(node.getNodeName() + " { " + countRealNodes(node) + " }"));
-            }
+                var maxWidth = calculateMaxWidth(node);
+                logger.debug("{} - Max width: {}", node.getNodeName(), maxWidth);
 
+                HBox content = new HBox();
+                Text nodeName = new Text(node.getNodeName());
+                nodeName.setFill(Color.DARKGRAY);
+
+                Text nodeCount = new Text(" {" + countRealNodes(node) + "}");
+                nodeCount.setFill(Color.FUCHSIA);
+
+                content.getChildren().addAll(nodeName, nodeCount);
+
+                setGraphic(content);
+            }
         } else {
             setGraphic(null);
         }
@@ -49,6 +62,22 @@ public class XmlTreeCell extends TreeCell<Node> {
             }
         }
         return i;
+    }
+
+    private double calculateMaxWidth(Node node) {
+        double maxWidth= 0;
+
+        for (int x = 0; x < node.getChildNodes().getLength(); x++) {
+            var temp = node.getChildNodes().item(x);
+
+            if (temp.getNodeType() == Node.ELEMENT_NODE) {
+                var t = new Text(temp.getNodeName());
+                if (t.getLayoutBounds().getWidth() > maxWidth) {
+                    maxWidth = t.getLayoutBounds().getWidth();
+                }
+            }
+        }
+        return maxWidth;
     }
 
 }
