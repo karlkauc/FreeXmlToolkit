@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import org.fxt.freexmltoolkit.controls.XmlTreeView?>
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
@@ -57,8 +58,8 @@
                 <StackPane fx:id="stackPane" stylesheets="/css/xml-highlighting.css" AnchorPane.bottomAnchor="0"
                            AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
             </Tab>
-            <Tab closable="false" disable="true" text="Graphic">
-
+            <Tab closable="false" text="Graphic">
+                <XmlTreeView fx:id="xmlTreeView"/>
             </Tab>
         </TabPane>
         <HBox prefHeight="100">

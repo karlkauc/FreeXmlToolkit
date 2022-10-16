@@ -14,13 +14,17 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.controls.XmlTreeView;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,9 +38,12 @@ public class XmlController {
     public static final int MAX_SIZE_FOR_FORMATING = 1024 * 1024 * 2;
     XmlService xmlService = XmlServiceImpl.getInstance();
 
+    @FXML
+    XmlTreeView xmlTreeView;
+
     private MainController parentController;
 
-    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+    private final static Logger logger = LogManager.getLogger(XmlController.class);
 
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
             + "|(?<COMMENT><!--[^<>]+-->)");
@@ -119,6 +126,20 @@ public class XmlController {
             }
         } catch (IOException e) {
             logger.error(e.getMessage());
+        }
+
+        try {
+            if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
+                FileInputStream fileIS = new FileInputStream(xmlService.getCurrentXmlFile());
+                DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+                var builder = builderFactory.newDocumentBuilder();
+                var xmlDocument = builder.parse(fileIS);
+
+                xmlTreeView.setXmlDocument(xmlDocument);
+            }
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            logger.error("ERROR: {}", e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
