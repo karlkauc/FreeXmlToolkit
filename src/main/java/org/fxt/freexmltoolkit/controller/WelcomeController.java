@@ -13,6 +13,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.LocalTime;
 
 public class WelcomeController {
 
@@ -32,7 +33,7 @@ public class WelcomeController {
     @FXML
     private void initialize() {
         var prop = propertiesService.loadProperties();
-        var oldSeconds = Integer.valueOf(prop.getProperty("usageDuration"));
+        var oldSeconds = formatSecondsHumanReadable(Integer.valueOf(prop.getProperty("usageDuration")));
 
         if (prop.get("version") != null && prop.getProperty("version").equals("20221008")) {
             versionUpdate.setVisible(true);
@@ -41,7 +42,7 @@ public class WelcomeController {
             versionUpdate.setVisible(false);
         }
 
-        duration.setText(duration.getText().replace("{duration}", oldSeconds + " seconds"));
+        duration.setText(duration.getText().replace("{duration}", oldSeconds));
     }
 
     @FXML
@@ -51,6 +52,12 @@ public class WelcomeController {
         } catch (IOException | URISyntaxException e) {
             logger.error(e.getMessage());
         }
+    }
+
+    private String formatSecondsHumanReadable(Integer seconds) {
+        logger.debug("Format: {}", seconds);
+
+        return LocalTime.MIN.plusSeconds(seconds).toString();
     }
 
 }

@@ -87,6 +87,8 @@ public class XmlController {
 
         virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
         stackPane.getChildren().add(virtualizedScrollPane);
+
+        reloadXmlText();
     }
 
     public void setParentController(MainController parentController) {
@@ -179,6 +181,19 @@ public class XmlController {
     }
 
     @FXML
+    private void moveUp() {
+
+        logger.debug("Caret Pos: {}", codeArea.caretPositionProperty().getValue());
+
+
+    }
+
+    @FXML
+    private void moveDown() {
+        codeArea.position(codeArea.getLength(), 0);
+    }
+
+    @FXML
     private void openFile() {
         logger.debug("Last open Dir: {}", lastOpenDir);
         if (lastOpenDir == null) {
@@ -198,7 +213,6 @@ public class XmlController {
             logger.debug("No file selected");
         }
     }
-
 
     static StyleSpans<Collection<String>> computeHighlighting(String text) {
         Matcher matcher = XML_TAG.matcher(text);

@@ -7,47 +7,49 @@
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <HBox>
-        <VBox prefHeight="20" VBox.vgrow="ALWAYS">
-            <BorderPane prefWidth="Infinity" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
-                <left>
-                    <HBox>
-                        <Button fx:id="newFile" styleClass="button_pane_button">
-                            <graphic>
-                                <FontIcon iconColor="black" iconLiteral="bi-file-earmark" iconSize="16"/>
-                            </graphic>
-                        </Button>
+        <HBox HBox.hgrow="ALWAYS">
+            <Button fx:id="newFile" styleClass="button_pane_button">
+                <graphic>
+                    <FontIcon iconColor="black" iconLiteral="bi-file-earmark" iconSize="16"/>
+                </graphic>
+            </Button>
 
-                        <Button fx:id="openFile" onAction="#openFile" styleClass="button_pane_button">
-                            <graphic>
-                                <FontIcon iconColor="black" iconLiteral="bi-folder2-open" iconSize="16"/>
-                            </graphic>
-                        </Button>
-                        <Button fx:id="saveFile" onAction="#saveCurrentChanges" styleClass="button_pane_button">
-                            <graphic>
-                                <FontIcon iconLiteral="bi-hdd" iconSize="16"/>
-                            </graphic>
-                        </Button>
+            <Button fx:id="openFile" onAction="#openFile" styleClass="button_pane_button">
+                <graphic>
+                    <FontIcon iconColor="black" iconLiteral="bi-folder2-open" iconSize="16"/>
+                </graphic>
+            </Button>
+            <Button fx:id="saveFile" onAction="#saveCurrentChanges" styleClass="button_pane_button">
+                <graphic>
+                    <FontIcon iconLiteral="bi-hdd" iconSize="16"/>
+                </graphic>
+            </Button>
 
-                        <Button fx:id="prettyPrint" onAction="#formatXmlText" styleClass="button_pane_button"
-                                ButtonBar.buttonData="RIGHT">
-                            <graphic>
-                                <FontIcon iconColor="darkorange" iconLiteral="fth-align-center" iconSize="16"/>
-                            </graphic>
-                        </Button>
-                    </HBox>
-                </left>
-                <right>
-                    <HBox>
-                        <Button fx:id="validateSchema" onAction="#validateSchema" styleClass="button_pane_button"
-                                ButtonBar.buttonData="RIGHT">
-                            <graphic>
-                                <FontIcon iconLiteral="win10-checked" iconSize="16"/>
-                            </graphic>
-                        </Button>
-                    </HBox>
-                </right>
-            </BorderPane>
-        </VBox>
+            <Button fx:id="prettyPrint" onAction="#formatXmlText" styleClass="button_pane_button"
+                    ButtonBar.buttonData="RIGHT">
+                <graphic>
+                    <FontIcon iconColor="darkorange" iconLiteral="fth-align-center" iconSize="16"/>
+                </graphic>
+            </Button>
+            <Button onAction="#moveDown" styleClass="button_pane_button">
+                <graphic>
+                    <FontIcon iconLiteral="bi-arrow-bar-down" iconSize="16"/>
+                </graphic>
+            </Button>
+            <Button onAction="#moveUp" styleClass="button_pane_button">
+                <graphic>
+                    <FontIcon iconLiteral="bi-arrow-bar-up" iconSize="16"/>
+                </graphic>
+            </Button>
+        </HBox>
+        <HBox>
+            <Button fx:id="validateSchema" onAction="#validateSchema" styleClass="button_pane_button"
+                    ButtonBar.buttonData="RIGHT">
+                <graphic>
+                    <FontIcon iconLiteral="win10-checked" iconSize="16"/>
+                </graphic>
+            </Button>
+        </HBox>
     </HBox>
     <SplitPane dividerPositions="0.9" orientation="VERTICAL" VBox.vgrow="ALWAYS">
         <TabPane VBox.vgrow="ALWAYS">

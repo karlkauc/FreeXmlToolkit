@@ -17,9 +17,9 @@
 }
 
 .menu_button {
-  -fx-alignment: center-left;
-  -fx-pref-height: 50;
-  -fx-pref-width: 250;
+    -fx-alignment: center-left;
+    -fx-pref-height: 50;
+    -fx-pref-width: 250;
     -fx-border-width: 0 0 0 5px;
     -fx-border-color: #E76F51;
     -fx-background-color: transparent;
