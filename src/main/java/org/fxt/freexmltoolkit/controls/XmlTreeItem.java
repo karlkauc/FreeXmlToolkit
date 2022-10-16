@@ -11,7 +11,9 @@ public class XmlTreeItem extends TreeItem<Node> {
 
     public XmlTreeItem(Node node) {
         super(node);
-        logger.debug("Node Value: {}", node.getNodeValue());
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            logger.debug("Node Value: {}", node.getNodeValue());
+        }
 
         if (node.hasChildNodes()) {
             for (int i = 0; i < node.getChildNodes().getLength(); i++) {
