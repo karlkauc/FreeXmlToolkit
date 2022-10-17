@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -37,6 +38,9 @@ public class XmlController {
 
     public static final int MAX_SIZE_FOR_FORMATING = 1024 * 1024 * 2;
     XmlService xmlService = XmlServiceImpl.getInstance();
+
+    @FXML
+    TextField text;
 
     @FXML
     XmlTreeView xmlTreeView;

@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Text?>
-<VBox prefHeight="400" prefWidth="600" style="-fx-background-color: yellow;">
-    <TabPane HBox.hgrow="ALWAYS" style="-fx-background-color: red;">
-        <Tab text="HTTP Proxy" closable="false">
-            <Text>HTTP Proxy</Text>
-        </Tab>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+<VBox prefHeight="768.0" prefWidth="1024.0" spacing="10.0"
+      style="-fx-background-color: yellow;" xmlns="http://javafx.com/javafx/17.0.2-ea"
+      fx:controller="org.fxt.freexmltoolkit.controller.SettingsController"
+      xmlns:fx="http://javafx.com/fxml/1">
 
-        <Tab text="FOP" closable="false">
-            <Text>FOP Setting</Text>
-        </Tab>
-        <Tab text="Temp Files" closable="false">
-        </Tab>
-
-    </TabPane>
-
+    <GridPane>
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+        </rowConstraints>
+        <Label text="HTTP Settings"/>
+        <CheckBox fx:id="useSystemHttpProxy" selected="true" text="Use System Proxy" GridPane.columnIndex="1"
+                  GridPane.rowIndex="1"/>
+    </GridPane>
 </VBox>

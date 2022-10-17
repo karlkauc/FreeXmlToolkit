@@ -5,8 +5,9 @@
 <?import org.fxt.freexmltoolkit.controls.XmlTreeView?>
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
+      xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <HBox>
         <HBox HBox.hgrow="ALWAYS">
             <Button fx:id="newFile" styleClass="button_pane_button">
@@ -32,6 +33,7 @@
                     <FontIcon iconColor="darkorange" iconLiteral="fth-align-center" iconSize="16"/>
                 </graphic>
             </Button>
+            <Separator orientation="VERTICAL"/>
             <Button onAction="#moveDown" styleClass="button_pane_button">
                 <graphic>
                     <FontIcon iconLiteral="bi-arrow-bar-down" iconSize="16"/>
@@ -42,8 +44,13 @@
                     <FontIcon iconLiteral="bi-arrow-bar-up" iconSize="16"/>
                 </graphic>
             </Button>
+            <Separator orientation="VERTICAL"/>
+            <TextField prefHeight="16.0" prefWidth="200.0"/>
         </HBox>
         <HBox>
+            <Button mnemonicParsing="false" text="Button"/>
+            <ComboBox prefWidth="150.0"/>
+            <Separator orientation="VERTICAL"/>
             <Button fx:id="validateSchema" onAction="#validateSchema" styleClass="button_pane_button"
                     ButtonBar.buttonData="RIGHT">
                 <graphic>
@@ -67,7 +74,6 @@
                 <Button onAction="#evaluateXpath" text="XPath" fx:id="xpath"/>
                 <Button onAction="#reloadXmlText" text="reload"/>
             </VBox>
-
             <TextArea text="/FundsXML4/ControlData" HBox.hgrow="ALWAYS" fx:id="xpathText"/>
         </HBox>
     </SplitPane>
