@@ -31,7 +31,7 @@
             </bottom>
         </BorderPane>
 
-        <VBox HBox.hgrow="ALWAYS">
+        <VBox HBox.hgrow="ALWAYS" style="-fx-background-color: yellow">
             <TabPane fx:id="outputMethodSwitch" VBox.vgrow="ALWAYS">
                 <Tab fx:id="tabText" text="Text View" closable="false">
                     <graphic>
@@ -39,7 +39,7 @@
                             <Image url="@../img/icons8-txt-26.png"/>
                         </ImageView>
                     </graphic>
-                    <StackPane fx:id="textView" HBox.hgrow="ALWAYS" />
+                    <StackPane fx:id="textView" HBox.hgrow="ALWAYS"/>
                 </Tab>
                 <Tab fx:id="tabWeb" text="HTML View" closable="false">
                     <graphic>

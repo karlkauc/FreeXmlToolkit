@@ -68,13 +68,10 @@ dependencies {
     implementation("org.apache.santuario:xmlsec:3.0.1")
 
     // Lemminx
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.21.0")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.22.0")
 
     // FOP
     implementation("org.apache.xmlgraphics:fop:2.7")
-
-    // Injection
-    // implementation("com.google.inject:guice:5.1.0")
 
     // Misc
     implementation("org.apache.commons:commons-lang3:3.12.0")
