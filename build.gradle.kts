@@ -4,7 +4,7 @@ plugins {
     application
     id("org.openjfx.javafxplugin") version "0.0.13"
     id("edu.sc.seis.launch4j") version "2.5.3"
-    id("com.github.ben-manes.versions") version "0.42.0"
+    id("com.github.ben-manes.versions") version "0.43.0"
 
     id("org.beryx.jlink") version "2.25.0"
     // id("org.jreleaser") version "1.2.0"
@@ -68,7 +68,7 @@ dependencies {
     implementation("org.apache.santuario:xmlsec:3.0.1")
 
     // Lemminx
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.21.0")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.22.0")
 
     // FOP
     implementation("org.apache.xmlgraphics:fop:2.7")
@@ -79,9 +79,6 @@ dependencies {
     // Misc
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
-
-    // Hardware Info
-    implementation("com.github.oshi:oshi-core:6.2.2")
 
     // CSS reload
     implementation("fr.brouillard.oss:cssfx:11.5.1")

@@ -4,7 +4,6 @@ import javafx.application.Platform;
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -43,9 +42,6 @@ public class XsltController {
 
     @FXML
     ProgressBar progressBar;
-
-    @FXML
-    AnchorPane anchorPane;
 
     @FXML
     WebView webView;
@@ -190,6 +186,20 @@ public class XsltController {
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());
         }
+    }
+
+    @FXML
+    private void test() {
+        xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\output\\!FundsXML AMUNDI FLOATING RATE EURO CORP ESG as of 2021-12-30 v2.xml");
+        xsltFile = new File("C:\\Data\\src\\FreeXmlToolkit\\output\\Check_FundsXML_File.xslt");
+
+        if (this.xmlService != null) {
+            this.xmlService.setCurrentXmlFile(xmlFile);
+            this.xmlService.setCurrentXsltFile(xsltFile);
+
+            checkFiles();
+        }
+
     }
 
 }
