@@ -73,9 +73,6 @@ dependencies {
     // FOP
     implementation("org.apache.xmlgraphics:fop:2.7")
 
-    // Injection
-    // implementation("com.google.inject:guice:5.1.0")
-
     // Misc
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
