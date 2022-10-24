@@ -134,8 +134,7 @@ public class XsltController {
                     case "text" -> outputMethodSwitch.getSelectionModel().select(tabText);
                     default -> outputMethodSwitch.getSelectionModel().select(tabText);
                 }
-            }
-            catch (IOException | TransformerException exception) {
+            } catch (IOException | TransformerException exception) {
                 logger.error("Exception: {}", exception.getMessage());
             }
         }
@@ -143,10 +142,7 @@ public class XsltController {
 
     private void renderXML(String output) {
         renderText(output);
-
-        // if (output.length() < 1024 * 1024) {
-            Platform.runLater(() -> codeArea.setStyleSpans(0, XmlController.computeHighlighting(output)));
-        // }
+        Platform.runLater(() -> codeArea.setStyleSpans(0, XmlController.computeHighlighting(output)));
     }
 
     private void renderText(String output) {
