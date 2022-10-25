@@ -16,7 +16,14 @@
         <BorderPane maxWidth="300" minWidth="300" prefWidth="300" style="-fx-padding: 0 5 0 0;">
             <top>
                 <VBox>
-                    <FileLoader fx:id="xmlFileLoader"/>
+                    <FileLoader VBox.vgrow="ALWAYS" fx:id="xmlFileLoader">
+                        <teaserImage>
+                            <ImageView fitHeight="20" fitWidth="20">
+                                <Image url="@../img/icons8-aktualisieren-48.png"/>
+                            </ImageView>
+                        </teaserImage>
+                    </FileLoader>
+
                     <Separator/>
                     <FileLoader fx:id="xsltFileLoader"/>
                     <Separator/>

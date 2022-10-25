@@ -1,8 +1,12 @@
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -12,14 +16,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
 public class FileLoader extends VBox {
-    private final static Logger logger = LogManager.getLogger(MethodHandles.lookup().lookupClass());
+    private final static Logger logger = LogManager.getLogger(FileLoader.class);
 
     FileChooser fileChooser = new FileChooser();
     Button loadButton = new Button();
@@ -28,12 +31,53 @@ public class FileLoader extends VBox {
     File file;
     Boolean isComponentVisible = true;
 
+    ImageView teaserImage;
+
     public FileLoader() {
+        this.getChildren().add(loadButton);
+        this.getChildren().add(fileInfo);
+
+        this.setOnDragOver(event -> {
+            event.acceptTransferModes(TransferMode.MOVE);
+        });
+    }
+
+    public ImageView getTeaserImage() {
+        return teaserImage;
+    }
+
+    @FXML
+    void onDragDropped(DragEvent event) {
+        logger.debug("BIN IN DRAG DROPPED");
+
+        Dragboard db = event.getDragboard();
+        if (db.hasFiles()) {
+            event.acceptTransferModes(TransferMode.COPY);
+        } else {
+            event.consume();
+        }
+    }
+
+    @FXML
+    void handleFileDroppedEvent(DragEvent event) {
+        Dragboard db = event.getDragboard();
+        File file = db.getFiles().get(0);
+
+        logger.debug("FILE: {}", file.getAbsolutePath());
+    }
+
+    @FXML
+    public void setTeaserImage(ImageView teaserImage) {
+        this.teaserImage = teaserImage;
+
+        this.getChildren().clear();
+
+        this.getChildren().add(this.teaserImage);
         this.getChildren().add(loadButton);
         this.getChildren().add(fileInfo);
     }
 
-    public void setImageView(ImageView imageView) {
+    public void setButtonImageView(ImageView imageView) {
         loadButton.setGraphic(imageView);
     }
 
@@ -59,6 +103,8 @@ public class FileLoader extends VBox {
             fileInfo.add(new Label("Size:"), 0, 0);
             fileInfo.add(new Label(FileUtils.byteCountToDisplaySize(file.length())), 1, 0);
 
+            logger.debug("File: {}", file.getAbsolutePath());
+
             try {
                 BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
 
@@ -68,7 +114,7 @@ public class FileLoader extends VBox {
                 fileInfo.add(new Label("lastModifiedTime:"), 0, 2);
                 fileInfo.add(new Label(attr.lastModifiedTime().toString()), 1, 2);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                logger.error(e.getMessage());
             }
 
             return file;
