@@ -11,6 +11,7 @@ public class XmlTreeItem extends TreeItem<Node> {
 
     public XmlTreeItem(Node node) {
         super(node);
+
         if (node.getNodeType() == Node.ELEMENT_NODE
                 && node.hasChildNodes()
                 && node.getFirstChild().getNodeType() == Node.TEXT_NODE
@@ -21,6 +22,7 @@ public class XmlTreeItem extends TreeItem<Node> {
         if (node.hasChildNodes()) {
             for (int i = 0; i < node.getChildNodes().getLength(); i++) {
                 Node temp = node.getChildNodes().item(i);
+
                 if (temp.getNodeType() == Node.ELEMENT_NODE) {
                     this.getChildren().add(new XmlTreeItem(temp));
                 }
