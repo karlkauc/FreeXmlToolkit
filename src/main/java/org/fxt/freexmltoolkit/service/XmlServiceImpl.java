@@ -11,6 +11,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -18,11 +19,10 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -356,5 +356,23 @@ public class XmlServiceImpl implements XmlService {
         }
 
         return null;
+    }
+
+    public String prettyFormat(String input, int indent) {
+        try {
+            Transformer transformer = SAXTransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            //transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
+
+            Source xmlSource = new SAXSource(new InputSource(new ByteArrayInputStream(input.getBytes())));
+            StreamResult res = new StreamResult(new ByteArrayOutputStream());
+            transformer.transform(xmlSource, res);
+            return res.getOutputStream().toString();
+        } catch (Exception e) {
+            System.out.println("FEHLER");
+            System.out.println(e.getMessage());
+            return input;
+        }
     }
 }

@@ -2,10 +2,12 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,6 +26,22 @@ public class XmlTreeCell extends TreeCell<Node> {
             Node n = ti.getValue();
             logger.debug("XPath: {}", getXPath(n));
 
+            HBox content = new HBox();
+            Text tNodeName = new Text(n.getNodeName());
+            VBox boxNodeName = new VBox();
+            boxNodeName.getChildren().add(tNodeName);
+            boxNodeName.setPadding(new Insets(0, 10, 0, 0));
+
+            TextField tfNodeValue = new TextField();
+            tfNodeValue.setText(n.getFirstChild().getTextContent());
+            tfNodeValue.setOnAction(ae -> {
+                n.setNodeValue(tfNodeValue.getText());
+                // System.out.println(XmlServiceImpl.getInstance().prettyFormat(Paths.get()));
+            });
+
+            content.getChildren().addAll(boxNodeName, tfNodeValue);
+
+            this.setGraphic(content);
             // ToDo: irgendwas damit anstellen!
         });
     }
@@ -43,6 +61,9 @@ public class XmlTreeCell extends TreeCell<Node> {
                 VBox boxNodeContent = new VBox();
 
                 Text tNodeName = new Text(node.getNodeName());
+                tNodeName.setFontSmoothingType(FontSmoothingType.LCD);
+                tNodeName.setStyle("-fx-font-weight: bold;");
+
                 boxNodeName.getChildren().add(tNodeName);
                 boxNodeName.setPadding(new Insets(0, 10, 0, 0));
 
@@ -50,6 +71,7 @@ public class XmlTreeCell extends TreeCell<Node> {
                 boxNodeContent.getChildren().add(tNodeContent);
 
                 content.getChildren().addAll(boxNodeName, boxNodeContent);
+                content.setStyle("-fx-border-width: 0 0 1px 0; -fx-border-color: black; -fx-border-style: solid;");
 
                 logger.debug("Node: {} - MAX SIZE: {}", getXPath(node.getParentNode()), TreeHelper.widthHelper.get(getXPath(node.getParentNode())));
                 boxNodeName.prefWidthProperty().bind(TreeHelper.widthHelper.get(getXPath(node.getParentNode())));
