@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,6 +31,22 @@ public class XmlTreeView extends TreeView<org.w3c.dom.Node> implements Initializ
             var xmlTreeItem = new XmlTreeItem(document.getDocumentElement());
             this.setCellFactory(param -> new XmlTreeCell());
             this.setRoot(xmlTreeItem);
+
+            printChildren(xmlTreeItem);
+        }
+    }
+
+    int maxWidth = 0;
+
+    private void printChildren(TreeItem<org.w3c.dom.Node> root) {
+        System.out.println("Current Parent :" + root.getValue());
+
+        for (TreeItem<org.w3c.dom.Node> child : root.getChildren()) {
+            if (child.getChildren().isEmpty()) {
+                System.out.println(child.getValue());
+            } else {
+                printChildren(child);
+            }
         }
     }
 

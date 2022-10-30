@@ -1,8 +1,13 @@
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.geometry.Insets;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,6 +24,24 @@ public class XmlTreeCell extends TreeCell<Node> {
                 return;
             }
             Node n = ti.getValue();
+            logger.debug("XPath: {}", getXPath(n));
+
+            HBox content = new HBox();
+            Text tNodeName = new Text(n.getNodeName());
+            VBox boxNodeName = new VBox();
+            boxNodeName.getChildren().add(tNodeName);
+            boxNodeName.setPadding(new Insets(0, 10, 0, 0));
+
+            TextField tfNodeValue = new TextField();
+            tfNodeValue.setText(n.getFirstChild().getTextContent());
+            tfNodeValue.setOnAction(ae -> {
+                n.setNodeValue(tfNodeValue.getText());
+                // System.out.println(XmlServiceImpl.getInstance().prettyFormat(Paths.get()));
+            });
+
+            content.getChildren().addAll(boxNodeName, tfNodeValue);
+
+            this.setGraphic(content);
             // ToDo: irgendwas damit anstellen!
         });
     }
@@ -32,10 +55,33 @@ public class XmlTreeCell extends TreeCell<Node> {
                     && node.hasChildNodes()
                     && node.getFirstChild().getNodeType() == Node.TEXT_NODE
                     && node.getFirstChild().getTextContent().trim().length() > 1) {
-                setGraphic(new Text(node.getNodeName() + ": " + node.getFirstChild().getTextContent()));
+
+                HBox content = new HBox();
+                VBox boxNodeName = new VBox();
+                VBox boxNodeContent = new VBox();
+
+                Text tNodeName = new Text(node.getNodeName());
+                tNodeName.setFontSmoothingType(FontSmoothingType.LCD);
+                tNodeName.setStyle("-fx-font-weight: bold;");
+
+                boxNodeName.getChildren().add(tNodeName);
+                boxNodeName.setPadding(new Insets(0, 10, 0, 0));
+
+                Text tNodeContent = new Text(node.getFirstChild().getTextContent());
+                boxNodeContent.getChildren().add(tNodeContent);
+
+                content.getChildren().addAll(boxNodeName, boxNodeContent);
+                content.setStyle("-fx-border-width: 0 0 1px 0; -fx-border-color: black; -fx-border-style: solid;");
+
+                logger.debug("Node: {} - MAX SIZE: {}", getXPath(node.getParentNode()), TreeHelper.widthHelper.get(getXPath(node.getParentNode())));
+                boxNodeName.prefWidthProperty().bind(TreeHelper.widthHelper.get(getXPath(node.getParentNode())));
+
+                setGraphic(content);
             } else {
                 var maxWidth = calculateMaxWidth(node);
                 logger.debug("{} - Max width: {}", node.getNodeName(), maxWidth);
+
+                TreeHelper.widthHelper.put(getXPath(node), new SimpleDoubleProperty(maxWidth + 10));
 
                 HBox content = new HBox();
                 Text nodeName = new Text(node.getNodeName());
@@ -45,12 +91,19 @@ public class XmlTreeCell extends TreeCell<Node> {
                 nodeCount.setFill(Color.FUCHSIA);
 
                 content.getChildren().addAll(nodeName, nodeCount);
-
                 setGraphic(content);
             }
         } else {
             setGraphic(null);
         }
+    }
+
+    private static String getXPath(Node node) {
+        Node parent = node.getParentNode();
+        if (parent == null) {
+            return node.getNodeName();
+        }
+        return getXPath(parent) + "/" + node.getNodeName();
     }
 
     private int countRealNodes(Node node) {
@@ -65,7 +118,7 @@ public class XmlTreeCell extends TreeCell<Node> {
     }
 
     private double calculateMaxWidth(Node node) {
-        double maxWidth= 0;
+        double maxWidth = 0;
 
         for (int x = 0; x < node.getChildNodes().getLength(); x++) {
             var temp = node.getChildNodes().item(x);

@@ -2,10 +2,7 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -76,6 +73,9 @@ public class XmlController {
 
     @FXML
     TextArea xpathText;
+
+    @FXML
+    ComboBox<File> schemaList = new ComboBox<>();
 
     String lastOpenDir;
     FileChooser fileChooser = new FileChooser();
@@ -233,10 +233,21 @@ public class XmlController {
             this.lastOpenDir = selectedFile.getParent();
 
             xmlService.setCurrentXmlFile(selectedFile);
+            if (xmlService.loadSchemaFromXMLFile()) {
+                schemaList.getItems().add(xmlService.getCurrentXsdFile());
+            }
+
             reloadXmlText();
         } else {
             logger.debug("No file selected");
         }
+    }
+
+    @FXML
+    private void test() {
+        xmlService.setCurrentXmlFile(Paths.get("C:/Data/src/FreeXmlToolkit/output/!FundsXML AMUNDI FLOATING RATE EURO CORP ESG as of 2021-12-30 v2.xml").toFile());
+        xmlService.setCurrentXsdFile(Paths.get("C:/Data/src/schema/FundsXML4.xsd").toFile());
+        reloadXmlText();
     }
 
     static StyleSpans<Collection<String>> computeHighlighting(String text) {

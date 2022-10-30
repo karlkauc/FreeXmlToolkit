@@ -45,10 +45,11 @@
                 </graphic>
             </Button>
             <Separator orientation="VERTICAL"/>
-            <TextField prefHeight="16.0" prefWidth="200.0"/>
+            <TextField text="search...." prefHeight="16.0" prefWidth="200.0"/>
         </HBox>
         <HBox>
-            <Button mnemonicParsing="false" text="Button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button mnemonicParsing="false" text="add schema"/>
             <ComboBox prefWidth="150.0"/>
             <Separator orientation="VERTICAL"/>
             <Button fx:id="validateSchema" onAction="#validateSchema" styleClass="button_pane_button"
@@ -57,6 +58,7 @@
                     <FontIcon iconLiteral="win10-checked" iconSize="16"/>
                 </graphic>
             </Button>
+            <Button text="TEST" onAction="#test"/>
         </HBox>
     </HBox>
     <SplitPane dividerPositions="0.9" orientation="VERTICAL" VBox.vgrow="ALWAYS">
