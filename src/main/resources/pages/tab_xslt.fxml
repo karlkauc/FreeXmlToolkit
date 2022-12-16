@@ -5,13 +5,9 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
 <?import org.fxt.freexmltoolkit.controls.FileLoader?>
-<HBox style="-fx-padding: 5;"
-      stylesheets="@../css/app.css"
-      xmlns="http://javafx.com/javafx/17.0.2-ea"
-      xmlns:fx="http://javafx.com/fxml/1"
-      AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
-      fx:controller="org.fxt.freexmltoolkit.controller.XsltController">
+<HBox style="-fx-padding: 5;" stylesheets="@../css/app.css" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/17.0.2-ea"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XsltController">
     <HBox HBox.hgrow="ALWAYS">
         <BorderPane maxWidth="300" minWidth="300" prefWidth="300" style="-fx-padding: 0 5 0 0;">
             <top>
@@ -34,14 +30,14 @@
                             </ImageView>
                         </graphic>
                     </Button>
-                    <Button text="TEST" onAction="#test"/>
+                    <Button onAction="#test" text="TEST"/>
                 </VBox>
             </top>
             <bottom>
                 <ProgressBar fx:id="progressBar" prefWidth="300"/>
             </bottom>
         </BorderPane>
-        <TabPane HBox.hgrow="ALWAYS" fx:id="outputMethodSwitch">
+        <TabPane fx:id="outputMethodSwitch" HBox.hgrow="ALWAYS">
             <Tab fx:id="tabText" closable="false" text="Text View">
                 <graphic>
                     <ImageView fitHeight="16" preserveRatio="true">
@@ -57,14 +53,6 @@
                     </ImageView>
                 </graphic>
                 <WebView fx:id="webView" HBox.hgrow="ALWAYS"/>
-            </Tab>
-            <Tab fx:id="tabCsv" closable="false" disable="true" text="CSV View">
-                <graphic>
-                    <ImageView fitHeight="16" preserveRatio="true">
-                        <Image url="@../img/icons8-csv-export-16.png"/>
-                    </ImageView>
-                </graphic>
-                <TableView fx:id="csvView" HBox.hgrow="ALWAYS"/>
             </Tab>
         </TabPane>
     </HBox>

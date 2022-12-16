@@ -3,8 +3,8 @@ plugins {
     idea
     application
     id("org.openjfx.javafxplugin") version "0.0.13"
-    id("edu.sc.seis.launch4j") version "2.5.3"
-    id("com.github.ben-manes.versions") version "0.43.0"
+    id("edu.sc.seis.launch4j") version "2.5.4"
+    id("com.github.ben-manes.versions") version "0.44.0"
 
     id("org.beryx.jlink") version "2.25.0"
     // id("org.jreleaser") version "1.2.0"
@@ -54,7 +54,7 @@ dependencies {
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Richtext
-    implementation("org.fxmisc.richtext:richtextfx:0.10.9")
+    implementation("org.fxmisc.richtext:richtextfx:0.11.0")
 
     // Logging
     implementation("org.apache.logging.log4j:log4j-api:2.19.0")
@@ -68,10 +68,14 @@ dependencies {
     implementation("org.apache.santuario:xmlsec:3.0.1")
 
     // Lemminx
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.22.0")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.23.2")
 
     // FOP
-    implementation("org.apache.xmlgraphics:fop:2.7")
+    implementation("org.apache.xmlgraphics:fop:2.8")
+
+    // SVG Graphic
+    implementation("org.apache.xmlgraphics:batik-svggen:1.16")
+
 
     // Misc
     implementation("org.apache.commons:commons-lang3:3.12.0")
