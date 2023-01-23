@@ -34,12 +34,13 @@ public class SVGTest {
         Shape circle = new Ellipse2D.Double(10, 20, 50, 100);
         svgGenerator.setPaint(Color.red);
         svgGenerator.draw(circle);
-
         svgGenerator.setBackground(Color.BLUE);
 
-        // Finally, stream out SVG to the standard output using
-        // UTF-8 encoding.
-        boolean useCSS = true; // we want to use CSS style attributes
+        var text = document.createTextNode("this is a test");
+
+        document.getDocumentElement().appendChild(text);
+
+        boolean useCSS = true;
         Writer out = new OutputStreamWriter(System.out, StandardCharsets.UTF_8);
         svgGenerator.stream(out, useCSS);
 

@@ -6,7 +6,7 @@ plugins {
     id("edu.sc.seis.launch4j") version "2.5.4"
     id("com.github.ben-manes.versions") version "0.44.0"
 
-    id("org.beryx.jlink") version "2.25.0"
+    id("org.beryx.jlink") version "2.26.0"
     // id("org.jreleaser") version "1.2.0"
 }
 
@@ -42,7 +42,7 @@ run {
 
 dependencies {
     // XSLT
-    implementation("net.sf.saxon:Saxon-HE:11.4") {
+    implementation("net.sf.saxon:Saxon-HE:12.0") {
         exclude(group = "xml-apis", module = "xml-apis")
     }
 
@@ -84,8 +84,8 @@ dependencies {
     // CSS reload
     implementation("fr.brouillard.oss:cssfx:11.5.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
 }
 
 
@@ -100,7 +100,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     // https://bell-sw.com/pages/libericajdk/
     bundledJrePath = "jdk"
     bundledJre64Bit = true
-    jreMinVersion = "18"
+    jreMinVersion = "19"
 
     doLast {
         println("Copy resources...")
@@ -112,7 +112,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
         }
         println("Copy JDK...")
         copy {
-            from(zipTree("jdk/jre-18.0.1-full.zip"))
+            from(zipTree("jdk/jre-19.0.1-full.zip"))
             into(layout.buildDirectory.dir("launch4j/jdk"))
         }
     }
