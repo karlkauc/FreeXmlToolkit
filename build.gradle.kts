@@ -84,6 +84,9 @@ dependencies {
     // CSS reload
     implementation("fr.brouillard.oss:cssfx:11.5.1")
 
+    // HTML Template XSD Documentation
+    implementation("org.thymeleaf:thymeleaf:3.1.1.RELEASE")
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
 }
