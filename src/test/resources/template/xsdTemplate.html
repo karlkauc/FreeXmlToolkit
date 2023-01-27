@@ -9,5 +9,11 @@
 <p th:text="|Hello, ${name}!|">Hello, user!</p>
 <p th:text="|Today is ${date}.|">Today is ...</p>
 
+<ul>
+    <li th:each="xsdComplexType : ${xsdComplexTypes}">
+        <span th:text="${xsdComplexType.name}">XSD COMPLEX TYPE NAME</span>
+    </li>
+</ul>
+
 </body>
 </html>
