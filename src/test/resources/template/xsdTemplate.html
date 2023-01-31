@@ -2,18 +2,57 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Sample Thymeleaf template</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>XSD Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
 </head>
 <body>
 
-<p th:text="|Hello, ${name}!|">Hello, user!</p>
-<p th:text="|Today is ${date}.|">Today is ...</p>
+<h1 th:text="|Hello, ${name}!|">Hello, user!</h1>
 
-<ul>
-    <li th:each="xsdComplexType : ${xsdComplexTypes}">
-        <span th:text="${xsdComplexType.name}">XSD COMPLEX TYPE NAME</span>
-    </li>
-</ul>
+<table class="table-bordered">
+    <thead>
+    <tr>
+        <th scope="col">Elements</th>
+        <th scope="col">Complex Types</th>
+        <th scope="col">Simple Types</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td class="align-text-top">
+            <ul>
+                <li th:each="xsdElement : ${xsdElements}">
+                    <span class="small" th:text="${xsdElement.name}">XSD ELEMENT</span>
+                </li>
+            </ul>
+        </td>
+        <td class="align-text-top">
+            <ul>
+                <li th:each="xsdComplexType : ${xsdComplexTypes}">
+                    <span class="small" th:text="${xsdComplexType.name}">XSD COMPLEX TYPE NAME</span>
+                </li>
+            </ul>
+        </td>
+        <td class="align-text-top">
+            <ul>
+                <li th:each="xsdSimpleType : ${xsdSimpleTypes}">
+                    <span class="small" th:text="${xsdSimpleType.name}">XSD COMPLEX TYPE NAME</span>
+                </li>
+            </ul>
+        </td>
+    </tr>
+    </tbody>
+</table>
 
+
+<footer>
+    <p th:text="|created at ${date}.|">created at ...</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
 </body>
 </html>

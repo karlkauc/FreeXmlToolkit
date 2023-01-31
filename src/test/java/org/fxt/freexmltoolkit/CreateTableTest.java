@@ -28,6 +28,8 @@ public class CreateTableTest {
     private List<XsdComplexType> xsdComplexTypes;
     private List<XsdSimpleType> xsdSimpleTypes;
 
+    private List<XsdElement> elements;
+
 
     @Test
     void createHtmlTable() {
@@ -39,16 +41,18 @@ public class CreateTableTest {
         resolver.setPrefix("/template/");
         resolver.setSuffix(".html");
 
-        var context = new Context();
-        context.setVariable("name", "Lind");
-        context.setVariable("date", LocalDateTime.now().toString());
-
         var templateEngine = new TemplateEngine();
         templateEngine.setTemplateResolver(resolver);
 
         var xsdComplexTypesList = xsdComplexTypes.stream().toList();
 
+        var context = new Context();
+        context.setVariable("name", "World");
+        context.setVariable("date", LocalDateTime.now().toString());
+
+        context.setVariable("xsdElements", elements);
         context.setVariable("xsdComplexTypes", xsdComplexTypesList);
+        context.setVariable("xsdSimpleTypes", xsdSimpleTypes);
 
         var result = templateEngine.process("xsdTemplate", context);
         System.out.println(result);
@@ -62,8 +66,6 @@ public class CreateTableTest {
 
     private void generateDocumentation() {
         XsdParser parser;
-        List<XsdElement> elements;
-
         parser = new XsdParser("src/test/resources/FundsXML4_2_0.xsd");
 
         elements = parser.getResultXsdElements().collect(Collectors.toList());
