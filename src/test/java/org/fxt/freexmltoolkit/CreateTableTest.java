@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 public class CreateTableTest {
 
+    final static String fileName = "src/test/resources/FundsXML4_2_0.xsd";
+
     static final int MAX_ALLOWED_DEPTH = 99;
     private final static Logger logger = LogManager.getLogger(CreateTableTest.class);
 
@@ -30,9 +32,13 @@ public class CreateTableTest {
 
     private List<XsdElement> elements;
 
+    XsdParser parser;
+
 
     @Test
     void createHtmlTable() {
+        parser = new XsdParser(fileName);
+
         generateDocumentation();
 
         var resolver = new ClassLoaderTemplateResolver();
@@ -50,6 +56,8 @@ public class CreateTableTest {
         context.setVariable("name", "World");
         context.setVariable("date", LocalDateTime.now().toString());
 
+        context.setVariable("filename", fileName);
+
         context.setVariable("xsdElements", elements);
         context.setVariable("xsdComplexTypes", xsdComplexTypesList);
         context.setVariable("xsdSimpleTypes", xsdSimpleTypes);
@@ -65,8 +73,7 @@ public class CreateTableTest {
     }
 
     private void generateDocumentation() {
-        XsdParser parser;
-        parser = new XsdParser("src/test/resources/FundsXML4_2_0.xsd");
+
 
         elements = parser.getResultXsdElements().collect(Collectors.toList());
         List<XsdSchema> xmlSchema = parser.getResultXsdSchemas().toList();
