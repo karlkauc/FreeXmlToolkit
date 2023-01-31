@@ -1,12 +1,7 @@
 package org.fxt.freexmltoolkit;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import org.fxt.freexmltoolkit.service.ModuleBindings;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -28,18 +23,11 @@ import java.io.StringWriter;
 
 public class XpathTest {
 
-    @Inject
-    XmlService xmlService;
-
-    @BeforeEach
-    public void setUp() {
-        Injector injector = Guice.createInjector(new ModuleBindings());
-        xmlService = injector.getInstance(XmlServiceImpl.class);
-    }
-
 
     @Test
     void xpathTest1() {
+        XmlService xmlService = XmlServiceImpl.getInstance();
+
         var f = new File("src/test/resources/test01.xml");
 
         assert (xmlService != null);
@@ -63,7 +51,7 @@ public class XpathTest {
             xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes"); // optional
             xform.setOutputProperty(OutputKeys.INDENT, "yes"); // optional
             xform.transform(new DOMSource(elem), new StreamResult(buf));
-            System.out.println("buf.toString() = " + buf.toString());
+            System.out.println("buf.toString() = " + buf);
 
 
 /*            System.out.println("nodeList = " + nodeList);

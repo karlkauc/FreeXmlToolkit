@@ -3,10 +3,10 @@ plugins {
     idea
     application
     id("org.openjfx.javafxplugin") version "0.0.13"
-    id("edu.sc.seis.launch4j") version "2.5.3"
-    id("com.github.ben-manes.versions") version "0.43.0"
+    id("edu.sc.seis.launch4j") version "2.5.4"
+    id("com.github.ben-manes.versions") version "0.44.0"
 
-    id("org.beryx.jlink") version "2.25.0"
+    id("org.beryx.jlink") version "2.26.0"
     // id("org.jreleaser") version "1.2.0"
 }
 
@@ -42,7 +42,7 @@ run {
 
 dependencies {
     // XSLT
-    implementation("net.sf.saxon:Saxon-HE:11.4") {
+    implementation("net.sf.saxon:Saxon-HE:12.0") {
         exclude(group = "xml-apis", module = "xml-apis")
     }
 
@@ -54,7 +54,7 @@ dependencies {
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Richtext
-    implementation("org.fxmisc.richtext:richtextfx:0.10.9")
+    implementation("org.fxmisc.richtext:richtextfx:0.11.0")
 
     // Logging
     implementation("org.apache.logging.log4j:log4j-api:2.19.0")
@@ -68,10 +68,14 @@ dependencies {
     implementation("org.apache.santuario:xmlsec:3.0.1")
 
     // Lemminx
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.22.0")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.23.2")
 
     // FOP
-    implementation("org.apache.xmlgraphics:fop:2.7")
+    implementation("org.apache.xmlgraphics:fop:2.8")
+
+    // SVG Graphic
+    implementation("org.apache.xmlgraphics:batik-svggen:1.16")
+
 
     // Misc
     implementation("org.apache.commons:commons-lang3:3.12.0")
@@ -80,8 +84,11 @@ dependencies {
     // CSS reload
     implementation("fr.brouillard.oss:cssfx:11.5.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
+    // HTML Template XSD Documentation
+    implementation("org.thymeleaf:thymeleaf:3.1.1.RELEASE")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
 }
 
 
@@ -96,7 +103,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     // https://bell-sw.com/pages/libericajdk/
     bundledJrePath = "jdk"
     bundledJre64Bit = true
-    jreMinVersion = "18"
+    jreMinVersion = "19"
 
     doLast {
         println("Copy resources...")
@@ -108,7 +115,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
         }
         println("Copy JDK...")
         copy {
-            from(zipTree("jdk/jre-18.0.1-full.zip"))
+            from(zipTree("jdk/jre-19.0.1-full.zip"))
             into(layout.buildDirectory.dir("launch4j/jdk"))
         }
     }

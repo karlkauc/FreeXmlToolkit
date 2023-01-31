@@ -1,16 +1,9 @@
 package org.fxt.freexmltoolkit;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
-import org.fxt.freexmltoolkit.service.ModuleBindings;
-import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.xml.transform.Result;
@@ -23,16 +16,6 @@ import java.io.File;
 import java.io.OutputStream;
 
 public class FopTest {
-
-
-    @Inject
-    XmlService xmlService;
-
-    @BeforeEach
-    public void setUp() {
-        Injector injector = Guice.createInjector(new ModuleBindings());
-        xmlService = injector.getInstance(XmlServiceImpl.class);
-    }
 
 
     @Test

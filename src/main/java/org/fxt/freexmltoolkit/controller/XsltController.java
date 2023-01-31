@@ -13,6 +13,8 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.FileLoader;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
@@ -21,11 +23,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Properties;
 
 public class XsltController {
 
     XmlService xmlService = XmlServiceImpl.getInstance();
 
+    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     @FXML
     FileLoader xmlFileLoader, xsltFileLoader;
 
@@ -76,9 +80,11 @@ public class XsltController {
         xmlFileLoader.getLoadButton().setText("XML File");
         xmlFileLoader.getLoadButton().setOnAction(ae -> {
             xmlFile = xmlFileLoader.getFileAction();
-            logger.debug("Loaded XML File: {}", xmlFile.getAbsolutePath());
-            xmlService.setCurrentXmlFile(xmlFile);
-            checkFiles();
+            if (xmlFile != null) {
+                logger.debug("Loaded XML File: {}", xmlFile.getAbsolutePath());
+                xmlService.setCurrentXmlFile(xmlFile);
+                checkFiles();
+            }
         });
 
         xsltFileLoader.setLoadPattern("*.xslt", "XSLT File");
@@ -159,6 +165,23 @@ public class XsltController {
                     .replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "")
                     .replace("  >", "");
 
+            if (propertiesService != null) {
+                Properties properties = propertiesService.loadProperties();
+                var httpHost = properties.getProperty("http.proxy.host");
+                var httpPort = properties.getProperty("http.proxy.port");
+
+                if (httpHost != null) {
+                    logger.debug("HTTP PROXY: {}:{}", httpHost, httpPort);
+
+                    System.setProperty("java.net.useSystemProxies", "true");
+                    // System.setProperty("http.proxyHost", "proxy.p1at.s-group.cc");
+                    // System.setProperty("http.proxyPort", "8080");
+
+                    // System.setProperty("https.proxyHost", "http://" + httpHost);
+                    // System.setProperty("https.proxyPort", httpPort);
+                }
+            }
+
             WebEngine engine = webView.getEngine();
             Files.writeString(Paths.get(outputFileName), output);
             progressBar.setProgress(0.6);
@@ -188,6 +211,9 @@ public class XsltController {
     private void test() {
         xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\output\\!FundsXML AMUNDI FLOATING RATE EURO CORP ESG as of 2021-12-30 v2.xml");
         xsltFile = new File("C:\\Data\\src\\FreeXmlToolkit\\output\\Check_FundsXML_File.xslt");
+
+        xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\output\\DE000A1JXLX8_EUR_20211130_v4_1_8.xml");
+        xsltFile = new File("C:\\Data\\src\\CheckFundsXMLFileAPI\\src\\main\\resources\\Check_FundsXML_File.xslt");
 
         if (this.xmlService != null) {
             this.xmlService.setCurrentXmlFile(xmlFile);
