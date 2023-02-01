@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
 import org.junit.jupiter.api.Test;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -36,10 +37,14 @@ public class CreateTableTest {
 
     List<XsdSchema> xmlSchema;
 
+    List<ExtendedXsdElement> extendedXsdElements;
+
 
     @Test
     void createHtmlTable() {
         parser = new XsdParser(fileName);
+
+        extendedXsdElements = new ArrayList<>();
 
         generateDocumentation();
 
@@ -64,6 +69,8 @@ public class CreateTableTest {
         context.setVariable("xsdElements", elements);
         context.setVariable("xsdComplexTypes", xsdComplexTypesList);
         context.setVariable("xsdSimpleTypes", xsdSimpleTypes);
+
+        context.setVariable("extendedXsdElements", extendedXsdElements);
 
         var result = templateEngine.process("xsdTemplate", context);
         System.out.println(result);
@@ -107,7 +114,15 @@ public class CreateTableTest {
             documentationString += System.lineSeparator() + "Type: " + currentType;
             documentationString += System.lineSeparator() + "Name: " + currentXsdElement.getRawName();
 
+            ExtendedXsdElement extendedXsdElement = new ExtendedXsdElement();
+            extendedXsdElement.setXsdElement(currentXsdElement);
+            extendedXsdElement.setLevel(level);
+            extendedXsdElement.setCurrentXpath(currentXpath);
+
             if (currentXsdElement.getAnnotation() != null && currentXsdElement.getAnnotation().getDocumentations() != null) {
+                extendedXsdElement.setXsdDocumentation(currentXsdElement.getAnnotation().getDocumentations());
+
+
                 for (XsdAppInfo xsdAppInfo : currentXsdElement.getAnnotation().getAppInfoList()) {
                     logger.debug("App Info: {}", xsdAppInfo.getContent());
                 }
@@ -120,6 +135,8 @@ public class CreateTableTest {
                     documentationString += System.lineSeparator() + "Documentation Attributest: " + xsdDocumentation.getAttributesMap();
                 }
             }
+
+            extendedXsdElements.add(extendedXsdElement);
 
             if (prevElementTypes.stream().anyMatch(str -> str.trim().equals(currentType))) {
                 System.out.println("ELEMENT SCHON BEARBEITET: " + currentType);
