@@ -34,6 +34,8 @@ public class CreateTableTest {
 
     XsdParser parser;
 
+    List<XsdSchema> xmlSchema;
+
 
     @Test
     void createHtmlTable() {
@@ -57,6 +59,7 @@ public class CreateTableTest {
         context.setVariable("date", LocalDateTime.now().toString());
 
         context.setVariable("filename", fileName);
+        context.setVariable("xmlSchema", xmlSchema.get(0));
 
         context.setVariable("xsdElements", elements);
         context.setVariable("xsdComplexTypes", xsdComplexTypesList);
@@ -73,10 +76,8 @@ public class CreateTableTest {
     }
 
     private void generateDocumentation() {
-
-
         elements = parser.getResultXsdElements().collect(Collectors.toList());
-        List<XsdSchema> xmlSchema = parser.getResultXsdSchemas().toList();
+        xmlSchema = parser.getResultXsdSchemas().toList();
 
         xsdComplexTypes = xmlSchema.get(0).getChildrenComplexTypes().collect(Collectors.toList());
         xsdSimpleTypes = xmlSchema.get(0).getChildrenSimpleTypes().collect(Collectors.toList());

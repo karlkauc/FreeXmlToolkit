@@ -23,11 +23,11 @@
     </div>
     <div class="row">
         <div class="col-2">attributeFormDefault:</div>
-        <div class="col">xxx</div>
+        <div class="col" th:text="${xmlSchema.getAttributeFormDefault()}">xxx</div>
     </div>
     <div class="row">
         <div class="col-2">elementFormDefault:</div>
-        <div class="col">xxx</div>
+        <div class="col" th:text="${xmlSchema.getElementFormDefault()}">xxx</div>
     </div>
 
     <hr/>
@@ -43,29 +43,45 @@
         <tbody>
         <tr>
             <td class="align-text-top">
-                <ul class="list-group">
-                    <li th:each="xsdElement : ${xsdElements}" class="list-group-item">
-                        <span class="small" th:text="${xsdElement.name}">XSD ELEMENT</span>
-                    </li>
-                </ul>
+                <div th:each="xsdElement : ${xsdElements}"
+                     th:text="${xsdElement.name}">Name
+                </div>
             </td>
             <td class="align-text-top">
-                <ul class="list-group">
-                    <li th:each="xsdComplexType : ${xsdComplexTypes}" class="list-group-item">
-                        <span class="small" th:text="${xsdComplexType.name}">XSD COMPLEX TYPE NAME</span>
-                    </li>
-                </ul>
+                <div th:each="xsdComplexType : ${xsdComplexTypes}"
+                     th:text="${xsdComplexType.name}"
+                     th:class="${xsdComplexTypes.indexOf(xsdComplexType) % 2} ? 'bg-secondary'"
+                >complex types
+                </div>
             </td>
             <td class="align-text-top">
-                <ul class="list-group">
-                    <li th:each="xsdSimpleType : ${xsdSimpleTypes}" class="list-group-item">
-                        <span class="small" th:text="${xsdSimpleType.name}">XSD COMPLEX TYPE NAME</span>
-                    </li>
-                </ul>
+                <div th:each="xsdSimpleType, iterStat : ${xsdSimpleTypes}"
+                     th:text="${xsdSimpleType.name}"
+                     th:class="${iterStat.odd}? 'bg-secondary'">simple types
+                </div>
             </td>
         </tr>
         </tbody>
     </table>
+
+    <hr/>
+
+    <div th:each="xsdComplexType : ${xsdComplexTypes}">
+        <table>
+            <tr>
+                <td>Name:</td>
+                <td th:text="${xsdComplexType.name}">XXX</td>
+            </tr>
+            <tr>
+                <td>Documentation:</td>
+                <td>
+                    <div th:each="annotation : ${xsdComplexType.getAnnotation().getDocumentations()}"
+                         th:text="${annotation}">annotation
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
 </div>
 
