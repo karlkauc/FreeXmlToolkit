@@ -84,7 +84,7 @@ public class XsdDocumentationService {
         context.setVariable("extendedXsdElements", extendedXsdElements);
 
         var result = templateEngine.process("xsdTemplate", context);
-        System.out.println(result);
+        // System.out.println(result);
 
         try {
             Files.write(Paths.get("output.html"), result.getBytes());
@@ -115,7 +115,6 @@ public class XsdDocumentationService {
 
             if (currentXsdElement.getAnnotation() != null && currentXsdElement.getAnnotation().getDocumentations() != null) {
                 extendedXsdElement.setXsdDocumentation(currentXsdElement.getAnnotation().getDocumentations());
-
 
                 for (XsdAppInfo xsdAppInfo : currentXsdElement.getAnnotation().getAppInfoList()) {
                     logger.debug("App Info: {}", xsdAppInfo.getContent());

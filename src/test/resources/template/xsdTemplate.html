@@ -44,10 +44,9 @@
                 </div>
             </td>
             <td class="align-text-top">
-                <div th:each="xsdComplexType : ${xsdComplexTypes}"
+                <div th:each="xsdComplexType, iterStat : ${xsdComplexTypes}"
                      th:text="${xsdComplexType.name}"
-                     th:class="${xsdComplexTypes.indexOf(xsdComplexType) % 2} ? 'bg-secondary'"
-                >complex types
+                     th:class="${iterStat.odd}? 'bg-secondary'">complex types
                 </div>
             </td>
             <td class="align-text-top">
