@@ -9,10 +9,6 @@
 </head>
 <body>
 <div class="container">
-    <h1 th:text="|Hello, ${name}!|">Hello, user!</h1>
-
-    <hr/>
-
     <div class="row">
         <div class="col-2">Date Created:</div>
         <div class="col" th:text="${date}">2022-12-30</div>
@@ -48,10 +44,9 @@
                 </div>
             </td>
             <td class="align-text-top">
-                <div th:each="xsdComplexType : ${xsdComplexTypes}"
+                <div th:each="xsdComplexType, iterStat : ${xsdComplexTypes}"
                      th:text="${xsdComplexType.name}"
-                     th:class="${xsdComplexTypes.indexOf(xsdComplexType) % 2} ? 'bg-secondary'"
-                >complex types
+                     th:class="${iterStat.odd}? 'bg-secondary'">complex types
                 </div>
             </td>
             <td class="align-text-top">
@@ -66,29 +61,30 @@
 
     <hr/>
 
-    <div th:each="extendedXsdElement : ${extendedXsdElements}">
-        <table class="table-bordered">
+    <div th:each="extendedXsdElement : ${extendedXsdElements}" class="table-responsive">
+        <table class="table-bordered" style="width: 100%">
             <tr>
-                <td>Level:</td>
-                <td th:text="${extendedXsdElement.level}">XXX</td>
+                <td class="col">Level:</td>
+                <td class="col" th:text="${extendedXsdElement.level}">XXX</td>
             </tr>
             <tr>
-                <td>XPath:</td>
-                <td th:text="${extendedXsdElement.getCurrentXpath()}">XXX</td>
+                <td class="col">XPath:</td>
+                <td class="col" th:text="${extendedXsdElement.getCurrentXpath()}">XXX</td>
             </tr>
             <tr>
-                <td>Name:</td>
-                <td th:text="${extendedXsdElement.xsdElement.name}">XXX</td>
+                <td class="col">Name:</td>
+                <td class="col" th:text="${extendedXsdElement.xsdElement.name}">XXX</td>
             </tr>
             <tr>
-                <td>Documentation:</td>
-                <td>
+                <td class="col">Documentation:</td>
+                <td class="col">
                     <div th:each="documentation : ${extendedXsdElement.getXsdDocumentation()}"
-                         th:text="${documentation.getSource()}">annotation
+                         th:text="${documentation.getContent()}">annotation
                     </div>
                 </td>
             </tr>
         </table>
+        <br/>
     </div>
 
 </div>
