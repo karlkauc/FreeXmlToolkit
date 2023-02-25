@@ -4,7 +4,7 @@ plugins {
     application
     id("org.openjfx.javafxplugin") version "0.0.13"
     id("edu.sc.seis.launch4j") version "2.5.4"
-    id("com.github.ben-manes.versions") version "0.44.0"
+    id("com.github.ben-manes.versions") version "0.46.0"
 
     id("org.beryx.jlink") version "2.26.0"
     // id("org.jreleaser") version "1.2.0"
@@ -57,9 +57,9 @@ dependencies {
     implementation("org.fxmisc.richtext:richtextfx:0.11.0")
 
     // Logging
-    implementation("org.apache.logging.log4j:log4j-api:2.19.0")
-    implementation("org.apache.logging.log4j:log4j-core:2.19.0")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.19.0")
+    implementation("org.apache.logging.log4j:log4j-api:2.20.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.20.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.20.0")
 
     // XSD Parser
     implementation("com.github.xmlet:xsdParser:1.2.4")
@@ -68,7 +68,7 @@ dependencies {
     implementation("org.apache.santuario:xmlsec:3.0.1")
 
     // Lemminx
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.23.2")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.24.0")
 
     // FOP
     implementation("org.apache.xmlgraphics:fop:2.8")
