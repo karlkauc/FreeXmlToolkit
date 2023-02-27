@@ -207,15 +207,18 @@ public class XmlController {
 
     @FXML
     private void moveUp() {
-
         logger.debug("Caret Pos: {}", codeArea.caretPositionProperty().getValue());
-
-
+        codeArea.scrollToPixel(0, 0);
     }
 
     @FXML
     private void moveDown() {
-        codeArea.position(codeArea.getLength(), 0);
+        codeArea.moveTo(codeArea.getLength());
+        codeArea.getCaretBounds().ifPresent(bounds -> {
+            System.out.println("MAX X: " + bounds.getMaxX());
+            System.out.println("MAX Y: " + bounds.getMaxY());
+        });
+        codeArea.scrollToPixel(codeArea.getLayoutBounds().getMaxX(), codeArea.getLayoutBounds().getMaxY());
     }
 
     @FXML

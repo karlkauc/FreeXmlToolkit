@@ -71,23 +71,19 @@ public class XsdDocumentationService {
         templateEngine.setTemplateResolver(resolver);
 
         var context = new Context();
-        context.setVariable("name", "World");
         context.setVariable("date", LocalDateTime.now().toString());
 
         context.setVariable("filename", xsdFilePath);
         context.setVariable("xmlSchema", xmlSchema.get(0));
-
         context.setVariable("xsdElements", elements);
         context.setVariable("xsdComplexTypes", xsdComplexTypes);
         context.setVariable("xsdSimpleTypes", xsdSimpleTypes);
-
         context.setVariable("extendedXsdElements", extendedXsdElements);
 
         var result = templateEngine.process("xsdTemplate", context);
-        // System.out.println(result);
 
         try {
-            Files.write(Paths.get("output.html"), result.getBytes());
+            Files.write(Paths.get("doc\\output.html"), result.getBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
