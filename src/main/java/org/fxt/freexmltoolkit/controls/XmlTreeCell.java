@@ -34,10 +34,18 @@ public class XmlTreeCell extends TreeCell<Node> {
 
             TextField tfNodeValue = new TextField();
             tfNodeValue.setText(n.getFirstChild().getTextContent());
+
+            tfNodeValue.setOnKeyPressed(ae -> {
+                System.out.println("KEY PRESSED: " + ae.getText());
+                System.out.println("TEXTFIELD: " + tfNodeValue.getText());
+
+            });
+
             tfNodeValue.setOnAction(ae -> {
                 n.setNodeValue(tfNodeValue.getText());
                 // System.out.println(XmlServiceImpl.getInstance().prettyFormat(Paths.get()));
             });
+
 
             content.getChildren().addAll(boxNodeName, tfNodeValue);
 
@@ -71,7 +79,7 @@ public class XmlTreeCell extends TreeCell<Node> {
                 boxNodeContent.getChildren().add(tNodeContent);
 
                 content.getChildren().addAll(boxNodeName, boxNodeContent);
-                content.setStyle("-fx-border-width: 0 0 1px 0; -fx-border-color: black; -fx-border-style: solid;");
+                content.setStyle("-fx-border-width: 1px 1px 1px 1px; -fx-border-color: black; -fx-border-style: solid;");
 
                 logger.debug("Node: {} - MAX SIZE: {}", getXPath(node.getParentNode()), TreeHelper.widthHelper.get(getXPath(node.getParentNode())));
                 boxNodeName.prefWidthProperty().bind(TreeHelper.widthHelper.get(getXPath(node.getParentNode())));
