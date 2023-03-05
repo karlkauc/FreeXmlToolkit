@@ -2,16 +2,12 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.*?>
-<AnchorPane prefHeight="800.0" prefWidth="1400.0"
-            stylesheets="/css/mainTheme.css"
-            xmlns="http://javafx.com/javafx/11.0.14-internal"
-            xmlns:fx="http://javafx.com/fxml/1"
+<AnchorPane prefHeight="800.0" prefWidth="1400.0" stylesheets="@../css/mainTheme.css"
+            xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.MainController">
-
 
     <BorderPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                 AnchorPane.topAnchor="0">
@@ -39,16 +35,16 @@
                 <BorderPane VBox.vgrow="ALWAYS">
                     <top>
                         <VBox BorderPane.alignment="CENTER">
-                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button" text="XSLT"
-                                    VBox.vgrow="ALWAYS" fx:id="xslt">
-                                <graphic>
-                                    <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
-                                </graphic>
-                            </Button>
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button" text="XML"
                                     fx:id="xml">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                                </graphic>
+                            </Button>
+                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button" text="XSLT"
+                                    VBox.vgrow="ALWAYS" fx:id="xslt">
+                                <graphic>
+                                    <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
                                 </graphic>
                             </Button>
                             <Button onAction="#loadPage" styleClass="menu_button" text="XSD" VBox.vgrow="ALWAYS"
@@ -67,9 +63,7 @@
                             <Button fx:id="fop" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="FOP" VBox.vgrow="ALWAYS">
                                 <graphic>
-                                    <ImageView fitHeight="16" preserveRatio="true">
-                                        <!-- <Image url="/img/icons8-pdf-16.png"/> -->
-                                    </ImageView>
+                                    <FontIcon iconColor="INDIANRED" iconLiteral="win10-pdf" iconSize="16"/>
                                 </graphic>
                             </Button>
                             <Button fx:id="signature" mnemonicParsing="false" onAction="#loadPage"
@@ -78,14 +72,14 @@
                                     <FontIcon iconColor="#578013" iconLiteral="win10-key" iconSize="16"/>
                                 </graphic>
                             </Button>
-                            <Button fx:id="schematron" mnemonicParsing="false" onAction="#loadPage"
-                                    styleClass="menu_button" text="Schematron" VBox.vgrow="ALWAYS">
+                            <!--
+                            <Button fx:id="schematron" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button" text="Schematron" VBox.vgrow="ALWAYS">
                                 <graphic>
                                     <ImageView fitHeight="16" preserveRatio="true">
-                                        <!-- <Image url="/img/schematron.jpeg"/> -->
                                     </ImageView>
                                 </graphic>
                             </Button>
+                            -->
                         </VBox>
                     </top>
                     <bottom>
@@ -113,8 +107,8 @@
             </VBox>
         </left>
         <center>
-            <AnchorPane fx:id="contentPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-                        AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+            <AnchorPane fx:id="contentPane" AnchorPane.bottomAnchor="0"
+                        AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
         </center>
     </BorderPane>
 </AnchorPane>

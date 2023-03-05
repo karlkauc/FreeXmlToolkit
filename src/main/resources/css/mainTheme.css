@@ -4,42 +4,42 @@
 }
 
 .bottom_line {
-  -fx-background-color: #2A9D8F;
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2A9D8F 0%, #264653 100%);
   -fx-pref-height: 20;
   -fx-max-height: 20;
   -fx-min-height: 20;
 }
 
 .menu_box {
-  -fx-background-color: #E9C46A;
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #E9C46A 0%, #F4A261 100%);
   -fx-pref-width: 150;
   -fx-font-weight: bold;
 }
 
 .menu_button {
-    -fx-alignment: center-left;
-    -fx-pref-height: 50;
-    -fx-pref-width: 250;
-    -fx-border-width: 0 0 0 5px;
-    -fx-border-color: #E76F51;
-    -fx-background-color: transparent;
-    -fx-border-style: solid;
+  -fx-alignment: center-left;
+  -fx-pref-height: 50;
+  -fx-pref-width: 250;
+  -fx-border-width: 0 0 0 5px;
+  -fx-border-color: #E76F51;
+  -fx-background-color: transparent;
+  -fx-border-style: solid;
 }
 
 .menu_button:hover {
-    -fx-border-color: #264653;
+  -fx-border-color: #264653;
 }
 
 .active {
-    -fx-background-color: #e2b23e 100%;
+  -fx-background-color: #e2b23e 100%;
 }
 
 .button_pane_button {
-    -fx-border-color: #a4a3a3;
-    -fx-border-width: 2px;
-    -fx-max-width: 20px;
-    -fx-pref-width: 20px;
-    -fx-pref-height: 20px;
+  -fx-border-color: #a4a3a3;
+  -fx-border-width: 2px;
+  -fx-max-width: 20px;
+  -fx-pref-width: 20px;
+  -fx-pref-height: 20px;
 }
 
 .button_pane_button:hover {

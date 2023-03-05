@@ -6,6 +6,7 @@ $color3: #E9C46A;
 $color4: #F4A261;
 $color5: #E76F51;
 
+
 $background-color: #dcdcdc;
 
 .root {
@@ -13,14 +14,15 @@ $background-color: #dcdcdc;
 }
 
 .bottom_line {
-  -fx-background-color: $color2;
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $color2 0%, $color1 100%);
   -fx-pref-height: 20;
   -fx-max-height: 20;
   -fx-min-height: 20;
 }
 
 .menu_box {
-  -fx-background-color: $color3;
+  // -fx-background-color: $color3;
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $color3 0%, $color4 100%);;;
   -fx-pref-width: 150;
   -fx-font-weight: bold;
 
