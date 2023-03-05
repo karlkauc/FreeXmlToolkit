@@ -7,7 +7,6 @@ import javafx.scene.control.TreeCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,8 +26,10 @@ public class XmlTreeCell extends TreeCell<Node> {
             logger.debug("XPath: {}", getXPath(n));
 
             HBox content = new HBox();
-            Text tNodeName = new Text(n.getNodeName());
             VBox boxNodeName = new VBox();
+
+            Text tNodeName = new Text(n.getNodeName());
+
             boxNodeName.getChildren().add(tNodeName);
             boxNodeName.setPadding(new Insets(0, 10, 0, 0));
 
@@ -36,16 +37,18 @@ public class XmlTreeCell extends TreeCell<Node> {
             tfNodeValue.setText(n.getFirstChild().getTextContent());
 
             tfNodeValue.setOnKeyPressed(ae -> {
-                System.out.println("KEY PRESSED: " + ae.getText());
-                System.out.println("TEXTFIELD: " + tfNodeValue.getText());
+                switch (ae.getCode()) {
+                    case ENTER -> {
+                        System.out.println("ENTER");
+                        n.setTextContent(tfNodeValue.getText());
 
+                        this.setItem(n);
+                    }
+
+                    case ESCAPE -> System.out.println("ESCAPE");
+                    default -> System.out.println("ETWAS EINGEGEBEN: " + tfNodeValue.getText());
+                }
             });
-
-            tfNodeValue.setOnAction(ae -> {
-                n.setNodeValue(tfNodeValue.getText());
-                // System.out.println(XmlServiceImpl.getInstance().prettyFormat(Paths.get()));
-            });
-
 
             content.getChildren().addAll(boxNodeName, tfNodeValue);
 
@@ -69,8 +72,6 @@ public class XmlTreeCell extends TreeCell<Node> {
                 VBox boxNodeContent = new VBox();
 
                 Text tNodeName = new Text(node.getNodeName());
-                tNodeName.setFontSmoothingType(FontSmoothingType.LCD);
-                tNodeName.setStyle("-fx-font-weight: bold;");
 
                 boxNodeName.getChildren().add(tNodeName);
                 boxNodeName.setPadding(new Insets(0, 10, 0, 0));
@@ -79,7 +80,7 @@ public class XmlTreeCell extends TreeCell<Node> {
                 boxNodeContent.getChildren().add(tNodeContent);
 
                 content.getChildren().addAll(boxNodeName, boxNodeContent);
-                content.setStyle("-fx-border-width: 1px 1px 1px 1px; -fx-border-color: black; -fx-border-style: solid;");
+                content.getStyleClass().add("treeRow");
 
                 logger.debug("Node: {} - MAX SIZE: {}", getXPath(node.getParentNode()), TreeHelper.widthHelper.get(getXPath(node.getParentNode())));
                 boxNodeName.prefWidthProperty().bind(TreeHelper.widthHelper.get(getXPath(node.getParentNode())));

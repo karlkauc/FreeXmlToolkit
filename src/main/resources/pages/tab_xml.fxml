@@ -65,7 +65,7 @@
                            AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
             </Tab>
             <Tab closable="false" text="Graphic">
-                <XmlTreeView fx:id="xmlTreeView"/>
+                <XmlTreeView fx:id="xmlTreeView" styleClass="xmlTree"/>
             </Tab>
         </TabPane>
         <HBox prefHeight="100">
