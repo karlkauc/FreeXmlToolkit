@@ -41,6 +41,15 @@
                                     <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
                                 </graphic>
                             </Button>
+                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
+                                    text="XSD Validation" VBox.vgrow="ALWAYS" fx:id="xsdValidation">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
+                                </graphic>
+                            </Button>
+
+                            <Separator/>
+
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button" text="XSLT"
                                     VBox.vgrow="ALWAYS" fx:id="xslt">
                                 <graphic>
@@ -51,12 +60,6 @@
                                     fx:id="xsd">
                                 <graphic>
                                     <FontIcon iconColor="dodgerblue" iconLiteral="bi-diagram-3" iconSize="16"/>
-                                </graphic>
-                            </Button>
-                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                    text="XSD Validation" VBox.vgrow="ALWAYS" fx:id="xsdValidation">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-clipboard-check" iconSize="16"/>
                                 </graphic>
                             </Button>
 

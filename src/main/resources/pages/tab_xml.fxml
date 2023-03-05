@@ -5,60 +5,57 @@
 <?import org.fxt.freexmltoolkit.controls.XmlTreeView?>
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
-      xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <HBox>
-        <HBox HBox.hgrow="ALWAYS">
-            <Button fx:id="newFile" styleClass="button_pane_button">
+        <HBox styleClass="xml">
+            <Button fx:id="newFile" contentDisplay="TOP" text="new File">
                 <graphic>
-                    <FontIcon iconColor="black" iconLiteral="bi-file-earmark" iconSize="16"/>
+                    <FontIcon iconColor="black" iconLiteral="bi-file-earmark"/>
+                </graphic>
+            </Button>
+            <Button fx:id="openFile" contentDisplay="TOP" onAction="#openFile"
+                    text="open File">
+                <graphic>
+                    <FontIcon iconColor="black" iconLiteral="bi-folder2-open"/>
+                </graphic>
+            </Button>
+            <Button fx:id="saveFile" contentDisplay="TOP" onAction="#saveCurrentChanges"
+                    text="save File">
+                <graphic>
+                    <FontIcon iconLiteral="bi-hdd"/>
                 </graphic>
             </Button>
 
-            <Button fx:id="openFile" onAction="#openFile" styleClass="button_pane_button">
+            <Button fx:id="prettyPrint" contentDisplay="TOP" onAction="#formatXmlText"
+                    text="format Text" ButtonBar.buttonData="RIGHT">
                 <graphic>
-                    <FontIcon iconColor="black" iconLiteral="bi-folder2-open" iconSize="16"/>
-                </graphic>
-            </Button>
-            <Button fx:id="saveFile" onAction="#saveCurrentChanges" styleClass="button_pane_button">
-                <graphic>
-                    <FontIcon iconLiteral="bi-hdd" iconSize="16"/>
-                </graphic>
-            </Button>
-
-            <Button fx:id="prettyPrint" onAction="#formatXmlText" styleClass="button_pane_button"
-                    ButtonBar.buttonData="RIGHT">
-                <graphic>
-                    <FontIcon iconColor="darkorange" iconLiteral="fth-align-center" iconSize="16"/>
+                    <FontIcon iconColor="darkorange" iconLiteral="fth-align-center"/>
                 </graphic>
             </Button>
             <Separator orientation="VERTICAL"/>
-            <Button onAction="#moveDown" styleClass="button_pane_button">
+            <Button onAction="#moveDown">
                 <graphic>
-                    <FontIcon iconLiteral="bi-arrow-bar-down" iconSize="16"/>
+                    <FontIcon iconLiteral="bi-arrow-bar-down"/>
                 </graphic>
             </Button>
-            <Button onAction="#moveUp" styleClass="button_pane_button">
+            <Button onAction="#moveUp">
                 <graphic>
-                    <FontIcon iconLiteral="bi-arrow-bar-up" iconSize="16"/>
+                    <FontIcon iconLiteral="bi-arrow-bar-up"/>
                 </graphic>
             </Button>
             <Separator orientation="VERTICAL"/>
-            <TextField text="search...." prefHeight="16.0" prefWidth="200.0"/>
+            <TextField prefHeight="16.0" prefWidth="200.0" promptText="search..."/>
         </HBox>
-        <HBox>
+        <HBox styleClass="xml">
             <Separator orientation="VERTICAL"/>
-            <Button mnemonicParsing="false" text="add schema"/>
-            <ComboBox prefWidth="150.0"/>
-            <Separator orientation="VERTICAL"/>
-            <Button fx:id="validateSchema" onAction="#validateSchema" styleClass="button_pane_button"
-                    ButtonBar.buttonData="RIGHT">
+            <Button fx:id="validateSchema" contentDisplay="TOP" onAction="#validateSchema"
+                    text="validate Schema" ButtonBar.buttonData="RIGHT">
                 <graphic>
-                    <FontIcon iconLiteral="win10-checked" iconSize="16"/>
+                    <FontIcon iconLiteral="win10-checked"/>
                 </graphic>
             </Button>
-            <Button text="TEST" onAction="#test"/>
+            <!-- <Button onAction="#test" text="TEST"/> -->
         </HBox>
     </HBox>
     <SplitPane dividerPositions="0.9" orientation="VERTICAL" VBox.vgrow="ALWAYS">

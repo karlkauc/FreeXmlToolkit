@@ -34,15 +34,17 @@
   -fx-background-color: #e2b23e 100%;
 }
 
-.button_pane_button {
-  -fx-border-color: #a4a3a3;
-  -fx-border-width: 2px;
-  -fx-max-width: 20px;
-  -fx-pref-width: 20px;
-  -fx-pref-height: 20px;
+.xml > .button {
+  -fx-min-width: 70;
+  -fx-font-size: 10;
+  -fx-border-color: #bdbdbd;
 }
 
-.button_pane_button:hover {
+.xml > .button > .ikonli-font-icon {
+  -fx-icon-size: 20;
+}
+
+.xml > .button:hover {
   -fx-border-color: #0078D7;
   -fx-background-color: #B2D8F4;
 }
