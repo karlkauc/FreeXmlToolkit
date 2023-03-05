@@ -20,6 +20,7 @@ $background-color: #dcdcdc;
   -fx-min-height: 20;
 }
 
+// Main menue - start
 .menu_box {
   // -fx-background-color: $color3;
   -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $color3 0%, $color4 100%);;;
@@ -36,7 +37,6 @@ $background-color: #dcdcdc;
   -fx-border-color: $color5;
   -fx-background-color: transparent;
   -fx-border-style: solid;
-
 }
 
 .menu_button:hover {
@@ -46,6 +46,22 @@ $background-color: #dcdcdc;
 .active {
   -fx-background-color: darken($color3, 10) 100%;
 }
+
+// Main Menu - end
+
+.information {
+  -fx-border-color: $color4;
+  -fx-border-style: solid;
+  -fx-border-width: 3px 3px 3px 30px;
+  -fx-padding: 15px;
+  -fx-background-color: white;
+}
+
+.h1 {
+  -fx-font: "Varela Round";
+  -fx-font-size: 40;
+}
+
 
 // XML Page - start
 .xml > .button {
