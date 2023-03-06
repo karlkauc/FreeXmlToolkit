@@ -18,6 +18,7 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import net.sf.saxon.s9api.SaxonApiException;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
 
@@ -33,6 +34,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
+import java.util.Optional;
 
 
 public interface XmlService {
@@ -57,11 +59,11 @@ public interface XmlService {
 
     void setCurrentXml(String currentXml);
 
-    String saxonTransform() throws TransformerException, FileNotFoundException;
+    String saxonTransform() throws TransformerException, FileNotFoundException, SaxonApiException;
 
     List<SAXParseException> validate();
 
-    String getSchemaNameFromCurrentXMLFile();
+    Optional<String> getSchemaNameFromCurrentXMLFile();
 
     boolean loadSchemaFromXMLFile();
 

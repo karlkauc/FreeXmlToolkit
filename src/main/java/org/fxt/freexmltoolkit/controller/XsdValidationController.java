@@ -146,8 +146,8 @@ public class XsdValidationController {
 
         if (autodetect.isSelected()) {
             var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
-            if (schemaName != null && !schemaName.isEmpty()) {
-                xsdFileName.setText(schemaName);
+            if (schemaName.isPresent()) {
+                xsdFileName.setText(schemaName.get());
                 if (xmlService.loadSchemaFromXMLFile()) {
                     logger.debug("Loading remote schema successfull!");
                 } else {

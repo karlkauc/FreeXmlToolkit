@@ -18,7 +18,7 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import net.sf.saxon.TransformerFactoryImpl;
+import net.sf.saxon.s9api.*;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -63,6 +63,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class XmlServiceImpl implements XmlService {
     private final static Logger logger = LogManager.getLogger(XmlService.class);
@@ -166,16 +167,18 @@ public class XmlServiceImpl implements XmlService {
 
 
     @Override
-    public String saxonTransform() throws TransformerException, FileNotFoundException {
-        TransformerFactoryImpl f = new TransformerFactoryImpl();
-        f.setAttribute("http://saxon.sf.net/feature/version-warning", Boolean.FALSE);
+    public String saxonTransform() throws SaxonApiException {
+        Processor processor = new Processor(false);
+        XsltCompiler compiler = processor.newXsltCompiler();
+        XsltExecutable templates = compiler.compile(new StreamSource(currentXsltFile));
+        Xslt30Transformer transformer = templates.load30();
+        XdmNode source = processor.newDocumentBuilder().build(new StreamSource(currentXmlFile));
 
-        StreamSource xsrc = new StreamSource(new FileInputStream(currentXsltFile));
-        Transformer t = f.newTransformer(xsrc);
-        StreamSource src = new StreamSource(new FileInputStream(currentXmlFile));
-        StreamResult res = new StreamResult(new ByteArrayOutputStream());
-        t.transform(src, res);
-        return res.getOutputStream().toString();
+        OutputStream outputStream = new ByteArrayOutputStream();
+        Serializer out = processor.newSerializer(outputStream);
+        processor.writeXdmValue(source, transformer.asDocumentDestination(out));
+
+        return outputStream.toString();
     }
 
     public List<SAXParseException> validate() {
@@ -260,79 +263,81 @@ public class XmlServiceImpl implements XmlService {
             logger.error(e.getMessage());
         }
 
-        String possibleSchemaLocation = getSchemaNameFromCurrentXMLFile();
+        var possibleSchemaLocation = getSchemaNameFromCurrentXMLFile();
 
-        if (possibleSchemaLocation.trim().toLowerCase().startsWith("http://") ||
-                possibleSchemaLocation.trim().toLowerCase().startsWith("https://")) {
+        if (possibleSchemaLocation.isPresent()) {
+            if (possibleSchemaLocation.get().trim().toLowerCase().startsWith("http://") ||
+                    possibleSchemaLocation.get().trim().toLowerCase().startsWith("https://")) {
 
-            String md5Hex = DigestUtils.md5Hex(possibleSchemaLocation.trim().toLowerCase()).toUpperCase();
-            logger.debug("Cache path: {}", md5Hex);
+                String md5Hex = DigestUtils.md5Hex(possibleSchemaLocation.get().trim().toLowerCase()).toUpperCase();
+                logger.debug("Cache path: {}", md5Hex);
 
-            final Path CURRENT_XSD_CACHE_PATH = Path.of(CACHE_DIR + File.separator + md5Hex);
-            if (!Files.exists(CURRENT_XSD_CACHE_PATH)) {
-                try {
-                    Files.createDirectories(CURRENT_XSD_CACHE_PATH);
-                } catch (IOException e) {
-                    logger.error(e.getMessage());
-                }
-            }
-
-            String fileNameNew = FilenameUtils.getName(possibleSchemaLocation);
-
-            File newFile = new File(CURRENT_XSD_CACHE_PATH + File.separator + fileNameNew);
-            if (newFile.exists() && newFile.length() > 1) {
-                logger.debug("Load file from cache: {}", newFile.getAbsolutePath());
-                this.setCurrentXsdFile(newFile);
-                this.remoteXsdLocation = possibleSchemaLocation;
-
-                return true;
-            } else {
-                var proxySelector = ProxySelector.getDefault();
-                if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
-                    logger.debug("PROXY HOST: {}", prop.get("http.proxy.host"));
-                    logger.debug("PROXY PORT: {}", prop.get("http.proxy.port"));
-                    proxySelector = ProxySelector.of(
-                            new InetSocketAddress(
-                                    prop.get("http.proxy.host").toString(),
-                                    Integer.parseInt(prop.get("http.proxy.port").toString())));
-                }
-
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(20))
-                        .proxy(proxySelector)
-                        .build();
-
-                request = HttpRequest.newBuilder()
-                        .uri(URI.create(possibleSchemaLocation))
-                        .build();
-
-                var pathNew = Path.of(newFile.getAbsolutePath());
-
-                try {
-                    HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
-                    logger.debug("HTTP Status Code: {}", response.statusCode());
-                    logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
-
-                    if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
-                        this.setCurrentXsdFile(pathNew.toFile());
-                        this.remoteXsdLocation = possibleSchemaLocation;
-                        return true;
-                    } else {
-                        logger.error("File nicht gefunden oder kein Fileinhalt: {}", pathNew.getFileName());
+                final Path CURRENT_XSD_CACHE_PATH = Path.of(CACHE_DIR + File.separator + md5Hex);
+                if (!Files.exists(CURRENT_XSD_CACHE_PATH)) {
+                    try {
+                        Files.createDirectories(CURRENT_XSD_CACHE_PATH);
+                    } catch (IOException e) {
+                        logger.error(e.getMessage());
                     }
-                } catch (IOException | InterruptedException exception) {
-                    logger.error(exception.getMessage());
                 }
-                return false;
+
+                String fileNameNew = FilenameUtils.getName(possibleSchemaLocation.get());
+
+                File newFile = new File(CURRENT_XSD_CACHE_PATH + File.separator + fileNameNew);
+                if (newFile.exists() && newFile.length() > 1) {
+                    logger.debug("Load file from cache: {}", newFile.getAbsolutePath());
+                    this.setCurrentXsdFile(newFile);
+                    this.remoteXsdLocation = possibleSchemaLocation.get();
+
+                    return true;
+                } else {
+                    var proxySelector = ProxySelector.getDefault();
+                    if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
+                        logger.debug("PROXY HOST: {}", prop.get("http.proxy.host"));
+                        logger.debug("PROXY PORT: {}", prop.get("http.proxy.port"));
+                        proxySelector = ProxySelector.of(
+                                new InetSocketAddress(
+                                        prop.get("http.proxy.host").toString(),
+                                        Integer.parseInt(prop.get("http.proxy.port").toString())));
+                    }
+
+                    client = HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NORMAL)
+                            .connectTimeout(Duration.ofSeconds(20))
+                            .proxy(proxySelector)
+                            .build();
+
+                    request = HttpRequest.newBuilder()
+                            .uri(URI.create(possibleSchemaLocation.get()))
+                            .build();
+
+                    var pathNew = Path.of(newFile.getAbsolutePath());
+
+                    try {
+                        HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
+                        logger.debug("HTTP Status Code: {}", response.statusCode());
+                        logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
+
+                        if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
+                            this.setCurrentXsdFile(pathNew.toFile());
+                            this.remoteXsdLocation = possibleSchemaLocation.get();
+                            return true;
+                        } else {
+                            logger.error("File nicht gefunden oder kein Fileinhalt: {}", pathNew.getFileName());
+                        }
+                    } catch (IOException | InterruptedException exception) {
+                        logger.error(exception.getMessage());
+                    }
+                    return false;
+                }
             }
         }
         return false;
     }
 
     @Override
-    public String getSchemaNameFromCurrentXMLFile() {
+    public Optional<String> getSchemaNameFromCurrentXMLFile() {
         if (this.currentXmlFile != null && this.currentXmlFile.exists()) {
             try {
                 FileInputStream fileIS = new FileInputStream(this.currentXmlFile);
@@ -360,7 +365,7 @@ public class XmlServiceImpl implements XmlService {
                     }
 
                     logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
-                    return possibleSchemaLocation;
+                    return Optional.of(possibleSchemaLocation);
 
                 } else {
                     logger.debug("No possible Schema Location found!");
@@ -373,7 +378,7 @@ public class XmlServiceImpl implements XmlService {
             logger.debug("Kein XML File ausgewählt!");
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public String prettyFormat(String input, int indent) {

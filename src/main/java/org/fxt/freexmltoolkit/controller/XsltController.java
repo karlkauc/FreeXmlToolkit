@@ -25,6 +25,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import net.sf.saxon.s9api.SaxonApiException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -38,6 +39,7 @@ import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
 import javax.xml.transform.TransformerException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -149,7 +151,7 @@ public class XsltController {
 
                 var outputMethod = xmlService.getXsltOutputMethod();
                 logger.debug("Output Method: {}", outputMethod);
-                switch (outputMethod) {
+                switch (outputMethod.toLowerCase().trim()) {
                     case "html", "xhtml" -> {
                         logger.debug("BIN IM HTML");
                         outputMethodSwitch.getSelectionModel().select(tabWeb);
@@ -158,7 +160,7 @@ public class XsltController {
                     case "text" -> outputMethodSwitch.getSelectionModel().select(tabText);
                     default -> outputMethodSwitch.getSelectionModel().select(tabText);
                 }
-            } catch (IOException | TransformerException exception) {
+            } catch (TransformerException | SaxonApiException | FileNotFoundException exception) {
                 logger.error("Exception: {}", exception.getMessage());
             }
         }
@@ -176,12 +178,16 @@ public class XsltController {
 
 
     private void renderHTML(String output) {
-        final String outputFileName = "output/output.html";
+        new File("output").mkdirs();
+        final String outputFileName = "output" + File.separator + "output.html";
+        logger.debug("Output File: {}", outputFileName);
 
         try {
             output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "")
                     .replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "")
                     .replace("  >", "");
+
+            Files.writeString(Paths.get(outputFileName), output);
 
             if (propertiesService != null) {
                 Properties properties = propertiesService.loadProperties();
@@ -190,18 +196,11 @@ public class XsltController {
 
                 if (httpHost != null) {
                     logger.debug("HTTP PROXY: {}:{}", httpHost, httpPort);
-
                     System.setProperty("java.net.useSystemProxies", "true");
-                    // System.setProperty("http.proxyHost", "proxy.p1at.s-group.cc");
-                    // System.setProperty("http.proxyPort", "8080");
-
-                    // System.setProperty("https.proxyHost", "http://" + httpHost);
-                    // System.setProperty("https.proxyPort", httpPort);
                 }
             }
 
             WebEngine engine = webView.getEngine();
-            Files.writeString(Paths.get(outputFileName), output);
             progressBar.setProgress(0.6);
             System.out.println("write successful");
 
@@ -227,11 +226,11 @@ public class XsltController {
 
     @FXML
     private void test() {
-        xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\output\\!FundsXML AMUNDI FLOATING RATE EURO CORP ESG as of 2021-12-30 v2.xml");
-        xsltFile = new File("C:\\Data\\src\\FreeXmlToolkit\\output\\Check_FundsXML_File.xslt");
+        xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\examples\\xml\\L.xml");
+        xsltFile = new File("C:\\Data\\src\\FreeXmlToolkit\\examples\\xslt\\Check_FundsXML_File.xslt");
 
-        xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\output\\DE000A1JXLX8_EUR_20211130_v4_1_8.xml");
-        xsltFile = new File("C:\\Data\\src\\CheckFundsXMLFileAPI\\src\\main\\resources\\Check_FundsXML_File.xslt");
+        // xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\output\\DE000A1JXLX8_EUR_20211130_v4_1_8.xml");
+        // xsltFile = new File("C:\\Data\\src\\FreeXmlToolkit\\examples\\xslt\\Check_FundsXML_File.xslt");
 
         if (this.xmlService != null) {
             this.xmlService.setCurrentXmlFile(xmlFile);

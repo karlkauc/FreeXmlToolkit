@@ -1,3 +1,21 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) 2023.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 plugins {
     java
     idea
@@ -100,7 +118,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     mainClassName = "org.fxt.freexmltoolkit.FxtGui" // SolvencyUI
     headerType = "gui" // gui / console
     icon = "${projectDir}/src/main/resources/img/logo.ico"
-    maxHeapSize = 2048
+    maxHeapSize = 4096
     copyright = System.getProperty("user.name")
 
     // https://bell-sw.com/pages/libericajdk/
@@ -111,10 +129,12 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     doLast {
         println("Copy resources...")
         copy {
-            from(
-                layout.buildDirectory.file("resources/log4j2.xml")
-            )
+            from(layout.buildDirectory.file("resources/log4j2.xml"))
             into(layout.buildDirectory.dir("launch4j"))
+        }
+        copy {
+            from(layout.projectDirectory.dir("examples"))
+            into(layout.buildDirectory.dir("launch4j/examples"))
         }
         println("Copy JDK...")
         copy {
