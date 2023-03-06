@@ -25,7 +25,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import net.sf.saxon.s9api.SaxonApiException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -37,9 +36,7 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
-import javax.xml.transform.TransformerException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -160,7 +157,7 @@ public class XsltController {
                     case "text" -> outputMethodSwitch.getSelectionModel().select(tabText);
                     default -> outputMethodSwitch.getSelectionModel().select(tabText);
                 }
-            } catch (TransformerException | SaxonApiException | FileNotFoundException exception) {
+            } catch (Exception exception) {
                 logger.error("Exception: {}", exception.getMessage());
             }
         }

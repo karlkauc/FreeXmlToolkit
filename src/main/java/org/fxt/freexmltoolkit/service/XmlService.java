@@ -18,21 +18,18 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import net.sf.saxon.s9api.SaxonApiException;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,7 +56,7 @@ public interface XmlService {
 
     void setCurrentXml(String currentXml);
 
-    String saxonTransform() throws TransformerException, FileNotFoundException, SaxonApiException;
+    String saxonTransform();
 
     List<SAXParseException> validate();
 

@@ -167,18 +167,24 @@ public class XmlServiceImpl implements XmlService {
 
 
     @Override
-    public String saxonTransform() throws SaxonApiException {
-        Processor processor = new Processor(false);
-        XsltCompiler compiler = processor.newXsltCompiler();
-        XsltExecutable templates = compiler.compile(new StreamSource(currentXsltFile));
-        Xslt30Transformer transformer = templates.load30();
-        XdmNode source = processor.newDocumentBuilder().build(new StreamSource(currentXmlFile));
+    public String saxonTransform() {
+        try {
+            Processor processor = new Processor(false);
+            XsltCompiler compiler = processor.newXsltCompiler();
+            XsltExecutable stylesheet = compiler.compile(new StreamSource(getCurrentXsltFile()));
+            StringWriter sw = new StringWriter();
+            Serializer out = processor.newSerializer();
+            out.setOutputProperty(Serializer.Property.METHOD, "html");
+            out.setOutputProperty(Serializer.Property.INDENT, "yes");
+            out.setOutputWriter(sw);
 
-        OutputStream outputStream = new ByteArrayOutputStream();
-        Serializer out = processor.newSerializer(outputStream);
-        processor.writeXdmValue(source, transformer.asDocumentDestination(out));
+            Xslt30Transformer transformer = stylesheet.load30();
+            transformer.transform(new StreamSource(getCurrentXmlFile()), out);
 
-        return outputStream.toString();
+            return sw.toString();
+        } catch (SaxonApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<SAXParseException> validate() {

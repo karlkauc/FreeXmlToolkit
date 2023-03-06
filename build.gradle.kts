@@ -61,7 +61,7 @@ run {
 dependencies {
     // XSLT
     implementation("net.sf.saxon:Saxon-HE:12.0") {
-        exclude(group = "xml-apis", module = "xml-apis")
+        // exclude(group = "xml-apis", module = "xml-apis")
     }
 
     // Icons
