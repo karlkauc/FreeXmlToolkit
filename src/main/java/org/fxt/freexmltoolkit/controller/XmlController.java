@@ -110,9 +110,15 @@ public class XmlController {
     @FXML
     private void evaluateXpath() {
         var newString = this.xmlService.getXmlFromXpath(xpathText.getText());
-        logger.debug("New String: {}", newString);
-        codeArea.clear();
-        codeArea.replaceText(0, 0, newString);
+
+        if (!newString.isEmpty()) {
+            logger.debug("New String: {}", newString);
+            codeArea.clear();
+            codeArea.replaceText(0, 0, newString);
+        } else {
+            logger.debug("XPath is empty!");
+        }
+
     }
 
     @FXML
@@ -226,6 +232,7 @@ public class XmlController {
         logger.debug("Last open Dir: {}", lastOpenDir);
         if (lastOpenDir == null) {
             lastOpenDir = Path.of(".").toString();
+            logger.debug("New last open Dir: {}", lastOpenDir);
         }
         fileChooser.setInitialDirectory(new File(lastOpenDir));
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));

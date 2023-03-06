@@ -76,7 +76,6 @@ dependencies {
     // SVG Graphic
     implementation("org.apache.xmlgraphics:batik-svggen:1.16")
 
-
     // Misc
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
@@ -135,7 +134,7 @@ tasks.named<Test>("test") {
 
 jlink {
     launcher {
-        name = "hello"
+        name = "FreeXmlToolkit"
         forceMerge("log4j-api")
     }
 }
