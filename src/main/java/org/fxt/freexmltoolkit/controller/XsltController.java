@@ -21,7 +21,10 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.concurrent.Worker.State;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -71,13 +74,10 @@ public class XsltController {
     StackPane textView;
 
     @FXML
-    TableView csvView;
-
-    @FXML
     TabPane outputMethodSwitch;
 
     @FXML
-    Tab tabWeb, tabText, tabCsv;
+    Tab tabWeb, tabText;
 
     File xmlFile, xsltFile;
 
@@ -85,7 +85,16 @@ public class XsltController {
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     @FXML
+    Button debugButton;
+
+    @FXML
     private void initialize() {
+        var test = System.getenv("debug");
+        if (test != null) {
+            logger.debug("set visible false");
+            debugButton.setVisible(true);
+        }
+
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
         textView.getChildren().add(virtualizedScrollPane);

@@ -136,7 +136,6 @@ public class XmlController {
         } else {
             logger.debug("XPath is empty!");
         }
-
     }
 
     @FXML
