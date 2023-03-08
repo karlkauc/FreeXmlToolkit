@@ -19,9 +19,14 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
+import javafx.scene.control.Button;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.ConnectionService;
+import org.fxt.freexmltoolkit.service.ConnectionServiceImpl;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
@@ -32,12 +37,38 @@ public class SettingsController {
     private final static Logger logger = LogManager.getLogger(SettingsController.class);
 
     @FXML
-    CheckBox useSystemHttpProxy;
+    RadioButton noProxy, systemProxy, manualProxy;
+
+    @FXML
+    Spinner<Integer> portSpinner;
+
+    @FXML
+    Button checkConnection;
+
+    SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, 8080);
 
     @FXML
     public void initialize() {
-        logger.debug("INIT!");
+        portSpinner.setValueFactory(valueFactory);
+        loadCurrentSettings();
     }
 
+    @FXML
+    private void performCheck() {
+        logger.debug("Perform Connection Check");
 
+    }
+
+    @FXML
+    private void performSave() {
+
+    }
+
+    @FXML
+    private void loadCurrentSettings() {
+        var properties = propertiesService.loadProperties();
+
+        ConnectionService connectionService = ConnectionServiceImpl.getInstance();
+        connectionService.testConnection();
+    }
 }

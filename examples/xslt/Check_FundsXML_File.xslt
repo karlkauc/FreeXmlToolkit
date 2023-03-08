@@ -1,4 +1,22 @@
 <?xml version="1.1" encoding="UTF-8"?>
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) 2023.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
 <xsl:stylesheet version="3.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:xslt="http://www.w3.org/1999/XSL/Transform"
@@ -26,10 +44,13 @@
                 <meta name="theme-color" content="#bce4fa"/>
                 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 
-                <link href="prism.css" rel="stylesheet"/>
-
-                <link href="lib/main.min.css" rel="stylesheet"/>
-                <link rel="stylesheet" href="scss/eam_style.css"/>
+                <link rel="stylesheet"
+                      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css"
+                      integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA=="
+                      crossorigin="anonymous" referrerpolicy="no-referrer"/>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css"
+                      integrity="sha512-/mZ1FHPkg6EKcxo0fKXF51ak6Cr2ocgDi5ytaTBjsQZIH/RNs6GF6+oId/vPe3eJB836T36nXwVh/WBl/cWT4w=="
+                      crossorigin="anonymous" referrerpolicy="no-referrer"/>
             </head>
             <body class="container-fluid">
                 <h1>Analyzing File</h1>
@@ -122,10 +143,14 @@
                     </pre>
                 </p>
 
-                <script src="prism.js"/>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"
+                        integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ=="
+                        crossorigin="anonymous" referrerpolicy="no-referrer"/>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"
+                        integrity="sha512-i9cEfJwUwViEPFKdC1enz4ZRGBj8YQo6QByFTF92YXHi7waCqyexvRD75S5NVTsSiTv7rKWqG9Y5eFxmRsOn0A=="
+                        crossorigin="anonymous" referrerpolicy="no-referrer"/>
+
                 <script src="replaceNodes.js"/>
-                <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.js"/>
-                <script src="node_modules/bootstrap/js/dist/collapse.js"/>
             </body>
         </html>
     </xsl:template>

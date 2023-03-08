@@ -232,11 +232,11 @@ public class XsltController {
 
     @FXML
     private void test() {
-        xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\examples\\xml\\L.xml");
+        xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\examples\\xml\\FundsXML_422_Bond_Fund.xml");
         xsltFile = new File("C:\\Data\\src\\FreeXmlToolkit\\examples\\xslt\\Check_FundsXML_File.xslt");
 
-        // xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\output\\DE000A1JXLX8_EUR_20211130_v4_1_8.xml");
-        // xsltFile = new File("C:\\Data\\src\\FreeXmlToolkit\\examples\\xslt\\Check_FundsXML_File.xslt");
+        xmlFileLoader.setFile(xmlFile);
+        xsltFileLoader.setFile(xsltFile);
 
         if (this.xmlService != null) {
             this.xmlService.setCurrentXmlFile(xmlFile);

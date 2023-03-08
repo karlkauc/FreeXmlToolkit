@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.web.WebView?>
-<?import org.fxt.freexmltoolkit.controls.FileLoader?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
   ~ Copyright (c) 2023.
@@ -23,20 +18,19 @@
   ~
   -->
 
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
+<?import org.fxt.freexmltoolkit.controls.FileLoader?>
 <HBox style="-fx-padding: 5;" stylesheets="@../css/app.css" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/17.0.2-ea"
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XsltController">
     <HBox HBox.hgrow="ALWAYS">
         <BorderPane maxWidth="300" minWidth="300" prefWidth="300" style="-fx-padding: 0 5 0 0;">
             <top>
                 <VBox>
-                    <FileLoader VBox.vgrow="ALWAYS" fx:id="xmlFileLoader">
-                        <teaserImage>
-                            <ImageView fitHeight="20" fitWidth="20">
-                                <Image url="@../img/icons8-aktualisieren-48.png"/>
-                            </ImageView>
-                        </teaserImage>
-                    </FileLoader>
+                    <FileLoader VBox.vgrow="ALWAYS" fx:id="xmlFileLoader"/>
 
                     <Separator/>
                     <FileLoader fx:id="xsltFileLoader"/>

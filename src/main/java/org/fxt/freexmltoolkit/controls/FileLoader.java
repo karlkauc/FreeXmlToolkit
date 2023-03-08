@@ -60,6 +60,13 @@ public class FileLoader extends VBox {
         });
     }
 
+    public FileLoader(File f) {
+        file = f;
+
+        this.getChildren().add(loadButton);
+        this.getChildren().add(fileInfo);
+    }
+
     public ImageView getTeaserImage() {
         return teaserImage;
     }
@@ -116,30 +123,34 @@ public class FileLoader extends VBox {
         file = fileChooser.showOpenDialog(null);
 
         if (file != null) {
-            fileInfo.getChildren().clear();
-
-            fileInfo.add(new Label("Size:"), 0, 0);
-            fileInfo.add(new Label(FileUtils.byteCountToDisplaySize(file.length())), 1, 0);
-
-            logger.debug("File: {}", file.getAbsolutePath());
-
-            try {
-                BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-
-                fileInfo.add(new Label("creation Time:"), 0, 1);
-                fileInfo.add(new Label(attr.creationTime().toString()), 1, 1);
-
-                fileInfo.add(new Label("lastModifiedTime:"), 0, 2);
-                fileInfo.add(new Label(attr.lastModifiedTime().toString()), 1, 2);
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-            }
-
+            setFileInfoGrid();
             return file;
         }
 
         return null;
     }
+
+    private void setFileInfoGrid() {
+        fileInfo.getChildren().clear();
+
+        fileInfo.add(new Label("Size:"), 0, 0);
+        fileInfo.add(new Label(FileUtils.byteCountToDisplaySize(file.length())), 1, 0);
+
+        logger.debug("File: {}", file.getAbsolutePath());
+
+        try {
+            BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+
+            fileInfo.add(new Label("creation Time:"), 0, 1);
+            fileInfo.add(new Label(attr.creationTime().toString()), 1, 1);
+
+            fileInfo.add(new Label("lastModifiedTime:"), 0, 2);
+            fileInfo.add(new Label(attr.lastModifiedTime().toString()), 1, 2);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+    }
+
 
     private void setLayout() {
         this.setStyle("-fx-padding: 7px; ");
@@ -154,5 +165,10 @@ public class FileLoader extends VBox {
 
     public File getFile() {
         return file;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+        setFileInfoGrid();
     }
 }

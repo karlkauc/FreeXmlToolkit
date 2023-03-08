@@ -65,6 +65,8 @@ $background-color: #dcdcdc;
 }
 
 // Main Menu - end
+
+// Containers - Start
 .information {
   -fx-border-color: $color4;
   -fx-border-style: solid;
@@ -73,10 +75,39 @@ $background-color: #dcdcdc;
   -fx-background-color: white;
 }
 
+.error {
+  -fx-border-color: #f64215;;
+  -fx-border-style: solid;
+  -fx-border-width: 3px 3px 3px 30px;
+  -fx-padding: 15px;
+  -fx-background-color: white;
+}
+
+.container {
+  -fx-padding: 30px;
+  -fx-border-insets: 30px;
+  -fx-background-insets: 30px;
+
+  -fx-spacing: 10px;
+}
+
+// Containers END
+
+
+// Typographie Start
 .h1 {
   -fx-font-family: "Varela Round";
-  -fx-font-size: 40px;
+  -fx-font-size: 4em;
 }
+
+.h2 {
+  -fx-font-family: "Varela Round";
+  -fx-font-weight: bold;
+  -fx-font-size: 1.5em;
+  -fx-padding: 0 0 5px 0;
+}
+
+// Typographie End
 
 
 // XML Page - start
@@ -94,7 +125,6 @@ $background-color: #dcdcdc;
   -fx-border-color: #0078D7;
   -fx-background-color: #B2D8F4;
 }
-
 // XML Page End
 
 // XML Tree View - start
@@ -126,3 +156,5 @@ $background-color: #dcdcdc;
   -fx-background-color: blue;
   -fx-shape: "M911.232 420.565333l0 109.717333q0 22.848-16 38.848t-38.848 16l-694.848 0q-22.848 0-38.848-16t-16-38.848l0-109.717333q0-22.848 16-38.848t38.848-16l694.848 0q22.848 0 38.848 16t16 38.848z";
 }
+
+// XML Tree View - end

@@ -59,9 +59,31 @@
   -fx-background-color: white;
 }
 
+.error {
+  -fx-border-color: #f64215;
+  -fx-border-style: solid;
+  -fx-border-width: 3px 3px 3px 30px;
+  -fx-padding: 15px;
+  -fx-background-color: white;
+}
+
+.container {
+  -fx-padding: 30px;
+  -fx-border-insets: 30px;
+  -fx-background-insets: 30px;
+  -fx-spacing: 10px;
+}
+
 .h1 {
   -fx-font-family: "Varela Round";
-  -fx-font-size: 40px;
+  -fx-font-size: 4em;
+}
+
+.h2 {
+  -fx-font-family: "Varela Round";
+  -fx-font-weight: bold;
+  -fx-font-size: 1.5em;
+  -fx-padding: 0 0 5px 0;
 }
 
 .xml > .button {
