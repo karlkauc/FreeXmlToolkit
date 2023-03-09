@@ -50,7 +50,7 @@ public class XmlTreeView extends TreeView<org.w3c.dom.Node> implements Initializ
             this.setCellFactory(param -> new XmlTreeCell());
             this.setRoot(xmlTreeItem);
 
-            printChildren(xmlTreeItem);
+            // printChildren(xmlTreeItem);
         }
     }
 

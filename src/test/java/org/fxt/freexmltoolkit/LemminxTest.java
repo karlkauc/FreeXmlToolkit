@@ -1,30 +1,35 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) 2023.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package org.fxt.freexmltoolkit;
 
-import org.eclipse.lemminx.XMLLanguageServer;
-import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.lemminx.XMLServerLauncher;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
-import java.util.concurrent.ExecutionException;
 
 public class LemminxTest {
 
-
     @Test
-    void xpathTest1() throws ExecutionException, InterruptedException {
-        var f = new File("src/test/resources/test01.xml");
-        var server = new XMLLanguageServer();
-
-        final Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, System.in, System.out);
-        var startListening = launcher.startListening();
-        var t = startListening.get();
+    void xpathTest1() {
 
 
-        var client = server.getLanguageClient();
+        var x = XMLServerLauncher.launch(System.in, System.out);
 
-
+        System.out.println("x.isDone() = " + x.isDone());
     }
 
 }

@@ -4,6 +4,24 @@
 <?import javafx.scene.layout.*?>
 <?import org.fxt.freexmltoolkit.controls.XmlTreeView?>
 <?import org.kordamp.ikonli.javafx.*?>
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) 2023.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
@@ -57,6 +75,17 @@
             </Button>
             <!-- <Button onAction="#test" text="TEST"/> -->
         </HBox>
+        <HBox visible="false" fx:id="test" styleClass="xml">
+            <Separator orientation="VERTICAL"/>
+            <Button contentDisplay="TOP" onAction="#test"
+                    text="test" ButtonBar.buttonData="RIGHT">
+                <graphic>
+                    <FontIcon iconLiteral="win10-checked"/>
+                </graphic>
+            </Button>
+            <!-- <Button onAction="#test" text="TEST"/> -->
+        </HBox>
+
     </HBox>
     <SplitPane dividerPositions="0.9" orientation="VERTICAL" VBox.vgrow="ALWAYS">
         <TabPane VBox.vgrow="ALWAYS">
