@@ -24,6 +24,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -54,7 +55,8 @@ import java.util.regex.Pattern;
 
 public class XmlController {
 
-    public static final int MAX_SIZE_FOR_FORMATING = 1024 * 1024 * 2;
+    // MAX File Size for formating Syntax
+    public static final int MAX_SIZE_FOR_FORMATING = 1024 * 1024 * 20;
     XmlService xmlService = XmlServiceImpl.getInstance();
 
     @FXML
@@ -99,9 +101,18 @@ public class XmlController {
     FileChooser fileChooser = new FileChooser();
 
     @FXML
+    HBox test;
+
+    @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
         xmlService = XmlServiceImpl.getInstance();
+
+        var t = System.getenv("debug");
+        if (t != null) {
+            logger.debug("set visible false");
+            test.setVisible(true);
+        }
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
@@ -111,6 +122,8 @@ public class XmlController {
                     codeArea.setStyleSpans(0, computeHighlighting(newText));
                     logger.debug("FINISH REFORMAT TEXT in XmlController");
                 });
+            } else {
+                logger.debug("FILE TOO BIG: {}", newText.length());
             }
         });
 
@@ -251,6 +264,7 @@ public class XmlController {
             lastOpenDir = Path.of(".").toString();
             logger.debug("New last open Dir: {}", lastOpenDir);
         }
+
         fileChooser.setInitialDirectory(new File(lastOpenDir));
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
         File selectedFile = fileChooser.showOpenDialog(null);
@@ -272,8 +286,8 @@ public class XmlController {
 
     @FXML
     private void test() {
-        xmlService.setCurrentXmlFile(Paths.get("C:/Data/src/FreeXmlToolkit/output/!FundsXML AMUNDI FLOATING RATE EURO CORP ESG as of 2021-12-30 v2.xml").toFile());
-        xmlService.setCurrentXsdFile(Paths.get("C:/Data/src/schema/FundsXML4.xsd").toFile());
+        xmlService.setCurrentXmlFile(Paths.get("C:\\Data\\src\\FreeXmlToolkit\\examples\\xml\\FundsXML_422_Bond_Fund.xml").toFile());
+        xmlService.setCurrentXsdFile(Paths.get("C:\\Data\\src\\FreeXmlToolkit\\examples\\xsd\\FundsXML4.xsd").toFile());
         reloadXmlText();
     }
 

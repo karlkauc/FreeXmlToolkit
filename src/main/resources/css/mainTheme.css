@@ -115,19 +115,32 @@
 }
 
 .treeRow {
-  -fx-border-width: 0px 0px 1px 0px;
+  -fx-border-width: 0px 0px 1px 1px;
   -fx-border-color: black;
   -fx-border-style: solid;
+  -fx-padding: 0 0 5px 5px;
 }
 
 .tree-cell > .tree-disclosure-node > .arrow {
-  -fx-background-size: 20px;
-  -fx-shape: "M860 412H612V164c0-55.2-44.8-100-100-100s-100 44.8-100 100v248H164c-55.2 0-100 44.8-100 100s44.8 100 100 100h248v248c0 55.2 44.8 100 100 100s100-44.8 100-100V612h248c55.2 0 100-44.8 100-100s-44.8-100-100-100z";
+  -fx-background-size: 16px;
+  /*
+  -fx-stroke: red;
+  -fx-stroke-width: 1;
+  -fx-fill: red;
+  -fx-shape: "M 100 100 L 300 100 L 200 300 z";
+   */
+  fx-background-image: url("img/minus.PNG");
 }
 
 .tree-cell:expanded > .tree-disclosure-node > .arrow {
   -fx-background-color: blue;
-  -fx-shape: "M911.232 420.565333l0 109.717333q0 22.848-16 38.848t-38.848 16l-694.848 0q-22.848 0-38.848-16t-16-38.848l0-109.717333q0-22.848 16-38.848t38.848-16l694.848 0q22.848 0 38.848 16t16 38.848z";
+  -fx-shape: "M 100 100 L 300 100 L 200 300 z";
+  -fx-rotate: 270;
+}
+
+.xmlAttributeNode {
+  -fx-text-fill: #F4A261;
+  -fx-font-weight: bold;
 }
 
 /*# sourceMappingURL=mainTheme.css.map */

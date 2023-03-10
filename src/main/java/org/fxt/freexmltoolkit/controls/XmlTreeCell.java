@@ -35,6 +35,11 @@ public class XmlTreeCell extends TreeCell<Node> {
 
     public XmlTreeCell() {
         super();
+
+        HBox content = new HBox();
+        VBox boxNodeName = new VBox();
+        TextField tfNodeValue = new TextField();
+
         setOnMouseClicked(event -> {
             var ti = getTreeItem();
             if (ti == null || event.getClickCount() < 2) {
@@ -43,15 +48,10 @@ public class XmlTreeCell extends TreeCell<Node> {
             Node n = ti.getValue();
             logger.debug("XPath: {}", getXPath(n));
 
-            HBox content = new HBox();
-            VBox boxNodeName = new VBox();
-
             Text tNodeName = new Text(n.getNodeName());
 
             boxNodeName.getChildren().add(tNodeName);
             boxNodeName.setPadding(new Insets(0, 10, 0, 0));
-
-            TextField tfNodeValue = new TextField();
             tfNodeValue.setText(n.getFirstChild().getTextContent());
 
             tfNodeValue.setOnKeyPressed(ae -> {
@@ -69,7 +69,6 @@ public class XmlTreeCell extends TreeCell<Node> {
             });
 
             content.getChildren().addAll(boxNodeName, tfNodeValue);
-
             this.setGraphic(content);
             // ToDo: irgendwas damit anstellen!
         });
@@ -86,6 +85,7 @@ public class XmlTreeCell extends TreeCell<Node> {
                     && node.getFirstChild().getTextContent().trim().length() > 1) {
 
                 HBox content = new HBox();
+
                 VBox boxNodeName = new VBox();
                 VBox boxNodeContent = new VBox();
 
@@ -114,8 +114,19 @@ public class XmlTreeCell extends TreeCell<Node> {
                 Text nodeName = new Text(node.getNodeName());
                 nodeName.setFill(Color.DARKGRAY);
 
-                Text nodeCount = new Text(" {" + countRealNodes(node) + "}");
-                nodeCount.setFill(Color.FUCHSIA);
+                // nodeName.prefWidthProperty().bind(TreeHelper.widthHelper.get(getXPath(node.getParentNode())));
+
+                Text nodeCount;
+
+                // entweder anzahl der element - oder attribut daten
+                if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
+                    nodeCount = new Text(node.getTextContent());
+                    // nodeCount.setFill(Color.valueOf("#F4A261"));
+                    content.getStyleClass().add("xmlAttributeNode");
+                } else {
+                    nodeCount = new Text(" {" + countRealNodes(node) + "}");
+                    nodeCount.setFill(Color.FUCHSIA);
+                }
 
                 content.getChildren().addAll(nodeName, nodeCount);
                 setGraphic(content);

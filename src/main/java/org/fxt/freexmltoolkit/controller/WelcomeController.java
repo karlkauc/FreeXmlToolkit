@@ -37,6 +37,8 @@ public class WelcomeController {
 
     private final static Logger logger = LogManager.getLogger(WelcomeController.class);
 
+    private MainController parentController;
+
     @FXML
     HBox versionUpdate;
 
@@ -47,6 +49,10 @@ public class WelcomeController {
     Label duration;
 
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+
+    public void setParentController(MainController parentController) {
+        this.parentController = parentController;
+    }
 
     @FXML
     private void initialize() {

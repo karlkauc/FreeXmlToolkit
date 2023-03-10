@@ -50,8 +50,7 @@ public class MainController {
     AnchorPane contentPane;
 
     @FXML
-    Button xslt, xml, xsd, xsdValidation, fop, signature, schematron, help, settings, exit;
-
+    Button xslt, xml, xsd, xsdValidation, fop, signature, help, settings, exit;
 
     @FXML
     public void initialize() {
@@ -76,7 +75,6 @@ public class MainController {
             case "xsdValidation" -> "/pages/tab_validation.fxml";
             case "fop" -> "/pages/tab_fop.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
-            case "schematron" -> null;
             case "help" -> null;
             case "settings" -> "/pages/settings.fxml";
             default -> null;
@@ -100,7 +98,29 @@ public class MainController {
             contentPane.getChildren().clear();
             contentPane.getChildren().add(newLoadedPane);
 
-            // var controller = loader.getController();
+            try {
+                Class<?> aClass = loader.getController().getClass();
+
+                if (aClass.equals(XmlController.class)) {
+                    ((XmlController) loader.getController()).setParentController(this);
+                } else if (aClass.equals(XsdValidationController.class)) {
+                    ((XsdValidationController) loader.getController()).setParentController(this);
+                } else if (aClass.equals(SettingsController.class)) {
+                    ((SettingsController) loader.getController()).setParentController(this);
+                } else if (aClass.equals(WelcomeController.class)) {
+                    ((WelcomeController) loader.getController()).setParentController(this);
+                } else if (aClass.equals(XsdController.class)) {
+                    ((XsdController) loader.getController()).setParentController(this);
+                }
+
+                var controller = loader.getController();
+                logger.debug("Controller Class: {}", controller.getClass());
+
+            } catch (Exception e) {
+                logger.error("Error in Controller setting.");
+                logger.error(e.getStackTrace());
+                logger.error(e.getMessage());
+            }
 
         } catch (Exception e) {
             logger.error(e.getMessage());

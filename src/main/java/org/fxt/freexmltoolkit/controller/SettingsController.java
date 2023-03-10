@@ -19,10 +19,7 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.ConnectionService;
@@ -33,6 +30,8 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 public class SettingsController {
 
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+
+    ConnectionService connectionService = ConnectionServiceImpl.getInstance();
 
     private final static Logger logger = LogManager.getLogger(SettingsController.class);
 
@@ -45,18 +44,27 @@ public class SettingsController {
     @FXML
     Button checkConnection;
 
+    @FXML
+    ToggleGroup proxy;
+
     SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, 8080);
+
+    private MainController parentController;
+
+    public void setParentController(MainController parentController) {
+        this.parentController = parentController;
+    }
 
     @FXML
     public void initialize() {
+        logger.debug("BIN DRINNEN");
         portSpinner.setValueFactory(valueFactory);
-        loadCurrentSettings();
+        //loadCurrentSettings();
     }
 
     @FXML
     private void performCheck() {
         logger.debug("Perform Connection Check");
-
     }
 
     @FXML
@@ -66,9 +74,6 @@ public class SettingsController {
 
     @FXML
     private void loadCurrentSettings() {
-        var properties = propertiesService.loadProperties();
-
-        ConnectionService connectionService = ConnectionServiceImpl.getInstance();
-        connectionService.testConnection();
+        // connectionService.testConnection();
     }
 }
