@@ -98,6 +98,11 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
+    public Document getXmlDocument() {
+        return xmlDocument;
+    }
+
+    @Override
     public File getCurrentXmlFile() {
         return currentXmlFile;
     }
@@ -105,6 +110,14 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public void setCurrentXmlFile(File currentXmlFile) {
         this.currentXmlFile = currentXmlFile;
+
+        try {
+            var schemaLocation = getSchemaNameFromCurrentXMLFile();
+            if (schemaLocation.isPresent() && schemaLocation.get().length() > 0) {
+                remoteXsdLocation = schemaLocation.get();
+            }
+        } catch (Exception ignore) {
+        }
     }
 
     @Override
@@ -187,32 +200,40 @@ public class XmlServiceImpl implements XmlService {
         }
     }
 
-    public List<SAXParseException> validate() {
+
+    @Override
+    public List<SAXParseException> validateText(String xmlString, File schemaFile) {
+
+        if (schemaFile == null) {
+            logger.warn("Schema File is empty.");
+            return null;
+        }
+
         final List<SAXParseException> exceptions = new LinkedList<>();
         try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = factory.newSchema(new StreamSource(this.currentXsdFile));
+            Schema schema = factory.newSchema(new StreamSource(schemaFile));
             Validator validator = schema.newValidator();
 
             validator.setErrorHandler(new ErrorHandler() {
                 @Override
-                public void warning(SAXParseException exception) throws SAXException {
+                public void warning(SAXParseException exception) {
                     exceptions.add(exception);
                 }
 
                 @Override
-                public void fatalError(SAXParseException exception) throws SAXException {
+                public void fatalError(SAXParseException exception) {
                     exceptions.add(exception);
                 }
 
                 @Override
-                public void error(SAXParseException exception) throws SAXException {
+                public void error(SAXParseException exception) {
                     exceptions.add(exception);
                 }
             });
 
-            StreamSource xmlFile = new StreamSource(this.currentXmlFile);
-            validator.validate(xmlFile);
+            StreamSource xmlStreamSource = new StreamSource(new StringReader(xmlString));
+            validator.validate(xmlStreamSource);
 
             return exceptions;
 
@@ -220,6 +241,40 @@ public class XmlServiceImpl implements XmlService {
             logger.error(e.getMessage());
             return exceptions;
         }
+    }
+
+    @Override
+    public List<SAXParseException> validateFile(File xml) {
+        if (xml == null || !xml.exists()) {
+            return null;
+        }
+        return validateFile(xml, currentXsdFile);
+    }
+
+    @Override
+    public List<SAXParseException> validateText(String xmlString) {
+        return validateText(xmlString, currentXsdFile);
+    }
+
+    @Override
+    public List<SAXParseException> validateFile(File xml, File schemaFile) {
+        if (xml == null || schemaFile == null
+                || !xml.exists() || !schemaFile.exists()) {
+            logger.warn("Files do not exits.");
+            return null;
+        }
+
+        try {
+            String s = Files.readString(xml.toPath());
+            return validateText(s, schemaFile);
+        } catch (IOException ioException) {
+            return null;
+        }
+    }
+
+    public List<SAXParseException> validate() {
+        logger.debug("Validate File [{}] with schema [{}].", currentXmlFile.toPath().toString(), currentXsdFile.toPath().toString());
+        return validateFile(currentXmlFile, currentXsdFile);
     }
 
     @Override
@@ -272,6 +327,11 @@ public class XmlServiceImpl implements XmlService {
         var possibleSchemaLocation = getSchemaNameFromCurrentXMLFile();
 
         if (possibleSchemaLocation.isPresent()) {
+            var temp = possibleSchemaLocation.get();
+            if (temp.contains(" ")) {
+                // xmlns
+            }
+
             if (possibleSchemaLocation.get().trim().toLowerCase().startsWith("http://") ||
                     possibleSchemaLocation.get().trim().toLowerCase().startsWith("https://")) {
 
@@ -337,6 +397,8 @@ public class XmlServiceImpl implements XmlService {
                     }
                     return false;
                 }
+            } else {
+                logger.debug("Schema do not start with http!");
             }
         }
         return false;
@@ -356,9 +418,8 @@ public class XmlServiceImpl implements XmlService {
                 var possibleSchemaLocation = root.getAttribute("xsi:noNamespaceSchemaLocation");
 
                 if (possibleSchemaLocation.isEmpty()) {
-                    logger.debug("noNamespaceSchemaLocation not set. Trying schemaLocation");
-                    // xsi:schemaLocation="http://example/note example.xsd"
-                    possibleSchemaLocation = root.getAttribute("xsi:schemaLocation");
+                    logger.debug("noNamespaceSchemaLocation not set. Trying xmlns");
+                    possibleSchemaLocation = root.getAttribute("xmlns");
                     logger.debug("Schema Location: {}", possibleSchemaLocation);
                 }
 
@@ -378,7 +439,8 @@ public class XmlServiceImpl implements XmlService {
                 }
 
             } catch (IOException | ParserConfigurationException | SAXException exception) {
-                logger.error(exception.getMessage());
+                // logger.error(exception.getMessage());
+                logger.error("Error");
             }
         } else {
             logger.debug("Kein XML File ausgewählt!");
@@ -400,7 +462,7 @@ public class XmlServiceImpl implements XmlService {
             return res.getOutputStream().toString();
         } catch (Exception e) {
             System.out.println("FEHLER");
-            System.out.println(e.getMessage());
+            // System.out.println(e.getMessage());
             return input;
         }
     }

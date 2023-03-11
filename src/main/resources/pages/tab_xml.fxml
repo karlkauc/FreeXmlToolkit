@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import org.fxt.freexmltoolkit.controls.XmlTreeView?>
-<?import org.kordamp.ikonli.javafx.*?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
   ~ Copyright (c) 2023.
@@ -22,31 +18,34 @@
   ~
   -->
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.fxt.freexmltoolkit.controls.XmlTreeView?>
+<?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <HBox>
         <HBox styleClass="xml">
-            <Button fx:id="newFile" contentDisplay="TOP" text="new File">
+            <Button fx:id="newFile" contentDisplay="TOP" text="_new File">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-file-earmark"/>
                 </graphic>
             </Button>
-            <Button fx:id="openFile" contentDisplay="TOP" onAction="#openFile"
-                    text="open File">
+            <Button fx:id="openFile" contentDisplay="TOP" onAction="#openFile" text="_open File">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-folder2-open"/>
                 </graphic>
             </Button>
-            <Button fx:id="saveFile" contentDisplay="TOP" onAction="#saveCurrentChanges"
-                    text="save File">
+            <Button fx:id="saveFile" contentDisplay="TOP" onAction="#saveCurrentChanges" text="_save File">
                 <graphic>
                     <FontIcon iconLiteral="bi-hdd"/>
                 </graphic>
             </Button>
 
-            <Button fx:id="prettyPrint" contentDisplay="TOP" onAction="#formatXmlText"
-                    text="format Text" ButtonBar.buttonData="RIGHT">
+            <Button fx:id="prettyPrint" contentDisplay="TOP" onAction="#formatXmlText" text="_format Text"
+                    ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconColor="darkorange" iconLiteral="fth-align-center"/>
                 </graphic>
@@ -67,34 +66,45 @@
         </HBox>
         <HBox styleClass="xml">
             <Separator orientation="VERTICAL"/>
-            <Button fx:id="validateSchema" contentDisplay="TOP" onAction="#validateSchema"
-                    text="validate Schema" ButtonBar.buttonData="RIGHT">
+            <Button fx:id="validateSchema" contentDisplay="TOP" onAction="#validateSchema" text="validate Schema"
+                    ButtonBar.buttonData="RIGHT">
+                <graphic>
+                    <FontIcon iconLiteral="win10-checked"/>
+                </graphic>
+            </Button>
+        </HBox>
+        <HBox fx:id="test" styleClass="xml" visible="false">
+            <Separator orientation="VERTICAL"/>
+            <Button contentDisplay="TOP" onAction="#test" text="test" ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconLiteral="win10-checked"/>
                 </graphic>
             </Button>
             <!-- <Button onAction="#test" text="TEST"/> -->
         </HBox>
-        <HBox visible="false" fx:id="test" styleClass="xml">
-            <Separator orientation="VERTICAL"/>
-            <Button contentDisplay="TOP" onAction="#test"
-                    text="test" ButtonBar.buttonData="RIGHT">
-                <graphic>
-                    <FontIcon iconLiteral="win10-checked"/>
-                </graphic>
-            </Button>
-            <!-- <Button onAction="#test" text="TEST"/> -->
+        <HBox>
+            <children>
+                <VBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Notification:"/>
+                        <Label fx:id="schemaValidText" text="xxx"/>
+                    </children>
+                </VBox>
+            </children>
+            <padding>
+                <Insets left="10.0"/>
+            </padding>
         </HBox>
 
     </HBox>
     <SplitPane dividerPositions="0.9" orientation="VERTICAL" VBox.vgrow="ALWAYS">
         <TabPane VBox.vgrow="ALWAYS">
-            <Tab closable="false" text="Text">
+            <Tab fx:id="text" closable="false" text="Text">
                 <StackPane fx:id="stackPane" stylesheets="/css/xml-highlighting.css" AnchorPane.bottomAnchor="0"
                            AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
             </Tab>
-            <Tab closable="false" text="Graphic">
-                <XmlTreeView fx:id="xmlTreeView" styleClass="xmlTree"/>
+            <Tab fx:id="graphic" closable="false" text="Graphic">
+                <XmlTreeView styleClass="xmlTree" fx:id="xmlTreeView"/>
             </Tab>
         </TabPane>
         <HBox prefHeight="100">

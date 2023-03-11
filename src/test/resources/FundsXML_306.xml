@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FundsXML xmlns="https://github.com/fundsxml/schema/releases/download/3.0.6/FundsXML.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation=""
+          Version="3.0.6"
+          task="import">
+    <Date>2021-01-02</Date>
+    <CompletionDate>2021-01-02T09:30:47Z</CompletionDate>
+    <PublicationDate>2021-01-02</PublicationDate>
+    <DataSupplier>
+        <Short>AM1</Short>
+        <Name>Asset Manager One</Name>
+        <TypeOfDataSupplier>Vendor</TypeOfDataSupplier>
+    </DataSupplier>
+    <UniqueDeliveryIdentification>0123UNIQUE</UniqueDeliveryIdentification>
+    <Language>en-us</Language>
+</FundsXML>

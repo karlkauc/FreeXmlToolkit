@@ -20,10 +20,7 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
@@ -104,9 +101,17 @@ public class XmlController {
     HBox test;
 
     @FXML
+    Label schemaValidText;
+
+    @FXML
+    Tab text, graphic;
+
+    @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
         xmlService = XmlServiceImpl.getInstance();
+
+        schemaValidText.setText("");
 
         var t = System.getenv("debug");
         if (t != null) {
@@ -155,7 +160,6 @@ public class XmlController {
     public void reloadXmlText() {
         logger.debug("Reload XML Text");
         codeArea.clear();
-        // codeArea.setBackground(null);
 
         try {
             if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
@@ -184,23 +188,41 @@ public class XmlController {
     }
 
     public boolean saveCurrentChanges() {
-        if (this.codeArea.getText() != null) {
-            if (this.xmlService.getCurrentXmlFile() != null) {
+        if (text.isSelected()) {
+            logger.debug("Code Area selected");
+            var errors = xmlService.validateText(codeArea.getText());
+
+            if (errors == null || errors.size() == 0) {
                 try {
                     Path path = Paths.get(this.xmlService.getCurrentXmlFile().getPath());
                     byte[] strToBytes = codeArea.getText().getBytes();
                     Files.write(path, strToBytes);
 
+                    logger.debug("File saved!");
                     this.xmlService.setCurrentXmlFile(path.toFile());
+                    schemaValidText.setText("File '" + path + "' saved (" + path.toFile().length() + " bytes)");
+
                     return true;
                 } catch (Exception e) {
                     logger.error("Exception in writing File: {}", e.getMessage());
                     logger.error("File: {}", this.xmlService.getCurrentXmlFile().getAbsolutePath());
                 }
+            } else {
+                Alert a = new Alert(Alert.AlertType.ERROR);
+                a.setTitle("Text not schema Valid");
+                a.setContentText("Save anyway?");
+
+                var result = a.showAndWait();
+                // result.ifPresent(r -> System.out.println("r.getText() = " + r.getText()));
+
             }
-        } else {
-            logger.debug("No Text");
         }
+        if (graphic.isSelected()) {
+            logger.debug("Graphic selected");
+
+        }
+
+
         return false;
     }
 
@@ -234,9 +256,14 @@ public class XmlController {
                         temp.append(error.getMessage()).append(System.lineSeparator());
                     }
 
+                    schemaValidText.setText("Schema not valid!");
+
                     t.setContentText(temp.toString());
                     t.showAndWait();
+                } else {
+                    schemaValidText.setText("Schema Valid!");
                 }
+
             }
         }
     }
@@ -279,6 +306,7 @@ public class XmlController {
             }
 
             reloadXmlText();
+            validateSchema();
         } else {
             logger.debug("No file selected");
         }
@@ -286,17 +314,18 @@ public class XmlController {
 
     @FXML
     private void test() {
-        xmlService.setCurrentXmlFile(Paths.get("C:\\Data\\src\\FreeXmlToolkit\\examples\\xml\\FundsXML_422_Bond_Fund.xml").toFile());
-        xmlService.setCurrentXsdFile(Paths.get("C:\\Data\\src\\FreeXmlToolkit\\examples\\xsd\\FundsXML4.xsd").toFile());
+        xmlService.setCurrentXmlFile(Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml").toFile());
+        xmlService.setCurrentXsdFile(Paths.get("examples/xsd/FundsXML4.xsd").toFile());
         reloadXmlText();
+        validateSchema();
     }
 
     static StyleSpans<Collection<String>> computeHighlighting(String text) {
         Matcher matcher = XML_TAG.matcher(text);
         int lastKwEnd = 0;
         StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-        while (matcher.find()) {
 
+        while (matcher.find()) {
             spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
             if (matcher.group("COMMENT") != null) {
                 spansBuilder.add(Collections.singleton("comment"), matcher.end() - matcher.start());

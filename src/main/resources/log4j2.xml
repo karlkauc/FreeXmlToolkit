@@ -17,14 +17,14 @@
   ~
   -->
 
-<Configuration status="DEBUG">
+<Configuration status="INFO">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%highlight{[%-5level]} [%thread][%class][%line] %d{yyyy-MM-dd HH:mm:ss} - %msg%n"
                            disableAnsi="false"/>
         </Console>
 
-        <File name="MyFile" fileName="logs\\${date:yyyy-MM-dd-HH-mm}-fxt.log" immediateFlush="true">
+        <File name="MyFile" fileName="logs//${date:yyyy-MM-dd-HH-mm}-fxt.log" immediateFlush="true">
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </File>
     </Appenders>

@@ -18,6 +18,7 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
 
@@ -58,7 +59,19 @@ public interface XmlService {
 
     String saxonTransform();
 
+    Document getXmlDocument();
+
+
+    // Schema Validation Methods
     List<SAXParseException> validate();
+
+    List<SAXParseException> validateText(String xmlString);
+
+    List<SAXParseException> validateText(String xmlString, File schemaFile);
+
+    List<SAXParseException> validateFile(File xml);
+
+    List<SAXParseException> validateFile(File xml, File schemaFile);
 
     Optional<String> getSchemaNameFromCurrentXMLFile();
 
