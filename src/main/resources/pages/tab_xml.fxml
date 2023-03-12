@@ -100,10 +100,16 @@
     <SplitPane dividerPositions="0.9" orientation="VERTICAL" VBox.vgrow="ALWAYS">
         <TabPane VBox.vgrow="ALWAYS">
             <Tab fx:id="text" closable="false" text="Text">
+                <graphic>
+                    <FontIcon iconLiteral="bi-card-text"/>
+                </graphic>
                 <StackPane fx:id="stackPane" stylesheets="/css/xml-highlighting.css" AnchorPane.bottomAnchor="0"
                            AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
             </Tab>
             <Tab fx:id="graphic" closable="false" text="Graphic">
+                <graphic>
+                    <FontIcon iconLiteral="bi-diagram-2"/>
+                </graphic>
                 <XmlTreeView styleClass="xmlTree" fx:id="xmlTreeView"/>
             </Tab>
         </TabPane>

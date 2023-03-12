@@ -45,6 +45,7 @@ public class XsdDocumentationService {
     private List<XsdComplexType> xsdComplexTypes;
     private List<XsdSimpleType> xsdSimpleTypes;
     private List<XsdElement> elements;
+
     XsdParser parser;
     List<XsdSchema> xmlSchema;
     List<ExtendedXsdElement> extendedXsdElements;

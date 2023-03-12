@@ -328,9 +328,6 @@ public class XmlServiceImpl implements XmlService {
 
         if (possibleSchemaLocation.isPresent()) {
             var temp = possibleSchemaLocation.get();
-            if (temp.contains(" ")) {
-                // xmlns
-            }
 
             if (possibleSchemaLocation.get().trim().toLowerCase().startsWith("http://") ||
                     possibleSchemaLocation.get().trim().toLowerCase().startsWith("https://")) {
@@ -415,27 +412,37 @@ public class XmlServiceImpl implements XmlService {
                 Element root = xmlDocument.getDocumentElement();
                 logger.debug("ROOT: {}", root);
 
-                var possibleSchemaLocation = root.getAttribute("xsi:noNamespaceSchemaLocation");
+                String possibleSchemaLocation;
+                possibleSchemaLocation = root.getAttribute("xsi:schemaLocation");
+                if (possibleSchemaLocation.contains(" ")) {
+                    // e.g. xsi:schemaLocation="http://www.fundsxml.org/XMLSchema/3.0.6 FundsXML3.0.6.xsd"
+                    String[] splitStr = possibleSchemaLocation.split("\\s+");
+                    String possibleFileName = splitStr[1];
+                    String possibleFilePath = this.currentXmlFile.getParent() + "/" + possibleFileName;
+                    if (new File(possibleFilePath).exists()) {
+                        logger.debug("Found Schema at: {}", possibleFilePath);
 
-                if (possibleSchemaLocation.isEmpty()) {
-                    logger.debug("noNamespaceSchemaLocation not set. Trying xmlns");
-                    possibleSchemaLocation = root.getAttribute("xmlns");
-                    logger.debug("Schema Location: {}", possibleSchemaLocation);
+                        return Optional.of("file://" + possibleFilePath);
+                    } else {
+                        logger.debug("Do not found schema at: {}", possibleFilePath);
+                    }
                 }
 
+                logger.debug("Typing xsi:noNamespaceSchemaLocation...");
+                possibleSchemaLocation = root.getAttribute("xsi:noNamespaceSchemaLocation");
                 if (!possibleSchemaLocation.isEmpty()) {
-                    if (possibleSchemaLocation.contains(" ")) {
-                        var temp = possibleSchemaLocation.split(" ");
-                        if (temp.length > 0) {
-                            possibleSchemaLocation = temp[temp.length - 1];
-                        }
-                    }
-
                     logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
                     return Optional.of(possibleSchemaLocation);
-
                 } else {
                     logger.debug("No possible Schema Location found!");
+                }
+
+                logger.debug("Trying xmlns...");
+                possibleSchemaLocation = root.getAttribute("xmlns");
+                logger.debug("Schema Location: {}", possibleSchemaLocation);
+                if (!possibleSchemaLocation.isEmpty()) {
+                    logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
+                    return Optional.of(possibleSchemaLocation);
                 }
 
             } catch (IOException | ParserConfigurationException | SAXException exception) {

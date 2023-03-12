@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.LocalTime;
+import java.util.Properties;
 
 public class WelcomeController {
 
@@ -49,6 +50,7 @@ public class WelcomeController {
     Label duration;
 
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    Properties properties = propertiesService.loadProperties();
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
@@ -56,17 +58,20 @@ public class WelcomeController {
 
     @FXML
     private void initialize() {
-        var prop = propertiesService.loadProperties();
-        var oldSeconds = formatSecondsHumanReadable(Integer.valueOf(prop.getProperty("usageDuration")));
-
-        if (prop.get("version") != null && prop.getProperty("version").equals("20221008")) {
+        if (properties.get("version") != null && properties.getProperty("version").equals("20221008")) {
             versionUpdate.setVisible(true);
         } else {
             logger.debug("not visible");
             versionUpdate.setVisible(false);
         }
 
-        duration.setText(duration.getText().replace("{duration}", oldSeconds));
+        int oldSeconds = Integer.parseInt(properties.getProperty("usageDuration"));
+        if (oldSeconds > 0) {
+            var oldSecondsText = formatSecondsHumanReadable(oldSeconds);
+            duration.setText(duration.getText().replace("{duration}", oldSecondsText));
+        } else {
+            duration.setText("You are here the first time!");
+        }
     }
 
     @FXML

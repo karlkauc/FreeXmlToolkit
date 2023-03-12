@@ -193,36 +193,43 @@ public class XmlController {
             var errors = xmlService.validateText(codeArea.getText());
 
             if (errors == null || errors.size() == 0) {
-                try {
-                    Path path = Paths.get(this.xmlService.getCurrentXmlFile().getPath());
-                    byte[] strToBytes = codeArea.getText().getBytes();
-                    Files.write(path, strToBytes);
-
-                    logger.debug("File saved!");
-                    this.xmlService.setCurrentXmlFile(path.toFile());
-                    schemaValidText.setText("File '" + path + "' saved (" + path.toFile().length() + " bytes)");
-
-                    return true;
-                } catch (Exception e) {
-                    logger.error("Exception in writing File: {}", e.getMessage());
-                    logger.error("File: {}", this.xmlService.getCurrentXmlFile().getAbsolutePath());
-                }
+                return saveTextToFile();
             } else {
-                Alert a = new Alert(Alert.AlertType.ERROR);
+                Alert a = new Alert(Alert.AlertType.CONFIRMATION);
                 a.setTitle("Text not schema Valid");
+                a.setHeaderText(errors.size() + " Errors found.");
                 a.setContentText("Save anyway?");
 
                 var result = a.showAndWait();
-                // result.ifPresent(r -> System.out.println("r.getText() = " + r.getText()));
-
+                if (result.isPresent()) {
+                    var buttonType = result.get();
+                    if (buttonType == ButtonType.OK) {
+                        return saveTextToFile();
+                    }
+                }
             }
         }
         if (graphic.isSelected()) {
             logger.debug("Graphic selected");
-
         }
+        return false;
+    }
 
+    private boolean saveTextToFile() {
+        try {
+            Path path = Paths.get(this.xmlService.getCurrentXmlFile().getPath());
+            byte[] strToBytes = codeArea.getText().getBytes();
+            Files.write(path, strToBytes);
 
+            logger.debug("File saved!");
+            this.xmlService.setCurrentXmlFile(path.toFile());
+            schemaValidText.setText("File '" + path + "' saved (" + path.toFile().length() + " bytes)");
+
+            return true;
+        } catch (Exception e) {
+            logger.error("Exception in writing File: {}", e.getMessage());
+            logger.error("File: {}", this.xmlService.getCurrentXmlFile().getAbsolutePath());
+        }
         return false;
     }
 

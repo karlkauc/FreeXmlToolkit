@@ -75,7 +75,7 @@ public class MainController {
             case "xsdValidation" -> "/pages/tab_validation.fxml";
             case "fop" -> "/pages/tab_fop.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
-            case "help" -> null;
+            case "help" -> "/pages/tab_help.fxml";
             case "settings" -> "/pages/settings.fxml";
             default -> null;
         };

@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
-<?import org.kordamp.ikonli.javafx.StackedFontIcon?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
   ~ Copyright (c) 2023.
@@ -24,11 +18,17 @@
   ~
   -->
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import org.kordamp.ikonli.javafx.StackedFontIcon?>
 <AnchorPane prefHeight="800" prefWidth="1204" stylesheets="@../css/mainTheme.css" AnchorPane.bottomAnchor="0"
             AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
             xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.WelcomeController">
-    <VBox styleClass="container">
+    <VBox styleClass="container" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <Label text="Welcome to FreeXmlToolkit!" styleClass="h1"/>
         <Label>Your are using version {version}.</Label>
         <HBox fx:id="versionUpdate">

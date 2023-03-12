@@ -57,7 +57,6 @@ public class SettingsController {
 
     @FXML
     public void initialize() {
-        logger.debug("BIN DRINNEN");
         portSpinner.setValueFactory(valueFactory);
         //loadCurrentSettings();
     }

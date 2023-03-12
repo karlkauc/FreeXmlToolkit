@@ -102,7 +102,7 @@ public class ValidationTest {
 
         var remoteXsdLocation = xmlService.getRemoteXsdLocation();
         System.out.println("remoteXsdLocation = " + remoteXsdLocation);
-        Assertions.assertEquals("https://github.com/fundsxml/schema/releases/download/3.0.6/FundsXML.xsd", remoteXsdLocation);
+        Assertions.assertEquals("file://src/test/resources/FundsXML_306.xsd", remoteXsdLocation);
     }
 
     @Disabled("fix FundsXML 306 XML File before!")
