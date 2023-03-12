@@ -11,11 +11,10 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 
-public class GenerateSampleData {
+public class GenerateSampleDataTest {
 
     @Test
     public void generateSampleData() throws TransformerConfigurationException {
-
         XSModel xsModel = new XSParser().parse("examples/xsd/FundsXML4.xsd");
         XSInstance xsInstance = new XSInstance();
         xsInstance.minimumElementsGenerated = 2;

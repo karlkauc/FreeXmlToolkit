@@ -93,9 +93,6 @@ public class XsdController {
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
-
-        // Sample Data Test
-
     }
 
     @FXML
