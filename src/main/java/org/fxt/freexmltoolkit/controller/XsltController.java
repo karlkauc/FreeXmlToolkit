@@ -232,8 +232,8 @@ public class XsltController {
 
     @FXML
     private void test() {
-        xmlFile = new File("C:\\Data\\src\\FreeXmlToolkit\\examples\\xml\\FundsXML_422_Bond_Fund.xml");
-        xsltFile = new File("C:\\Data\\src\\FreeXmlToolkit\\examples\\xslt\\Check_FundsXML_File.xslt");
+        xmlFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml").toFile();
+        xsltFile = Paths.get("examples/xslt/Check_FundsXML_File.xslt").toFile();
 
         xmlFileLoader.setFile(xmlFile);
         xsltFileLoader.setFile(xsltFile);
@@ -244,7 +244,6 @@ public class XsltController {
 
             checkFiles();
         }
-
     }
 
 }

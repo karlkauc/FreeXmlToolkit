@@ -10,14 +10,18 @@
     <TabPane VBox.vgrow="ALWAYS">
         <Tab text="Text" closable="false">
             <graphic>
-                <FontIcon iconLiteral="win10-paragraph" iconSize="16"/>
+                <FontIcon iconLiteral="bi-card-text"/>
             </graphic>
             <StackPane fx:id="stackPane"
                        AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                        AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
             />
         </Tab>
-        <Tab text="Graphic" closable="false" disable="true"/>
+        <Tab text="Graphic" closable="false" disable="true">
+            <graphic>
+                <FontIcon iconLiteral="bi-diagram-2"/>
+            </graphic>
+        </Tab>
         <Tab text="Documentation" closable="false">
             <graphic>
                 <FontIcon iconLiteral="win10-notebook" iconSize="16"/>
@@ -29,6 +33,12 @@
                 </VBox>
                 <TextArea fx:id="documentation" HBox.hgrow="ALWAYS"/>
             </HBox>
+        </Tab>
+        <Tab text="generate Example data" closable="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-keyboard" iconSize="16"/>
+            </graphic>
+            <TextArea fx:id="sampleData" HBox.hgrow="ALWAYS"/>
         </Tab>
     </TabPane>
 </VBox>

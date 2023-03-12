@@ -83,17 +83,15 @@
             <!-- <Button onAction="#test" text="TEST"/> -->
         </HBox>
         <HBox>
-            <children>
-                <VBox alignment="CENTER_LEFT">
-                    <children>
-                        <Label text="Notification:"/>
-                        <Label fx:id="schemaValidText" text="xxx"/>
-                    </children>
-                </VBox>
-            </children>
             <padding>
                 <Insets left="10.0"/>
             </padding>
+            <VBox alignment="CENTER_LEFT">
+                <children>
+                    <Label text="Notification:"/>
+                    <Label fx:id="schemaValidText" text="xxx"/>
+                </children>
+            </VBox>
         </HBox>
 
     </HBox>

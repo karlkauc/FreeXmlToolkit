@@ -92,6 +92,11 @@ dependencies {
     // SVG Graphic
     implementation("org.apache.xmlgraphics:batik-svggen:1.16")
 
+    // XSD Sample data generator
+    implementation("in.jlibs:jlibs-xsd:3.0.1")
+    implementation("javax.xml.bind:jaxb-api:2.3.1")
+    implementation("com.sun.xml.bind:jaxb-ri:2.3.3")
+
     // Misc
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
