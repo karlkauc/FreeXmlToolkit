@@ -20,31 +20,47 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.FOPService;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 public class FopController {
 
     XmlService xmlService = XmlServiceImpl.getInstance();
+    FOPService fopService = new FOPService();
 
     @FXML
     GridPane settings;
 
     @FXML
-    Button startConversion;
+    Button startConversion, test;
 
     @FXML
     AnchorPane xml, xslt, pdf;
 
     @FXML
     StackPane stackPaneXml, stackPaneXslt;
+
+    File xmlFile, xslFile, pdfFile;
+
+    @FXML
+    TextField xmlFileName, xslFileName, pdfFileName;
+
+    String lastOpenDir = ".";
+
+    FileChooser fileChooser = new FileChooser();
 
     private MainController parentController;
 
@@ -57,12 +73,92 @@ public class FopController {
     @FXML
     private void initialize() {
         logger.debug("BIN IM FOP CONTROLLER");
+
+        var t = System.getenv("debug");
+        if (t != null) {
+            logger.debug("set visible false");
+            test.setVisible(true);
+        }
+
+    }
+
+    @FXML
+    private void openXmlFile() {
+        logger.debug("Last open Dir: {}", lastOpenDir);
+        fileChooser.setInitialDirectory(new File(lastOpenDir));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
+        File selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile != null && selectedFile.exists()) {
+            logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
+            this.lastOpenDir = selectedFile.getParent();
+            xmlFile = selectedFile;
+            xmlFileName.setText(xmlFile.getName());
+        } else {
+            logger.debug("No file selected");
+        }
+    }
+
+    @FXML
+    private void openXslFile() {
+        logger.debug("Last open Dir: {}", lastOpenDir);
+        fileChooser.setInitialDirectory(new File(lastOpenDir));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSL files (*.xsl)", "*.xsl"));
+        File selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile != null && selectedFile.exists()) {
+            logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
+            this.lastOpenDir = selectedFile.getParent();
+            xslFile = selectedFile;
+            xslFileName.setText(xslFile.getName());
+        } else {
+            logger.debug("No file selected");
+        }
+    }
+
+    @FXML
+    private void openPdfFile() {
+        logger.debug("Last open Dir: {}", lastOpenDir);
+        fileChooser.setInitialDirectory(new File(lastOpenDir));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF files (*.pdf)", "*.pdf"));
+        File selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile != null && selectedFile.exists()) {
+            logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
+            this.lastOpenDir = selectedFile.getParent();
+            pdfFile = selectedFile;
+            pdfFileName.setText(pdfFile.getName());
+        } else {
+            logger.debug("No file selected");
+        }
     }
 
     @FXML
     private void buttonConversion() throws IOException {
         logger.debug("Start Conversion!");
 
+        HashMap<String, String> parameter = new HashMap<>();
+        parameter.put("versionParam", "3");
+
+        fopService.createPdfFile(xmlFile, xslFile, pdfFile, parameter);
+
+        if (pdfFile != null && pdfFile.exists()) {
+            logger.debug("Written {} bytes", pdfFile.length());
+            Desktop.getDesktop().open(pdfFile);
+        } else {
+            logger.warn("PDF File do not exits");
+        }
+    }
+
+    @FXML
+    private void test() {
+        xmlFile = new File("src/test/resources/projectteam.xml");
+        xslFile = new File("src/test/resources/projectteam2fo.xsl");
+        pdfFile = new File("output/ResultXML2PDF.pdf");
+
+        xmlFileName.setText(xmlFile.getName());
+        xslFileName.setText(xslFile.getName());
+        pdfFileName.setText(pdfFile.getName());
     }
 
 }

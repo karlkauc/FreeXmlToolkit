@@ -7,76 +7,76 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-<AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.fxt.freexmltoolkit.controller.FopController"
-            AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-    <HBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <GridPane fx:id="settings" hgap="10" vgap="10">
-            <padding>
-                <Insets bottom="25" left="25" right="25" top="25"/>
-            </padding>
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) 2023.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
 
-            <Text id="welcome-text" style="-fx-font: 24 arial;" text="FOP" wrappingWidth="300"
-                  GridPane.columnSpan="3" GridPane.rowIndex="0"/>
+<AnchorPane prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+            AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.FopController">
+    <GridPane fx:id="settings" hgap="10" vgap="10">
+        <padding>
+            <Insets bottom="25" left="25" right="25" top="25"/>
+        </padding>
 
-            <Label GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <Button text="XML" GridPane.rowIndex="1">
-                <graphic>
-                    <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
-                </graphic>
-            </Button>
-            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-            <Button text="XSLT" GridPane.rowIndex="2">
-                <graphic>
-                    <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
-                </graphic>
-            </Button>
-            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-            <Button text="PDF" GridPane.rowIndex="3">
-                <graphic>
-                    <ImageView fitHeight="16" preserveRatio="true">
-                        <Image url="@../img/icons8-pdf-16.png"/>
-                    </ImageView>
-                </graphic>
-            </Button>
-            <TextField text="Filename..." GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+        <Text id="welcome-text" style="-fx-font: 24 arial;" text="FOP" wrappingWidth="300" GridPane.columnSpan="3"
+              GridPane.rowIndex="0"/>
 
-            <Button text="Options" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-            <Button fx:id="startConversion" onAction="#buttonConversion" text="Go" GridPane.columnIndex="0"
-                    GridPane.rowIndex="6"/>
+        <Label GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <Button onAction="#openXmlFile" text="XML" GridPane.rowIndex="1">
+            <graphic>
+                <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+            </graphic>
+        </Button>
+        <TextField promptText="pdf file" GridPane.columnIndex="2" GridPane.rowIndex="1" fx:id="xmlFileName"/>
+        <Button onAction="#openXslFile" text="XSLT" GridPane.rowIndex="2">
+            <graphic>
+                <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
+            </graphic>
+        </Button>
+        <TextField promptText="xsl file" GridPane.columnIndex="2" GridPane.rowIndex="2" fx:id="xslFileName"/>
+        <Button onAction="#openPdfFile" text="PDF" GridPane.rowIndex="3">
+            <graphic>
+                <ImageView fitHeight="16" preserveRatio="true">
+                    <Image url="@../img/icons8-pdf-16.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+        <TextField fx:id="pdfFileName" promptText="pdf file" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
 
-            <columnConstraints>
-                <ColumnConstraints/>
-                <ColumnConstraints/>
-                <ColumnConstraints/>
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints/>
-                <RowConstraints minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-            </rowConstraints>
-        </GridPane>
-        <SplitPane dividerPositions="0.3" HBox.hgrow="ALWAYS">
-            <items>
-                <AnchorPane fx:id="xml">
-                    <StackPane fx:id="stackPaneXml"
-                               AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-                               AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
-                               stylesheets="@../css/xml-highlighting.css"/>
-                </AnchorPane>
-                <AnchorPane fx:id="xslt">
-                    <StackPane fx:id="stackPaneXslt"
-                               AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-                               AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
-                               stylesheets="@../css/xml-highlighting.css"/>
-                </AnchorPane>
-                <AnchorPane fx:id="pdf"/>
-            </items>
-        </SplitPane>
+        <Button text="Options" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+        <Button fx:id="startConversion" onAction="#buttonConversion" text="Go" GridPane.columnIndex="0"
+                GridPane.rowIndex="6"/>
+        <Button fx:id="test" mnemonicParsing="false" onAction="#test" text="test" visible="false"
+                GridPane.columnIndex="2" GridPane.rowIndex="6"/>
 
-    </HBox>
+        <columnConstraints>
+            <ColumnConstraints/>
+            <ColumnConstraints/>
+            <ColumnConstraints/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0"/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+        </rowConstraints>
+    </GridPane>
 </AnchorPane>

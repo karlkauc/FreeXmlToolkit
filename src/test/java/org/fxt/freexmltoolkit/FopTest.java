@@ -1,79 +1,41 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) 2023.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package org.fxt.freexmltoolkit;
 
-import org.apache.fop.apps.FOUserAgent;
-import org.apache.fop.apps.Fop;
-import org.apache.fop.apps.FopFactory;
-import org.apache.fop.apps.MimeConstants;
+import org.fxt.freexmltoolkit.service.FOPService;
 import org.junit.jupiter.api.Test;
 
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXResult;
-import javax.xml.transform.stream.StreamSource;
 import java.io.File;
-import java.io.OutputStream;
+import java.util.HashMap;
 
 public class FopTest {
 
-
     @Test
     void createPdfTest() {
-        try {
-            System.out.println("FOP ExampleXML2PDF\n");
-            System.out.println("Preparing...");
+        File xmlfile = new File("src/test/resources/projectteam.xml");
+        File xsltfile = new File("src/test/resources/projectteam2fo.xsl");
+        File pdffile = new File("output/ResultXML2PDF.pdf");
 
-            // Setup directories
-            File baseDir = new File(".");
-            File outDir = new File(baseDir, "out");
-            outDir.mkdirs();
+        HashMap<String, String> parameter = new HashMap<>();
+        parameter.put("versionParam", "3");
 
-            // Setup input and output files
-            File xmlfile = new File(baseDir, "src/test/resources/projectteam.xml");
-            File xsltfile = new File(baseDir, "src/test/resources/projectteam2fo.xsl");
-            File pdffile = new File(outDir, "ResultXML2PDF.pdf");
-
-            System.out.println("Input: XML (" + xmlfile + ")");
-            System.out.println("Stylesheet: " + xsltfile);
-            System.out.println("Output: PDF (" + pdffile + ")");
-            System.out.println();
-            System.out.println("Transforming...");
-
-            // configure fopFactory as desired
-            final FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
-
-            FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-            // configure foUserAgent as desired
-
-            // Setup output
-            OutputStream out = new java.io.FileOutputStream(pdffile);
-            out = new java.io.BufferedOutputStream(out);
-
-            // Construct fop with desired output format
-            Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
-
-            // Setup XSLT
-            TransformerFactory factory = TransformerFactory.newInstance();
-            Transformer transformer = factory.newTransformer(new StreamSource(xsltfile));
-
-            // Set the value of a <param> in the stylesheet
-            transformer.setParameter("versionParam", "2.0");
-
-            // Setup input for XSLT transformation
-            Source src = new StreamSource(xmlfile);
-
-            // Resulting SAX events (the generated FO) must be piped through to FOP
-            Result res = new SAXResult(fop.getDefaultHandler());
-
-            // Start XSLT transformation and FOP processing
-            transformer.transform(src, res);
-            out.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
+        FOPService fopService = new FOPService();
+        fopService.createPdfFile(xmlfile, xsltfile, pdffile, parameter);
     }
 }
