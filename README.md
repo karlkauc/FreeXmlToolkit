@@ -13,7 +13,7 @@ Toolkit for working with XML files.
 * working with Signatures
 
 Screenshot:
-![app.png](documentation%2Fapp.png)
+![app.png](docs%2Fapp.png)
 
 Lot of work in progress.
 Not ready for production use!

@@ -31,6 +31,7 @@ import javafx.stage.FileChooser;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +52,8 @@ public class FileLoader extends VBox {
 
     ImageView teaserImage;
 
+    String fontIconString;
+
     public FileLoader() {
         this.getChildren().add(loadButton);
         this.getChildren().add(fileInfo);
@@ -65,6 +68,17 @@ public class FileLoader extends VBox {
 
         this.getChildren().add(loadButton);
         this.getChildren().add(fileInfo);
+    }
+
+    public String getFontIconString() {
+        return fontIconString;
+    }
+
+    public void setFontIconString(String fontIconString) {
+        this.fontIconString = fontIconString;
+        FontIcon fontIcon = new FontIcon(fontIconString);
+        fontIcon.setIconSize(16);
+        this.loadButton.setGraphic(fontIcon);
     }
 
     public ImageView getTeaserImage() {

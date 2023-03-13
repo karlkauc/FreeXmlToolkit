@@ -30,10 +30,9 @@
         <BorderPane maxWidth="300" minWidth="300" prefWidth="300" style="-fx-padding: 0 5 0 0;">
             <top>
                 <VBox>
-                    <FileLoader VBox.vgrow="ALWAYS" fx:id="xmlFileLoader"/>
-
+                    <FileLoader VBox.vgrow="ALWAYS" fx:id="xmlFileLoader" fontIconString="bi-code-slash"/>
                     <Separator/>
-                    <FileLoader fx:id="xsltFileLoader"/>
+                    <FileLoader fx:id="xsltFileLoader" fontIconString="fth-git-pull-request"/>
                     <Separator/>
                     <Button fx:id="reload" onAction="#checkFiles" text="Reload">
                         <graphic>
