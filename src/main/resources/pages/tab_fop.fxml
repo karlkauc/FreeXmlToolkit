@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
   ~ Copyright (c) 2023.
@@ -25,6 +18,13 @@
   ~
   -->
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <AnchorPane prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
             AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.FopController">
@@ -59,10 +59,15 @@
         <TextField fx:id="pdfFileName" promptText="pdf file" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
 
         <Button text="Options" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-        <Button fx:id="startConversion" onAction="#buttonConversion" text="Go" GridPane.columnIndex="0"
-                GridPane.rowIndex="6"/>
+        <Button fx:id="startConversion" onAction="#buttonConversion" text="create PDF" GridPane.columnIndex="0"
+                GridPane.rowIndex="6">
+            <graphic>
+                <FontIcon iconColor="#e2c352" iconLiteral="fth-play" iconSize="16"/>
+            </graphic>
+        </Button>
         <Button fx:id="test" mnemonicParsing="false" onAction="#test" text="test" visible="false"
                 GridPane.columnIndex="2" GridPane.rowIndex="6"/>
+        <ProgressIndicator fx:id="progressIndicator" progress="0.0" GridPane.columnIndex="2" GridPane.rowIndex="5"/>
 
         <columnConstraints>
             <ColumnConstraints/>

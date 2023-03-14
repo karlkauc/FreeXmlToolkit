@@ -35,21 +35,25 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.HashMap;
 
 public class FOPService {
 
     private final static Logger logger = LogManager.getLogger(FOPService.class);
 
+    HashMap<String, String> defaultParameter;
+
     public void createPdfFile(File xmlFile, File xslFile, File pdfOutput, HashMap<String, String> inputParameter) {
 
         assert xmlFile.exists();
         assert xslFile.exists();
 
+        setDefaultParameter();
         try {
-            logger.debug("Input: XML (" + xmlFile + ")");
-            logger.debug("Stylesheet: " + xslFile);
-            logger.debug("Output: PDF (" + pdfOutput + ")");
+            logger.debug("XML Input: {}", xmlFile);
+            logger.debug("Stylesheet: {}", xslFile);
+            logger.debug("PDF Output: {}", pdfOutput);
             logger.debug("Transforming...");
 
             final FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
@@ -62,7 +66,13 @@ public class FOPService {
             TransformerFactory factory = TransformerFactory.newInstance();
             Transformer transformer = factory.newTransformer(new StreamSource(xslFile));
 
+            for (String key : defaultParameter.keySet()) {
+                logger.debug("Set default parameter: '{}' - '{}'", key, defaultParameter.get(key));
+                transformer.setParameter(key, defaultParameter.get(key));
+            }
+
             for (String key : inputParameter.keySet()) {
+                logger.debug("Set individual parameter: '{}' - '{}'", key, inputParameter.get(key));
                 transformer.setParameter(key, inputParameter.get(key));
             }
             Source src = new StreamSource(xmlFile);
@@ -72,6 +82,12 @@ public class FOPService {
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
+    }
+
+    private void setDefaultParameter() {
+        defaultParameter = new HashMap<>();
+        defaultParameter.put("currentDate", new Date().toString());
+        defaultParameter.put("author", System.getProperty("user.name"));
     }
 
 }

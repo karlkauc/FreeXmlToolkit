@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
@@ -58,6 +59,9 @@ public class FopController {
     @FXML
     TextField xmlFileName, xslFileName, pdfFileName;
 
+    @FXML
+    ProgressIndicator progressIndicator;
+
     String lastOpenDir = ".";
 
     FileChooser fileChooser = new FileChooser();
@@ -73,13 +77,18 @@ public class FopController {
     @FXML
     private void initialize() {
         logger.debug("BIN IM FOP CONTROLLER");
+        progressIndicator.setVisible(false);
 
-        var t = System.getenv("debug");
-        if (t != null) {
+        showTestData();
+    }
+
+    private void showTestData() {
+        if (System.getenv("debug") != null) {
             logger.debug("set visible false");
             test.setVisible(true);
-        }
 
+            test();
+        }
     }
 
     @FXML
@@ -137,6 +146,9 @@ public class FopController {
     private void buttonConversion() throws IOException {
         logger.debug("Start Conversion!");
 
+        progressIndicator.setVisible(true);
+        progressIndicator.setProgress(0);
+
         HashMap<String, String> parameter = new HashMap<>();
         parameter.put("versionParam", "3");
 
@@ -144,7 +156,10 @@ public class FopController {
 
         if (pdfFile != null && pdfFile.exists()) {
             logger.debug("Written {} bytes", pdfFile.length());
+
+            progressIndicator.setProgress(0.9);
             Desktop.getDesktop().open(pdfFile);
+            progressIndicator.setProgress(1.0);
         } else {
             logger.warn("PDF File do not exits");
         }
