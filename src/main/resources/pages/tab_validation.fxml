@@ -6,11 +6,29 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) 2023.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
 <AnchorPane fx:id="anchorPane" style="-fx-padding: 0;" stylesheets="@../css/app.css"
-            xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController">
-    <GridPane fx:id="auswertung" hgap="10" vgap="10"
-              AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0" >
+    <GridPane fx:id="auswertung" hgap="10" vgap="10" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+              AnchorPane.topAnchor="0">
         <padding>
             <Insets bottom="25" left="25" right="25" top="25"/>
         </padding>
@@ -25,7 +43,7 @@
                 <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
             </graphic>
         </Button>
-        <TextField fx:id="xmlFileName" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+        <TextField GridPane.columnIndex="2" GridPane.rowIndex="1" fx:id="xmlFileName"/>
 
         <Label text="autodetect Schema" GridPane.rowIndex="2"/>
         <CheckBox fx:id="autodetect" mnemonicParsing="false" onAction="#toggleAutoDetection" selected="true"
@@ -35,10 +53,9 @@
 
         <Label text="XSD File:" GridPane.rowIndex="3"/>
         <Button disable="true" mnemonicParsing="false" text="Load XSD File" GridPane.columnIndex="1"
-                GridPane.rowIndex="3"
-                fx:id="xsdLoadButton">
+                GridPane.rowIndex="3" fx:id="xsdLoadButton">
             <graphic>
-                <FontIcon iconLiteral="bi-diagram-3" iconSize="16" iconColor="dodgerblue"/>
+                <FontIcon iconColor="dodgerblue" iconLiteral="bi-diagram-3" iconSize="16"/>
             </graphic>
         </Button>
         <TextField disable="true" prefWidth="500" GridPane.columnIndex="2" GridPane.rowIndex="3" fx:id="xsdFileName"/>
@@ -57,18 +74,21 @@
             </graphic>
         </Button>
 
-        <Button onAction="#test" text="test" GridPane.rowIndex="7">
+        <Button fx:id="test" onAction="#test" text="test" visible="false" GridPane.rowIndex="7">
             <graphic>
                 <FontIcon iconLiteral="win10-spy" iconSize="16"/>
             </graphic>
         </Button>
+        <ProgressIndicator fx:id="progressIndicator" minHeight="100.0" minWidth="100.0" progress="0.0"
+                           GridPane.columnIndex="1" GridPane.rowIndex="6" visible="false"/>
 
         <columnConstraints>
-            <ColumnConstraints minWidth="180" maxWidth="180" prefWidth="180"/>
-            <ColumnConstraints minWidth="150" maxWidth="150" prefWidth="150"/>
+            <ColumnConstraints maxWidth="180" minWidth="180" prefWidth="180"/>
+            <ColumnConstraints halignment="CENTER" maxWidth="150" minWidth="150" prefWidth="150"/>
             <ColumnConstraints hgrow="ALWAYS"/>
         </columnConstraints>
         <rowConstraints>
+            <RowConstraints/>
             <RowConstraints/>
             <RowConstraints/>
             <RowConstraints/>

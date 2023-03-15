@@ -149,7 +149,7 @@ $background-color: #dcdcdc;
   -fx-padding: 0 0 5px 5px;
 }
 
-
+/*
 .tree-cell .tree-disclosure-node .arrow {
   -fx-shape: "";
   -fx-background-color: null;
@@ -165,8 +165,11 @@ $background-color: #dcdcdc;
   -fx-background-image: url("../img/minus.PNG");
 }
 
+ */
+
 .xmlAttributeNode {
   -fx-text-fill: $color4;
   -fx-font-weight: bold;
 }
+
 // XML Tree View - end

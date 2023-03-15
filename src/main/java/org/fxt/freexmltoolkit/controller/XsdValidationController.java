@@ -61,7 +61,7 @@ public class XsdValidationController {
     GridPane auswertung;
 
     @FXML
-    Button xmlLoadButton, xsdLoadButton;
+    Button xmlLoadButton, xsdLoadButton, test;
 
     @FXML
     TextField xmlFileName, xsdFileName, remoteXsdLocation;
@@ -74,6 +74,9 @@ public class XsdValidationController {
 
     @FXML
     ImageView statusImage;
+
+    @FXML
+    ProgressIndicator progressIndicator;
 
     private final static Logger logger = LogManager.getLogger(XsdValidationController.class);
 
@@ -101,9 +104,6 @@ public class XsdValidationController {
             if (tempFile != null) {
                 logger.debug("Loaded XML File: {}", tempFile.getAbsolutePath());
                 processXmlFile(tempFile);
-
-                // parentController.getXmlController().reloadXmlText();
-                // parentController.getXsdController().reloadXmlText();
             }
         });
 
@@ -138,28 +138,36 @@ public class XsdValidationController {
                 reload();
             }
         });
+
+        var t = System.getenv("debug");
+        if (t != null) {
+            logger.debug("set visible false");
+            test.setVisible(true);
+        }
     }
 
     private void processXmlFile(File file) {
+        progressIndicator.setVisible(true);
+        progressIndicator.setProgress(0.1);
+
         xmlService.setCurrentXmlFile(file);
         xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
 
+        progressIndicator.setProgress(0.2);
         if (autodetect.isSelected()) {
             var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
             if (schemaName.isPresent()) {
                 xsdFileName.setText(schemaName.get());
                 if (xmlService.loadSchemaFromXMLFile()) {
-                    logger.debug("Loading remote schema successfull!");
+                    logger.debug("Loading remote schema successfully!");
                 } else {
                     logger.debug("Could not load remote schema");
                 }
             }
         }
+        progressIndicator.setProgress(0.4);
         reload();
-        if (parentController != null) {
-            //parentController.getXmlController().reloadXmlText();
-            //parentController.getXsdController().reloadXmlText();
-        }
+        progressIndicator.setProgress(1.0);
     }
 
 
@@ -188,8 +196,8 @@ public class XsdValidationController {
                     textFlowPane.getChildren().add(lineText);
 
                     try {
-                        var lineBevore = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() - 1).trim();
-                        textFlowPane.getChildren().add(new Text(lineBevore + System.lineSeparator()));
+                        var lineBefore = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() - 1).trim();
+                        textFlowPane.getChildren().add(new Text(lineBefore + System.lineSeparator()));
 
                         var line = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber()).trim();
                         textFlowPane.getChildren().add(new Text(line + System.lineSeparator()));
@@ -208,9 +216,6 @@ public class XsdValidationController {
                             var t = p.getTabs();
                             t.forEach(e -> {
                                 if (Objects.equals(e.getId(), "tabPaneXml")) {
-                                    //this.parentController.getXmlController().codeArea.scrollToPixel(saxParseException.getLineNumber(), saxParseException.getColumnNumber());
-                                    //this.parentController.getXmlController().codeArea.requestFocus();
-
                                     p.getSelectionModel().select(e);
                                 }
                             });
@@ -227,7 +232,7 @@ public class XsdValidationController {
                 statusImage.setImage(image);
 
             } else {
-                logger.warn("KEINE ERRORS");
+                logger.debug("No errors in Validation of file {} - schema {}", xmlService.getCurrentXsdFile(), xmlService.getCurrentXsdFile());
                 Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-ok-48.png")).toString());
                 statusImage.setImage(image);
             }
@@ -240,18 +245,6 @@ public class XsdValidationController {
 
     @FXML
     private void test() {
-        xmlService.setCurrentXmlFile(Paths.get("C:/Data/src/FreeXmlToolkit/output/!FundsXML AMUNDI FLOATING RATE EURO CORP ESG as of 2021-12-30 v2.xml").toFile());
-        xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
-
-        xmlService.setCurrentXsdFile(Paths.get("C:/Data/src/schema/FundsXML4.xsd").toFile());
-        xsdFileName.setText(xmlService.getCurrentXsdFile().getName());
-
-        reload();
-
-        if (parentController != null) {
-            //parentController.getXmlController().reloadXmlText();
-            //parentController.getXsdController().reloadXmlText();
-        }
+        processXmlFile(Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml").toFile());
     }
-
 }

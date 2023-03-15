@@ -336,6 +336,8 @@ public class XmlServiceImpl implements XmlService {
                 logger.debug("Cache path: {}", md5Hex);
 
                 final Path CURRENT_XSD_CACHE_PATH = Path.of(CACHE_DIR + File.separator + md5Hex);
+                logger.debug("Absolute cache Path: {}", CURRENT_XSD_CACHE_PATH);
+
                 if (!Files.exists(CURRENT_XSD_CACHE_PATH)) {
                     try {
                         Files.createDirectories(CURRENT_XSD_CACHE_PATH);
@@ -345,8 +347,10 @@ public class XmlServiceImpl implements XmlService {
                 }
 
                 String fileNameNew = FilenameUtils.getName(possibleSchemaLocation.get());
+                String possibleFileName = CURRENT_XSD_CACHE_PATH + File.separator + fileNameNew;
+                logger.debug("Cache File: {}", possibleFileName);
 
-                File newFile = new File(CURRENT_XSD_CACHE_PATH + File.separator + fileNameNew);
+                File newFile = new File(possibleFileName);
                 if (newFile.exists() && newFile.length() > 1) {
                     logger.debug("Load file from cache: {}", newFile.getAbsolutePath());
                     this.setCurrentXsdFile(newFile);
@@ -354,6 +358,8 @@ public class XmlServiceImpl implements XmlService {
 
                     return true;
                 } else {
+                    logger.debug("Did not find cached Schema file.");
+
                     var proxySelector = ProxySelector.getDefault();
                     if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
                         logger.debug("PROXY HOST: {}", prop.get("http.proxy.host"));

@@ -121,8 +121,10 @@
   -fx-padding: 0 0 5px 5px;
 }
 
+/*
 .tree-cell .tree-disclosure-node .arrow {
   -fx-shape: "";
+  -fx-background-color: null;
   -fx-background-image: url("../img/plus-box.PNG");
   -fx-background-size: 90% 90%;
   -fx-background-repeat: no-repeat;
@@ -130,9 +132,12 @@
 }
 
 .tree-cell:expanded .tree-disclosure-node .arrow {
+  -fx-shape: null;
+  -fx-background-color: null;
   -fx-background-image: url("../img/minus.PNG");
 }
 
+ */
 .xmlAttributeNode {
   -fx-text-fill: #F4A261;
   -fx-font-weight: bold;
