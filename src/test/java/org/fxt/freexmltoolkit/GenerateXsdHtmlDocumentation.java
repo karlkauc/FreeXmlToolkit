@@ -23,21 +23,20 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.FileInputStream;
-import java.io.StringWriter;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringReader;
 
 public class GenerateXsdHtmlDocumentation {
     final static String fileName = "src/test/resources/FundsXML_420.xsd";
@@ -55,29 +54,64 @@ public class GenerateXsdHtmlDocumentation {
     void generateXsdSourceFromNode() {
         try {
             // /xs:schema/xs:complexType[@name="ControlDataType"]
+            // String xPath = "/xs:schema/xs:complexType[@name='ControlDataType']";
+            // xPath = "//xs:element[@name='ControlDataType']";
 
-            final String xPath = "/xs:schema/xs:complexType[@name=\"ControlDataType\"]";
-            // //xs:element[@name="ControlDataType"]
-            FileInputStream fileIS = new FileInputStream(fileName);
-            DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = builderFactory.newDocumentBuilder();
-            Document xmlDocument = builder.parse(fileIS);
-            XPath xPathPath = XPathFactory.newInstance().newXPath();
-            var nodeList = (NodeList) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODESET);
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new FileReader(fileName)));
 
+            XPathFactory xPathFactory = XPathFactory.newInstance();
+            XPath xPath = xPathFactory.newXPath();
 
-            Node elem = nodeList.item(0);
-            StringWriter buf = new StringWriter();
-            Transformer xform = TransformerFactory.newInstance().newTransformer();
-            xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes"); // optional
-            xform.setOutputProperty(OutputKeys.INDENT, "yes"); // optional
-            xform.transform(new DOMSource(elem), new StreamResult(buf));
+            String expression = "//xs:element[@name='FundsXML4']//xs:element[@name='ControlDataType']";
+            NodeList nodeList = (NodeList) xPath.evaluate(expression, doc, XPathConstants.NODESET);
 
-            logger.debug("OUTPUT: " + buf);
-
+            System.out.println("Node count: " + nodeList.getLength());
 
         } catch (Exception exe) {
             exe.printStackTrace();
         }
+    }
+
+
+    @Test
+    public void t2() throws ParserConfigurationException, XPathExpressionException, IOException, SAXException {
+        String schema = "<xs:schema xmlns:xs=\"http://w...content-available-to-author-only...3.org/2001/XMLSchema\" targetNamespace=\"http://x...content-available-to-author-only...e.com/cloud/adapter/nxsd/surrogate/request\"\r\n" +
+                "       xmlns=\"http://x...content-available-to-author-only...e.com/cloud/adapter/nxsd/surrogate/request\"\r\n" +
+                "       elementFormDefault=\"qualified\">\r\n" +
+                "<xs:element name=\"myapp\">\r\n" +
+                "    <xs:complexType>\r\n" +
+                "    <xs:sequence>\r\n" +
+                "        <xs:element name=\"content\">\r\n" +
+                "            <xs:complexType>\r\n" +
+                "                <xs:sequence>\r\n" +
+                "                    <xs:element name=\"EmployeeID\" type=\"xs:string\" maxOccurs=\"1\" minOccurs=\"0\"/>\r\n" +
+                "                    <xs:element name=\"EName\" type=\"xs:string\" maxOccurs=\"1\" minOccurs=\"0\"/>\r\n" +
+                "                </xs:sequence>\r\n" +
+                "            </xs:complexType>\r\n" +
+                "        </xs:element>\r\n" +
+                "        <xs:element name=\"attribute\">\r\n" +
+                "            <xs:complexType>\r\n" +
+                "                <xs:sequence>\r\n" +
+                "                    <xs:element name=\"item\" type=\"xs:integer\" maxOccurs=\"1\" minOccurs=\"0\"/>                        \r\n" +
+                "                </xs:sequence>\r\n" +
+                "            </xs:complexType>\r\n" +
+                "        </xs:element>\r\n" +
+                "    </xs:sequence>\r\n" +
+                "    </xs:complexType>\r\n" +
+                "</xs:element>\r\n" +
+                "</xs:schema>\r\n";
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse(new InputSource(new StringReader(schema)));
+
+        XPathFactory xPathFactory = XPathFactory.newInstance();
+        XPath xPath = xPathFactory.newXPath();
+
+        String expression = "//element[@name='myapp']//element[@name='content']";
+        NodeList nodeList = (NodeList) xPath.evaluate(expression, doc, XPathConstants.NODESET);
+
+        System.out.println("Node count: " + nodeList.getLength());
     }
 }
