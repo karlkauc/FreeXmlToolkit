@@ -23,6 +23,8 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -30,6 +32,11 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -37,6 +44,7 @@ import javax.xml.xpath.XPathFactory;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 
 public class GenerateXsdHtmlDocumentation {
     final static String fileName = "src/test/resources/FundsXML_420.xsd";
@@ -53,13 +61,26 @@ public class GenerateXsdHtmlDocumentation {
     @Test
     void generateXsdSourceFromNode() {
         try {
-            // /xs:schema/xs:complexType[@name="ControlDataType"]
-            // String xPath = "/xs:schema/xs:complexType[@name='ControlDataType']";
-            // xPath = "//xs:element[@name='ControlDataType']";
-
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new InputSource(new FileReader(fileName)));
+
+            NodeList elementList = doc.getElementsByTagName("xs:element");
+            for (int i = 0; i < elementList.getLength(); i++) {
+                Element element = (Element) elementList.item(i);
+                if (element.hasAttributes() && element.getAttribute("type") != "") {
+                    System.out.println("element.getNodeValue() = " + element.getTextContent());
+
+                    Node elem = element;
+                    StringWriter buf = new StringWriter();
+                    Transformer xform = TransformerFactory.newInstance().newTransformer();
+                    xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes"); // optional
+                    xform.setOutputProperty(OutputKeys.INDENT, "yes"); // optional
+                    xform.transform(new DOMSource(elem), new StreamResult(buf));
+
+                    logger.debug(buf.toString());
+                }
+            }
 
             XPathFactory xPathFactory = XPathFactory.newInstance();
             XPath xPath = xPathFactory.newXPath();
