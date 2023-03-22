@@ -57,8 +57,21 @@ public class XsdDocumentationService {
         return xsdFilePath;
     }
 
+    public XmlService getXmlService() {
+        return xmlService;
+    }
+
+    public void setXmlService(XmlService xmlService) {
+        this.xmlService = xmlService;
+    }
+
     public void setXsdFilePath(String xsdFilePath) {
         this.xsdFilePath = xsdFilePath;
+    }
+
+    public void generateDocumentation() {
+        processXsd();
+        generateHtml("schemadoc.html");
     }
 
     public void generateDocumentation(String outputFileName) {
@@ -66,16 +79,9 @@ public class XsdDocumentationService {
         generateHtml(outputFileName);
     }
 
-
-    public void generateDocumentation() {
-        processXsd();
-        generateHtml("schemadoc.html");
-    }
-
     private void processXsd() {
         parser = new XsdParser(xsdFilePath);
-
-        xmlService.setCurrentXsdFile(new File(xsdFilePath));
+        xmlService.setCurrentXmlFile(new File(xsdFilePath));
 
         elements = parser.getResultXsdElements().collect(Collectors.toList());
         xmlSchema = parser.getResultXsdSchemas().toList();

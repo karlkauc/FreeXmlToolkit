@@ -28,6 +28,7 @@ import org.xml.sax.SAXParseException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class ValidationTest {
@@ -103,6 +104,18 @@ public class ValidationTest {
         var remoteXsdLocation = xmlService.getRemoteXsdLocation();
         System.out.println("remoteXsdLocation = " + remoteXsdLocation);
         Assertions.assertEquals("file://src/test/resources/FundsXML_306.xsd", remoteXsdLocation);
+    }
+
+    @Test
+    public void testSchemaNotFound() {
+        // processXmlFile(Paths.get("C:\\Data\\TEMP\\2023-03-22_SMN\\20230224_SMN_Diversified_Futures_Fund_1996_LU0070804173.xml").toFile());
+        xmlService.setCurrentXmlFile(Paths.get("C:\\Data\\TEMP\\2023-03-22_SMN\\20230224_SMN_Diversified_Futures_Fund_1996_LU0070804173.xml").toFile());
+        assert xmlService.getCurrentXmlFile() != null;
+
+        var remoteXsdLocation = xmlService.getRemoteXsdLocation();
+        System.out.println("remoteXsdLocation = " + remoteXsdLocation);
+
+
     }
 
     @Disabled("fix FundsXML 306 XML File before!")

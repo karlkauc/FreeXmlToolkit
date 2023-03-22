@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
   ~ Copyright (c) 2023.
@@ -24,6 +18,12 @@
   ~
   -->
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <AnchorPane fx:id="anchorPane" style="-fx-padding: 0;" stylesheets="@../css/app.css"
             xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController">
@@ -68,7 +68,7 @@
             <VBox fx:id="errorListBox"/>
         </ScrollPane>
 
-        <Button onAction="#reload" text="Reload" GridPane.rowIndex="6">
+        <Button onAction="#processXmlFile" text="Reload" GridPane.rowIndex="6">
             <graphic>
                 <FontIcon iconLiteral="win10-refresh" iconSize="16"/>
             </graphic>
@@ -79,8 +79,8 @@
                 <FontIcon iconLiteral="win10-spy" iconSize="16"/>
             </graphic>
         </Button>
-        <ProgressIndicator fx:id="progressIndicator" minHeight="100.0" minWidth="100.0" progress="0.0"
-                           GridPane.columnIndex="1" GridPane.rowIndex="6" visible="false"/>
+        <ProgressIndicator fx:id="progressIndicator" minHeight="50.0" minWidth="50.0" progress="0.0" visible="false"
+                           GridPane.columnIndex="1" GridPane.rowIndex="6"/>
 
         <columnConstraints>
             <ColumnConstraints maxWidth="180" minWidth="180" prefWidth="180"/>

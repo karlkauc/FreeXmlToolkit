@@ -122,6 +122,7 @@ public class XsdValidationController {
             if (db.hasFiles()) {
                 success = true;
                 for (File file : db.getFiles()) {
+                    xmlService.setCurrentXmlFile(file);
                     processXmlFile(file);
                 }
             }
@@ -135,7 +136,9 @@ public class XsdValidationController {
                 logger.debug("Loaded XSLT File: {}", tempFile.getAbsolutePath());
                 xmlService.setCurrentXsdFile(tempFile);
                 xsdFileName.setText(xmlService.getCurrentXsdFile().getName());
-                reload();
+                if (xmlService.getCurrentXmlFile() != null) {
+                    processXmlFile();
+                }
             }
         });
 
@@ -146,9 +149,18 @@ public class XsdValidationController {
         }
     }
 
+    @FXML
+    private void processXmlFile() {
+        processXmlFile(xmlService.getCurrentXmlFile());
+    }
+
     private void processXmlFile(File file) {
         progressIndicator.setVisible(true);
         progressIndicator.setProgress(0.1);
+
+        remoteXsdLocation.setText("");
+        statusImage.setImage(null);
+        errorListBox.getChildren().clear();
 
         xmlService.setCurrentXmlFile(file);
         xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
@@ -156,29 +168,22 @@ public class XsdValidationController {
         progressIndicator.setProgress(0.2);
         if (autodetect.isSelected()) {
             var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
-            if (schemaName.isPresent()) {
+            if (schemaName.isPresent() && xmlService.loadSchemaFromXMLFile()) {
+                logger.debug("Loading remote schema successfully!");
                 xsdFileName.setText(schemaName.get());
-                if (xmlService.loadSchemaFromXMLFile()) {
-                    logger.debug("Loading remote schema successfully!");
-                } else {
-                    logger.debug("Could not load remote schema");
-                }
+            } else {
+                logger.debug("Could not load remote schema");
+                xsdFileName.setText("");
+                xmlService.setCurrentXsdFile(null);
+            }
+        } else {
+            if (xmlService.getCurrentXsdFile() != null) {
+                xsdFileName.setText(xmlService.getCurrentXsdFile().getName());
             }
         }
-        progressIndicator.setProgress(0.4);
-        reload();
-        progressIndicator.setProgress(1.0);
-    }
 
-
-    @FXML
-    private void reload() {
-        if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists() &&
-                xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
-            remoteXsdLocation.setText(xmlService.getRemoteXsdLocation());
-
-            errorListBox.getChildren().clear();
-
+        if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXsdFile() != null) {
+            progressIndicator.setProgress(0.4);
             var exceptionList = xmlService.validate();
             if (exceptionList != null && exceptionList.size() > 0) {
                 logger.warn(Arrays.toString(exceptionList.toArray()));
@@ -240,7 +245,14 @@ public class XsdValidationController {
             logger.debug("war nicht alles ausgewählt!!");
             logger.debug("Current XML File: {}", xmlService.getCurrentXmlFile());
             logger.debug("Current XSD File: {}", xmlService.getCurrentXsdFile());
+
+            errorListBox.getChildren().add(new Label("Schema not found!"));
+
+            Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-stornieren-48.png")).toString());
+            statusImage.setImage(image);
         }
+
+        progressIndicator.setProgress(1.0);
     }
 
     @FXML

@@ -31,6 +31,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -96,4 +97,7 @@ public interface XmlService {
             return input;
         }
     }
+
+
+    void removeBom(Path path);
 }

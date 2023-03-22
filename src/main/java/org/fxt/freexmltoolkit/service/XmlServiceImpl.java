@@ -19,6 +19,7 @@
 package org.fxt.freexmltoolkit.service;
 
 import net.sf.saxon.s9api.*;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -57,6 +58,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -109,6 +111,10 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public void setCurrentXmlFile(File currentXmlFile) {
+        if (isContainBOM(currentXmlFile.toPath())) {
+            removeBom(currentXmlFile.toPath());
+        }
+
         this.currentXmlFile = currentXmlFile;
 
         try {
@@ -314,6 +320,7 @@ public class XmlServiceImpl implements XmlService {
     public boolean loadSchemaFromXMLFile() {
         var prop = propertiesService.loadProperties();
         logger.debug("Properties: {}", prop);
+        this.currentXsdFile = null;
 
         try {
             if (!new File(CACHE_DIR).exists()) {
@@ -446,20 +453,79 @@ public class XmlServiceImpl implements XmlService {
                 logger.debug("Trying xmlns...");
                 possibleSchemaLocation = root.getAttribute("xmlns");
                 logger.debug("Schema Location: {}", possibleSchemaLocation);
-                if (!possibleSchemaLocation.isEmpty()) {
+                if (!possibleSchemaLocation.isEmpty() && possibleSchemaLocation.toLowerCase().endsWith(".xsd")) {
                     logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
                     return Optional.of(possibleSchemaLocation);
+                } else {
+                    logger.debug("Possible Schema Location empty or doesn't end with .xsd");
                 }
+                return Optional.empty();
 
             } catch (IOException | ParserConfigurationException | SAXException exception) {
-                // logger.error(exception.getMessage());
-                logger.error("Error");
+                logger.error("Error: {}", exception.getMessage());
+                return Optional.empty();
             }
         } else {
             logger.debug("Kein XML File ausgewählt!");
         }
 
         return Optional.empty();
+    }
+
+
+    @Override
+    public void removeBom(Path path) {
+        try {
+            if (isContainBOM(path)) {
+                byte[] bytes = Files.readAllBytes(path);
+                ByteBuffer bb = ByteBuffer.wrap(bytes);
+                System.out.println("Found BOM!");
+
+                byte[] bom = new byte[3];
+                // get the first 3 bytes
+                bb.get(bom, 0, bom.length);
+
+                // remaining
+                byte[] contentAfterFirst3Bytes = new byte[bytes.length - 3];
+                bb.get(contentAfterFirst3Bytes, 0, contentAfterFirst3Bytes.length);
+
+                System.out.println("Remove the first 3 bytes, and overwrite the file!");
+
+                // override the same path
+                Files.write(path, contentAfterFirst3Bytes);
+            } else {
+                System.out.println("This file doesn't contains UTF-8 BOM!");
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+
+    }
+
+    static boolean isContainBOM(Path path) {
+
+        if (Files.notExists(path)) {
+            throw new IllegalArgumentException("Path: " + path + " does not exists!");
+        }
+
+        boolean result = false;
+
+        byte[] bom = new byte[3];
+        try (InputStream is = new FileInputStream(path.toFile())) {
+
+            // read 3 bytes of a file.
+            is.read(bom);
+
+            // BOM encoded as ef bb bf
+            String content = new String(Hex.encodeHex(bom));
+            if ("efbbbf".equalsIgnoreCase(content)) {
+                result = true;
+            }
+
+        } catch (IOException ignore) {
+        }
+
+        return result;
     }
 
     public String prettyFormat(String input, int indent) {
