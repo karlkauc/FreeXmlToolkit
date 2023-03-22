@@ -845,7 +845,7 @@
                                                 <div class="row">
                                                     <div class="fs-small">
                                                         <details>
-                                                            <summary>Orginal XML</summary>
+                                                            <summary>Original XML</summary>
                                                             <p>
                                                                 <script type="text/plain" class="language-xml">
                                                                     <xsl:if test="$renderXMLContent">

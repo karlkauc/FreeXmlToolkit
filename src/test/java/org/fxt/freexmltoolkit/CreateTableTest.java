@@ -1,15 +1,33 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) 2023.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package org.fxt.freexmltoolkit;
 
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.junit.jupiter.api.Test;
 
 public class CreateTableTest {
-    final static String fileName = "src/test/resources/FundsXML4_2_0.xsd";
+    final static String fileName = "src/test/resources/FundsXML_420.xsd";
 
     @Test
     void createHtmlTable() {
         XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
         xsdDocumentationService.setXsdFilePath(fileName);
-        xsdDocumentationService.generateDocumentation();
+        xsdDocumentationService.generateDocumentation("test-doc.html");
     }
 }

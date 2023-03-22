@@ -30,8 +30,18 @@ public class ExtendedXsdElement {
 
     String currentXpath;
 
+    String sourceCode;
+
     public XsdElement getXsdElement() {
         return xsdElement;
+    }
+
+    public String getSourceCode() {
+        return sourceCode;
+    }
+
+    public void setSourceCode(String sourceCode) {
+        this.sourceCode = sourceCode;
     }
 
     public void setXsdElement(XsdElement xsdElement) {

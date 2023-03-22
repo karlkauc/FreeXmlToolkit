@@ -29,6 +29,7 @@ import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdEnumeration;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -50,6 +51,8 @@ public class XsdDocumentationService {
     List<XsdSchema> xmlSchema;
     List<ExtendedXsdElement> extendedXsdElements;
 
+    XmlService xmlService = XmlServiceImpl.getInstance();
+
     public String getXsdFilePath() {
         return xsdFilePath;
     }
@@ -58,13 +61,21 @@ public class XsdDocumentationService {
         this.xsdFilePath = xsdFilePath;
     }
 
+    public void generateDocumentation(String outputFileName) {
+        processXsd();
+        generateHtml(outputFileName);
+    }
+
+
     public void generateDocumentation() {
         processXsd();
-        generateHtml();
+        generateHtml("schemadoc.html");
     }
 
     private void processXsd() {
         parser = new XsdParser(xsdFilePath);
+
+        xmlService.setCurrentXsdFile(new File(xsdFilePath));
 
         elements = parser.getResultXsdElements().collect(Collectors.toList());
         xmlSchema = parser.getResultXsdSchemas().toList();
@@ -79,7 +90,7 @@ public class XsdDocumentationService {
         }
     }
 
-    private void generateHtml() {
+    private void generateHtml(String outputFileName) {
         var resolver = new ClassLoaderTemplateResolver();
         resolver.setTemplateMode(TemplateMode.HTML);
         resolver.setCharacterEncoding("UTF-8");
@@ -102,7 +113,9 @@ public class XsdDocumentationService {
         var result = templateEngine.process("xsdTemplate", context);
 
         try {
-            Files.write(Paths.get("doc\\output.html"), result.getBytes());
+            Files.write(Paths.get("output//" + outputFileName), result.getBytes());
+
+            logger.debug("Written {} bytes", new File(outputFileName).length());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -113,6 +126,7 @@ public class XsdDocumentationService {
         if (level > MAX_ALLOWED_DEPTH) {
             logger.error("Too many elements");
             System.err.println("Too many elements");
+            return;
         }
 
         if (xsdAbstractElement instanceof XsdElement currentXsdElement) {
@@ -127,6 +141,8 @@ public class XsdDocumentationService {
             extendedXsdElement.setXsdElement(currentXsdElement);
             extendedXsdElement.setLevel(level);
             extendedXsdElement.setCurrentXpath(currentXpath);
+
+            extendedXsdElement.setSourceCode(xmlService.getXmlFromXpath(currentXpath));
 
             if (currentXsdElement.getAnnotation() != null && currentXsdElement.getAnnotation().getDocumentations() != null) {
                 extendedXsdElement.setXsdDocumentation(currentXsdElement.getAnnotation().getDocumentations());
