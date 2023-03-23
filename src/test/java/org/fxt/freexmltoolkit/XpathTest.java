@@ -31,12 +31,34 @@ public class XpathTest {
 
     XmlService xmlService = XmlServiceImpl.getInstance();
 
+    File xmlFile = new File("src/test/resources/FundsXML_420.xml");
+    File xsdFile = new File("src/test/resources/FundsXML_420.xsd");
+
+    @Test
+    void xPahtElementTest() {
+        xmlService.setCurrentXmlFile(xsdFile);
+        var s = xmlService.getXmlFromXpath("//xs:element[@name='OtherID']");
+        System.out.println("s = " + s);
+    }
+
+    @Test
+    void testDoubleElements() {
+        // /FundsXML4/AssetMasterData/Asset/AssetDetails/Repo/Rate
+        // Rate kommt öfters vor
+
+        xmlService.setCurrentXmlFile(xsdFile);
+        var s = xmlService.getXmlFromXpath("//xs:element[@name='Rate']");
+        // /FundsXML4/AssetMasterData/Asset/AssetDetails/Repo/Rate
+        System.out.println("s = " + s);
+
+        s = xmlService.getXmlFromXpath("//xs:complexType[@name='ReposType']//xs:element[@name='Rate']");
+        System.out.println("s = " + s);
+    }
+
     @Test
     void xPathFromXml() {
-        var f = new File("src/test/resources/FundsXML_420.xml");
-
         Assertions.assertNotNull(xmlService);
-        xmlService.setCurrentXmlFile(f);
+        xmlService.setCurrentXmlFile(xmlFile);
 
         Assertions.assertEquals(xmlService.getSchemaNameFromCurrentXMLFile().get(), "https://github.com/fundsxml/schema/releases/download/4.2.2/FundsXML.xsd");
         Assertions.assertEquals(xmlService.getCurrentXmlFile().getPath(), "src\\test\\resources\\FundsXML_420.xml");
@@ -66,10 +88,7 @@ public class XpathTest {
 
     @Test
     void xpathFromXsdTest() {
-
-        var f = new File("src/test/resources/FundsXML_420.xsd");
-
-        xmlService.setCurrentXmlFile(f);
+        xmlService.setCurrentXmlFile(xsdFile);
         var s = xmlService.getXmlFromXpath("//xs:complexType[@name='AccountType']");
 
         String expectedOutput = """

@@ -25,11 +25,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
 
-    <link href="bootstrap.min.css" rel="stylesheet"
-    / >
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <link href="prism.css" rel="stylesheet">
 </head>
 <body>
-<div class="container" style="margin-bottom: 100px;">
+<div class="container" style="margin-bottom: 100px; margin-top: 100px;">
     <div class="row">
         <div class="col-2">Date Created:</div>
         <div class="col" th:text="${date}">2022-12-30</div>
@@ -65,18 +65,8 @@
                    th:href="${'#' + xsdElement.name}"
                    th:text="${xsdElement.name}">Name
                 </a>
-                <!-- <div th:each="xsdElement : ${xsdElements}"
-                     th:text="${xsdElement.name}">Name
-                </div>
-                -->
             </td>
             <td class="align-text-top">
-                <!--
-                <div th:each="xsdComplexType, iterStat : ${xsdComplexTypes}"
-                     th:text="${xsdComplexType.name}"
-                     th:class="${iterStat.odd}? 'bg-secondary'">complex types
-                </div>
-                -->
                 <div th:each="xsdComplexType, iterStat : ${xsdComplexTypes}"
                      th:class="${iterStat.odd}? 'bg-secondary'">
                     <a th:href="${'#' + xsdComplexType.name}"
@@ -96,8 +86,19 @@
 
     <hr/>
 
-    <div th:each="extendedXsdElement : ${extendedXsdElements}">
-        <table th:id="${extendedXsdElement.xsdElement.type}" class="table table-responsive table-bordered">
+    <div th:each="extendedXsdElement : ${extendedXsdElements}" class="table-responsive">
+        <table th:id="${extendedXsdElement.xsdElement.type}" class="table table-sm table-bordered">
+            <thead>
+            <tr>
+                <th class="col">Name:</th>
+                <th class="col" th:text="${extendedXsdElement.xsdElement.name}">XXX</th>
+            </tr>
+            </thead>
+            <tr>
+                <td class="col">Type:</td>
+                <td class="col" th:text="${extendedXsdElement.xsdElement.type}">XXX</td>
+            </tr>
+
             <tr>
                 <td class="col">Level:</td>
                 <td class="col" th:text="${extendedXsdElement.level}">XXX</td>
@@ -105,14 +106,6 @@
             <tr>
                 <td class="col">XPath:</td>
                 <td class="col" th:text="${extendedXsdElement.getCurrentXpath()}">XXX</td>
-            </tr>
-            <tr>
-                <td class="col">Name:</td>
-                <td class="col" th:text="${extendedXsdElement.xsdElement.name}">XXX</td>
-            </tr>
-            <tr>
-                <td class="col">Type:</td>
-                <td class="col" th:text="${extendedXsdElement.xsdElement.type}">XXX</td>
             </tr>
             <tr>
                 <td class="col">Documentation:</td>
@@ -125,7 +118,26 @@
             <tr>
                 <td class="col">Source:</td>
                 <td class="col">
-                    <pre th:text="${extendedXsdElement.getSourceCode()}"/>
+<pre class="line-numbers">
+<code class="language-xml" th:text="${extendedXsdElement.getSourceCode()}">
+&lt;ControlData xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;
+    &lt;UniqueDocumentID&gt;EAM_FUND_001&lt;/UniqueDocumentID&gt;
+        &lt;DocumentGenerated&gt;2021-11-30T16:14:04&lt;/DocumentGenerated&gt;
+                   &lt;ContentDate&gt;2021-11-30&lt;/ContentDate&gt;
+                   &lt;DataSupplier&gt;
+                      &lt;SystemCountry&gt;AT&lt;/SystemCountry&gt;
+                      &lt;Short&gt;EAM&lt;/Short&gt;
+                      &lt;Name&gt;Erste Asset Management GmbH&lt;/Name&gt;
+                      &lt;Type&gt;Asset Manager&lt;/Type&gt;
+                      &lt;Contact&gt;
+                         &lt;Email&gt;datamanagement@erste-am.com&lt;/Email&gt;
+                      &lt;/Contact&gt;
+                   &lt;/DataSupplier&gt;
+                   &lt;DataOperation&gt;INITIAL&lt;/DataOperation&gt;
+                   &lt;Language&gt;EN&lt;/Language&gt;
+&lt;/ControlData&gt;
+</code>
+</pre>
                 </td>
             </tr>
         </table>
@@ -142,5 +154,6 @@
         crossorigin="anonymous"></script>
 
 <script src="bootstrap.bundle.min.js"></script>
+<script src="prism.js"></script>
 </body>
 </html>

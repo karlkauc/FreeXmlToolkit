@@ -135,6 +135,8 @@ public class XsdDocumentationService {
             return;
         }
 
+        ExtendedXsdElement extendedXsdElement = new ExtendedXsdElement();
+
         if (xsdAbstractElement instanceof XsdElement currentXsdElement) {
             final String currentXpath = "/" + String.join("/", prevElementPath) + "/" + currentXsdElement.getName();
             logger.debug("Current XPath = {}", currentXpath);
@@ -143,10 +145,17 @@ public class XsdDocumentationService {
             logger.debug("Current Type: " + currentType);
             logger.debug("Current Name: {}", currentXsdElement.getRawName());
 
-            ExtendedXsdElement extendedXsdElement = new ExtendedXsdElement();
             extendedXsdElement.setXsdElement(currentXsdElement);
             extendedXsdElement.setLevel(level);
             extendedXsdElement.setCurrentXpath(currentXpath);
+
+            // TODO: muss besser gemacht werden. In Switch einbauen!!!
+            try {
+                var element = (XsdElement) xsdAbstractElement;
+                var s = xmlService.getXmlFromXpath("//xs:element[@name='" + element.getName() + "']");
+                extendedXsdElement.setSourceCode(s);
+            } catch (ClassCastException ignore) {
+            }
 
             if (currentXsdElement.getAnnotation() != null && currentXsdElement.getAnnotation().getDocumentations() != null) {
                 extendedXsdElement.setXsdDocumentation(currentXsdElement.getAnnotation().getDocumentations());
@@ -157,11 +166,10 @@ public class XsdDocumentationService {
 
                 for (XsdDocumentation xsdDocumentation : currentXsdElement.getAnnotation().getDocumentations()) {
                     logger.debug("Documentation: {}", xsdDocumentation.getContent());
-                    logger.debug("Documentation Attributest: {}", xsdDocumentation.getAttributesMap());
+                    logger.debug("Documentation Attributes: {}", xsdDocumentation.getAttributesMap());
                 }
             }
 
-            extendedXsdElements.add(extendedXsdElement);
 
             if (prevElementTypes.stream().anyMatch(str -> str.trim().equals(currentType))) {
                 System.out.println("ELEMENT SCHON BEARBEITET: " + currentType);
@@ -170,7 +178,7 @@ public class XsdDocumentationService {
             } else {
                 logger.debug("noch nicht bearbeitet: {}", currentType);
             }
-            System.out.println("LEVEL: " + level + " - RAW NAME: " + currentXsdElement.getRawName());
+            logger.debug("LEVEL: " + level + " - RAW NAME: " + currentXsdElement.getRawName());
 
             if (currentXsdElement.getXsdComplexType() != null) {
                 System.out.println("TYPE: " + currentXsdElement.getXsdComplexType().getRawName()); // entweder null oder Type (IdentifiersType)
@@ -269,6 +277,8 @@ public class XsdDocumentationService {
                     // documentation.append(System.lineSeparator()).append(System.lineSeparator());
                 }
             }
+
+            extendedXsdElements.add(extendedXsdElement);
         }
 
         if (xsdAbstractElement instanceof XsdChoice xsdChoice) {
