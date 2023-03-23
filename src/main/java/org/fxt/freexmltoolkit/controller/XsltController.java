@@ -144,7 +144,7 @@ public class XsltController {
             logger.debug("RENDER FILE");
 
             try {
-                String output = xmlService.saxonTransform();
+                String output = xmlService.performXsltTransformation();
 
                 progressBar.setVisible(true);
                 progressBar.setProgress(0.1);

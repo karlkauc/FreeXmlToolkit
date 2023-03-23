@@ -1,91 +1,141 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) 2023.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package org.fxt.freexmltoolkit;
 
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.StringWriter;
 
 public class XpathTest {
 
+    XmlService xmlService = XmlServiceImpl.getInstance();
 
     @Test
-    void xpathTest1() {
-        XmlService xmlService = XmlServiceImpl.getInstance();
+    void xPathFromXml() {
+        var f = new File("src/test/resources/FundsXML_420.xml");
 
-        var f = new File("src/test/resources/test01.xml");
-
-        assert (xmlService != null);
+        Assertions.assertNotNull(xmlService);
         xmlService.setCurrentXmlFile(f);
-        assert (xmlService.getSchemaNameFromCurrentXMLFile().equals("https://fdp-service.oekb.at/FundsXML_4.1.7_AI.xsd"));
-        assert (xmlService.getCurrentXmlFile().getPath().equals("src/test/resources/test01.xml"));
 
-        try {
+        Assertions.assertEquals(xmlService.getSchemaNameFromCurrentXMLFile().get(), "https://github.com/fundsxml/schema/releases/download/4.2.2/FundsXML.xsd");
+        Assertions.assertEquals(xmlService.getCurrentXmlFile().getPath(), "src\\test\\resources\\FundsXML_420.xml");
 
-            FileInputStream fileIS = new FileInputStream(xmlService.getCurrentXmlFile());
-            DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = builderFactory.newDocumentBuilder();
-            Document xmlDocument = builder.parse(fileIS);
-            XPath xPath = XPathFactory.newInstance().newXPath();
-            String expression = "/FundsXML4/ControlData";
-            var nodeList = (NodeList) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODESET);
+        String expectedOutput = """
+                <ControlData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                   <UniqueDocumentID>EAM_FUND_001</UniqueDocumentID>
+                   <DocumentGenerated>2021-11-30T16:14:04</DocumentGenerated>
+                   <ContentDate>2021-11-30</ContentDate>
+                   <DataSupplier>
+                      <SystemCountry>AT</SystemCountry>
+                      <Short>EAM</Short>
+                      <Name>Erste Asset Management GmbH</Name>
+                      <Type>Asset Manager</Type>
+                      <Contact>
+                         <Email>datamanagement@erste-am.com</Email>
+                      </Contact>
+                   </DataSupplier>
+                   <DataOperation>INITIAL</DataOperation>
+                   <Language>EN</Language>
+                </ControlData>""";
 
-            Node elem = nodeList.item(0);//Your Node
-            StringWriter buf = new StringWriter();
-            Transformer xform = TransformerFactory.newInstance().newTransformer();
-            xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes"); // optional
-            xform.setOutputProperty(OutputKeys.INDENT, "yes"); // optional
-            xform.transform(new DOMSource(elem), new StreamResult(buf));
-            System.out.println("buf.toString() = " + buf);
+        String result = xmlService.getXmlFromXpath("/FundsXML4/ControlData");
 
+        Assertions.assertEquals(result.trim(), expectedOutput.trim());
+    }
 
-/*            System.out.println("nodeList = " + nodeList);
-            for (int i = 0; i < nodeList.getLength(); i++) {
+    @Test
+    void xpathFromXsdTest() {
 
-                var node = nodeList.item(i);
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    printNodeContent(node);
-                }
-            }
+        var f = new File("src/test/resources/FundsXML_420.xsd");
 
- */
+        xmlService.setCurrentXmlFile(f);
+        var s = xmlService.getXmlFromXpath("//xs:complexType[@name='AccountType']");
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        String expectedOutput = """
+                <xs:complexType xmlns:altova="http://www.altova.com/xml-schema-extensions"
+                                 xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+                                 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                                 name="AccountType">
+                   <xs:annotation>
+                      <xs:documentation>Master data of accounts</xs:documentation>
+                   </xs:annotation>
+                   <xs:sequence>
+                      <xs:element minOccurs="0" name="IndicatorCreditDebit">
+                         <xs:annotation>
+                            <xs:documentation xml:lang="en">Account balance set as default</xs:documentation>
+                            <xs:documentation xml:lang="de">Gibt an ob das Konto default einen Soll oder Habensaldo aufweist
+                                    </xs:documentation>
+                         </xs:annotation>
+                         <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                               <xs:enumeration value="Credit"/>
+                               <xs:enumeration value="Debit"/>
+                            </xs:restriction>
+                         </xs:simpleType>
+                      </xs:element>
+                      <xs:element minOccurs="0" name="AccountNumber" type="xs:integer">
+                         <xs:annotation>
+                            <xs:documentation xml:lang="en">Account number used for booking procedure</xs:documentation>
+                            <xs:documentation xml:lang="de">Gibt das bei einer Buchung verwendete Konto an</xs:documentation>
+                         </xs:annotation>
+                      </xs:element>
+                      <xs:element minOccurs="0" name="InterestRateDebit" type="xs:decimal">
+                         <xs:annotation>
+                            <xs:documentation xml:lang="en">Debit rate</xs:documentation>
+                            <xs:documentation xml:lang="de">Zinssatz Soll</xs:documentation>
+                         </xs:annotation>
+                      </xs:element>
+                      <xs:element minOccurs="0" name="InterestRateCredit" type="xs:decimal">
+                         <xs:annotation>
+                            <xs:documentation xml:lang="en">Credit rate</xs:documentation>
+                            <xs:documentation xml:lang="de">Zinssatz Haben</xs:documentation>
+                         </xs:annotation>
+                      </xs:element>
+                      <xs:element name="Counterparty" type="CompanyType">
+                         <xs:annotation>
+                            <xs:documentation>Counterparty details</xs:documentation>
+                         </xs:annotation>
+                      </xs:element>
+                   </xs:sequence>
+                </xs:complexType>
+                """;
 
+        Assertions.assertEquals(s, expectedOutput);
     }
 
     void printNodeContent(Node node) {
         System.out.println("node.getNodeType() = " + node.getLocalName());
         if (!node.hasChildNodes()) {
             System.out.println(node.getNodeName() + ":" + node.getTextContent());
-
         } else {
             System.out.println("node.getNodeName() = " + node.getNodeName());
         }
-
 
         NodeList nodeList = node.getChildNodes();
         for (int i = 0, len = nodeList.getLength(); i < len; i++) {
             Node currentNode = nodeList.item(i);
             if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-                //calls this method for all the children which is Element
                 printNodeContent(currentNode);
             }
         }

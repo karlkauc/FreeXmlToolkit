@@ -58,7 +58,7 @@ public interface XmlService {
 
     void setCurrentXml(String currentXml);
 
-    String saxonTransform();
+    String performXsltTransformation();
 
     Document getXmlDocument();
 

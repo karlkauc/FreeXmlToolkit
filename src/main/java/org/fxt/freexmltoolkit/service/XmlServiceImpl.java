@@ -70,7 +70,20 @@ import java.util.Optional;
 public class XmlServiceImpl implements XmlService {
     private final static Logger logger = LogManager.getLogger(XmlService.class);
 
+    XPathFactory xPathFactory = new net.sf.saxon.xpath.XPathFactoryImpl();
+    XPath xPathPath = xPathFactory.newXPath();
+
+    Processor processor = new Processor(false);
+    XsltCompiler compiler = processor.newXsltCompiler();
+
+    StringWriter sw;
+
+    Xslt30Transformer transformer;
+
+    SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+
+    XsltExecutable stylesheet;
 
     File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
 
@@ -84,6 +97,9 @@ public class XmlServiceImpl implements XmlService {
     DocumentBuilder builder;
     Document xmlDocument;
 
+    Schema schema;
+    Validator validator;
+
     HttpClient client;
     HttpRequest request;
 
@@ -92,7 +108,6 @@ public class XmlServiceImpl implements XmlService {
     private static final XmlServiceImpl instance = new XmlServiceImpl();
 
     private XmlServiceImpl() {
-        logger.debug("BIN IM XML SERVICE IMPL CONSTRUCTOR");
     }
 
     public static XmlServiceImpl getInstance() {
@@ -148,7 +163,7 @@ public class XmlServiceImpl implements XmlService {
 
             this.xsltOutputMethod = nodeList.item(0).getNodeValue();
         } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException e) {
-            logger.error("Could not detect output Method: ");
+            logger.error("Could not detect output Method.");
             logger.error(e.getMessage());
         }
     }
@@ -186,18 +201,16 @@ public class XmlServiceImpl implements XmlService {
 
 
     @Override
-    public String saxonTransform() {
+    public String performXsltTransformation() {
         try {
-            Processor processor = new Processor(false);
-            XsltCompiler compiler = processor.newXsltCompiler();
-            XsltExecutable stylesheet = compiler.compile(new StreamSource(getCurrentXsltFile()));
-            StringWriter sw = new StringWriter();
+            stylesheet = compiler.compile(new StreamSource(getCurrentXsltFile()));
+            sw = new StringWriter();
             Serializer out = processor.newSerializer();
             out.setOutputProperty(Serializer.Property.METHOD, "html");
             out.setOutputProperty(Serializer.Property.INDENT, "yes");
             out.setOutputWriter(sw);
 
-            Xslt30Transformer transformer = stylesheet.load30();
+            transformer = stylesheet.load30();
             transformer.transform(new StreamSource(getCurrentXmlFile()), out);
 
             return sw.toString();
@@ -209,7 +222,6 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public List<SAXParseException> validateText(String xmlString, File schemaFile) {
-
         if (schemaFile == null) {
             logger.warn("Schema File is empty.");
             return null;
@@ -217,9 +229,8 @@ public class XmlServiceImpl implements XmlService {
 
         final List<SAXParseException> exceptions = new LinkedList<>();
         try {
-            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = factory.newSchema(new StreamSource(schemaFile));
-            Validator validator = schema.newValidator();
+            schema = factory.newSchema(new StreamSource(schemaFile));
+            validator = schema.newValidator();
 
             validator.setErrorHandler(new ErrorHandler() {
                 @Override
@@ -242,7 +253,6 @@ public class XmlServiceImpl implements XmlService {
             validator.validate(xmlStreamSource);
 
             return exceptions;
-
         } catch (SAXException | IOException e) {
             logger.error(e.getMessage());
             return exceptions;
@@ -290,25 +300,27 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
-    public String getXmlFromXpath(String xPath) {
+    public String getXmlFromXpath(String xPathQueryString) {
         try {
-            FileInputStream fileIS = new FileInputStream(this.getCurrentXmlFile());
-            DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = builderFactory.newDocumentBuilder();
-            Document xmlDocument = builder.parse(fileIS);
-            XPath xPathPath = XPathFactory.newInstance().newXPath();
-            var nodeList = (NodeList) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODESET);
+            FileInputStream fileInputStream = new FileInputStream(this.getCurrentXmlFile());
+            builderFactory = DocumentBuilderFactory.newInstance();
+            builder = builderFactory.newDocumentBuilder();
+            xmlDocument = builder.parse(fileInputStream);
 
-            Node elem = nodeList.item(0);//Your Node
-            StringWriter buf = new StringWriter();
-            Transformer xform = TransformerFactory.newInstance().newTransformer();
-            xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes"); // optional
-            xform.setOutputProperty(OutputKeys.INDENT, "yes"); // optional
-            xform.transform(new DOMSource(elem), new StreamResult(buf));
+            var nodeList = (NodeList) xPathPath.compile(xPathQueryString).evaluate(xmlDocument, XPathConstants.NODESET);
+            sw = new StringWriter();
 
-            logger.debug(buf.toString());
+            if (nodeList.getLength() > 0) {
+                Node node = nodeList.item(0);
 
-            return buf.toString();
+                Transformer xform = TransformerFactory.newInstance().newTransformer();
+                xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                xform.setOutputProperty(OutputKeys.INDENT, "yes");
+                xform.transform(new DOMSource(node), new StreamResult(sw));
+                // logger.debug(buf.toString());
+            }
+            return sw.toString();
+
         } catch (XPathExpressionException | ParserConfigurationException |
                  TransformerException | IOException | SAXException e) {
             logger.error(e.getMessage());
@@ -334,12 +346,10 @@ public class XmlServiceImpl implements XmlService {
         var possibleSchemaLocation = getSchemaNameFromCurrentXMLFile();
 
         if (possibleSchemaLocation.isPresent()) {
-            var temp = possibleSchemaLocation.get();
+            var temp = possibleSchemaLocation.get().trim();
 
-            if (possibleSchemaLocation.get().trim().toLowerCase().startsWith("http://") ||
-                    possibleSchemaLocation.get().trim().toLowerCase().startsWith("https://")) {
-
-                String md5Hex = DigestUtils.md5Hex(possibleSchemaLocation.get().trim().toLowerCase()).toUpperCase();
+            if (temp.toLowerCase().startsWith("http://") || temp.toLowerCase().startsWith("https://")) {
+                String md5Hex = DigestUtils.md5Hex(temp.toLowerCase()).toUpperCase();
                 logger.debug("Cache path: {}", md5Hex);
 
                 final Path CURRENT_XSD_CACHE_PATH = Path.of(CACHE_DIR + File.separator + md5Hex);
@@ -479,31 +489,27 @@ public class XmlServiceImpl implements XmlService {
             if (isContainBOM(path)) {
                 byte[] bytes = Files.readAllBytes(path);
                 ByteBuffer bb = ByteBuffer.wrap(bytes);
-                System.out.println("Found BOM!");
+                logger.debug("Found BOM in File: {}", path.toString());
 
-                byte[] bom = new byte[3];
                 // get the first 3 bytes
+                byte[] bom = new byte[3];
                 bb.get(bom, 0, bom.length);
 
                 // remaining
                 byte[] contentAfterFirst3Bytes = new byte[bytes.length - 3];
                 bb.get(contentAfterFirst3Bytes, 0, contentAfterFirst3Bytes.length);
 
-                System.out.println("Remove the first 3 bytes, and overwrite the file!");
-
                 // override the same path
                 Files.write(path, contentAfterFirst3Bytes);
             } else {
-                System.out.println("This file doesn't contains UTF-8 BOM!");
+                logger.debug("This file doesn't contains UTF-8 BOM: {}", path.toString());
             }
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
-
     }
 
     static boolean isContainBOM(Path path) {
-
         if (Files.notExists(path)) {
             throw new IllegalArgumentException("Path: " + path + " does not exists!");
         }

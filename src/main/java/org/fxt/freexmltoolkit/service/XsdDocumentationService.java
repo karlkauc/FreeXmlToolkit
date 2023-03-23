@@ -148,8 +148,6 @@ public class XsdDocumentationService {
             extendedXsdElement.setLevel(level);
             extendedXsdElement.setCurrentXpath(currentXpath);
 
-            extendedXsdElement.setSourceCode(xmlService.getXmlFromXpath(currentXpath));
-
             if (currentXsdElement.getAnnotation() != null && currentXsdElement.getAnnotation().getDocumentations() != null) {
                 extendedXsdElement.setXsdDocumentation(currentXsdElement.getAnnotation().getDocumentations());
 
@@ -177,6 +175,9 @@ public class XsdDocumentationService {
             if (currentXsdElement.getXsdComplexType() != null) {
                 System.out.println("TYPE: " + currentXsdElement.getXsdComplexType().getRawName()); // entweder null oder Type (IdentifiersType)
 
+                var s = xmlService.getXmlFromXpath("//xs:complexType[@name='" + currentXsdElement.getXsdComplexType().getRawName() + "']");
+                extendedXsdElement.setSourceCode(s);
+
                 if (currentXsdElement.getXsdComplexType() != null && currentXsdElement.getXsdComplexType().getXsdChildElement() != null) {
                     logger.debug("Attributes Complex Type: {}", currentXsdElement.getXsdComplexType().getAttributesMap());
 
@@ -201,7 +202,8 @@ public class XsdDocumentationService {
                 logger.debug("SIMPLE: " + currentXsdElement.getXsdSimpleType().getAttributesMap());
                 var simpleType = currentXsdElement.getXsdSimpleType();
 
-                // xsdHtmlGenerator.generateSimpleType(currentXsdElement, level, currentXpath);
+                var s = xmlService.getXmlFromXpath("//xs:simpleType[@name='" + currentXsdElement.getXsdSimpleType().getRawName() + "']");
+                extendedXsdElement.setSourceCode(s);
 
                 logger.debug("Attributes Simple Type: {}", currentXsdElement.getXsdSimpleType().getAttributesMap());
                 logger.debug("current type: {}", currentType);

@@ -45,12 +45,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
-public class GenerateXsdHtmlDocumentation {
+public class GenerateXsdHtmlDocumentationTest {
     final static String fileName = "src/test/resources/FundsXML_420.xsd";
     final XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
 
-    private final static Logger logger = LogManager.getLogger(GenerateXsdHtmlDocumentation.class);
+    private final static Logger logger = LogManager.getLogger(GenerateXsdHtmlDocumentationTest.class);
 
     @Test
     void createHtmlTable() {
@@ -60,35 +62,35 @@ public class GenerateXsdHtmlDocumentation {
 
     @Test
     void generateXsdSourceFromNode() {
+        Map<String, String> complexTypes = new HashMap<>();
+
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new InputSource(new FileReader(fileName)));
 
-            NodeList elementList = doc.getElementsByTagName("xs:element");
-            for (int i = 0; i < elementList.getLength(); i++) {
-                Element element = (Element) elementList.item(i);
-                if (element.hasAttributes() && element.getAttribute("type") != "") {
-                    System.out.println("element.getNodeValue() = " + element.getTextContent());
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-                    Node elem = element;
+            XPathFactory xPathFactory = new net.sf.saxon.xpath.XPathFactoryImpl();
+            XPath xPath = xPathFactory.newXPath();
+            String expression = "//xs:complexType[@name='AccountType']";
+            NodeList nodeList = (NodeList) xPath.evaluate(expression, doc, XPathConstants.NODESET);
+
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node n = nodeList.item(i);
+                String elementName = ((Element) n).getAttribute("name");
+                if (!elementName.isEmpty()) {
+                    logger.debug("Element: {}", elementName);
                     StringWriter buf = new StringWriter();
-                    Transformer xform = TransformerFactory.newInstance().newTransformer();
-                    xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes"); // optional
-                    xform.setOutputProperty(OutputKeys.INDENT, "yes"); // optional
-                    xform.transform(new DOMSource(elem), new StreamResult(buf));
-
-                    logger.debug(buf.toString());
+                    transformer.transform(new DOMSource(n), new StreamResult(buf));
+                    complexTypes.put(elementName, buf.toString());
                 }
             }
 
-            XPathFactory xPathFactory = XPathFactory.newInstance();
-            XPath xPath = xPathFactory.newXPath();
-
-            String expression = "//xs:element[@name='FundsXML4']//xs:element[@name='ControlDataType']";
-            NodeList nodeList = (NodeList) xPath.evaluate(expression, doc, XPathConstants.NODESET);
-
-            System.out.println("Node count: " + nodeList.getLength());
+            logger.debug("OUTPUT FOR AccountType: ");
+            logger.debug(complexTypes.get("AccountType"));
 
         } catch (Exception exe) {
             exe.printStackTrace();
