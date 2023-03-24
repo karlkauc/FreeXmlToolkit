@@ -44,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class XsdValidationController {
@@ -61,7 +62,7 @@ public class XsdValidationController {
     GridPane auswertung;
 
     @FXML
-    Button xmlLoadButton, xsdLoadButton, test;
+    Button xmlLoadButton, xsdLoadButton, test, excelExport;
 
     @FXML
     TextField xmlFileName, xsdFileName, remoteXsdLocation;
@@ -77,6 +78,8 @@ public class XsdValidationController {
 
     @FXML
     ProgressIndicator progressIndicator;
+
+    List<SAXParseException> validationErrors;
 
     private final static Logger logger = LogManager.getLogger(XsdValidationController.class);
 
@@ -184,11 +187,11 @@ public class XsdValidationController {
 
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXsdFile() != null) {
             progressIndicator.setProgress(0.4);
-            var exceptionList = xmlService.validate();
-            if (exceptionList != null && exceptionList.size() > 0) {
-                logger.warn(Arrays.toString(exceptionList.toArray()));
+            validationErrors = xmlService.validate();
+            if (validationErrors != null && validationErrors.size() > 0) {
+                logger.warn(Arrays.toString(validationErrors.toArray()));
                 int i = 0;
-                for (SAXParseException saxParseException : exceptionList) {
+                for (SAXParseException saxParseException : validationErrors) {
                     TextFlow textFlowPane = new TextFlow();
                     textFlowPane.setLineSpacing(5.0);
 
@@ -253,6 +256,14 @@ public class XsdValidationController {
         }
 
         progressIndicator.setProgress(1.0);
+    }
+
+    @FXML
+    private void excelExport() {
+        if (validationErrors != null && validationErrors.size() > 0) {
+            var result = xmlService.createExcelValidationReport(new File("ValidationErrors.xlsx"), validationErrors);
+            logger.debug("Written {} bytes.", result.length());
+        }
     }
 
     @FXML

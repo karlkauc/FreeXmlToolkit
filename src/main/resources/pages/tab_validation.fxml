@@ -23,12 +23,14 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
-<AnchorPane fx:id="anchorPane" style="-fx-padding: 0;" stylesheets="@../css/app.css"
-            xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
+<?import org.kordamp.ikonli.javafx.*?>
+<AnchorPane fx:id="anchorPane" prefHeight="768.0" prefWidth="1024.0" style="-fx-padding: 0;"
+            stylesheets="@../css/app.css" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+            AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+            xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.XsdValidationController">
-    <GridPane fx:id="auswertung" hgap="10" vgap="10" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-              AnchorPane.topAnchor="0">
+    <GridPane fx:id="auswertung" hgap="10" vgap="10" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0"
+              AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <padding>
             <Insets bottom="25" left="25" right="25" top="25"/>
         </padding>
@@ -63,28 +65,36 @@
         <Label text="is XML File Schema Valid:" GridPane.rowIndex="4"/>
         <ImageView fx:id="statusImage" fitHeight="40" fitWidth="40" GridPane.columnIndex="2" GridPane.rowIndex="4"/>
 
-        <Label text="Details:" GridPane.rowIndex="5"/>
-        <ScrollPane GridPane.columnIndex="2" GridPane.rowIndex="5">
+        <Label text="Details:" GridPane.rowIndex="6"/>
+        <ScrollPane GridPane.columnSpan="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="7" GridPane.vgrow="ALWAYS">
             <VBox fx:id="errorListBox"/>
         </ScrollPane>
 
-        <Button onAction="#processXmlFile" text="Reload" GridPane.rowIndex="6">
+        <Button onAction="#processXmlFile" text="Reload" GridPane.rowIndex="5">
             <graphic>
                 <FontIcon iconLiteral="win10-refresh" iconSize="16"/>
             </graphic>
         </Button>
 
-        <Button fx:id="test" onAction="#test" text="test" visible="false" GridPane.rowIndex="7">
+        <Button fx:id="test" onAction="#test" text="test" visible="false" GridPane.columnIndex="1"
+                GridPane.rowIndex="5">
             <graphic>
                 <FontIcon iconLiteral="win10-spy" iconSize="16"/>
             </graphic>
         </Button>
         <ProgressIndicator fx:id="progressIndicator" minHeight="50.0" minWidth="50.0" progress="0.0" visible="false"
                            GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+        <Button fx:id="excelExport" onAction="#excelExport" mnemonicParsing="false" text="Export Results to Excel"
+                GridPane.columnIndex="2" GridPane.rowIndex="5">
+            <graphic>
+                <FontIcon iconColor="#4dd61d" iconLiteral="bi-file-earmark-excel" iconSize="16"/>
+            </graphic>
+        </Button>
 
         <columnConstraints>
-            <ColumnConstraints maxWidth="180" minWidth="180" prefWidth="180"/>
-            <ColumnConstraints halignment="CENTER" maxWidth="150" minWidth="150" prefWidth="150"/>
+            <ColumnConstraints maxWidth="180.0" minWidth="180.0" prefWidth="180.0"/>
+            <ColumnConstraints halignment="CENTER" maxWidth="150.0" minWidth="150.0" prefWidth="150.0"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
             <ColumnConstraints hgrow="ALWAYS"/>
         </columnConstraints>
         <rowConstraints>

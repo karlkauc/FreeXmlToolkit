@@ -74,6 +74,12 @@ public interface XmlService {
 
     List<SAXParseException> validateFile(File xml, File schemaFile);
 
+    File createExcelValidationReport();
+
+    File createExcelValidationReport(File fileName);
+
+    File createExcelValidationReport(File fileName, List<SAXParseException> errorList);
+
     Optional<String> getSchemaNameFromCurrentXMLFile();
 
     boolean loadSchemaFromXMLFile();

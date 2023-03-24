@@ -25,6 +25,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -270,6 +275,76 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public List<SAXParseException> validateText(String xmlString) {
         return validateText(xmlString, currentXsdFile);
+    }
+
+
+    @Override
+    public File createExcelValidationReport() {
+        return createExcelValidationReport(new File("ValidationErrors.xlsx"), validate());
+    }
+
+    @Override
+    public File createExcelValidationReport(File fileName) {
+        return createExcelValidationReport(fileName, validate());
+    }
+
+    @Override
+    public File createExcelValidationReport(File fileName, List<SAXParseException> errorList) {
+        logger.debug("Writing Excel File: {} - {} errors.", fileName.getName(), errorList.size());
+
+        try {
+            var fileContent = Files.readAllLines(this.getCurrentXmlFile().toPath());
+            XSSFWorkbook workbook = new XSSFWorkbook();
+            XSSFSheet sheet = workbook.createSheet("Validation Error Report");
+
+            CellStyle style = workbook.createCellStyle();
+            style.setWrapText(true);
+
+            XSSFFont headerFont = workbook.createFont();
+            headerFont.setBold(true);
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFont(headerFont);
+
+            Row header = sheet.createRow(0);
+            header.createCell(0).setCellValue("#");
+            header.createCell(1).setCellValue("Error Message");
+            header.createCell(2).setCellValue("Line#");
+            header.createCell(3).setCellValue("Col#");
+            header.createCell(4).setCellValue("XML Content");
+
+            header.setRowStyle(headerStyle);
+
+            // Fix header Row
+            sheet.createFreezePane(0, 1);
+
+            for (int i = 0; i < errorList.size(); i++) {
+                Row row = sheet.createRow(i + 1);
+                row.createCell(0).setCellValue(i + 1);
+                row.createCell(1).setCellValue(errorList.get(i).getLocalizedMessage());
+                row.createCell(2).setCellValue(errorList.get(i).getLineNumber());
+                row.createCell(3).setCellValue(errorList.get(i).getColumnNumber());
+
+                var content = row.createCell(4);
+                content.setCellValue(
+                        fileContent.get(errorList.get(i).getLineNumber() - 2).trim() +
+                                System.lineSeparator() +
+                                fileContent.get(errorList.get(i).getLineNumber() - 1).trim() +
+                                System.lineSeparator() +
+                                fileContent.get(errorList.get(i).getLineNumber()).trim()
+                );
+                content.setCellStyle(style);
+
+                row.setHeight((short) -1);
+            }
+            FileOutputStream outputStream = new FileOutputStream(fileName);
+            workbook.write(outputStream);
+
+            return fileName;
+        } catch (Exception e) {
+        }
+
+        return null;
     }
 
     @Override

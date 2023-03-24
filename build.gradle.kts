@@ -92,6 +92,10 @@ dependencies {
     // SVG Graphic
     implementation("org.apache.xmlgraphics:batik-svggen:1.16")
 
+    // Create Office Documents
+    implementation("org.apache.poi:poi:5.2.3")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
+
     // XSD Sample data generator
     // implementation("in.jlibs:jlibs-xsd:3.0.1")
     // implementation("javax.xml.bind:jaxb-api:2.3.1")
