@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
-<?import org.kordamp.ikonli.javafx.*?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
   ~ Copyright (c) 2023.
@@ -23,6 +18,11 @@
   ~
   -->
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import org.kordamp.ikonli.javafx.*?>
 <AnchorPane prefHeight="800.0" prefWidth="1400.0" stylesheets="@../css/mainTheme.css"
             xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.MainController">
@@ -89,12 +89,14 @@
                                     <FontIcon iconColor="INDIANRED" iconLiteral="win10-pdf" iconSize="16"/>
                                 </graphic>
                             </Button>
+                            <!--
                             <Button fx:id="signature" mnemonicParsing="false" onAction="#loadPage"
                                     styleClass="menu_button" text="Signature" VBox.vgrow="ALWAYS">
                                 <graphic>
                                     <FontIcon iconColor="#578013" iconLiteral="win10-key" iconSize="16"/>
                                 </graphic>
                             </Button>
+                            -->
                         </VBox>
                     </top>
                     <bottom>

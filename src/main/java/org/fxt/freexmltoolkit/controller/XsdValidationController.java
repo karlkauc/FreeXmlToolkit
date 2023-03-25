@@ -60,7 +60,7 @@ public class XsdValidationController {
     @FXML
     AnchorPane anchorPane;
 
-    FileChooser xmlFileChooser = new FileChooser(), xsdFileChooser = new FileChooser();
+    FileChooser xmlFileChooser = new FileChooser(), xsdFileChooser = new FileChooser(), excelFileChooser = new FileChooser();
 
     @FXML
     GridPane auswertung;
@@ -265,18 +265,25 @@ public class XsdValidationController {
     @FXML
     private void excelExport() {
         if (validationErrors != null && validationErrors.size() > 0) {
-            var exportFile = new File("ValidationErrors.xlsx");
+            excelFileChooser.setInitialFileName("ValidationErrors.xlsx");
+            File exportFile = excelFileChooser.showSaveDialog(null);
 
-            var result = xmlService.createExcelValidationReport(exportFile, validationErrors);
-            logger.debug("Written {} bytes.", result.length());
-            if (exportFile.exists() && exportFile.length() > 0) {
-                try {
-                    Desktop.getDesktop().open(exportFile);
-                } catch (IOException ioException) {
-                    logger.error("Could not open File: {}", exportFile.toString());
+            if (exportFile != null) {
+                var result = xmlService.createExcelValidationReport(exportFile, validationErrors);
+                logger.debug("Written {} bytes.", result.length());
+                if (exportFile.exists() && exportFile.length() > 0) {
+                    try {
+                        Desktop.getDesktop().open(exportFile);
+                    } catch (IOException ioException) {
+                        logger.error("Could not open File: {}", exportFile.toString());
+                    }
                 }
             }
-
+        } else {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setHeaderText("Export not possible.");
+            alert.setContentText("No Errors found.");
+            alert.showAndWait();
         }
     }
 
