@@ -42,6 +42,35 @@ public class XpathTest {
     }
 
     @Test
+    void multipleXpathNodesTest() {
+        xmlService.setCurrentXmlFile(xsdFile);
+        var fundsXML4 = xmlService.getNodeFromXpath("//xs:element[@name='FundsXML4']");
+        var assetMasterData = xmlService.getNodeFromXpath("//xs:element[@name='AssetMasterData']", fundsXML4);
+        var asset = xmlService.getNodeFromXpath("//xs:element[@name='AssetType']", assetMasterData);
+        var assetDetails = xmlService.getNodeFromXpath("//xs:element[@name='AssetDetails']", asset);
+        var repo = xmlService.getNodeFromXpath("//xs:element[@name='Repo']", assetDetails);
+        var reposType = xmlService.getNodeFromXpath("//xs:complexType[@name='ReposType']", repo);
+        var rate = xmlService.getNodeFromXpath("//xs:element[@name='Rate']", reposType);
+
+        String expected = """
+                <xs:element xmlns:altova="http://www.altova.com/xml-schema-extensions"
+                             xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+                             xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                             minOccurs="0"
+                             name="Rate"
+                             type="xs:decimal">
+                   <xs:annotation>
+                      <xs:documentation xml:lang="en">If known, redemption rate in percentage
+                                        of nominal amount (A19) 100%=1.0
+                                    </xs:documentation>
+                   </xs:annotation>
+                </xs:element>""";
+
+        String result = xmlService.getNodeAsString(rate);
+        Assertions.assertEquals(result.trim(), expected.trim());
+    }
+
+    @Test
     void testDoubleElements() {
         // /FundsXML4/AssetMasterData/Asset/AssetDetails/Repo/Rate
         // Rate kommt öfters vor

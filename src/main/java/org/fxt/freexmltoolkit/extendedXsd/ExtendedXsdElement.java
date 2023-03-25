@@ -18,6 +18,7 @@
 
 package org.fxt.freexmltoolkit.extendedXsd;
 
+import org.w3c.dom.Node;
 import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 import org.xmlet.xsdparser.xsdelements.XsdElement;
 
@@ -31,9 +32,18 @@ public class ExtendedXsdElement {
     String currentXpath;
 
     String sourceCode;
+    Node currentNode;
 
     public XsdElement getXsdElement() {
         return xsdElement;
+    }
+
+    public Node getCurrentNode() {
+        return currentNode;
+    }
+
+    public void setCurrentNode(Node currentNode) {
+        this.currentNode = currentNode;
     }
 
     public String getSourceCode() {

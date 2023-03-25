@@ -19,6 +19,7 @@
 package org.fxt.freexmltoolkit.service;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
 
@@ -83,6 +84,14 @@ public interface XmlService {
     Optional<String> getSchemaNameFromCurrentXMLFile();
 
     boolean loadSchemaFromXMLFile();
+
+    Node getNodeFromXpath(String xPath);
+
+    Node getNodeFromXpath(String xPath, Node currentNode);
+
+    String getNodeAsString(Node node);
+
+    String getXmlFromXpath(String xPath, Node node);
 
     String getXmlFromXpath(String xPath);
 

@@ -375,11 +375,69 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
+    public Node getNodeFromXpath(String xPath) {
+        try {
+            FileInputStream fileInputStream = new FileInputStream(this.getCurrentXmlFile());
+            xmlDocument = builder.parse(fileInputStream);
+
+            var node = (Node) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODE);
+            return node;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public Node getNodeFromXpath(String xPath, Node currentNode) {
+        try {
+            xPathPath = xPathFactory.newXPath();
+            var node = (Node) xPathPath.compile(xPath).evaluate(currentNode, XPathConstants.NODE);
+            return node;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public String getNodeAsString(Node node) {
+        try {
+            sw = new StringWriter();
+            Transformer xform = TransformerFactory.newInstance().newTransformer();
+            xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            xform.setOutputProperty(OutputKeys.INDENT, "yes");
+            xform.transform(new DOMSource(node), new StreamResult(sw));
+            return sw.toString();
+
+        } catch (TransformerException e) {
+            logger.error(e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public String getXmlFromXpath(String xPath, Node node) {
+        try {
+            var resultNode = (Node) xPathPath.compile(xPath).evaluate(node, XPathConstants.NODE);
+            sw = new StringWriter();
+
+            Transformer xform = TransformerFactory.newInstance().newTransformer();
+            xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            xform.setOutputProperty(OutputKeys.INDENT, "yes");
+            xform.transform(new DOMSource(resultNode), new StreamResult(sw));
+            return sw.toString();
+
+        } catch (XPathExpressionException | TransformerException e) {
+            logger.error(e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
     public String getXmlFromXpath(String xPathQueryString) {
         try {
             FileInputStream fileInputStream = new FileInputStream(this.getCurrentXmlFile());
-            builderFactory = DocumentBuilderFactory.newInstance();
-            builder = builderFactory.newDocumentBuilder();
             xmlDocument = builder.parse(fileInputStream);
 
             var nodeList = (NodeList) xPathPath.compile(xPathQueryString).evaluate(xmlDocument, XPathConstants.NODESET);
@@ -396,8 +454,7 @@ public class XmlServiceImpl implements XmlService {
             }
             return sw.toString();
 
-        } catch (XPathExpressionException | ParserConfigurationException |
-                 TransformerException | IOException | SAXException e) {
+        } catch (XPathExpressionException | TransformerException | IOException | SAXException e) {
             logger.error(e.getMessage());
         }
         return null;

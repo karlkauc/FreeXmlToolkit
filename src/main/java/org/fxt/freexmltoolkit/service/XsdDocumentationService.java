@@ -100,7 +100,7 @@ public class XsdDocumentationService {
         var resolver = new ClassLoaderTemplateResolver();
         resolver.setTemplateMode(TemplateMode.HTML);
         resolver.setCharacterEncoding("UTF-8");
-        resolver.setPrefix("/template/");
+        resolver.setPrefix("/xsdDocumentation/");
         resolver.setSuffix(".html");
 
         var templateEngine = new TemplateEngine();
