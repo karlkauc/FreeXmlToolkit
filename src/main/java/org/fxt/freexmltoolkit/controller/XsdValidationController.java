@@ -19,6 +19,9 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -37,6 +40,7 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.xml.sax.SAXParseException;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -261,8 +265,18 @@ public class XsdValidationController {
     @FXML
     private void excelExport() {
         if (validationErrors != null && validationErrors.size() > 0) {
-            var result = xmlService.createExcelValidationReport(new File("ValidationErrors.xlsx"), validationErrors);
+            var exportFile = new File("ValidationErrors.xlsx");
+
+            var result = xmlService.createExcelValidationReport(exportFile, validationErrors);
             logger.debug("Written {} bytes.", result.length());
+            if (exportFile.exists() && exportFile.length() > 0) {
+                try {
+                    Desktop.getDesktop().open(exportFile);
+                } catch (IOException ioException) {
+                    logger.error("Could not open File: {}", exportFile.toString());
+                }
+            }
+
         }
     }
 

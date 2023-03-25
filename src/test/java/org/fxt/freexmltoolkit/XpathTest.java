@@ -22,20 +22,17 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import java.io.File;
 
 public class XpathTest {
-
     XmlService xmlService = XmlServiceImpl.getInstance();
 
     File xmlFile = new File("src/test/resources/FundsXML_420.xml");
     File xsdFile = new File("src/test/resources/FundsXML_420.xsd");
 
     @Test
-    void xPahtElementTest() {
+    void xPathElementTest() {
         xmlService.setCurrentXmlFile(xsdFile);
         var s = xmlService.getXmlFromXpath("//xs:element[@name='OtherID']");
         System.out.println("s = " + s);
@@ -74,7 +71,6 @@ public class XpathTest {
     void testDoubleElements() {
         // /FundsXML4/AssetMasterData/Asset/AssetDetails/Repo/Rate
         // Rate kommt öfters vor
-
         xmlService.setCurrentXmlFile(xsdFile);
         var s = xmlService.getXmlFromXpath("//xs:element[@name='Rate']");
         // /FundsXML4/AssetMasterData/Asset/AssetDetails/Repo/Rate
@@ -90,7 +86,7 @@ public class XpathTest {
         xmlService.setCurrentXmlFile(xmlFile);
 
         Assertions.assertEquals(xmlService.getSchemaNameFromCurrentXMLFile().get(), "https://github.com/fundsxml/schema/releases/download/4.2.2/FundsXML.xsd");
-        Assertions.assertEquals(xmlService.getCurrentXmlFile().getPath(), "src\\test\\resources\\FundsXML_420.xml");
+        Assertions.assertEquals(xmlService.getCurrentXmlFile().getPath(), "src/test/resources/FundsXML_420.xml");
 
         String expectedOutput = """
                 <ControlData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -170,22 +166,5 @@ public class XpathTest {
                 """;
 
         Assertions.assertEquals(s, expectedOutput);
-    }
-
-    void printNodeContent(Node node) {
-        System.out.println("node.getNodeType() = " + node.getLocalName());
-        if (!node.hasChildNodes()) {
-            System.out.println(node.getNodeName() + ":" + node.getTextContent());
-        } else {
-            System.out.println("node.getNodeName() = " + node.getNodeName());
-        }
-
-        NodeList nodeList = node.getChildNodes();
-        for (int i = 0, len = nodeList.getLength(); i < len; i++) {
-            Node currentNode = nodeList.item(i);
-            if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-                printNodeContent(currentNode);
-            }
-        }
     }
 }

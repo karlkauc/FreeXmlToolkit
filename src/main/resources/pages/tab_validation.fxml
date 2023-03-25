@@ -40,7 +40,7 @@
 
         <Label text="XML File:" GridPane.rowIndex="1"/>
         <Button mnemonicParsing="false" text="Load XML File" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                GridPane.vgrow="ALWAYS" fx:id="xmlLoadButton">
+                fx:id="xmlLoadButton">
             <graphic>
                 <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
             </graphic>
