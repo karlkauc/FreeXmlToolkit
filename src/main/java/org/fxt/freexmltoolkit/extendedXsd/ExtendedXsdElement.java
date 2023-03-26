@@ -34,6 +34,8 @@ public class ExtendedXsdElement {
     String sourceCode;
     Node currentNode;
 
+    int counter;
+
     public XsdElement getXsdElement() {
         return xsdElement;
     }
@@ -44,6 +46,14 @@ public class ExtendedXsdElement {
 
     public void setCurrentNode(Node currentNode) {
         this.currentNode = currentNode;
+    }
+
+    public int getCounter() {
+        return counter;
+    }
+
+    public void setCounter(int counter) {
+        this.counter = counter;
     }
 
     public String getSourceCode() {

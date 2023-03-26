@@ -208,6 +208,12 @@ public class GenerateXsdHtmlDocumentationTest {
     }
 
     @Test
+    void createHtmlTable420() {
+        xsdDocumentationService.setXsdFilePath(fileName);
+        xsdDocumentationService.generateDocumentation("test-doc.html");
+    }
+
+    @Test
     void createHtmlTable() {
         xsdDocumentationService.setXsdFilePath(fundsXml306Xsd);
         xsdDocumentationService.generateDocumentation("test-doc_306.html");

@@ -91,7 +91,10 @@
             <thead>
             <tr>
                 <th class="col">Name:</th>
-                <th class="col" th:text="${extendedXsdElement.value.xsdElement.getName()}">XXX</th>
+                <th class="col"
+                    th:text="${extendedXsdElement.value.xsdElement.getName() + '[' + extendedXsdElement.value.getCounter() + ']'}">
+                    XXX
+                </th>
             </tr>
             </thead>
             <tr>

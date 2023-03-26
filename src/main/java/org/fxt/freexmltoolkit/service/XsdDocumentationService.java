@@ -105,12 +105,14 @@ public class XsdDocumentationService {
         for (XsdElement xsdElement : elements) {
             var elementName = xsdElement.getRawName();
             Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
-            getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
+            getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode, 0);
         }
 
+        /*
         for (Map.Entry<String, ExtendedXsdElement> entry : extendedXsdElements.entrySet()) {
             System.out.println(entry.getKey() + " = " + entry.getValue().getXsdElement().getName());
         }
+         */
     }
 
 
@@ -118,7 +120,8 @@ public class XsdDocumentationService {
                                    XsdAbstractElement xsdAbstractElement,
                                    List<String> prevElementTypes,
                                    List<String> prevElementPath,
-                                   Node parentNode) {
+                                   Node parentNode,
+                                   int counter) {
         logger.debug("prevElementTypes = {}", prevElementTypes);
         if (level > MAX_ALLOWED_DEPTH) {
             logger.error("Too many elements");
@@ -127,6 +130,7 @@ public class XsdDocumentationService {
         }
 
         ExtendedXsdElement extendedXsdElement = new ExtendedXsdElement();
+        extendedXsdElement.setCounter(counter);
 
         switch (xsdAbstractElement) {
             case XsdElement xsdElement -> {
@@ -163,7 +167,6 @@ public class XsdDocumentationService {
                         ArrayList<String> prevPathTemp = new ArrayList<>(prevElementPath);
                         prevPathTemp.add(xsdElement.getName());
 
-
                         if (extendedXsdElement.getXsdElement().getName() == null) {
                             throw new RuntimeException("NAME NULL");
                         }
@@ -175,7 +178,7 @@ public class XsdDocumentationService {
 
                         if (xsdElement.getXsdComplexType().getElements() != null) {
                             for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
-                                getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, n);
+                                getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, n, counter + 1);
                             }
                             return;
                         }
@@ -222,7 +225,7 @@ public class XsdDocumentationService {
 
                     if (xsdElement.getXsdComplexType().getElements() != null) {
                         for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
-                            getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, currentNode);
+                            getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, currentNode, counter + 1);
                         }
                         return;
                     }
@@ -248,13 +251,37 @@ public class XsdDocumentationService {
                     extendedXsdElement.setXsdElement(xsdElement);
                     extendedXsdElements.put(currentXpath, extendedXsdElement);
                 }
-
             }
-            case XsdChoice xsdChoice -> System.out.println("xsdChoice = " + xsdChoice);
-            case XsdSequence xsdSequence -> System.out.println("xsdSequence = " + xsdSequence);
-            case XsdAll xsdAll -> System.out.println("xsdAll = " + xsdAll);
-            case XsdGroup xsdGroup -> System.out.println("xsdGroup = " + xsdGroup);
-            case XsdAttributeGroup xsdAttributeGroup -> System.out.println("xsdAttributeGroup = " + xsdAttributeGroup);
+            case XsdChoice xsdChoice -> {
+                logger.debug("xsdChoice = " + xsdChoice);
+                for (ReferenceBase x : xsdChoice.getElements()) {
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, counter + 1);
+                }
+            }
+            case XsdSequence xsdSequence -> {
+                logger.debug("xsdSequence = " + xsdSequence);
+                for (ReferenceBase x : xsdSequence.getElements()) {
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, counter + 1);
+                }
+            }
+            case XsdAll xsdAll -> {
+                logger.debug("xsdAll = " + xsdAll);
+                for (ReferenceBase x : xsdAll.getElements()) {
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, counter + 1);
+                }
+            }
+            case XsdGroup xsdGroup -> {
+                logger.debug("xsdGroup = " + xsdGroup);
+                for (ReferenceBase x : xsdGroup.getElements()) {
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, counter + 1);
+                }
+            }
+            case XsdAttributeGroup xsdAttributeGroup -> {
+                logger.debug("xsdAttributeGroup = " + xsdAttributeGroup);
+                for (ReferenceBase x : xsdAttributeGroup.getElements()) {
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, counter + 1);
+                }
+            }
 
             default -> throw new IllegalStateException("Unexpected value: " + xsdAbstractElement);
         }
