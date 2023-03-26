@@ -25,7 +25,6 @@ plugins {
     id("com.github.ben-manes.versions") version "0.46.0"
 
     id("org.beryx.jlink") version "2.26.0"
-    // id("org.jreleaser") version "1.2.0"
 }
 
 application {
@@ -60,7 +59,7 @@ run {
 
 dependencies {
     // XSLT
-    implementation("net.sf.saxon:Saxon-HE:12.0")
+    implementation("net.sf.saxon:Saxon-HE:12.1")
 
     // Icons
     implementation("org.kordamp.ikonli:ikonli-javafx:12.3.1")
@@ -161,6 +160,18 @@ tasks.jar {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("--enable-preview")
+}
+
+tasks.withType<Test>().configureEach {
+    jvmArgs("--enable-preview")
+}
+
+tasks.withType<JavaExec>().configureEach {
+    jvmArgs("--enable-preview")
 }
 
 jlink {

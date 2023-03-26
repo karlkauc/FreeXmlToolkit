@@ -23,10 +23,14 @@
             <PatternLayout pattern="%highlight{[%-5level]} [%thread][%class][%line] %d{yyyy-MM-dd HH:mm:ss} - %msg%n"
                            disableAnsi="false"/>
         </Console>
+        <File name="MyFile" fileName="logs//${date:yyyy-MM-dd}-fxt.log" immediateFlush="true">
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
     </Appenders>
     <Loggers>
-        <Root level="INFO">
-            <AppenderRef ref="Console" level="INFO"/>
+        <Root level="DEBUG">
+            <AppenderRef ref="Console" level="DEBUG"/>
+            <appender-ref ref="MyFile" level="DEBUG"/>
         </Root>
         <Logger name="org.apache.poi" level="INFO">
             <AppenderRef ref="Console"/>

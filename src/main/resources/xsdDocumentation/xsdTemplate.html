@@ -87,30 +87,30 @@
     <hr/>
 
     <div th:each="extendedXsdElement : ${extendedXsdElements}" class="table-responsive">
-        <table th:id="${extendedXsdElement.xsdElement.type}" class="table table-sm table-bordered">
+        <table th:id="${extendedXsdElement.key}" class="table table-sm table-bordered">
             <thead>
             <tr>
                 <th class="col">Name:</th>
-                <th class="col" th:text="${extendedXsdElement.xsdElement.name}">XXX</th>
+                <th class="col" th:text="${extendedXsdElement.value.xsdElement.getName()}">XXX</th>
             </tr>
             </thead>
             <tr>
                 <td class="col">Type:</td>
-                <td class="col" th:text="${extendedXsdElement.xsdElement.type}">XXX</td>
+                <td class="col" th:text="${extendedXsdElement.value.xsdElement.getType()}">XXX</td>
             </tr>
 
             <tr>
                 <td class="col">Level:</td>
-                <td class="col" th:text="${extendedXsdElement.level}">XXX</td>
+                <td class="col" th:text="${extendedXsdElement.value.level}">XXX</td>
             </tr>
             <tr>
                 <td class="col">XPath:</td>
-                <td class="col" th:text="${extendedXsdElement.getCurrentXpath()}">XXX</td>
+                <td class="col" th:text="${extendedXsdElement.value.getCurrentXpath()}">XXX</td>
             </tr>
             <tr>
                 <td class="col">Documentation:</td>
                 <td class="col">
-                    <div th:each="documentation : ${extendedXsdElement.getXsdDocumentation()}"
+                    <div th:each="documentation : ${extendedXsdElement.value.getXsdDocumentation()}"
                          th:text="${documentation.getContent()}">annotation
                     </div>
                 </td>
@@ -119,7 +119,7 @@
                 <td class="col">Source:</td>
                 <td class="col">
 <pre class="line-numbers">
-<code class="language-xml" th:text="${extendedXsdElement.getSourceCode()}">
+<code class="language-xml" th:text="${extendedXsdElement.value.getSourceCode()}">
 &lt;ControlData xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;
     &lt;UniqueDocumentID&gt;EAM_FUND_001&lt;/UniqueDocumentID&gt;
         &lt;DocumentGenerated&gt;2021-11-30T16:14:04&lt;/DocumentGenerated&gt;

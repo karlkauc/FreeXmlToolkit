@@ -31,7 +31,7 @@
     <Loggers>
         <Root level="DEBUG">
             <AppenderRef ref="Console" level="DEBUG"/>
-            <appender-ref ref="MyFile" level="INFO"/>
+            <appender-ref ref="MyFile" level="DEBUG"/>
         </Root>
         <Logger name="org.apache.poi" level="INFO">
             <AppenderRef ref="Console"/>
