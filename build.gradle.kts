@@ -134,7 +134,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     // https://bell-sw.com/pages/libericajdk/
     bundledJrePath = "jdk"
     bundledJre64Bit = true
-    jreMinVersion = "19"
+    jreMinVersion = "20"
 
     doLast {
         println("Copy resources...")
@@ -148,7 +148,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
         }
         println("Copy JDK...")
         copy {
-            from(zipTree("jdk/jre-19.0.1-full.zip"))
+            from(zipTree("jdk/jre-20-full.zip"))
             into(layout.buildDirectory.dir("launch4j/jdk"))
         }
     }
