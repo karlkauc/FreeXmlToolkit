@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -38,12 +39,14 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Properties;
 
 public class XsltController {
 
@@ -145,6 +148,7 @@ public class XsltController {
 
             try {
                 String output = xmlService.performXsltTransformation();
+                output = cleanHtmlContent(output);
 
                 progressBar.setVisible(true);
                 progressBar.setProgress(0.1);
@@ -189,26 +193,11 @@ public class XsltController {
         logger.debug("Output File: {}", outputFileName);
 
         try {
-            output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "")
-                    .replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "")
-                    .replace("  >", "");
-
             Files.writeString(Paths.get(outputFileName), output);
-
-            if (propertiesService != null) {
-                Properties properties = propertiesService.loadProperties();
-                var httpHost = properties.getProperty("http.proxy.host");
-                var httpPort = properties.getProperty("http.proxy.port");
-
-                if (httpHost != null) {
-                    logger.debug("HTTP PROXY: {}:{}", httpHost, httpPort);
-                    System.setProperty("java.net.useSystemProxies", "true");
-                }
-            }
 
             WebEngine engine = webView.getEngine();
             progressBar.setProgress(0.6);
-            System.out.println("write successful");
+            // System.out.println("write successful");
 
             engine.getLoadWorker().stateProperty().addListener(
                     (ov, oldState, newState) -> {
@@ -230,9 +219,38 @@ public class XsltController {
         }
     }
 
+    private static String cleanHtmlContent(String output) {
+        output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "")
+                .replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "")
+                .replace("  >", "");
+
+        Document doc = Jsoup.parse(output, Parser.xmlParser());
+        doc.outputSettings(new Document.OutputSettings().prettyPrint(false));
+        //Document.OutputSettings outputSettings = new Document.OutputSettings();
+        //outputSettings.prettyPrint(false);
+        //outputSettings.escapeMode(Entities.EscapeMode.xhtml);
+        //doc.outputSettings(outputSettings);
+
+        var div = doc.select(".language-xml");
+        logger.debug("Lang XML Elements: {}", div.size());
+        for (int i = 0; i < div.size(); i++) {
+            var oneDiv = div.get(i);
+
+            String content = StringEscapeUtils.escapeHtml4(oneDiv.data());
+            oneDiv.html(content);
+
+            logger.debug("PARSED DOCUMENT");
+            logger.debug("NEW: {}", content);
+            logger.debug("HTML CONTENT: {}", div.get(i).data());
+        }
+        doc.outputSettings(new Document.OutputSettings().prettyPrint(true));
+        output = doc.html();
+        return output;
+    }
+
     @FXML
     private void test() {
-        xmlFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml").toFile();
+        xmlFile = Paths.get("examples/xml/ALPDINAMIK_fundsXml_20230228_20230404-062438.xml").toFile();
         xsltFile = Paths.get("examples/xslt/Check_FundsXML_File.xslt").toFile();
 
         xmlFileLoader.setFile(xmlFile);

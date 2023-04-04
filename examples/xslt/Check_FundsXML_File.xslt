@@ -1,7 +1,7 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
-  ~ Copyright (c) 2023.
+  ~ Copyright (c) Karl Kauc 2023.
   ~
   ~  Licensed under the Apache License, Version 2.0 (the "License");
   ~  you may not use this file except in compliance with the License.
@@ -844,16 +844,18 @@
                                                 </div>
                                                 <div class="row">
                                                     <div class="fs-small">
-                                                        <details>
-                                                            <summary>Original XML</summary>
-                                                            <p>
-                                                                <script type="text/plain" class="language-xml">
-                                                                    <xsl:if test="$renderXMLContent">
-                                                                        <xsl:copy-of select="node()"/>
-                                                                    </xsl:if>
-                                                                </script>
-                                                            </p>
-                                                        </details>
+                                                        <xsl:if test="$renderXMLContent">
+                                                            <details>
+                                                                <summary>Original XML</summary>
+                                                                <p>
+                                                                    <pre>
+                                                                        <code class="language-xml">
+                                                                            <xsl:copy-of select="node()"/>
+                                                                        </code>
+                                                                    </pre>
+                                                                </p>
+                                                            </details>
+                                                        </xsl:if>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1450,14 +1452,18 @@
                                         <div class="fs-small">
                                             <div class="row align-items-end">
                                                 <div class="col">
-                                                    <details>
-                                                        <summary>Orginal XML</summary>
-                                                        <p>
-                                                            <script type="text/plain" class="language-xml">
-                                                                <xsl:copy-of select="node()"/>
-                                                            </script>
-                                                        </p>
-                                                    </details>
+                                                    <xsl:if test="$renderXMLContent">
+                                                        <details>
+                                                            <summary>Original XML</summary>
+                                                            <p>
+                                                                <pre>
+                                                                    <code class="language-xml">
+                                                                        <xsl:copy-of select="node()"/>
+                                                                    </code>
+                                                                </pre>
+                                                            </p>
+                                                        </details>
+                                                    </xsl:if>
                                                 </div>
                                             </div>
                                         </div>

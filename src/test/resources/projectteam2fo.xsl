@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
-  ~ Copyright (c) 2023.
+  ~ Copyright (c) Karl Kauc 2023.
   ~
   ~  Licensed under the Apache License, Version 2.0 (the "License");
   ~  you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
   ~
   -->
 <!-- $Id$ -->
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:fo="http://www.w3.org/1999/XSL/Format" exclude-result-prefixes="fo">
+<xsl:stylesheet version="3"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:fo="http://www.w3.org/1999/XSL/Format"
+                exclude-result-prefixes="fo">
   <xsl:output method="xml" version="1.0" omit-xml-declaration="no" indent="yes"/>
   <xsl:param name="versionParam" select="'1.0'"/>
   <!-- ========================= -->

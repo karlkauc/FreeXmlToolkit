@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -103,6 +103,7 @@ dependencies {
     // Misc
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-io:commons-io:2.11.0")
+    implementation("org.apache.commons:commons-text:1.10.0")
 
     // CSS reload
     implementation("fr.brouillard.oss:cssfx:11.5.1")
@@ -113,6 +114,9 @@ dependencies {
     // File Type detection
     // implementation("org.apache.tika:tika-core:2.7.0")
     // implementation("org.apache.tika:tika-parsers-standard-package:2.7.0")
+
+    // html manipulation
+    implementation("org.jsoup:jsoup:1.15.4")
 
     // Update
     implementation("org.update4j:update4j:1.5.9")
@@ -131,7 +135,6 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     maxHeapSize = 4096
     copyright = System.getProperty("user.name")
 
-    // https://bell-sw.com/pages/libericajdk/
     bundledJrePath = "jdk"
     bundledJre64Bit = true
     jreMinVersion = "20"

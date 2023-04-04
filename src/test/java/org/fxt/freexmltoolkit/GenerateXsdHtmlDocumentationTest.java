@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -57,11 +57,9 @@ public class GenerateXsdHtmlDocumentationTest {
     final static String fileName = "src/test/resources/FundsXML_420.xsd";
     final static String fundsXml306Xsd = "src/test/resources/FundsXML_306.xsd";
 
-
     final XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
 
     private final static Logger logger = LogManager.getLogger(GenerateXsdHtmlDocumentationTest.class);
-
 
     String xsdFilePath;
     static final int MAX_ALLOWED_DEPTH = 99;

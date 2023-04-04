@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ public class XsdDocumentationService {
     private List<XsdComplexType> xsdComplexTypes;
     private List<XsdSimpleType> xsdSimpleTypes;
     private List<XsdElement> elements;
+
+    int counter;
 
     XsdParser parser;
     List<XsdSchema> xmlSchema;
@@ -101,11 +103,12 @@ public class XsdDocumentationService {
         xsdSimpleTypes = xmlSchema.get(0).getChildrenSimpleTypes().collect(Collectors.toList());
 
         extendedXsdElements = new LinkedHashMap<>();
+        counter = 0;
 
         for (XsdElement xsdElement : elements) {
             var elementName = xsdElement.getRawName();
             Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
-            getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode, 0);
+            getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
         }
 
         /*
@@ -120,8 +123,7 @@ public class XsdDocumentationService {
                                    XsdAbstractElement xsdAbstractElement,
                                    List<String> prevElementTypes,
                                    List<String> prevElementPath,
-                                   Node parentNode,
-                                   int counter) {
+                                   Node parentNode) {
         logger.debug("prevElementTypes = {}", prevElementTypes);
         if (level > MAX_ALLOWED_DEPTH) {
             logger.error("Too many elements");
@@ -130,7 +132,7 @@ public class XsdDocumentationService {
         }
 
         ExtendedXsdElement extendedXsdElement = new ExtendedXsdElement();
-        extendedXsdElement.setCounter(counter);
+        extendedXsdElement.setCounter(counter++);
 
         switch (xsdAbstractElement) {
             case XsdElement xsdElement -> {
@@ -153,7 +155,8 @@ public class XsdDocumentationService {
                     String elementString = xmlService.getNodeAsString(n);
 
                     extendedXsdElement.setCurrentNode(n);
-                    extendedXsdElement.setSourceCode(elementString);
+                    // ZU VIEL: HTML FILE RENDERD NICHT MEHR
+                    // extendedXsdElement.setSourceCode(elementString);
                     extendedXsdElement.setXsdElement(xsdElement);
 
                     if (xsdElement.getAnnotation() != null && xsdElement.getAnnotation().getDocumentations() != null) {
@@ -178,7 +181,7 @@ public class XsdDocumentationService {
 
                         if (xsdElement.getXsdComplexType().getElements() != null) {
                             for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
-                                getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, n, counter + 1);
+                                getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, n);
                             }
                             return;
                         }
@@ -217,7 +220,7 @@ public class XsdDocumentationService {
                         currentNode = parentNode;
                     }
 
-                    extendedXsdElement.setSourceCode(s);
+                    // extendedXsdElement.setSourceCode(s);
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
@@ -225,7 +228,7 @@ public class XsdDocumentationService {
 
                     if (xsdElement.getXsdComplexType().getElements() != null) {
                         for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
-                            getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, currentNode, counter + 1);
+                            getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, currentNode);
                         }
                         return;
                     }
@@ -255,31 +258,31 @@ public class XsdDocumentationService {
             case XsdChoice xsdChoice -> {
                 logger.debug("xsdChoice = " + xsdChoice);
                 for (ReferenceBase x : xsdChoice.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, counter + 1);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }
             case XsdSequence xsdSequence -> {
                 logger.debug("xsdSequence = " + xsdSequence);
                 for (ReferenceBase x : xsdSequence.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, counter + 1);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }
             case XsdAll xsdAll -> {
                 logger.debug("xsdAll = " + xsdAll);
                 for (ReferenceBase x : xsdAll.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, counter + 1);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }
             case XsdGroup xsdGroup -> {
                 logger.debug("xsdGroup = " + xsdGroup);
                 for (ReferenceBase x : xsdGroup.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, counter + 1);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }
             case XsdAttributeGroup xsdAttributeGroup -> {
                 logger.debug("xsdAttributeGroup = " + xsdAttributeGroup);
                 for (ReferenceBase x : xsdAttributeGroup.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, counter + 1);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }
 
@@ -311,7 +314,7 @@ public class XsdDocumentationService {
         var result = templateEngine.process("xsdTemplate", context);
 
         try {
-            Files.write(Paths.get("output//" + outputFileName), result.getBytes());
+            Files.write(Paths.get("output" + File.separator + outputFileName), result.getBytes());
 
             logger.debug("Written {} bytes", new File(outputFileName).length());
         } catch (IOException e) {
