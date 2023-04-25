@@ -49,7 +49,7 @@ repositories {
 }
 
 javafx {
-    version = "19.0.2.1"
+    version = "20.0.1"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
@@ -80,10 +80,10 @@ dependencies {
     implementation("com.github.xmlet:xsdParser:1.2.4")
 
     //  xml signature
-    implementation("org.apache.santuario:xmlsec:3.0.1")
+    implementation("org.apache.santuario:xmlsec:3.0.2")
 
     // Lemminx
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.24.0")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.25.0")
 
     // FOP
     implementation("org.apache.xmlgraphics:fop:2.8")
@@ -94,11 +94,6 @@ dependencies {
     // Create Office Documents
     implementation("org.apache.poi:poi:5.2.3")
     implementation("org.apache.poi:poi-ooxml:5.2.3")
-
-    // XSD Sample data generator
-    // implementation("in.jlibs:jlibs-xsd:3.0.1")
-    // implementation("javax.xml.bind:jaxb-api:2.3.1")
-    // implementation("com.sun.xml.bind:jaxb-ri:2.3.3")
 
     // Misc
     implementation("org.apache.commons:commons-lang3:3.12.0")
@@ -132,7 +127,9 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     mainClassName = "org.fxt.freexmltoolkit.FxtGui" // SolvencyUI
     headerType = "gui" // gui / console
     icon = "${projectDir}/src/main/resources/img/logo.ico"
-    maxHeapSize = 4096
+    // maxHeapSize = 4096
+    maxHeapPercent = 80
+    jreRuntimeBits = "64"
     copyright = System.getProperty("user.name")
 
     bundledJrePath = "jdk"

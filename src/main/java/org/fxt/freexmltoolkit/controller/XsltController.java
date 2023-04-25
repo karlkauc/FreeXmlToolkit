@@ -197,7 +197,6 @@ public class XsltController {
 
             WebEngine engine = webView.getEngine();
             progressBar.setProgress(0.6);
-            // System.out.println("write successful");
 
             engine.getLoadWorker().stateProperty().addListener(
                     (ov, oldState, newState) -> {
@@ -263,5 +262,4 @@ public class XsltController {
             checkFiles();
         }
     }
-
 }
