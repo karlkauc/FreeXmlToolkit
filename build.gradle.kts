@@ -20,7 +20,7 @@ plugins {
     java
     idea
     application
-    id("org.openjfx.javafxplugin") version "0.0.13"
+    id("org.openjfx.javafxplugin") version "0.0.14"
     id("edu.sc.seis.launch4j") version "2.5.4"
     id("com.github.ben-manes.versions") version "0.46.0"
 
@@ -59,66 +59,66 @@ run {
 
 dependencies {
     // XSLT
-    implementation("net.sf.saxon:Saxon-HE:12.1")
+    implementation("net.sf.saxon:Saxon-HE:latest.release")
 
     // Icons
-    implementation("org.kordamp.ikonli:ikonli-javafx:12.3.1")
-    implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.3.1")
-    implementation("org.kordamp.ikonli:ikonli-win10-pack:12.3.1")
-    implementation("org.kordamp.ikonli:ikonli-feather-pack:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-javafx:latest.release")
+    implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:latest.release")
+    implementation("org.kordamp.ikonli:ikonli-win10-pack:latest.release")
+    implementation("org.kordamp.ikonli:ikonli-feather-pack:latest.release")
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Richtext
-    implementation("org.fxmisc.richtext:richtextfx:0.11.0")
+    implementation("org.fxmisc.richtext:richtextfx:latest.release")
 
     // Logging
-    implementation("org.apache.logging.log4j:log4j-api:2.20.0")
-    implementation("org.apache.logging.log4j:log4j-core:2.20.0")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.20.0")
+    implementation("org.apache.logging.log4j:log4j-api:latest.release")
+    implementation("org.apache.logging.log4j:log4j-core:latest.release")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:latest.release")
 
     // XSD Parser
-    implementation("com.github.xmlet:xsdParser:1.2.4")
+    implementation("com.github.xmlet:xsdParser:latest.release")
 
     //  xml signature
-    implementation("org.apache.santuario:xmlsec:3.0.2")
+    implementation("org.apache.santuario:xmlsec:latest.release")
 
     // Lemminx
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.25.0")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:latest.release")
 
     // FOP
-    implementation("org.apache.xmlgraphics:fop:2.8")
+    implementation("org.apache.xmlgraphics:fop:latest.release")
 
     // SVG Graphic
-    implementation("org.apache.xmlgraphics:batik-svggen:1.16")
+    implementation("org.apache.xmlgraphics:batik-svggen:latest.release")
 
     // Create Office Documents
-    implementation("org.apache.poi:poi:5.2.3")
-    implementation("org.apache.poi:poi-ooxml:5.2.3")
+    implementation("org.apache.poi:poi:latest.release")
+    implementation("org.apache.poi:poi-ooxml:latest.release")
 
     // Misc
-    implementation("org.apache.commons:commons-lang3:3.12.0")
-    implementation("commons-io:commons-io:2.11.0")
-    implementation("org.apache.commons:commons-text:1.10.0")
+    implementation("org.apache.commons:commons-lang3:latest.release")
+    implementation("commons-io:commons-io:latest.release")
+    implementation("org.apache.commons:commons-text:latest.release")
 
     // CSS reload
-    implementation("fr.brouillard.oss:cssfx:11.5.1")
+    implementation("fr.brouillard.oss:cssfx:latest.release")
 
     // HTML Template XSD Documentation
-    implementation("org.thymeleaf:thymeleaf:3.1.1.RELEASE")
+    implementation("org.thymeleaf:thymeleaf:latest.release")
 
     // File Type detection
     // implementation("org.apache.tika:tika-core:2.7.0")
     // implementation("org.apache.tika:tika-parsers-standard-package:2.7.0")
 
     // html manipulation
-    implementation("org.jsoup:jsoup:1.15.4")
+    implementation("org.jsoup:jsoup:latest.release")
 
     // Update
-    implementation("org.update4j:update4j:1.5.9")
-    implementation("jakarta.activation:jakarta.activation-api:2.1.1")
+    implementation("org.update4j:update4j:latest.release")
+    implementation("jakarta.activation:jakarta.activation-api:latest.release")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 }
 
 
