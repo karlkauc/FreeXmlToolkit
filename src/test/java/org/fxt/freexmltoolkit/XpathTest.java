@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -109,6 +109,30 @@ public class XpathTest {
         String result = xmlService.getXmlFromXpath("/FundsXML4/ControlData");
 
         Assertions.assertEquals(result.trim(), expectedOutput.trim());
+    }
+
+    @Test
+    void xQueryTest() {
+        String xquery = """
+                for $i in /FundsXML4/Funds/Fund 
+                return
+                    string-join(
+                        (
+                            $i/Names/OfficialName,
+                            $i/Currency, 
+                            $i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency]/text(),
+                            string(sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency])),
+                            string($i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency] - sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency]))
+                        ), ' | '
+                    )
+                    """;
+
+        xmlService.setCurrentXmlFile(xmlFile);
+        var r = xmlService.getXQueryResult(xquery);
+
+        for (var r2 : r) {
+            System.out.println("Result = " + r2);
+        }
     }
 
     @Test

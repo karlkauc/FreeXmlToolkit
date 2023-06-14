@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +49,8 @@ public interface XmlService {
     void setCurrentXsltFile(File currentXsltFile);
 
     File getCurrentXsdFile();
+
+    String getCurrentXsdString() throws IOException;
 
     String getRemoteXsdLocation();
 
@@ -94,6 +97,8 @@ public interface XmlService {
     String getXmlFromXpath(String xPath, Node node);
 
     String getXmlFromXpath(String xPath);
+
+    List<String> getXQueryResult(String xQuery);
 
     static String prettyFormat(String input, int indent) {
         try {

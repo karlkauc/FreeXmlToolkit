@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -176,6 +176,11 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public File getCurrentXsdFile() {
         return this.currentXsdFile;
+    }
+
+    @Override
+    public String getCurrentXsdString() throws IOException {
+        return Files.readString(Path.of(this.currentXsdFile.toURI()));
     }
 
     @Override
@@ -459,6 +464,39 @@ public class XmlServiceImpl implements XmlService {
         }
         return null;
     }
+
+    @Override
+    public List<String> getXQueryResult(String xQuery) {
+        List<String> resultList = new LinkedList<>();
+
+        try {
+            Processor saxon = new Processor(false);
+
+            XQueryCompiler compiler = saxon.newXQueryCompiler();
+            XQueryExecutable xpathExecutable = compiler.compile(xQuery);
+
+            net.sf.saxon.s9api.DocumentBuilder builder = saxon.newDocumentBuilder();
+
+            Source src = new StreamSource(new StringReader(Files.readString(Path.of(this.currentXmlFile.toURI()))));
+            XdmNode doc = builder.build(src);
+
+            XQueryEvaluator query = xpathExecutable.load();
+            query.setContextItem(doc);
+            XdmValue result = query.evaluate();
+
+            logger.debug("Result Size: {}", result.size());
+            for (var r : result) {
+                logger.debug("Result Line: {}", r.toString());
+                resultList.add(r.toString());
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return null;
+        }
+
+        return resultList;
+    }
+
 
     @Override
     public boolean loadSchemaFromXMLFile() {
