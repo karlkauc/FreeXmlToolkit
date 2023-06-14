@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,19 +78,19 @@ public class XmlController {
     private static final int GROUP_ATTRIBUTE_VALUE = 3;
 
     CodeArea codeArea = new CodeArea();
+
+    CodeArea codeAreaXpath = new CodeArea();
+    CodeArea codeAreaXQuery = new CodeArea();
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
-    @FXML
-    Button openFile, saveFile, prettyPrint, newFile, validateSchema;
+    VirtualizedScrollPane<CodeArea> virtualizedScrollPaneXpath;
+    VirtualizedScrollPane<CodeArea> virtualizedScrollPaneXQuery;
 
     @FXML
-    StackPane stackPane;
+    Button openFile, saveFile, prettyPrint, newFile, validateSchema, runXpathQuery;
 
     @FXML
-    Button xpath;
-
-    @FXML
-    TextArea xpathText;
+    StackPane stackPane, stackPaneXPath, stackPaneXQuery;
 
     @FXML
     ComboBox<File> schemaList = new ComboBox<>();
@@ -104,7 +105,10 @@ public class XmlController {
     Label schemaValidText;
 
     @FXML
-    Tab text, graphic;
+    Tab text, graphic, xPathTab, xQueryTab;
+
+    @FXML
+    TabPane xPathQueryPane;
 
     @FXML
     private void initialize() {
@@ -112,12 +116,6 @@ public class XmlController {
         xmlService = XmlServiceImpl.getInstance();
 
         schemaValidText.setText("");
-
-        var t = System.getenv("debug");
-        if (t != null) {
-            logger.debug("set visible false");
-            test.setVisible(true);
-        }
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
@@ -135,25 +133,69 @@ public class XmlController {
         virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
         stackPane.getChildren().add(virtualizedScrollPane);
 
+        codeAreaXpath.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXpath));
+        virtualizedScrollPaneXpath = new VirtualizedScrollPane<>(codeAreaXpath);
+        stackPaneXPath.getChildren().add(virtualizedScrollPaneXpath);
+
+        codeAreaXQuery.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXQuery));
+        virtualizedScrollPaneXQuery = new VirtualizedScrollPane<>(codeAreaXQuery);
+        stackPaneXQuery.getChildren().add(virtualizedScrollPaneXQuery);
+
+        var t = System.getenv("debug");
+        if (t != null) {
+            logger.debug("set visible false");
+            test.setVisible(true);
+
+            codeAreaXpath.replaceText(0, 0, "/FundsXML4/ControlData");
+            codeAreaXQuery.replaceText(0, 0, "for $i in /FundsXML4/Funds/Fund\n" +
+                    "    return\n" +
+                    "        string-join(\n" +
+                    "            (\n" +
+                    "                $i/Names/OfficialName,\n" +
+                    "                $i/Currency,\n" +
+                    "                $i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency]/text(),\n" +
+                    "                string(sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency])),\n" +
+                    "                string($i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency] - sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency]))\n" +
+                    "            ), ' | '\n" +
+                    "        )");
+        }
+
+
         reloadXmlText();
+    }
+
+    @FXML
+    public void runXpathQueryPressed() {
+        logger.debug("BUTTON PRESSED");
+
+        if (xmlService.getCurrentXmlFile() != null) {
+            Tab selectedItem = xPathQueryPane.getSelectionModel().getSelectedItem();
+            String query = ((CodeArea) ((VirtualizedScrollPane<?>) ((StackPane) selectedItem.getContent()).getChildren().get(0)).getContent()).getText();
+            String result = "";
+
+            logger.debug("QUERY: {}", query);
+
+            switch (selectedItem.getId()) {
+                case "xQueryTab":
+                    result = xmlService.getXQueryResult(query).toString();
+                    break;
+
+                case "xPathTab":
+                    result = xmlService.getXmlFromXpath(query);
+                    break;
+            }
+
+            if (!Objects.equals(result, "")) {
+                logger.debug(result);
+                codeArea.clear();
+                codeArea.replaceText(0, 0, result);
+            }
+        }
     }
 
     public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.parentController = parentController;
-    }
-
-    @FXML
-    private void evaluateXpath() {
-        var newString = this.xmlService.getXmlFromXpath(xpathText.getText());
-
-        if (!newString.isEmpty()) {
-            logger.debug("New String: {}", newString);
-            codeArea.clear();
-            codeArea.replaceText(0, 0, newString);
-        } else {
-            logger.debug("XPath is empty!");
-        }
     }
 
     @FXML
