@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -119,6 +120,8 @@ public class XmlController {
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            // saveFile.setStyle("-fx-background-color: red;");
+
             if (newText.length() < MAX_SIZE_FOR_FORMATING) {
                 logger.debug("Format Text begin!");
                 Platform.runLater(() -> {
@@ -295,8 +298,8 @@ public class XmlController {
             xmlService.loadSchemaFromXMLFile();
             logger.debug("Schema loaded: {}", xsdLocation);
 
-            if (xmlService.getCurrentXsdFile().length() > 1) {
-                var errors = xmlService.validate();
+            if (codeArea.getText().length() > 1) {
+                var errors = xmlService.validateText(codeArea.getText());
                 if (errors.size() > 0) {
                     Alert t = new Alert(Alert.AlertType.ERROR);
                     t.setTitle(errors.size() + " validation Errors");
@@ -305,12 +308,12 @@ public class XmlController {
                         temp.append(error.getMessage()).append(System.lineSeparator());
                     }
 
-                    schemaValidText.setText("Schema not valid!");
+                    schemaValidText.setText(LocalDateTime.now() + "... Schema not valid!");
 
                     t.setContentText(temp.toString());
                     t.showAndWait();
                 } else {
-                    schemaValidText.setText("Schema Valid!");
+                    schemaValidText.setText(LocalDateTime.now() + "... Schema Valid!");
                 }
 
             }

@@ -64,10 +64,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -652,6 +654,29 @@ public class XmlServiceImpl implements XmlService {
         return Optional.empty();
     }
 
+    @Override
+    public String removeBom(String s) {
+        byte[] bom = new byte[3];
+        try (InputStream is = new ByteArrayInputStream(s.getBytes(Charset.defaultCharset()))) {
+            String content = new String(Hex.encodeHex(bom));
+            if ("efbbbf".equalsIgnoreCase(content)) {
+                ByteBuffer bb = ByteBuffer.wrap(is.readAllBytes());
+
+                bom = new byte[3];
+                bb.get(bom, 0, bom.length);
+
+                byte[] contentAfterFirst3Bytes = new byte[is.readAllBytes().length - 3];
+                bb.get(contentAfterFirst3Bytes, 0, contentAfterFirst3Bytes.length);
+
+                // override the same path
+                return Arrays.toString(contentAfterFirst3Bytes);
+            }
+        } catch (IOException e) {
+            // throw new RuntimeException(e);
+            logger.error("ERROR: {}", e.getMessage());
+        }
+        return null;
+    }
 
     @Override
     public void removeBom(Path path) {

@@ -119,5 +119,7 @@ public interface XmlService {
     }
 
 
+    String removeBom(String s);
+
     void removeBom(Path path);
 }
