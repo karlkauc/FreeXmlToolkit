@@ -27,7 +27,7 @@
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <HBox>
         <HBox styleClass="xml">
-            <Button fx:id="newFile" contentDisplay="TOP" text="_new File">
+            <Button fx:id="newFile" contentDisplay="TOP" text="_new File" onAction="#newFilePressed">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-file-earmark"/>
                 </graphic>
@@ -92,7 +92,7 @@
         </HBox>
     </HBox>
     <SplitPane dividerPositions="0.8" orientation="VERTICAL" VBox.vgrow="ALWAYS">
-        <TabPane AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"
+        <TabPane fx:id="xmlFilesPane" AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"
                  AnchorPane.bottomAnchor="0" tabClosingPolicy="UNAVAILABLE" side="BOTTOM">
             <Tab fx:id="openFileTab" text="Untitled.xml *">
                 <AnchorPane AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"

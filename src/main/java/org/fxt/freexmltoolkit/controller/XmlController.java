@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Side;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -46,9 +47,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,6 +110,8 @@ public class XmlController {
     @FXML
     TabPane xPathQueryPane, xmlFilesPane;
 
+    List<Tab> openFileTabs = new LinkedList<>();
+
     @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
@@ -163,8 +164,26 @@ public class XmlController {
                     "        )");
         }
 
-
         reloadXmlText();
+        openFileTabs.add(openFileTab);
+    }
+
+    @FXML
+    private void newFilePressed() {
+        logger.debug("New File Pressed");
+        logger.debug("Current Open Files: {}", openFileTabs.size());
+
+        Tab t = new Tab("Untitled.xml *");
+
+        TabPane tb = new TabPane();
+        tb.setSide(Side.LEFT);
+
+        Tab tabText = new Tab("XML");
+        Tab tabGraphic = new Tab("Tree");
+        tb.getTabs().addAll(tabText, tabGraphic);
+
+        t.setContent(tb);
+        xmlFilesPane.getTabs().add(t);
     }
 
     @FXML
