@@ -21,7 +21,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import org.fxt.freexmltoolkit.controls.XmlTreeView?>
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
@@ -92,51 +91,92 @@
             </VBox>
         </HBox>
     </HBox>
-    <SplitPane dividerPositions="0.9" orientation="VERTICAL" VBox.vgrow="ALWAYS">
-        <TabPane VBox.vgrow="ALWAYS">
-            <Tab fx:id="text" closable="false" text="Text">
-                <graphic>
-                    <FontIcon iconLiteral="bi-card-text"/>
-                </graphic>
-                <StackPane fx:id="stackPane" stylesheets="/css/xml-highlighting.css" AnchorPane.bottomAnchor="0"
-                           AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
-            </Tab>
-            <Tab fx:id="graphic" closable="false" text="Graphic">
-                <graphic>
-                    <FontIcon iconLiteral="bi-diagram-2"/>
-                </graphic>
-                <XmlTreeView styleClass="xmlTree" fx:id="xmlTreeView"/>
+    <SplitPane dividerPositions="0.8" orientation="VERTICAL" VBox.vgrow="ALWAYS">
+        <TabPane AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"
+                 AnchorPane.bottomAnchor="0" tabClosingPolicy="UNAVAILABLE" side="BOTTOM">
+            <Tab fx:id="openFileTab" text="Untitled.xml *">
+                <AnchorPane AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"
+                            AnchorPane.bottomAnchor="0">
+                    <TabPane AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"
+                             AnchorPane.bottomAnchor="0" tabClosingPolicy="UNAVAILABLE" side="LEFT">
+                        <Tab fx:id="text" text="XML">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-card-text"/>
+                            </graphic>
+                            <StackPane fx:id="stackPane" stylesheets="/css/xml-highlighting.css"
+                                       AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+                                       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+                        </Tab>
+                        <Tab text="Tree">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-diagram-2"/>
+                            </graphic>
+                            <TextArea>
+                                GRAPHIC TEST
+                            </TextArea>
+                        </Tab>
+                    </TabPane>
+                </AnchorPane>
             </Tab>
         </TabPane>
+
+        <!--
+        <TabPane style="-fx-background-color: blue;" fx:id="xmlFilesPane" side="BOTTOM" tabClosingPolicy="SELECTED_TAB" VBox.vgrow="ALWAYS">
+            <Tab text="Untitled.xml *">
+                <graphic>
+                    <HBox VBox.vgrow="ALWAYS" style="-fx-background-color: yellow;">
+                    <TabPane VBox.vgrow="ALWAYS" side="LEFT" style="-fx-background-color: magenta;">
+                        <Tab  fx:id="text" closable="false" text="Text">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-card-text"/>
+                            </graphic>
+                            <AnchorPane VBox.vgrow="ALWAYS">
+                                <StackPane fx:id="stackPane" stylesheets="/css/xml-highlighting.css"
+                                           AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+                                           AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+                            </AnchorPane>
+                        </Tab>
+                        <Tab fx:id="graphic" closable="false" text="Graphic">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-diagram-2"/>
+                            </graphic>
+                            <!- <XmlTreeView styleClass="xmlTree" fx:id="xmlTreeView"/> ->
+                        </Tab>
+                    </TabPane>
+                    </HBox>
+                </graphic>
+            </Tab>
+        </TabPane>
+        -->
         <HBox prefHeight="100">
-            <VBox>
-                <Button VBox.vgrow="ALWAYS" mnemonicParsing="false" text="Run" fx:id="runXpathQuery"
-                        onAction="#runXpathQueryPressed">
+            <VBox spacing="5.0">
+                <Button fx:id="runXpathQuery" mnemonicParsing="false" onAction="#runXpathQueryPressed" text="Run"
+                        VBox.vgrow="ALWAYS">
                     <graphic>
                         <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill"/>
                     </graphic>
                 </Button>
-                <Button HBox.hgrow="ALWAYS" mnemonicParsing="false" text="Reset" onAction="#reloadXmlText">
+                <Button mnemonicParsing="false" onAction="#reloadXmlText" text="Reset" HBox.hgrow="ALWAYS">
                     <graphic>
                         <FontIcon iconColor="#fb2500" iconLiteral="bi-x-circle"/>
                     </graphic>
                 </Button>
+                <opaqueInsets>
+                    <Insets/>
+                </opaqueInsets>
+                <padding>
+                    <Insets right="10.0"/>
+                </padding>
             </VBox>
-            <TabPane fx:id="xPathQueryPane" tabClosingPolicy="UNAVAILABLE" HBox.hgrow="ALWAYS">
-                <Tab fx:id="xPathTab" text="XPath">
-                    <StackPane fx:id="stackPaneXPath"
-                               stylesheets="/css/xml-highlighting.css"
-                               AnchorPane.bottomAnchor="0"
-                               AnchorPane.leftAnchor="0"
-                               AnchorPane.rightAnchor="0"
+            <TabPane tabClosingPolicy="UNAVAILABLE" HBox.hgrow="ALWAYS" fx:id="xPathQueryPane">
+                <Tab text="XPath" fx:id="xPathTab">
+                    <StackPane fx:id="stackPaneXPath" stylesheets="/css/xml-highlighting.css"
+                               AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                                AnchorPane.topAnchor="0"/>
                 </Tab>
-                <Tab fx:id="xQueryTab" text="XQuery">
-                    <StackPane fx:id="stackPaneXQuery"
-                               stylesheets="/css/xml-highlighting.css"
-                               AnchorPane.bottomAnchor="0"
-                               AnchorPane.leftAnchor="0"
-                               AnchorPane.rightAnchor="0"
+                <Tab text="XQuery" fx:id="xQueryTab">
+                    <StackPane fx:id="stackPaneXQuery" stylesheets="/css/xml-highlighting.css"
+                               AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                                AnchorPane.topAnchor="0"/>
                 </Tab>
             </TabPane>

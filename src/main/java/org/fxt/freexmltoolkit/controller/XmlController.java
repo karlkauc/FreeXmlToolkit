@@ -106,10 +106,10 @@ public class XmlController {
     Label schemaValidText;
 
     @FXML
-    Tab text, graphic, xPathTab, xQueryTab;
+    Tab text, graphic, xPathTab, xQueryTab, openFileTab;
 
     @FXML
-    TabPane xPathQueryPane;
+    TabPane xPathQueryPane, xmlFilesPane;
 
     @FXML
     private void initialize() {
@@ -120,8 +120,6 @@ public class XmlController {
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            // saveFile.setStyle("-fx-background-color: red;");
-
             if (newText.length() < MAX_SIZE_FOR_FORMATING) {
                 logger.debug("Format Text begin!");
                 Platform.runLater(() -> {
@@ -212,6 +210,7 @@ public class XmlController {
             if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
                 codeArea.replaceText(0, 0, Files.readString(xmlService.getCurrentXmlFile().toPath()));
                 codeArea.scrollToPixel(1, 1);
+                openFileTab.setText(xmlService.getCurrentXmlFile().getName());
             } else {
                 logger.warn("FILE IS NULL");
             }
@@ -226,7 +225,9 @@ public class XmlController {
                 var builder = builderFactory.newDocumentBuilder();
                 var xmlDocument = builder.parse(fileIS);
 
-                xmlTreeView.setXmlDocument(xmlDocument);
+                if (xmlTreeView != null) {
+                    xmlTreeView.setXmlDocument(xmlDocument);
+                }
             }
         } catch (ParserConfigurationException | IOException | SAXException e) {
             logger.error("ERROR: {}", e.getMessage());
