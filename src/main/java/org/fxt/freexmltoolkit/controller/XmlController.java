@@ -179,18 +179,40 @@ public class XmlController {
         tb.setSide(Side.LEFT);
 
         Tab tabText = new Tab("XML");
+
+        StackPane sp = new StackPane();
+        CodeArea ca = new CodeArea();
+        ca.setParagraphGraphicFactory(LineNumberFactory.get(ca));
+        VirtualizedScrollPane<CodeArea> vsc = new VirtualizedScrollPane<>(ca);
+        sp.getChildren().add(vsc);
+        ca.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> ca.setStyleSpans(0, computeHighlighting(newText))));
+        tabText.setContent(sp);
+
         Tab tabGraphic = new Tab("Tree");
         tb.getTabs().addAll(tabText, tabGraphic);
 
         t.setContent(tb);
         xmlFilesPane.getTabs().add(t);
+        xmlFilesPane.getSelectionModel().select(t);
+    }
+
+    private CodeArea getCurrentCodeArea() {
+        Tab active = xmlFilesPane.getSelectionModel().getSelectedItem();
+        TabPane tp = (TabPane) active.getContent();
+        Tab tabText = tp.getTabs().get(0);
+        StackPane sp = (StackPane) tabText.getContent();
+        VirtualizedScrollPane<?> vsp = (VirtualizedScrollPane<?>) sp.getChildren().get(0);
+
+        return (CodeArea) vsp.getContent();
     }
 
     @FXML
     public void runXpathQueryPressed() {
         logger.debug("BUTTON PRESSED");
 
-        if (xmlService.getCurrentXmlFile() != null) {
+        String xml = getCurrentCodeArea().getText();
+
+        if (xml != null) {
             Tab selectedItem = xPathQueryPane.getSelectionModel().getSelectedItem();
             String query = ((CodeArea) ((VirtualizedScrollPane<?>) ((StackPane) selectedItem.getContent()).getChildren().get(0)).getContent()).getText();
             String result = "";
@@ -301,12 +323,17 @@ public class XmlController {
     }
 
     public void formatXmlText() {
-        var temp = codeArea.getText();
-        codeArea.clear();
+        CodeArea ca = getCurrentCodeArea();
+        String text = ca.getText();
 
-        final String tempFormat = XmlService.prettyFormat(temp, 20);
+        logger.debug("Text before formatting: {}", text);
+        ca.clear();
+
+        final String tempFormat = XmlService.prettyFormat(text, 20);
         logger.debug("Format String length: {}", tempFormat.length());
-        codeArea.replaceText(0, 0, tempFormat);
+        ca.replaceText(0, 0, tempFormat);
+
+        logger.debug("Text after formatting: {}", tempFormat);
     }
 
     @FXML
