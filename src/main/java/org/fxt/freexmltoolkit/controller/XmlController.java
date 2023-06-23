@@ -85,6 +85,9 @@ public class XmlController {
     TabPane xPathQueryPane, xmlFilesPane;
 
     @FXML
+    TextArea textAreaTemp;
+
+    @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
         xmlService = XmlServiceImpl.getInstance();
@@ -187,6 +190,10 @@ public class XmlController {
             XmlEditor xmlEditor = (XmlEditor) xmlFilesPane.getSelectionModel().getSelectedItem();
             if (xmlEditor != null && xmlEditor.getXmlFile() != null && xmlEditor.getXmlFile().exists()) {
                 xmlEditor.refresh();
+
+                if (xmlEditor.getXmlFile() != null) {
+                    textAreaTemp.setText(xmlEditor.getXmlFile().getName());
+                }
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -281,7 +288,6 @@ public class XmlController {
                 } else {
                     schemaValidText.setText(LocalDateTime.now() + "... Schema Valid!");
                 }
-
             }
         }
     }
@@ -290,16 +296,23 @@ public class XmlController {
     private void moveUp() {
         logger.debug("Caret Pos: {}", getCurrentCodeArea().caretPositionProperty().getValue());
         getCurrentCodeArea().scrollToPixel(0, 0);
+        getCurrentCodeArea().requestFocus();
     }
 
     @FXML
     private void moveDown() {
-        getCurrentCodeArea().moveTo(getCurrentCodeArea().getLength());
+        logger.debug("Caret Pos: {}", getCurrentCodeArea().caretPositionProperty().getValue());
+
+        var area = getCurrentCodeArea();
+        area.moveTo(0, area.getText().length());
+
+        /*getCurrentCodeArea().moveTo(getCurrentCodeArea().getLength());
         getCurrentCodeArea().getCaretBounds().ifPresent(bounds -> {
             System.out.println("MAX X: " + bounds.getMaxX());
             System.out.println("MAX Y: " + bounds.getMaxY());
         });
         getCurrentCodeArea().scrollToPixel(getCurrentCodeArea().getLayoutBounds().getMaxX(), getCurrentCodeArea().getLayoutBounds().getMaxY());
+        */
     }
 
     @FXML

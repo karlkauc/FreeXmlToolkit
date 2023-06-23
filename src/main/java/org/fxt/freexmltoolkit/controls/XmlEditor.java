@@ -19,15 +19,21 @@
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Side;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.stage.Popup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxmisc.richtext.event.MouseOverTextEvent;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.controller.XmlController;
@@ -35,6 +41,7 @@ import org.fxt.freexmltoolkit.controller.XmlController;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -74,6 +81,7 @@ public class XmlEditor extends Tab {
         TabPane tabPane = new TabPane();
         tabPane.setSide(Side.LEFT);
         tabPane.getTabs().addAll(xml, graphic);
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
@@ -82,8 +90,31 @@ public class XmlEditor extends Tab {
             }
         });
 
+        /* TEST */
+        Popup popup = new Popup();
+        Label popupMsg = new Label();
+        popupMsg.setStyle(
+                "-fx-background-color: black;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-padding: 5;");
+        popup.getContent().add(popupMsg);
+
+        codeArea.setMouseOverTextDelay(Duration.ofSeconds(1));
+        codeArea.addEventHandler(MouseOverTextEvent.MOUSE_OVER_TEXT_BEGIN, e -> {
+            int chIdx = e.getCharacterIndex();
+            Point2D pos = e.getScreenPosition();
+            popupMsg.setText("Character '" + codeArea.getText(chIdx, chIdx + 1) + "' at " + pos);
+            popup.show(codeArea, pos.getX(), pos.getY() + 10);
+        });
+        codeArea.addEventHandler(MouseOverTextEvent.MOUSE_OVER_TEXT_END, e -> {
+            popup.hide();
+        });
+        /* TEST ENDE */
+
         stackPane.getChildren().add(virtualizedScrollPane);
         xml.setContent(stackPane);
+
+        codeArea.setLineHighlighterOn(true);
 
         this.setText(DEFAULT_FILE_NAME);
         this.setClosable(true);
@@ -106,11 +137,35 @@ public class XmlEditor extends Tab {
 
     public void refresh() {
         if (this.xmlFile.exists()) {
-            try {
-                codeArea.replaceText(0, 0, Files.readString(Path.of(this.xmlFile.toURI())));
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
+            refreshTextView();
+            refreshGraphicView();
+        }
+    }
+
+    private void refreshTextView() {
+        try {
+            codeArea.clear();
+            codeArea.replaceText(0, 0, Files.readString(Path.of(this.xmlFile.toURI())));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    private void refreshGraphicView() {
+        try {
+            BackgroundFill backgroundFill =
+                    new BackgroundFill(
+                            Color.valueOf("#F06D29"),
+                            new CornerRadii(10),
+                            new Insets(10)
+                    );
+
+            Region r = new Region();
+            r.setBackground(new Background(backgroundFill));
+
+            this.graphic.setContent(r);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
         }
     }
 
