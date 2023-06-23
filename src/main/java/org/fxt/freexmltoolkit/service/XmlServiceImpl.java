@@ -94,8 +94,6 @@ public class XmlServiceImpl implements XmlService {
 
     File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
 
-    private String currentXML;
-
     private String remoteXsdLocation;
 
     private String xsltOutputMethod;
@@ -199,18 +197,6 @@ public class XmlServiceImpl implements XmlService {
     public void setCurrentXsdFile(File xsdFile) {
         this.currentXsdFile = xsdFile;
     }
-
-    @Override
-    public String getCurrentXml() {
-        if (currentXML != null) {
-            logger.debug("get Current XML Content {}", currentXML.length());
-        } else {
-            logger.debug("get current XML - NULL");
-        }
-
-        return currentXML;
-    }
-
 
     @Override
     public String performXsltTransformation() {
@@ -376,12 +362,6 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
-    public void setCurrentXml(String currentXml) {
-        logger.debug("set XML Content {}", currentXml.length());
-        this.currentXML = currentXml;
-    }
-
-    @Override
     public Node getNodeFromXpath(String xPath) {
         try {
             FileInputStream fileInputStream = new FileInputStream(this.getCurrentXmlFile());
@@ -441,13 +421,14 @@ public class XmlServiceImpl implements XmlService {
         return null;
     }
 
-    @Override
-    public String getXmlFromXpath(String xPathQueryString) {
-        try {
-            FileInputStream fileInputStream = new FileInputStream(this.getCurrentXmlFile());
-            xmlDocument = builder.parse(fileInputStream);
 
-            var nodeList = (NodeList) xPathPath.compile(xPathQueryString).evaluate(xmlDocument, XPathConstants.NODESET);
+    @Override
+    public String getXmlFromXpath(String xml, String xPath) {
+        try {
+            builder = builderFactory.newDocumentBuilder();
+            xmlDocument = builder.parse(new InputSource(new StringReader(xml)));
+
+            var nodeList = (NodeList) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODESET);
             sw = new StringWriter();
 
             if (nodeList.getLength() > 0) {
@@ -457,11 +438,22 @@ public class XmlServiceImpl implements XmlService {
                 xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
                 xform.setOutputProperty(OutputKeys.INDENT, "yes");
                 xform.transform(new DOMSource(node), new StreamResult(sw));
-                // logger.debug(buf.toString());
             }
             return sw.toString();
 
         } catch (XPathExpressionException | TransformerException | IOException | SAXException e) {
+            logger.error(e.getMessage());
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    @Override
+    public String getXmlFromXpath(String xPathQueryString) {
+        try {
+            return getXmlFromXpath(Files.readString(Path.of(this.currentXmlFile.toURI())), xPathQueryString);
+        } catch (Exception e) {
             logger.error(e.getMessage());
         }
         return null;

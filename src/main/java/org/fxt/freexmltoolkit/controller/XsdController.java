@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.xmlet.xsdparser.core.XsdParser;
@@ -39,8 +40,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.fxt.freexmltoolkit.controller.XmlController.computeHighlighting;
 
 public class XsdController {
     XmlService xmlService = XmlServiceImpl.getInstance();
@@ -79,7 +78,7 @@ public class XsdController {
             if (newText.length() < 1024 * 1024 * 2) { // MAX 2 MB große Files
                 logger.debug("Format Text begin!");
                 Platform.runLater(() -> {
-                    codeArea.setStyleSpans(0, computeHighlighting(newText));
+                    codeArea.setStyleSpans(0, XmlEditor.computeHighlighting(newText));
                     logger.debug("FINISH 1");
                 });
                 logger.debug("Format Text fertig!");

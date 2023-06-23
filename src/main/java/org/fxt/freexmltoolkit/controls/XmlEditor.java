@@ -1,3 +1,21 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2023.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.application.Platform;
@@ -15,6 +33,8 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.controller.XmlController;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -22,15 +42,16 @@ import java.util.regex.Pattern;
 
 public class XmlEditor extends Tab {
 
-    private final TabPane tabPane = new TabPane();
-    private Tab xml;
-    private final Tab graphic = new Tab();
+    public static final int MAX_SIZE_FOR_FORMATTING = 1024 * 1024 * 20;
+    public static final String DEFAULT_FILE_NAME = "Untitled.xml *";
+
+    private final Tab xml = new Tab("XML");
+    private final Tab graphic = new Tab("Graphic");
 
     StackPane stackPane = new StackPane();
 
     CodeArea codeArea = new CodeArea();
-    VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<CodeArea>(codeArea);
-
+    VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
 
     private final static Logger logger = LogManager.getLogger(XmlController.class);
 
@@ -50,23 +71,50 @@ public class XmlEditor extends Tab {
     File xmlFile;
 
     public XmlEditor() {
-        xml.setText("XML");
-        graphic.setText("Graphic");
-
+        TabPane tabPane = new TabPane();
         tabPane.setSide(Side.LEFT);
         tabPane.getTabs().addAll(xml, graphic);
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-        codeArea.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeArea.setStyleSpans(0, computeHighlighting(newText))));
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            if (newText.length() < MAX_SIZE_FOR_FORMATTING) {
+                Platform.runLater(() -> codeArea.setStyleSpans(0, computeHighlighting(newText)));
+            }
+        });
 
         stackPane.getChildren().add(virtualizedScrollPane);
+        xml.setContent(stackPane);
 
-        this.setText("Untitled.xml *");
+        this.setText(DEFAULT_FILE_NAME);
+        this.setClosable(true);
+        this.setOnCloseRequest(eh -> {
+            logger.debug("Close Event");
+        });
 
         this.setContent(tabPane);
     }
 
-    static StyleSpans<Collection<String>> computeHighlighting(String text) {
+    public File getXmlFile() {
+        return xmlFile;
+    }
+
+    public void setXmlFile(File xmlFile) {
+        this.xmlFile = xmlFile;
+
+        this.setText(xmlFile.getName());
+    }
+
+    public void refresh() {
+        if (this.xmlFile.exists()) {
+            try {
+                codeArea.replaceText(0, 0, Files.readString(Path.of(this.xmlFile.toURI())));
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+            }
+        }
+    }
+
+    public static StyleSpans<Collection<String>> computeHighlighting(String text) {
         Matcher matcher = XML_TAG.matcher(text);
         int lastKwEnd = 0;
         StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
@@ -83,7 +131,6 @@ public class XmlEditor extends Tab {
                     spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
 
                     if (!attributesText.isEmpty()) {
-
                         lastKwEnd = 0;
 
                         Matcher amatcher = ATTRIBUTES.matcher(attributesText);
@@ -108,35 +155,4 @@ public class XmlEditor extends Tab {
         spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
         return spansBuilder.create();
     }
-
-    /*
-
-    codeAreaXpath.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXpath));
-        virtualizedScrollPaneXpath = new VirtualizedScrollPane<>(codeAreaXpath);
-        stackPaneXPath.getChildren().add(virtualizedScrollPaneXpath);
-        codeAreaXpath.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXpath.setStyleSpans(0, computeHighlighting(newText))));
-
-    <Tab fx:id="openFileTab" text="Untitled.xml *">
-                <TabPane AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"
-                         AnchorPane.bottomAnchor="0" tabClosingPolicy="UNAVAILABLE" side="LEFT">
-                    <Tab fx:id="text" text="XML">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-card-text"/>
-                        </graphic>
-                        <StackPane fx:id="stackPane" stylesheets="/css/xml-highlighting.css"
-                                   AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-                                   AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
-                    </Tab>
-                    <Tab text="Tree">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-diagram-2"/>
-                        </graphic>
-                        <TextArea>
-                            GRAPHIC TEST
-                        </TextArea>
-                    </Tab>
-                </TabPane>
-            </Tab>
-     */
-
 }

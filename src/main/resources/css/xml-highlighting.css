@@ -40,3 +40,13 @@
 .comment {
     -fx-fill: teal;
 }
+
+/* line Number */
+.lineno {
+    -fx-background-color: #e3e3e3;
+}
+
+/* defaults */
+.code-area {
+    -fx-font-family: monospace;
+}

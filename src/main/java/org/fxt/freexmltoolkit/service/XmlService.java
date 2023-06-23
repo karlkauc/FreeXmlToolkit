@@ -58,10 +58,6 @@ public interface XmlService {
 
     void setCurrentXsdFile(File xsdFile);
 
-    String getCurrentXml();
-
-    void setCurrentXml(String currentXml);
-
     String performXsltTransformation();
 
     Document getXmlDocument();
@@ -93,6 +89,10 @@ public interface XmlService {
     Node getNodeFromXpath(String xPath, Node currentNode);
 
     String getNodeAsString(Node node);
+
+
+    // XML Path Operations
+    String getXmlFromXpath(String xml, String xPath);
 
     String getXmlFromXpath(String xPath, Node node);
 

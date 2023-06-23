@@ -112,6 +112,34 @@ public class XpathTest {
     }
 
     @Test
+    void testXpathFromString() {
+        XmlService xmlService = XmlServiceImpl.getInstance();
+
+        String input = """
+                <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <ControlData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                   <UniqueDocumentID>EAM_FUND_001</UniqueDocumentID>
+                   <DocumentGenerated>2021-11-30T16:14:04</DocumentGenerated>
+                   <ContentDate>2021-11-30</ContentDate>
+                   <DataSupplier>
+                      <SystemCountry>AT</SystemCountry>
+                      <Short>EAM</Short>
+                      <Name>Erste Asset Management GmbH</Name>
+                      <Type>Asset Manager</Type>
+                      <Contact>
+                         <Email>datamanagement@erste-am.com</Email>
+                      </Contact>
+                   </DataSupplier>
+                   <DataOperation>INITIAL</DataOperation>
+                   <Language>EN</Language>
+                </ControlData>""";
+
+        var s = xmlService.getXmlFromXpath(input, "/ControlData/UniqueDocumentID/text()");
+        System.out.println("s = " + s);
+
+    }
+
+    @Test
     void xQueryTest() {
         String xquery = """
                 for $i in /FundsXML4/Funds/Fund 

@@ -21,10 +21,13 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import org.fxt.freexmltoolkit.controls.XmlEditor?>
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
+      xmlns:fx="http://javafx.com/fxml/1"
+      stylesheets="/css/xml-highlighting.css"
+      fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <HBox>
         <HBox styleClass="xml">
             <Button fx:id="newFile" contentDisplay="TOP" text="_new File" onAction="#newFilePressed">
@@ -93,28 +96,8 @@
     </HBox>
     <SplitPane dividerPositions="0.8" orientation="VERTICAL" VBox.vgrow="ALWAYS">
         <TabPane fx:id="xmlFilesPane" AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"
-                 AnchorPane.bottomAnchor="0" tabClosingPolicy="UNAVAILABLE" side="BOTTOM">
-            <Tab fx:id="openFileTab" text="Untitled.xml *">
-                <TabPane AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"
-                         AnchorPane.bottomAnchor="0" tabClosingPolicy="UNAVAILABLE" side="LEFT">
-                    <Tab fx:id="text" text="XML">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-card-text"/>
-                        </graphic>
-                        <StackPane fx:id="stackPane" stylesheets="/css/xml-highlighting.css"
-                                   AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-                                   AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
-                    </Tab>
-                    <Tab text="Tree">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-diagram-2"/>
-                        </graphic>
-                        <TextArea>
-                            GRAPHIC TEST
-                        </TextArea>
-                    </Tab>
-                </TabPane>
-            </Tab>
+                 AnchorPane.bottomAnchor="0" side="BOTTOM">
+            <XmlEditor/>
         </TabPane>
 
         <HBox prefHeight="100">

@@ -35,6 +35,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.FileLoader;
+import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
@@ -128,6 +129,7 @@ public class XsltController {
 
     @FXML
     private void checkFiles() {
+        /*
         if (xmlFile != null && xmlFile.exists()) {
             try {
                 xmlService.setCurrentXml(Files.readString(xmlFile.toPath()));
@@ -137,7 +139,7 @@ public class XsltController {
                 e.printStackTrace();
             }
         }
-
+*/
         if (xsltFile != null && xsltFile.exists()) {
             xmlService.setCurrentXsltFile(xsltFile);
         }
@@ -178,7 +180,7 @@ public class XsltController {
 
     private void renderXML(String output) {
         renderText(output);
-        Platform.runLater(() -> codeArea.setStyleSpans(0, XmlController.computeHighlighting(output)));
+        Platform.runLater(() -> codeArea.setStyleSpans(0, XmlEditor.computeHighlighting(output)));
     }
 
     private void renderText(String output) {
@@ -211,7 +213,7 @@ public class XsltController {
 
             if (xmlFile != null && xmlFile.exists()) {
                 logger.debug("CURRENT FILE: {}", xmlFile.getAbsolutePath());
-                xmlService.setCurrentXml(Files.readString(xmlFile.toPath()));
+                //xmlService.setCurrentXml(Files.readString(xmlFile.toPath()));
             }
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());

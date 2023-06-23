@@ -20,7 +20,6 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.geometry.Side;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -30,31 +29,21 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.controls.XmlTreeView;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class XmlController {
 
-    // MAX File Size for formating Syntax
-    public static final int MAX_SIZE_FOR_FORMATING = 1024 * 1024 * 20;
     XmlService xmlService = XmlServiceImpl.getInstance();
 
     @FXML
@@ -64,24 +53,9 @@ public class XmlController {
 
     private final static Logger logger = LogManager.getLogger(XmlController.class);
 
-    private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
-            + "|(?<COMMENT><!--[^<>]+-->)");
-
-    private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
-
-    private static final int GROUP_OPEN_BRACKET = 2;
-    private static final int GROUP_ELEMENT_NAME = 3;
-    private static final int GROUP_ATTRIBUTES_SECTION = 4;
-    private static final int GROUP_CLOSE_BRACKET = 5;
-    private static final int GROUP_ATTRIBUTE_NAME = 1;
-    private static final int GROUP_EQUAL_SYMBOL = 2;
-    private static final int GROUP_ATTRIBUTE_VALUE = 3;
-
-    CodeArea codeArea = new CodeArea();
 
     CodeArea codeAreaXpath = new CodeArea();
     CodeArea codeAreaXQuery = new CodeArea();
-    VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     VirtualizedScrollPane<CodeArea> virtualizedScrollPaneXpath;
     VirtualizedScrollPane<CodeArea> virtualizedScrollPaneXQuery;
@@ -90,7 +64,7 @@ public class XmlController {
     Button openFile, saveFile, prettyPrint, newFile, validateSchema, runXpathQuery;
 
     @FXML
-    StackPane stackPane, stackPaneXPath, stackPaneXQuery;
+    StackPane stackPaneXPath, stackPaneXQuery;
 
     @FXML
     ComboBox<File> schemaList = new ComboBox<>();
@@ -105,12 +79,10 @@ public class XmlController {
     Label schemaValidText;
 
     @FXML
-    Tab text, graphic, xPathTab, xQueryTab, openFileTab;
+    Tab text, graphic, xPathTab, xQueryTab;
 
     @FXML
     TabPane xPathQueryPane, xmlFilesPane;
-
-    List<Tab> openFileTabs = new LinkedList<>();
 
     @FXML
     private void initialize() {
@@ -119,31 +91,15 @@ public class XmlController {
 
         schemaValidText.setText("");
 
-        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText.length() < MAX_SIZE_FOR_FORMATING) {
-                logger.debug("Format Text begin!");
-                Platform.runLater(() -> {
-                    codeArea.setStyleSpans(0, computeHighlighting(newText));
-                    logger.debug("FINISH REFORMAT TEXT in XmlController");
-                });
-            } else {
-                logger.debug("FILE TOO BIG: {}", newText.length());
-            }
-        });
-
-        virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
-        stackPane.getChildren().add(virtualizedScrollPane);
-
         codeAreaXpath.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXpath));
         virtualizedScrollPaneXpath = new VirtualizedScrollPane<>(codeAreaXpath);
         stackPaneXPath.getChildren().add(virtualizedScrollPaneXpath);
-        codeAreaXpath.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXpath.setStyleSpans(0, computeHighlighting(newText))));
+        codeAreaXpath.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXpath.setStyleSpans(0, XmlEditor.computeHighlighting(newText))));
 
         codeAreaXQuery.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXQuery));
         virtualizedScrollPaneXQuery = new VirtualizedScrollPane<>(codeAreaXQuery);
         stackPaneXQuery.getChildren().add(virtualizedScrollPaneXQuery);
-        codeAreaXQuery.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXQuery.setStyleSpans(0, computeHighlighting(newText))));
+        codeAreaXQuery.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXQuery.setStyleSpans(0, XmlEditor.computeHighlighting(newText))));
 
         var t = System.getenv("debug");
         if (t != null) {
@@ -165,35 +121,15 @@ public class XmlController {
         }
 
         reloadXmlText();
-        openFileTabs.add(openFileTab);
     }
 
     @FXML
     private void newFilePressed() {
         logger.debug("New File Pressed");
-        logger.debug("Current Open Files: {}", openFileTabs.size());
 
-        Tab t = new Tab("Untitled.xml *");
-
-        TabPane tb = new TabPane();
-        tb.setSide(Side.LEFT);
-
-        Tab tabText = new Tab("XML");
-
-        StackPane sp = new StackPane();
-        CodeArea ca = new CodeArea();
-        ca.setParagraphGraphicFactory(LineNumberFactory.get(ca));
-        VirtualizedScrollPane<CodeArea> vsc = new VirtualizedScrollPane<>(ca);
-        sp.getChildren().add(vsc);
-        ca.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> ca.setStyleSpans(0, computeHighlighting(newText))));
-        tabText.setContent(sp);
-
-        Tab tabGraphic = new Tab("Tree");
-        tb.getTabs().addAll(tabText, tabGraphic);
-
-        t.setContent(tb);
-        xmlFilesPane.getTabs().add(t);
-        xmlFilesPane.getSelectionModel().select(t);
+        XmlEditor x = new XmlEditor();
+        xmlFilesPane.getTabs().add(x);
+        xmlFilesPane.getSelectionModel().select(x);
     }
 
     private CodeArea getCurrentCodeArea() {
@@ -210,7 +146,8 @@ public class XmlController {
     public void runXpathQueryPressed() {
         logger.debug("BUTTON PRESSED");
 
-        String xml = getCurrentCodeArea().getText();
+        var currentCodeArea = getCurrentCodeArea();
+        String xml = currentCodeArea.getText();
 
         if (xml != null) {
             Tab selectedItem = xPathQueryPane.getSelectionModel().getSelectedItem();
@@ -225,14 +162,14 @@ public class XmlController {
                     break;
 
                 case "xPathTab":
-                    result = xmlService.getXmlFromXpath(query);
+                    result = xmlService.getXmlFromXpath(xml, query);
                     break;
             }
 
-            if (!Objects.equals(result, "")) {
+            if (result != null && !result.equals("")) {
                 logger.debug(result);
-                codeArea.clear();
-                codeArea.replaceText(0, 0, result);
+                currentCodeArea.clear();
+                currentCodeArea.replaceText(0, 0, result);
             }
         }
     }
@@ -245,41 +182,21 @@ public class XmlController {
     @FXML
     public void reloadXmlText() {
         logger.debug("Reload XML Text");
-        codeArea.clear();
 
         try {
-            if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
-                codeArea.replaceText(0, 0, Files.readString(xmlService.getCurrentXmlFile().toPath()));
-                codeArea.scrollToPixel(1, 1);
-                openFileTab.setText(xmlService.getCurrentXmlFile().getName());
-            } else {
-                logger.warn("FILE IS NULL");
+            XmlEditor xmlEditor = (XmlEditor) xmlFilesPane.getSelectionModel().getSelectedItem();
+            if (xmlEditor != null && xmlEditor.getXmlFile() != null && xmlEditor.getXmlFile().exists()) {
+                xmlEditor.refresh();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
-        }
-
-        try {
-            if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()) {
-                FileInputStream fileIS = new FileInputStream(xmlService.getCurrentXmlFile());
-                DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
-                var builder = builderFactory.newDocumentBuilder();
-                var xmlDocument = builder.parse(fileIS);
-
-                if (xmlTreeView != null) {
-                    xmlTreeView.setXmlDocument(xmlDocument);
-                }
-            }
-        } catch (ParserConfigurationException | IOException | SAXException e) {
-            logger.error("ERROR: {}", e.getMessage());
-            throw new RuntimeException(e);
         }
     }
 
     public boolean saveCurrentChanges() {
         if (text.isSelected()) {
             logger.debug("Code Area selected");
-            var errors = xmlService.validateText(codeArea.getText());
+            var errors = xmlService.validateText(getCurrentCodeArea().getText());
 
             if (errors == null || errors.size() == 0) {
                 return saveTextToFile();
@@ -307,7 +224,7 @@ public class XmlController {
     private boolean saveTextToFile() {
         try {
             Path path = Paths.get(this.xmlService.getCurrentXmlFile().getPath());
-            byte[] strToBytes = codeArea.getText().getBytes();
+            byte[] strToBytes = getCurrentCodeArea().getText().getBytes();
             Files.write(path, strToBytes);
 
             logger.debug("File saved!");
@@ -347,8 +264,8 @@ public class XmlController {
             xmlService.loadSchemaFromXMLFile();
             logger.debug("Schema loaded: {}", xsdLocation);
 
-            if (codeArea.getText().length() > 1) {
-                var errors = xmlService.validateText(codeArea.getText());
+            if (getCurrentCodeArea().getText().length() > 1) {
+                var errors = xmlService.validateText(getCurrentCodeArea().getText());
                 if (errors.size() > 0) {
                     Alert t = new Alert(Alert.AlertType.ERROR);
                     t.setTitle(errors.size() + " validation Errors");
@@ -371,18 +288,18 @@ public class XmlController {
 
     @FXML
     private void moveUp() {
-        logger.debug("Caret Pos: {}", codeArea.caretPositionProperty().getValue());
-        codeArea.scrollToPixel(0, 0);
+        logger.debug("Caret Pos: {}", getCurrentCodeArea().caretPositionProperty().getValue());
+        getCurrentCodeArea().scrollToPixel(0, 0);
     }
 
     @FXML
     private void moveDown() {
-        codeArea.moveTo(codeArea.getLength());
-        codeArea.getCaretBounds().ifPresent(bounds -> {
+        getCurrentCodeArea().moveTo(getCurrentCodeArea().getLength());
+        getCurrentCodeArea().getCaretBounds().ifPresent(bounds -> {
             System.out.println("MAX X: " + bounds.getMaxX());
             System.out.println("MAX Y: " + bounds.getMaxY());
         });
-        codeArea.scrollToPixel(codeArea.getLayoutBounds().getMaxX(), codeArea.getLayoutBounds().getMaxY());
+        getCurrentCodeArea().scrollToPixel(getCurrentCodeArea().getLayoutBounds().getMaxX(), getCurrentCodeArea().getLayoutBounds().getMaxY());
     }
 
     @FXML
@@ -401,66 +318,50 @@ public class XmlController {
             logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
             this.lastOpenDir = selectedFile.getParent();
 
+            XmlEditor xmlEditor = new XmlEditor();
+            xmlEditor.setXmlFile(selectedFile);
+            xmlEditor.refresh();
+
             xmlService.setCurrentXmlFile(selectedFile);
             if (xmlService.loadSchemaFromXMLFile()) {
                 schemaList.getItems().add(xmlService.getCurrentXsdFile());
             }
 
-            reloadXmlText();
             validateSchema();
         } else {
             logger.debug("No file selected");
         }
     }
 
-    @FXML
-    private void test() {
-        xmlService.setCurrentXmlFile(Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml").toFile());
-        xmlService.setCurrentXsdFile(Paths.get("examples/xsd/FundsXML4.xsd").toFile());
-        reloadXmlText();
-        validateSchema();
+    private void displayFileContent(File file) {
+        if (file.exists() && file.isFile()) {
+            try {
+                getCurrentCodeArea().replaceText(0, 0, Files.readString(Path.of(file.toURI())));
+            } catch (IOException exception) {
+                logger.error(exception.getMessage());
+            }
+        }
     }
 
-    static StyleSpans<Collection<String>> computeHighlighting(String text) {
-        Matcher matcher = XML_TAG.matcher(text);
-        int lastKwEnd = 0;
-        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+    @FXML
+    private void test() {
+        Path xmlExampleFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml");
+        xmlService.setCurrentXmlFile(xmlExampleFile.toFile());
+        xmlService.setCurrentXsdFile(Paths.get("examples/xsd/FundsXML4.xsd").toFile());
 
-        while (matcher.find()) {
-            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
-            if (matcher.group("COMMENT") != null) {
-                spansBuilder.add(Collections.singleton("comment"), matcher.end() - matcher.start());
-            } else {
-                if (matcher.group("ELEMENT") != null) {
-                    String attributesText = matcher.group(GROUP_ATTRIBUTES_SECTION);
-
-                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_OPEN_BRACKET) - matcher.start(GROUP_OPEN_BRACKET));
-                    spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
-
-                    if (!attributesText.isEmpty()) {
-
-                        lastKwEnd = 0;
-
-                        Matcher amatcher = ATTRIBUTES.matcher(attributesText);
-                        while (amatcher.find()) {
-                            spansBuilder.add(Collections.emptyList(), amatcher.start() - lastKwEnd);
-                            spansBuilder.add(Collections.singleton("attribute"), amatcher.end(GROUP_ATTRIBUTE_NAME) - amatcher.start(GROUP_ATTRIBUTE_NAME));
-                            spansBuilder.add(Collections.singleton("tagmark"), amatcher.end(GROUP_EQUAL_SYMBOL) - amatcher.end(GROUP_ATTRIBUTE_NAME));
-                            spansBuilder.add(Collections.singleton("avalue"), amatcher.end(GROUP_ATTRIBUTE_VALUE) - amatcher.end(GROUP_EQUAL_SYMBOL));
-                            lastKwEnd = amatcher.end();
-                        }
-                        if (attributesText.length() > lastKwEnd)
-                            spansBuilder.add(Collections.emptyList(), attributesText.length() - lastKwEnd);
-                    }
-
-                    lastKwEnd = matcher.end(GROUP_ATTRIBUTES_SECTION);
-
-                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_CLOSE_BRACKET) - lastKwEnd);
-                }
-            }
-            lastKwEnd = matcher.end();
+        try {
+            XmlEditor xmlEditor = (XmlEditor) xmlFilesPane.getSelectionModel().getSelectedItem();
+            xmlEditor.setXmlFile(xmlExampleFile.toFile());
+            xmlEditor.refresh();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
         }
-        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
-        return spansBuilder.create();
+
+        xmlService.setCurrentXmlFile(xmlExampleFile.toFile());
+        if (xmlService.loadSchemaFromXMLFile()) {
+            schemaList.getItems().add(xmlService.getCurrentXsdFile());
+        }
+
+        validateSchema();
     }
 }
