@@ -40,7 +40,7 @@
                     <FontIcon iconColor="black" iconLiteral="bi-folder2-open"/>
                 </graphic>
             </Button>
-            <Button fx:id="saveFile" contentDisplay="TOP" onAction="#saveCurrentChanges" text="_save File">
+            <Button fx:id="saveFile" contentDisplay="TOP" onAction="#saveFile" text="_save File">
                 <graphic>
                     <FontIcon iconLiteral="bi-hdd"/>
                 </graphic>

@@ -37,6 +37,7 @@ import org.xml.sax.SAXParseException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -135,6 +136,12 @@ public class XmlController {
         xmlFilesPane.getSelectionModel().select(x);
     }
 
+
+    private XmlEditor getCurrentXmlEditor() {
+        Tab active = xmlFilesPane.getSelectionModel().getSelectedItem();
+        return (XmlEditor) active;
+    }
+
     private CodeArea getCurrentCodeArea() {
         Tab active = xmlFilesPane.getSelectionModel().getSelectedItem();
         TabPane tp = (TabPane) active.getContent();
@@ -200,7 +207,7 @@ public class XmlController {
         }
     }
 
-    public boolean saveCurrentChanges() {
+    public boolean saveFile() {
         if (text.isSelected()) {
             logger.debug("Code Area selected");
             var errors = xmlService.validateText(getCurrentCodeArea().getText());
@@ -230,6 +237,27 @@ public class XmlController {
 
     private boolean saveTextToFile() {
         try {
+            var currentXmlEditor = getCurrentXmlEditor();
+            File f = currentXmlEditor.getXmlFile();
+
+            if (f == null) {
+                if (lastOpenDir == null) {
+                    lastOpenDir = Path.of(".").toString();
+                    logger.debug("New last open Dir: {}", lastOpenDir);
+                }
+
+                fileChooser.setInitialDirectory(new File(lastOpenDir));
+                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
+                File selectedFile = fileChooser.showOpenDialog(null);
+
+                if (!selectedFile.exists()) {
+                    Files.writeString(selectedFile.toPath(), currentXmlEditor.getText(), Charset.defaultCharset());
+                }
+            } else {
+                byte[] strToBytes = getCurrentCodeArea().getText().getBytes();
+                Files.write(f.toPath(), strToBytes);
+            }
+
             Path path = Paths.get(this.xmlService.getCurrentXmlFile().getPath());
             byte[] strToBytes = getCurrentCodeArea().getText().getBytes();
             Files.write(path, strToBytes);
@@ -304,15 +332,9 @@ public class XmlController {
         logger.debug("Caret Pos: {}", getCurrentCodeArea().caretPositionProperty().getValue());
 
         var area = getCurrentCodeArea();
-        area.moveTo(0, area.getText().length());
-
-        /*getCurrentCodeArea().moveTo(getCurrentCodeArea().getLength());
-        getCurrentCodeArea().getCaretBounds().ifPresent(bounds -> {
-            System.out.println("MAX X: " + bounds.getMaxX());
-            System.out.println("MAX Y: " + bounds.getMaxY());
-        });
-        getCurrentCodeArea().scrollToPixel(getCurrentCodeArea().getLayoutBounds().getMaxX(), getCurrentCodeArea().getLayoutBounds().getMaxY());
-        */
+        if (area != null && area.getText() != null) {
+            area.moveTo(0, area.getText().length());
+        }
     }
 
     @FXML
@@ -334,6 +356,9 @@ public class XmlController {
             XmlEditor xmlEditor = new XmlEditor();
             xmlEditor.setXmlFile(selectedFile);
             xmlEditor.refresh();
+
+            xmlFilesPane.getTabs().add(xmlEditor);
+            xmlFilesPane.getSelectionModel().select(xmlEditor);
 
             xmlService.setCurrentXmlFile(selectedFile);
             if (xmlService.loadSchemaFromXMLFile()) {
