@@ -208,29 +208,24 @@ public class XmlController {
     }
 
     public boolean saveFile() {
-        if (text.isSelected()) {
-            logger.debug("Code Area selected");
-            var errors = xmlService.validateText(getCurrentCodeArea().getText());
+        logger.debug("Code Area selected");
+        var errors = xmlService.validateText(getCurrentCodeArea().getText());
 
-            if (errors == null || errors.size() == 0) {
-                return saveTextToFile();
-            } else {
-                Alert a = new Alert(Alert.AlertType.CONFIRMATION);
-                a.setTitle("Text not schema Valid");
-                a.setHeaderText(errors.size() + " Errors found.");
-                a.setContentText("Save anyway?");
+        if (errors == null || errors.size() == 0) {
+            return saveTextToFile();
+        } else {
+            Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+            a.setTitle("Text not schema Valid");
+            a.setHeaderText(errors.size() + " Errors found.");
+            a.setContentText("Save anyway?");
 
-                var result = a.showAndWait();
-                if (result.isPresent()) {
-                    var buttonType = result.get();
-                    if (buttonType == ButtonType.OK) {
-                        return saveTextToFile();
-                    }
+            var result = a.showAndWait();
+            if (result.isPresent()) {
+                var buttonType = result.get();
+                if (buttonType == ButtonType.OK) {
+                    return saveTextToFile();
                 }
             }
-        }
-        if (graphic.isSelected()) {
-            logger.debug("Graphic selected");
         }
         return false;
     }
@@ -238,9 +233,9 @@ public class XmlController {
     private boolean saveTextToFile() {
         try {
             var currentXmlEditor = getCurrentXmlEditor();
-            File f = currentXmlEditor.getXmlFile();
+            File xmlFile = currentXmlEditor.getXmlFile();
 
-            if (f == null) {
+            if (xmlFile == null) {
                 if (lastOpenDir == null) {
                     lastOpenDir = Path.of(".").toString();
                     logger.debug("New last open Dir: {}", lastOpenDir);
@@ -248,14 +243,22 @@ public class XmlController {
 
                 fileChooser.setInitialDirectory(new File(lastOpenDir));
                 fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
-                File selectedFile = fileChooser.showOpenDialog(null);
+                File selectedFile = fileChooser.showSaveDialog(null);
 
-                if (!selectedFile.exists()) {
-                    Files.writeString(selectedFile.toPath(), currentXmlEditor.getText(), Charset.defaultCharset());
+                if (selectedFile != null) {
+                    this.xmlService.setCurrentXmlFile(selectedFile);
+                    currentXmlEditor.setXmlFile(selectedFile);
+                    currentXmlEditor.setText(selectedFile.getName());
+
+                    if (!selectedFile.exists()) {
+                        Files.writeString(selectedFile.toPath(), getCurrentCodeArea().getText(), Charset.defaultCharset());
+                        this.schemaValidText.setText("Saved " + selectedFile.length() + " Bytes");
+                    }
                 }
+
             } else {
                 byte[] strToBytes = getCurrentCodeArea().getText().getBytes();
-                Files.write(f.toPath(), strToBytes);
+                Files.write(xmlFile.toPath(), strToBytes);
             }
 
             Path path = Paths.get(this.xmlService.getCurrentXmlFile().getPath());
@@ -269,7 +272,7 @@ public class XmlController {
             return true;
         } catch (Exception e) {
             logger.error("Exception in writing File: {}", e.getMessage());
-            logger.error("File: {}", this.xmlService.getCurrentXmlFile().getAbsolutePath());
+            // logger.error("File: {}", this.xmlService.getCurrentXmlFile().getAbsolutePath());
         }
         return false;
     }
