@@ -118,9 +118,7 @@ public class XmlEditor extends Tab {
 
         this.setText(DEFAULT_FILE_NAME);
         this.setClosable(true);
-        this.setOnCloseRequest(eh -> {
-            logger.debug("Close Event");
-        });
+        this.setOnCloseRequest(eh -> logger.debug("Close Event"));
 
         this.setContent(tabPane);
     }

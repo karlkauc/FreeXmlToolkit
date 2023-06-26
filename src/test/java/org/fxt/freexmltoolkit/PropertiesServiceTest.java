@@ -16,16 +16,19 @@
  *
  */
 
-package org.fxt.freexmltoolkit.service;
+package org.fxt.freexmltoolkit;
 
-import java.io.File;
-import java.util.List;
-import java.util.Properties;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public interface PropertiesService {
-    Properties loadProperties();
+public class PropertiesServiceTest {
 
-    void saveProperties(Properties save);
-
-    List<File> getLastOpenFiles();
+    @Test
+    void testPropertiesService() {
+        PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+        var fileList = propertiesService.getLastOpenFiles();
+        Assertions.assertEquals(2, fileList.size());
+    }
 }

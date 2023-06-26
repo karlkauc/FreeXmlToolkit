@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,12 +25,19 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
+import java.io.File;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +47,7 @@ public class MainController {
     private final static Logger logger = LogManager.getLogger(MainController.class);
 
     XsdController xsdController;
+    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -53,6 +61,14 @@ public class MainController {
     Button xslt, xml, xsd, xsdValidation, fop, signature, help, settings, exit;
 
     @FXML
+    MenuItem menuItemExit;
+
+    @FXML
+    Menu lastOpenFilesMenu;
+
+    List<File> lastOpenFiles = new LinkedList<>();
+
+    @FXML
     public void initialize() {
         version.setText("Version: 0.0.1");
 
@@ -61,8 +77,22 @@ public class MainController {
         }, 1, 2, TimeUnit.SECONDS);
 
         exit.setOnAction(e -> System.exit(0));
+        menuItemExit.setOnAction(e -> System.exit(0));
+        loadLastOpenFiles();
 
         loadPageFromPath("/pages/welcome.fxml");
+    }
+
+    private void loadLastOpenFiles() {
+        lastOpenFiles.clear();
+        lastOpenFiles = propertiesService.getLastOpenFiles();
+        logger.debug("Last open Files: {}", lastOpenFiles.toString());
+
+        for (File f : lastOpenFiles) {
+            MenuItem m = new MenuItem(f.getName());
+            lastOpenFilesMenu.getItems().add(m);
+        }
+
     }
 
     @FXML

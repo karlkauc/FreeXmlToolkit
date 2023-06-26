@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,10 +21,9 @@ package org.fxt.freexmltoolkit.service;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 public class PropertiesServiceImpl implements PropertiesService {
@@ -66,5 +65,25 @@ public class PropertiesServiceImpl implements PropertiesService {
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
+    }
+
+    @Override
+    public List<File> getLastOpenFiles() {
+        var p = instance.loadProperties();
+        List<File> returns = new LinkedList<>();
+
+        for (int i = 0; i < 99; i++) {
+            String filePath = p.getProperty("LastOpenFile." + i);
+            if (filePath != null) {
+                File f = new File(filePath);
+                if (f.exists()) {
+                    returns.add(f);
+                }
+            } else {
+                break;
+            }
+        }
+
+        return returns;
     }
 }

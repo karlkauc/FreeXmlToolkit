@@ -2,7 +2,7 @@
 
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
-  ~ Copyright (c) 2023.
+  ~ Copyright (c) Karl Kauc 2023.
   ~
   ~  Licensed under the Apache License, Version 2.0 (the "License");
   ~  you may not use this file except in compliance with the License.
@@ -28,8 +28,35 @@
             fx:controller="org.fxt.freexmltoolkit.controller.MainController">
 
     <BorderPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-                AnchorPane.topAnchor="0">
+                AnchorPane.topAnchor="0.0">
         <top>
+            <MenuBar>
+                <Menu text="File">
+                    <MenuItem text="New"/>
+                    <MenuItem text="Open"/>
+                    <SeparatorMenuItem/>
+                    <SeparatorMenuItem/>
+                    <MenuItem fx:id="menuItemExit" text="Exit"/>
+                </Menu>
+                <Menu fx:id="lastOpenFilesMenu" text="last open Files">
+                </Menu>
+                <Menu text="Edit">
+                    <MenuItem text="Cut"/>
+                    <MenuItem text="Copy"/>
+                </Menu>
+                <Menu text="Windows">
+                    <MenuItem text="Test 1"/>
+                    <MenuItem text="Test 2"/>
+                </Menu>
+                <Menu text="Settings">
+                    <MenuItem text="Test 1"/>
+                    <MenuItem text="Test 2"/>
+                </Menu>
+                <Menu text="Help &amp; About">
+                    <MenuItem text="Open Online Help"/>
+                    <MenuItem text="About"/>
+                </Menu>
+            </MenuBar>
         </top>
         <bottom>
             <HBox styleClass="bottom_line" BorderPane.alignment="CENTER">
@@ -54,8 +81,7 @@
                     <top>
                         <VBox BorderPane.alignment="CENTER">
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                    text="XML Editor"
-                                    fx:id="xml">
+                                    text="XML Editor" fx:id="xml">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
                                 </graphic>
@@ -70,8 +96,7 @@
                             <Separator/>
 
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                    text="XSLT Viewer"
-                                    VBox.vgrow="ALWAYS" fx:id="xslt">
+                                    text="XSLT Viewer" VBox.vgrow="ALWAYS" fx:id="xslt">
                                 <graphic>
                                     <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
                                 </graphic>
@@ -124,8 +149,8 @@
             </VBox>
         </left>
         <center>
-            <AnchorPane fx:id="contentPane" AnchorPane.bottomAnchor="0"
-                        AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+            <AnchorPane fx:id="contentPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+                        AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
         </center>
     </BorderPane>
 </AnchorPane>

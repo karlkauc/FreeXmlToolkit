@@ -1,6 +1,6 @@
 /*!
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
  */
 
 @import "xml-highlighting.css";
+
 
 $color1: #264653;
 $color2: #2A9D8F;
@@ -83,7 +84,7 @@ $background-color: #dcdcdc;
   -fx-background-color: white;
 }
 
-.container {
+.my_container {
   -fx-padding: 30px;
   -fx-border-insets: 30px;
   -fx-background-insets: 30px;
@@ -149,23 +150,6 @@ $background-color: #dcdcdc;
   -fx-padding: 0 0 5px 5px;
 }
 
-/*
-.tree-cell .tree-disclosure-node .arrow {
-  -fx-shape: "";
-  -fx-background-color: null;
-  -fx-background-image: url("../img/plus-box.PNG");
-  -fx-background-size: 90% 90%;
-  -fx-background-repeat: no-repeat;
-  -fx-background-position: center center;
-}
-
-.tree-cell:expanded .tree-disclosure-node .arrow {
-  -fx-shape: null;
-  -fx-background-color: null;
-  -fx-background-image: url("../img/minus.PNG");
-}
-
- */
 
 .xmlAttributeNode {
   -fx-text-fill: $color4;
