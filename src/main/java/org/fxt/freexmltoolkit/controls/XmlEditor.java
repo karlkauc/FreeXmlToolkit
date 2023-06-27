@@ -20,20 +20,17 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.geometry.Side;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.stage.Popup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.event.MouseOverTextEvent;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.controller.XmlController;
@@ -41,7 +38,6 @@ import org.fxt.freexmltoolkit.controller.XmlController;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -77,6 +73,11 @@ public class XmlEditor extends Tab {
 
     File xmlFile;
 
+    private static final int DEFAULT_FONT_SIZE = 11;
+    private int fontSize = 11;
+    KeyCombination resetFontSizeKey = new KeyCodeCombination(KeyCode.DIGIT0, KeyCombination.CONTROL_DOWN);
+
+
     public XmlEditor() {
         TabPane tabPane = new TabPane();
         tabPane.setSide(Side.LEFT);
@@ -90,7 +91,7 @@ public class XmlEditor extends Tab {
             }
         });
 
-        /* TEST */
+        /* TEST
         Popup popup = new Popup();
         Label popupMsg = new Label();
         popupMsg.setStyle(
@@ -109,12 +110,29 @@ public class XmlEditor extends Tab {
         codeArea.addEventHandler(MouseOverTextEvent.MOUSE_OVER_TEXT_END, e -> {
             popup.hide();
         });
-        /* TEST ENDE */
+         TEST ENDE */
+
+        codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (event.isControlDown()) {
+                if (event.getDeltaY() > 0) {
+                    increaseFontSize();
+                } else {
+                    decreaseFontSize();
+                }
+            }
+        });
+
+        codeArea.addEventFilter(KeyEvent.ANY, event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.NUMPAD0) {
+                resetFontSize();
+            }
+        });
 
         stackPane.getChildren().add(virtualizedScrollPane);
         xml.setContent(stackPane);
 
         codeArea.setLineHighlighterOn(true);
+        setFontSize(DEFAULT_FONT_SIZE);
 
         this.setText(DEFAULT_FILE_NAME);
         this.setClosable(true);
@@ -132,6 +150,24 @@ public class XmlEditor extends Tab {
 
         this.setText(xmlFile.getName());
     }
+
+    public void increaseFontSize() {
+        setFontSize(++fontSize);
+    }
+
+    public void decreaseFontSize() {
+        setFontSize(--fontSize);
+    }
+
+    private void resetFontSize() {
+        fontSize = DEFAULT_FONT_SIZE;
+        setFontSize(fontSize);
+    }
+
+    private void setFontSize(int size) {
+        codeArea.setStyle("-fx-font-size: " + size + "pt;");
+    }
+
 
     public void refresh() {
         if (this.xmlFile.exists()) {

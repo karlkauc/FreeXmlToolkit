@@ -88,6 +88,8 @@ public class XmlController {
     @FXML
     TextArea textAreaTemp;
 
+    private int fontSize = 11;
+
     @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
@@ -136,7 +138,6 @@ public class XmlController {
         xmlFilesPane.getSelectionModel().select(x);
     }
 
-
     private XmlEditor getCurrentXmlEditor() {
         Tab active = xmlFilesPane.getSelectionModel().getSelectedItem();
         return (XmlEditor) active;
@@ -151,6 +152,20 @@ public class XmlController {
 
         return (CodeArea) vsp.getContent();
     }
+
+
+    @FXML
+    public void increaseFontSize() {
+        var c = getCurrentCodeArea();
+        c.setStyle("-fx-font-size: " + ++fontSize + "pt;");
+    }
+
+    @FXML
+    public void decreaseFontSize() {
+        var c = getCurrentCodeArea();
+        c.setStyle("-fx-font-size: " + --fontSize + "pt;");
+    }
+
 
     @FXML
     public void runXpathQueryPressed() {
@@ -184,9 +199,11 @@ public class XmlController {
         }
     }
 
-    public void setParentController(MainController parentController) {
+    public XmlController setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.parentController = parentController;
+
+        return this;
     }
 
     @FXML
@@ -374,7 +391,7 @@ public class XmlController {
         }
     }
 
-    private void displayFileContent(File file) {
+    public void displayFileContent(File file) {
         if (file.exists() && file.isFile()) {
             try {
                 getCurrentCodeArea().replaceText(0, 0, Files.readString(Path.of(file.toURI())));

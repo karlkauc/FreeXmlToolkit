@@ -65,6 +65,10 @@
                     </graphic>
                 </Button>
             </VBox>
+            <VBox>
+                <Button onAction="#increaseFontSize" text="+"/>
+                <Button onAction="#decreaseFontSize" text="-"/>
+            </VBox>
             <Separator orientation="VERTICAL"/>
             <TextField prefHeight="16.0" prefWidth="200.0" promptText="search..."/>
         </HBox>

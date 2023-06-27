@@ -46,8 +46,9 @@ public class MainController {
 
     private final static Logger logger = LogManager.getLogger(MainController.class);
 
-    XsdController xsdController;
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+
+    XmlController xmlController;
 
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -90,9 +91,14 @@ public class MainController {
 
         for (File f : lastOpenFiles) {
             MenuItem m = new MenuItem(f.getName());
+            m.setOnAction(event -> {
+                logger.debug("File {} selected.", f.getAbsoluteFile().getName());
+                if (xmlController != null) {
+                    xmlController.displayFileContent(f);
+                }
+            });
             lastOpenFilesMenu.getItems().add(m);
         }
-
     }
 
     @FXML
@@ -125,14 +131,13 @@ public class MainController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(pagePath));
             Pane newLoadedPane = loader.load();
-            contentPane.getChildren().clear();
-            contentPane.getChildren().add(newLoadedPane);
 
             try {
                 Class<?> aClass = loader.getController().getClass();
 
                 if (aClass.equals(XmlController.class)) {
-                    ((XmlController) loader.getController()).setParentController(this);
+                    xmlController = ((XmlController) loader.getController()).setParentController(this);
+
                 } else if (aClass.equals(XsdValidationController.class)) {
                     ((XsdValidationController) loader.getController()).setParentController(this);
                 } else if (aClass.equals(SettingsController.class)) {
@@ -151,6 +156,9 @@ public class MainController {
                 logger.error(e.getStackTrace());
                 logger.error(e.getMessage());
             }
+
+            contentPane.getChildren().clear();
+            contentPane.getChildren().add(newLoadedPane);
 
         } catch (Exception e) {
             logger.error(e.getMessage());
