@@ -27,8 +27,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.Dragboard;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.PropertiesService;
@@ -67,6 +69,10 @@ public class MainController {
     @FXML
     Menu lastOpenFilesMenu;
 
+
+    @FXML
+    VBox leftMenu;
+
     List<File> lastOpenFiles = new LinkedList<>();
 
     @FXML
@@ -77,11 +83,44 @@ public class MainController {
             Platform.runLater(() -> version.setText(new Date().toString()));
         }, 1, 2, TimeUnit.SECONDS);
 
-        exit.setOnAction(e -> System.exit(0));
-        menuItemExit.setOnAction(e -> System.exit(0));
+        exit.setOnAction(e -> {
+            prepareShutdown();
+            System.exit(0);
+        });
+        menuItemExit.setOnAction(e -> {
+            prepareShutdown();
+            System.exit(0);
+        });
         loadLastOpenFiles();
 
+        leftMenu.setOnDragOver(event -> System.out.println("DRAG OVE"));
+        leftMenu.setOnDragDetected(event -> System.out.println("BIN DRINNEN"));
+        leftMenu.setOnDragDropped(event -> {
+            System.out.println("BIN DRINNEN");
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasFiles()) {
+                success = true;
+                for (File file : db.getFiles()) {
+                    System.out.println("file.getName() = " + file.getName());
+                }
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
+
         loadPageFromPath("/pages/welcome.fxml");
+    }
+
+    private void prepareShutdown() {
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+        }
     }
 
     private void loadLastOpenFiles() {
@@ -136,8 +175,7 @@ public class MainController {
                 Class<?> aClass = loader.getController().getClass();
 
                 if (aClass.equals(XmlController.class)) {
-                    xmlController = ((XmlController) loader.getController()).setParentController(this);
-
+                    ((XmlController) loader.getController()).setParentController(this);
                 } else if (aClass.equals(XsdValidationController.class)) {
                     ((XsdValidationController) loader.getController()).setParentController(this);
                 } else if (aClass.equals(SettingsController.class)) {

@@ -47,6 +47,7 @@ public class XmlEditor extends Tab {
 
     public static final int MAX_SIZE_FOR_FORMATTING = 1024 * 1024 * 20;
     public static final String DEFAULT_FILE_NAME = "Untitled.xml *";
+    private static final int DEFAULT_FONT_SIZE = 11;
 
     private final Tab xml = new Tab("XML");
     private final Tab graphic = new Tab("Graphic");
@@ -72,13 +73,20 @@ public class XmlEditor extends Tab {
     private static final int GROUP_ATTRIBUTE_VALUE = 3;
 
     File xmlFile;
-
-    private static final int DEFAULT_FONT_SIZE = 11;
     private int fontSize = 11;
     KeyCombination resetFontSizeKey = new KeyCodeCombination(KeyCode.DIGIT0, KeyCombination.CONTROL_DOWN);
 
+    public XmlEditor(File f) {
+        init();
+        this.setXmlFile(f);
+        this.refresh();
+    }
 
     public XmlEditor() {
+        init();
+    }
+
+    private void init() {
         TabPane tabPane = new TabPane();
         tabPane.setSide(Side.LEFT);
         tabPane.getTabs().addAll(xml, graphic);
@@ -91,27 +99,6 @@ public class XmlEditor extends Tab {
             }
         });
 
-        /* TEST
-        Popup popup = new Popup();
-        Label popupMsg = new Label();
-        popupMsg.setStyle(
-                "-fx-background-color: black;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-padding: 5;");
-        popup.getContent().add(popupMsg);
-
-        codeArea.setMouseOverTextDelay(Duration.ofSeconds(1));
-        codeArea.addEventHandler(MouseOverTextEvent.MOUSE_OVER_TEXT_BEGIN, e -> {
-            int chIdx = e.getCharacterIndex();
-            Point2D pos = e.getScreenPosition();
-            popupMsg.setText("Character '" + codeArea.getText(chIdx, chIdx + 1) + "' at " + pos);
-            popup.show(codeArea, pos.getX(), pos.getY() + 10);
-        });
-        codeArea.addEventHandler(MouseOverTextEvent.MOUSE_OVER_TEXT_END, e -> {
-            popup.hide();
-        });
-         TEST ENDE */
-
         codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
             if (event.isControlDown()) {
                 if (event.getDeltaY() > 0) {
@@ -123,7 +110,8 @@ public class XmlEditor extends Tab {
         });
 
         codeArea.addEventFilter(KeyEvent.ANY, event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.NUMPAD0) {
+            if (event.isControlDown() && event.getCode() == KeyCode.NUMPAD0
+                    || event.isControlDown() && event.getCode() == KeyCode.DIGIT0) {
                 resetFontSize();
             }
         });
@@ -138,6 +126,27 @@ public class XmlEditor extends Tab {
         this.setClosable(true);
         this.setOnCloseRequest(eh -> logger.debug("Close Event"));
 
+        codeArea.setOnDragDropped(event -> {
+            System.out.println("CODEAREA - BIN DRINNEN");
+        });
+
+        stackPane.setOnDragDropped(event -> System.out.println("EVENT"));
+        xml.getContent().setOnDragDropped(event -> System.out.println("EVENT XML"));
+
+        virtualizedScrollPane.setOnDragDropped(event -> {
+            System.out.println("BIN DRINNEN");
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasFiles()) {
+                success = true;
+                for (File file : db.getFiles()) {
+                    System.out.println("file.getName() = " + file.getName());
+                }
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
+
         this.setContent(tabPane);
     }
 
@@ -147,7 +156,6 @@ public class XmlEditor extends Tab {
 
     public void setXmlFile(File xmlFile) {
         this.xmlFile = xmlFile;
-
         this.setText(xmlFile.getName());
     }
 
@@ -167,7 +175,6 @@ public class XmlEditor extends Tab {
     private void setFontSize(int size) {
         codeArea.setStyle("-fx-font-size: " + size + "pt;");
     }
-
 
     public void refresh() {
         if (this.xmlFile.exists()) {
