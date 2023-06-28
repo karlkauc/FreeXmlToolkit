@@ -36,7 +36,11 @@
                     <MenuItem text="Open"/>
                     <SeparatorMenuItem/>
                     <SeparatorMenuItem/>
-                    <MenuItem fx:id="menuItemExit" text="Exit"/>
+                    <MenuItem fx:id="menuItemExit" text="Exit">
+                        <graphic>
+                            <FontIcon iconColor="darkslategray" iconLiteral="bi-door-closed" iconSize="16"/>
+                        </graphic>
+                    </MenuItem>
                 </Menu>
                 <Menu fx:id="lastOpenFilesMenu" text="last open Files">
                 </Menu>
@@ -76,7 +80,7 @@
             </HBox>
         </bottom>
         <left>
-            <VBox styleClass="menu_box" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0">
+            <VBox fx:id="leftMenu" styleClass="menu_box" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0">
                 <BorderPane VBox.vgrow="ALWAYS">
                     <top>
                         <VBox BorderPane.alignment="CENTER">

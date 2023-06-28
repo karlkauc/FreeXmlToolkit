@@ -83,7 +83,7 @@ public class XmlController {
     Label schemaValidText;
 
     @FXML
-    Tab text, graphic, xPathTab, xQueryTab;
+    Tab xPathTab, xQueryTab;
 
     @FXML
     TabPane xPathQueryPane, xmlFilesPane;
@@ -232,11 +232,9 @@ public class XmlController {
         }
     }
 
-    public XmlController setParentController(MainController parentController) {
+    public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.parentController = parentController;
-
-        return this;
     }
 
     @FXML
@@ -331,14 +329,14 @@ public class XmlController {
         CodeArea ca = getCurrentCodeArea();
         String text = ca.getText();
 
-        logger.debug("Text before formatting: {}", text);
+        // logger.debug("Text before formatting: {}", text);
         ca.clear();
 
         final String tempFormat = XmlService.prettyFormat(text, 20);
         logger.debug("Format String length: {}", tempFormat.length());
         ca.replaceText(0, 0, tempFormat);
 
-        logger.debug("Text after formatting: {}", tempFormat);
+        // logger.debug("Text after formatting: {}", tempFormat);
     }
 
     @FXML
@@ -406,8 +404,7 @@ public class XmlController {
             logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
             this.lastOpenDir = selectedFile.getParent();
 
-            XmlEditor xmlEditor = new XmlEditor();
-            xmlEditor.setXmlFile(selectedFile);
+            XmlEditor xmlEditor = new XmlEditor(selectedFile);
             xmlEditor.refresh();
 
             xmlFilesPane.getTabs().add(xmlEditor);
@@ -441,7 +438,7 @@ public class XmlController {
         xmlService.setCurrentXsdFile(Paths.get("examples/xsd/FundsXML4.xsd").toFile());
 
         try {
-            XmlEditor xmlEditor = (XmlEditor) xmlFilesPane.getSelectionModel().getSelectedItem();
+            XmlEditor xmlEditor = getCurrentXmlEditor();
             xmlEditor.setXmlFile(xmlExampleFile.toFile());
             xmlEditor.refresh();
         } catch (Exception e) {
