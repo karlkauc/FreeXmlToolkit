@@ -21,6 +21,9 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
@@ -88,8 +91,6 @@ public class XmlController {
     @FXML
     TextArea textAreaTemp;
 
-    private int fontSize = 11;
-
     @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
@@ -127,6 +128,40 @@ public class XmlController {
         }
 
         reloadXmlText();
+
+        xmlFilesPane.setOnDragOver(this::handleFileOverEvent);
+        xmlFilesPane.setOnDragExited(this::handleDragExitedEvent);
+        xmlFilesPane.setOnDragDropped(this::handleFileDroppedEvent);
+    }
+
+    @FXML
+    void handleFileOverEvent(DragEvent event) {
+        Dragboard db = event.getDragboard();
+        if (db.hasFiles()) {
+            event.acceptTransferModes(TransferMode.COPY);
+            xmlFilesPane.getStyleClass().add("xmlPaneFileDragDrop-active");
+        } else {
+            event.consume();
+        }
+    }
+
+    @FXML
+    void handleDragExitedEvent(DragEvent event) {
+        System.out.println("EXIT");
+        xmlFilesPane.getStyleClass().add("xmlPaneFileDragDrop-normal");
+    }
+
+    @FXML
+    void handleFileDroppedEvent(DragEvent event) {
+        Dragboard db = event.getDragboard();
+
+        for (File f : db.getFiles()) {
+            XmlEditor x = new XmlEditor();
+            x.setXmlFile(f);
+            x.refresh();
+            xmlFilesPane.getTabs().add(x);
+            xmlFilesPane.getSelectionModel().select(x);
+        }
     }
 
     @FXML
@@ -156,14 +191,12 @@ public class XmlController {
 
     @FXML
     public void increaseFontSize() {
-        var c = getCurrentCodeArea();
-        c.setStyle("-fx-font-size: " + ++fontSize + "pt;");
+        getCurrentXmlEditor().increaseFontSize();
     }
 
     @FXML
     public void decreaseFontSize() {
-        var c = getCurrentCodeArea();
-        c.setStyle("-fx-font-size: " + --fontSize + "pt;");
+        getCurrentXmlEditor().decreaseFontSize();
     }
 
 

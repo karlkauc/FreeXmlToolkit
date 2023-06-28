@@ -1,4 +1,4 @@
-/*
+/*!
  * FreeXMLToolkit - Universal Toolkit for XML
  * Copyright (c) Karl Kauc 2023.
  *
@@ -99,6 +99,20 @@
 .xml > .button:hover {
   -fx-border-color: #0078D7;
   -fx-background-color: #B2D8F4;
+}
+
+.xmlPaneFileDragDrop-active {
+  -fx-border-color: red;
+  -fx-border-width: 2px;
+  -fx-border-style: segments(10, 15, 15, 15) line-cap round;
+  -fx-border-insets: 5;
+  -fx-border-radius: 5;
+}
+
+.xmlPaneFileDragDrop-normal {
+  -fx-border-width: 0;
+  -fx-border-insets: 0;
+  -fx-border-radius: 0;
 }
 
 .xmlTree .tree-cell {
