@@ -111,8 +111,14 @@ public class XmlServiceImpl implements XmlService {
     final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
 
     private static final XmlServiceImpl instance = new XmlServiceImpl();
+    Transformer xform;
 
     private XmlServiceImpl() {
+        try {
+            xform = TransformerFactory.newInstance().newTransformer();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
     }
 
     public static XmlServiceImpl getInstance() {
@@ -144,6 +150,15 @@ public class XmlServiceImpl implements XmlService {
             }
         } catch (Exception ignore) {
         }
+
+        // hier gleich parsen
+        try {
+            FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
+            builder = builderFactory.newDocumentBuilder();
+            xmlDocument = builder.parse(fileIS);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
     }
 
     @Override
@@ -157,9 +172,10 @@ public class XmlServiceImpl implements XmlService {
 
         // output methode ermitteln!!
         try {
-            FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
+            /*FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
             builder = builderFactory.newDocumentBuilder();
             xmlDocument = builder.parse(fileIS);
+             */
 
             String expression = "/stylesheet/output/@method";
             XPath xPath = XPathFactory.newInstance().newXPath();
@@ -167,7 +183,7 @@ public class XmlServiceImpl implements XmlService {
             logger.debug("Output Method: {}", nodeList.item(0).getNodeValue());
 
             this.xsltOutputMethod = nodeList.item(0).getNodeValue();
-        } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException e) {
+        } catch (XPathExpressionException e) {
             logger.error("Could not detect output Method.");
             logger.error(e.getMessage());
         }
@@ -364,8 +380,10 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public Node getNodeFromXpath(String xPath) {
         try {
+            /*
             FileInputStream fileInputStream = new FileInputStream(this.getCurrentXmlFile());
             xmlDocument = builder.parse(fileInputStream);
+             */
 
             var node = (Node) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODE);
             return node;
@@ -391,7 +409,7 @@ public class XmlServiceImpl implements XmlService {
     public String getNodeAsString(Node node) {
         try {
             sw = new StringWriter();
-            Transformer xform = TransformerFactory.newInstance().newTransformer();
+
             xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             xform.setOutputProperty(OutputKeys.INDENT, "yes");
             xform.transform(new DOMSource(node), new StreamResult(sw));

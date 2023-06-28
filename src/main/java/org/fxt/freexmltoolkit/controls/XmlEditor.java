@@ -23,7 +23,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.input.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
@@ -74,7 +76,6 @@ public class XmlEditor extends Tab {
 
     File xmlFile;
     private int fontSize = 11;
-    KeyCombination resetFontSizeKey = new KeyCodeCombination(KeyCode.DIGIT0, KeyCombination.CONTROL_DOWN);
 
     public XmlEditor(File f) {
         init();
