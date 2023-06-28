@@ -139,7 +139,9 @@ public class XmlController {
         Dragboard db = event.getDragboard();
         if (db.hasFiles()) {
             event.acceptTransferModes(TransferMode.COPY);
-            xmlFilesPane.getStyleClass().add("xmlPaneFileDragDrop-active");
+            if (!xmlFilesPane.getStyleClass().contains("xmlPaneFileDragDrop-active")) {
+                xmlFilesPane.getStyleClass().add("xmlPaneFileDragDrop-active");
+            }
         } else {
             event.consume();
         }
@@ -147,8 +149,8 @@ public class XmlController {
 
     @FXML
     void handleDragExitedEvent(DragEvent event) {
-        System.out.println("EXIT");
-        xmlFilesPane.getStyleClass().add("xmlPaneFileDragDrop-normal");
+        xmlFilesPane.getStyleClass().clear();
+        xmlFilesPane.getStyleClass().add("tab-pane");
     }
 
     @FXML
@@ -156,8 +158,7 @@ public class XmlController {
         Dragboard db = event.getDragboard();
 
         for (File f : db.getFiles()) {
-            XmlEditor x = new XmlEditor();
-            x.setXmlFile(f);
+            XmlEditor x = new XmlEditor(f);
             x.refresh();
             xmlFilesPane.getTabs().add(x);
             xmlFilesPane.getSelectionModel().select(x);

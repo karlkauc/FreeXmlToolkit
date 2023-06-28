@@ -27,7 +27,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.Dragboard;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -92,22 +91,6 @@ public class MainController {
             System.exit(0);
         });
         loadLastOpenFiles();
-
-        leftMenu.setOnDragOver(event -> System.out.println("DRAG OVE"));
-        leftMenu.setOnDragDetected(event -> System.out.println("BIN DRINNEN"));
-        leftMenu.setOnDragDropped(event -> {
-            System.out.println("BIN DRINNEN");
-            Dragboard db = event.getDragboard();
-            boolean success = false;
-            if (db.hasFiles()) {
-                success = true;
-                for (File file : db.getFiles()) {
-                    System.out.println("file.getName() = " + file.getName());
-                }
-            }
-            event.setDropCompleted(success);
-            event.consume();
-        });
 
         loadPageFromPath("/pages/welcome.fxml");
     }

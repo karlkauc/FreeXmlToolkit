@@ -126,27 +126,6 @@ public class XmlEditor extends Tab {
         this.setClosable(true);
         this.setOnCloseRequest(eh -> logger.debug("Close Event"));
 
-        codeArea.setOnDragDropped(event -> {
-            System.out.println("CODEAREA - BIN DRINNEN");
-        });
-
-        stackPane.setOnDragDropped(event -> System.out.println("EVENT"));
-        xml.getContent().setOnDragDropped(event -> System.out.println("EVENT XML"));
-
-        virtualizedScrollPane.setOnDragDropped(event -> {
-            System.out.println("BIN DRINNEN");
-            Dragboard db = event.getDragboard();
-            boolean success = false;
-            if (db.hasFiles()) {
-                success = true;
-                for (File file : db.getFiles()) {
-                    System.out.println("file.getName() = " + file.getName());
-                }
-            }
-            event.setDropCompleted(success);
-            event.consume();
-        });
-
         this.setContent(tabPane);
     }
 
