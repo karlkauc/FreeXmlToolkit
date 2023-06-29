@@ -188,5 +188,12 @@ public class MainController {
         }
     }
 
+    @FXML
+    private void toggleMenuBar() {
+        leftMenu.setVisible(!leftMenu.isVisible());
+        leftMenu.setDisable(!leftMenu.isDisabled());
+        leftMenu.setMaxWidth(10);
+    }
+
 
 }

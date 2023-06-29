@@ -49,8 +49,7 @@
                     <MenuItem text="Copy"/>
                 </Menu>
                 <Menu text="Windows">
-                    <MenuItem text="Test 1"/>
-                    <MenuItem text="Test 2"/>
+                    <MenuItem onAction="#toggleMenuBar" text="Show Menue"/>
                 </Menu>
                 <Menu text="Settings">
                     <MenuItem text="Test 1"/>
