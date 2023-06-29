@@ -113,7 +113,7 @@ public class XmlServiceImpl implements XmlService {
     private static final XmlServiceImpl instance = new XmlServiceImpl();
     Transformer xform;
 
-    private XmlServiceImpl() {
+    public XmlServiceImpl() {
         try {
             xform = TransformerFactory.newInstance().newTransformer();
         } catch (Exception e) {
@@ -151,13 +151,13 @@ public class XmlServiceImpl implements XmlService {
         } catch (Exception ignore) {
         }
 
-        // hier gleich parsen
         try {
-            FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
+            FileInputStream fileIS = new FileInputStream(this.currentXmlFile);
             builder = builderFactory.newDocumentBuilder();
             xmlDocument = builder.parse(fileIS);
         } catch (Exception e) {
             logger.error(e.getMessage());
+            logger.error(e.getLocalizedMessage());
         }
     }
 
@@ -172,20 +172,22 @@ public class XmlServiceImpl implements XmlService {
 
         // output methode ermitteln!!
         try {
-            /*FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
-            builder = builderFactory.newDocumentBuilder();
-            xmlDocument = builder.parse(fileIS);
-             */
+            FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
+            final var builder = builderFactory.newDocumentBuilder();
+            final var xmlDocument = builder.parse(fileIS);
 
-            String expression = "/stylesheet/output/@method";
-            XPath xPath = XPathFactory.newInstance().newXPath();
-            var nodeList = (NodeList) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODESET);
+
+            final String expression = "/stylesheet/output/@method";
+            final XPath xPath = XPathFactory.newInstance().newXPath();
+            final var nodeList = (NodeList) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODESET);
             logger.debug("Output Method: {}", nodeList.item(0).getNodeValue());
 
             this.xsltOutputMethod = nodeList.item(0).getNodeValue();
         } catch (XPathExpressionException e) {
             logger.error("Could not detect output Method.");
             logger.error(e.getMessage());
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            throw new RuntimeException(e);
         }
     }
 

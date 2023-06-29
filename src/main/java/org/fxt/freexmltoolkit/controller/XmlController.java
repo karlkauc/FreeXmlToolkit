@@ -33,7 +33,6 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
-import org.fxt.freexmltoolkit.controls.XmlTreeView;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.xml.sax.SAXParseException;
@@ -50,13 +49,9 @@ public class XmlController {
 
     XmlService xmlService = XmlServiceImpl.getInstance();
 
-    @FXML
-    XmlTreeView xmlTreeView;
-
     private MainController parentController;
 
     private final static Logger logger = LogManager.getLogger(XmlController.class);
-
 
     CodeArea codeAreaXpath = new CodeArea();
     CodeArea codeAreaXQuery = new CodeArea();

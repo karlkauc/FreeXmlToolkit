@@ -38,40 +38,27 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class FopController {
-
     XmlService xmlService = XmlServiceImpl.getInstance();
     FOPService fopService = new FOPService();
-
     @FXML
     GridPane settings;
-
     @FXML
     Button startConversion, test;
-
     @FXML
     AnchorPane xml, xslt, pdf;
-
     @FXML
     StackPane stackPaneXml, stackPaneXslt;
-
     File xmlFile, xslFile, pdfFile;
-
     @FXML
     TextField xmlFileName, xslFileName, pdfFileName;
-
     @FXML
     ProgressIndicator progressIndicator;
-
     String lastOpenDir = ".";
-
     FileChooser fileChooser = new FileChooser();
-
     private MainController parentController;
-
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
-
     private final static Logger logger = LogManager.getLogger(FopController.class);
 
     @FXML

@@ -2,7 +2,7 @@
 
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
-  ~ Copyright (c) 2023.
+  ~ Copyright (c) Karl Kauc 2023.
   ~
   ~  Licensed under the Apache License, Version 2.0 (the "License");
   ~  you may not use this file except in compliance with the License.
@@ -30,9 +30,9 @@
         <BorderPane maxWidth="300" minWidth="300" prefWidth="300" style="-fx-padding: 0 5 0 0;">
             <top>
                 <VBox>
-                    <FileLoader VBox.vgrow="ALWAYS" fx:id="xmlFileLoader" fontIconString="bi-code-slash"/>
+                    <FileLoader fontIconString="bi-code-slash" VBox.vgrow="ALWAYS" fx:id="xmlFileLoader"/>
                     <Separator/>
-                    <FileLoader fx:id="xsltFileLoader" fontIconString="fth-git-pull-request"/>
+                    <FileLoader fontIconString="fth-git-pull-request" fx:id="xsltFileLoader"/>
                     <Separator/>
                     <Button fx:id="reload" onAction="#checkFiles" text="Reload">
                         <graphic>
@@ -42,6 +42,8 @@
                         </graphic>
                     </Button>
                     <Button fx:id="debugButton" onAction="#test" text="TEST" visible="false"/>
+                    <Button fx:id="openInDefaultWebBrowser" disable="true" text="Open in Web"/>
+                    <Button fx:id="openInDefaultTextEditor" disable="true" text="Open in Text Editor"/>
                 </VBox>
             </top>
             <bottom>

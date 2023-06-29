@@ -140,4 +140,8 @@
   -fx-font-weight: bold;
 }
 
+.rootElement {
+  -fx-font-size: 20px;
+}
+
 /*# sourceMappingURL=mainTheme.css.map */

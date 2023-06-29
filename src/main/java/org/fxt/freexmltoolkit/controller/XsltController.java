@@ -44,6 +44,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -89,7 +90,7 @@ public class XsltController {
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     @FXML
-    Button debugButton;
+    Button debugButton, openInDefaultWebBrowser, openInDefaultTextEditor;
 
     @FXML
     private void initialize() {
@@ -129,17 +130,6 @@ public class XsltController {
 
     @FXML
     private void checkFiles() {
-        /*
-        if (xmlFile != null && xmlFile.exists()) {
-            try {
-                xmlService.setCurrentXml(Files.readString(xmlFile.toPath()));
-                xmlService.setCurrentXmlFile(xmlFile);
-            } catch (IOException e) {
-                logger.error(e.getLocalizedMessage());
-                e.printStackTrace();
-            }
-        }
-*/
         if (xsltFile != null && xsltFile.exists()) {
             xmlService.setCurrentXsltFile(xsltFile);
         }
@@ -195,11 +185,20 @@ public class XsltController {
         logger.debug("Output File: {}", outputFileName);
 
         try {
-            Files.writeString(Paths.get(outputFileName), output);
+            File newFile = Paths.get(outputFileName).toFile();
+            Files.writeString(newFile.toPath(), output);
+
+            openInDefaultWebBrowser.setOnAction(event -> {
+                try {
+                    Desktop.getDesktop().open(newFile);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            openInDefaultWebBrowser.setDisable(false);
 
             WebEngine engine = webView.getEngine();
             progressBar.setProgress(0.6);
-
             engine.getLoadWorker().stateProperty().addListener(
                     (ov, oldState, newState) -> {
                         if (newState == State.SUCCEEDED) {
@@ -208,7 +207,7 @@ public class XsltController {
                         }
                     });
 
-            engine.load(new File(outputFileName).toURI().toURL().toString());
+            engine.load(newFile.getAbsolutePath());
             logger.debug("Loaded Content");
 
             if (xmlFile != null && xmlFile.exists()) {

@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.controls;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
@@ -28,6 +29,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -36,6 +39,9 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.controller.XmlController;
+import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.w3c.dom.Document;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -118,10 +124,10 @@ public class XmlEditor extends Tab {
         });
 
         stackPane.getChildren().add(virtualizedScrollPane);
-        xml.setContent(stackPane);
-
         codeArea.setLineHighlighterOn(true);
         setFontSize(DEFAULT_FONT_SIZE);
+
+        xml.setContent(stackPane);
 
         this.setText(DEFAULT_FILE_NAME);
         this.setClosable(true);
@@ -181,8 +187,33 @@ public class XmlEditor extends Tab {
                             new Insets(10)
                     );
 
-            Region r = new Region();
+            Pane r = new Pane();
             r.setBackground(new Background(backgroundFill));
+            r.setPadding(new Insets(10, 10, 10, 10));
+
+            if (this.xmlFile != null) {
+                XmlService xmlService = new XmlServiceImpl();
+                xmlService.setCurrentXmlFile(this.xmlFile);
+                Document document = xmlService.getXmlDocument();
+
+                System.out.println("document.getDocumentElement().getNodeName() = " + document.getDocumentElement().getNodeName());
+
+                StackPane stackPane1 = new StackPane();
+                Label t = new Label(document.getDocumentElement().getNodeName());
+                t.getStyleClass().add("rootElement");
+                t.applyCss();
+
+                Rectangle rectangle = new Rectangle();
+                rectangle.setFill(Paint.valueOf("#4b97a3"));
+                rectangle.widthProperty().bind(t.widthProperty().add(10));
+                rectangle.heightProperty().bind(t.heightProperty().add(10));
+
+                stackPane1.getChildren().addAll(rectangle, t);
+                stackPane1.setOnMouseClicked(event -> System.out.println("event = " + event));
+                r.getChildren().add(stackPane1);
+
+            }
+
 
             this.graphic.setContent(r);
         } catch (Exception e) {
