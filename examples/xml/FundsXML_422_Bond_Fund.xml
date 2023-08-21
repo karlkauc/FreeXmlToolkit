@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
-  ~ Copyright (c) 2023.
+  ~ Copyright (c) Karl Kauc 2023.
   ~
   ~  Licensed under the Apache License, Version 2.0 (the "License");
   ~  you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
   ~  limitations under the License.
   ~
   -->
-
 <!-- Mit XMLSpy v2015 (x64) (http://www.altova.com) von Kauc Karl (Erste Asset Management GmbH) bearbeitet -->
 <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:noNamespaceSchemaLocation="https://github.com/fundsxml/schema/releases/download/4.2.2/FundsXML.xsd">
@@ -27932,7 +27931,7 @@
                         </Identifiers>
                         <Name>RCI Banque S.A.</Name>
                         <Address>
-                            <StreetName>15 RUE D&apos;UZES</StreetName>
+                            <StreetName>15 RUE D'UZES</StreetName>
                             <CityName>PARIS 2</CityName>
                             <CityCode>75002</CityCode>
                             <Country>FR</Country>
@@ -30492,7 +30491,7 @@
                         </Identifiers>
                         <Name>Compagnie de Saint-Gobain S.A.</Name>
                         <Address>
-                            <StreetName>TOUR SAINT-GOBAIN 12 PLACE DE L&apos;IRIS</StreetName>
+                            <StreetName>TOUR SAINT-GOBAIN 12 PLACE DE L'IRIS</StreetName>
                             <CityName>COURBEVOIE</CityName>
                             <CityCode>92400</CityCode>
                             <Country>FR</Country>
@@ -30644,7 +30643,7 @@
                         <Name>NN Group N.V.</Name>
                         <Address>
                             <StreetName>Schenkkade 65</StreetName>
-                            <CityName>&apos;s-Gravenhage</CityName>
+                            <CityName>'s-Gravenhage</CityName>
                             <CityCode>2595AS</CityCode>
                             <Country>NL</Country>
                         </Address>
@@ -33352,7 +33351,7 @@
                         </Identifiers>
                         <Name>Abbott Ireland Financing DAC</Name>
                         <Address>
-                            <StreetName>70 Sir John Rogerson&apos;s Quay, Dublin 2</StreetName>
+                            <StreetName>70 Sir John Rogerson's Quay, Dublin 2</StreetName>
                             <CityName>Dublin</CityName>
                             <CityCode>D02 r296</CityCode>
                             <Country>IE</Country>
@@ -33654,7 +33653,7 @@
                         <Name>NIBC Bank N.V.</Name>
                         <Address>
                             <StreetName>Carnegieplein 4</StreetName>
-                            <CityName>&apos;s-Gravenhage</CityName>
+                            <CityName>'s-Gravenhage</CityName>
                             <CityCode>2517KJ</CityCode>
                             <Country>NL</Country>
                         </Address>
@@ -37120,7 +37119,7 @@
                         </Identifiers>
                         <Name>Hammerson Ireland Finance DAC</Name>
                         <Address>
-                            <StreetName>Riverside One Sir John Rogerson&apos;s Quay</StreetName>
+                            <StreetName>Riverside One Sir John Rogerson's Quay</StreetName>
                             <CityName>Dublin</CityName>
                             <CityCode>D02 X576</CityCode>
                             <Country>IE</Country>
@@ -37471,7 +37470,7 @@
                         <Name>Nationale-Nederlanden Bank N.V.</Name>
                         <Address>
                             <StreetName>Prinses Beatrixlaan 35</StreetName>
-                            <CityName>&apos;s-Gravenhage</CityName>
+                            <CityName>'s-Gravenhage</CityName>
                             <CityCode>2595AK</CityCode>
                             <Country>NL</Country>
                         </Address>
