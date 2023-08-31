@@ -21,7 +21,7 @@ plugins {
     idea
     application
     id("org.openjfx.javafxplugin") version "0.0.14"
-    id("edu.sc.seis.launch4j") version "2.5.4"
+    id("edu.sc.seis.launch4j") version "3.0.4"
     id("com.github.ben-manes.versions") version "0.47.0"
 
     id("org.beryx.jlink") version "2.26.0"
@@ -127,13 +127,13 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     mainClassName = "org.fxt.freexmltoolkit.FxtGui" // SolvencyUI
     headerType = "gui" // gui / console
     icon = "${projectDir}/src/main/resources/img/logo.ico"
-    // maxHeapSize = 4096
+    maxHeapSize = 4096
     maxHeapPercent = 80
-    jreRuntimeBits = "64"
     copyright = System.getProperty("user.name")
 
     bundledJrePath = "jdk"
-    bundledJre64Bit = true
+    // bundledJre64Bit = true
+    requires64Bit = true
     jreMinVersion = "20"
 
     doLast {
