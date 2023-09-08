@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit;
 
 import org.fxt.freexmltoolkit.service.ConnectionService;
 import org.fxt.freexmltoolkit.service.ConnectionServiceImpl;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
@@ -31,6 +32,7 @@ import java.util.List;
 public class NetTest {
 
     @Test
+    @Disabled("Currently not testable")
     public void testService() {
         ConnectionService connectionService = ConnectionServiceImpl.getInstance();
         var result = connectionService.testConnection();

@@ -20,9 +20,9 @@ plugins {
     java
     idea
     application
-    id("org.openjfx.javafxplugin") version "0.0.14"
+    id("org.openjfx.javafxplugin") version "0.1.0"
     id("edu.sc.seis.launch4j") version "3.0.4"
-    id("com.github.ben-manes.versions") version "0.47.0"
+    id("com.github.ben-manes.versions") version "0.48.0"
 
     id("org.beryx.jlink") version "2.26.0"
 }

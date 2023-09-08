@@ -290,6 +290,20 @@ public class XsdDocumentationService {
         }
     }
 
+    private void prepareFileStructure(File target) {
+        // Copy all Files to output directory
+
+        if (!target.exists()) {
+            if (!target.mkdirs()) {
+                logger.error("cannot create directory {}", target);
+                return;
+            }
+        }
+
+        logger.debug("Directory ok: {}", target);
+
+
+    }
 
     private void generateHtml(String outputFileName) {
         var resolver = new ClassLoaderTemplateResolver();

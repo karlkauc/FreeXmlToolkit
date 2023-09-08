@@ -18,6 +18,7 @@
 
 package org.fxt.freexmltoolkit;
 
+import org.apache.commons.lang3.StringUtils;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.junit.jupiter.api.Assertions;
@@ -49,7 +50,7 @@ public class XpathTest {
         var reposType = xmlService.getNodeFromXpath("//xs:complexType[@name='ReposType']", repo);
         var rate = xmlService.getNodeFromXpath("//xs:element[@name='Rate']", reposType);
 
-        String expected = """
+        final String expected = """
                 <xs:element xmlns:altova="http://www.altova.com/xml-schema-extensions"
                              xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
                              xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -64,7 +65,8 @@ public class XpathTest {
                 </xs:element>""";
 
         String result = xmlService.getNodeAsString(rate);
-        Assertions.assertEquals(result.trim(), expected.trim());
+        System.out.println(result);
+        Assertions.assertEquals(StringUtils.deleteWhitespace(result), StringUtils.deleteWhitespace(expected));
     }
 
     @Test

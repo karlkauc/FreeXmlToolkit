@@ -1,0 +1,47 @@
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) Karl Kauc 2023.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>XSD Documentation</title>
+    <link href="assets/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/prism.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-2">Date Created:</div>
+        <div class="col" th:text="${date}">2022-12-30</div>
+    </div>
+    <div class="row">
+        <div class="col-2">Filename:</div>
+        <div class="col" th:utext="${filename}">filename.xsd</div>
+    </div>
+    <div class="row">
+        <div class="col" th:utext="${rootElement}">Root Element Name</div>
+    </div>
+</div>
+
+
+<script src="assets/bootstrap.bundle.min.js"></script>
+<script src="assets/prism.js"></script>
+</body>
+</html>

@@ -103,19 +103,16 @@ public class XmlValidationTest {
 
         var remoteXsdLocation = xmlService.getRemoteXsdLocation();
         System.out.println("remoteXsdLocation = " + remoteXsdLocation);
-        Assertions.assertEquals("file://src/test/resources/FundsXML_306.xsd", remoteXsdLocation);
+        Assertions.assertEquals("https://github.com/fundsxml/schema/releases/download/3.0.6/FundsXML.xsd", remoteXsdLocation);
     }
 
     @Test
     public void testSchemaNotFound() {
-        // processXmlFile(Paths.get("C:\\Data\\TEMP\\2023-03-22_SMN\\20230224_SMN_Diversified_Futures_Fund_1996_LU0070804173.xml").toFile());
-        xmlService.setCurrentXmlFile(Paths.get("C:\\Data\\TEMP\\2023-03-22_SMN\\20230224_SMN_Diversified_Futures_Fund_1996_LU0070804173.xml").toFile());
+        xmlService.setCurrentXmlFile(Paths.get("src/test/resources/No_schema.xml").toFile());
         assert xmlService.getCurrentXmlFile() != null;
 
         var remoteXsdLocation = xmlService.getRemoteXsdLocation();
-        System.out.println("remoteXsdLocation = " + remoteXsdLocation);
-
-
+        Assertions.assertNull(remoteXsdLocation, "Remote XSD Location should be null");
     }
 
     @Disabled("fix FundsXML 306 XML File before!")
