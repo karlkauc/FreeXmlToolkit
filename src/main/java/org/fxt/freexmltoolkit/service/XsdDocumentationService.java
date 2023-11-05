@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.Assert;
 import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -34,12 +35,15 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class XsdDocumentationService {
     String xsdFilePath;
@@ -87,9 +91,113 @@ public class XsdDocumentationService {
         generateHtml("schema-doc.html");
     }
 
+    public void generateXsdDocumentation(File outputDirectory) throws IOException {
+        assertNotNull(outputDirectory);
+
+        Files.createDirectories(outputDirectory.toPath());
+        Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
+
+        try {
+            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.bundle.min.js"), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.bundle.min.js"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.min.css"), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.min.css"), StandardCopyOption.REPLACE_EXISTING);
+
+            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.css"), Paths.get(outputDirectory.getPath(), "assets", "prism.css"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.js"), Paths.get(outputDirectory.getPath(), "assets", "prism.js"), StandardCopyOption.REPLACE_EXISTING);
+
+            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlTookit.css"), Paths.get(outputDirectory.getPath(), "assets", "freeXmlTookit.css"), StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        generateRootHtml(outputDirectory);
+
+    }
+
+
+    private void generateRootHtml(File outputDirectory) {
+
+        var resolver = new ClassLoaderTemplateResolver();
+        resolver.setTemplateMode(TemplateMode.HTML);
+        resolver.setCharacterEncoding("UTF-8");
+        resolver.setPrefix("/xsdDocumentation/");
+        resolver.setSuffix(".html");
+
+        var templateEngine = new TemplateEngine();
+        templateEngine.setTemplateResolver(resolver);
+
+        var context = new Context();
+        context.setVariable("date", LocalDateTime.now().toString());
+
+        var rootElementName = ((XsdElement) xmlSchema.get(0).getElements().get(0).getElement()).getName();
+
+        context.setVariable("rootElement", xmlSchema.get(0));
+        context.setVariable("rootElementName", rootElementName);
+
+        context.setVariable("filename", xsdFilePath);
+        context.setVariable("xmlSchema", xmlSchema.get(0));
+
+        if (extendedXsdElements.get(rootElementName) != null &&
+                extendedXsdElements.get(rootElementName).getSourceCode() != null) {
+            context.setVariable("code", extendedXsdElements.get(rootElementName).getSourceCode());
+        } else {
+            context.setVariable("code", "NA");
+        }
+
+        context.setVariable("xsdElements", elements);
+        context.setVariable("xsdComplexTypes", xsdComplexTypes);
+        context.setVariable("xsdSimpleTypes", xsdSimpleTypes);
+        context.setVariable("extendedXsdElements", extendedXsdElements);
+
+        var result = templateEngine.process("rootElement", context);
+
+        var outputFileName = "index.html";
+
+        try {
+            Files.write(Paths.get(outputDirectory + File.separator + outputFileName), result.getBytes());
+
+            logger.debug("Written {} bytes", new File(outputFileName).length());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     public void generateDocumentation(String outputFileName) {
+        Assert.requireNonEmpty(this.xsdFilePath);
+
         processXsd();
         generateHtml(outputFileName);
+    }
+
+    private void generateHtml(String outputFileName) {
+        var resolver = new ClassLoaderTemplateResolver();
+        resolver.setTemplateMode(TemplateMode.HTML);
+        resolver.setCharacterEncoding("UTF-8");
+        resolver.setPrefix("/xsdDocumentation/");
+        resolver.setSuffix(".html");
+
+        var templateEngine = new TemplateEngine();
+        templateEngine.setTemplateResolver(resolver);
+
+        var context = new Context();
+        context.setVariable("date", LocalDateTime.now().toString());
+
+        context.setVariable("filename", xsdFilePath);
+        context.setVariable("xmlSchema", xmlSchema.get(0));
+        context.setVariable("xsdElements", elements);
+        context.setVariable("xsdComplexTypes", xsdComplexTypes);
+        context.setVariable("xsdSimpleTypes", xsdSimpleTypes);
+        context.setVariable("extendedXsdElements", extendedXsdElements);
+
+        var result = templateEngine.process("xsdTemplate", context);
+
+        try {
+            Files.write(Paths.get("output" + File.separator + outputFileName), result.getBytes());
+
+            logger.debug("Written {} bytes", new File(outputFileName).length());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void processXsd() {
@@ -107,7 +215,7 @@ public class XsdDocumentationService {
 
         for (XsdElement xsdElement : elements) {
             var elementName = xsdElement.getRawName();
-            Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
+            final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
             getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
         }
 
@@ -139,7 +247,7 @@ public class XsdDocumentationService {
                 logger.debug("ELEMENT: {}", xsdElement.getRawName());
 
                 String currentXpath = "/" + String.join("/", prevElementPath) + "/" + xsdElement.getName();
-                if (prevElementPath.size() == 0) {
+                if (prevElementPath.isEmpty()) {
                     currentXpath = "/" + xsdElement.getName();
                 }
 
@@ -303,37 +411,6 @@ public class XsdDocumentationService {
         logger.debug("Directory ok: {}", target);
 
 
-    }
-
-    private void generateHtml(String outputFileName) {
-        var resolver = new ClassLoaderTemplateResolver();
-        resolver.setTemplateMode(TemplateMode.HTML);
-        resolver.setCharacterEncoding("UTF-8");
-        resolver.setPrefix("/xsdDocumentation/");
-        resolver.setSuffix(".html");
-
-        var templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(resolver);
-
-        var context = new Context();
-        context.setVariable("date", LocalDateTime.now().toString());
-
-        context.setVariable("filename", xsdFilePath);
-        context.setVariable("xmlSchema", xmlSchema.get(0));
-        context.setVariable("xsdElements", elements);
-        context.setVariable("xsdComplexTypes", xsdComplexTypes);
-        context.setVariable("xsdSimpleTypes", xsdSimpleTypes);
-        context.setVariable("extendedXsdElements", extendedXsdElements);
-
-        var result = templateEngine.process("xsdTemplate", context);
-
-        try {
-            Files.write(Paths.get("output" + File.separator + outputFileName), result.getBytes());
-
-            logger.debug("Written {} bytes", new File(outputFileName).length());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

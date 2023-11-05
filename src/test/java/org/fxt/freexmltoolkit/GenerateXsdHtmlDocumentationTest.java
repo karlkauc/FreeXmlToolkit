@@ -87,6 +87,21 @@ public class GenerateXsdHtmlDocumentationTest {
     }
 
     @Test
+    void generateSeperatedFiles() throws IOException {
+        logger.debug("vor filename");
+        xsdDocumentationService.setXsdFilePath("src/test/resources/simpleFile.xsd");
+        logger.debug("vor process xsd");
+        xsdDocumentationService.processXsd();
+
+        logger.debug("vor generate root element");
+        xsdDocumentationService.generateXsdDocumentation(new File("output/test123"));
+
+    }
+
+
+
+
+    @Test
     void generateNewTest() {
         xmlService = XmlServiceImpl.getInstance();
         parser = new XsdParser(fileName);
