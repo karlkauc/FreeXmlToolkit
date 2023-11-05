@@ -21,10 +21,10 @@ plugins {
     idea
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
-    id("edu.sc.seis.launch4j") version "3.0.4"
-    id("com.github.ben-manes.versions") version "0.48.0"
+    id("edu.sc.seis.launch4j") version "3.0.5"
+    id("com.github.ben-manes.versions") version "0.49.0"
 
-    id("org.beryx.jlink") version "2.26.0"
+    id("org.beryx.jlink") version "3.0.0"
 }
 
 application {
@@ -49,7 +49,7 @@ repositories {
 }
 
 javafx {
-    version = "20.0.1"
+    version = "21"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
