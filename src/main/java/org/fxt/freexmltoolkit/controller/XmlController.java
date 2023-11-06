@@ -25,6 +25,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -157,6 +158,7 @@ public class XmlController {
             x.refresh();
             xmlFilesPane.getTabs().add(x);
             xmlFilesPane.getSelectionModel().select(x);
+            xmlService.setCurrentXmlFile(f);
         }
     }
 
@@ -211,16 +213,11 @@ public class XmlController {
             logger.debug("QUERY: {}", query);
 
             switch (selectedItem.getId()) {
-                case "xQueryTab":
-                    result = xmlService.getXQueryResult(query).toString();
-                    break;
-
-                case "xPathTab":
-                    result = xmlService.getXmlFromXpath(xml, query);
-                    break;
+                case "xQueryTab" -> result = xmlService.getXQueryResult(query).toString();
+                case "xPathTab" -> result = xmlService.getXmlFromXpath(xml, query);
             }
 
-            if (result != null && !result.equals("")) {
+            if (result != null && !result.isEmpty()) {
                 logger.debug(result);
                 currentCodeArea.clear();
                 currentCodeArea.replaceText(0, 0, result);
@@ -255,7 +252,7 @@ public class XmlController {
         logger.debug("Code Area selected");
         var errors = xmlService.validateText(getCurrentCodeArea().getText());
 
-        if (errors == null || errors.size() == 0) {
+        if (errors == null || errors.isEmpty()) {
             return saveTextToFile();
         } else {
             Alert a = new Alert(Alert.AlertType.CONFIRMATION);
@@ -348,18 +345,23 @@ public class XmlController {
 
             if (getCurrentCodeArea().getText().length() > 1) {
                 var errors = xmlService.validateText(getCurrentCodeArea().getText());
-                if (errors.size() > 0) {
-                    Alert t = new Alert(Alert.AlertType.ERROR);
-                    t.setTitle(errors.size() + " validation Errors");
+                if (!errors.isEmpty()) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+
+                    // alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+                    alert.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
+
+                    alert.setTitle(errors.size() + " validation Errors");
                     StringBuilder temp = new StringBuilder();
                     for (SAXParseException error : errors) {
+                        logger.debug("Append Error: {}", error.getMessage());
                         temp.append(error.getMessage()).append(System.lineSeparator());
                     }
 
                     schemaValidText.setText(LocalDateTime.now() + "... Schema not valid!");
 
-                    t.setContentText(temp.toString());
-                    t.showAndWait();
+                    alert.setContentText(temp.toString());
+                    alert.showAndWait();
                 } else {
                     schemaValidText.setText(LocalDateTime.now() + "... Schema Valid!");
                 }
@@ -430,6 +432,8 @@ public class XmlController {
     @FXML
     private void test() {
         Path xmlExampleFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml");
+        xmlExampleFile = Paths.get("C:\\Data\\TEMP\\2023-09-18_FundsXML_RU\\ROFDIN0000F6_2023.03.31_test xml 4 MODIFIED.xml");
+
         xmlService.setCurrentXmlFile(xmlExampleFile.toFile());
         xmlService.setCurrentXsdFile(Paths.get("examples/xsd/FundsXML4.xsd").toFile());
 

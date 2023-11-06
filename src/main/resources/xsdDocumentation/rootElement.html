@@ -99,12 +99,14 @@
             </td>
             <td class="align-middle">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <div class="xsd-mandatory-element">
-                            <strong>[0:0] Control Data</strong>
-                        </div>
+                    <li class="list-group-item" style="-background-color: blue;">
+                        <div style="-background-color: yellow; float: left;">
+                            <div class="xsd-mandatory-element" style="background-color: red;">
+                                <strong>[0:0] Control Data</strong>
+                            </div>
 
-                        <div style="float: left;" class="text-info">dies ist die beschreibung</div>
+                            <div style="float: left;" class="text-info">dies ist die beschreibung</div>
+                        </div>
 
                     </li>
                     <li class="list-group-item">
@@ -120,8 +122,16 @@
                         </div>
                         <div class="xsd-mandatory-additional-elements">&nbsp;</div>
                     </li>
-                    <li class="list-group-item">AssetMasterData</li>
-                    <li class="list-group-item">Documents</li>
+                    <li class="list-group-item">
+                        <span class="my-element">&nbsp;</span>
+                        <span class="-xsd-mandatory-element" style="border-style: solid; padding: 0.2em;">
+                            AssetMasterData
+                        </span>
+
+                    </li>
+                    <li class="list-group-item">
+                        <div class="my-element">Documents</div>
+                    </li>
                     <li class="list-group-item">RegulatoryReporting</li>
                     <li class="list-group-item">ContrySpecificData</li>
                 </ul>
@@ -133,6 +143,185 @@
     <div th:text="${code}">
         CODE
     </div>
+
+    <hr/>
+
+    <svg xmlns="http://www.w3.org/2000/svg">
+        <g>
+            <rect height="200" width="200" fill="red"/>
+            <text x="0" y="50" font-family="Verdana" font-size="35" fill="blue">asf</text>
+        </g>
+
+
+    </svg>
+
+    <hr/>
+    <svg xmlns="http://www.w3.org/2000/svg"
+         preserveAspectRatio="none" viewBox="0 0 552 300" width="552" id="DiagramSVG"
+         style="">
+        <defs>
+            <style type="text/css">
+                @font-face {
+                    font-family: Lato;
+                    font-style: normal;
+                    font-weight: 400;
+                }
+
+                a:hover, a:visited, a:link, a:active {
+                    text-decoration: none
+                }
+
+                a {
+                    cursor: pointer
+                }
+            </style>
+            <filter height="300%" id="f13f4r0vdneneo" width="300%" x="-1" y="-1">
+                <feGaussianBlur result="blurOut" stdDeviation="2.0"></feGaussianBlur>
+                <feColorMatrix in="blurOut" result="blurOut2" type="matrix"
+                               values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"></feColorMatrix>
+                <feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"></feOffset>
+                <feBlend in="SourceGraphic" in2="blurOut3" mode="normal"></feBlend>
+            </filter>
+        </defs>
+        <g><a id="5311d50f-e553-3628-8edd-6b54689f1201"
+              href="/web/eam_prod/datasets/5311d50f-e553-3628-8edd-6b54689f1201">
+            <rect codeline="4" fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40.4001"
+                  id="Dataset_5311d50f_e553_3628_8edd_6b54689f1201" rx="5" ry="5" width="292" x="39" y="246"
+                  style="stroke: rgb(9, 101, 116); stroke-width: 1.5;"></rect>
+            <text fill="#096574" font-family="Lato" font-size="13" textLength="0" x="152.5" y="264.465"></text>
+            <text fill="#096574" font-family="Font Awesome\ 6 Pro" font-size="16" textLength="16" x="152.5" y="265">
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="13" textLength="49" x="171.5" y="264.465">AT0140</text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="3" x="42" y="279.0601">(</text>
+            <text fill="#096574" font-family="Font Awesome\ 6 Pro" font-size="12" textLength="12" x="48" y="279.9001">
+                
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="0" x="63" y="279.0601"></text>
+            <text fill="#096574" font-family="Lato" font-size="12" font-style="italic" textLength="86" x="63"
+                  y="279.0601">Reporting Library
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="5" x="152" y="279.0601">/</text>
+            <text fill="#096574" font-family="Font Awesome\ 6 Pro" font-size="12" textLength="12" x="160" y="279.9001">
+                
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="0" x="175" y="279.0601"></text>
+            <text fill="#096574" font-family="Lato" font-size="12" font-style="italic" textLength="147" x="175"
+                  y="279.0601">Performance &amp; Risk Analytics
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="3" x="322" y="279.0601">)</text>
+        </a><a id="b6070a31-f7da-47a3-a9fc-5d39f3604322"
+               href="/web/eam_prod/classifiers/b6070a31-f7da-47a3-a9fc-5d39f3604322">
+            <rect codeline="5" fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="56.0001"
+                  id="BusinessObject_b6070a31_f7da_47a3_a9fc_5d39f3604322" rx="5" ry="5" width="356" x="7" y="126.5"
+                  style="stroke: rgb(9, 101, 116); stroke-width: 1.5;"></rect>
+            <text fill="#096574" font-family="Lato" font-size="13" textLength="0" x="149.5" y="144.965"></text>
+            <text fill="#096574" font-family="Font Awesome\ 6 Pro" font-size="16" textLength="14" x="149.5" y="145.5">
+                
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="13" textLength="57" x="166.5" y="144.965">AT0140 -</text>
+            <text fill="#096574" font-family="Lato" font-size="13" textLength="95" x="137.5" y="160.565">
+                QMV-Datenliste
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="3" x="10" y="175.1601">(</text>
+            <text fill="#096574" font-family="Font Awesome\ 6 Pro" font-size="12" textLength="11" x="16" y="176.0001">
+                
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="0" x="30" y="175.1601"></text>
+            <text fill="#096574" font-family="Lato" font-size="12" font-style="italic" textLength="151" x="30"
+                  y="175.1601">Business report representation
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="5" x="184" y="175.1601">/</text>
+            <text fill="#096574" font-family="Font Awesome\ 6 Pro" font-size="12" textLength="12" x="192" y="176.0001">
+                
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="0" x="207" y="175.1601"></text>
+            <text fill="#096574" font-family="Lato" font-size="12" font-style="italic" textLength="147" x="207"
+                  y="175.1601">Performance &amp; Risk Analytics
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="3" x="354" y="175.1601">)</text>
+        </a><a id="ed3e6422-2dde-4aa7-997a-5378cb83afe6"
+               href="/web/eam_prod/indicators/ed3e6422-2dde-4aa7-997a-5378cb83afe6">
+            <rect codeline="6" fill="#D6ECD2" filter="url(#f13f4r0vdneneo)" height="56.0001"
+                  id="Indicator_ed3e6422_2dde_4aa7_997a_5378cb83afe6" rx="5" ry="5" width="115" x="268.5" y="7"
+                  style="stroke: rgb(57, 57, 57); stroke-width: 1.5;"></rect>
+            <text fill="#393939" font-family="Lato" font-size="13" textLength="0" x="284.5" y="25.465"></text>
+            <text fill="#393939" font-family="Font Awesome\ 6 Pro" font-size="16" textLength="16" x="284.5" y="26">
+            </text>
+            <text fill="#393939" font-family="Lato" font-size="13" textLength="67" x="303.5" y="25.465">Datenliste -
+            </text>
+            <text fill="#393939" font-family="Lato" font-size="13" textLength="82" x="285" y="41.065">IssuerCountry
+            </text>
+            <text fill="#393939" font-family="Lato" font-size="12" textLength="3" x="271.5" y="55.6601">(</text>
+            <text fill="#393939" font-family="Font Awesome\ 6 Pro" font-size="12" textLength="14" x="277.5" y="56.5001">
+                
+            </text>
+            <text fill="#393939" font-family="Lato" font-size="12" textLength="0" x="294.5" y="55.6601"></text>
+            <text fill="#393939" font-family="Lato" font-size="12" font-style="italic" textLength="27" x="294.5"
+                  y="55.6601">DQM
+            </text>
+            <text fill="#393939" font-family="Lato" font-size="12" textLength="5" x="324.5" y="55.6601">/</text>
+            <text fill="#393939" font-family="Font Awesome\ 6 Pro" font-size="12" textLength="12" x="332.5" y="56.5001">
+                
+            </text>
+            <text fill="#393939" font-family="Lato" font-size="12" textLength="0" x="347.5" y="55.6601"></text>
+            <text fill="#393939" font-family="Lato" font-size="12" font-style="italic" textLength="27" x="347.5"
+                  y="55.6601">QMV
+            </text>
+            <text fill="#393939" font-family="Lato" font-size="12" textLength="3" x="374.5" y="55.6601">)</text>
+        </a><a id="f91adac8-3403-323a-9d71-f5f42779411a"
+               href="/web/eam_prod/classifiers/f91adac8-3403-323a-9d71-f5f42779411a">
+            <rect codeline="7" fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="62.8002"
+                  id="BusinessObject_f91adac8_3403_323a_9d71_f5f42779411a" rx="5" ry="5" width="140" x="398" y="123"
+                  style="stroke: rgb(9, 101, 116); stroke-width: 1.5;"></rect>
+            <text fill="#096574" font-family="Lato" font-size="13" textLength="0" x="443.5" y="141.465"></text>
+            <text fill="#096574" font-family="Font Awesome\ 6 Pro" font-size="16" textLength="18" x="443.5" y="142">
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="13" textLength="31" x="464.5" y="141.465">Party</text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="3" x="416" y="156.0601">(</text>
+            <text fill="#096574" font-family="Font Awesome\ 6 Pro" font-size="12" textLength="11" x="422" y="156.9001">
+                
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="0" x="436" y="156.0601"></text>
+            <text fill="#096574" font-family="Lato" font-size="12" font-style="italic" textLength="25" x="436"
+                  y="156.0601">BDM
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="5" x="464" y="156.0601">/</text>
+            <text fill="#096574" font-family="Font Awesome\ 6 Pro" font-size="12" textLength="12" x="472" y="156.9001">
+                
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="0" x="487" y="156.0601"></text>
+            <text fill="#096574" font-family="Lato" font-size="12" font-style="italic" textLength="27" x="487"
+                  y="156.0601">Party
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="3" x="514" y="156.0601">)</text>
+            <line x1="399" x2="537" y1="163.4001" y2="163.4001"
+                  style="stroke: rgb(9, 101, 116); stroke-width: 1.5;"></line>
+        </a><a id="c7f75e48-7413-3751-b252-719d915edab5"
+               href="/web/eam_prod/attributes/c7f75e48-7413-3751-b252-719d915edab5">
+            <text fill="#096574" font-family="Font Awesome\ 6 Pro" font-size="12" textLength="11" x="404" y="180.3002">
+                
+            </text>
+            <text fill="#096574" font-family="Lato" font-size="12" textLength="114" x="418" y="179.4602">Country of
+                Residence
+            </text>
+        </a>
+            <path codeline="12" d="M185,182.6362 C185,200.5266 185,223.4927 185,240.7879 " fill="none"
+                  id="BusinessObject_b6070a31_f7da_47a3_a9fc_5d39f3604322-to-Dataset_5311d50f_e553_3628_8edd_6b54689f1201"
+                  style="stroke: rgb(118, 118, 118); stroke-width: 1; stroke-dasharray: 7, 7;"></path>
+            <polygon fill="#767676" points="185,245.9614,189,236.9614,185,240.9614,181,236.9614,185,245.9614"
+                     style="stroke: rgb(118, 118, 118); stroke-width: 1;"></polygon>
+            <path codeline="13" d="M288.922,66.4243 C267.0304,84.9778 239.5448,108.2723 218.3397,126.244 " fill="none"
+                  id="Indicator_ed3e6422_2dde_4aa7_997a_5378cb83afe6-backto-BusinessObject_b6070a31_f7da_47a3_a9fc_5d39f3604322"
+                  style="stroke: rgb(118, 118, 118); stroke-width: 1;"></path>
+            <path d="M286.5412,63.1986 L285.6105,74.4739 M291.7136,69.3016 L280.4382,68.3709 " fill="none"
+                  style="stroke: rgb(118, 118, 118); stroke-width: 1;"></path>
+            <path codeline="14" d="M363.3609,66.441 C384.0467,83.8491 409.6873,105.427 430.4095,122.8658 " fill="none"
+                  id="Indicator_ed3e6422_2dde_4aa7_997a_5378cb83afe6-backto-BusinessObject_f91adac8_3403_323a_9d71_f5f42779411a"
+                  style="stroke: rgb(118, 118, 118); stroke-width: 1;"></path>
+            <path d="M360.5429,69.2973 L371.8149,68.3273 M365.6939,63.1763 L366.6639,74.4483 " fill="none"
+                  style="stroke: rgb(118, 118, 118); stroke-width: 1;"></path>
+        </g>
+    </svg>
 
 
 </div>

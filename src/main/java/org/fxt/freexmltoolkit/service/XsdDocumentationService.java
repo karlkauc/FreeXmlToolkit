@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class XsdDocumentationService {
     String xsdFilePath;
@@ -92,7 +91,7 @@ public class XsdDocumentationService {
     }
 
     public void generateXsdDocumentation(File outputDirectory) throws IOException {
-        assertNotNull(outputDirectory);
+        // assertNotNull(outputDirectory);
 
         Files.createDirectories(outputDirectory.toPath());
         Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));

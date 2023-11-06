@@ -233,15 +233,13 @@ public class XsltController {
 
         var div = doc.select(".language-xml");
         logger.debug("Lang XML Elements: {}", div.size());
-        for (int i = 0; i < div.size(); i++) {
-            var oneDiv = div.get(i);
-
+        for (org.jsoup.nodes.Element oneDiv : div) {
             String content = StringEscapeUtils.escapeHtml4(oneDiv.data());
             oneDiv.html(content);
 
             logger.debug("PARSED DOCUMENT");
             logger.debug("NEW: {}", content);
-            logger.debug("HTML CONTENT: {}", div.get(i).data());
+            logger.debug("HTML CONTENT: {}", oneDiv.data());
         }
         doc.outputSettings(new Document.OutputSettings().prettyPrint(true));
         output = doc.html();
