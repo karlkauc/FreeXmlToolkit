@@ -28,7 +28,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -40,9 +39,6 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.parser.Parser;
 
 import java.awt.*;
 import java.io.File;
@@ -139,8 +135,7 @@ public class XsltController {
             logger.debug("RENDER FILE");
 
             try {
-                String output = xmlService.performXsltTransformation();
-                output = cleanHtmlContent(output);
+                final String output = xmlService.performXsltTransformation();
 
                 progressBar.setVisible(true);
                 progressBar.setProgress(0.1);
@@ -216,33 +211,6 @@ public class XsltController {
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());
         }
-    }
-
-    private static String cleanHtmlContent(String output) {
-        output = output.replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "")
-                .replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "")
-                .replace("  >", "");
-
-        Document doc = Jsoup.parse(output, Parser.xmlParser());
-        doc.outputSettings(new Document.OutputSettings().prettyPrint(false));
-        //Document.OutputSettings outputSettings = new Document.OutputSettings();
-        //outputSettings.prettyPrint(false);
-        //outputSettings.escapeMode(Entities.EscapeMode.xhtml);
-        //doc.outputSettings(outputSettings);
-
-        var div = doc.select(".language-xml");
-        logger.debug("Lang XML Elements: {}", div.size());
-        for (org.jsoup.nodes.Element oneDiv : div) {
-            String content = StringEscapeUtils.escapeHtml4(oneDiv.data());
-            oneDiv.html(content);
-
-            logger.debug("PARSED DOCUMENT");
-            logger.debug("NEW: {}", content);
-            logger.debug("HTML CONTENT: {}", oneDiv.data());
-        }
-        doc.outputSettings(new Document.OutputSettings().prettyPrint(true));
-        output = doc.html();
-        return output;
     }
 
     @FXML

@@ -51,6 +51,7 @@
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css"
                       integrity="sha512-/mZ1FHPkg6EKcxo0fKXF51ak6Cr2ocgDi5ytaTBjsQZIH/RNs6GF6+oId/vPe3eJB836T36nXwVh/WBl/cWT4w=="
                       crossorigin="anonymous" referrerpolicy="no-referrer"/>
+                <link rel="stylesheet" href="prism.css"/>
             </head>
             <body class="container-fluid">
                 <h1>Analyzing File</h1>
@@ -151,6 +152,7 @@
                         crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
                 <script src="replaceNodes.js"/>
+                <script src="prism.js"/>
             </body>
         </html>
     </xsl:template>
@@ -848,11 +850,9 @@
                                                             <details>
                                                                 <summary>Original XML</summary>
                                                                 <p>
-                                                                    <pre>
-                                                                        <code class="language-xml">
+                                                                    <script type="text/plain" class="language-xml">
                                                                             <xsl:copy-of select="node()"/>
-                                                                        </code>
-                                                                    </pre>
+                                                                    </script>
                                                                 </p>
                                                             </details>
                                                         </xsl:if>
@@ -1456,11 +1456,9 @@
                                                         <details>
                                                             <summary>Original XML</summary>
                                                             <p>
-                                                                <pre>
-                                                                    <code class="language-xml">
+                                                                <script type="text/plain" class="language-xml">
                                                                         <xsl:copy-of select="node()"/>
-                                                                    </code>
-                                                                </pre>
+                                                                </script>
                                                             </p>
                                                         </details>
                                                     </xsl:if>
