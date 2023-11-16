@@ -24,7 +24,7 @@ plugins {
     id("edu.sc.seis.launch4j") version "3.0.5"
     id("com.github.ben-manes.versions") version "0.49.0"
 
-    id("org.beryx.jlink") version "3.0.0"
+    id("org.beryx.jlink") version "2.26.0"
 }
 
 application {
@@ -49,7 +49,7 @@ repositories {
 }
 
 javafx {
-    version = "21"
+    version = "20.0.1"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
@@ -66,6 +66,7 @@ dependencies {
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:latest.release")
     implementation("org.kordamp.ikonli:ikonli-win10-pack:latest.release")
     implementation("org.kordamp.ikonli:ikonli-feather-pack:latest.release")
+    implementation("org.kordamp.ikonli:ikonli-coreui-pack:latest.release")
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Richtext
@@ -116,6 +117,11 @@ dependencies {
     // Update
     implementation("org.update4j:update4j:latest.release")
     implementation("jakarta.activation:jakarta.activation-api:latest.release")
+
+    implementation("org.junit.jupiter:junit-jupiter:latest.release")
+
+    // batik for svg graphic
+    implementation("org.apache.xmlgraphics:batik-all:1.17")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")

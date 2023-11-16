@@ -202,17 +202,16 @@ public class XsltController {
             engine.getLoadWorker().stateProperty().addListener(
                     (ov, oldState, newState) -> {
                         if (newState == State.SUCCEEDED) {
-                            logger.debug("FERTIG: " + engine.getLocation());
+                            logger.debug("Loading Web Content successfully: " + engine.getLocation());
                             progressBar.setProgress(1);
                         }
                     });
 
-            engine.load(newFile.getAbsolutePath());
+            engine.load(newFile.toURI().toString());
             logger.debug("Loaded Content");
 
             if (xmlFile != null && xmlFile.exists()) {
                 logger.debug("CURRENT FILE: {}", xmlFile.getAbsolutePath());
-                //xmlService.setCurrentXml(Files.readString(xmlFile.toPath()));
             }
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());
@@ -248,7 +247,7 @@ public class XsltController {
 
     @FXML
     private void test() {
-        xmlFile = Paths.get("examples/xml/ALPDINAMIK_fundsXml_20230228_20230404-062438.xml").toFile();
+        xmlFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml").toFile();
         xsltFile = Paths.get("examples/xslt/Check_FundsXML_File.xslt").toFile();
 
         xmlFileLoader.setFile(xmlFile);
