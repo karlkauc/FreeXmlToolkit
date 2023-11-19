@@ -89,10 +89,6 @@ public class XsdDocumentationService {
         return xmlSchema;
     }
 
-    public void setExtendedXsdElements(Map<String, ExtendedXsdElement> extendedXsdElements) {
-        this.extendedXsdElements = extendedXsdElements;
-    }
-
     public void setXmlService(XmlService xmlService) {
         this.xmlService = xmlService;
     }
@@ -233,8 +229,35 @@ public class XsdDocumentationService {
             final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
             getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
         }
+        detectChildren();
     }
 
+    private void detectChildren() {
+        String start = "/FundsXML";
+
+        for (String s : extendedXsdElements.keySet()) {
+            System.out.println("s = " + s);
+            var startCount = start.chars().filter(ch -> ch == '/').count();
+
+            for (String sDetail : extendedXsdElements.keySet()) {
+                var childCount = sDetail.chars().filter(ch -> ch == '/').count();
+                logger.debug("StartCount: {}, childCount: {}", startCount, childCount);
+
+                // ToDo: StartWith ist nicht ausreichend - muss noch auf Slash prüfen
+                if (sDetail.startsWith(start) && (childCount == startCount + 1)
+                        && !extendedXsdElements.get(start).getChildren().contains(sDetail)) {
+                    logger.debug("add children '{}' to parent '{}'", s, start);
+                    extendedXsdElements.get(start).getChildren().add(sDetail);
+                } else {
+                    logger.debug("NO children '{}' of parent '{}'", s, start);
+                }
+            }
+
+
+            start = s;
+            // System.out.println(test.get(test.keySet().toArray()[i]));
+        }
+    }
 
     void getXsdAbstractElementInfo(int level,
                                    XsdAbstractElement xsdAbstractElement,
@@ -273,7 +296,7 @@ public class XsdDocumentationService {
 
                     extendedXsdElement.setCurrentNode(n);
                     // ZU VIEL: HTML FILE RENDERD NICHT MEHR
-                    // extendedXsdElement.setSourceCode(elementString);
+                    extendedXsdElement.setSourceCode(elementString);
                     extendedXsdElement.setXsdElement(xsdElement);
 
                     if (xsdElement.getAnnotation() != null && xsdElement.getAnnotation().getDocumentations() != null) {

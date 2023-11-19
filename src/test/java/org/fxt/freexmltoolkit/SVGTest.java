@@ -57,7 +57,7 @@ public class SVGTest {
         svgRoot.setAttributeNS(svgNS, "height", "800");
         svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(245, 235, 213)");
 
-        xsdDocumentationService.setXsdFilePath("src/test/resources/simpleFile.xsd");
+        xsdDocumentationService.setXsdFilePath("src/test/resources/FundsXML_306.xsd");
         xsdDocumentationService.processXsd();
 
         var xsdSchema = xsdDocumentationService.getXmlSchema();
@@ -69,7 +69,15 @@ public class SVGTest {
         System.out.println("rootElementName = " + rootElementName);
         String elementType = elements.get(0).getType();
         var compexType = elements.get(0).getTypeAsComplexType();
-        var childElements = elements.get(0).getTypeAsComplexType().getElements();
+
+        java.util.List<ReferenceBase> childElements = null;
+        if (elements.get(0) != null && elements.get(0).getTypeAsComplexType() != null) {
+            childElements = elements.get(0).getTypeAsComplexType().getElements();
+        } else {
+            // childElements = elements.get(0).getTypeAsSimpleType().getElements();
+            var e = xsdDocumentationService.getExtendedXsdElements();
+        }
+
 
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;

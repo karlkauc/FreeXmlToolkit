@@ -22,6 +22,7 @@ import org.w3c.dom.Node;
 import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 import org.xmlet.xsdparser.xsdelements.XsdElement;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExtendedXsdElement {
@@ -29,12 +30,22 @@ public class ExtendedXsdElement {
     int level;
     List<XsdDocumentation> xsdDocumentation;
 
+    List<String> children = new ArrayList<>();
+
     String currentXpath;
 
     String sourceCode;
     Node currentNode;
 
     int counter;
+
+    public List<String> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<String> children) {
+        this.children = children;
+    }
 
     public XsdElement getXsdElement() {
         return xsdElement;
