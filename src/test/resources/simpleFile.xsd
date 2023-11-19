@@ -6,7 +6,7 @@
     <xsd:complexType name="PurchaseOrderType">
         <xsd:sequence>
             <xsd:element name="ShipTo" type="tns:USAddress" maxOccurs="2"/>
-            <xsd:element name="BillTo" type="tns:USAddress"/>
+            <xsd:element name="BillToXXXXX" type="tns:USAddress"/>
         </xsd:sequence>
         <xsd:attribute name="OrderDate" type="xsd:date"/>
     </xsd:complexType>

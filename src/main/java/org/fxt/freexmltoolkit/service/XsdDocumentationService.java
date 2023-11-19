@@ -73,6 +73,22 @@ public class XsdDocumentationService {
         return extendedXsdElements;
     }
 
+    public List<XsdComplexType> getXsdComplexTypes() {
+        return xsdComplexTypes;
+    }
+
+    public List<XsdSimpleType> getXsdSimpleTypes() {
+        return xsdSimpleTypes;
+    }
+
+    public List<XsdElement> getElements() {
+        return elements;
+    }
+
+    public List<XsdSchema> getXmlSchema() {
+        return xmlSchema;
+    }
+
     public void setExtendedXsdElements(Map<String, ExtendedXsdElement> extendedXsdElements) {
         this.extendedXsdElements = extendedXsdElements;
     }
@@ -217,12 +233,6 @@ public class XsdDocumentationService {
             final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
             getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
         }
-
-        /*
-        for (Map.Entry<String, ExtendedXsdElement> entry : extendedXsdElements.entrySet()) {
-            System.out.println(entry.getKey() + " = " + entry.getValue().getXsdElement().getName());
-        }
-         */
     }
 
 
