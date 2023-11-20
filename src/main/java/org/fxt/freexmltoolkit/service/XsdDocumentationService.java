@@ -272,15 +272,17 @@ public class XsdDocumentationService {
                     extendedXsdElement.setElementName(xsdElement.getRawName());
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
-                    extendedXsdElement.setElementType("BUILD IN ");
+                    extendedXsdElement.setElementType("BUILDIN");
                     extendedXsdElements.put(currentXpath, extendedXsdElement);
-
                 }
                 if (xsdElement.getTypeAsComplexType() != null) {
                     logger.debug("Complex DATATYPE {}", xsdElement.getTypeAsComplexType().getRawName());
+                    // ToDo: als ENUM abspeichern
+                    extendedXsdElement.setElementType("COMPLEX");
                 }
                 if (xsdElement.getTypeAsSimpleType() != null) {
                     logger.debug("Simple DATATYPE {}", xsdElement.getTypeAsSimpleType().getRawName());
+                    extendedXsdElement.setElementType("SIMPLE");
                 }
 
                 var currentType = xsdElement.getType();

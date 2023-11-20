@@ -23,9 +23,9 @@ import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 import org.xmlet.xsdparser.xsdelements.XsdElement;
 
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ExtendedXsdElement {
     XsdElement xsdElement;
@@ -44,14 +44,8 @@ public class ExtendedXsdElement {
     String elementName;
     String elementType;
 
-    MessageDigest messageDigest;
-
-    public ExtendedXsdElement() {
-        try {
-            messageDigest = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
-            System.out.println("ERROR! NO SUCH ALGORYTHM.");
-        }
+    public String getPageName() {
+        return elementName + "_" + getMD5Hex(currentXpath) + ".html";
     }
 
     public String getElementName() {
@@ -136,7 +130,29 @@ public class ExtendedXsdElement {
 
     public void setCurrentXpath(String currentXpath) {
         this.currentXpath = currentXpath;
-        messageDigest.update(currentXpath.getBytes());
-        this.currentHash = new String(messageDigest.digest());
+
+        // this.currentHash = UUID.randomUUID().toString().replace("-", "");
+
     }
+
+    public static String getMD5Hex(final String inputString) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(inputString.getBytes());
+            byte[] digest = md.digest();
+            return convertByteToHex(digest);
+        } catch (Exception e) {
+            return UUID.randomUUID().toString().replace("-", "");
+        }
+    }
+
+    private static String convertByteToHex(byte[] byteData) {
+        StringBuilder sb = new StringBuilder();
+        for (byte byteDatum : byteData) {
+            sb.append(Integer.toString((byteDatum & 0xff) + 0x100, 16).substring(1));
+        }
+
+        return sb.toString();
+    }
+
 }

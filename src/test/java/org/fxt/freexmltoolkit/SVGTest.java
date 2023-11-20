@@ -18,10 +18,7 @@
 
 package org.fxt.freexmltoolkit;
 
-import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.dom.GenericDOMImplementation;
-import org.apache.batik.svggen.SVGGraphics2DIOException;
-import org.apache.batik.transcoder.TranscoderException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
@@ -44,7 +41,6 @@ import java.awt.font.FontRenderContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -58,7 +54,11 @@ public class SVGTest {
     final int margin = 10;
     final int gapBetweenSides = 100;
 
-    public String testBoxes() {
+    final static String BOX_COLOR = "#d5e3e8";
+    final static String OPTIONAL_FORMAT = "stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;";
+    final static String MANDATORY_FORMAT = "stroke: rgb(2,23,23); stroke-width: 2;";
+
+    public String generateSVGDiagram(String rootXpath) {
         Font font = new Font("Arial", Font.PLAIN, 16);
         FontRenderContext frc = new FontRenderContext(
                 null,
@@ -75,21 +75,11 @@ public class SVGTest {
         svgRoot.setAttributeNS(svgNS, "height", "800");
         svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(245, 235, 213)");
 
-        xsdDocumentationService.setXsdFilePath("src/test/resources/FundsXML_306.xsd");
-        xsdDocumentationService.processXsd();
-
-        var xsdSchema = xsdDocumentationService.getXmlSchema();
-        var complexTypes = xsdDocumentationService.getXsdComplexTypes();
-        var simpleTypes = xsdDocumentationService.getXsdSimpleTypes();
-        var elements = xsdDocumentationService.getElements();
-
-        var rootElementName = elements.get(0).getName();
+        var rootElement = xsdDocumentationService.getExtendedXsdElements().get(rootXpath);
+        var rootElementName = rootElement.getElementName();
         System.out.println("rootElementName = " + rootElementName);
-        String elementType = elements.get(0).getType();
-        var compexType = elements.get(0).getTypeAsComplexType();
 
         java.util.List<ExtendedXsdElement> childElements = new ArrayList<>();
-        var rootElement = xsdDocumentationService.getExtendedXsdElements().get("/" + rootElementName);
         for (String temp : rootElement.getChildren()) {
             childElements.add(xsdDocumentationService.getExtendedXsdElements().get(temp));
         }
@@ -98,7 +88,7 @@ public class SVGTest {
         double rightBoxWidth = 0;
 
         for (ExtendedXsdElement r : childElements) {
-            String elementName = "DUMMY";
+            String elementName = "";
 
             if (r != null && r.getXsdElement() != null) {
                 elementName = r.getXsdElement().getName();
@@ -112,8 +102,6 @@ public class SVGTest {
             rightBoxHeight = rightBoxHeight + margin + height + margin + 20; // inkl. 20 abstand zwischen boxen
             rightBoxWidth = Math.max(rightBoxWidth, width);
         }
-
-        int childElementsAmount = childElements.size();
 
         System.out.println("height = " + rightBoxHeight);
         System.out.println("width = " + rightBoxWidth);
@@ -131,7 +119,7 @@ public class SVGTest {
         System.out.println("startY = " + startY);
 
         Element rect1 = document.createElement("rect");
-        rect1.setAttribute("fill", "#F2F2F2");
+        rect1.setAttribute("fill", BOX_COLOR);
         rect1.setAttribute("id", rootElementName);
         rect1.setAttribute("height", (margin + rootElementHeight + margin) + "");
         rect1.setAttribute("width", (margin + rootElementWidth + margin) + "");
@@ -158,25 +146,31 @@ public class SVGTest {
         final double pathStartY = startY + rootElementHeight;
 
         double actualHeight = 20;
-        for (ExtendedXsdElement r : childElements) {
-            String elementName = "DUMMY 2";
-            if (r != null) {
-                elementName = r.getElementName();
+        for (ExtendedXsdElement childElement : childElements) {
+            String elementName = "";
+            String css = OPTIONAL_FORMAT;
+
+            if (childElement != null) {
+                elementName = childElement.getElementName();
             }
 
-            if (r != null && r.getXsdElement() != null) {
-                elementName = r.getXsdElement().getName();
+            if (childElement != null && childElement.getXsdElement() != null) {
+                System.out.println("childElement.getXsdElement().getMaxOccurs() = " + childElement.getXsdElement().getMaxOccurs());
+                System.out.println("childElement.getXsdElement().getMinOccurs() = " + childElement.getXsdElement().getMinOccurs());
+
+                if (childElement.getXsdElement().getMinOccurs() > 0) {
+                    css = MANDATORY_FORMAT;
+                }
             }
 
-            System.out.println("Element Name = " + elementName);
+            logger.debug("Element Name = " + elementName);
 
             var z2 = font.getStringBounds(elementName, frc);
             var height = z2.getBounds2D().getHeight();
             var width = z2.getBounds2D().getWidth();
 
-            // box zeichnen und Text Einfügen
             Element rect2 = document.createElement("rect");
-            rect2.setAttribute("fill", "#F2F2F2");
+            rect2.setAttribute("fill", BOX_COLOR);
             rect2.setAttribute("id", elementName);
             rect2.setAttribute("height", (margin + height + margin) + "");
             rect2.setAttribute("width", (margin + rightBoxWidth + margin) + "");
@@ -184,8 +178,7 @@ public class SVGTest {
             rect2.setAttribute("y", actualHeight + "");
             rect2.setAttribute("rx", "2");
             rect2.setAttribute("ry", "2");
-            rect2.setAttribute("style", "stroke: rgb(2,23,23); stroke-width: 2;");
-            svgRoot.appendChild(rect2);
+            rect2.setAttribute("style", css);
 
             Element text2 = document.createElement("text");
             text2.setAttribute("fill", "#096574");
@@ -195,7 +188,19 @@ public class SVGTest {
             text2.setAttribute("x", rightStartX + margin + "");
             text2.setAttribute("y", actualHeight + height + (margin / 2) + "");
             text2.setTextContent(elementName);
-            svgRoot.appendChild(text2);
+
+            Element a = document.createElement("a");
+            if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
+                // link erstellen
+                a.setAttribute("href", childElement.getPageName());
+                a.appendChild(rect2);
+                a.appendChild(text2);
+
+                svgRoot.appendChild(a);
+            } else {
+                svgRoot.appendChild(rect2);
+                svgRoot.appendChild(text2);
+            }
 
             Element path2 = document.createElement("path");
             path2.setAttribute("d", "M " + pathStartX + " " + pathStartY +
@@ -203,67 +208,12 @@ public class SVGTest {
                     " V " + (actualHeight + ((margin + height + margin) / 2)) +
                     " h " + ((gapBetweenSides / 2) - margin));
             path2.setAttribute("fill", "none");
-            path2.setAttribute("style", "stroke: black; stroke-width: 2;");
+            path2.setAttribute("style", css);
             svgRoot.appendChild(path2);
 
             actualHeight = actualHeight + margin + height + margin + 20; // 20 pixel abstand zwischen boxen
         }
 
-        return asString(svgRoot);
-    }
-
-    public String getBatikTest() {
-        DOMImplementation domImpl = SVGDOMImplementation.getDOMImplementation();
-
-        String svgNS = SVGDOMImplementation.SVG_NAMESPACE_URI;
-        Document document = domImpl.createDocument(svgNS, "svg", null);
-        var svgRoot = document.getDocumentElement();
-
-        svgRoot.setAttributeNS(svgNS, "width", "800");
-        svgRoot.setAttributeNS(svgNS, "height", "800");
-        svgRoot.setAttributeNS(svgNS, "style", "background-color:red");
-
-        final String output = "FundsXML4";
-
-        Font font = new Font("Arial", Font.PLAIN, 16);
-        FontRenderContext frc = new FontRenderContext(
-                null,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF,
-                RenderingHints.VALUE_FRACTIONALMETRICS_DEFAULT);
-        var z = font.getStringBounds(output, frc);
-        var height = z.getBounds2D().getHeight();
-        var width = z.getBounds2D().getWidth();
-
-        System.out.println("height = " + height);
-        System.out.println("width = " + width);
-
-        final int margin = 10;
-
-        int boxWidth = (int) (margin + width + margin);
-        int boxHeight = (int) (margin + height + margin);
-
-        Element rect1 = document.createElement("rect");
-        rect1.setAttribute("fill", "#F2F2F2");
-        rect1.setAttribute("id", "a");
-        rect1.setAttribute("height", boxHeight + "");
-        rect1.setAttribute("width", boxWidth + "");
-        rect1.setAttribute("x", "10");
-        rect1.setAttribute("y", "140");
-        rect1.setAttribute("rx", "2");
-        rect1.setAttribute("ry", "2");
-        rect1.setAttribute("style", "stroke: rgb(2,23,23); stroke-width: 2;");
-        svgRoot.appendChild(rect1);
-
-        Element text = document.createElement("text");
-        text.setAttribute("fill", "#096574");
-        text.setAttribute("font-family", font.getFontName());
-        text.setAttribute("font-size", font.getSize() + "");
-        text.setAttribute("textLength", "0");
-        text.setAttribute("x", margin + margin + "");
-        text.setAttribute("y", String.valueOf(140 + ((double) margin / 2) + height));
-        text.setTextContent(output);
-
-        svgRoot.appendChild(text);
         return asString(svgRoot);
     }
 
@@ -287,7 +237,7 @@ public class SVGTest {
     }
 
     @Test
-    public void generateTemplate() throws SVGGraphics2DIOException, TranscoderException, UnsupportedEncodingException {
+    public void generateTemplate() {
         var resolver = new ClassLoaderTemplateResolver();
         resolver.setTemplateMode(TemplateMode.HTML);
         resolver.setCharacterEncoding("UTF-8");
@@ -297,117 +247,32 @@ public class SVGTest {
         var templateEngine = new TemplateEngine();
         templateEngine.setTemplateResolver(resolver);
 
-        String var = """
-                <g>
-                        <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="30"
-                              id="a"
-                              width="200"
-                              x="0"
-                              y="140"
-                              rx="2"
-                              ry="2"
-                              style="stroke: rgb(2,23,23); stroke-width: 2;"></rect>
-                        <text fill="#096574" font-family="Arial" font-size="13" textLength="0" x="10" y="160">FundsXML4</text>
-                    
-                        <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                              id="fund"
-                              rx="2"
-                              ry="2"
-                              x="300"
-                              y="60"
-                              width="200"
-                              style="stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;"></rect>
-                    
-                        <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                              id="controlData"
-                              rx="2"
-                              ry="2"
-                              x="300"
-                              y="10"
-                              width="200"
-                              style="stroke: rgb(2,23,23); stroke-width: 2;"></rect>
-                    
-                        <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                              id="AssetMgntCompanyData"
-                              rx="2"
-                              ry="2"
-                              x="300"
-                              y="110"
-                              width="200"
-                              style="stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;"></rect>
-                    
-                        <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                              id="Documents"
-                              rx="2"
-                              ry="2"
-                              x="300"
-                              y="160"
-                              width="200"
-                              style="stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;"></rect>
-                    
-                        <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                              id="RegulatoryReporting"
-                              rx="2"
-                              ry="2"
-                              x="300"
-                              y="210"
-                              width="200"
-                              style="stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;"></rect>
-                    
-                        <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                              id="ContrySpecificData"
-                              rx="2"
-                              ry="2"
-                              x="300"
-                              y="260"
-                              width="200"
-                              style="stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;"></rect>
-                    
-                        <path d="M 200 150 h 20 v -120 h 80" fill="none"
-                              id="a"
-                              style="stroke: rgb(229,41,41); stroke-width: 2;"></path>
-                    
-                        <!--fundsxml 2 fund -->
-                        <path d="M 200 152 h 23 v -70 h 77 " fill="none"
-                              id="a"
-                              style="stroke: rgb(41,213,229); stroke-width: 2;"></path>
-                    
-                    
-                        <text fill="#096574" font-family="Arial" font-size="13"
-                              textLength="0" x="310" y="85">Funds
-                        </text>
-                        <text fill="#096574" font-family="Arial" font-size="13"
-                              textLength="0" x="310" y="35">Control Data
-                        </text>
-                        <text fill="#096574" font-family="Arial" font-size="13"
-                              textLength="0" x="310" y="135">AssetMgntCompanyData
-                        </text>
-                        <text fill="#096574" font-family="Arial" font-size="13"
-                              textLength="0" x="310" y="185">Documents
-                        </text>
-                        <text fill="#096574" font-family="Arial" font-size="13"
-                              textLength="0" x="310" y="235">RegulatoryReporting
-                        </text>
-                        <text fill="#096574" font-family="Arial" font-size="13"
-                              textLength="0" x="310" y="285">ContrySpecificData
-                        </text>
-                    </g>""";
+        xsdDocumentationService.setXsdFilePath("src/test/resources/FundsXML_306.xsd");
+        xsdDocumentationService.processXsd();
 
-        var = testBoxes();
+        final var xsdSchema = xsdDocumentationService.getXmlSchema();
+        final var complexTypes = xsdDocumentationService.getXsdComplexTypes();
+        final var simpleTypes = xsdDocumentationService.getXsdSimpleTypes();
+        final var elements = xsdDocumentationService.getElements();
 
-        var context = new Context();
-        context.setVariable("var", var);
+        for (String key : xsdDocumentationService.getExtendedXsdElements().keySet()) {
+            var currentElement = xsdDocumentationService.getExtendedXsdElements().get(key);
 
-        var result = templateEngine.process("svgTemplate", context);
+            String svgDiagram = generateSVGDiagram(key);
 
-        var outputFileName = "index_svg.html";
+            var context = new Context();
+            context.setVariable("var", svgDiagram);
+            context.setVariable("xpath", currentElement.getCurrentXpath());
 
-        try {
-            Files.write(Paths.get(outputFileName), result.getBytes());
+            final var result = templateEngine.process("svgTemplate", context);
+            final var outputFileName = "output//svg//" + xsdDocumentationService.getExtendedXsdElements().get(key).getPageName();
 
-            logger.debug("Written {} bytes", new File(outputFileName).length());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            try {
+                Files.write(Paths.get(outputFileName), result.getBytes());
+                logger.debug("Written {} bytes", new File(outputFileName).length());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
