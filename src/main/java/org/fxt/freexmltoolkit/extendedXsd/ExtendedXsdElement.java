@@ -35,6 +35,7 @@ public class ExtendedXsdElement {
     List<String> children = new ArrayList<>();
 
     String currentXpath;
+    String parentXpath;
 
     String currentHash;
     String sourceCode;
@@ -43,6 +44,14 @@ public class ExtendedXsdElement {
 
     String elementName;
     String elementType;
+
+    public String getParentXpath() {
+        return parentXpath;
+    }
+
+    public void setParentXpath(String parentXpath) {
+        this.parentXpath = parentXpath;
+    }
 
     public String getPageName() {
         return elementName + "_" + getMD5Hex(currentXpath) + ".html";

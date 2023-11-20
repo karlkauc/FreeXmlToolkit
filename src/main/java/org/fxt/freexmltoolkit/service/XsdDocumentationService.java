@@ -260,6 +260,7 @@ public class XsdDocumentationService {
                 }
 
                 logger.debug("Current XPath = {}", currentXpath);
+                extendedXsdElement.setParentXpath(parentXpath);
                 extendedXsdElement.setCurrentXpath(currentXpath);
                 extendedXsdElement.setLevel(level);
                 extendedXsdElement.setElementName(xsdElement.getRawName());

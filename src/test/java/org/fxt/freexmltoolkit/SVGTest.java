@@ -78,6 +78,7 @@ public class SVGTest {
         var rootElement = xsdDocumentationService.getExtendedXsdElements().get(rootXpath);
         var rootElementName = rootElement.getElementName();
         System.out.println("rootElementName = " + rootElementName);
+        System.out.println("rootElement.getParentXpath() = " + rootElement.getParentXpath());
 
         java.util.List<ExtendedXsdElement> childElements = new ArrayList<>();
         for (String temp : rootElement.getChildren()) {
@@ -118,6 +119,13 @@ public class SVGTest {
 
         System.out.println("startY = " + startY);
 
+        Element a = document.createElement("a");
+        String parentPageUrl = "#";
+        if (xsdDocumentationService.getExtendedXsdElements().get(rootElement.getParentXpath()) != null) {
+            parentPageUrl = xsdDocumentationService.getExtendedXsdElements().get(rootElement.getParentXpath()).getPageName();
+        }
+        a.setAttribute("href", parentPageUrl);
+
         Element rect1 = document.createElement("rect");
         rect1.setAttribute("fill", BOX_COLOR);
         rect1.setAttribute("id", rootElementName);
@@ -128,7 +136,6 @@ public class SVGTest {
         rect1.setAttribute("rx", "2");
         rect1.setAttribute("ry", "2");
         rect1.setAttribute("style", "stroke: rgb(2,23,23); stroke-width: 2;");
-        svgRoot.appendChild(rect1);
 
         Element text = document.createElement("text");
         text.setAttribute("fill", "#096574");
@@ -138,7 +145,10 @@ public class SVGTest {
         text.setAttribute("x", margin + startX + "");
         text.setAttribute("y", startY + rootElementHeight + (margin / 2) + "");
         text.setTextContent(rootElementName);
-        svgRoot.appendChild(text);
+
+        a.appendChild(rect1);
+        a.appendChild(text);
+        svgRoot.appendChild(a);
 
         final double rightStartX = margin + rootElementWidth + margin + gapBetweenSides;
 
@@ -189,14 +199,14 @@ public class SVGTest {
             text2.setAttribute("y", actualHeight + height + (margin / 2) + "");
             text2.setTextContent(elementName);
 
-            Element a = document.createElement("a");
+            Element a2 = document.createElement("a");
             if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
                 // link erstellen
-                a.setAttribute("href", childElement.getPageName());
-                a.appendChild(rect2);
-                a.appendChild(text2);
+                a2.setAttribute("href", childElement.getPageName());
+                a2.appendChild(rect2);
+                a2.appendChild(text2);
 
-                svgRoot.appendChild(a);
+                svgRoot.appendChild(a2);
             } else {
                 svgRoot.appendChild(rect2);
                 svgRoot.appendChild(text2);
@@ -258,20 +268,22 @@ public class SVGTest {
         for (String key : xsdDocumentationService.getExtendedXsdElements().keySet()) {
             var currentElement = xsdDocumentationService.getExtendedXsdElements().get(key);
 
-            String svgDiagram = generateSVGDiagram(key);
+            if (!currentElement.getChildren().isEmpty()) {
+                String svgDiagram = generateSVGDiagram(key);
 
-            var context = new Context();
-            context.setVariable("var", svgDiagram);
-            context.setVariable("xpath", currentElement.getCurrentXpath());
+                var context = new Context();
+                context.setVariable("var", svgDiagram);
+                context.setVariable("xpath", currentElement.getCurrentXpath());
 
-            final var result = templateEngine.process("svgTemplate", context);
-            final var outputFileName = "output//svg//" + xsdDocumentationService.getExtendedXsdElements().get(key).getPageName();
+                final var result = templateEngine.process("svgTemplate", context);
+                final var outputFileName = "output//svg//" + xsdDocumentationService.getExtendedXsdElements().get(key).getPageName();
 
-            try {
-                Files.write(Paths.get(outputFileName), result.getBytes());
-                logger.debug("Written {} bytes", new File(outputFileName).length());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                try {
+                    Files.write(Paths.get(outputFileName), result.getBytes());
+                    logger.debug("Written {} bytes", new File(outputFileName).length());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
