@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import org.w3c.dom.Node;
 import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 import org.xmlet.xsdparser.xsdelements.XsdElement;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,13 +36,46 @@ public class ExtendedXsdElement {
 
     String currentXpath;
 
+    String currentHash;
     String sourceCode;
     Node currentNode;
-
     int counter;
+
+    String elementName;
+    String elementType;
+
+    MessageDigest messageDigest;
+
+    public ExtendedXsdElement() {
+        try {
+            messageDigest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
+            System.out.println("ERROR! NO SUCH ALGORYTHM.");
+        }
+    }
+
+    public String getElementName() {
+        return elementName;
+    }
+
+    public void setElementName(String elementName) {
+        this.elementName = elementName;
+    }
+
+    public String getElementType() {
+        return elementType;
+    }
+
+    public void setElementType(String elementType) {
+        this.elementType = elementType;
+    }
 
     public List<String> getChildren() {
         return children;
+    }
+
+    public String getCurrentHash() {
+        return currentHash;
     }
 
     public void setChildren(List<String> children) {
@@ -101,5 +136,7 @@ public class ExtendedXsdElement {
 
     public void setCurrentXpath(String currentXpath) {
         this.currentXpath = currentXpath;
+        messageDigest.update(currentXpath.getBytes());
+        this.currentHash = new String(messageDigest.digest());
     }
 }

@@ -229,34 +229,6 @@ public class XsdDocumentationService {
             final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
             getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
         }
-        detectChildren();
-    }
-
-    private void detectChildren() {
-        String start = "/FundsXML";
-
-        for (String s : extendedXsdElements.keySet()) {
-            System.out.println("s = " + s);
-            var startCount = start.chars().filter(ch -> ch == '/').count();
-
-            for (String sDetail : extendedXsdElements.keySet()) {
-                var childCount = sDetail.chars().filter(ch -> ch == '/').count();
-                logger.debug("StartCount: {}, childCount: {}", startCount, childCount);
-
-                // ToDo: StartWith ist nicht ausreichend - muss noch auf Slash prüfen
-                if (sDetail.startsWith(start) && (childCount == startCount + 1)
-                        && !extendedXsdElements.get(start).getChildren().contains(sDetail)) {
-                    logger.debug("add children '{}' to parent '{}'", s, start);
-                    extendedXsdElements.get(start).getChildren().add(sDetail);
-                } else {
-                    logger.debug("NO children '{}' of parent '{}'", s, start);
-                }
-            }
-
-
-            start = s;
-            // System.out.println(test.get(test.keySet().toArray()[i]));
-        }
     }
 
     void getXsdAbstractElementInfo(int level,
@@ -278,14 +250,38 @@ public class XsdDocumentationService {
             case XsdElement xsdElement -> {
                 logger.debug("ELEMENT: {}", xsdElement.getRawName());
 
-                String currentXpath = "/" + String.join("/", prevElementPath) + "/" + xsdElement.getName();
+                final String parentXpath = "/" + String.join("/", prevElementPath);
+                String currentXpath = parentXpath + "/" + xsdElement.getName();
                 if (prevElementPath.isEmpty()) {
                     currentXpath = "/" + xsdElement.getName();
+                } else {
+                    extendedXsdElements.get(parentXpath).getChildren().add(currentXpath);
+                    logger.debug("Added current Node {} to parent {}", currentXpath, parentXpath);
                 }
 
                 logger.debug("Current XPath = {}", currentXpath);
                 extendedXsdElement.setCurrentXpath(currentXpath);
                 extendedXsdElement.setLevel(level);
+                extendedXsdElement.setElementName(xsdElement.getRawName());
+                extendedXsdElement.setXsdElement(xsdElement);
+
+                if (xsdElement.getTypeAsBuiltInDataType() != null) {
+                    logger.debug("BUILD IN DATATYPE {}", xsdElement.getTypeAsBuiltInDataType().getRawName());
+
+                    // hier setzten!!!
+                    extendedXsdElement.setElementName(xsdElement.getRawName());
+                    extendedXsdElement.setLevel(level);
+                    extendedXsdElement.setXsdElement(xsdElement);
+                    extendedXsdElement.setElementType("BUILD IN ");
+                    extendedXsdElements.put(currentXpath, extendedXsdElement);
+
+                }
+                if (xsdElement.getTypeAsComplexType() != null) {
+                    logger.debug("Complex DATATYPE {}", xsdElement.getTypeAsComplexType().getRawName());
+                }
+                if (xsdElement.getTypeAsSimpleType() != null) {
+                    logger.debug("Simple DATATYPE {}", xsdElement.getTypeAsSimpleType().getRawName());
+                }
 
                 var currentType = xsdElement.getType();
 
@@ -295,9 +291,8 @@ public class XsdDocumentationService {
                     String elementString = xmlService.getNodeAsString(n);
 
                     extendedXsdElement.setCurrentNode(n);
-                    // ZU VIEL: HTML FILE RENDERD NICHT MEHR
+                    // ZU VIEL: HTML FILE RENDERED NICHT MEHR
                     extendedXsdElement.setSourceCode(elementString);
-                    extendedXsdElement.setXsdElement(xsdElement);
 
                     if (xsdElement.getAnnotation() != null && xsdElement.getAnnotation().getDocumentations() != null) {
                         extendedXsdElement.setXsdDocumentation(xsdElement.getAnnotation().getDocumentations());
@@ -310,15 +305,8 @@ public class XsdDocumentationService {
                         ArrayList<String> prevPathTemp = new ArrayList<>(prevElementPath);
                         prevPathTemp.add(xsdElement.getName());
 
-                        if (extendedXsdElement.getXsdElement().getName() == null) {
-                            throw new RuntimeException("NAME NULL");
-                        }
-
-                        if (extendedXsdElement.getXsdElement().getName() == null) {
-                            throw new RuntimeException("NAME NULL");
-                        }
+                        extendedXsdElement.setElementType("CURRENT - NULL");
                         extendedXsdElements.put(currentXpath, extendedXsdElement);
-
                         if (xsdElement.getXsdComplexType().getElements() != null) {
                             for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
                                 getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, n);
@@ -364,6 +352,7 @@ public class XsdDocumentationService {
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
+                    extendedXsdElement.setElementType("COMPLEX");
                     extendedXsdElements.put(currentXpath, extendedXsdElement);
 
                     if (xsdElement.getXsdComplexType().getElements() != null) {
@@ -392,6 +381,7 @@ public class XsdDocumentationService {
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
+                    extendedXsdElement.setElementType("SIMPLE");
                     extendedXsdElements.put(currentXpath, extendedXsdElement);
                 }
             }
@@ -429,20 +419,4 @@ public class XsdDocumentationService {
             default -> throw new IllegalStateException("Unexpected value: " + xsdAbstractElement);
         }
     }
-
-    private void prepareFileStructure(File target) {
-        // Copy all Files to output directory
-
-        if (!target.exists()) {
-            if (!target.mkdirs()) {
-                logger.error("cannot create directory {}", target);
-                return;
-            }
-        }
-
-        logger.debug("Directory ok: {}", target);
-
-
-    }
-
 }

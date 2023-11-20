@@ -1,3 +1,21 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2023.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package org.fxt.freexmltoolkit;
 
 import org.apache.batik.anim.dom.SVGDOMImplementation;
@@ -6,6 +24,7 @@ import org.apache.batik.svggen.SVGGraphics2DIOException;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.junit.jupiter.api.Test;
 import org.thymeleaf.TemplateEngine;
@@ -16,8 +35,6 @@ import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xmlet.xsdparser.xsdelements.XsdElement;
-import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
 
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
@@ -30,6 +47,7 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class SVGTest {
 
@@ -70,20 +88,21 @@ public class SVGTest {
         String elementType = elements.get(0).getType();
         var compexType = elements.get(0).getTypeAsComplexType();
 
-        java.util.List<ReferenceBase> childElements = null;
-        if (elements.get(0) != null && elements.get(0).getTypeAsComplexType() != null) {
-            childElements = elements.get(0).getTypeAsComplexType().getElements();
-        } else {
-            // childElements = elements.get(0).getTypeAsSimpleType().getElements();
-            var e = xsdDocumentationService.getExtendedXsdElements();
+        java.util.List<ExtendedXsdElement> childElements = new ArrayList<>();
+        var rootElement = xsdDocumentationService.getExtendedXsdElements().get("/" + rootElementName);
+        for (String temp : rootElement.getChildren()) {
+            childElements.add(xsdDocumentationService.getExtendedXsdElements().get(temp));
         }
-
 
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;
 
-        for (ReferenceBase r : childElements) {
-            var elementName = ((XsdElement) r.getElement()).getName();
+        for (ExtendedXsdElement r : childElements) {
+            String elementName = "DUMMY";
+
+            if (r != null && r.getXsdElement() != null) {
+                elementName = r.getXsdElement().getName();
+            }
             System.out.println("Element Name = " + elementName);
 
             var z = font.getStringBounds(elementName, frc);
@@ -139,8 +158,16 @@ public class SVGTest {
         final double pathStartY = startY + rootElementHeight;
 
         double actualHeight = 20;
-        for (ReferenceBase r : childElements) {
-            var elementName = ((XsdElement) r.getElement()).getName();
+        for (ExtendedXsdElement r : childElements) {
+            String elementName = "DUMMY 2";
+            if (r != null) {
+                elementName = r.getElementName();
+            }
+
+            if (r != null && r.getXsdElement() != null) {
+                elementName = r.getXsdElement().getName();
+            }
+
             System.out.println("Element Name = " + elementName);
 
             var z2 = font.getStringBounds(elementName, frc);
@@ -181,7 +208,6 @@ public class SVGTest {
 
             actualHeight = actualHeight + margin + height + margin + 20; // 20 pixel abstand zwischen boxen
         }
-
 
         return asString(svgRoot);
     }
