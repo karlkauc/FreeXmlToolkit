@@ -248,6 +248,7 @@ public class XsdDocumentationService {
 
         switch (xsdAbstractElement) {
             case XsdElement xsdElement -> {
+                final String elementRawName = xsdElement.getRawName();
                 logger.debug("ELEMENT: {}", xsdElement.getRawName());
 
                 final String parentXpath = "/" + String.join("/", prevElementPath);
@@ -415,6 +416,12 @@ public class XsdDocumentationService {
             case XsdAttributeGroup xsdAttributeGroup -> {
                 logger.debug("xsdAttributeGroup = " + xsdAttributeGroup);
                 for (ReferenceBase x : xsdAttributeGroup.getElements()) {
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
+                }
+            }
+            case XsdExtension xsdExtension -> {
+                logger.debug("XsdExtension = " + xsdExtension);
+                for (ReferenceBase x : xsdExtension.getElements()) {
                     getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }

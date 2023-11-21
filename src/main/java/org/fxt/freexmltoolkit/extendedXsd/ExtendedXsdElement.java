@@ -139,9 +139,6 @@ public class ExtendedXsdElement {
 
     public void setCurrentXpath(String currentXpath) {
         this.currentXpath = currentXpath;
-
-        // this.currentHash = UUID.randomUUID().toString().replace("-", "");
-
     }
 
     public static String getMD5Hex(final String inputString) {
@@ -160,7 +157,6 @@ public class ExtendedXsdElement {
         for (byte byteDatum : byteData) {
             sb.append(Integer.toString((byteDatum & 0xff) + 0x100, 16).substring(1));
         }
-
         return sb.toString();
     }
 
