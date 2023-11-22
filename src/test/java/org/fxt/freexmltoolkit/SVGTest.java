@@ -55,8 +55,10 @@ public class SVGTest {
     final int gapBetweenSides = 100;
 
     final static String BOX_COLOR = "#d5e3e8";
-    final static String OPTIONAL_FORMAT = "stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;";
-    final static String MANDATORY_FORMAT = "stroke: rgb(2,23,23); stroke-width: 2;";
+    final static String OPTIONAL_FORMAT = "stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
+    final static String OPTIONAL_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;";
+    final static String MANDATORY_FORMAT = "stroke: rgb(2,23,23); stroke-width: 2; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
+    final static String MANDATORY_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 2;";
 
     public String generateSVGDiagram(String rootXpath) {
         Font font = new Font("Arial", Font.PLAIN, 16);
@@ -70,15 +72,10 @@ public class SVGTest {
         Document document = domImpl.createDocument(svgNS, "svg", null);
         var svgRoot = document.getDocumentElement();
 
-        // ToDo: größe automatisch anpassen
-        svgRoot.setAttributeNS(svgNS, "width", "800");
-        svgRoot.setAttributeNS(svgNS, "height", "800");
-        svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(245, 235, 213)");
-
         var rootElement = xsdDocumentationService.getExtendedXsdElements().get(rootXpath);
         var rootElementName = rootElement.getElementName();
-        System.out.println("rootElementName = " + rootElementName);
-        System.out.println("rootElement.getParentXpath() = " + rootElement.getParentXpath());
+        logger.debug("rootElementName = {}", rootElementName);
+        logger.debug("rootElement.getParentXpath() = {}", rootElement.getParentXpath());
 
         java.util.List<ExtendedXsdElement> childElements = new ArrayList<>();
         for (String temp : rootElement.getChildren()) {
@@ -94,7 +91,7 @@ public class SVGTest {
             if (r != null && r.getXsdElement() != null) {
                 elementName = r.getXsdElement().getName();
             }
-            System.out.println("Element Name = " + elementName);
+            logger.debug("Element Name = " + elementName);
 
             var z = font.getStringBounds(elementName, frc);
             var height = z.getBounds2D().getHeight();
@@ -104,8 +101,8 @@ public class SVGTest {
             rightBoxWidth = Math.max(rightBoxWidth, width);
         }
 
-        System.out.println("height = " + rightBoxHeight);
-        System.out.println("width = " + rightBoxWidth);
+        logger.debug("height = {}", rightBoxHeight);
+        logger.debug("width = {}", rightBoxWidth);
 
         // erstes Element - Abstände Berechnen
         var z = font.getStringBounds(rootElementName, frc);
@@ -135,7 +132,11 @@ public class SVGTest {
         rect1.setAttribute("y", startY + "");
         rect1.setAttribute("rx", "2");
         rect1.setAttribute("ry", "2");
-        rect1.setAttribute("style", "stroke: rgb(2,23,23); stroke-width: 2;");
+        if (rootElement.getXsdElement().getMinOccurs() > 0) {
+            rect1.setAttribute("style", MANDATORY_FORMAT);
+        } else {
+            rect1.setAttribute("style", OPTIONAL_FORMAT);
+        }
 
         Element text = document.createElement("text");
         text.setAttribute("fill", "#096574");
@@ -218,11 +219,20 @@ public class SVGTest {
                     " V " + (actualHeight + ((margin + height + margin) / 2)) +
                     " h " + ((gapBetweenSides / 2) - margin));
             path2.setAttribute("fill", "none");
-            path2.setAttribute("style", css);
+            if (childElement.getXsdElement().getMinOccurs() > 0) {
+                path2.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
+            } else {
+                path2.setAttribute("style", OPTIONAL_FORMAT_NO_SHADOW);
+            }
             svgRoot.appendChild(path2);
 
             actualHeight = actualHeight + margin + height + margin + 20; // 20 pixel abstand zwischen boxen
         }
+
+        // ToDo: größe automatisch anpassen
+        svgRoot.setAttributeNS(svgNS, "height", rightBoxHeight + (margin * 2) + "");
+        svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + "");
+        svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(157, 245, 181)");
 
         return asString(svgRoot);
     }
@@ -231,7 +241,6 @@ public class SVGTest {
         StringWriter writer = new StringWriter();
         try {
             Transformer trans = TransformerFactory.newInstance().newTransformer();
-            // @checkstyle MultipleStringLiterals (1 line)
             trans.setOutputProperty(OutputKeys.INDENT, "yes");
             trans.setOutputProperty(OutputKeys.VERSION, "1.0");
             if (!(node instanceof Document)) {
