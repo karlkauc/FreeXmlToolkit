@@ -32,6 +32,7 @@ import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
@@ -44,6 +45,8 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class SVGTest {
 
@@ -191,6 +194,19 @@ public class SVGTest {
             rect2.setAttribute("ry", "2");
             rect2.setAttribute("style", css);
 
+            Element image = null;
+            if (childElement != null && childElement.getChildren() != null
+                    && !childElement.getChildren().isEmpty()) {
+                // hier noch ICON dazu fügen
+                // <image href="mdn_logo_only_color.png" height="200" width="200" />
+                image = document.createElement("image");
+                image.setAttribute("href", "plus.png");
+                image.setAttribute("height", "20");
+                image.setAttribute("width", "20");
+                image.setAttribute("x", rightStartX + (margin + rightBoxWidth + margin) + 2 + "");
+                image.setAttribute("y", actualHeight + (height / 2) + "");
+            }
+
             Element text2 = document.createElement("text");
             text2.setAttribute("fill", "#096574");
             text2.setAttribute("font-family", font.getFontName());
@@ -206,6 +222,7 @@ public class SVGTest {
                 a2.setAttribute("href", childElement.getPageName());
                 a2.appendChild(rect2);
                 a2.appendChild(text2);
+                a2.appendChild(image);
 
                 svgRoot.appendChild(a2);
             } else {
@@ -219,7 +236,7 @@ public class SVGTest {
                     " V " + (actualHeight + ((margin + height + margin) / 2)) +
                     " h " + ((gapBetweenSides / 2) - margin));
             path2.setAttribute("fill", "none");
-            if (childElement.getXsdElement().getMinOccurs() > 0) {
+            if (childElement != null && childElement.getXsdElement() != null && childElement.getXsdElement().getMinOccurs() > 0) {
                 path2.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
             } else {
                 path2.setAttribute("style", OPTIONAL_FORMAT_NO_SHADOW);
@@ -231,8 +248,8 @@ public class SVGTest {
 
         // ToDo: größe automatisch anpassen
         svgRoot.setAttributeNS(svgNS, "height", rightBoxHeight + (margin * 2) + "");
-        svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + "");
-        svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(157, 245, 181)");
+        svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 für icon
+        svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
 
         return asString(svgRoot);
     }
@@ -282,7 +299,35 @@ public class SVGTest {
 
                 var context = new Context();
                 context.setVariable("var", svgDiagram);
-                context.setVariable("xpath", currentElement.getCurrentXpath());
+
+                Map<String, String> breadCrumbs = new LinkedHashMap<>();
+                String xpath = "";
+                var t = currentElement.getCurrentXpath().split("/");
+                logger.debug("Current Xpath: {}", String.join("-", t));
+                for (String element : t) {
+                    logger.debug("T: {}", element);
+                    logger.debug("xpath: {}", xpath);
+                    if (!element.isEmpty()) {
+                        xpath = xpath + "/" + element;
+                        String link = "#";
+                        if (xsdDocumentationService.getExtendedXsdElements() != null && xsdDocumentationService.getExtendedXsdElements().get(xpath) != null) {
+                            link = xsdDocumentationService.getExtendedXsdElements().get(xpath).getPageName();
+                        }
+                        breadCrumbs.put(element, link);
+                        logger.debug("Added XPATH: {}", xpath);
+                        logger.debug("LINK: {}", link);
+                    }
+                }
+                context.setVariable("xpath", breadCrumbs);
+                context.setVariable("code", xsdDocumentationService.getExtendedXsdElements().get(key).getSourceCode());
+
+                StringBuilder documentation = new StringBuilder();
+                if (xsdDocumentationService.getExtendedXsdElements().get(key).getXsdDocumentation() != null) {
+                    for (XsdDocumentation x : xsdDocumentationService.getExtendedXsdElements().get(key).getXsdDocumentation()) {
+                        documentation.append(x.getContent());
+                    }
+                }
+                context.setVariable("documentation", documentation.toString());
 
                 final var result = templateEngine.process("svgTemplate", context);
                 final var outputFileName = "output//svg//" + xsdDocumentationService.getExtendedXsdElements().get(key).getPageName();
