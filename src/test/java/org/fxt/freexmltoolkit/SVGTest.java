@@ -32,7 +32,6 @@ import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
@@ -45,6 +44,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -117,7 +117,7 @@ public class SVGTest {
         int startX = 20;
         int startY = (int) ((rightBoxHeight / 2) - ((margin + rootElementHeight + margin) / 2));
 
-        System.out.println("startY = " + startY);
+        // System.out.println("startY = " + startY);
 
         Element a = document.createElement("a");
         String parentPageUrl = "#";
@@ -169,8 +169,8 @@ public class SVGTest {
             }
 
             if (childElement != null && childElement.getXsdElement() != null) {
-                System.out.println("childElement.getXsdElement().getMaxOccurs() = " + childElement.getXsdElement().getMaxOccurs());
-                System.out.println("childElement.getXsdElement().getMinOccurs() = " + childElement.getXsdElement().getMinOccurs());
+                logger.debug("childElement.getXsdElement().getMaxOccurs() = " + childElement.getXsdElement().getMaxOccurs());
+                logger.debug("childElement.getXsdElement().getMinOccurs() = " + childElement.getXsdElement().getMinOccurs());
 
                 if (childElement.getXsdElement().getMinOccurs() > 0) {
                     css = MANDATORY_FORMAT;
@@ -291,6 +291,8 @@ public class SVGTest {
         final var simpleTypes = xsdDocumentationService.getXsdSimpleTypes();
         final var elements = xsdDocumentationService.getElements();
 
+        // ToDo: write first page
+
         for (String key : xsdDocumentationService.getExtendedXsdElements().keySet()) {
             var currentElement = xsdDocumentationService.getExtendedXsdElements().get(key);
 
@@ -300,37 +302,17 @@ public class SVGTest {
                 var context = new Context();
                 context.setVariable("var", svgDiagram);
 
-                Map<String, String> breadCrumbs = new LinkedHashMap<>();
-                String xpath = "";
-                var t = currentElement.getCurrentXpath().split("/");
-                logger.debug("Current Xpath: {}", String.join("-", t));
-                for (String element : t) {
-                    logger.debug("T: {}", element);
-                    logger.debug("xpath: {}", xpath);
-                    if (!element.isEmpty()) {
-                        xpath = xpath + "/" + element;
-                        String link = "#";
-                        if (xsdDocumentationService.getExtendedXsdElements() != null && xsdDocumentationService.getExtendedXsdElements().get(xpath) != null) {
-                            link = xsdDocumentationService.getExtendedXsdElements().get(xpath).getPageName();
-                        }
-                        breadCrumbs.put(element, link);
-                        logger.debug("Added XPATH: {}", xpath);
-                        logger.debug("LINK: {}", link);
-                    }
-                }
-                context.setVariable("xpath", breadCrumbs);
-                context.setVariable("code", xsdDocumentationService.getExtendedXsdElements().get(key).getSourceCode());
+                context.setVariable("xpath", getBreadCrumbs(currentElement));
+                context.setVariable("code", currentElement.getSourceCode());
 
-                StringBuilder documentation = new StringBuilder();
-                if (xsdDocumentationService.getExtendedXsdElements().get(key).getXsdDocumentation() != null) {
-                    for (XsdDocumentation x : xsdDocumentationService.getExtendedXsdElements().get(key).getXsdDocumentation()) {
-                        documentation.append(x.getContent());
-                    }
+                Map<String, String> docTemp = new HashMap<>();
+                if (currentElement.getLanguageDocumentation() != null && !currentElement.getLanguageDocumentation().isEmpty()) {
+                    docTemp = currentElement.getLanguageDocumentation();
                 }
-                context.setVariable("documentation", documentation.toString());
+                context.setVariable("documentation", docTemp);
 
                 final var result = templateEngine.process("svgTemplate", context);
-                final var outputFileName = "output//svg//" + xsdDocumentationService.getExtendedXsdElements().get(key).getPageName();
+                final var outputFileName = "output//svg//" + currentElement.getPageName();
 
                 try {
                     Files.write(Paths.get(outputFileName), result.getBytes());
@@ -341,4 +323,28 @@ public class SVGTest {
             }
         }
     }
+
+    Map<String, String> getBreadCrumbs(ExtendedXsdElement currentElement) {
+        String xpath = "";
+        Map<String, String> breadCrumbs = new LinkedHashMap<>();
+
+        var t = currentElement.getCurrentXpath().split("/");
+        logger.debug("Current Xpath: {}", String.join("-", t));
+        for (String element : t) {
+            logger.debug("T: {}", element);
+            logger.debug("xpath: {}", xpath);
+            if (!element.isEmpty()) {
+                xpath = xpath + "/" + element;
+                String link = "#";
+                if (xsdDocumentationService.getExtendedXsdElements() != null && xsdDocumentationService.getExtendedXsdElements().get(xpath) != null) {
+                    link = xsdDocumentationService.getExtendedXsdElements().get(xpath).getPageName();
+                }
+                breadCrumbs.put(element, link);
+                logger.debug("Added XPATH: {}", xpath);
+                logger.debug("LINK: {}", link);
+            }
+        }
+        return breadCrumbs;
+    }
+
 }

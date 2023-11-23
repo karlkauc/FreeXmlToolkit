@@ -18,14 +18,17 @@
 
 package org.fxt.freexmltoolkit.extendedXsd;
 
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.w3c.dom.Node;
 import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 import org.xmlet.xsdparser.xsdelements.XsdElement;
 
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ExtendedXsdElement {
     XsdElement xsdElement;
@@ -44,6 +47,34 @@ public class ExtendedXsdElement {
 
     String elementName;
     String elementType;
+
+    MutableDataSet options = new MutableDataSet();
+    Parser parser;
+    HtmlRenderer renderer;
+
+    public ExtendedXsdElement() {
+        options.set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create(), StrikethroughExtension.create()));
+        options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
+
+        parser = Parser.builder(options).build();
+        renderer = HtmlRenderer.builder(options).build();
+    }
+
+    public Map<String, String> getLanguageDocumentation() {
+        com.vladsch.flexmark.util.ast.Node document;
+        Map<String, String> temp = new HashMap<>();
+
+        if (this.getXsdDocumentation() == null) {
+            return Map.of();
+        } else {
+            for (var x : this.getXsdDocumentation()) {
+                document = parser.parse(x.getContent());
+                temp.put(x.getAttributesMap().get("xml:lang"), renderer.render(document));
+            }
+
+            return temp;
+        }
+    }
 
     public String getParentXpath() {
         return parentXpath;

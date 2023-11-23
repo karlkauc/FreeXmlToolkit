@@ -112,7 +112,12 @@ dependencies {
     // implementation("org.apache.tika:tika-parsers-standard-package:2.7.0")
 
     // html manipulation
-    implementation("org.jsoup:jsoup:latest.release")
+    // wird im moment gar nicht gebraucht
+    // implementation("org.jsoup:jsoup:latest.release")
+
+    // markdown renderer
+    implementation("com.vladsch.flexmark:flexmark-all:latest.release")
+
 
     // Update
     implementation("org.update4j:update4j:latest.release")
