@@ -18,25 +18,33 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.util.Assert;
 import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
 
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.awt.*;
+import java.awt.font.FontRenderContext;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,6 +68,32 @@ public class XsdDocumentationService {
     Map<String, ExtendedXsdElement> extendedXsdElements;
 
     XmlService xmlService = XmlServiceImpl.getInstance();
+
+    final int margin = 10;
+    final int gapBetweenSides = 100;
+
+    final static String BOX_COLOR = "#d5e3e8";
+    final static String OPTIONAL_FORMAT = "stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
+    final static String OPTIONAL_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;";
+    final static String MANDATORY_FORMAT = "stroke: rgb(2,23,23); stroke-width: 2; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
+    final static String MANDATORY_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 2;";
+
+    Font font;
+    FontRenderContext frc;
+    DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
+    final String svgNS = "http://www.w3.org/2000/svg";
+    Document document;
+
+    StringBuilder xpath;
+    ClassLoaderTemplateResolver resolver;
+
+    public XsdDocumentationService() {
+        font = new Font("Arial", Font.PLAIN, 16);
+        frc = new FontRenderContext(
+                null,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF,
+                RenderingHints.VALUE_FRACTIONALMETRICS_DEFAULT);
+    }
 
     public String getXsdFilePath() {
         return xsdFilePath;
@@ -97,14 +131,7 @@ public class XsdDocumentationService {
         this.xsdFilePath = xsdFilePath;
     }
 
-    public void generateDocumentation() {
-        processXsd();
-        generateHtml("schema-doc.html");
-    }
-
     public void generateXsdDocumentation(File outputDirectory) throws IOException {
-        // assertNotNull(outputDirectory);
-
         Files.createDirectories(outputDirectory.toPath());
         Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
 
@@ -116,99 +143,258 @@ public class XsdDocumentationService {
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.js"), Paths.get(outputDirectory.getPath(), "assets", "prism.js"), StandardCopyOption.REPLACE_EXISTING);
 
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlTookit.css"), Paths.get(outputDirectory.getPath(), "assets", "freeXmlTookit.css"), StandardCopyOption.REPLACE_EXISTING);
+
+            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/plus.png"), Paths.get(outputDirectory.getPath(), "assets", "plus.png"), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
 
-        generateRootHtml(outputDirectory);
-
-    }
-
-
-    private void generateRootHtml(File outputDirectory) {
-
-        var resolver = new ClassLoaderTemplateResolver();
-        resolver.setTemplateMode(TemplateMode.HTML);
-        resolver.setCharacterEncoding("UTF-8");
-        resolver.setPrefix("/xsdDocumentation/");
-        resolver.setSuffix(".html");
-
-        var templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(resolver);
-
-        var context = new Context();
-        context.setVariable("date", LocalDateTime.now().toString());
-
-        var rootElementName = ((XsdElement) xmlSchema.get(0).getElements().get(0).getElement()).getName();
-
-        context.setVariable("rootElement", xmlSchema.get(0));
-        context.setVariable("rootElementName", rootElementName);
-
-        context.setVariable("filename", xsdFilePath);
-        context.setVariable("xmlSchema", xmlSchema.get(0));
-
-        if (extendedXsdElements.get(rootElementName) != null &&
-                extendedXsdElements.get(rootElementName).getSourceCode() != null) {
-            context.setVariable("code", extendedXsdElements.get(rootElementName).getSourceCode());
-        } else {
-            context.setVariable("code", "NA");
-        }
-
-        context.setVariable("xsdElements", elements);
-        context.setVariable("xsdComplexTypes", xsdComplexTypes);
-        context.setVariable("xsdSimpleTypes", xsdSimpleTypes);
-        context.setVariable("extendedXsdElements", extendedXsdElements);
-
-        var result = templateEngine.process("rootElement", context);
-
-        var outputFileName = "index.html";
-
-        try {
-            Files.write(Paths.get(outputDirectory + File.separator + outputFileName), result.getBytes());
-
-            logger.debug("Written {} bytes", new File(outputFileName).length());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    public void generateDocumentation(String outputFileName) {
-        Assert.requireNonEmpty(this.xsdFilePath);
-
         processXsd();
-        generateHtml(outputFileName);
+        generateRootHtml(outputDirectory);
     }
 
-    private void generateHtml(String outputFileName) {
-        var resolver = new ClassLoaderTemplateResolver();
+    public void generateRootHtml(File outputDirectory) {
+        resolver = new ClassLoaderTemplateResolver();
         resolver.setTemplateMode(TemplateMode.HTML);
         resolver.setCharacterEncoding("UTF-8");
-        resolver.setPrefix("/xsdDocumentation/");
+        resolver.setPrefix("/");
         resolver.setSuffix(".html");
 
         var templateEngine = new TemplateEngine();
         templateEngine.setTemplateResolver(resolver);
 
-        var context = new Context();
-        context.setVariable("date", LocalDateTime.now().toString());
+        // ToDo: write first page
 
-        context.setVariable("filename", xsdFilePath);
-        context.setVariable("xmlSchema", xmlSchema.get(0));
-        context.setVariable("xsdElements", elements);
-        context.setVariable("xsdComplexTypes", xsdComplexTypes);
-        context.setVariable("xsdSimpleTypes", xsdSimpleTypes);
-        context.setVariable("extendedXsdElements", extendedXsdElements);
+        for (String key : this.getExtendedXsdElements().keySet()) {
+            var currentElement = this.getExtendedXsdElements().get(key);
 
-        var result = templateEngine.process("xsdTemplate", context);
+            if (!currentElement.getChildren().isEmpty()) {
+                String svgDiagram = generateSVGDiagram(key);
 
-        try {
-            Files.write(Paths.get("output" + File.separator + outputFileName), result.getBytes());
+                var context = new Context();
+                context.setVariable("var", svgDiagram);
 
-            logger.debug("Written {} bytes", new File(outputFileName).length());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+                context.setVariable("xpath", getBreadCrumbs(currentElement));
+                context.setVariable("code", currentElement.getSourceCode());
+
+                Map<String, String> docTemp = new LinkedHashMap<>();
+                if (currentElement.getLanguageDocumentation() != null && !currentElement.getLanguageDocumentation().isEmpty()) {
+                    docTemp = currentElement.getLanguageDocumentation();
+                }
+                context.setVariable("documentation", docTemp);
+
+                final var result = templateEngine.process("svgTemplate", context);
+                final var outputFileName = Paths.get(outputDirectory.getPath(), currentElement.getPageName()).toFile().getAbsolutePath();
+                logger.debug("File: " + outputFileName);
+
+                try {
+                    Files.write(Paths.get(outputFileName), result.getBytes());
+                    logger.debug("Written {} bytes", new File(outputFileName).length());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
+    }
+
+
+    public String generateSVGDiagram(String rootXpath) {
+        document = domImpl.createDocument(svgNS, "svg", null);
+        var svgRoot = document.getDocumentElement();
+
+        var rootElement = this.getExtendedXsdElements().get(rootXpath);
+        var rootElementName = rootElement.getElementName();
+        logger.debug("rootElementName = {}", rootElementName);
+        logger.debug("rootElement.getParentXpath() = {}", rootElement.getParentXpath());
+
+        java.util.List<ExtendedXsdElement> childElements = new ArrayList<>();
+        for (String temp : rootElement.getChildren()) {
+            childElements.add(this.getExtendedXsdElements().get(temp));
+        }
+
+        double rightBoxHeight = 20;
+        double rightBoxWidth = 0;
+
+        for (ExtendedXsdElement r : childElements) {
+            String elementName = "";
+
+            if (r != null && r.getXsdElement() != null) {
+                elementName = r.getXsdElement().getName();
+            }
+            logger.debug("Element Name = " + elementName);
+
+            var z = font.getStringBounds(elementName, frc);
+            var height = z.getBounds2D().getHeight();
+            var width = z.getBounds2D().getWidth();
+
+            rightBoxHeight = rightBoxHeight + margin + height + margin + 20; // inkl. 20 abstand zwischen boxen
+            rightBoxWidth = Math.max(rightBoxWidth, width);
+        }
+
+        logger.debug("height = {}", rightBoxHeight);
+        logger.debug("width = {}", rightBoxWidth);
+
+        // erstes Element - Abstände Berechnen
+        var z = font.getStringBounds(rootElementName, frc);
+        var rootElementHeight = z.getBounds2D().getHeight();
+        var rootElementWidth = z.getBounds2D().getWidth();
+        // root node sollte genau in der mitte der rechten boxen sein.
+        // also rightBoxHeight / 2 minus boxgröße / 2
+
+        int startX = 20;
+        int startY = (int) ((rightBoxHeight / 2) - ((margin + rootElementHeight + margin) / 2));
+
+        Element a = document.createElement("a");
+        String parentPageUrl = "#";
+        if (this.getExtendedXsdElements().get(rootElement.getParentXpath()) != null) {
+            parentPageUrl = this.getExtendedXsdElements().get(rootElement.getParentXpath()).getPageName();
+        }
+        a.setAttribute("href", parentPageUrl);
+
+        Element rect1 = document.createElement("rect");
+        rect1.setAttribute("fill", BOX_COLOR);
+        rect1.setAttribute("id", rootElementName);
+        rect1.setAttribute("height", (margin + rootElementHeight + margin) + "");
+        rect1.setAttribute("width", (margin + rootElementWidth + margin) + "");
+        rect1.setAttribute("x", startX + "");
+        rect1.setAttribute("y", startY + "");
+        rect1.setAttribute("rx", "2");
+        rect1.setAttribute("ry", "2");
+        if (rootElement.getXsdElement().getMinOccurs() > 0) {
+            rect1.setAttribute("style", MANDATORY_FORMAT);
+        } else {
+            rect1.setAttribute("style", OPTIONAL_FORMAT);
+        }
+
+        Element text = document.createElement("text");
+        text.setAttribute("fill", "#096574");
+        text.setAttribute("font-family", font.getFontName());
+        text.setAttribute("font-size", font.getSize() + "");
+        text.setAttribute("textLength", "0");
+        text.setAttribute("x", margin + startX + "");
+        text.setAttribute("y", startY + rootElementHeight + (margin / 2) + "");
+        text.setTextContent(rootElementName);
+
+        a.appendChild(rect1);
+        a.appendChild(text);
+        svgRoot.appendChild(a);
+
+        final double rightStartX = margin + rootElementWidth + margin + gapBetweenSides;
+
+        final double pathStartX = startX + margin + rootElementWidth + margin;
+        final double pathStartY = startY + rootElementHeight;
+
+        double actualHeight = 20;
+        for (ExtendedXsdElement childElement : childElements) {
+            String elementName = "";
+            String css = OPTIONAL_FORMAT;
+
+            if (childElement != null) {
+                elementName = childElement.getElementName();
+            }
+
+            if (childElement != null && childElement.getXsdElement() != null) {
+                logger.debug("childElement.getXsdElement().getMaxOccurs() = " + childElement.getXsdElement().getMaxOccurs());
+                logger.debug("childElement.getXsdElement().getMinOccurs() = " + childElement.getXsdElement().getMinOccurs());
+
+                if (childElement.getXsdElement().getMinOccurs() > 0) {
+                    css = MANDATORY_FORMAT;
+                }
+            }
+
+            logger.debug("Element Name = " + elementName);
+
+            var z2 = font.getStringBounds(elementName, frc);
+            var height = z2.getBounds2D().getHeight();
+            var width = z2.getBounds2D().getWidth();
+
+            Element rect2 = document.createElement("rect");
+            rect2.setAttribute("fill", BOX_COLOR);
+            rect2.setAttribute("id", elementName);
+            rect2.setAttribute("height", (margin + height + margin) + "");
+            rect2.setAttribute("width", (margin + rightBoxWidth + margin) + "");
+            rect2.setAttribute("x", rightStartX + "");
+            rect2.setAttribute("y", actualHeight + "");
+            rect2.setAttribute("rx", "2");
+            rect2.setAttribute("ry", "2");
+            rect2.setAttribute("style", css);
+
+            Element image = null;
+            if (childElement != null && childElement.getChildren() != null
+                    && !childElement.getChildren().isEmpty()) {
+                // hier noch ICON dazu fügen
+                // <image href="mdn_logo_only_color.png" height="200" width="200" />
+                image = document.createElement("image");
+                image.setAttribute("href", "assets/plus.png");
+                image.setAttribute("height", "20");
+                image.setAttribute("width", "20");
+                image.setAttribute("x", rightStartX + (margin + rightBoxWidth + margin) + 2 + "");
+                image.setAttribute("y", actualHeight + (height / 2) + "");
+            }
+
+            Element text2 = document.createElement("text");
+            text2.setAttribute("fill", "#096574");
+            text2.setAttribute("font-family", font.getFontName());
+            text2.setAttribute("font-size", font.getSize() + "");
+            text2.setAttribute("textLength", "0");
+            text2.setAttribute("x", rightStartX + margin + "");
+            text2.setAttribute("y", actualHeight + height + (margin / 2) + "");
+            text2.setTextContent(elementName);
+
+            Element a2 = document.createElement("a");
+            if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
+                // link erstellen
+                a2.setAttribute("href", childElement.getPageName());
+                a2.appendChild(rect2);
+                a2.appendChild(text2);
+                a2.appendChild(image);
+
+                svgRoot.appendChild(a2);
+            } else {
+                svgRoot.appendChild(rect2);
+                svgRoot.appendChild(text2);
+            }
+
+            Element path2 = document.createElement("path");
+            path2.setAttribute("d", "M " + pathStartX + " " + pathStartY +
+                    " h " + ((gapBetweenSides / 2) - margin) +
+                    " V " + (actualHeight + ((margin + height + margin) / 2)) +
+                    " h " + ((gapBetweenSides / 2) - margin));
+            path2.setAttribute("fill", "none");
+            if (childElement != null && childElement.getXsdElement() != null && childElement.getXsdElement().getMinOccurs() > 0) {
+                path2.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
+            } else {
+                path2.setAttribute("style", OPTIONAL_FORMAT_NO_SHADOW);
+            }
+            svgRoot.appendChild(path2);
+
+            actualHeight = actualHeight + margin + height + margin + 20; // 20 pixel abstand zwischen boxen
+        }
+
+        // ToDo: größe automatisch anpassen
+        svgRoot.setAttributeNS(svgNS, "height", rightBoxHeight + (margin * 2) + "");
+        svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 für icon
+        svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
+
+        return asString(svgRoot);
+    }
+
+    private String asString(Node node) {
+        StringWriter writer = new StringWriter();
+        try {
+            Transformer trans = TransformerFactory.newInstance().newTransformer();
+            trans.setOutputProperty(OutputKeys.INDENT, "yes");
+            trans.setOutputProperty(OutputKeys.VERSION, "1.0");
+            if (!(node instanceof Document)) {
+                trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            }
+            trans.transform(new DOMSource(node), new StreamResult(writer));
+        } catch (final TransformerConfigurationException ex) {
+            throw new IllegalStateException(ex);
+        } catch (final TransformerException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+        return writer.toString();
     }
 
     public void processXsd() {
@@ -428,5 +614,23 @@ public class XsdDocumentationService {
 
             default -> throw new IllegalStateException("Unexpected value: " + xsdAbstractElement);
         }
+    }
+
+    Map<String, String> getBreadCrumbs(ExtendedXsdElement currentElement) {
+        xpath = new StringBuilder();
+        Map<String, String> breadCrumbs = new LinkedHashMap<>();
+
+        final var t = currentElement.getCurrentXpath().split("/");
+        for (String element : t) {
+            if (!element.isEmpty()) {
+                xpath.append("/").append(element);
+                String link = "#";
+                if (this.getExtendedXsdElements() != null && this.getExtendedXsdElements().get(xpath.toString()) != null) {
+                    link = this.getExtendedXsdElements().get(xpath.toString()).getPageName();
+                }
+                breadCrumbs.put(element, link);
+            }
+        }
+        return breadCrumbs;
     }
 }
