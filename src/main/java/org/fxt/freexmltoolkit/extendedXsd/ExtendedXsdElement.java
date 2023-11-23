@@ -61,18 +61,18 @@ public class ExtendedXsdElement {
     }
 
     public Map<String, String> getLanguageDocumentation() {
-        com.vladsch.flexmark.util.ast.Node document;
-        Map<String, String> temp = new HashMap<>();
-
         if (this.getXsdDocumentation() == null) {
             return Map.of();
         } else {
+            com.vladsch.flexmark.util.ast.Node document;
+            Map<String, String> stringContent = new HashMap<>();
+
             for (var x : this.getXsdDocumentation()) {
                 document = parser.parse(x.getContent());
-                temp.put(x.getAttributesMap().get("xml:lang"), renderer.render(document));
+                stringContent.put(x.getAttributesMap().get("xml:lang"), renderer.render(document));
             }
 
-            return temp;
+            return stringContent;
         }
     }
 

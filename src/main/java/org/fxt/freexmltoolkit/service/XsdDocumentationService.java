@@ -189,7 +189,7 @@ public class XsdDocumentationService {
 
                 try {
                     Files.write(Paths.get(outputFileName), result.getBytes());
-                    logger.debug("Written {} bytes", new File(outputFileName).length());
+                    logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -481,7 +481,6 @@ public class XsdDocumentationService {
                     String elementString = xmlService.getNodeAsString(n);
 
                     extendedXsdElement.setCurrentNode(n);
-                    // ZU VIEL: HTML FILE RENDERED NICHT MEHR
                     extendedXsdElement.setSourceCode(elementString);
 
                     if (xsdElement.getAnnotation() != null && xsdElement.getAnnotation().getDocumentations() != null) {
@@ -538,7 +537,7 @@ public class XsdDocumentationService {
                         currentNode = parentNode;
                     }
 
-                    // extendedXsdElement.setSourceCode(s);
+                    extendedXsdElement.setSourceCode(s);
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);

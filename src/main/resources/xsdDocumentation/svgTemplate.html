@@ -1,0 +1,78 @@
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) Karl Kauc 2023.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>XSD Documentation</title>
+
+    <link href="assets/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/prism.css" rel="stylesheet">
+    <link href="assets/freeXmlTookit.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="py-2 bg-body-tertiary border-bottom">
+    <div class="container d-flex flex-wrap">
+        <ul class="nav me-auto">
+            <li class="nav-item"><a href="#" class="nav-link link-body-emphasis px-2 active"
+                                    aria-current="page">Home</a></li>
+            <li class="nav-item"><a href="#" class="nav-link link-body-emphasis px-2">Complex Types</a></li>
+            <li class="nav-item"><a href="#" class="nav-link link-body-emphasis px-2">Simple Types</a></li>
+        </ul>
+        <ul class="nav">
+            <li class="nav-item"><a href="https://github.com/karlkauc/FreeXmlToolkit"
+                                    class="nav-link link-body-emphasis px-2">FreeXmlToolKit</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li th:each="path, state: ${xpath}" class="breadcrumb-item">
+                <a href="#" th:href="${path.value}" th:text="${path.key}">#</a>
+            </li>
+        </ol>
+    </nav>
+
+    <div class="container m-3">
+        <span th:utext="${var}"></span>
+
+        <h1>Documentation</h1>
+        <span th:each="doc: ${documentation}">
+    <p>
+        <h3 th:utext="${doc.getKey()}">Lang</h3>
+        <div th:utext="${doc.getValue()}">Value</div>
+            </p>
+</span>
+        <h1>Code</h1>
+        <pre class="language-xml">
+    <code th:text="${code}">Code</code>
+</pre>
+
+    </div>
+</div>
+
+<script src="assets/bootstrap.bundle.min.js"></script>
+<script src="assets/prism.js"></script>
+
+</body>
+</html>
