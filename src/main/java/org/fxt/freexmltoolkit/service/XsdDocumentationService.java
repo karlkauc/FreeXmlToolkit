@@ -45,12 +45,12 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 
 public class XsdDocumentationService {
     String xsdFilePath;
@@ -86,6 +86,7 @@ public class XsdDocumentationService {
 
     StringBuilder xpath;
     ClassLoaderTemplateResolver resolver;
+    TemplateEngine templateEngine;
 
     public XsdDocumentationService() {
         font = new Font("Arial", Font.PLAIN, 16);
@@ -93,6 +94,15 @@ public class XsdDocumentationService {
                 null,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_OFF,
                 RenderingHints.VALUE_FRACTIONALMETRICS_DEFAULT);
+
+        resolver = new ClassLoaderTemplateResolver();
+        resolver.setTemplateMode(TemplateMode.HTML);
+        resolver.setCharacterEncoding("UTF-8");
+        resolver.setPrefix("xsdDocumentation/");
+        resolver.setSuffix(".html");
+
+        templateEngine = new TemplateEngine();
+        templateEngine.setTemplateResolver(resolver);
     }
 
     public String getXsdFilePath() {
@@ -134,6 +144,7 @@ public class XsdDocumentationService {
     public void generateXsdDocumentation(File outputDirectory) throws IOException {
         Files.createDirectories(outputDirectory.toPath());
         Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
+        Files.createDirectories(Paths.get(outputDirectory.getPath(), "details"));
 
         try {
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.bundle.min.js"), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.bundle.min.js"), StandardCopyOption.REPLACE_EXISTING);
@@ -150,21 +161,41 @@ public class XsdDocumentationService {
         }
 
         processXsd();
-        generateRootHtml(outputDirectory);
+        generateRootPage(outputDirectory);
+        generateComplexTypePages(outputDirectory);
+        generateDetailPages(outputDirectory);
     }
 
-    public void generateRootHtml(File outputDirectory) {
-        resolver = new ClassLoaderTemplateResolver();
-        resolver.setTemplateMode(TemplateMode.HTML);
-        resolver.setCharacterEncoding("UTF-8");
-        resolver.setPrefix("/");
-        resolver.setSuffix(".html");
+    private void generateRootPage(File outputDirectory) {
+        logger.debug("ROOT ELEMENT");
+        var context = new Context();
+        context.setVariable("date", LocalDate.now());
+        context.setVariable("filename", this.getXsdFilePath());
+        context.setVariable("rootElementName", elements.get(0).getName());
+        context.setVariable("rootElement", getXmlSchema().get(0));
+        context.setVariable("xsdElements", elements.get(0));
+        context.setVariable("xsdComplexTypes", getXsdComplexTypes());
+        context.setVariable("xsdSimpleTypes", getXsdSimpleTypes());
 
-        var templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(resolver);
+        final var result = templateEngine.process("rootElement", context);
+        final var outputFileName = Paths.get(outputDirectory.getPath(), "index.html").toFile().getAbsolutePath();
+        logger.debug("Root File: " + outputFileName);
 
-        // ToDo: write first page
+        try {
+            Files.write(Paths.get(outputFileName), result.getBytes());
+            logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    private void generateComplexTypePages(File outputDirectory) {
+        logger.debug("Complex Types");
+
+
+    }
+
+    private void generateDetailPages(File outputDirectory) {
         for (String key : this.getExtendedXsdElements().keySet()) {
             var currentElement = this.getExtendedXsdElements().get(key);
 
@@ -183,8 +214,8 @@ public class XsdDocumentationService {
                 }
                 context.setVariable("documentation", docTemp);
 
-                final var result = templateEngine.process("svgTemplate", context);
-                final var outputFileName = Paths.get(outputDirectory.getPath(), currentElement.getPageName()).toFile().getAbsolutePath();
+                final var result = templateEngine.process("templateDetail", context);
+                final var outputFileName = Paths.get(outputDirectory.getPath(), "details", currentElement.getPageName()).toFile().getAbsolutePath();
                 logger.debug("File: " + outputFileName);
 
                 try {
@@ -322,10 +353,8 @@ public class XsdDocumentationService {
             Element image = null;
             if (childElement != null && childElement.getChildren() != null
                     && !childElement.getChildren().isEmpty()) {
-                // hier noch ICON dazu fügen
-                // <image href="mdn_logo_only_color.png" height="200" width="200" />
                 image = document.createElement("image");
-                image.setAttribute("href", "assets/plus.png");
+                image.setAttribute("href", "../assets/plus.png");
                 image.setAttribute("height", "20");
                 image.setAttribute("width", "20");
                 image.setAttribute("x", rightStartX + (margin + rightBoxWidth + margin) + 2 + "");

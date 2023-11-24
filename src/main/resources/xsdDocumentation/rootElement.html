@@ -82,170 +82,42 @@
         <div class="col" th:utext="${rootElement.getTargetNamespace()}">DEFAULT</div>
     </div>
 
+    <hr/>
 
-    <table class="table border-0 mt-5">
+    <table class="table table-bordered">
         <thead>
         <tr>
             <th scope="col">Elements</th>
             <th scope="col">Complex Types</th>
+            <th scope="col">Simple Types</th>
         </tr>
         </thead>
         <tbody>
         <tr>
-            <td class="align-middle">
-                <a href="#" th:utext="${rootElementName}">
-                    FundsXML4
+            <td class="align-text-top">
+                <a href="#"
+                   th:each="xsdElement : ${xsdElements}"
+                   th:href="${xsdElement.name}"
+                   th:text="${xsdElement.name}">Name
                 </a>
             </td>
-            <td class="align-middle">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item" style="-background-color: blue;">
-                        <div style="-background-color: yellow; float: left;">
-                            <div class="xsd-mandatory-element" style="background-color: red;">
-                                <strong>[0:0] Control Data</strong>
-                            </div>
-
-                            <div style="float: left;" class="text-info">dies ist die beschreibung</div>
-                        </div>
-
-                    </li>
-                    <li class="list-group-item">
-                        <div class="xsd-optional-element">
-                            Funds
-                        </div>
-                        <div class="xsd-optional-additional-elements">&nbsp;</div>
-
-                    </li>
-                    <li class="list-group-item">
-                        <div class="xsd-mandatory-element">
-                            AssetMgntCompanyData
-                        </div>
-                        <div class="xsd-mandatory-additional-elements">&nbsp;</div>
-                    </li>
-                    <li class="list-group-item">
-                        <span class="my-element">&nbsp;</span>
-                        <span class="-xsd-mandatory-element" style="border-style: solid; padding: 0.2em;">
-                            AssetMasterData
-                        </span>
-
-                    </li>
-                    <li class="list-group-item">
-                        <div class="my-element">Documents</div>
-                    </li>
-                    <li class="list-group-item">RegulatoryReporting</li>
-                    <li class="list-group-item">ContrySpecificData</li>
-                </ul>
+            <td class="align-text-top">
+                <div th:each="xsdComplexType, iterStat : ${xsdComplexTypes}"
+                     th:class="${iterStat.odd}? 'bg-secondary'">
+                    <a th:href="${'#' + xsdComplexType.name}"
+                       th:text="${xsdComplexType.name}">LINK</a>
+                </div>
+            </td>
+            <td class="align-text-top">
+                <div th:each="xsdSimpleType, iterStat : ${xsdSimpleTypes}"
+                     th:class="${iterStat.odd}? 'bg-secondary'">
+                    <a th:href="${'#' + xsdSimpleType.name}"
+                       th:text="${xsdSimpleType.name}">LINK</a>
+                </div>
             </td>
         </tr>
         </tbody>
     </table>
-
-    <div th:text="${code}">
-        CODE
-    </div>
-
-    <hr/>
-
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="900"
-         style="">
-        <g>
-            <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="30"
-                  id="a"
-                  width="200"
-                  x="0"
-                  y="140"
-                  rx="2"
-                  ry="2"
-                  style="stroke: rgb(2,23,23); stroke-width: 2;"></rect>
-            <text fill="#096574" font-family="Arial" font-size="13" textLength="0" x="10" y="160">FundsXML4</text>
-
-            <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                  id="fund"
-                  rx="2"
-                  ry="2"
-                  x="300"
-                  y="60"
-                  width="200"
-                  style="stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;"></rect>
-
-            <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                  id="controlData"
-                  rx="2"
-                  ry="2"
-                  x="300"
-                  y="10"
-                  width="200"
-                  style="stroke: rgb(2,23,23); stroke-width: 2;"></rect>
-
-            <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                  id="AssetMgntCompanyData"
-                  rx="2"
-                  ry="2"
-                  x="300"
-                  y="110"
-                  width="200"
-                  style="stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;"></rect>
-
-            <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                  id="Documents"
-                  rx="2"
-                  ry="2"
-                  x="300"
-                  y="160"
-                  width="200"
-                  style="stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;"></rect>
-
-            <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                  id="RegulatoryReporting"
-                  rx="2"
-                  ry="2"
-                  x="300"
-                  y="210"
-                  width="200"
-                  style="stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;"></rect>
-
-            <rect fill="#F2F2F2" filter="url(#f13f4r0vdneneo)" height="40"
-                  id="ContrySpecificData"
-                  rx="2"
-                  ry="2"
-                  x="300"
-                  y="260"
-                  width="200"
-                  style="stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;"></rect>
-
-            <path d="M200,150 250,150 " fill="none"
-                  id="a"
-                  style="stroke: rgb(229,41,41); stroke-width: 2;"></path>
-            <path d="M250,150 250,30" fill="none"
-                  id="a"
-                  style="stroke: rgb(229,41,41); stroke-width: 2;"></path>
-            <path d="M250,30 300,30" fill="none"
-                  id="a"
-                  style="stroke: rgb(229,41,41); stroke-width: 2;"></path>
-
-
-            <text fill="#096574" font-family="Arial" font-size="13"
-                  textLength="0" x="310" y="85">Funds
-            </text>
-            <text fill="#096574" font-family="Arial" font-size="13"
-                  textLength="0" x="310" y="35">Control Data
-            </text>
-            <text fill="#096574" font-family="Arial" font-size="13"
-                  textLength="0" x="310" y="135">AssetMgntCompanyData
-            </text>
-            <text fill="#096574" font-family="Arial" font-size="13"
-                  textLength="0" x="310" y="185">Documents
-            </text>
-            <text fill="#096574" font-family="Arial" font-size="13"
-                  textLength="0" x="310" y="235">RegulatoryReporting
-            </text>
-            <text fill="#096574" font-family="Arial" font-size="13"
-                  textLength="0" x="310" y="285">ContrySpecificData
-            </text>
-        </g>
-    </svg>
-
-    <hr/>
 
 </div>
 <script src="assets/bootstrap.bundle.min.js"></script>
