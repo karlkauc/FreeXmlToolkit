@@ -97,14 +97,14 @@
             <td class="align-text-top">
                 <a href="#"
                    th:each="xsdElement : ${xsdElements}"
-                   th:href="${xsdElement.name}"
+                   th:href="${rootElementLink}"
                    th:text="${xsdElement.name}">Name
                 </a>
             </td>
             <td class="align-text-top">
                 <div th:each="xsdComplexType, iterStat : ${xsdComplexTypes}"
                      th:class="${iterStat.odd}? 'bg-secondary'">
-                    <a th:href="${'#' + xsdComplexType.name}"
+                    <a th:href="${'complexTypes/' + xsdComplexType.name + '.html'}"
                        th:text="${xsdComplexType.name}">LINK</a>
                 </div>
             </td>

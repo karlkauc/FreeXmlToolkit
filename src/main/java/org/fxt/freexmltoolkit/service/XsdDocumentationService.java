@@ -145,6 +145,8 @@ public class XsdDocumentationService {
         Files.createDirectories(outputDirectory.toPath());
         Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
         Files.createDirectories(Paths.get(outputDirectory.getPath(), "details"));
+        Files.createDirectories(Paths.get(outputDirectory.getPath(), "complexTypes"));
+        Files.createDirectories(Paths.get(outputDirectory.getPath(), "simpleTypes"));
 
         try {
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.bundle.min.js"), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.bundle.min.js"), StandardCopyOption.REPLACE_EXISTING);
@@ -168,16 +170,19 @@ public class XsdDocumentationService {
 
     private void generateRootPage(File outputDirectory) {
         logger.debug("ROOT ELEMENT");
+        final var rootElementName = elements.get(0).getName();
+
         var context = new Context();
         context.setVariable("date", LocalDate.now());
         context.setVariable("filename", this.getXsdFilePath());
-        context.setVariable("rootElementName", elements.get(0).getName());
+        context.setVariable("rootElementName", rootElementName);
         context.setVariable("rootElement", getXmlSchema().get(0));
         context.setVariable("xsdElements", elements.get(0));
         context.setVariable("xsdComplexTypes", getXsdComplexTypes());
         context.setVariable("xsdSimpleTypes", getXsdSimpleTypes());
+        context.setVariable("rootElementLink", "details/" + getExtendedXsdElements().get("/" + rootElementName).getPageName());
 
-        final var result = templateEngine.process("rootElement", context);
+        final var result = templateEngine.process("templateRootElement", context);
         final var outputFileName = Paths.get(outputDirectory.getPath(), "index.html").toFile().getAbsolutePath();
         logger.debug("Root File: " + outputFileName);
 
@@ -191,6 +196,22 @@ public class XsdDocumentationService {
 
     private void generateComplexTypePages(File outputDirectory) {
         logger.debug("Complex Types");
+
+        for (var complexType : getXsdComplexTypes()) {
+            var context = new Context();
+            context.setVariable("complexType", complexType);
+
+            final var result = templateEngine.process("templateComplexType", context);
+            final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", complexType.getRawName() + ".html");
+            logger.debug("File: " + outputFilePath.toFile().getAbsolutePath());
+
+            try {
+                Files.write(outputFilePath, result.getBytes());
+                logger.debug("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
 
     }
