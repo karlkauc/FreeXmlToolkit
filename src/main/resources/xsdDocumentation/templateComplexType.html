@@ -49,10 +49,16 @@
 <div class="container">
     <h1 th:text="${complexType.getRawName()}">Complex Types</h1>
 
-    <span th:each="annotation : ${complexType.getAttributesMap()}">
+    <div th:each="annotation : ${complexType.getAttributesMap()}">
         <span th:text="${annotation.key}">KEY</span>
         <span th:text="${annotation.value}">VALUE</span>
-    </span>
+    </div>
+
+    <h3>Documentation</h3>
+    <div th:each="documentation : ${documentations}">
+        <span th:text="${documentation.getSource()}">LANG</span>
+        <span th:text="${documentation.getContent()}">VALUE</span>
+    </div>
 
 </div>
 

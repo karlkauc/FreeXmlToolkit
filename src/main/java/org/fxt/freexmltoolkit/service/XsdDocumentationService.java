@@ -201,6 +201,10 @@ public class XsdDocumentationService {
             var context = new Context();
             context.setVariable("complexType", complexType);
 
+            if (complexType.getAnnotation() != null) {
+                context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
+            }
+
             final var result = templateEngine.process("templateComplexType", context);
             final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", complexType.getRawName() + ".html");
             logger.debug("File: " + outputFilePath.toFile().getAbsolutePath());
