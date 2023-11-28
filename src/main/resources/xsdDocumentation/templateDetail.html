@@ -133,7 +133,26 @@
                 <div class="float-end">annotation</div>
             </div>
             <div class="col">
-                <span>ATTRIBUTES MAP</span>
+                <table class="table table-borderless table-sm">
+                    <colgroup>
+                        <col class="col-md-2">
+                        <col class="col-md-10">
+                    </colgroup>
+                    <tbody>
+                    <tr>
+                        <td>Min Occurs</td>
+                        <td>
+                            <div class="col" th:text="${element.getXsdElement().getMinOccurs()}">MIN OCCURS</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Max Occurs</td>
+                        <td>
+                            <div class="col" th:text="${element.getXsdElement().getMaxOccurs()}">MAX OCCURS</div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 

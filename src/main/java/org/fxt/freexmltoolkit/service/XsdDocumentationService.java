@@ -73,10 +73,10 @@ public class XsdDocumentationService {
     final int gapBetweenSides = 100;
 
     final static String BOX_COLOR = "#d5e3e8";
-    final static String OPTIONAL_FORMAT = "stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
-    final static String OPTIONAL_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 2; stroke-dasharray: 7, 7;";
-    final static String MANDATORY_FORMAT = "stroke: rgb(2,23,23); stroke-width: 2; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
-    final static String MANDATORY_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 2;";
+    final static String OPTIONAL_FORMAT = "stroke: rgb(2,23,23); stroke-width: 1.5; stroke-dasharray: 7, 7; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
+    final static String OPTIONAL_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 1.5; stroke-dasharray: 7, 7;";
+    final static String MANDATORY_FORMAT = "stroke: rgb(2,23,23); stroke-width: 1.5; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
+    final static String MANDATORY_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 1.5;";
 
     Font font;
     FontRenderContext frc;

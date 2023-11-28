@@ -103,14 +103,14 @@
             </td>
             <td class="align-text-top">
                 <div th:each="xsdComplexType, iterStat : ${xsdComplexTypes}"
-                     th:class="${iterStat.odd}? 'bg-secondary'">
+                     class="bg-gradient detail-row p-1">
                     <a th:href="${'complexTypes/' + xsdComplexType.name + '.html'}"
                        th:text="${xsdComplexType.name}">LINK</a>
                 </div>
             </td>
             <td class="align-text-top">
                 <div th:each="xsdSimpleType, iterStat : ${xsdSimpleTypes}"
-                     th:class="${iterStat.odd}? 'bg-secondary'">
+                     class="bg-gradient detail-row p-1">
                     <a th:href="${'#' + xsdSimpleType.name}"
                        th:text="${xsdSimpleType.name}">LINK</a>
                 </div>

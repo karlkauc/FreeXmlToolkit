@@ -18,7 +18,6 @@
 
 .detail-row {
     font-size: 0.8em;
-    background-color: #e8e8e8;
 }
 
 .detail-row:nth-child(even) {
@@ -28,7 +27,6 @@
 .detail-row:nth-child(odd) {
     background-color: #c9c9c9;
 }
-
 
 .xsd-mandatory-element {
     padding: 3px;
