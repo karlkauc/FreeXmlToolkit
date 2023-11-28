@@ -26,6 +26,10 @@
     <link href="../assets/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/prism.css" rel="stylesheet">
     <link href="../assets/freeXmlTookit.css" rel="stylesheet">
+
+    <link href="assets/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/prism.css" rel="stylesheet">
+    <link href="assets/freeXmlTookit.css" rel="stylesheet">
 </head>
 <body>
 
@@ -55,26 +59,112 @@
         </ol>
     </nav>
 
-    <div class="container m-3">
-        <span th:utext="${var}"></span>
+    <div class="container">
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
+                <div class="float-end">diagramm</div>
+            </div>
+            <div class="col">
+                <span th:utext="${svg}">SVG</span>
+            </div>
+        </div>
 
-        <h1>Documentation</h1>
-        <span th:each="doc: ${documentation}">
-    <p>
-        <h3 th:utext="${doc.getKey()}">Lang</h3>
-        <div th:utext="${doc.getValue()}">Value</div>
-            </p>
-</span>
-        <h1>Code</h1>
-        <pre class="language-xml">
-    <code th:text="${code}">Code</code>
-</pre>
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
+                <div class="float-end">Documentation</div>
+            </div>
+            <div class="col">
+                <span th:each="doc: ${documentation}">
+                    <strong><div th:utext="${doc.getKey()}">KEY</div></strong>
+                    <div th:utext="${doc.getValue()}">VALUE</div>
+                </span>
+            </div>
+        </div>
 
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
+                <div class="float-end">namespace</div>
+            </div>
+            <div class="col">
+                <span th:text="${namespace}">Namespace</span>
+            </div>
+        </div>
+
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
+                <div class="float-end">type</div>
+            </div>
+            <div class="col">
+                <span th:text="${type}">Type</span>
+            </div>
+        </div>
+
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
+                <div class="float-end">Properties</div>
+            </div>
+            <div class="col">
+                prop
+            </div>
+        </div>
+
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
+                <div class="float-end">Children</div>
+            </div>
+            <div class="col">
+                <span th:each="child: ${element.getChildren()}">
+                    <div th:text="${child}">CHILD</div>
+                </span>
+            </div>
+        </div>
+
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
+                <div class="float-end">facets</div>
+            </div>
+            <div class="col">
+                facets
+            </div>
+        </div>
+
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
+                <div class="float-end">annotation</div>
+            </div>
+            <div class="col">
+                <span>ATTRIBUTES MAP</span>
+            </div>
+        </div>
+
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
+                <div class="float-end">App Info</div>
+            </div>
+            <div class="col">
+                <span th:each="appInfo: ${appInfos}">
+                    <div th:text="${appInfo}">APP INFO</div>
+                </span>
+            </div>
+        </div>
+
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
+                <div class="float-end">source</div>
+            </div>
+            <div class="col">
+                <pre class="language-xml"><code th:text="${code}">Code</code></pre>
+            </div>
+        </div>
     </div>
+
 </div>
 
 <script src="../assets/bootstrap.bundle.min.js"></script>
 <script src="../assets/prism.js"></script>
+
+<script src="assets/bootstrap.bundle.min.js"></script>
+<script src="assets/prism.js"></script>
 
 </body>
 </html>

@@ -228,10 +228,22 @@ public class XsdDocumentationService {
                 String svgDiagram = generateSVGDiagram(key);
 
                 var context = new Context();
-                context.setVariable("var", svgDiagram);
+                context.setVariable("svg", svgDiagram);
 
                 context.setVariable("xpath", getBreadCrumbs(currentElement));
                 context.setVariable("code", currentElement.getSourceCode());
+                context.setVariable("element", currentElement);
+                context.setVariable("namespace", getXmlSchema().get(0).getTargetNamespace());
+
+                if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getType() != null) {
+                    context.setVariable("type", currentElement.getElementType());
+                } else {
+                    context.setVariable("type", "NULL");
+                }
+
+                if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getAnnotation() != null) {
+                    context.setVariable("appInfos", currentElement.getXsdElement().getAnnotation().getAppInfoList());
+                }
 
                 Map<String, String> docTemp = new LinkedHashMap<>();
                 if (currentElement.getLanguageDocumentation() != null && !currentElement.getLanguageDocumentation().isEmpty()) {

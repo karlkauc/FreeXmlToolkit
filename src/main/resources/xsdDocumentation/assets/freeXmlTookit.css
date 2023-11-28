@@ -16,10 +16,23 @@
  *
  */
 
+.detail-row {
+    font-size: 0.8em;
+    background-color: #e8e8e8;
+}
+
+.detail-row:nth-child(even) {
+    background-color: #e8e8e8;
+}
+
+.detail-row:nth-child(odd) {
+    background-color: #c9c9c9;
+}
+
+
 .xsd-mandatory-element {
     padding: 3px;
     border-style: solid;
-    -float: left;
     width: auto;
 }
 
@@ -57,13 +70,3 @@
     );
 }
 
-/*   background-color: transparent;
-   background-image: linear-gradient(pink, pink), linear-gradient(blue, blue);
-   background-size: 100% 2px, 2px 100%;
-   background-position: 0 center, 0 0;
-   background-repeat: no-repeat;
-   margin-left: 1em;
-   padding-left: 1em;
-}
-
- */
