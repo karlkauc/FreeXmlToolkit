@@ -38,7 +38,7 @@ public class SVGTest {
     public void generateTemplate() throws IOException {
         logger.debug("DRINNEN!!!");
 
-        xsdDocumentationService.setXsdFilePath("src/test/resources/FundsXML_306.xsd");
+        xsdDocumentationService.setXsdFilePath("src/test/resources/FundsXML_420.xsd");
         xsdDocumentationService.generateXsdDocumentation(outputDir);
     }
 

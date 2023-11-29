@@ -216,9 +216,8 @@ public class XsdDocumentationService {
                 throw new RuntimeException(e);
             }
         }
-
-
     }
+
 
     private void generateDetailPages(File outputDirectory) {
         for (String key : this.getExtendedXsdElements().keySet()) {
