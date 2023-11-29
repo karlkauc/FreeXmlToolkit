@@ -115,6 +115,7 @@
             <div class="col">
                 <span th:each="child: ${element.getChildren()}">
                     <div th:text="${child}">CHILD</div>
+                    <div th:text="${this.testXpathCall(child)}">asdf</div>
                 </span>
             </div>
         </div>

@@ -218,6 +218,19 @@ public class XsdDocumentationService {
         }
     }
 
+    public String testXpathCall(String xpath) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (var x : getExtendedXsdElements().get(xpath).getXsdDocumentation()) {
+                sb.append(x.getContent());
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            logger.debug("ERROR: {}", e.getMessage());
+        }
+        return "";
+    }
+
 
     private void generateDetailPages(File outputDirectory) {
         for (String key : this.getExtendedXsdElements().keySet()) {
@@ -233,6 +246,7 @@ public class XsdDocumentationService {
                 context.setVariable("code", currentElement.getSourceCode());
                 context.setVariable("element", currentElement);
                 context.setVariable("namespace", getXmlSchema().get(0).getTargetNamespace());
+                context.setVariable("this", this);
 
                 if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getType() != null) {
                     context.setVariable("type", currentElement.getElementType());
