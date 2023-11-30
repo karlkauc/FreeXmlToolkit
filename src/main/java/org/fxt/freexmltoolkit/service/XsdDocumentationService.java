@@ -218,11 +218,11 @@ public class XsdDocumentationService {
         }
     }
 
-    public String testXpathCall(String xpath) {
+    public String getChildInfo(String xpath) {
         try {
             StringBuilder sb = new StringBuilder();
-            for (var x : getExtendedXsdElements().get(xpath).getXsdDocumentation()) {
-                sb.append(x.getContent());
+            for (var doc : getExtendedXsdElements().get(xpath).getXsdDocumentation()) {
+                sb.append(doc.getContent());
             }
             return sb.toString();
         } catch (Exception e) {

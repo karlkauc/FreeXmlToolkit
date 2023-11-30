@@ -113,10 +113,14 @@
                 <div class="float-end">Children</div>
             </div>
             <div class="col">
-                <span th:each="child: ${element.getChildren()}">
-                    <div th:text="${child}">CHILD</div>
-                    <div th:text="${this.testXpathCall(child)}">asdf</div>
-                </span>
+                <table class="table d-inline-block table-bordered table-sm">
+                    <tbody>
+                    <tr th:each="child: ${element.getChildren()}">
+                        <td th:text="${child}">CHILD</td>
+                        <td th:text="${this.getChildInfo(child)}">INFO</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -134,11 +138,7 @@
                 <div class="float-end">annotation</div>
             </div>
             <div class="col">
-                <table class="table table-borderless table-sm">
-                    <colgroup>
-                        <col class="col-md-2">
-                        <col class="col-md-10">
-                    </colgroup>
+                <table class="table d-inline-block table-bordered table-sm">
                     <tbody>
                     <tr>
                         <td>Min Occurs</td>
