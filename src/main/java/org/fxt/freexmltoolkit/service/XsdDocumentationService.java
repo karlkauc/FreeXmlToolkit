@@ -150,12 +150,9 @@ public class XsdDocumentationService {
 
         try {
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.bundle.min.js"), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.bundle.min.js"), StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.min.css"), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.min.css"), StandardCopyOption.REPLACE_EXISTING);
-
-            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.css"), Paths.get(outputDirectory.getPath(), "assets", "prism.css"), StandardCopyOption.REPLACE_EXISTING);
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.js"), Paths.get(outputDirectory.getPath(), "assets", "prism.js"), StandardCopyOption.REPLACE_EXISTING);
 
-            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlTookit.css"), Paths.get(outputDirectory.getPath(), "assets", "freeXmlTookit.css"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css"), Paths.get(outputDirectory.getPath(), "assets", "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
 
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/plus.png"), Paths.get(outputDirectory.getPath(), "assets", "plus.png"), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
