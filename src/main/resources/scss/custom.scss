@@ -16,16 +16,22 @@
  *
  */
 
+$color1: #264653;
+$color2: #2A9D8F;
+$color3: #E9C46A;
+$color4: #F4A261;
+$color5: #E76F51;
+
 .detail-row {
     font-size: 0.8em;
 }
 
 .detail-row:nth-child(even) {
-    background-color: #e8e8e8;
+    background-color: $background-color;
 }
 
 .detail-row:nth-child(odd) {
-    background-color: #c9c9c9;
+    background-color: darken($background-color, 30%);
 }
 
 .xsd-mandatory-element {
