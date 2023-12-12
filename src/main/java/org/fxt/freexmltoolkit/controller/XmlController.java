@@ -154,11 +154,13 @@ public class XmlController {
         Dragboard db = event.getDragboard();
 
         for (File f : db.getFiles()) {
+            xmlService.setCurrentXmlFile(f);
+            xmlService.prettyFormatCurrentFile();
+
             XmlEditor x = new XmlEditor(f);
             x.refresh();
             xmlFilesPane.getTabs().add(x);
             xmlFilesPane.getSelectionModel().select(x);
-            xmlService.setCurrentXmlFile(f);
         }
     }
 

@@ -33,35 +33,36 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-
 public interface XmlService {
 
+    // XML Var
     File getCurrentXmlFile();
-
     void setCurrentXmlFile(File currentXmlFile);
 
+    String getFormatedXmlFile();
+
+    void prettyFormatCurrentFile();
+
+    // XSLT Var
     File getCurrentXsltFile();
-
     void setCurrentXsltFile(File currentXsltFile);
-
-    File getCurrentXsdFile();
-
-    String getCurrentXsdString() throws IOException;
-
-    String getRemoteXsdLocation();
 
     String getXsltOutputMethod();
 
+    // XSD Var
+    File getCurrentXsdFile();
+    String getCurrentXsdString() throws IOException;
+    String getRemoteXsdLocation();
     void setCurrentXsdFile(File xsdFile);
 
     String performXsltTransformation();
 
     Document getXmlDocument();
-
 
     // Schema Validation Methods
     List<SAXParseException> validate();
@@ -90,7 +91,6 @@ public interface XmlService {
 
     String getNodeAsString(Node node);
 
-
     // XML Path Operations
     String getXmlFromXpath(String xml, String xPath);
 
@@ -99,6 +99,17 @@ public interface XmlService {
     String getXmlFromXpath(String xPath);
 
     List<String> getXQueryResult(String xQuery);
+
+    static String prettyFormat(File input, int indent) {
+        List<String> allLines;
+        try {
+            allLines = Files.readAllLines(input.toPath());
+            final var temp = String.join(System.lineSeparator(), allLines);
+            return prettyFormat(temp, indent);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     static String prettyFormat(String input, int indent) {
         try {

@@ -76,15 +76,11 @@ import java.util.Optional;
 
 public class XmlServiceImpl implements XmlService {
     private final static Logger logger = LogManager.getLogger(XmlService.class);
-
     XPathFactory xPathFactory = new net.sf.saxon.xpath.XPathFactoryImpl();
     XPath xPathPath = xPathFactory.newXPath();
-
     Processor processor = new Processor(false);
     XsltCompiler compiler = processor.newXsltCompiler();
-
     StringWriter sw;
-
     Xslt30Transformer transformer;
 
     SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -133,6 +129,30 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public File getCurrentXmlFile() {
         return currentXmlFile;
+    }
+
+    @Override
+    public String getFormatedXmlFile() {
+        String t = "";
+        try {
+            t = String.join(System.lineSeparator(), Files.readAllLines(this.currentXmlFile.toPath()));
+        } catch (IOException ioException) {
+            logger.error(ioException.getMessage());
+        }
+        return prettyFormat(t, 20);
+    }
+
+    @Override
+    public void prettyFormatCurrentFile() {
+        logger.debug("pretty format file");
+        try {
+            var temp = String.join(System.lineSeparator(), Files.readAllLines(this.currentXmlFile.toPath()));
+            temp = prettyFormat(temp, 20);
+            Files.write(this.currentXmlFile.toPath(), temp.getBytes());
+            logger.debug("done: {}", temp.getBytes().length);
+        } catch (IOException ioException) {
+            logger.error(ioException.getMessage());
+        }
     }
 
     @Override

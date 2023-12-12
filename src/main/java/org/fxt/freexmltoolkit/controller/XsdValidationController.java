@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2023.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -170,6 +170,7 @@ public class XsdValidationController {
         errorListBox.getChildren().clear();
 
         xmlService.setCurrentXmlFile(file);
+        xmlService.prettyFormatCurrentFile();
         xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
 
         progressIndicator.setProgress(0.2);
@@ -192,7 +193,7 @@ public class XsdValidationController {
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXsdFile() != null) {
             progressIndicator.setProgress(0.4);
             validationErrors = xmlService.validate();
-            if (validationErrors != null && validationErrors.size() > 0) {
+            if (validationErrors != null && !validationErrors.isEmpty()) {
                 logger.warn(Arrays.toString(validationErrors.toArray()));
                 int i = 0;
                 for (SAXParseException saxParseException : validationErrors) {
