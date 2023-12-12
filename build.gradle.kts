@@ -22,9 +22,9 @@ plugins {
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("edu.sc.seis.launch4j") version "3.0.5"
-    id("com.github.ben-manes.versions") version "0.49.0"
+    id("com.github.ben-manes.versions") version "0.50.0"
 
-    id("org.beryx.jlink") version "2.26.0"
+    id("org.beryx.jlink") version "3.0.1"
 }
 
 application {
