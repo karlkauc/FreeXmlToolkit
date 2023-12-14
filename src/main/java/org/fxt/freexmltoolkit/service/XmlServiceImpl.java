@@ -320,12 +320,11 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
-    public File createExcelValidationReport(File fileName, List<SAXParseException> errorList) {
-        logger.debug("Writing Excel File: {} - {} errors.", fileName.getName(), errorList.size());
+    public File createExcelValidationReport(File file, List<SAXParseException> errorList) {
+        logger.debug("Writing Excel File: {} - {} errors.", file.getName(), errorList.size());
 
-        try {
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
             var fileContent = Files.readAllLines(this.getCurrentXmlFile().toPath());
-            XSSFWorkbook workbook = new XSSFWorkbook();
             XSSFSheet sheet = workbook.createSheet("Validation Error Report");
 
             CellStyle style = workbook.createCellStyle();
@@ -345,8 +344,6 @@ public class XmlServiceImpl implements XmlService {
             header.createCell(4).setCellValue("XML Content");
 
             header.setRowStyle(headerStyle);
-
-            // Fix header Row
             sheet.createFreezePane(0, 1);
 
             for (int i = 0; i < errorList.size(); i++) {
@@ -368,11 +365,12 @@ public class XmlServiceImpl implements XmlService {
 
                 row.setHeight((short) -1);
             }
-            FileOutputStream outputStream = new FileOutputStream(fileName);
+            FileOutputStream outputStream = new FileOutputStream(file);
             workbook.write(outputStream);
+            outputStream.close();
 
-            return fileName;
-        } catch (Exception e) {
+            return file;
+        } catch (Exception ignored) {
         }
 
         return null;

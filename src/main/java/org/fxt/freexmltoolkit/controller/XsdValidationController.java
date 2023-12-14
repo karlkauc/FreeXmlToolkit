@@ -18,6 +18,7 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -66,7 +67,7 @@ public class XsdValidationController {
     GridPane auswertung;
 
     @FXML
-    Button xmlLoadButton, xsdLoadButton, test, excelExport;
+    Button xmlLoadButton, xsdLoadButton, test, excelExport, clearResults;
 
     @FXML
     TextField xmlFileName, xsdFileName, remoteXsdLocation;
@@ -169,103 +170,113 @@ public class XsdValidationController {
         statusImage.setImage(null);
         errorListBox.getChildren().clear();
 
-        xmlService.setCurrentXmlFile(file);
-        xmlService.prettyFormatCurrentFile();
-        xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
+        Platform.runLater(() -> {
 
-        progressIndicator.setProgress(0.2);
-        if (autodetect.isSelected()) {
-            var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
-            if (schemaName.isPresent() && xmlService.loadSchemaFromXMLFile()) {
-                logger.debug("Loading remote schema successfully!");
-                xsdFileName.setText(schemaName.get());
-            } else {
-                logger.debug("Could not load remote schema");
-                xsdFileName.setText("");
-                xmlService.setCurrentXsdFile(null);
-            }
-        } else {
-            if (xmlService.getCurrentXsdFile() != null) {
-                xsdFileName.setText(xmlService.getCurrentXsdFile().getName());
-            }
-        }
+            xmlService.setCurrentXmlFile(file);
+            xmlService.prettyFormatCurrentFile();
+            xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
 
-        if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXsdFile() != null) {
-            progressIndicator.setProgress(0.4);
-            validationErrors = xmlService.validate();
-            if (validationErrors != null && !validationErrors.isEmpty()) {
-                logger.warn(Arrays.toString(validationErrors.toArray()));
-                int i = 0;
-                for (SAXParseException saxParseException : validationErrors) {
-                    TextFlow textFlowPane = new TextFlow();
-                    textFlowPane.setLineSpacing(5.0);
-
-                    Text headerText = new Text("#" + i++ + ": " + saxParseException.getLocalizedMessage() + System.lineSeparator());
-                    headerText.setFont(Font.font("Verdana", 20));
-
-                    textFlowPane.getChildren().add(headerText);
-
-                    Text lineText = new Text("Line#: " + saxParseException.getLineNumber() + " Col#: " + saxParseException.getColumnNumber() + System.lineSeparator());
-                    textFlowPane.getChildren().add(lineText);
-
-                    try {
-                        var lineBefore = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() - 1).trim();
-                        textFlowPane.getChildren().add(new Text(lineBefore + System.lineSeparator()));
-
-                        var line = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber()).trim();
-                        textFlowPane.getChildren().add(new Text(line + System.lineSeparator()));
-
-                        var lineAfter = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() + 1).trim();
-                        textFlowPane.getChildren().add(new Text(lineAfter + System.lineSeparator()));
-                    } catch (IOException exception) {
-                        logger.error("Exception: {}", exception.getMessage());
-                    }
-                    errorListBox.getChildren().add(textFlowPane);
-
-                    Button goToError = new Button("Go to error");
-                    goToError.setOnAction(ae -> {
-                        try {
-                            var p = (TabPane) anchorPane.getParent().getParent();
-                            var t = p.getTabs();
-                            t.forEach(e -> {
-                                if (Objects.equals(e.getId(), "tabPaneXml")) {
-                                    p.getSelectionModel().select(e);
-                                }
-                            });
-
-                        } catch (Exception e) {
-                            logger.error(e.getMessage());
-                        }
-                    });
-                    errorListBox.getChildren().add(goToError);
-                    errorListBox.getChildren().add(new Separator());
+            progressIndicator.setProgress(0.2);
+            if (autodetect.isSelected()) {
+                var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
+                if (schemaName.isPresent() && xmlService.loadSchemaFromXMLFile()) {
+                    logger.debug("Loading remote schema successfully!");
+                    xsdFileName.setText(schemaName.get());
+                } else {
+                    logger.debug("Could not load remote schema");
+                    xsdFileName.setText("");
+                    xmlService.setCurrentXsdFile(null);
                 }
+            } else {
+                if (xmlService.getCurrentXsdFile() != null) {
+                    xsdFileName.setText(xmlService.getCurrentXsdFile().getName());
+                }
+            }
+
+            if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXsdFile() != null) {
+                progressIndicator.setProgress(0.4);
+                validationErrors = xmlService.validate();
+                if (validationErrors != null && !validationErrors.isEmpty()) {
+                    logger.warn(Arrays.toString(validationErrors.toArray()));
+                    int i = 0;
+                    for (SAXParseException saxParseException : validationErrors) {
+                        TextFlow textFlowPane = new TextFlow();
+                        textFlowPane.setLineSpacing(5.0);
+
+                        Text headerText = new Text("#" + i++ + ": " + saxParseException.getLocalizedMessage() + System.lineSeparator());
+                        headerText.setFont(Font.font("Verdana", 20));
+
+                        textFlowPane.getChildren().add(headerText);
+
+                        Text lineText = new Text("Line#: " + saxParseException.getLineNumber() + " Col#: " + saxParseException.getColumnNumber() + System.lineSeparator());
+                        textFlowPane.getChildren().add(lineText);
+
+                        try {
+                            var lineBefore = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() - 1).trim();
+                            textFlowPane.getChildren().add(new Text(lineBefore + System.lineSeparator()));
+
+                            var line = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber()).trim();
+                            textFlowPane.getChildren().add(new Text(line + System.lineSeparator()));
+
+                            var lineAfter = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() + 1).trim();
+                            textFlowPane.getChildren().add(new Text(lineAfter + System.lineSeparator()));
+                        } catch (IOException exception) {
+                            logger.error("Exception: {}", exception.getMessage());
+                        }
+                        errorListBox.getChildren().add(textFlowPane);
+
+                        Button goToError = new Button("Go to error");
+                        goToError.setOnAction(ae -> {
+                            try {
+                                var p = (TabPane) anchorPane.getParent().getParent();
+                                var t = p.getTabs();
+                                t.forEach(e -> {
+                                    if (Objects.equals(e.getId(), "tabPaneXml")) {
+                                        p.getSelectionModel().select(e);
+                                    }
+                                });
+
+                            } catch (Exception e) {
+                                logger.error(e.getMessage());
+                            }
+                        });
+                        errorListBox.getChildren().add(goToError);
+                        errorListBox.getChildren().add(new Separator());
+                    }
+
+                    Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-stornieren-48.png")).toString());
+                    statusImage.setImage(image);
+
+                } else {
+                    logger.debug("No errors in Validation of file {} - schema {}", xmlService.getCurrentXsdFile(), xmlService.getCurrentXsdFile());
+                    Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-ok-48.png")).toString());
+                    statusImage.setImage(image);
+                }
+            } else {
+                logger.debug("war nicht alles ausgewählt!!");
+                logger.debug("Current XML File: {}", xmlService.getCurrentXmlFile());
+                logger.debug("Current XSD File: {}", xmlService.getCurrentXsdFile());
+
+                errorListBox.getChildren().add(new Label("Schema not found!"));
 
                 Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-stornieren-48.png")).toString());
                 statusImage.setImage(image);
-
-            } else {
-                logger.debug("No errors in Validation of file {} - schema {}", xmlService.getCurrentXsdFile(), xmlService.getCurrentXsdFile());
-                Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-ok-48.png")).toString());
-                statusImage.setImage(image);
             }
-        } else {
-            logger.debug("war nicht alles ausgewählt!!");
-            logger.debug("Current XML File: {}", xmlService.getCurrentXmlFile());
-            logger.debug("Current XSD File: {}", xmlService.getCurrentXsdFile());
 
-            errorListBox.getChildren().add(new Label("Schema not found!"));
+            progressIndicator.setProgress(1.0);
+        });
+    }
 
-            Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-stornieren-48.png")).toString());
-            statusImage.setImage(image);
-        }
+    @FXML
+    private void clearResultAction() {
+        logger.debug("clear results");
 
-        progressIndicator.setProgress(1.0);
+
     }
 
     @FXML
     private void excelExport() {
-        if (validationErrors != null && validationErrors.size() > 0) {
+        if (validationErrors != null && !validationErrors.isEmpty()) {
             excelFileChooser.setInitialFileName("ValidationErrors.xlsx");
             File exportFile = excelFileChooser.showSaveDialog(null);
 
