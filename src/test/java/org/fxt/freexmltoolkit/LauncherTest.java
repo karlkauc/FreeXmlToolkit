@@ -114,7 +114,7 @@ public class LauncherTest {
         public void joinOnEmpty() {
             long before = System.currentTimeMillis();
             do {
-                if (expectedNotifications.isEmpty() && expectedNotifications.isEmpty()) {
+                if (expectedNotifications.isEmpty()) {
                     return;
                 }
                 try {
