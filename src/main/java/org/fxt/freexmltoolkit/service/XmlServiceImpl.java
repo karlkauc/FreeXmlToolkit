@@ -400,13 +400,7 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public Node getNodeFromXpath(String xPath) {
         try {
-            /*
-            FileInputStream fileInputStream = new FileInputStream(this.getCurrentXmlFile());
-            xmlDocument = builder.parse(fileInputStream);
-             */
-
-            var node = (Node) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODE);
-            return node;
+            return (Node) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODE);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
@@ -417,8 +411,7 @@ public class XmlServiceImpl implements XmlService {
     public Node getNodeFromXpath(String xPath, Node currentNode) {
         try {
             xPathPath = xPathFactory.newXPath();
-            var node = (Node) xPathPath.compile(xPath).evaluate(currentNode, XPathConstants.NODE);
-            return node;
+            return (Node) xPathPath.compile(xPath).evaluate(currentNode, XPathConstants.NODE);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
@@ -472,10 +465,10 @@ public class XmlServiceImpl implements XmlService {
             if (nodeList.getLength() > 0) {
                 Node node = nodeList.item(0);
 
-                Transformer xform = TransformerFactory.newInstance().newTransformer();
-                xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-                xform.setOutputProperty(OutputKeys.INDENT, "yes");
-                xform.transform(new DOMSource(node), new StreamResult(sw));
+                Transformer transform = TransformerFactory.newInstance().newTransformer();
+                transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                transform.setOutputProperty(OutputKeys.INDENT, "yes");
+                transform.transform(new DOMSource(node), new StreamResult(sw));
             }
             return sw.toString();
 
