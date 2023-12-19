@@ -38,6 +38,7 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.xml.sax.SAXParseException;
 
+import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -201,9 +202,7 @@ public class XmlController {
 
 
     @FXML
-    public void runXpathQueryPressed() {
-        logger.debug("BUTTON PRESSED");
-
+    private void runXpathQueryPressed() {
         var currentCodeArea = getCurrentCodeArea();
         String xml = currentCodeArea.getText();
 
@@ -250,7 +249,8 @@ public class XmlController {
         }
     }
 
-    public boolean saveFile() {
+    @FXML
+    private boolean saveFile() {
         logger.debug("Code Area selected");
         var errors = xmlService.validateText(getCurrentCodeArea().getText());
 
@@ -320,18 +320,32 @@ public class XmlController {
         return false;
     }
 
-    public void formatXmlText() {
-        CodeArea ca = getCurrentCodeArea();
-        String text = ca.getText();
+    @FXML
+    private void minifyXmlText() {
+        var currentCodeArea = getCurrentCodeArea();
+        String xml = currentCodeArea.getText();
 
-        // logger.debug("Text before formatting: {}", text);
-        ca.clear();
+        try {
+            final String minifiedString = XmlService.convertXmlToOneLine(xml);
+            if (!minifiedString.isEmpty()) {
+                currentCodeArea.clear();
+                currentCodeArea.replaceText(0, 0, minifiedString);
+            }
+        } catch (TransformerException transformerException) {
+            logger.error(transformerException.getMessage());
+        }
+    }
 
-        final String tempFormat = XmlService.prettyFormat(text, 20);
-        logger.debug("Format String length: {}", tempFormat.length());
-        ca.replaceText(0, 0, tempFormat);
+    @FXML
+    private void prettifyingXmlText() {
+        var currentCodeArea = getCurrentCodeArea();
+        String text = currentCodeArea.getText();
+        currentCodeArea.clear();
 
-        // logger.debug("Text after formatting: {}", tempFormat);
+        final String prettyString = XmlService.prettyFormat(text, 4);
+        if (!prettyString.isEmpty()) {
+            currentCodeArea.replaceText(0, 0, prettyString);
+        }
     }
 
     @FXML

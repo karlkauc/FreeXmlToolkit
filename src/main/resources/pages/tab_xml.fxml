@@ -46,12 +46,20 @@
                 </graphic>
             </Button>
 
-            <Button fx:id="prettyPrint" contentDisplay="TOP" onAction="#formatXmlText" text="_format Text"
+            <Button fx:id="prettyPrint" contentDisplay="TOP" onAction="#prettifyingXmlText" text="_format Text"
                     ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconColor="darkorange" iconLiteral="fth-align-center"/>
                 </graphic>
             </Button>
+
+            <Button contentDisplay="TOP" onAction="#minifyXmlText" text="_minify Text"
+                    ButtonBar.buttonData="RIGHT">
+                <graphic>
+                    <FontIcon iconColor="#b2ae22" iconLiteral="fth-crop"/>
+                </graphic>
+            </Button>
+
             <Separator orientation="VERTICAL"/>
             <VBox>
                 <Button onAction="#moveUp">
