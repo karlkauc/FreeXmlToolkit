@@ -69,8 +69,8 @@ public class LSP4JTest {
 
         value = """
                 <FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://github.com/fundsxml/schema/releases/download/4.2.2/FundsXML.xsd">
-                    <ControlData>|
-                        <UniqueDocumentID>EAM_FUND_001</UniqueDocumentID>
+                    <ControlData>
+                        <|UniqueDocumentID>EAM_FUND_001</UniqueDocumentID>
                         <DocumentGenerated>2021-11-30T16:14:04</DocumentGenerated>
                         <ContentDate>2021-11-32</ContentDate>
                         <DataSupplier>
@@ -89,7 +89,7 @@ public class LSP4JTest {
         TextDocument document = new TextDocument(value, "test://test/test.html");
         int offset = value.indexOf('|');
         Position position = document.positionAt(offset);
-        position.setLine(2);
+        //position.setLine(2);
 
         DOMDocument htmlDoc = DOMParser.getInstance().parse(document, ls.getResolverExtensionManager());
         AutoCloseTagResponse response = ls.doTagComplete(htmlDoc, settings.getCompletionSettings(), position);
@@ -100,7 +100,6 @@ public class LSP4JTest {
         } else {
             System.out.println("NULL");
         }
-
 
         System.out.println("htmlDoc.getTextDocument().toString() = " + htmlDoc.getTextDocument().toString());
     }

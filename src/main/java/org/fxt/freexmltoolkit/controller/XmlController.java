@@ -189,14 +189,13 @@ public class XmlController {
         return (CodeArea) vsp.getContent();
     }
 
-
     @FXML
-    public void increaseFontSize() {
+    private void increaseFontSize() {
         getCurrentXmlEditor().increaseFontSize();
     }
 
     @FXML
-    public void decreaseFontSize() {
+    private void decreaseFontSize() {
         getCurrentXmlEditor().decreaseFontSize();
     }
 
@@ -233,8 +232,6 @@ public class XmlController {
 
     @FXML
     public void reloadXmlText() {
-        logger.debug("Reload XML Text");
-
         try {
             XmlEditor xmlEditor = (XmlEditor) xmlFilesPane.getSelectionModel().getSelectedItem();
             if (xmlEditor != null && xmlEditor.getXmlFile() != null && xmlEditor.getXmlFile().exists()) {
@@ -251,7 +248,6 @@ public class XmlController {
 
     @FXML
     private boolean saveFile() {
-        logger.debug("Code Area selected");
         var errors = xmlService.validateText(getCurrentCodeArea().getText());
 
         if (errors == null || errors.isEmpty()) {
