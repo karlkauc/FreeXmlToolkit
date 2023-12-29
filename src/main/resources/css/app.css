@@ -1,0 +1,239 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2023.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+.tagmark {
+  -fx-fill: rgb(0, 0, 255);
+}
+
+.anytag {
+  -fx-fill: rgb(128, 0, 0);
+}
+
+.paren {
+  -fx-fill: firebrick;
+  -fx-font-weight: bold;
+}
+
+.attribute {
+  -fx-fill: darkviolet;
+}
+
+.avalue {
+  -fx-fill: black;
+}
+
+.comment {
+  -fx-fill: teal;
+}
+
+/* line Number */
+.lineno {
+  -fx-background-color: #e3e3e3;
+}
+
+/* defaults */
+.code-area {
+  -fx-font-family: monospace;
+}
+
+@font-face {
+  font-family: "Open Sans";
+  font-weight: normal;
+  src: url("../../css/fonts/OpenSans-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: normal;
+  src: url("../../css/fonts/Inter-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-weight: normal;
+  src: url("fonts/Roboto-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-weight: bold;
+  src: url("fonts/Roboto-Bold.ttf");
+}
+
+.root {
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #dcdcdc 0%, white 100%);
+}
+
+.bottom_line {
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2A9D8F 0%, #264653 100%);
+  -fx-pref-height: 20;
+  -fx-max-height: 20;
+  -fx-min-height: 20;
+}
+
+.menu_box {
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #fdeec5 0%, #fc9040 100%);
+  -fx-pref-width: 150;
+  -fx-font-weight: bold;
+}
+
+.menu_button {
+  -fx-alignment: center-left;
+  -fx-pref-height: 50;
+  -fx-pref-width: 250;
+  -fx-border-width: 0 0 0 5px;
+  -fx-border-color: #E76F51;
+  -fx-background-color: transparent;
+  -fx-border-style: solid;
+  -fx-font-family: Roboto;
+  -fx-font-size: 12px;
+  -fx-font-weight: bold;
+}
+
+.menu_button:hover {
+  -fx-border-color: #264653;
+  -fx-background-color: #E76F51;
+}
+
+.active {
+  -fx-background-color: #fad162 100%;
+}
+
+.big_button {
+  -fx-padding: 8px;
+}
+
+.information {
+  -fx-border-color: #fc9040;
+  -fx-border-style: solid;
+  -fx-border-width: 3px 3px 3px 30px;
+  -fx-padding: 15px;
+  -fx-background-color: white;
+}
+
+.error {
+  -fx-border-color: #f64215;
+  -fx-border-style: solid;
+  -fx-border-width: 3px 3px 3px 30px;
+  -fx-padding: 15px;
+  -fx-background-color: white;
+}
+
+.my_container {
+  -fx-padding: 30px;
+  -fx-border-insets: 30px;
+  -fx-background-insets: 30px;
+  -fx-spacing: 10px;
+}
+
+.h1 {
+  -fx-font-family: "Varela Round";
+  -fx-font-size: 4em;
+}
+
+.h2 {
+  -fx-font-family: "Varela Round";
+  -fx-font-weight: bold;
+  -fx-font-size: 1.5em;
+  -fx-padding: 0 0 5px 0;
+}
+
+.xml > .button {
+  -fx-min-width: 70;
+  -fx-font-size: 10;
+  -fx-border-color: #bdbdbd;
+}
+
+.xml > .button > .ikonli-font-icon {
+  -fx-icon-size: 20;
+}
+
+.xml > .button:hover {
+  -fx-border-color: #0078D7;
+  -fx-background-color: #B2D8F4;
+}
+
+.xmlPaneFileDragDrop-active {
+  -fx-border-color: red;
+  -fx-border-width: 2px;
+  -fx-border-style: segments(10, 15, 15, 15) line-cap round;
+  -fx-border-insets: 5;
+  -fx-border-radius: 5;
+}
+
+.xmlPaneFileDragDrop-normal {
+  -fx-border-width: 0;
+  -fx-border-insets: 0;
+  -fx-border-radius: 0;
+}
+
+.xmlTree .tree-cell {
+  -fx-font-smoothing-type: LCD;
+  -fx-padding: 0.2em 0em 0.2em 0em;
+}
+
+.xmlTree .tree-cell:selected {
+  -fx-background-color: rgba(253, 238, 197, 0.6);
+}
+
+.xmlTree .tree-cell .text {
+  -fx-font-weight: bold;
+}
+
+.treeRow {
+  -fx-border-width: 0px 0px 1px 1px;
+  -fx-border-color: black;
+  -fx-border-style: solid;
+  -fx-padding: 0 0 5px 5px;
+}
+
+.xmlAttributeNode {
+  -fx-text-fill: #fc9040;
+  -fx-font-weight: bold;
+}
+
+.rootElement {
+  -fx-font-size: 20px;
+}
+
+/* components */
+.my-tree-view .tree-cell .tree-disclosure-node .arrow {
+  -fx-background-color: black;
+  -fx-shape: "M24 9h-9v-9h-6v9h-9v6h9v9h6v-9h9z";
+}
+
+.my-tree-view .tree-cell:expanded .tree-disclosure-node .arrow {
+  -fx-background-color: black;
+  -fx-shape: "M0 9h24v6h-24z";
+}
+
+.fileChooserActive {
+  -fx-padding: 0;
+  -fx-background-color: yellow;
+  -fx-spacing: 0;
+  -fx-pref-width: 300;
+}
+
+.fileChooserInactive {
+  -fx-padding: 0;
+  -fx-background-color: yellow;
+  -fx-spacing: 0;
+  -fx-pref-width: 0;
+}
+
+/*# sourceMappingURL=app.css.map */
