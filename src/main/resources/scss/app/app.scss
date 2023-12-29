@@ -16,30 +16,36 @@
  *
  */
 
-@import "xml-highlighting.css";
+@use "../xml-highlighting.css";
 
 @font-face {
   font-family: "Open Sans";
   font-weight: normal;
-  src: url("fonts/OpenSans-Regular.ttf");
+  src: url("../../css/fonts/OpenSans-Regular.ttf");
 }
 
 @font-face {
   font-family: "Inter";
   font-weight: normal;
-  src: url("fonts/Inter-Regular.ttf");
+  src: url("../../css/fonts/Inter-Regular.ttf");
 }
 
 @font-face {
-  font-family: "Roboto";
+  font-family: 'Roboto';
   font-weight: normal;
-  src: url("fonts/Roboto-Regular.ttf");
+  src: url('fonts/Roboto-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-weight: bold;
+  src: url('fonts/Roboto-Bold.ttf');
 }
 
 $color1: #264653;
 $color2: #2A9D8F;
-$color3: #E9C46A;
-$color4: #F4A261;
+$color3: #fdeec5;
+$color4: #fc9040;
 $color5: #E76F51;
 
 $background-color: #dcdcdc;
@@ -61,7 +67,6 @@ $background-color: #dcdcdc;
   -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $color3 0%, $color4 100%);;;
   -fx-pref-width: 150;
   -fx-font-weight: bold;
-
 }
 
 .menu_button {
@@ -72,15 +77,22 @@ $background-color: #dcdcdc;
   -fx-border-color: $color5;
   -fx-background-color: transparent;
   -fx-border-style: solid;
-  -fx-font-family: Roboto, Inter, Arial;
+  -fx-font-family: Roboto;
+  -fx-font-size: 12px;
+  -fx-font-weight: bold;
 }
 
 .menu_button:hover {
   -fx-border-color: $color1;
+  -fx-background-color: $color5;
 }
 
 .active {
-  -fx-background-color: darken($color3, 40) 100%;
+  -fx-background-color: darken($color3, 20) 100%;
+}
+
+.big_button {
+  -fx-padding: 8px;
 }
 
 // Main Menu - end
@@ -193,4 +205,32 @@ $background-color: #dcdcdc;
 
 .rootElement {
   -fx-font-size: 20px;
+}
+
+
+/* components */
+.my-tree-view .tree-cell .tree-disclosure-node .arrow {
+  -fx-background-color: black;
+  -fx-shape: "M24 9h-9v-9h-6v9h-9v6h9v9h6v-9h9z";
+}
+
+.my-tree-view .tree-cell:expanded .tree-disclosure-node .arrow {
+  -fx-background-color: black;
+  -fx-shape: "M0 9h24v6h-24z";
+}
+
+.fileChooserActive {
+  -fx-padding: 0;
+  -fx-background-color: yellow;
+  -fx-spacing: 0;
+
+  -fx-pref-width: 300;
+}
+
+.fileChooserInactive {
+  -fx-padding: 0;
+  -fx-background-color: yellow;
+  -fx-spacing: 0;
+
+  -fx-pref-width: 0;
 }

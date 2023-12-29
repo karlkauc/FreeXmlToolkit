@@ -26,34 +26,38 @@
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1"
-      stylesheets="/css/xml-highlighting.css"
+      stylesheets="/scss/xml-highlighting.css"
       fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <HBox>
         <HBox styleClass="xml">
-            <Button fx:id="newFile" contentDisplay="TOP" text="_new File" onAction="#newFilePressed">
+            <Button fx:id="newFile" styleClass="big_button" contentDisplay="TOP" text="_new File"
+                    onAction="#newFilePressed">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-file-earmark"/>
                 </graphic>
             </Button>
-            <Button fx:id="openFile" contentDisplay="TOP" onAction="#openFile" text="_open File">
+            <Button fx:id="openFile" styleClass="big_button" contentDisplay="TOP" onAction="#openFile"
+                    text="_open File">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-folder2-open"/>
                 </graphic>
             </Button>
-            <Button fx:id="saveFile" contentDisplay="TOP" onAction="#saveFile" text="_save File">
+            <Button fx:id="saveFile" styleClass="big_button" contentDisplay="TOP" onAction="#saveFile"
+                    text="_save File">
                 <graphic>
                     <FontIcon iconLiteral="bi-hdd"/>
                 </graphic>
             </Button>
 
-            <Button fx:id="prettyPrint" contentDisplay="TOP" onAction="#prettifyingXmlText" text="_format Text"
+            <Button fx:id="prettyPrint" styleClass="big_button" contentDisplay="TOP" onAction="#prettifyingXmlText"
+                    text="_format Text"
                     ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconColor="darkorange" iconLiteral="fth-align-center"/>
                 </graphic>
             </Button>
 
-            <Button contentDisplay="TOP" onAction="#minifyXmlText" text="_minify Text"
+            <Button contentDisplay="TOP" styleClass="big_button" onAction="#minifyXmlText" text="_minify Text"
                     ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconColor="#b2ae22" iconLiteral="fth-crop"/>
@@ -82,7 +86,8 @@
         </HBox>
         <HBox styleClass="xml">
             <Separator orientation="VERTICAL"/>
-            <Button fx:id="validateSchema" contentDisplay="TOP" onAction="#validateSchema" text="validate Schema"
+            <Button fx:id="validateSchema" styleClass="big_button" contentDisplay="TOP" onAction="#validateSchema"
+                    text="validate Schema"
                     ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconLiteral="win10-checked"/>
@@ -91,12 +96,12 @@
         </HBox>
         <HBox fx:id="test" styleClass="xml" visible="false">
             <Separator orientation="VERTICAL"/>
-            <Button contentDisplay="TOP" onAction="#test" text="test" ButtonBar.buttonData="RIGHT">
+            <Button contentDisplay="TOP" styleClass="big_button" onAction="#test" text="test"
+                    ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconLiteral="win10-checked"/>
                 </graphic>
             </Button>
-            <!-- <Button onAction="#test" text="TEST"/> -->
         </HBox>
         <HBox>
             <padding>
@@ -137,12 +142,12 @@
                 </VBox>
                 <TabPane tabClosingPolicy="UNAVAILABLE" HBox.hgrow="ALWAYS" fx:id="xPathQueryPane">
                     <Tab text="XPath" fx:id="xPathTab">
-                        <StackPane fx:id="stackPaneXPath" stylesheets="/css/xml-highlighting.css"
+                        <StackPane fx:id="stackPaneXPath" stylesheets="/scss/xml-highlighting.css"
                                    AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                                    AnchorPane.topAnchor="0"/>
                     </Tab>
                     <Tab text="XQuery" fx:id="xQueryTab">
-                        <StackPane fx:id="stackPaneXQuery" stylesheets="/css/xml-highlighting.css"
+                        <StackPane fx:id="stackPaneXQuery" stylesheets="/scss/xml-highlighting.css"
                                    AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                                    AnchorPane.topAnchor="0"/>
                     </Tab>
