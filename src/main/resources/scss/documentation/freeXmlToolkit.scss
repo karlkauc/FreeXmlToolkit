@@ -28,6 +28,7 @@ $color5: #E76F51;
 $background-color: #dcdcdc;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
+@import "../node_modules/bootstrap-icons/font/bootstrap-icons";
 
 @mixin google-font($family) {
   @import url("http://fonts.googleapis.com/css?family=#{$family}");
