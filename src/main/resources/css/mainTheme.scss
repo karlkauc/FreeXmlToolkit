@@ -18,6 +18,23 @@
 
 @import "xml-highlighting.css";
 
+@font-face {
+  font-family: "Open Sans";
+  font-weight: normal;
+  src: url("fonts/OpenSans-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: normal;
+  src: url("fonts/Inter-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-weight: normal;
+  src: url("fonts/Roboto-Regular.ttf");
+}
 
 $color1: #264653;
 $color2: #2A9D8F;
@@ -55,6 +72,7 @@ $background-color: #dcdcdc;
   -fx-border-color: $color5;
   -fx-background-color: transparent;
   -fx-border-style: solid;
+  -fx-font-family: Roboto, Inter, Arial;
 }
 
 .menu_button:hover {
