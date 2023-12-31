@@ -103,7 +103,7 @@
                         <Label GridPane.rowIndex="0" GridPane.columnIndex="0" text="XSD File: "/>
                         <HBox GridPane.rowIndex="0" GridPane.columnIndex="1">
                             <TextField fx:id="xsdFilePath" text="XSD File"/>
-                            <Button onAction="#loadXsdFile" text="open">
+                            <Button onAction="#loadXsdFile">
                                 <graphic>
                                     <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
                                 </graphic>
@@ -113,7 +113,7 @@
                         <Label GridPane.rowIndex="1" GridPane.columnIndex="0" text="Output Folder"/>
                         <HBox GridPane.rowIndex="1" GridPane.columnIndex="1">
                             <TextField fx:id="documentationOutputDirPath" text="File..."/>
-                            <Button onAction="#openOutputFolderDialog" text="open">
+                            <Button onAction="#openOutputFolderDialog">
                                 <graphic>
                                     <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
                                 </graphic>

@@ -37,21 +37,20 @@ import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
-import org.xmlet.xsdparser.xsdelements.*;
-import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdEnumeration;
+import org.xmlet.xsdparser.xsdelements.XsdComplexType;
+import org.xmlet.xsdparser.xsdelements.XsdSimpleType;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 public class XsdController {
     XmlService xmlService = XmlServiceImpl.getInstance();
 
-    CodeArea codeArea;
+    CodeArea codeArea = new CodeArea();
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     @FXML
@@ -140,7 +139,7 @@ public class XsdController {
     }
 
     @FXML
-    private void loadXsdFile() {
+    private void loadXsdFile() throws IOException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML Schema Definition", "*.xsd")
@@ -152,6 +151,13 @@ public class XsdController {
             logger.debug("open File: {}", xsdFile.getAbsolutePath());
             xmlService.setCurrentXsdFile(xsdFile);
             xsdFilePath.setText(xsdFile.getName());
+
+            codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+            virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
+            stackPane.getChildren().add(virtualizedScrollPane);
+            codeArea.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeArea.setStyleSpans(0, XmlEditor.computeHighlighting(newText))));
+
+            codeArea.replaceText(0, 0, xmlService.getCurrentXsdString());
         }
     }
 
@@ -200,158 +206,5 @@ public class XsdController {
                 logger.error(ioException.getMessage());
             }
         }
-    }
-
-    void getXsdAbstractElementInfo(int level, XsdAbstractElement xsdAbstractElement, List<String> prevElementTypes, List<String> prevElementPath) {
-        logger.debug("prevElementTypes = {}", prevElementTypes);
-        if (level > MAX_ALLOWED_DEPTH) {
-            logger.error("Too many elements");
-            System.err.println("Too many elements");
-        }
-
-        if (xsdAbstractElement instanceof XsdElement currentXsdElement) {
-            final String currentXpath = "/" + String.join("/", prevElementPath) + "/" + currentXsdElement.getName();
-            logger.debug("Current XPath = {}", currentXpath);
-
-            documentationString += System.lineSeparator() + "XPATH: " + currentXpath;
-
-            var currentType = currentXsdElement.getType();
-            logger.debug("Current Type: " + currentType);
-            logger.debug("Current Name: {}", currentXsdElement.getRawName());
-
-            documentationString += System.lineSeparator() + "Type: " + currentType;
-            documentationString += System.lineSeparator() + "Name: " + currentXsdElement.getRawName();
-
-            if (currentXsdElement.getAnnotation() != null && currentXsdElement.getAnnotation().getDocumentations() != null) {
-                for (XsdAppInfo xsdAppInfo : currentXsdElement.getAnnotation().getAppInfoList()) {
-                    logger.debug("App Info: {}", xsdAppInfo.getContent());
-                }
-
-                for (XsdDocumentation xsdDocumentation : currentXsdElement.getAnnotation().getDocumentations()) {
-                    logger.debug("Documentation: {}", xsdDocumentation.getContent());
-                    logger.debug("Documentation Attributest: {}", xsdDocumentation.getAttributesMap());
-
-                    documentationString += System.lineSeparator() + "Documentation: " + xsdDocumentation.getContent();
-                    documentationString += System.lineSeparator() + "Documentation Attributest: " + xsdDocumentation.getAttributesMap();
-                }
-            }
-
-            if (prevElementTypes.stream().anyMatch(str -> str.trim().equals(currentType))) {
-                System.out.println("ELEMENT SCHON BEARBEITET: " + currentType);
-                logger.warn("Element {} schon bearbeitet.", currentType);
-                return;
-            } else {
-                logger.debug("noch nicht bearbeitet: {}", currentType);
-            }
-            System.out.println("LEVEL: " + level + " - RAW NAME: " + currentXsdElement.getRawName());
-
-            if (currentXsdElement.getXsdComplexType() != null) {
-                System.out.println("TYPE: " + currentXsdElement.getXsdComplexType().getRawName()); // entweder null oder Type (IdentifiersType)
-
-                if (currentXsdElement.getXsdComplexType() != null && currentXsdElement.getXsdComplexType().getXsdChildElement() != null) {
-                    logger.debug("Attributes Complex Type: {}", currentXsdElement.getXsdComplexType().getAttributesMap());
-
-                    XsdAbstractElement element = currentXsdElement.getXsdComplexType().getXsdChildElement();
-                    var allElements = element.getXsdElements().toList();
-                    for (XsdAbstractElement allElement : allElements) {
-                        ArrayList<String> prevElementTypeList = new ArrayList<>(prevElementTypes);
-                        if (currentXsdElement.getXsdComplexType().getRawName() != null) {
-                            prevElementTypeList.add(currentXsdElement.getXsdComplexType().getRawName());
-                        }
-
-                        ArrayList<String> prevElementPathList = new ArrayList<>(prevElementPath);
-                        if (currentXsdElement.getRawName() != null) {
-                            prevElementPathList.add(currentXsdElement.getRawName());
-                        }
-
-                        getXsdAbstractElementInfo(level + 1, allElement, prevElementTypeList, prevElementPathList);
-                    }
-                }
-            }
-            if (currentXsdElement.getXsdSimpleType() != null) {
-                logger.debug("SIMPLE: " + currentXsdElement.getXsdSimpleType().getAttributesMap());
-                var simpleType = currentXsdElement.getXsdSimpleType();
-
-                // xsdHtmlGenerator.generateSimpleType(currentXsdElement, level, currentXpath);
-
-                logger.debug("Attributes Simple Type: {}", currentXsdElement.getXsdSimpleType().getAttributesMap());
-                logger.debug("current type: {}", currentType);
-                logger.debug("simple Type base: {}", simpleType.getRestriction().getBase());
-
-                if (currentType != null && simpleType.getRestriction().getBase() != null) {
-                    // documentation.append("Build in Type: [").append(currentType).append("] ").append(System.lineSeparator());
-                }
-                if (currentType != null && simpleType.getRestriction().getBase() == null) {
-                    // documentation.append("Custom Type: [").append(currentType).append("] ").append(System.lineSeparator());
-                }
-                if (simpleType.getRestriction().getBase() != null) {
-                    // documentation.append("BaseType: ").append(simpleType.getRestriction().getBase()).append(System.lineSeparator());
-                }
-
-                if (!simpleType.getRestriction().getEnumeration().isEmpty()) {
-                    /*documentation.append(System.lineSeparator())
-                            .append("ENUMERATION: ")
-                            .append(System.lineSeparator());
-                     */
-
-                    var elementEnum = simpleType.getRestriction().getEnumeration();
-                    for (XsdEnumeration xsdEnumeration : elementEnum) {
-                        logger.debug("xsdEnumeration.getValue() = " + xsdEnumeration.getValue());
-                    }
-
-                    var t = xsdSimpleTypes.stream().filter(x -> x.getRawName().equals(currentXsdElement.getType())).findFirst();
-                    if (t.isPresent()) {
-                        /*
-                        documentation.append(" Restricition: ")
-                                .append(t.get().getRestriction().getAttributesMap())
-                                .append(System.lineSeparator())
-                                .append(System.lineSeparator());
-
-                        var restriction = t.get().getRestriction();
-                        documentation.append("| KEY | Value | ")
-                                .append(System.lineSeparator())
-                                .append("| --- | --- | ")
-                                .append(System.lineSeparator());
-
-                        documentation.append("| Max Length | ")
-                                .append((restriction.getMaxLength() == null ? "" : restriction.getMaxLength().getValue()))
-                                .append(" |")
-                                .append(System.lineSeparator());
-
-                        documentation.append("| Min Length | ")
-                                .append((restriction.getMinLength() == null ? "" : Integer.valueOf(restriction.getMinLength().getValue())))
-                                .append(" |")
-                                .append(System.lineSeparator());
-
-                        documentation.append("| Total Digets | ")
-                                .append((restriction.getTotalDigits() == null ? "" : restriction.getTotalDigits().getValue()))
-                                .append(" |")
-                                .append(System.lineSeparator());
-
-                        documentation.append("| Pattern | ")
-                                .append((restriction.getPattern() == null ? "" : "`" + restriction.getPattern().getValue() + "`"))
-                                .append(" |")
-                                .append(System.lineSeparator());
-                         */
-                    }
-
-                    // documentation.append(System.lineSeparator()).append(System.lineSeparator());
-                }
-            }
-        }
-
-        if (xsdAbstractElement instanceof XsdChoice xsdChoice) {
-            System.out.println("XsdChoice = " + xsdAbstractElement.getClass().getName());
-            System.out.println("xsdChoice = " + xsdChoice.getAttributesMap());
-        }
-
-        if (xsdAbstractElement instanceof XsdSequence xsdSequence) {
-            System.out.println("XsdSequence = " + xsdAbstractElement.getClass().getName());
-
-            System.out.println("((XsdSequence) xsdAbstractElement).getId() = " + xsdSequence.getId());
-            System.out.println("sequence = " + xsdSequence.getAttributesMap());
-        }
-
-        documentationString += System.lineSeparator() + "----------------------" + System.lineSeparator();
     }
 }
