@@ -111,17 +111,18 @@ public class XmlController {
             test.setVisible(true);
 
             codeAreaXpath.replaceText(0, 0, "/FundsXML4/ControlData");
-            codeAreaXQuery.replaceText(0, 0, "for $i in /FundsXML4/Funds/Fund\n" +
-                    "    return\n" +
-                    "        string-join(\n" +
-                    "            (\n" +
-                    "                $i/Names/OfficialName,\n" +
-                    "                $i/Currency,\n" +
-                    "                $i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency]/text(),\n" +
-                    "                string(sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency])),\n" +
-                    "                string($i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency] - sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency]))\n" +
-                    "            ), ' | '\n" +
-                    "        )");
+            codeAreaXQuery.replaceText(0, 0, """
+                    for $i in /FundsXML4/Funds/Fund
+                        return
+                            string-join(
+                                (
+                                    $i/Names/OfficialName,
+                                    $i/Currency,
+                                    $i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency]/text(),
+                                    string(sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency])),
+                                    string($i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency] - sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency]))
+                                ), ' | '
+                            )""");
         }
 
         reloadXmlText();
@@ -444,7 +445,7 @@ public class XmlController {
     @FXML
     private void test() {
         Path xmlExampleFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml");
-        xmlExampleFile = Paths.get("C:\\Data\\TEMP\\2023-09-18_FundsXML_RU\\ROFDIN0000F6_2023.03.31_test xml 4 MODIFIED.xml");
+        // xmlExampleFile = Paths.get("C:\\Data\\TEMP\\2023-09-18_FundsXML_RU\\ROFDIN0000F6_2023.03.31_test xml 4 MODIFIED.xml");
 
         xmlService.setCurrentXmlFile(xmlExampleFile.toFile());
         xmlService.setCurrentXsdFile(Paths.get("examples/xsd/FundsXML4.xsd").toFile());

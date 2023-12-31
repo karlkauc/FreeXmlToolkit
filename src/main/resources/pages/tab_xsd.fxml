@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import org.kordamp.ikonli.javafx.*?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
   ~ Copyright (c) 2023.
@@ -22,42 +18,41 @@
   ~
   -->
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
 <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
-      xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
+      xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.XsdController">
     <HBox>
         <HBox styleClass="xml">
-            <Button fx:id="newFile" contentDisplay="TOP" text="_new File">
+            <Button fx:id="newFile" contentDisplay="TOP" styleClass="big_button" text="_new File">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-file-earmark"/>
                 </graphic>
             </Button>
-            <Button fx:id="openFile" contentDisplay="TOP" text="_open File">
+            <Button fx:id="openFile" contentDisplay="TOP" styleClass="big_button" text="_open File">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-folder2-open"/>
                 </graphic>
             </Button>
-            <Button fx:id="saveFile" contentDisplay="TOP" text="_save File">
+            <Button fx:id="saveFile" contentDisplay="TOP" styleClass="big_button" text="_save File">
                 <graphic>
                     <FontIcon iconLiteral="bi-hdd"/>
                 </graphic>
             </Button>
 
-            <Button fx:id="prettyPrint" contentDisplay="TOP" text="_format Text"
+            <Button fx:id="prettyPrint" contentDisplay="TOP" styleClass="big_button" text="_format Text"
                     ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconColor="darkorange" iconLiteral="fth-align-center"/>
                 </graphic>
             </Button>
-            <Separator orientation="VERTICAL"/>
-
-            <Separator orientation="VERTICAL"/>
-            <TextField prefHeight="16.0" prefWidth="200.0" promptText="search..."/>
         </HBox>
         <HBox styleClass="xml">
             <Separator orientation="VERTICAL"/>
-            <Button fx:id="validateSchema" contentDisplay="TOP" text="validate Schema"
+            <Button fx:id="validateSchema" contentDisplay="TOP" styleClass="big_button" text="validate Schema"
                     ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconLiteral="win10-checked"/>
@@ -66,55 +61,84 @@
         </HBox>
         <HBox fx:id="test" styleClass="xml" visible="false">
             <Separator orientation="VERTICAL"/>
-            <Button contentDisplay="TOP" onAction="#test" text="test" ButtonBar.buttonData="RIGHT">
+            <Button contentDisplay="TOP" onAction="#test" styleClass="big_button" text="test"
+                    ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconLiteral="win10-checked"/>
                 </graphic>
             </Button>
-            <!-- <Button onAction="#test" text="TEST"/> -->
         </HBox>
         <HBox>
             <padding>
                 <Insets left="10.0"/>
             </padding>
             <VBox alignment="CENTER_LEFT">
-                <children>
-                    <Label text="Notification:"/>
-                    <Label fx:id="schemaValidText" text="xxx"/>
-                </children>
+                <Label text="Notification:"/>
+                <Label fx:id="schemaValidText" text="xxx"/>
             </VBox>
         </HBox>
-
     </HBox>
 
     <TabPane VBox.vgrow="ALWAYS">
-        <Tab text="Text" closable="false">
+        <Tab closable="false" text="Text">
             <graphic>
                 <FontIcon iconLiteral="bi-card-text"/>
             </graphic>
-            <StackPane fx:id="stackPane"
-                       AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-                       AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0"
-            />
+            <StackPane fx:id="stackPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+                       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
         </Tab>
-        <Tab text="Graphic" closable="false" disable="true">
+        <Tab closable="false" disable="true" text="Graphic">
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-2"/>
             </graphic>
         </Tab>
-        <Tab text="Documentation" closable="false">
+        <Tab closable="false" text="Documentation">
             <graphic>
                 <FontIcon iconLiteral="win10-notebook" iconSize="16"/>
             </graphic>
             <HBox>
-                <VBox>
-                    <Button text="generate" onAction="#generateDocumentation"/>
-                    <Button text="test" onAction="#test"/>
+                <VBox style="-fx-padding: 10px;">
+                    <GridPane hgap="10" vgap="10">
+                        <Label GridPane.rowIndex="0" GridPane.columnIndex="0" text="XSD File: "/>
+                        <HBox GridPane.rowIndex="0" GridPane.columnIndex="1">
+                            <TextField fx:id="xsdFilePath" text="XSD File"/>
+                            <Button onAction="#loadXsdFile" text="open">
+                                <graphic>
+                                    <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+
+                        <Label GridPane.rowIndex="1" GridPane.columnIndex="0" text="Output Folder"/>
+                        <HBox GridPane.rowIndex="1" GridPane.columnIndex="1">
+                            <TextField fx:id="documentationOutputDirPath" text="File..."/>
+                            <Button onAction="#openOutputFolderDialog" text="open">
+                                <graphic>
+                                    <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+
+                        <Label GridPane.rowIndex="2" GridPane.columnIndex="0" text="Output Format"/>
+                        <HBox GridPane.rowIndex="2" GridPane.columnIndex="1">
+                            <RadioButton/>
+                            <Label>HTML</Label>
+                        </HBox>
+
+                        <Button GridPane.rowIndex="3" GridPane.columnIndex="1" onAction="#generateDocumentation"
+                                text="generate">
+                            <graphic>
+                                <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill"/>
+                            </graphic>
+                        </Button>
+
+                    </GridPane>
+                    <Button onAction="#test" text="test"/>
                 </VBox>
                 <TextArea fx:id="documentation" HBox.hgrow="ALWAYS"/>
             </HBox>
         </Tab>
-        <Tab text="generate Example data" closable="false">
+        <Tab closable="false" text="generate Example data">
             <graphic>
                 <FontIcon iconLiteral="bi-keyboard" iconSize="16"/>
             </graphic>
@@ -122,4 +146,3 @@
         </Tab>
     </TabPane>
 </VBox>
-

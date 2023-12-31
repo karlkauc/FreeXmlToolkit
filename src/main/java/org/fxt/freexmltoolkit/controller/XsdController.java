@@ -20,8 +20,13 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -30,22 +35,35 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.xmlet.xsdparser.core.XsdParser;
+import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdEnumeration;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class XsdController {
     XmlService xmlService = XmlServiceImpl.getInstance();
 
     CodeArea codeArea;
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
+
+    @FXML
+    Button newFile, openFile, saveFile, prettyPrint, validateSchema;
+
+    DirectoryChooser documentationOutputDirectory;
+    File selectedDocumentationOutputDirectory;
+
+
+    @FXML
+    TextField documentationOutputDirPath, xsdFilePath;
+
+    @FXML
+    Label schemaValidText;
 
     @FXML
     StackPane stackPane;
@@ -117,33 +135,62 @@ public class XsdController {
     }
 
     @FXML
+    private void loadXsdFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("XML Schema Definition", "*.xsd")
+        );
+        fileChooser.setInitialDirectory(new File("."));
+        var xsdFile = fileChooser.showOpenDialog(null);
+
+        if (xsdFile != null && xsdFile.exists()) {
+            logger.debug("open File: {}", xsdFile.getAbsolutePath());
+            xmlService.setCurrentXsdFile(xsdFile);
+            xsdFilePath.setText(xsdFile.getName());
+        }
+    }
+
+    @FXML
     private void test() {
-        xmlService.setCurrentXsdFile(Paths.get("C:/Data/src/schema/FundsXML4.xsd").toFile());
-        generateDocumentation();
+        final var testFilePath = Paths.get("examples/xsd/FundsXML4.xsd");
+
+        if (Files.exists(testFilePath)) {
+            xmlService.setCurrentXsdFile(testFilePath.toFile());
+            generateDocumentation();
+        } else {
+            logger.debug("test file not found: {}", testFilePath.toFile().getAbsolutePath());
+        }
+    }
+
+    @FXML
+    private void openOutputFolderDialog() {
+        documentationOutputDirectory = new DirectoryChooser();
+        documentationOutputDirectory.setTitle("Output Directory");
+        documentationOutputDirectory.setInitialDirectory(new File("."));
+        selectedDocumentationOutputDirectory = documentationOutputDirectory.showDialog(null);
+
+        if (selectedDocumentationOutputDirectory != null && selectedDocumentationOutputDirectory.exists()) {
+            logger.debug("Directory: {}", selectedDocumentationOutputDirectory.getAbsolutePath());
+            documentationOutputDirPath.setText(selectedDocumentationOutputDirectory.getAbsolutePath());
+        } else {
+            logger.debug("no dir selected");
+            documentationOutputDirPath.setText(null);
+        }
     }
 
     @FXML
     private void generateDocumentation() {
-        documentation.setText("TEST");
+        if (selectedDocumentationOutputDirectory != null && selectedDocumentationOutputDirectory.exists()
+                && xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
 
-        XsdParser parser;
-        List<XsdElement> elements;
-
-        parser = new XsdParser(xmlService.getCurrentXsdFile().getAbsolutePath());
-        elements = parser.getResultXsdElements().collect(Collectors.toList());
-        List<XsdSchema> xmlSchema = parser.getResultXsdSchemas().toList();
-
-        xsdComplexTypes = xmlSchema.get(0).getChildrenComplexTypes().collect(Collectors.toList());
-        xsdSimpleTypes = xmlSchema.get(0).getChildrenSimpleTypes().collect(Collectors.toList());
-
-        documentation.clear();
-        documentationString = "";
-
-        for (XsdElement xsdElement : elements) {
-            getXsdAbstractElementInfo(0, xsdElement, List.of(xsdElement.getName()), List.of());
+            XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
+            try {
+                xsdDocumentationService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
+                xsdDocumentationService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
+            } catch (IOException ioException) {
+                logger.error(ioException.getMessage());
+            }
         }
-
-        documentation.setText(documentationString);
     }
 
     void getXsdAbstractElementInfo(int level, XsdAbstractElement xsdAbstractElement, List<String> prevElementTypes, List<String> prevElementPath) {
@@ -232,7 +279,7 @@ public class XsdController {
                     // documentation.append("BaseType: ").append(simpleType.getRestriction().getBase()).append(System.lineSeparator());
                 }
 
-                if (simpleType.getRestriction().getEnumeration().size() > 0) {
+                if (!simpleType.getRestriction().getEnumeration().isEmpty()) {
                     /*documentation.append(System.lineSeparator())
                             .append("ENUMERATION: ")
                             .append(System.lineSeparator());

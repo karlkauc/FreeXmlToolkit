@@ -80,6 +80,10 @@
         </bottom>
         <left>
             <VBox fx:id="leftMenu" styleClass="menu_box" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0">
+                <VBox prefHeight="100.0" prefWidth="200.0" alignment="CENTER">
+                    <Label text="FundsXML Toolkit" styleClass="h3"/>
+                    <Label text="Enterprise Edition"/>
+                </VBox>
                 <BorderPane VBox.vgrow="ALWAYS">
                     <top>
                         <VBox BorderPane.alignment="CENTER">
@@ -89,6 +93,13 @@
                                     <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
                                 </graphic>
                             </Button>
+                            <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" VBox.vgrow="ALWAYS"
+                                    fx:id="xsd">
+                                <graphic>
+                                    <FontIcon iconColor="dodgerblue" iconLiteral="bi-diagram-3" iconSize="16"/>
+                                </graphic>
+                            </Button>
+
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="XSD Validation" VBox.vgrow="ALWAYS" fx:id="xsdValidation">
                                 <graphic>
@@ -104,13 +115,6 @@
                                     <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
                                 </graphic>
                             </Button>
-                            <Button onAction="#loadPage" styleClass="menu_button" text="XSD" VBox.vgrow="ALWAYS"
-                                    fx:id="xsd">
-                                <graphic>
-                                    <FontIcon iconColor="dodgerblue" iconLiteral="bi-diagram-3" iconSize="16"/>
-                                </graphic>
-                            </Button>
-
                             <Button fx:id="fop" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="FOP" VBox.vgrow="ALWAYS">
                                 <graphic>
