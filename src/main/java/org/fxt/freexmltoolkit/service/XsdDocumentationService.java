@@ -155,6 +155,8 @@ public class XsdDocumentationService {
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css"), Paths.get(outputDirectory.getPath(), "assets", "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
 
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/plus.png"), Paths.get(outputDirectory.getPath(), "assets", "plus.png"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/logo.png"), Paths.get(outputDirectory.getPath(), "assets", "logo.png"), StandardCopyOption.REPLACE_EXISTING);
+
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -202,7 +204,7 @@ public class XsdDocumentationService {
                 context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
             }
 
-            final var result = templateEngine.process("templateComplexType", context);
+            final var result = templateEngine.process("complexTypes/templateComplexType", context);
             final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", complexType.getRawName() + ".html");
             logger.debug("File: " + outputFilePath.toFile().getAbsolutePath());
 
@@ -261,7 +263,7 @@ public class XsdDocumentationService {
                 }
                 context.setVariable("documentation", docTemp);
 
-                final var result = templateEngine.process("templateDetail", context);
+                final var result = templateEngine.process("details/templateDetail", context);
                 final var outputFileName = Paths.get(outputDirectory.getPath(), "details", currentElement.getPageName()).toFile().getAbsolutePath();
                 logger.debug("File: " + outputFileName);
 

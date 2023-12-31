@@ -32,7 +32,8 @@
                     <FontIcon iconColor="black" iconLiteral="bi-file-earmark"/>
                 </graphic>
             </Button>
-            <Button fx:id="openFile" contentDisplay="TOP" styleClass="big_button" text="_open File">
+            <Button fx:id="openFile" onAction="#loadXsdFile" contentDisplay="TOP" styleClass="big_button"
+                    text="_open File">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-folder2-open"/>
                 </graphic>
@@ -125,7 +126,11 @@
                             <Label>HTML</Label>
                         </HBox>
 
-                        <Button GridPane.rowIndex="3" GridPane.columnIndex="1" onAction="#generateDocumentation"
+                        <Label GridPane.rowIndex="3" GridPane.columnIndex="0" text="open file after creation:"/>
+                        <CheckBox fx:id="openFileAfterCreation" selected="true" GridPane.rowIndex="3"
+                                  GridPane.columnIndex="1"/>
+
+                        <Button GridPane.rowIndex="4" GridPane.columnIndex="1" onAction="#generateDocumentation"
                                 text="generate">
                             <graphic>
                                 <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill"/>

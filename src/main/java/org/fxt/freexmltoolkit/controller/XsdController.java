@@ -24,6 +24,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -39,6 +40,7 @@ import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdEnumeration;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -70,6 +72,9 @@ public class XsdController {
 
     @FXML
     TextArea documentation, sampleData;
+
+    @FXML
+    CheckBox openFileAfterCreation;
 
     String documentationString;
 
@@ -187,6 +192,10 @@ public class XsdController {
             try {
                 xsdDocumentationService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
                 xsdDocumentationService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
+
+                if (openFileAfterCreation.isSelected()) {
+                    Desktop.getDesktop().open(new File(selectedDocumentationOutputDirectory.getAbsolutePath() + "/index.html"));
+                }
             } catch (IOException ioException) {
                 logger.error(ioException.getMessage());
             }
