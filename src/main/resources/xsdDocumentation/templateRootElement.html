@@ -26,7 +26,7 @@
 </head>
 <body>
 
-<nav class="py-2 bg-body-tertiary border-bottom">
+<nav class="py-2 bg-body-tertiary border-bottom bg-newlight">
     <div class="container d-flex flex-wrap">
         <ul class="nav me-auto">
             <li class="nav-item"><a href="#" class="nav-link link-body-emphasis px-2 active"
@@ -42,42 +42,34 @@
 </nav>
 
 <div class="container m-3">
-    <div class="row m-1">
-        <div class="col-2">Date Created:</div>
-        <div class="col" th:text="${date}">2022-12-30</div>
-    </div>
-    <div class="row m-1">
-        <div class="col-2">Filename:</div>
-        <div class="col" th:utext="${filename}">filename.xsd</div>
-    </div>
-    <div class="row m-1">
-        <div class="col-2">Root Element Name</div>
-        <div class="col" th:utext="${rootElementName}">Root Element Name</div>
-    </div>
 
-    <div class="row m-1">
-        <div class="col-2">attributeFormDefault</div>
-        <div class="col" th:utext="${rootElement.getAttributeFormDefault()}">UNQUALIFIED</div>
-    </div>
+    <div class="grid">
+        <span>Date Created:</span>
+        <span th:text="${date}">2022-12-30</span>
 
-    <div class="row m-1">
-        <div class="col-2">elementFormDefault</div>
-        <div class="col" th:utext="${rootElement.getElementFormDefault()}">UNQUALIFIED</div>
-    </div>
+        <span>Filename:</span>
+        <span th:utext="${filename}">filename.xsd</span>
 
-    <div class="row m-1">
-        <div class="col-2">blockDefault</div>
-        <div class="col" th:utext="${rootElement.getBlockDefault()}">DEFAULT</div>
-    </div>
+        <span>Root Element Name</span>
+        <span th:utext="${rootElementName}">Root Element Name</span>
 
-    <div class="row m-1">
-        <div class="col-2">finalDefault</div>
-        <div class="col" th:utext="${rootElement.getFinalDefault()}">DEFAULT</div>
-    </div>
+        <span>Root Element Name</span>
+        <span th:utext="${rootElementName}">Root Element Name</span>
 
-    <div class="row m-1">
-        <div class="col-2">targetNamespace</div>
-        <div class="col" th:utext="${rootElement.getTargetNamespace()}">DEFAULT</div>
+        <span>attributeFormDefault</span>
+        <span th:utext="${rootElement.getAttributeFormDefault()}">UNQUALIFIED</span>
+
+        <span>elementFormDefault</span>
+        <span th:utext="${rootElement.getElementFormDefault()}">UNQUALIFIED</span>
+
+        <span>blockDefault</span>
+        <span th:utext="${rootElement.getBlockDefault()}">DEFAULT</span>
+
+        <span>finalDefault</span>
+        <span th:utext="${rootElement.getFinalDefault()}">DEFAULT</span>
+
+        <span>targetNamespace</span>
+        <span th:utext="${rootElement.getTargetNamespace()}">DEFAULT</span>
     </div>
 
     <hr/>

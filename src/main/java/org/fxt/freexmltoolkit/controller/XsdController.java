@@ -37,15 +37,12 @@ import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
-import org.xmlet.xsdparser.xsdelements.XsdComplexType;
-import org.xmlet.xsdparser.xsdelements.XsdSimpleType;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 
 public class XsdController {
     XmlService xmlService = XmlServiceImpl.getInstance();
@@ -70,12 +67,13 @@ public class XsdController {
     StackPane stackPane;
 
     @FXML
-    TextArea documentation, sampleData;
+    TextArea sampleData;
 
     @FXML
     CheckBox openFileAfterCreation;
 
-    String documentationString;
+    @FXML
+    ProgressBar pbDocumentation = new ProgressBar(0);
 
     private MainController parentController;
 
@@ -85,15 +83,10 @@ public class XsdController {
         this.parentController = parentController;
     }
 
-    final static int MAX_ALLOWED_DEPTH = 99;
-    private List<XsdComplexType> xsdComplexTypes;
-    private List<XsdSimpleType> xsdSimpleTypes;
-
 
     @FXML
     private void initialize() {
-        logger.debug("Bin im xsdController init");
-
+        // logger.debug("Bin im xsdController init");
         codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
@@ -197,7 +190,9 @@ public class XsdController {
             XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
             try {
                 xsdDocumentationService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
+                pbDocumentation.setProgress(0.1);
                 xsdDocumentationService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
+                pbDocumentation.setProgress(1);
 
                 if (openFileAfterCreation.isSelected()) {
                     Desktop.getDesktop().open(new File(selectedDocumentationOutputDirectory.getAbsolutePath() + "/index.html"));

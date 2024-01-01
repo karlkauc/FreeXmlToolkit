@@ -97,51 +97,50 @@
             <graphic>
                 <FontIcon iconLiteral="win10-notebook" iconSize="16"/>
             </graphic>
-            <HBox>
-                <VBox style="-fx-padding: 10px;">
-                    <GridPane hgap="10" vgap="10">
-                        <Label GridPane.rowIndex="0" GridPane.columnIndex="0" text="XSD File: "/>
-                        <HBox GridPane.rowIndex="0" GridPane.columnIndex="1">
-                            <TextField fx:id="xsdFilePath" text="XSD File"/>
-                            <Button onAction="#loadXsdFile">
-                                <graphic>
-                                    <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
-                                </graphic>
-                            </Button>
-                        </HBox>
-
-                        <Label GridPane.rowIndex="1" GridPane.columnIndex="0" text="Output Folder"/>
-                        <HBox GridPane.rowIndex="1" GridPane.columnIndex="1">
-                            <TextField fx:id="documentationOutputDirPath" text="File..."/>
-                            <Button onAction="#openOutputFolderDialog">
-                                <graphic>
-                                    <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
-                                </graphic>
-                            </Button>
-                        </HBox>
-
-                        <Label GridPane.rowIndex="2" GridPane.columnIndex="0" text="Output Format"/>
-                        <HBox GridPane.rowIndex="2" GridPane.columnIndex="1">
-                            <RadioButton/>
-                            <Label>HTML</Label>
-                        </HBox>
-
-                        <Label GridPane.rowIndex="3" GridPane.columnIndex="0" text="open file after creation:"/>
-                        <CheckBox fx:id="openFileAfterCreation" selected="true" GridPane.rowIndex="3"
-                                  GridPane.columnIndex="1"/>
-
-                        <Button GridPane.rowIndex="4" GridPane.columnIndex="1" onAction="#generateDocumentation"
-                                text="generate">
+            <VBox style="-fx-padding: 10px;">
+                <GridPane hgap="10" vgap="10">
+                    <Label GridPane.rowIndex="0" GridPane.columnIndex="0" text="XSD File: "/>
+                    <HBox GridPane.rowIndex="0" GridPane.columnIndex="1">
+                        <TextField fx:id="xsdFilePath" text="XSD File"/>
+                        <Button onAction="#loadXsdFile">
                             <graphic>
-                                <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill"/>
+                                <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
                             </graphic>
                         </Button>
+                    </HBox>
 
-                    </GridPane>
-                    <Button onAction="#test" text="test"/>
-                </VBox>
-                <TextArea fx:id="documentation" HBox.hgrow="ALWAYS"/>
-            </HBox>
+                    <Label GridPane.rowIndex="1" GridPane.columnIndex="0" text="Output Folder"/>
+                    <HBox GridPane.rowIndex="1" GridPane.columnIndex="1">
+                        <TextField fx:id="documentationOutputDirPath" text="File..."/>
+                        <Button onAction="#openOutputFolderDialog">
+                            <graphic>
+                                <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+
+                    <Label GridPane.rowIndex="2" GridPane.columnIndex="0" text="Output Format"/>
+                    <HBox GridPane.rowIndex="2" GridPane.columnIndex="1">
+                        <RadioButton/>
+                        <Label>HTML</Label>
+                    </HBox>
+
+                    <Label GridPane.rowIndex="3" GridPane.columnIndex="0" text="open file after creation:"/>
+                    <CheckBox fx:id="openFileAfterCreation" selected="true" GridPane.rowIndex="3"
+                              GridPane.columnIndex="1"/>
+
+                    <Button GridPane.rowIndex="4" GridPane.columnIndex="1" onAction="#generateDocumentation"
+                            text="generate">
+                        <graphic>
+                            <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill"/>
+                        </graphic>
+                    </Button>
+
+                </GridPane>
+                <ProgressBar fx:id="pbDocumentation"/>
+
+                <Button onAction="#test" text="test"/>
+            </VBox>
         </Tab>
         <Tab closable="false" text="generate Example data">
             <graphic>
