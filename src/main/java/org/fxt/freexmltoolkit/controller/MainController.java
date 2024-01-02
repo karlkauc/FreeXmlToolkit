@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +53,7 @@ public class MainController {
     XmlController xmlController;
 
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    public final ExecutorService service = Executors.newCachedThreadPool();
 
     @FXML
     Label version;
@@ -102,7 +104,18 @@ public class MainController {
                 scheduler.shutdownNow();
             }
         } catch (InterruptedException e) {
+            logger.info("Forcing scheduler shutdown");
             scheduler.shutdownNow();
+        }
+
+        service.shutdown();
+        try {
+            if (!service.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                service.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            logger.info("Forcing service shutdown");
+            service.shutdownNow();
         }
     }
 
@@ -166,6 +179,7 @@ public class MainController {
                 } else if (aClass.equals(WelcomeController.class)) {
                     ((WelcomeController) loader.getController()).setParentController(this);
                 } else if (aClass.equals(XsdController.class)) {
+                    logger.debug("set XSD Controller");
                     ((XsdController) loader.getController()).setParentController(this);
                 }
 

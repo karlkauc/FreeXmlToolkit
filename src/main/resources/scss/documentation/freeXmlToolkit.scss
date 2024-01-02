@@ -1,6 +1,6 @@
 /*!
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,13 +32,25 @@ $background-color: #dcdcdc;
 
 $custom-theme-colors: (
         "altlight": #f2f2f2,
-        "newlight": #2f2f2f
+        "newlight": #2f2f2f,
+        "color1": $color1,
+        "color2": $color2,
+        "color3": $color3,
+        "color4": $color4,
+        "color5": $color5
 );
 
 $theme-colors: map-merge($custom-theme-colors, $theme-colors);
+
+$font-family-base: Roboto;
 
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 @import "../node_modules/bootstrap-icons/font/bootstrap-icons";
 
+@font-face {
+  font-family: 'Roboto';
+  font-weight: normal;
+  src: url('Roboto-Regular.ttf');
+}
 

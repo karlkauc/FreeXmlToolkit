@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 public class SVGTest {
 
@@ -39,7 +40,7 @@ public class SVGTest {
         logger.debug("DRINNEN!!!");
 
         xsdDocumentationService.setXsdFilePath("src/test/resources/FundsXML_306.xsd");
-        xsdDocumentationService.generateXsdDocumentation(outputDir);
+        xsdDocumentationService.generateXsdDocumentation(outputDir, Optional.empty());
     }
 
 

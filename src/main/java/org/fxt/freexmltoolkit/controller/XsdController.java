@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -43,6 +44,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 public class XsdController {
     XmlService xmlService = XmlServiceImpl.getInstance();
@@ -61,7 +63,7 @@ public class XsdController {
     TextField documentationOutputDirPath, xsdFilePath;
 
     @FXML
-    Label schemaValidText;
+    Label schemaValidText, statusText;
 
     @FXML
     StackPane stackPane;
@@ -86,7 +88,6 @@ public class XsdController {
 
     @FXML
     private void initialize() {
-        // logger.debug("Bin im xsdController init");
         codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
@@ -157,9 +158,15 @@ public class XsdController {
     @FXML
     private void test() {
         final var testFilePath = Paths.get("examples/xsd/FundsXML4.xsd");
+        final var outputFilePath = Paths.get("output/test");
 
         if (Files.exists(testFilePath)) {
-            xmlService.setCurrentXsdFile(testFilePath.toFile());
+            this.xmlService.setCurrentXsdFile(testFilePath.toFile());
+            this.xsdFilePath.setText(testFilePath.toFile().getName());
+
+            this.selectedDocumentationOutputDirectory = outputFilePath.toFile();
+            this.documentationOutputDirPath.setText(outputFilePath.toFile().getAbsolutePath());
+
             generateDocumentation();
         } else {
             logger.debug("test file not found: {}", testFilePath.toFile().getAbsolutePath());
@@ -184,21 +191,56 @@ public class XsdController {
 
     @FXML
     private void generateDocumentation() {
-        if (selectedDocumentationOutputDirectory != null && selectedDocumentationOutputDirectory.exists()
+        if (selectedDocumentationOutputDirectory != null
                 && xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
 
-            XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
-            try {
-                xsdDocumentationService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
-                pbDocumentation.setProgress(0.1);
-                xsdDocumentationService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
-                pbDocumentation.setProgress(1);
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() {
+                    logger.debug("bin im call: {}", Thread.currentThread().getName());
+                    logger.debug("XSD File: {}", xmlService.getCurrentXsdFile().getAbsolutePath());
 
-                if (openFileAfterCreation.isSelected()) {
-                    Desktop.getDesktop().open(new File(selectedDocumentationOutputDirectory.getAbsolutePath() + "/index.html"));
+                    XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
+                    logger.debug("Nach xsddocumenation");
+
+                    try {
+                        logger.debug("im try");
+                        xsdDocumentationService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
+                        updateProgress(0, 100);
+                        updateMessage("File Loaded");
+                        // pbDocumentation.setProgress(0.1);
+                        logger.debug("vor generation");
+                        xsdDocumentationService.generateXsdDocumentation(selectedDocumentationOutputDirectory, Optional.empty());
+                        // pbDocumentation.setProgress(1);
+                        updateMessage("Completed");
+
+                        if (openFileAfterCreation.isSelected()) {
+                            Desktop.getDesktop().open(new File(selectedDocumentationOutputDirectory.getAbsolutePath() + "/index.html"));
+                        }
+                    } catch (IOException ex) {
+                        logger.error(ex.getMessage());
+                    }
+                    return null;
                 }
-            } catch (IOException ioException) {
-                logger.error(ioException.getMessage());
+            };
+
+            pbDocumentation.progressProperty().bind(task.progressProperty());
+            statusText.textProperty().bind(task.messageProperty());
+            if (parentController != null) {
+                parentController.service.execute(() -> {
+                    logger.debug("TEST: {}", Thread.currentThread().getName());
+                });
+
+                parentController.service.execute(task);
+            } else {
+                logger.debug("parent controller is null");
+            }
+        } else {
+            if (selectedDocumentationOutputDirectory == null) {
+                logger.debug("selected output Directory is null");
+            }
+            if (xmlService.getCurrentXsdFile() == null) {
+                logger.debug("current xsd File is null");
             }
         }
     }

@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import javafx.scene.control.ProgressBar;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,10 +47,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
@@ -141,7 +140,8 @@ public class XsdDocumentationService {
         this.xsdFilePath = xsdFilePath;
     }
 
-    public void generateXsdDocumentation(File outputDirectory) throws IOException {
+    public void generateXsdDocumentation(File outputDirectory, Optional<ProgressBar> optionalProgressBar) throws IOException {
+        logger.debug("Bin in generateXsdDocumentation");
         Files.createDirectories(outputDirectory.toPath());
         Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
         Files.createDirectories(Paths.get(outputDirectory.getPath(), "details"));
@@ -157,13 +157,18 @@ public class XsdDocumentationService {
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/plus.png"), Paths.get(outputDirectory.getPath(), "assets", "plus.png"), StandardCopyOption.REPLACE_EXISTING);
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/logo.png"), Paths.get(outputDirectory.getPath(), "assets", "logo.png"), StandardCopyOption.REPLACE_EXISTING);
 
+            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/Roboto-Regular.ttf"), Paths.get(outputDirectory.getPath(), "assets", "Roboto-Regular.ttf"), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
 
+        optionalProgressBar.ifPresent(progressBar -> progressBar.setProgress(0.2));
         processXsd();
+        optionalProgressBar.ifPresent(progressBar -> progressBar.setProgress(0.6));
         generateRootPage(outputDirectory);
+        optionalProgressBar.ifPresent(progressBar -> progressBar.setProgress(0.7));
         generateComplexTypePages(outputDirectory);
+        optionalProgressBar.ifPresent(progressBar -> progressBar.setProgress(0.9));
         generateDetailPages(outputDirectory);
     }
 

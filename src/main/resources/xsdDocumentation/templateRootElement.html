@@ -1,6 +1,6 @@
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
-  ~ Copyright (c) Karl Kauc 2023.
+  ~ Copyright (c) Karl Kauc 2024.
   ~
   ~  Licensed under the Apache License, Version 2.0 (the "License");
   ~  you may not use this file except in compliance with the License.
@@ -29,20 +29,56 @@
 <nav class="py-2 bg-body-tertiary border-bottom bg-newlight">
     <div class="container d-flex flex-wrap">
         <ul class="nav me-auto">
-            <li class="nav-item"><a href="#" class="nav-link link-body-emphasis px-2 active"
-                                    aria-current="page">Home</a></li>
-            <li class="nav-item"><a href="#" class="nav-link link-body-emphasis px-2">Complex Types</a></li>
-            <li class="nav-item"><a href="#" class="nav-link link-body-emphasis px-2">Simple Types</a></li>
+            <li class="nav-item">
+                <a href="#" class="nav-link link-body-emphasis px-2 active"
+                   aria-current="page">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         class="bi bi-house" viewBox="0 0 16 16">
+                        <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/>
+                    </svg>
+                    Home
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link link-body-emphasis px-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         class="bi bi-diamond-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                              d="M6.95.435c.58-.58 1.52-.58 2.1 0l6.515 6.516c.58.58.58 1.519 0 2.098L9.05 15.565c-.58.58-1.519.58-2.098 0L.435 9.05a1.482 1.482 0 0 1 0-2.098L6.95.435z"/>
+                    </svg>
+                    Complex Types
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link link-body-emphasis px-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         class="bi bi-diamond" viewBox="0 0 16 16">
+                        <path d="M6.95.435c.58-.58 1.52-.58 2.1 0l6.515 6.516c.58.58.58 1.519 0 2.098L9.05 15.565c-.58.58-1.519.58-2.098 0L.435 9.05a1.482 1.482 0 0 1 0-2.098L6.95.435zm1.4.7a.495.495 0 0 0-.7 0L1.134 7.65a.495.495 0 0 0 0 .7l6.516 6.516a.495.495 0 0 0 .7 0l6.516-6.516a.495.495 0 0 0 0-.7L8.35 1.134z"/>
+                    </svg>
+                    Simple Types</a>
+            </li>
         </ul>
         <ul class="nav">
-            <li class="nav-item"><a href="https://github.com/karlkauc/FreeXmlToolkit"
-                                    class="nav-link link-body-emphasis px-2">FreeXmlToolKit</a></li>
+            <li class="nav-item">
+                <a href="https://github.com/karlkauc/FreeXmlToolkit"
+                   target="_blank"
+                   class="nav-link link-body-emphasis px-2">
+                    <img src="assets/logo.png" alt="logo"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                              d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
+                        <path fill-rule="evenodd"
+                              d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
+                    </svg>
+                    FreeXmlToolKit
+                </a>
+            </li>
         </ul>
     </div>
 </nav>
 
-<div class="container m-3">
-
+<div class="container">
     <div class="grid">
         <span>Date Created:</span>
         <span th:text="${date}">2022-12-30</span>
@@ -70,6 +106,9 @@
 
         <span>targetNamespace</span>
         <span th:utext="${rootElement.getTargetNamespace()}">DEFAULT</span>
+
+        <span>noNamespaceLocation</span>
+        <span>DEFAULT</span>
     </div>
 
     <hr/>
@@ -111,6 +150,5 @@
 
 </div>
 <script src="assets/bootstrap.bundle.min.js"></script>
-<script src="assets/prism.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -48,10 +48,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GenerateXsdHtmlDocumentationTest {
     final static String fileName = "src/test/resources/FundsXML_420.xsd";
@@ -94,7 +91,7 @@ public class GenerateXsdHtmlDocumentationTest {
         xsdDocumentationService.processXsd();
 
         logger.debug("vor generate root element");
-        xsdDocumentationService.generateXsdDocumentation(new File("output/test123"));
+        xsdDocumentationService.generateXsdDocumentation(new File("output/test123"), Optional.empty());
 
     }
 
