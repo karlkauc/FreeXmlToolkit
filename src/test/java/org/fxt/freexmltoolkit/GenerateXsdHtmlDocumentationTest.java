@@ -48,7 +48,10 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GenerateXsdHtmlDocumentationTest {
     final static String fileName = "src/test/resources/FundsXML_420.xsd";
@@ -91,7 +94,7 @@ public class GenerateXsdHtmlDocumentationTest {
         xsdDocumentationService.processXsd();
 
         logger.debug("vor generate root element");
-        xsdDocumentationService.generateXsdDocumentation(new File("output/test123"), Optional.empty());
+        xsdDocumentationService.generateXsdDocumentation(new File("output/test123"));
 
     }
 

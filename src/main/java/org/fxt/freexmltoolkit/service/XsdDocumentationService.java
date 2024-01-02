@@ -18,7 +18,6 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import javafx.scene.control.ProgressBar;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,8 +46,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
@@ -140,7 +141,7 @@ public class XsdDocumentationService {
         this.xsdFilePath = xsdFilePath;
     }
 
-    public void generateXsdDocumentation(File outputDirectory, Optional<ProgressBar> optionalProgressBar) throws IOException {
+    public void generateXsdDocumentation(File outputDirectory) throws IOException {
         logger.debug("Bin in generateXsdDocumentation");
         Files.createDirectories(outputDirectory.toPath());
         Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
@@ -162,13 +163,9 @@ public class XsdDocumentationService {
             throw new RuntimeException(e.getMessage(), e);
         }
 
-        optionalProgressBar.ifPresent(progressBar -> progressBar.setProgress(0.2));
         processXsd();
-        optionalProgressBar.ifPresent(progressBar -> progressBar.setProgress(0.6));
         generateRootPage(outputDirectory);
-        optionalProgressBar.ifPresent(progressBar -> progressBar.setProgress(0.7));
         generateComplexTypePages(outputDirectory);
-        optionalProgressBar.ifPresent(progressBar -> progressBar.setProgress(0.9));
         generateDetailPages(outputDirectory);
     }
 

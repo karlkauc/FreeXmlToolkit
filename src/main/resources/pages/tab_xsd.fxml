@@ -85,7 +85,8 @@
             <graphic>
                 <FontIcon iconLiteral="bi-card-text"/>
             </graphic>
-            <StackPane fx:id="stackPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+            <StackPane style="-fx-background-color: white;" fx:id="stackPane" AnchorPane.bottomAnchor="0"
+                       AnchorPane.leftAnchor="0"
                        AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
         </Tab>
         <Tab closable="false" disable="true" text="Graphic">
@@ -97,7 +98,7 @@
             <graphic>
                 <FontIcon iconLiteral="win10-notebook" iconSize="16"/>
             </graphic>
-            <VBox style="-fx-padding: 10px;">
+            <VBox style="-fx-padding: 10px; -fx-background-color: white;">
                 <GridPane hgap="10" vgap="10">
                     <Label GridPane.rowIndex="0" GridPane.columnIndex="0" text="XSD File: "/>
                     <HBox GridPane.rowIndex="0" GridPane.columnIndex="1">
@@ -121,8 +122,7 @@
 
                     <Label GridPane.rowIndex="2" GridPane.columnIndex="0" text="Output Format"/>
                     <HBox GridPane.rowIndex="2" GridPane.columnIndex="1">
-                        <RadioButton/>
-                        <Label>HTML</Label>
+                        <RadioButton text="HTML" selected="true"/>
                     </HBox>
 
                     <Label GridPane.rowIndex="3" GridPane.columnIndex="0" text="open file after creation:"/>
@@ -137,8 +137,13 @@
                     </Button>
 
                 </GridPane>
-                <ProgressBar fx:id="pbDocumentation"/>
-                <Label fx:id="statusText"/>
+                <Label fx:id="statusText" text="Status..."/>
+                <ProgressIndicator minWidth="400" fx:id="progressDocumentation" visible="false" VBox.vgrow="ALWAYS"/>
+                <Button fx:id="openDocFolder" text="Open Folder" disable="true">
+                    <graphic>
+                        <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
+                    </graphic>
+                </Button>
 
                 <Button onAction="#test" text="test"/>
             </VBox>

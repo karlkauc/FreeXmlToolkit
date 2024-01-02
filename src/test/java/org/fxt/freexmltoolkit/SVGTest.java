@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 
 public class SVGTest {
 
@@ -40,7 +39,7 @@ public class SVGTest {
         logger.debug("DRINNEN!!!");
 
         xsdDocumentationService.setXsdFilePath("src/test/resources/FundsXML_306.xsd");
-        xsdDocumentationService.generateXsdDocumentation(outputDir, Optional.empty());
+        xsdDocumentationService.generateXsdDocumentation(outputDir);
     }
 
 

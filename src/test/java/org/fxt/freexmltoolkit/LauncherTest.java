@@ -53,7 +53,7 @@ public class LauncherTest {
     private static final long TIMEOUT = 2000;
 
     @Test
-    public void testNotification() throws IOException {
+    public void testNotification() {
         MessageParams p = new MessageParams();
         p.setMessage("Hello World");
         p.setType(MessageType.Info);

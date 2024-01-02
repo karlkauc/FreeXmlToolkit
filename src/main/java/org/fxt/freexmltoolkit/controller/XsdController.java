@@ -44,7 +44,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 public class XsdController {
     XmlService xmlService = XmlServiceImpl.getInstance();
@@ -53,11 +52,10 @@ public class XsdController {
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
 
     @FXML
-    Button newFile, openFile, saveFile, prettyPrint, validateSchema;
+    Button newFile, openFile, saveFile, prettyPrint, validateSchema, openDocFolder;
 
     DirectoryChooser documentationOutputDirectory;
     File selectedDocumentationOutputDirectory;
-
 
     @FXML
     TextField documentationOutputDirPath, xsdFilePath;
@@ -75,7 +73,7 @@ public class XsdController {
     CheckBox openFileAfterCreation;
 
     @FXML
-    ProgressBar pbDocumentation = new ProgressBar(0);
+    ProgressIndicator progressDocumentation = new ProgressIndicator(0);
 
     private MainController parentController;
 
@@ -85,17 +83,15 @@ public class XsdController {
         this.parentController = parentController;
     }
 
-
     @FXML
     private void initialize() {
-        codeArea = new CodeArea();
+        // codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             if (newText.length() < 1024 * 1024 * 2) { // MAX 2 MB große Files
                 logger.debug("Format Text begin!");
                 Platform.runLater(() -> {
                     codeArea.setStyleSpans(0, XmlEditor.computeHighlighting(newText));
-                    logger.debug("FINISH 1");
                 });
                 logger.debug("Format Text fertig!");
             }
@@ -157,7 +153,7 @@ public class XsdController {
 
     @FXML
     private void test() {
-        final var testFilePath = Paths.get("examples/xsd/FundsXML4.xsd");
+        final var testFilePath = Paths.get("examples/xsd/FundsXML_306.xsd");
         final var outputFilePath = Paths.get("output/test");
 
         if (Files.exists(testFilePath)) {
@@ -192,27 +188,34 @@ public class XsdController {
     @FXML
     private void generateDocumentation() {
         if (selectedDocumentationOutputDirectory != null
-                && xmlService.getCurrentXsdFile() != null && xmlService.getCurrentXsdFile().exists()) {
+                && xmlService.getCurrentXsdFile() != null
+                && xmlService.getCurrentXsdFile().exists()) {
+
+            progressDocumentation.setVisible(true);
+            progressDocumentation.setProgress(0.1);
 
             Task<Void> task = new Task<>() {
                 @Override
                 protected Void call() {
-                    logger.debug("bin im call: {}", Thread.currentThread().getName());
                     logger.debug("XSD File: {}", xmlService.getCurrentXsdFile().getAbsolutePath());
 
                     XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
-                    logger.debug("Nach xsddocumenation");
-
                     try {
-                        logger.debug("im try");
                         xsdDocumentationService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
-                        updateProgress(0, 100);
+                        updateProgress(10, 100);
                         updateMessage("File Loaded");
-                        // pbDocumentation.setProgress(0.1);
-                        logger.debug("vor generation");
-                        xsdDocumentationService.generateXsdDocumentation(selectedDocumentationOutputDirectory, Optional.empty());
-                        // pbDocumentation.setProgress(1);
+                        xsdDocumentationService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
                         updateMessage("Completed");
+                        updateProgress(100, 100);
+
+                        openDocFolder.setDisable(false);
+                        openDocFolder.setOnAction((event) -> {
+                            try {
+                                Desktop.getDesktop().open(selectedDocumentationOutputDirectory);
+                            } catch (IOException ioException) {
+                                logger.error(ioException.getMessage());
+                            }
+                        });
 
                         if (openFileAfterCreation.isSelected()) {
                             Desktop.getDesktop().open(new File(selectedDocumentationOutputDirectory.getAbsolutePath() + "/index.html"));
@@ -224,13 +227,9 @@ public class XsdController {
                 }
             };
 
-            pbDocumentation.progressProperty().bind(task.progressProperty());
+            progressDocumentation.progressProperty().bind(task.progressProperty());
             statusText.textProperty().bind(task.messageProperty());
             if (parentController != null) {
-                parentController.service.execute(() -> {
-                    logger.debug("TEST: {}", Thread.currentThread().getName());
-                });
-
                 parentController.service.execute(task);
             } else {
                 logger.debug("parent controller is null");
