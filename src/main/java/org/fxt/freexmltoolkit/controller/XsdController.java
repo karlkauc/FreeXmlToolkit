@@ -70,7 +70,7 @@ public class XsdController {
     TextArea sampleData;
 
     @FXML
-    CheckBox openFileAfterCreation;
+    CheckBox openFileAfterCreation, useMarkdownRenderer;
 
     @FXML
     ProgressIndicator progressDocumentation = new ProgressIndicator(0);
@@ -85,7 +85,6 @@ public class XsdController {
 
     @FXML
     private void initialize() {
-        // codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             if (newText.length() < 1024 * 1024 * 2) { // MAX 2 MB große Files
@@ -202,9 +201,30 @@ public class XsdController {
                     XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
                     try {
                         xsdDocumentationService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
-                        updateProgress(10, 100);
-                        updateMessage("File Loaded");
-                        xsdDocumentationService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
+                        updateProgress(1, 100);
+                        updateMessage("Copy Resources");
+                        xsdDocumentationService.copyResources(selectedDocumentationOutputDirectory);
+
+                        updateProgress(2, 100);
+                        updateMessage("Analyzing File");
+                        xsdDocumentationService.processXsd();
+
+                        updateProgress(50, 100);
+                        updateMessage("generating Root Page");
+                        xsdDocumentationService.generateRootPage(selectedDocumentationOutputDirectory);
+
+                        updateProgress(50, 100);
+                        updateMessage("generating Root Page");
+                        xsdDocumentationService.generateRootPage(selectedDocumentationOutputDirectory);
+
+                        updateProgress(75, 100);
+                        updateMessage("generating complex types");
+                        xsdDocumentationService.generateComplexTypePages(selectedDocumentationOutputDirectory);
+
+                        updateProgress(90, 100);
+                        updateMessage("generating details pages");
+                        xsdDocumentationService.generateDetailPages(selectedDocumentationOutputDirectory);
+
                         updateMessage("Completed");
                         updateProgress(100, 100);
 

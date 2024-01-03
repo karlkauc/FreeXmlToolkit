@@ -141,15 +141,24 @@ public class XsdDocumentationService {
         this.xsdFilePath = xsdFilePath;
     }
 
-    public void generateXsdDocumentation(File outputDirectory) throws IOException {
+    public void generateXsdDocumentation(File outputDirectory) {
         logger.debug("Bin in generateXsdDocumentation");
-        Files.createDirectories(outputDirectory.toPath());
-        Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
-        Files.createDirectories(Paths.get(outputDirectory.getPath(), "details"));
-        Files.createDirectories(Paths.get(outputDirectory.getPath(), "complexTypes"));
-        Files.createDirectories(Paths.get(outputDirectory.getPath(), "simpleTypes"));
 
+        copyResources(outputDirectory);
+        processXsd();
+        generateRootPage(outputDirectory);
+        generateComplexTypePages(outputDirectory);
+        generateDetailPages(outputDirectory);
+    }
+
+    public void copyResources(File outputDirectory) {
         try {
+            Files.createDirectories(outputDirectory.toPath());
+            Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
+            Files.createDirectories(Paths.get(outputDirectory.getPath(), "details"));
+            Files.createDirectories(Paths.get(outputDirectory.getPath(), "complexTypes"));
+            Files.createDirectories(Paths.get(outputDirectory.getPath(), "simpleTypes"));
+
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.bundle.min.js"), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.bundle.min.js"), StandardCopyOption.REPLACE_EXISTING);
             Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.js"), Paths.get(outputDirectory.getPath(), "assets", "prism.js"), StandardCopyOption.REPLACE_EXISTING);
 
@@ -162,15 +171,9 @@ public class XsdDocumentationService {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
-
-        processXsd();
-        generateRootPage(outputDirectory);
-        generateComplexTypePages(outputDirectory);
-        generateDetailPages(outputDirectory);
     }
 
-    private void generateRootPage(File outputDirectory) {
-        logger.debug("ROOT ELEMENT");
+    public void generateRootPage(File outputDirectory) {
         final var rootElementName = elements.get(0).getName();
 
         var context = new Context();
@@ -195,7 +198,7 @@ public class XsdDocumentationService {
         }
     }
 
-    private void generateComplexTypePages(File outputDirectory) {
+    public void generateComplexTypePages(File outputDirectory) {
         logger.debug("Complex Types");
 
         for (var complexType : getXsdComplexTypes()) {
@@ -233,7 +236,7 @@ public class XsdDocumentationService {
     }
 
 
-    private void generateDetailPages(File outputDirectory) {
+    public void generateDetailPages(File outputDirectory) {
         for (String key : this.getExtendedXsdElements().keySet()) {
             var currentElement = this.getExtendedXsdElements().get(key);
 
@@ -497,7 +500,7 @@ public class XsdDocumentationService {
         }
     }
 
-    void getXsdAbstractElementInfo(int level,
+    public void getXsdAbstractElementInfo(int level,
                                    XsdAbstractElement xsdAbstractElement,
                                    List<String> prevElementTypes,
                                    List<String> prevElementPath,
