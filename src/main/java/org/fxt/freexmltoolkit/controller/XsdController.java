@@ -70,10 +70,13 @@ public class XsdController {
     TextArea sampleData;
 
     @FXML
-    CheckBox openFileAfterCreation, useMarkdownRenderer;
+    CheckBox openFileAfterCreation, useMarkdownRenderer, createExampleData;
 
     @FXML
     ProgressIndicator progressDocumentation = new ProgressIndicator(0);
+
+    @FXML
+    ChoiceBox<String> grafikFormat;
 
     private MainController parentController;
 
@@ -163,6 +166,12 @@ public class XsdController {
             this.documentationOutputDirPath.setText(outputFilePath.toFile().getAbsolutePath());
 
             generateDocumentation();
+
+            try {
+                this.codeArea.replaceText(0, 0, this.xmlService.getCurrentXsdString());
+            } catch (IOException ioException) {
+                logger.error(ioException.getMessage());
+            }
         } else {
             logger.debug("test file not found: {}", testFilePath.toFile().getAbsolutePath());
         }

@@ -18,10 +18,12 @@
   ~
   -->
 
+<?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
+<?import java.lang.String?>
 <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
       xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.XsdController">
@@ -32,7 +34,7 @@
                     <FontIcon iconColor="black" iconLiteral="bi-file-earmark"/>
                 </graphic>
             </Button>
-            <Button fx:id="openFile" onAction="#loadXsdFile" contentDisplay="TOP" styleClass="big_button"
+            <Button fx:id="openFile" contentDisplay="TOP" onAction="#loadXsdFile" styleClass="big_button"
                     text="_open File">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-folder2-open"/>
@@ -85,9 +87,8 @@
             <graphic>
                 <FontIcon iconLiteral="bi-card-text"/>
             </graphic>
-            <StackPane style="-fx-background-color: white;" fx:id="stackPane" AnchorPane.bottomAnchor="0"
-                       AnchorPane.leftAnchor="0"
-                       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+            <StackPane fx:id="stackPane" style="-fx-background-color: white;" AnchorPane.bottomAnchor="0"
+                       AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
         </Tab>
         <Tab closable="false" disable="true" text="Graphic">
             <graphic>
@@ -100,9 +101,9 @@
             </graphic>
             <VBox style="-fx-padding: 20px; -fx-background-color: white;">
                 <GridPane hgap="10" vgap="10">
-                    <Label GridPane.rowIndex="0" GridPane.columnIndex="0" text="XSD File: "/>
-                    <HBox GridPane.rowIndex="0" GridPane.columnIndex="1">
-                        <TextField fx:id="xsdFilePath" text="XSD File"/>
+                    <Label text="XSD File: " GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <HBox GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <TextField text="XSD File" fx:id="xsdFilePath"/>
                         <Button onAction="#loadXsdFile">
                             <graphic>
                                 <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
@@ -110,8 +111,8 @@
                         </Button>
                     </HBox>
 
-                    <Label GridPane.rowIndex="1" GridPane.columnIndex="0" text="Output Folder"/>
-                    <HBox GridPane.rowIndex="1" GridPane.columnIndex="1">
+                    <Label text="Output Folder" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
                         <TextField fx:id="documentationOutputDirPath" text="File..."/>
                         <Button onAction="#openOutputFolderDialog">
                             <graphic>
@@ -120,37 +121,67 @@
                         </Button>
                     </HBox>
 
-                    <Label GridPane.rowIndex="2" GridPane.columnIndex="0" text="Output Format"/>
-                    <HBox GridPane.rowIndex="2" GridPane.columnIndex="1">
-                        <RadioButton text="HTML" selected="true"/>
-                        <RadioButton text="Word" disable="true"/>
-                        <RadioButton text="PDF" disable="true"/>
+                    <Label text="Output Format" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <RadioButton selected="true" text="HTML"/>
+                        <RadioButton disable="true" text="Word"/>
+                        <RadioButton disable="true" text="PDF"/>
                     </HBox>
 
-                    <Label GridPane.rowIndex="3" GridPane.columnIndex="0" text="use Markdown Renderer"/>
-                    <CheckBox fx:id="useMarkdownRenderer" selected="true" GridPane.rowIndex="3"
-                              GridPane.columnIndex="1"/>
+                    <Label text="use Markdown Renderer" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                    <CheckBox fx:id="useMarkdownRenderer" selected="true" GridPane.columnIndex="1"
+                              GridPane.rowIndex="3"/>
 
-                    <Label GridPane.rowIndex="4" GridPane.columnIndex="0" text="open file after creation:"/>
-                    <CheckBox fx:id="openFileAfterCreation" selected="true" GridPane.rowIndex="4"
-                              GridPane.columnIndex="1"/>
+                    <Label text="open file after creation" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                    <CheckBox fx:id="openFileAfterCreation" selected="true" GridPane.columnIndex="1"
+                              GridPane.rowIndex="4"/>
 
-                    <Label GridPane.rowIndex="5" GridPane.columnIndex="0" text="restrict to language:"/>
-                    <TextField GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+                    <Label text="create Example data if missing" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                    <CheckBox fx:id="createExampleData" selected="true" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+                    <Label text="restrict to language" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+                    <TextField GridPane.columnIndex="1" GridPane.rowIndex="6"/>
                     <!--  pattern: [a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})* -->
 
-                    <Button GridPane.rowIndex="6" GridPane.columnIndex="1" onAction="#generateDocumentation"
-                            text="generate">
+                    <Label text="Grafik format" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+                    <ChoiceBox fx:id="grafikFormat" value="SVG" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                        <items>
+                            <FXCollections fx:factory="observableArrayList">
+                                <String fx:value="SVG"/>
+                                <String fx:value="PNG"/>
+                                <String fx:value="JPG"/>
+                            </FXCollections>
+                        </items>
+                    </ChoiceBox>
+
+                    <Button onAction="#generateDocumentation" text="generate" GridPane.columnIndex="1"
+                            GridPane.rowIndex="8">
                         <graphic>
                             <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill"/>
                         </graphic>
                     </Button>
 
+                    <columnConstraints>
+                        <ColumnConstraints/>
+                        <ColumnConstraints/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                    </rowConstraints>
+
                 </GridPane>
-                <Label fx:id="statusText" text="Status..." styleClass="h3"/>
-                <ProgressIndicator minHeight="100" minWidth="100" fx:id="progressDocumentation" visible="false"
+                <Label fx:id="statusText" styleClass="h3" text="Status..."/>
+                <ProgressIndicator fx:id="progressDocumentation" minHeight="100" minWidth="100" visible="false"
                                    VBox.vgrow="ALWAYS"/>
-                <Button fx:id="openDocFolder" text="Open Folder" disable="true">
+                <Button fx:id="openDocFolder" disable="true" text="Open Folder">
                     <graphic>
                         <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
                     </graphic>

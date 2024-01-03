@@ -25,6 +25,8 @@ plugins {
     id("com.github.ben-manes.versions") version "0.50.0"
 
     id("org.beryx.jlink") version "3.0.1"
+
+    id("org.graalvm.buildtools.native") version "0.9.28"
 }
 
 application {
@@ -37,6 +39,7 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
     maven {
         url = uri("https://repo.eclipse.org/content/groups/releases/")
     }
@@ -100,8 +103,8 @@ dependencies {
     implementation("org.apache.poi:poi-ooxml:latest.release")
 
     // Misc
-    implementation("org.apache.commons:commons-lang3:latest.release")
-    implementation("commons-io:commons-io:latest.release")
+    implementation("org.apache.commons:commons-lang3:3.14.0")
+    implementation("commons-io:commons-io:2.15.1")
     implementation("org.apache.commons:commons-text:latest.release")
 
     // CSS reload
@@ -192,5 +195,21 @@ jlink {
     launcher {
         name = "FreeXmlToolkit"
         forceMerge("log4j-api")
+    }
+}
+
+graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set("FreeXMLToolkit")
+            mainClass.set("org.fxt.freexmltoolkit.FxtGui")
+            buildArgs.add("-O4")
+        }
+        named("test") {
+            buildArgs.add("-O0")
+        }
+    }
+    binaries.all {
+        buildArgs.add("--verbose")
     }
 }
