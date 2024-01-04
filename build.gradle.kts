@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -63,6 +63,10 @@ run {
 dependencies {
     // XSLT
     implementation("net.sf.saxon:Saxon-HE:latest.release")
+
+    // Create Data
+    implementation("in.jlibs:jlibs-xsd:3.0.1")
+    implementation("in.jlibs:jlibs-xml:3.0.1")
 
     // Icons
     implementation("org.kordamp.ikonli:ikonli-javafx:latest.release")

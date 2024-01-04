@@ -160,23 +160,6 @@
                             <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill"/>
                         </graphic>
                     </Button>
-
-                    <columnConstraints>
-                        <ColumnConstraints/>
-                        <ColumnConstraints/>
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                        <RowConstraints/>
-                    </rowConstraints>
-
                 </GridPane>
                 <Label fx:id="statusText" styleClass="h3" text="Status..."/>
                 <ProgressIndicator fx:id="progressDocumentation" minHeight="100" minWidth="100" visible="false"
