@@ -220,14 +220,14 @@ public class MainController {
             menuText1.setText(">>");
             menuText2.setText("");
 
-            xml.setStyle("-fx-text-fill: transparent;");
-            xsd.setStyle("-fx-text-fill: transparent;");
-            xsdValidation.setStyle("-fx-text-fill: transparent;");
-            xslt.setStyle("-fx-text-fill: transparent;");
-            fop.setStyle("-fx-text-fill: transparent;");
-            help.setStyle("-fx-text-fill: transparent;");
-            settings.setStyle("-fx-text-fill: transparent;");
-            exit.setStyle("-fx-text-fill: transparent;");
+            setButtonSmall(xml);
+            setButtonSmall(xsd);
+            setButtonSmall(xsdValidation);
+            setButtonSmall(xslt);
+            setButtonSmall(fop);
+            setButtonSmall(help);
+            setButtonSmall(settings);
+            setButtonSmall(exit);
         } else {
             leftMenu.setMinWidth(200);
             leftMenu.setMaxWidth(200);
@@ -235,17 +235,27 @@ public class MainController {
             menuText1.setText("FundsXML Toolkit");
             menuText2.setText("Enterprise Edition");
 
-            xml.setStyle("-fx-text-fill: normal;");
-            xsd.setStyle("-fx-text-fill: normal;");
-            xsdValidation.setStyle("-fx-text-fill: normal;");
-            xslt.setStyle("-fx-text-fill: normal;");
-            fop.setStyle("-fx-text-fill: normal;");
-            help.setStyle("-fx-text-fill: normal;");
-            settings.setStyle("-fx-text-fill: normal;");
-            exit.setStyle("-fx-text-fill: normal;");
+            setButtonLarge(xml);
+            setButtonLarge(xsd);
+            setButtonLarge(xsdValidation);
+            setButtonLarge(xslt);
+            setButtonLarge(fop);
+            setButtonLarge(help);
+            setButtonLarge(settings);
+            setButtonLarge(exit);
         }
 
         showMenu = !showMenu;
+    }
+
+    private void setButtonSmall(Button buttonSmall) {
+        buttonSmall.getStyleClass().remove("menu_button");
+        buttonSmall.getStyleClass().add("menu_button_collapsed");
+    }
+
+    private void setButtonLarge(Button buttonLarge) {
+        buttonLarge.getStyleClass().remove("menu_button_collapsed");
+        buttonLarge.getStyleClass().add("menu_button");
     }
 
 

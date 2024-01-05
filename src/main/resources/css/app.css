@@ -105,9 +105,12 @@
 }
 
 .menu_button {
+    -fx-text-fill: black;
   -fx-alignment: center-left;
   -fx-pref-height: 50;
-  -fx-pref-width: 250;
+    -fx-min-width: 200;
+    -fx-pref-width: 200;
+    -fx-max-width: 200;
   -fx-border-width: 0 0 0 5px;
   -fx-border-color: #E76F51;
   -fx-background-color: transparent;
@@ -120,6 +123,26 @@
 .menu_button:hover {
   -fx-border-color: #264653;
   -fx-background-color: #E76F51;
+}
+
+.menu_button_collapsed {
+    -fx-text-fill: transparent;
+    -fx-alignment: graphic-only;
+    -fx-pref-height: 50;
+    -fx-pref-width: 50;
+    -fx-max-width: 50;
+    -fx-border-width: 0 0 0 5px;
+    -fx-border-color: #E76F51;
+    -fx-background-color: transparent;
+    -fx-border-style: solid;
+    -fx-font-family: Roboto;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.menu_button_collapsed:hover {
+    -fx-border-color: #264653;
+    -fx-background-color: #E76F51;
 }
 
 .active {
@@ -168,7 +191,7 @@
 .h3 {
     -fx-font-family: Roboto;
     -fx-font-weight: bold;
-  -fx-font-size: 1.2em;
+    -fx-font-size: 1.1em;
 }
 
 .xml > .button {

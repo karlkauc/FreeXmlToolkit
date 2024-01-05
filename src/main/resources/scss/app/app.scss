@@ -64,15 +64,18 @@ $background-color: #dcdcdc;
 // Main menue - start
 .menu_box {
   // -fx-background-color: $color3;
-  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $color3 0%, $color4 100%);;;
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, $color3 0%, $color4 100%);
   -fx-pref-width: 150;
   -fx-font-weight: bold;
 }
 
 .menu_button {
+  -fx-text-fill: black;
   -fx-alignment: center-left;
   -fx-pref-height: 50;
-  -fx-pref-width: 250;
+  -fx-min-width: 200;
+  -fx-pref-width: 200;
+  -fx-max-width: 200;
   -fx-border-width: 0 0 0 5px;
   -fx-border-color: $color5;
   -fx-background-color: transparent;
@@ -83,6 +86,26 @@ $background-color: #dcdcdc;
 }
 
 .menu_button:hover {
+  -fx-border-color: $color1;
+  -fx-background-color: $color5;
+}
+
+.menu_button_collapsed {
+  -fx-text-fill: transparent;
+  -fx-alignment: graphic-only;
+  -fx-pref-height: 50;
+  -fx-pref-width: 50;
+  -fx-max-width: 50;
+  -fx-border-width: 0 0 0 5px;
+  -fx-border-color: $color5;
+  -fx-background-color: transparent;
+  -fx-border-style: solid;
+  -fx-font-family: Roboto;
+  -fx-font-size: 12px;
+  -fx-font-weight: bold;
+}
+
+.menu_button_collapsed:hover {
   -fx-border-color: $color1;
   -fx-background-color: $color5;
 }
