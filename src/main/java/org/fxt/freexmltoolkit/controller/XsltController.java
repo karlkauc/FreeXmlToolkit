@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
-import javafx.concurrent.Worker.State;
+import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
@@ -70,6 +70,7 @@ public class XsltController {
 
     @FXML
     WebView webView;
+    WebEngine webEngine;
 
     @FXML
     StackPane textView;
@@ -122,6 +123,14 @@ public class XsltController {
             xmlService.setCurrentXsltFile(xsltFile);
             checkFiles();
         });
+
+        webEngine = webView.getEngine();
+        webEngine.getLoadWorker().stateProperty().addListener(
+                (ov, oldState, newState) -> {
+                    if (newState == Worker.State.SUCCEEDED) {
+                        logger.debug("Loading Web Content successfully: " + webEngine.getLocation());
+                    }
+                });
     }
 
     @FXML
@@ -137,7 +146,6 @@ public class XsltController {
             try {
                 final String output = xmlService.performXsltTransformation();
 
-                progressBar.setVisible(true);
                 progressBar.setProgress(0.1);
                 renderHTML(output);
                 progressBar.setProgress(0.6);
@@ -148,6 +156,7 @@ public class XsltController {
 
                 var outputMethod = xmlService.getXsltOutputMethod();
                 logger.debug("Output Method: {}", outputMethod);
+
                 switch (outputMethod.toLowerCase().trim()) {
                     case "html", "xhtml" -> {
                         logger.debug("BIN IM HTML");
@@ -159,7 +168,9 @@ public class XsltController {
                 }
             } catch (Exception exception) {
                 logger.error("Exception: {}", exception.getMessage());
+                logger.error(exception.getStackTrace());
             }
+            progressBar.setVisible(false);
         }
     }
 
@@ -187,22 +198,12 @@ public class XsltController {
                 try {
                     Desktop.getDesktop().open(newFile);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    logger.error(e.getMessage());
                 }
             });
             openInDefaultWebBrowser.setDisable(false);
 
-            WebEngine engine = webView.getEngine();
-            progressBar.setProgress(0.6);
-            engine.getLoadWorker().stateProperty().addListener(
-                    (ov, oldState, newState) -> {
-                        if (newState == State.SUCCEEDED) {
-                            logger.debug("Loading Web Content successfully: " + engine.getLocation());
-                            progressBar.setProgress(1);
-                        }
-                    });
-
-            engine.load(newFile.toURI().toString());
+            webEngine.load(newFile.toURI().toString());
             logger.debug("Loaded Content");
 
             if (xmlFile != null && xmlFile.exists()) {

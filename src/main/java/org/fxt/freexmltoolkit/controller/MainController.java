@@ -181,6 +181,9 @@ public class MainController {
                 } else if (aClass.equals(XsdController.class)) {
                     logger.debug("set XSD Controller");
                     ((XsdController) loader.getController()).setParentController(this);
+                } else if (aClass.equals(XsltController.class)) {
+                    logger.debug("set XSLT Controller");
+                    ((XsltController) loader.getController()).setParentController(this);
                 }
 
                 var controller = loader.getController();

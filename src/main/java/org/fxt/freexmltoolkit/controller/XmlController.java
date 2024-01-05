@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -445,7 +445,6 @@ public class XmlController {
     @FXML
     private void test() {
         Path xmlExampleFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml");
-        // xmlExampleFile = Paths.get("C:\\Data\\TEMP\\2023-09-18_FundsXML_RU\\ROFDIN0000F6_2023.03.31_test xml 4 MODIFIED.xml");
 
         xmlService.setCurrentXmlFile(xmlExampleFile.toFile());
         xmlService.setCurrentXsdFile(Paths.get("examples/xsd/FundsXML4.xsd").toFile());
