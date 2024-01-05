@@ -70,11 +70,15 @@ public class MainController {
     @FXML
     Menu lastOpenFilesMenu;
 
+    @FXML
+    Label menuText1, menuText2;
 
     @FXML
     VBox leftMenu;
 
     List<File> lastOpenFiles = new LinkedList<>();
+
+    Boolean showMenu = true;
 
     @FXML
     public void initialize() {
@@ -207,9 +211,41 @@ public class MainController {
 
     @FXML
     private void toggleMenuBar() {
-        leftMenu.setVisible(!leftMenu.isVisible());
-        leftMenu.setDisable(!leftMenu.isDisabled());
-        leftMenu.setMaxWidth(10);
+        logger.debug("Show Menu: {}", showMenu);
+
+        if (showMenu) {
+            leftMenu.setMaxWidth(50);
+            leftMenu.setMinWidth(50);
+
+            menuText1.setText(">>");
+            menuText2.setText("");
+
+            xml.setStyle("-fx-text-fill: transparent;");
+            xsd.setStyle("-fx-text-fill: transparent;");
+            xsdValidation.setStyle("-fx-text-fill: transparent;");
+            xslt.setStyle("-fx-text-fill: transparent;");
+            fop.setStyle("-fx-text-fill: transparent;");
+            help.setStyle("-fx-text-fill: transparent;");
+            settings.setStyle("-fx-text-fill: transparent;");
+            exit.setStyle("-fx-text-fill: transparent;");
+        } else {
+            leftMenu.setMinWidth(200);
+            leftMenu.setMaxWidth(200);
+
+            menuText1.setText("FundsXML Toolkit");
+            menuText2.setText("Enterprise Edition");
+
+            xml.setStyle("-fx-text-fill: normal;");
+            xsd.setStyle("-fx-text-fill: normal;");
+            xsdValidation.setStyle("-fx-text-fill: normal;");
+            xslt.setStyle("-fx-text-fill: normal;");
+            fop.setStyle("-fx-text-fill: normal;");
+            help.setStyle("-fx-text-fill: normal;");
+            settings.setStyle("-fx-text-fill: normal;");
+            exit.setStyle("-fx-text-fill: normal;");
+        }
+
+        showMenu = !showMenu;
     }
 
 

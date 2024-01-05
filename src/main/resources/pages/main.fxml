@@ -81,8 +81,8 @@
         <left>
             <VBox fx:id="leftMenu" styleClass="menu_box" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0">
                 <VBox prefHeight="100.0" prefWidth="200.0" alignment="CENTER">
-                    <Label text="FundsXML Toolkit" styleClass="h3"/>
-                    <Label text="Enterprise Edition"/>
+                    <Label fx:id="menuText1" text="FundsXML Toolkit" styleClass="h3" onMouseClicked="#toggleMenuBar"/>
+                    <Label fx:id="menuText2" text="Enterprise Edition" onMouseClicked="#toggleMenuBar"/>
                 </VBox>
                 <BorderPane VBox.vgrow="ALWAYS">
                     <top>
