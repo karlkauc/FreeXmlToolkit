@@ -237,7 +237,6 @@ public class XsdDocumentationService {
         return "";
     }
 
-
     public void generateDetailPages(File outputDirectory) {
         for (String key : this.getExtendedXsdElements().keySet()) {
             var currentElement = this.getExtendedXsdElements().get(key);
@@ -302,6 +301,8 @@ public class XsdDocumentationService {
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;
 
+        // größe der rechten Box ermitteln
+        // um linkes element in der mitte zu plazieren
         for (ExtendedXsdElement r : childElements) {
             String elementName = "";
 
@@ -380,13 +381,24 @@ public class XsdDocumentationService {
                 elementName = childElement.getElementName();
             }
 
+            Element minMaxOccurs = document.createElement("text");
             if (childElement != null && childElement.getXsdElement() != null) {
-                logger.debug("childElement.getXsdElement().getMaxOccurs() = " + childElement.getXsdElement().getMaxOccurs());
-                logger.debug("childElement.getXsdElement().getMinOccurs() = " + childElement.getXsdElement().getMinOccurs());
-
                 if (childElement.getXsdElement().getMinOccurs() > 0) {
                     css = MANDATORY_FORMAT;
                 }
+
+                final String minOccurs = childElement.getXsdElement().getMinOccurs().toString();
+                final String maxOccurs = childElement.getXsdElement().getMaxOccurs().equals("unbounded") ? "∞" : childElement.getXsdElement().getMaxOccurs();
+                logger.debug("Min/Max Occurs: {}/{}", minOccurs, maxOccurs);
+
+                minMaxOccurs.setAttribute("fill", "#096574");
+                minMaxOccurs.setAttribute("font-family", font.getFontName());
+                minMaxOccurs.setAttribute("font-size", font.getSize() - 2 + "");
+                minMaxOccurs.setAttribute("textLength", "0");
+                minMaxOccurs.setAttribute("x", rightStartX + margin - 35 + "");
+                minMaxOccurs.setAttribute("y", actualHeight + (margin / 2) + 10 + "");
+                minMaxOccurs.setTextContent(minOccurs + ":" + maxOccurs);
+                svgRoot.appendChild(minMaxOccurs);
             }
 
             logger.debug("Element Name = " + elementName);

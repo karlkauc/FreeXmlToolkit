@@ -154,7 +154,7 @@
                 </TabPane>
             </HBox>
         </SplitPane>
-        <TextArea fx:id="textAreaTemp" text="asfd"/>
+        <!-- <TextArea fx:id="textAreaTemp" text="asfd"/> -->
     </SplitPane>
 
 </VBox>
