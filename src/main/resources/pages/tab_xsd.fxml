@@ -82,7 +82,7 @@
         </HBox>
     </HBox>
 
-    <TabPane VBox.vgrow="ALWAYS">
+    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS">
         <Tab closable="false" text="Text">
             <graphic>
                 <FontIcon iconLiteral="bi-card-text"/>
@@ -95,7 +95,7 @@
                 <FontIcon iconLiteral="bi-diagram-2"/>
             </graphic>
         </Tab>
-        <Tab closable="false" text="Documentation">
+        <Tab fx:id="documentation" closable="false" text="Documentation">
             <graphic>
                 <FontIcon iconLiteral="win10-notebook" iconSize="16"/>
             </graphic>
@@ -137,14 +137,16 @@
                               GridPane.rowIndex="4"/>
 
                     <Label text="create Example data if missing" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-                    <CheckBox fx:id="createExampleData" selected="true" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+                    <CheckBox fx:id="createExampleData" disable="true" selected="true" GridPane.columnIndex="1"
+                              GridPane.rowIndex="5"/>
 
                     <Label text="restrict to language" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
                     <TextField GridPane.columnIndex="1" GridPane.rowIndex="6"/>
                     <!--  pattern: [a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})* -->
 
                     <Label text="Grafik format" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
-                    <ChoiceBox fx:id="grafikFormat" value="SVG" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                    <ChoiceBox fx:id="grafikFormat" disable="true" value="SVG" GridPane.columnIndex="1"
+                               GridPane.rowIndex="7">
                         <items>
                             <FXCollections fx:factory="observableArrayList">
                                 <String fx:value="SVG"/>
@@ -160,6 +162,21 @@
                             <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill"/>
                         </graphic>
                     </Button>
+                    <columnConstraints>
+                        <ColumnConstraints/>
+                        <ColumnConstraints/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                    </rowConstraints>
                 </GridPane>
                 <Label fx:id="statusText" styleClass="h3" text="Status..."/>
                 <ProgressIndicator fx:id="progressDocumentation" minHeight="100" minWidth="100" visible="false"

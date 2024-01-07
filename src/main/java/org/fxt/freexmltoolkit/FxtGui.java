@@ -36,7 +36,6 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -88,16 +87,6 @@ public class FxtGui extends Application {
             try {
                 primaryStage.getIcons().add(new javafx.scene.image.Image(Objects.requireNonNull(FxtGui.class.getResourceAsStream("/" + APP_ICON_PATH))));
             } catch (Exception ignore) {
-            }
-
-            if (new File("C:\\Data\\src\\FreeXmlToolkit\\src\\main\\resources\\css\\mainTheme.css").exists()) {
-                scene.getStylesheets().add("C:\\Data\\src\\FreeXmlToolkit\\src\\main\\resources\\css\\mainTheme.css");
-            }
-            if (new File("/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/resources/css/mainTheme.css").exists()) {
-                logger.debug("File exists.");
-                scene.getStylesheets().add("/Users/karlkauc/IdeaProjects/FreeXmlToolkit/src/main/resources/css/mainTheme.css");
-            } else {
-                logger.debug("File do not exists");
             }
 
             CSSFX.start();

@@ -84,6 +84,8 @@ public class XsdDocumentationService {
     final String svgNS = "http://www.w3.org/2000/svg";
     Document document;
 
+    Boolean useMarkdownRenderer = true;
+
     StringBuilder xpath;
     ClassLoaderTemplateResolver resolver;
     TemplateEngine templateEngine;
@@ -145,7 +147,7 @@ public class XsdDocumentationService {
         logger.debug("Bin in generateXsdDocumentation");
 
         copyResources(outputDirectory);
-        processXsd();
+        processXsd(this.useMarkdownRenderer);
         generateRootPage(outputDirectory);
         generateComplexTypePages(outputDirectory);
         generateDetailPages(outputDirectory);
@@ -480,7 +482,8 @@ public class XsdDocumentationService {
         return writer.toString();
     }
 
-    public void processXsd() {
+    public void processXsd(Boolean useMarkdownRenderer) {
+        this.useMarkdownRenderer = useMarkdownRenderer;
         parser = new XsdParser(xsdFilePath);
         xmlService.setCurrentXmlFile(new File(xsdFilePath));
 
@@ -514,6 +517,7 @@ public class XsdDocumentationService {
 
         ExtendedXsdElement extendedXsdElement = new ExtendedXsdElement();
         extendedXsdElement.setCounter(counter++);
+        extendedXsdElement.setUseMarkdownRenderer(useMarkdownRenderer);
 
         switch (xsdAbstractElement) {
             case XsdElement xsdElement -> {

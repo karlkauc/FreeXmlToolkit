@@ -77,7 +77,7 @@ public class GenerateXsdHtmlDocumentationTest {
     @Test
     void parseXsdTest() {
         xsdDocumentationService.setXsdFilePath(fileName);
-        xsdDocumentationService.processXsd();
+        xsdDocumentationService.processXsd(true);
         var elements = xsdDocumentationService.getExtendedXsdElements();
 
         System.out.println("------------");
@@ -91,7 +91,7 @@ public class GenerateXsdHtmlDocumentationTest {
         logger.debug("vor filename");
         xsdDocumentationService.setXsdFilePath("src/test/resources/simpleFile.xsd");
         logger.debug("vor process xsd");
-        xsdDocumentationService.processXsd();
+        xsdDocumentationService.processXsd(true);
 
         logger.debug("vor generate root element");
         xsdDocumentationService.generateXsdDocumentation(new File("output/test123"));

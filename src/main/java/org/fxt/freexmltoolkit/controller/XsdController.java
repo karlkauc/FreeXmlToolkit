@@ -78,6 +78,11 @@ public class XsdController {
     @FXML
     ChoiceBox<String> grafikFormat;
 
+    @FXML
+    TabPane tabPane;
+    @FXML
+    Tab documentation;
+
     private MainController parentController;
 
     private final static Logger logger = LogManager.getLogger(XsdController.class);
@@ -106,6 +111,9 @@ public class XsdController {
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
+
+        SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
+        selectionModel.select(documentation);
     }
 
     @FXML
@@ -216,7 +224,7 @@ public class XsdController {
 
                         updateProgress(2, 100);
                         updateMessage("Analyzing File");
-                        xsdDocumentationService.processXsd();
+                        xsdDocumentationService.processXsd(useMarkdownRenderer.isSelected());
 
                         updateProgress(50, 100);
                         updateMessage("generating Root Page");

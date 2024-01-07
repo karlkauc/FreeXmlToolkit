@@ -52,12 +52,22 @@ public class ExtendedXsdElement {
     Parser parser;
     HtmlRenderer renderer;
 
+    Boolean useMarkdownRenderer = true;
+
     public ExtendedXsdElement() {
         options.set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create(), StrikethroughExtension.create()));
         options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
 
         parser = Parser.builder(options).build();
         renderer = HtmlRenderer.builder(options).build();
+    }
+
+    public Boolean getUseMarkdownRenderer() {
+        return useMarkdownRenderer;
+    }
+
+    public void setUseMarkdownRenderer(Boolean useMarkdownRenderer) {
+        this.useMarkdownRenderer = useMarkdownRenderer;
     }
 
     public Map<String, String> getLanguageDocumentation() {
@@ -68,8 +78,12 @@ public class ExtendedXsdElement {
             Map<String, String> stringContent = new HashMap<>();
 
             for (var x : this.getXsdDocumentation()) {
-                document = parser.parse(x.getContent());
-                stringContent.put(x.getAttributesMap().get("xml:lang"), renderer.render(document));
+                if (useMarkdownRenderer) {
+                    document = parser.parse(x.getContent());
+                    stringContent.put(x.getAttributesMap().get("xml:lang"), renderer.render(document));
+                } else {
+                    stringContent.put(x.getAttributesMap().get("xml:lang"), x.getContent());
+                }
             }
 
             return stringContent;
