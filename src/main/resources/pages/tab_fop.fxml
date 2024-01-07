@@ -23,65 +23,67 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 <AnchorPane prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-            AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.FopController">
-    <GridPane fx:id="settings" hgap="10" vgap="10">
-        <padding>
-            <Insets bottom="25" left="25" right="25" top="25"/>
-        </padding>
+            AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
+            stylesheets="@../css/app.css"
+            style="-fx-background-color: #fff;"
+            xmlns="http://javafx.com/javafx/11.0.14-internal"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.fxt.freexmltoolkit.controller.FopController">
 
-        <Text id="welcome-text" style="-fx-font: 24 arial;" text="FOP" wrappingWidth="300" GridPane.columnSpan="3"
-              GridPane.rowIndex="0"/>
+    <VBox styleClass="my_container">
+        <Label styleClass="h2" text="Formatting Objects Processor"/>
 
-        <Label GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-        <Button onAction="#openXmlFile" text="XML" GridPane.rowIndex="1">
-            <graphic>
-                <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
-            </graphic>
-        </Button>
-        <TextField promptText="pdf file" GridPane.columnIndex="2" GridPane.rowIndex="1" fx:id="xmlFileName"/>
-        <Button onAction="#openXslFile" text="XSLT" GridPane.rowIndex="2">
-            <graphic>
-                <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
-            </graphic>
-        </Button>
-        <TextField promptText="xsl file" GridPane.columnIndex="2" GridPane.rowIndex="2" fx:id="xslFileName"/>
-        <Button onAction="#openPdfFile" text="PDF" GridPane.rowIndex="3">
-            <graphic>
-                <ImageView fitHeight="16" preserveRatio="true">
-                    <Image url="@../img/icons8-pdf-16.png"/>
-                </ImageView>
-            </graphic>
-        </Button>
-        <TextField fx:id="pdfFileName" promptText="pdf file" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+        <GridPane fx:id="settings" hgap="10" vgap="10">
+            <padding>
+                <Insets bottom="25" left="25" right="25" top="25"/>
+            </padding>
 
-        <Button text="Options" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
-        <Button fx:id="startConversion" onAction="#buttonConversion" text="create PDF" GridPane.columnIndex="0"
-                GridPane.rowIndex="6">
-            <graphic>
-                <FontIcon iconColor="#e2c352" iconLiteral="fth-play" iconSize="16"/>
-            </graphic>
-        </Button>
-        <Button fx:id="test" mnemonicParsing="false" onAction="#test" text="test" visible="false"
-                GridPane.columnIndex="2" GridPane.rowIndex="6"/>
-        <ProgressIndicator fx:id="progressIndicator" progress="0.0" GridPane.columnIndex="2" GridPane.rowIndex="5"/>
+            <Label text="XML File" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <HBox GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <TextField text="XML File" fx:id="xmlFileName"/>
+                <Button onAction="#openXmlFile">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </HBox>
 
-        <columnConstraints>
-            <ColumnConstraints/>
-            <ColumnConstraints/>
-            <ColumnConstraints/>
-        </columnConstraints>
-        <rowConstraints>
-            <RowConstraints/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0"/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-            <RowConstraints/>
-        </rowConstraints>
-    </GridPane>
+            <Label text="XSLT File" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <TextField text="XML File" fx:id="xslFileName"/>
+                <Button onAction="#openXslFile">
+                    <graphic>
+                        <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </HBox>
+
+
+            <Label text="PDF File" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
+                <TextField text="PDF File" fx:id="pdfFileName"/>
+                <Button onAction="#openPdfFile">
+                    <graphic>
+                        <ImageView fitHeight="16" preserveRatio="true">
+                            <Image url="@../img/icons8-pdf-16.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </HBox>
+
+            <Button text="Options" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+
+            <Button fx:id="startConversion" onAction="#buttonConversion" text="create PDF"
+                    GridPane.columnIndex="0" GridPane.rowIndex="4">
+                <graphic>
+                    <FontIcon iconColor="#e2c352" iconLiteral="fth-play" iconSize="16"/>
+                </graphic>
+            </Button>
+
+            <ProgressIndicator fx:id="progressIndicator" progress="0.0" GridPane.columnIndex="2" GridPane.rowIndex="5"/>
+
+        </GridPane>
+    </VBox>
 </AnchorPane>

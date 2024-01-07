@@ -19,7 +19,6 @@
   -->
 
 <?import javafx.collections.FXCollections?>
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
@@ -27,60 +26,6 @@
 <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
       xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.XsdController">
-    <HBox>
-        <HBox styleClass="xml">
-            <Button fx:id="newFile" contentDisplay="TOP" styleClass="big_button" text="_new File">
-                <graphic>
-                    <FontIcon iconColor="black" iconLiteral="bi-file-earmark"/>
-                </graphic>
-            </Button>
-            <Button fx:id="openFile" contentDisplay="TOP" onAction="#loadXsdFile" styleClass="big_button"
-                    text="_open File">
-                <graphic>
-                    <FontIcon iconColor="black" iconLiteral="bi-folder2-open"/>
-                </graphic>
-            </Button>
-            <Button fx:id="saveFile" contentDisplay="TOP" styleClass="big_button" text="_save File">
-                <graphic>
-                    <FontIcon iconLiteral="bi-hdd"/>
-                </graphic>
-            </Button>
-
-            <Button fx:id="prettyPrint" contentDisplay="TOP" styleClass="big_button" text="_format Text"
-                    ButtonBar.buttonData="RIGHT">
-                <graphic>
-                    <FontIcon iconColor="darkorange" iconLiteral="fth-align-center"/>
-                </graphic>
-            </Button>
-        </HBox>
-        <HBox styleClass="xml">
-            <Separator orientation="VERTICAL"/>
-            <Button fx:id="validateSchema" contentDisplay="TOP" styleClass="big_button" text="validate Schema"
-                    ButtonBar.buttonData="RIGHT">
-                <graphic>
-                    <FontIcon iconLiteral="win10-checked"/>
-                </graphic>
-            </Button>
-        </HBox>
-        <HBox fx:id="test" styleClass="xml" visible="false">
-            <Separator orientation="VERTICAL"/>
-            <Button contentDisplay="TOP" onAction="#test" styleClass="big_button" text="test"
-                    ButtonBar.buttonData="RIGHT">
-                <graphic>
-                    <FontIcon iconLiteral="win10-checked"/>
-                </graphic>
-            </Button>
-        </HBox>
-        <HBox>
-            <padding>
-                <Insets left="10.0"/>
-            </padding>
-            <VBox alignment="CENTER_LEFT">
-                <Label text="Notification: "/>
-                <Label fx:id="schemaValidText" text="xxx"/>
-            </VBox>
-        </HBox>
-    </HBox>
 
     <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS">
         <Tab closable="false" text="Text">

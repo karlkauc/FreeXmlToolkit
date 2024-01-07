@@ -107,8 +107,6 @@
                                 </graphic>
                             </Button>
 
-                            <Separator/>
-
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="XSLT Viewer" VBox.vgrow="ALWAYS" fx:id="xslt">
                                 <graphic>

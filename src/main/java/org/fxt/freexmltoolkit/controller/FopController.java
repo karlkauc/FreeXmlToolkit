@@ -22,15 +22,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.FOPService;
-import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
 import java.awt.*;
 import java.io.File;
@@ -38,16 +34,12 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class FopController {
-    XmlService xmlService = XmlServiceImpl.getInstance();
     FOPService fopService = new FOPService();
     @FXML
     GridPane settings;
     @FXML
-    Button startConversion, test;
-    @FXML
-    AnchorPane xml, xslt, pdf;
-    @FXML
-    StackPane stackPaneXml, stackPaneXslt;
+    Button startConversion;
+
     File xmlFile, xslFile, pdfFile;
     @FXML
     TextField xmlFileName, xslFileName, pdfFileName;
@@ -56,25 +48,25 @@ public class FopController {
     String lastOpenDir = ".";
     FileChooser fileChooser = new FileChooser();
     private MainController parentController;
+
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
+
     private final static Logger logger = LogManager.getLogger(FopController.class);
 
     @FXML
     private void initialize() {
-        logger.debug("BIN IM FOP CONTROLLER");
         progressIndicator.setVisible(false);
 
-        showTestData();
-    }
-
-    private void showTestData() {
         if (System.getenv("debug") != null) {
-            logger.debug("set visible false");
-            test.setVisible(true);
+            xmlFile = new File("src/test/resources/projectteam.xml");
+            xslFile = new File("src/test/resources/projectteam2fo.xsl");
+            pdfFile = new File("output/ResultXML2PDF.pdf");
 
-            test();
+            xmlFileName.setText(xmlFile.getName());
+            xslFileName.setText(xslFile.getName());
+            pdfFileName.setText(pdfFile.getName());
         }
     }
 
@@ -151,17 +143,5 @@ public class FopController {
             logger.warn("PDF File do not exits");
         }
     }
-
-    @FXML
-    private void test() {
-        xmlFile = new File("src/test/resources/projectteam.xml");
-        xslFile = new File("src/test/resources/projectteam2fo.xsl");
-        pdfFile = new File("output/ResultXML2PDF.pdf");
-
-        xmlFileName.setText(xmlFile.getName());
-        xslFileName.setText(xslFile.getName());
-        pdfFileName.setText(pdfFile.getName());
-    }
-
 }
 
