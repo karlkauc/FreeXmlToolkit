@@ -165,7 +165,7 @@ public class XmlServiceImpl implements XmlService {
 
         try {
             var schemaLocation = getSchemaNameFromCurrentXMLFile();
-            if (schemaLocation.isPresent() && schemaLocation.get().length() > 0) {
+            if (schemaLocation.isPresent() && !schemaLocation.get().isEmpty()) {
                 remoteXsdLocation = schemaLocation.get();
             }
         } catch (Exception ignore) {
@@ -195,7 +195,6 @@ public class XmlServiceImpl implements XmlService {
             FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
             final var builder = builderFactory.newDocumentBuilder();
             final var xmlDocument = builder.parse(fileIS);
-
 
             final String expression = "/stylesheet/output/@method";
             final XPath xPath = XPathFactory.newInstance().newXPath();
@@ -736,7 +735,6 @@ public class XmlServiceImpl implements XmlService {
 
         byte[] bom = new byte[3];
         try (InputStream is = new FileInputStream(path.toFile())) {
-
             // read 3 bytes of a file.
             is.read(bom);
 
