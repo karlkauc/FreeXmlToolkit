@@ -26,6 +26,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.*;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -50,6 +54,9 @@ public class XsdController {
 
     CodeArea codeArea = new CodeArea();
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
+
+    @FXML
+    Pane xsdPane, xmlPane;
 
     @FXML
     Button newFile, openFile, saveFile, prettyPrint, validateSchema, openDocFolder;
@@ -114,6 +121,10 @@ public class XsdController {
 
         SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
         selectionModel.select(documentation);
+
+        xsdPane.setOnDragOver(this::handleFileOverEvent);
+        xsdPane.setOnDragExited(this::handleDragExitedEvent);
+        xsdPane.setOnDragDropped(this::handleFileDroppedEvent);
     }
 
     @FXML
@@ -203,6 +214,14 @@ public class XsdController {
 
     @FXML
     private void generateDocumentation() {
+
+        if (documentationOutputDirPath.getText() != null) {
+            if (new File(documentationOutputDirPath.getText()).exists()
+                    && new File(documentationOutputDirPath.getText()).isDirectory()) {
+                selectedDocumentationOutputDirectory = new File(documentationOutputDirPath.getText());
+            }
+        }
+
         if (selectedDocumentationOutputDirectory != null
                 && xmlService.getCurrentXsdFile() != null
                 && xmlService.getCurrentXsdFile().exists()) {
@@ -277,6 +296,38 @@ public class XsdController {
             }
             if (xmlService.getCurrentXsdFile() == null) {
                 logger.debug("current xsd File is null");
+            }
+        }
+    }
+
+    @FXML
+    void handleFileOverEvent(DragEvent event) {
+        Dragboard db = event.getDragboard();
+        if (db.hasFiles()) {
+            event.acceptTransferModes(TransferMode.COPY);
+            if (!xsdPane.getStyleClass().contains("xmlPaneFileDragDrop-active")) {
+                xsdPane.getStyleClass().add("xmlPaneFileDragDrop-active");
+            }
+        } else {
+            event.consume();
+        }
+    }
+
+    @FXML
+    void handleDragExitedEvent(DragEvent event) {
+        xsdPane.getStyleClass().clear();
+        xsdPane.getStyleClass().add("tab-pane");
+    }
+
+    @FXML
+    void handleFileDroppedEvent(DragEvent event) {
+        Dragboard db = event.getDragboard();
+
+        for (File f : db.getFiles()) {
+            logger.debug("FILE: {}", f.getAbsoluteFile());
+            if (f.isFile() && f.exists() && f.getAbsolutePath().toLowerCase().endsWith(".xsd")) {
+                this.xmlService.setCurrentXsdFile(f);
+                this.xsdFilePath.setText(f.getName());
             }
         }
     }
