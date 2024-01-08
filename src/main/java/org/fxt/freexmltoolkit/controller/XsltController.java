@@ -146,6 +146,7 @@ public class XsltController {
 
         if (xmlFile == null && xmlFileLoader.getFile() != null) {
             this.xmlFile = xmlFileLoader.getFile();
+            this.xmlService.setCurrentXmlFile(xmlFile);
         }
 
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()
@@ -192,7 +193,6 @@ public class XsltController {
         codeArea.clear();
         codeArea.replaceText(0, 0, output);
     }
-
 
     private void renderHTML(String output) {
         new File("output").mkdirs();
