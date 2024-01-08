@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -54,20 +54,65 @@ public class FileLoader extends VBox {
 
     String fontIconString;
 
+    String fileEnding;
+
     public FileLoader() {
+        logger.debug("File Loader default constructor");
         this.getChildren().add(loadButton);
         this.getChildren().add(fileInfo);
 
-        this.setOnDragOver(event -> {
-            event.acceptTransferModes(TransferMode.MOVE);
-        });
+        this.setOnDragOver(this::handleFileOverEvent);
+        this.setOnDragExited(this::handleDragExitedEvent);
+        this.setOnDragDropped(this::handleFileDroppedEvent);
     }
 
     public FileLoader(File f) {
+        logger.debug("File Loader File constructor");
         file = f;
 
         this.getChildren().add(loadButton);
         this.getChildren().add(fileInfo);
+    }
+
+    @FXML
+    void handleFileOverEvent(DragEvent event) {
+        Dragboard db = event.getDragboard();
+        if (db.hasFiles()) {
+            event.acceptTransferModes(TransferMode.COPY);
+            if (!this.getStyleClass().contains("xmlPaneFileDragDrop-active")) {
+                this.getStyleClass().add("xmlPaneFileDragDrop-active");
+            }
+        } else {
+            event.consume();
+        }
+    }
+
+    @FXML
+    void handleDragExitedEvent(DragEvent event) {
+        this.getStyleClass().clear();
+        this.getStyleClass().add("tab-pane");
+    }
+
+    @FXML
+    void handleFileDroppedEvent(DragEvent event) {
+        Dragboard db = event.getDragboard();
+
+        for (File f : db.getFiles()) {
+            logger.debug("FILE: {}", f.getAbsoluteFile());
+            if (f.isFile() && f.exists()) {
+                if (this.fileEnding != null) {
+                    if (f.getAbsolutePath().toLowerCase().endsWith(fileEnding)) {
+                        this.setFile(f);
+                    }
+                } else {
+                    this.setFile(f);
+                }
+            }
+        }
+    }
+
+    public void acceptEnding(String ending) {
+        this.fileEnding = ending;
     }
 
     public String getFontIconString() {
@@ -85,25 +130,6 @@ public class FileLoader extends VBox {
         return teaserImage;
     }
 
-    @FXML
-    void onDragDropped(DragEvent event) {
-        logger.debug("BIN IN DRAG DROPPED");
-
-        Dragboard db = event.getDragboard();
-        if (db.hasFiles()) {
-            event.acceptTransferModes(TransferMode.COPY);
-        } else {
-            event.consume();
-        }
-    }
-
-    @FXML
-    void handleFileDroppedEvent(DragEvent event) {
-        Dragboard db = event.getDragboard();
-        File file = db.getFiles().get(0);
-
-        logger.debug("FILE: {}", file.getAbsolutePath());
-    }
 
     @FXML
     public void setTeaserImage(ImageView teaserImage) {

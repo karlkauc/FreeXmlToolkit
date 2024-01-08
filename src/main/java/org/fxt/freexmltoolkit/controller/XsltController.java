@@ -139,6 +139,15 @@ public class XsltController {
             xmlService.setCurrentXsltFile(xsltFile);
         }
 
+        if (xsltFile == null && xsltFileLoader.getFile() != null) {
+            xsltFile = xsltFileLoader.getFile();
+            xmlService.setCurrentXsltFile(xsltFile);
+        }
+
+        if (xmlFile == null && xmlFileLoader.getFile() != null) {
+            this.xmlFile = xmlFileLoader.getFile();
+        }
+
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()
                 && xmlService.getCurrentXsltFile() != null && xmlService.getCurrentXsltFile().exists()) {
             logger.debug("RENDER FILE");
