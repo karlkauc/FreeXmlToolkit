@@ -176,14 +176,14 @@ public class XsdDocumentationService {
     }
 
     public void generateRootPage(File outputDirectory) {
-        final var rootElementName = elements.getFirst().getName();
+        final var rootElementName = elements.get(0).getName();
 
         var context = new Context();
         context.setVariable("date", LocalDate.now());
         context.setVariable("filename", this.getXsdFilePath());
         context.setVariable("rootElementName", rootElementName);
-        context.setVariable("rootElement", getXmlSchema().getFirst());
-        context.setVariable("xsdElements", elements.getFirst());
+        context.setVariable("rootElement", getXmlSchema().get(0));
+        context.setVariable("xsdElements", elements.get(0));
         context.setVariable("xsdComplexTypes", getXsdComplexTypes());
         context.setVariable("xsdSimpleTypes", getXsdSimpleTypes());
         context.setVariable("rootElementLink", "details/" + getExtendedXsdElements().get("/" + rootElementName).getPageName());
@@ -249,7 +249,7 @@ public class XsdDocumentationService {
                 context.setVariable("xpath", getBreadCrumbs(currentElement));
                 context.setVariable("code", currentElement.getSourceCode());
                 context.setVariable("element", currentElement);
-                context.setVariable("namespace", getXmlSchema().getFirst().getTargetNamespace());
+                context.setVariable("namespace", getXmlSchema().get(0).getTargetNamespace());
                 context.setVariable("this", this);
 
                 if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getType() != null) {
@@ -501,8 +501,8 @@ public class XsdDocumentationService {
         elements = parser.getResultXsdElements().collect(Collectors.toList());
         xmlSchema = parser.getResultXsdSchemas().toList();
 
-        xsdComplexTypes = xmlSchema.getFirst().getChildrenComplexTypes().collect(Collectors.toList());
-        xsdSimpleTypes = xmlSchema.getFirst().getChildrenSimpleTypes().collect(Collectors.toList());
+        xsdComplexTypes = xmlSchema.get(0).getChildrenComplexTypes().collect(Collectors.toList());
+        xsdSimpleTypes = xmlSchema.get(0).getChildrenSimpleTypes().collect(Collectors.toList());
 
         extendedXsdElements = new LinkedHashMap<>();
         counter = 0;

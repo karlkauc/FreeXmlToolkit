@@ -23,10 +23,11 @@ plugins {
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("edu.sc.seis.launch4j") version "3.0.5"
     id("com.github.ben-manes.versions") version "0.50.0"
+    // id("org.beryx.jlink") version "3.0.1"
+    // id("org.graalvm.buildtools.native") version "0.9.28"
+    // id("nl.colorize.gradle.application.plugin") version "2024.1"
 
-    id("org.beryx.jlink") version "3.0.1"
-
-    id("org.graalvm.buildtools.native") version "0.9.28"
+    id("dev.hydraulic.conveyor") version "1.6"
 }
 
 application {
@@ -35,7 +36,7 @@ application {
 }
 
 group = "org.fxt"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -54,6 +55,12 @@ repositories {
 javafx {
     version = "20.0.1"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(20)
+    }
 }
 
 run {
@@ -195,25 +202,9 @@ tasks.withType<JavaExec>().configureEach {
     jvmArgs("--enable-preview")
 }
 
-jlink {
-    launcher {
-        name = "FreeXmlToolkit"
-        forceMerge("log4j-api")
-    }
-}
-
-graalvmNative {
-    binaries {
-        named("main") {
-            imageName.set("FreeXMLToolkit")
-            mainClass.set("org.fxt.freexmltoolkit.FxtGui")
-            buildArgs.add("-O4")
-        }
-        named("test") {
-            buildArgs.add("-O0")
-        }
-    }
-    binaries.all {
-        buildArgs.add("--verbose")
-    }
+tasks.register<Exec>("convey") {
+    val dir = layout.buildDirectory.dir("packages")
+    outputs.dir(dir)
+    commandLine("conveyor", "make", "--output-dir", dir.get(), "site")
+    dependsOn("jar", "writeConveyorConfig")
 }
