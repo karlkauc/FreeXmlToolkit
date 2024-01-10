@@ -21,17 +21,11 @@ plugins {
     idea
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
-    id("edu.sc.seis.launch4j") version "3.0.5"
     id("com.github.ben-manes.versions") version "0.50.0"
-    // id("org.beryx.jlink") version "3.0.1"
-    // id("org.graalvm.buildtools.native") version "0.9.28"
-    // id("nl.colorize.gradle.application.plugin") version "2024.1"
-
     id("dev.hydraulic.conveyor") version "1.6"
 }
 
 application {
-    // mainModule.set("org.fxt.freexmltoolkit")
     mainClass.set("org.fxt.freexmltoolkit.FxtGui")
 }
 
@@ -53,13 +47,13 @@ repositories {
 }
 
 javafx {
-    version = "20.0.1"
+    version = "21.0.1"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(20)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -124,20 +118,10 @@ dependencies {
     // HTML Template XSD Documentation
     implementation("org.thymeleaf:thymeleaf:latest.release")
 
-    // File Type detection
-    // implementation("org.apache.tika:tika-core:2.7.0")
-    // implementation("org.apache.tika:tika-parsers-standard-package:2.7.0")
-
-    // html manipulation
-    // wird im moment gar nicht gebraucht
-    // implementation("org.jsoup:jsoup:latest.release")
-
     // markdown renderer
     implementation("com.vladsch.flexmark:flexmark-all:latest.release")
 
-
     // Update
-    implementation("org.update4j:update4j:latest.release")
     implementation("jakarta.activation:jakarta.activation-api:latest.release")
 
     implementation("org.junit.jupiter:junit-jupiter:latest.release")
@@ -149,57 +133,12 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 }
 
-
-tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
-    outfile = "FreeXMLToolkit.exe"
-    mainClassName = "org.fxt.freexmltoolkit.FxtGui" // SolvencyUI
-    headerType = "gui" // gui / console
-    icon = "${projectDir}/src/main/resources/img/logo.ico"
-    maxHeapSize = 4096
-    maxHeapPercent = 80
-    copyright = System.getProperty("user.name")
-
-    bundledJrePath = "jdk"
-    // bundledJre64Bit = true
-    requires64Bit = true
-    jreMinVersion = "20"
-
-    doLast {
-        println("Copy resources...")
-        copy {
-            from(layout.buildDirectory.file("resources/log4j2.xml"))
-            into(layout.buildDirectory.dir("launch4j"))
-        }
-        copy {
-            from(layout.projectDirectory.dir("examples"))
-            into(layout.buildDirectory.dir("launch4j/examples"))
-        }
-        println("Copy JDK...")
-        copy {
-            from(zipTree("jdk/jre-20-full.zip"))
-            into(layout.buildDirectory.dir("launch4j/jdk"))
-        }
-    }
-}
-
 tasks.jar {
     exclude("**/*.txt")
 }
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.compilerArgs.add("--enable-preview")
-}
-
-tasks.withType<Test>().configureEach {
-    jvmArgs("--enable-preview")
-}
-
-tasks.withType<JavaExec>().configureEach {
-    jvmArgs("--enable-preview")
 }
 
 tasks.register<Exec>("convey") {
