@@ -96,12 +96,12 @@ dependencies {
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:latest.release")
     implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.33.0")
 
-
     // FOP
     implementation("org.apache.xmlgraphics:fop:latest.release")
 
     // SVG Graphic
     implementation("org.apache.xmlgraphics:batik-svggen:latest.release")
+    implementation("org.apache.xmlgraphics:batik-all:1.17")
 
     // Create Office Documents
     implementation("org.apache.poi:poi:latest.release")
@@ -125,9 +125,6 @@ dependencies {
     implementation("jakarta.activation:jakarta.activation-api:latest.release")
 
     implementation("org.junit.jupiter:junit-jupiter:latest.release")
-
-    // batik for svg graphic
-    implementation("org.apache.xmlgraphics:batik-all:1.17")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")

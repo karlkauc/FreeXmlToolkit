@@ -29,8 +29,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.Rectangle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -41,6 +39,7 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.controller.XmlController;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 
 import java.io.File;
@@ -95,6 +94,10 @@ public class XmlEditor extends Tab {
 
     private void init() {
         TabPane tabPane = new TabPane();
+
+        xml.setGraphic(new FontIcon("bi-code-slash:20"));
+        graphic.setGraphic(new FontIcon("bi-columns-gap:20"));
+
         tabPane.setSide(Side.LEFT);
         tabPane.getTabs().addAll(xml, graphic);
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -182,40 +185,45 @@ public class XmlEditor extends Tab {
         try {
             BackgroundFill backgroundFill =
                     new BackgroundFill(
-                            Color.valueOf("#F06D29"),
+                            Color.rgb(200, 200, 50, 0.5),
                             new CornerRadii(10),
                             new Insets(10)
                     );
 
-            Pane r = new Pane();
-            r.setBackground(new Background(backgroundFill));
-            r.setPadding(new Insets(10, 10, 10, 10));
+            Pane pane = new Pane();
+            pane.setBackground(new Background(backgroundFill));
+            VBox vBox = new VBox();
+            vBox.setPadding(new Insets(20));
+            pane.getChildren().add(vBox);
 
             if (this.xmlFile != null) {
                 XmlService xmlService = new XmlServiceImpl();
                 xmlService.setCurrentXmlFile(this.xmlFile);
                 Document document = xmlService.getXmlDocument();
 
-                System.out.println("document.getDocumentElement().getNodeName() = " + document.getDocumentElement().getNodeName());
-
-                StackPane stackPane1 = new StackPane();
-                Label t = new Label(document.getDocumentElement().getNodeName());
-                t.getStyleClass().add("rootElement");
-                t.applyCss();
-
-                Rectangle rectangle = new Rectangle();
-                rectangle.setFill(Paint.valueOf("#4b97a3"));
-                rectangle.widthProperty().bind(t.widthProperty().add(10));
-                rectangle.heightProperty().bind(t.heightProperty().add(10));
-
-                stackPane1.getChildren().addAll(rectangle, t);
-                stackPane1.setOnMouseClicked(event -> System.out.println("event = " + event));
-                r.getChildren().add(stackPane1);
-
+                VBox b = new VBox();
+                b.getChildren().add(new Label(document.getDocumentElement().getNodeName()));
+                HBox h = new HBox();
+                h.setBorder(Border.stroke(Color.rgb(200, 200, 200)));
+                h.getChildren().add(new Label("Child Elements"));
+                h.getChildren().add(new Label(document.getDocumentElement().getChildNodes().getLength() + ""));
+                b.getChildren().add(h);
+                vBox.getChildren().add(b);
+                vBox.setOnMouseClicked(event -> {
+                    System.out.println("event = " + event);
+                    for (int i = 0; 0 < document.getDocumentElement().getChildNodes().getLength(); i++) {
+                        var node = document.getDocumentElement().getChildNodes().item(i);
+                        VBox t = new VBox();
+                        t.getChildren().add(new Label(node.getNodeName()));
+                        vBox.getChildren().add(t);
+                    }
+                });
+                vBox.getStyleClass().add("rootElement");
+                vBox.applyCss();
             }
 
 
-            this.graphic.setContent(r);
+            this.graphic.setContent(pane);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
