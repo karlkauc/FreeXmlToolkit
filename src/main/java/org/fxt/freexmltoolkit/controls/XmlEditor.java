@@ -21,7 +21,6 @@ package org.fxt.freexmltoolkit.controls;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
@@ -36,7 +35,6 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
-import org.fxt.freexmltoolkit.controller.XmlController;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -64,7 +62,7 @@ public class XmlEditor extends Tab {
     CodeArea codeArea = new CodeArea();
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
 
-    private final static Logger logger = LogManager.getLogger(XmlController.class);
+    private final static Logger logger = LogManager.getLogger(XmlEditor.class);
 
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
             + "|(?<COMMENT><!--[^<>]+-->)");
@@ -201,28 +199,11 @@ public class XmlEditor extends Tab {
                 xmlService.setCurrentXmlFile(this.xmlFile);
                 Document document = xmlService.getXmlDocument();
 
-                VBox b = new VBox();
-                b.getChildren().add(new Label(document.getDocumentElement().getNodeName()));
-                HBox h = new HBox();
-                h.setBorder(Border.stroke(Color.rgb(200, 200, 200)));
-                h.getChildren().add(new Label("Child Elements"));
-                h.getChildren().add(new Label(document.getDocumentElement().getChildNodes().getLength() + ""));
-                b.getChildren().add(h);
-                vBox.getChildren().add(b);
-                vBox.setOnMouseClicked(event -> {
-                    System.out.println("event = " + event);
-                    for (int i = 0; 0 < document.getDocumentElement().getChildNodes().getLength(); i++) {
-                        var node = document.getDocumentElement().getChildNodes().item(i);
-                        VBox t = new VBox();
-                        t.getChildren().add(new Label(node.getNodeName()));
-                        vBox.getChildren().add(t);
-                    }
-                });
-                vBox.getStyleClass().add("rootElement");
-                vBox.applyCss();
+                SimpleNodeElement simpleNodeElement = new SimpleNodeElement();
+                simpleNodeElement.createByNode(document);
+
+                vBox.getChildren().add(simpleNodeElement);
             }
-
-
             this.graphic.setContent(pane);
         } catch (Exception e) {
             logger.error(e.getMessage());
