@@ -22,9 +22,9 @@ import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -90,6 +90,12 @@ public class XsltController {
     Button debugButton, openInDefaultWebBrowser, openInDefaultTextEditor;
 
     @FXML
+    BorderPane fileLoaderPane;
+
+    @FXML
+    Label toggleBorderPaneLabel;
+
+    @FXML
     private void initialize() {
         var test = System.getenv("debug");
         if (test != null) {
@@ -134,17 +140,32 @@ public class XsltController {
     }
 
     @FXML
-    private void checkFiles() {
-        if (xsltFile != null && xsltFile.exists()) {
-            xmlService.setCurrentXsltFile(xsltFile);
-        }
+    private void toggleBorderPane() {
+        this.fileLoaderPane.setVisible(!this.fileLoaderPane.isVisible());
 
-        if (xsltFile == null && xsltFileLoader.getFile() != null) {
+        if (this.fileLoaderPane.isVisible()) {
+            this.toggleBorderPaneLabel.setText("<<");
+            this.fileLoaderPane.setMaxWidth(300);
+            this.fileLoaderPane.setMinWidth(300);
+            this.fileLoaderPane.setPrefWidth(300);
+            this.fileLoaderPane.setManaged(true);
+        } else {
+            this.toggleBorderPaneLabel.setText(">>");
+            this.fileLoaderPane.setMaxWidth(0);
+            this.fileLoaderPane.setMinWidth(0);
+            this.fileLoaderPane.setPrefWidth(0);
+            this.fileLoaderPane.setManaged(false);
+        }
+    }
+
+    @FXML
+    private void checkFiles() {
+        if (xsltFileLoader.getFile() != null) {
             xsltFile = xsltFileLoader.getFile();
             xmlService.setCurrentXsltFile(xsltFile);
         }
 
-        if (xmlFile == null && xmlFileLoader.getFile() != null) {
+        if (xmlFileLoader.getFile() != null) {
             this.xmlFile = xmlFileLoader.getFile();
             this.xmlService.setCurrentXmlFile(xmlFile);
         }

@@ -28,33 +28,37 @@
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XsltController">
     <HBox HBox.hgrow="ALWAYS">
-        <BorderPane maxWidth="300" minWidth="300" prefWidth="300" style="-fx-padding: 0 5 0 0;">
-            <top>
-                <VBox>
-                    <FileLoader fontIconString="bi-code-slash" VBox.vgrow="ALWAYS" fx:id="xmlFileLoader"/>
-                    <Separator/>
-                    <FileLoader fontIconString="fth-git-pull-request" fx:id="xsltFileLoader"/>
-                    <Separator/>
-                    <Button fx:id="reload" onAction="#checkFiles" text="Reload">
-                        <graphic>
-                            <ImageView fitHeight="20" fitWidth="20">
-                                <Image url="@../img/icons8-aktualisieren-48.png"/>
-                            </ImageView>
-                        </graphic>
-                    </Button>
-                    <Button fx:id="debugButton" onAction="#test" text="TEST" visible="false"/>
-                    <Button fx:id="openInDefaultWebBrowser" disable="true" text="Open in Web">
-                        <graphic>
-                            <FontIcon iconColor="black" iconLiteral="cib-google-chrome"/>
-                        </graphic>
-                    </Button>
-                    <Button fx:id="openInDefaultTextEditor" disable="true" text="Open in Text Editor"/>
-                </VBox>
-            </top>
-            <bottom>
-                <ProgressBar fx:id="progressBar" prefWidth="300"/>
-            </bottom>
-        </BorderPane>
+        <HBox>
+            <BorderPane fx:id="fileLoaderPane" maxWidth="300" minWidth="300" prefWidth="300"
+                        style="-fx-padding: 0 5 0 0;">
+                <top>
+                    <VBox>
+                        <FileLoader fontIconString="bi-code-slash" VBox.vgrow="ALWAYS" fx:id="xmlFileLoader"/>
+                        <Separator/>
+                        <FileLoader fontIconString="fth-git-pull-request" fx:id="xsltFileLoader"/>
+                        <Separator/>
+                        <Button fx:id="reload" onAction="#checkFiles" text="Reload">
+                            <graphic>
+                                <ImageView fitHeight="20" fitWidth="20">
+                                    <Image url="@../img/icons8-aktualisieren-48.png"/>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="debugButton" onAction="#test" text="TEST" visible="false"/>
+                        <Button fx:id="openInDefaultWebBrowser" disable="true" text="Open in Web">
+                            <graphic>
+                                <FontIcon iconColor="black" iconLiteral="cib-google-chrome"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="openInDefaultTextEditor" disable="true" text="Open in Text Editor"/>
+                    </VBox>
+                </top>
+                <bottom>
+                    <ProgressBar fx:id="progressBar" prefWidth="300"/>
+                </bottom>
+            </BorderPane>
+            <Label fx:id="toggleBorderPaneLabel" text="&lt;&lt;" onMouseClicked="#toggleBorderPane"/>
+        </HBox>
         <TabPane fx:id="outputMethodSwitch" HBox.hgrow="ALWAYS">
             <Tab fx:id="tabText" closable="false" text="Text View">
                 <graphic>

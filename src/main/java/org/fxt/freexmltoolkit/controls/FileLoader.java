@@ -100,13 +100,19 @@ public class FileLoader extends VBox {
         for (File f : db.getFiles()) {
             logger.debug("FILE: {}", f.getAbsoluteFile());
             if (f.isFile() && f.exists()) {
+                logger.debug("File exists");
                 if (this.fileEnding != null) {
+                    logger.debug("File ending is not null: {}", this.fileEnding);
                     if (f.getAbsolutePath().toLowerCase().endsWith(fileEnding)) {
+                        logger.debug("File ends with correct ending");
                         this.setFile(f);
                     }
                 } else {
+                    logger.debug("no file ending set");
                     this.setFile(f);
                 }
+            } else {
+                logger.debug("File do not exists");
             }
         }
     }
@@ -149,6 +155,7 @@ public class FileLoader extends VBox {
     public void setLoadPattern(String loadPattern, String displayText) {
         this.loadPattern = loadPattern;
         this.displayText = displayText;
+        this.fileEnding = loadPattern.replace("*", "");
         setLayout();
     }
 
