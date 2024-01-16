@@ -39,6 +39,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public class FileLoader extends VBox {
     private final static Logger logger = LogManager.getLogger(FileLoader.class);
@@ -180,24 +184,36 @@ public class FileLoader extends VBox {
     private void setFileInfoGrid() {
         fileInfo.getChildren().clear();
 
-        fileInfo.add(new Label("Size:"), 0, 0);
-        fileInfo.add(new Label(FileUtils.byteCountToDisplaySize(file.length())), 1, 0);
+        fileInfo.add(new Label("File Name:"), 0, 0);
+        fileInfo.add(new Label(file.getName()), 1, 0);
+
+        fileInfo.add(new Label("Size:"), 0, 1);
+        fileInfo.add(new Label(FileUtils.byteCountToDisplaySize(file.length())), 1, 1);
 
         logger.debug("File: {}", file.getAbsolutePath());
 
         try {
             BasicFileAttributes attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
 
-            fileInfo.add(new Label("creation Time:"), 0, 1);
-            fileInfo.add(new Label(attr.creationTime().toString()), 1, 1);
+            fileInfo.add(new Label("creation Time:"), 0, 2);
+            fileInfo.add(new Label(formatDateTime(attr.creationTime())), 1, 2);
 
-            fileInfo.add(new Label("lastModifiedTime:"), 0, 2);
-            fileInfo.add(new Label(attr.lastModifiedTime().toString()), 1, 2);
+            fileInfo.add(new Label("lastModifiedTime:"), 0, 3);
+            fileInfo.add(new Label(formatDateTime(attr.lastModifiedTime())), 1, 3);
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
     }
 
+    public static String formatDateTime(FileTime fileTime) {
+        LocalDateTime localDateTime = fileTime
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+        return localDateTime.format(
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    }
 
     private void setLayout() {
         this.setStyle("-fx-padding: 7px; ");
