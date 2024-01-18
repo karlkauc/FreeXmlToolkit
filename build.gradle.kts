@@ -92,7 +92,7 @@ dependencies {
     implementation("org.apache.santuario:xmlsec:latest.release")
 
     // Lemminx
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1")
+    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.2")
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:latest.release")
     implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.33.0")
 
