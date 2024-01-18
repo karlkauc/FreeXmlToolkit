@@ -29,11 +29,22 @@ import org.w3c.dom.Node;
 
 public class SimpleNodeElement extends VBox {
 
+    Node node;
+
+    public SimpleNodeElement() {
+
+    }
+
+    public SimpleNodeElement(Node node) {
+        this.node = node;
+        createByNode(node);
+    }
+
     private final static Logger logger = LogManager.getLogger(SimpleNodeElement.class);
 
-    Boolean expanded = false;
-
     public void createByNode(Node node) {
+        this.node = node;
+
         VBox b = new VBox();
         b.getChildren().add(new Label(node.getNodeName()));
         HBox h = new HBox();

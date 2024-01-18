@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.controls;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
@@ -188,21 +189,18 @@ public class XmlEditor extends Tab {
                             new Insets(10)
                     );
 
-            Pane pane = new Pane();
+            ScrollPane pane = new ScrollPane();
             pane.setBackground(new Background(backgroundFill));
             VBox vBox = new VBox();
             vBox.setPadding(new Insets(20));
-            pane.getChildren().add(vBox);
+            pane.setContent(vBox);
 
             if (this.xmlFile != null) {
                 XmlService xmlService = new XmlServiceImpl();
                 xmlService.setCurrentXmlFile(this.xmlFile);
                 Document document = xmlService.getXmlDocument();
 
-                SimpleNodeElement simpleNodeElement = new SimpleNodeElement();
-                simpleNodeElement.createByNode(document);
-
-                vBox.getChildren().add(simpleNodeElement);
+                vBox.getChildren().add(new SimpleNodeElement(document));
             }
             this.graphic.setContent(pane);
         } catch (Exception e) {
