@@ -45,14 +45,16 @@ public class SimpleNodeElement extends VBox {
     public void createByNode(Node node) {
         this.node = node;
 
-        VBox b = new VBox();
-        b.getChildren().add(new Label(node.getNodeName()));
+        VBox wrapper = new VBox();
+        wrapper.getChildren().add(new Label(node.getNodeName()));
+        wrapper.setStyle("-fx-border-color: black; -fx-border-style: solid; -fx-border-width: 2px;");
+
         HBox h = new HBox();
         h.setBorder(Border.stroke(Color.rgb(200, 200, 200)));
         h.getChildren().add(new Label("Child Elements"));
         h.getChildren().add(new Label(node.getChildNodes().getLength() + ""));
-        b.getChildren().add(h);
-        this.getChildren().add(b);
+        wrapper.getChildren().add(h);
+        this.getChildren().add(wrapper);
 
         this.setOnMouseClicked(event -> {
             for (int i = 0; i < node.getChildNodes().getLength(); i++) {
@@ -67,8 +69,12 @@ public class SimpleNodeElement extends VBox {
                             l.getStyleClass().add("xmlTreeComment");
                             this.getChildren().add(l);
                         }
-                        case Node.ELEMENT_NODE ->
-                                this.getChildren().add(new Label("ELEMENT: " + subNode.getNodeName()));
+                        case Node.ELEMENT_NODE -> {
+                            SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
+                            this.getChildren().add(simpleNodeElement);
+                        }
+                        case Node.TEXT_NODE -> this.getChildren().add(new Label(subNode.getNodeValue()));
+
                         default -> this.getChildren().add(new Label("DEFAULT: " + subNode.getNodeName()));
                     }
                 } else {

@@ -182,12 +182,11 @@ public class XmlEditor extends Tab {
 
     private void refreshGraphicView() {
         try {
-            BackgroundFill backgroundFill =
-                    new BackgroundFill(
-                            Color.rgb(200, 200, 50, 0.5),
-                            new CornerRadii(10),
-                            new Insets(10)
-                    );
+            BackgroundFill backgroundFill = new BackgroundFill(
+                    Color.rgb(200, 200, 50, 0.5),
+                    new CornerRadii(5),
+                    new Insets(5)
+            );
 
             ScrollPane pane = new ScrollPane();
             pane.setBackground(new Background(backgroundFill));
