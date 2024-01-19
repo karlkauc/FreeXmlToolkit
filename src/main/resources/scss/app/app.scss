@@ -273,6 +273,12 @@ $background-color: #dcdcdc;
 }
 
 /* XMTree */
+.normalElement {
+  -fx-font-family: Roboto;
+  -fx-font-weight: normal;
+  -fx-font-size: 1em;
+}
+
 .xmlTreeComment {
   -fx-font-family: Roboto;
   -fx-font-weight: normal;

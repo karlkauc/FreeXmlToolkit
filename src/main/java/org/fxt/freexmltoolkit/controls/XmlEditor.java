@@ -199,7 +199,9 @@ public class XmlEditor extends Tab {
                 xmlService.setCurrentXmlFile(this.xmlFile);
                 Document document = xmlService.getXmlDocument();
 
-                vBox.getChildren().add(new SimpleNodeElement(document));
+                var simpleNodeElement = new SimpleNodeElement(document);
+                VBox.setVgrow(simpleNodeElement, Priority.ALWAYS);
+                vBox.getChildren().add(simpleNodeElement);
             }
             this.graphic.setContent(pane);
         } catch (Exception e) {

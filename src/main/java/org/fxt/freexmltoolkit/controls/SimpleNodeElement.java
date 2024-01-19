@@ -19,6 +19,7 @@
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -47,43 +48,54 @@ public class SimpleNodeElement extends VBox {
 
         VBox wrapper = new VBox();
         wrapper.getChildren().add(new Label(node.getNodeName()));
+
         wrapper.setStyle("-fx-border-color: black; -fx-border-style: solid; -fx-border-width: 2px;");
 
         HBox h = new HBox();
         h.setBorder(Border.stroke(Color.rgb(200, 200, 200)));
-        h.getChildren().add(new Label("Child Elements"));
-        h.getChildren().add(new Label(node.getChildNodes().getLength() + ""));
+        h.getChildren().add(new Label("Child Elements {" + node.getChildNodes().getLength() + "}"));
         wrapper.getChildren().add(h);
         this.getChildren().add(wrapper);
 
         this.setOnMouseClicked(event -> {
-            for (int i = 0; i < node.getChildNodes().getLength(); i++) {
-                var subNode = node.getChildNodes().item(i);
+            if (event.getButton().equals(MouseButton.PRIMARY)) {
+                if (event.getClickCount() == 1) {
+                    for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+                        var subNode = node.getChildNodes().item(i);
+                        logger.debug("Node Type: {}", subNode.getNodeType());
 
-                if (subNode != null) {
-                    logger.debug("Node Type: {}", subNode.getNodeType());
+                        switch (subNode.getNodeType()) {
+                            case Node.COMMENT_NODE -> {
+                                final Label l = new Label("COMMENT: " + subNode.getNodeValue());
+                                l.getStyleClass().add("xmlTreeComment");
+                                this.getChildren().add(l);
+                            }
+                            case Node.ELEMENT_NODE -> {
+                                if (subNode.getChildNodes().getLength() == 1 &&
+                                        subNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
+                                    var n = subNode.getChildNodes().item(0);
+                                    this.getChildren().add(new Label(subNode.getNodeName() + ":" + n.getNodeValue()));
+                                } else {
+                                    SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
+                                    this.getChildren().add(simpleNodeElement);
+                                }
+                            }
+                            case Node.TEXT_NODE -> {
+                                //this.getChildren().add(new Label("TEXT2: " + subNode.getNodeName() + ":" + subNode.getNodeValue()));
+                            }
 
-                    switch (subNode.getNodeType()) {
-                        case Node.COMMENT_NODE -> {
-                            final Label l = new Label("COMMENT: " + subNode.getNodeValue());
-                            l.getStyleClass().add("xmlTreeComment");
-                            this.getChildren().add(l);
+                            default -> this.getChildren().add(new Label("DEFAULT: " + subNode.getNodeName()));
                         }
-                        case Node.ELEMENT_NODE -> {
-                            SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
-                            this.getChildren().add(simpleNodeElement);
-                        }
-                        case Node.TEXT_NODE -> this.getChildren().add(new Label(subNode.getNodeValue()));
-
-                        default -> this.getChildren().add(new Label("DEFAULT: " + subNode.getNodeName()));
+                        this.getStyleClass().add("normalElement");
                     }
-                } else {
-                    logger.debug("SUB NODE IS NULL");
+                }
+
+                if (event.getClickCount() == 2) {
+                    logger.debug("Double clicked: {}", this.node.getNodeName());
                 }
             }
         });
         this.getStyleClass().add("rootElement");
         this.applyCss();
     }
-
 }
