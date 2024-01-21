@@ -285,3 +285,19 @@ $background-color: #dcdcdc;
   -fx-font-size: 0.7em;
   -fx-background-color: red;
 }
+
+.treeGrid {
+  -fx-font-family: Roboto;
+  -fx-padding: 3px;
+  -fx-hgap: 2px;
+  -fx-vgap: 2px;
+  -fx-background-color: white;
+  -fx-border-color: gray;
+  -fx-border-width: 2px;
+  -fx-grid-lines-visible: false;
+}
+
+.treeGrid > * {
+  -fx-font-family: Roboto;
+  -fx-padding: 2px;
+}

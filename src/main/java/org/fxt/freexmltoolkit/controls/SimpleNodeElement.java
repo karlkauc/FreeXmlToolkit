@@ -19,7 +19,6 @@
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.scene.control.Label;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
@@ -45,69 +44,79 @@ public class SimpleNodeElement extends VBox {
         this.node = node;
 
         this.getChildren().add(new Label(node.getNodeName() + " {" + node.getChildNodes().getLength() + "}"));
-        this.setStyle("-fx-start-margin: 10; -fx-border-color: black; -fx-border-style: solid; -fx-border-width: 2px; -fx-font-size: 1.1em;");
 
         int row = 0;
         int col = 0;
 
         GridPane gridPane = new GridPane();
-        gridPane.setGridLinesVisible(true);
+        gridPane.getStyleClass().add("treeGrid");
 
-        if (node.getAttributes() != null) {
-            logger.debug("Attributes: {}", node.getAttributes().getLength());
+        if (node.hasChildNodes()) {
+            // Plus
 
-            for (int i = 0; i < node.getAttributes().getLength(); i++) {
-                var attributes = node.getAttributes().item(i);
-                logger.debug(attributes.getNodeName() + ":" + attributes.getNodeValue());
-                gridPane.add(new Label(attributes.getNodeName()), 0, row);
-                gridPane.add(new Label(attributes.getNodeValue()), 1, row);
-                row++;
+            if (node.getAttributes() != null) {
+                logger.debug("Attributes: {}", node.getAttributes().getLength());
+
+                for (int i = 0; i < node.getAttributes().getLength(); i++) {
+                    var attributes = node.getAttributes().item(i);
+                    logger.debug(attributes.getNodeName() + ":" + attributes.getNodeValue());
+                    gridPane.add(new Label(attributes.getNodeName()), 0, row);
+                    gridPane.add(new Label(attributes.getNodeValue()), 1, row);
+                    row++;
+                }
             }
+
+            for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+                var subNode = node.getChildNodes().item(i);
+                logger.debug("Node Type: {}", subNode.getNodeType());
+
+                int finalRow = row;
+                switch (subNode.getNodeType()) {
+                    case Node.COMMENT_NODE -> {
+                        final Label l = new Label("COMMENT: " + subNode.getNodeValue());
+                        l.getStyleClass().add("xmlTreeComment");
+                        // this.getChildren().add(l);
+                        // DEBUG - nachher wieder reingeben
+                    }
+                    case Node.ELEMENT_NODE -> {
+                        if (subNode.getChildNodes().getLength() == 1 &&
+                                subNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
+                            var n = subNode.getChildNodes().item(0);
+
+                            gridPane.add(new Label(subNode.getNodeName()), 0, row);
+                            gridPane.add(new Label(n.getNodeValue()), 1, row);
+                            row++;
+                        } else {
+                            Label n = new Label(subNode.getNodeName() + "{" + calculateCount(subNode) + "}");
+                            n.setOnMouseClicked(event -> {
+                                SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
+                                gridPane.add(simpleNodeElement, 1, finalRow);
+                            });
+                            gridPane.add(n, 1, row);
+                            row++;
+                        }
+                    }
+                    case Node.TEXT_NODE -> {
+                        //this.getChildren().add(new Label("TEXT2: " + subNode.getNodeName() + ":" + subNode.getNodeValue()));
+                    }
+
+                    default -> this.getChildren().add(new Label("DEFAULT: " + subNode.getNodeName()));
+                }
+                this.getStyleClass().add("normalElement");
+            }
+
             gridPane.getStyleClass().add("normalElement");
             this.getChildren().add(gridPane);
         }
+    }
 
-
-        this.setOnMouseClicked(event -> {
-            if (event.getButton().equals(MouseButton.PRIMARY)) {
-                if (event.getClickCount() == 1) {
-                    for (int i = 0; i < node.getChildNodes().getLength(); i++) {
-                        var subNode = node.getChildNodes().item(i);
-                        logger.debug("Node Type: {}", subNode.getNodeType());
-
-                        switch (subNode.getNodeType()) {
-                            case Node.COMMENT_NODE -> {
-                                final Label l = new Label("COMMENT: " + subNode.getNodeValue());
-                                l.getStyleClass().add("xmlTreeComment");
-                                // this.getChildren().add(l);
-                                // DEBUG - nachher wieder reingeben
-                            }
-                            case Node.ELEMENT_NODE -> {
-                                if (subNode.getChildNodes().getLength() == 1 &&
-                                        subNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
-                                    var n = subNode.getChildNodes().item(0);
-                                    this.getChildren().add(new Label(subNode.getNodeName() + ":" + n.getNodeValue()));
-                                } else {
-                                    SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
-                                    this.getChildren().add(simpleNodeElement);
-                                }
-                            }
-                            case Node.TEXT_NODE -> {
-                                //this.getChildren().add(new Label("TEXT2: " + subNode.getNodeName() + ":" + subNode.getNodeValue()));
-                            }
-
-                            default -> this.getChildren().add(new Label("DEFAULT: " + subNode.getNodeName()));
-                        }
-                        this.getStyleClass().add("normalElement");
-                    }
-                }
-
-                if (event.getClickCount() == 2) {
-                    logger.debug("Double clicked: {}", this.node.getNodeName());
-                }
+    private int calculateCount(Node n) {
+        int ret = 0;
+        for (int i = 0; i < n.getChildNodes().getLength(); i++) {
+            if (n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE) {
+                ret++;
             }
-        });
-        this.getStyleClass().add("rootElement");
-        this.applyCss();
+        }
+        return ret;
     }
 }

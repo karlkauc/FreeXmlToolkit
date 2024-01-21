@@ -191,7 +191,7 @@ public class XmlEditor extends Tab {
             ScrollPane pane = new ScrollPane();
             pane.setBackground(new Background(backgroundFill));
             VBox vBox = new VBox();
-            vBox.setPadding(new Insets(20));
+            vBox.setPadding(new Insets(3));
             pane.setContent(vBox);
 
             if (this.xmlFile != null) {
