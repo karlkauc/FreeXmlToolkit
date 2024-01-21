@@ -20,10 +20,8 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Node;
@@ -46,16 +44,29 @@ public class SimpleNodeElement extends VBox {
     public void createByNode(Node node) {
         this.node = node;
 
-        VBox wrapper = new VBox();
-        wrapper.getChildren().add(new Label(node.getNodeName()));
+        this.getChildren().add(new Label(node.getNodeName() + " {" + node.getChildNodes().getLength() + "}"));
+        this.setStyle("-fx-start-margin: 10; -fx-border-color: black; -fx-border-style: solid; -fx-border-width: 2px; -fx-font-size: 1.1em;");
 
-        wrapper.setStyle("-fx-border-color: black; -fx-border-style: solid; -fx-border-width: 2px;");
+        int row = 0;
+        int col = 0;
 
-        HBox h = new HBox();
-        h.setBorder(Border.stroke(Color.rgb(200, 200, 200)));
-        h.getChildren().add(new Label("Child Elements {" + node.getChildNodes().getLength() + "}"));
-        wrapper.getChildren().add(h);
-        this.getChildren().add(wrapper);
+        GridPane gridPane = new GridPane();
+        gridPane.setGridLinesVisible(true);
+
+        if (node.getAttributes() != null) {
+            logger.debug("Attributes: {}", node.getAttributes().getLength());
+
+            for (int i = 0; i < node.getAttributes().getLength(); i++) {
+                var attributes = node.getAttributes().item(i);
+                logger.debug(attributes.getNodeName() + ":" + attributes.getNodeValue());
+                gridPane.add(new Label(attributes.getNodeName()), 0, row);
+                gridPane.add(new Label(attributes.getNodeValue()), 1, row);
+                row++;
+            }
+            gridPane.getStyleClass().add("normalElement");
+            this.getChildren().add(gridPane);
+        }
+
 
         this.setOnMouseClicked(event -> {
             if (event.getButton().equals(MouseButton.PRIMARY)) {
@@ -68,7 +79,8 @@ public class SimpleNodeElement extends VBox {
                             case Node.COMMENT_NODE -> {
                                 final Label l = new Label("COMMENT: " + subNode.getNodeValue());
                                 l.getStyleClass().add("xmlTreeComment");
-                                this.getChildren().add(l);
+                                // this.getChildren().add(l);
+                                // DEBUG - nachher wieder reingeben
                             }
                             case Node.ELEMENT_NODE -> {
                                 if (subNode.getChildNodes().getLength() == 1 &&
