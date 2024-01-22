@@ -102,6 +102,12 @@
                     <FontIcon iconLiteral="win10-checked"/>
                 </graphic>
             </Button>
+            <Button contentDisplay="TOP" styleClass="big_button" onAction="#print" text="print"
+                    ButtonBar.buttonData="RIGHT">
+                <graphic>
+                    <FontIcon iconLiteral="win10-checked"/>
+                </graphic>
+            </Button>
         </HBox>
         <HBox>
             <padding>
@@ -118,7 +124,7 @@
         <SplitPane dividerPositions="0.8" orientation="VERTICAL" VBox.vgrow="ALWAYS">
             <TabPane fx:id="xmlFilesPane" AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"
                      AnchorPane.bottomAnchor="0" side="BOTTOM">
-                <XmlEditor/>
+                <XmlEditor fx:id="xmlEditor"/>
             </TabPane>
             <HBox prefHeight="100">
                 <VBox spacing="5.0">

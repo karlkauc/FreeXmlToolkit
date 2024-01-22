@@ -81,6 +81,9 @@ public class XmlEditor extends Tab {
     File xmlFile;
     private int fontSize = 11;
 
+    Document document;
+    XmlService xmlService = new XmlServiceImpl();
+
     public XmlEditor(File f) {
         init();
         this.setXmlFile(f);
@@ -166,6 +169,9 @@ public class XmlEditor extends Tab {
 
     public void refresh() {
         if (this.xmlFile.exists()) {
+            xmlService.setCurrentXmlFile(this.xmlFile);
+            document = xmlService.getXmlDocument();
+
             refreshTextView();
             refreshGraphicView();
         }
@@ -178,6 +184,10 @@ public class XmlEditor extends Tab {
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
+    }
+
+    public Document getDocument() {
+        return this.document;
     }
 
     private void refreshGraphicView() {
@@ -194,11 +204,7 @@ public class XmlEditor extends Tab {
             vBox.setPadding(new Insets(3));
             pane.setContent(vBox);
 
-            if (this.xmlFile != null) {
-                XmlService xmlService = new XmlServiceImpl();
-                xmlService.setCurrentXmlFile(this.xmlFile);
-                Document document = xmlService.getXmlDocument();
-
+            if (document != null) {
                 var simpleNodeElement = new SimpleNodeElement(document);
                 VBox.setVgrow(simpleNodeElement, Priority.ALWAYS);
                 vBox.getChildren().add(simpleNodeElement);

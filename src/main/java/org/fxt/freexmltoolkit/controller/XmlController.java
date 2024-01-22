@@ -89,6 +89,9 @@ public class XmlController {
     TextArea textAreaTemp;
 
     @FXML
+    XmlEditor xmlEditor;
+
+    @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
         xmlService = XmlServiceImpl.getInstance();
@@ -159,10 +162,11 @@ public class XmlController {
             xmlService.setCurrentXmlFile(f);
             xmlService.prettyFormatCurrentFile();
 
-            XmlEditor x = new XmlEditor(f);
-            x.refresh();
-            xmlFilesPane.getTabs().add(x);
-            xmlFilesPane.getSelectionModel().select(x);
+            xmlEditor.setXmlFile(f);
+            xmlEditor.refresh();
+
+            xmlFilesPane.getTabs().add(xmlEditor);
+            xmlFilesPane.getSelectionModel().select(xmlEditor);
         }
     }
 
@@ -443,6 +447,11 @@ public class XmlController {
     }
 
     @FXML
+    private void print() {
+        logger.debug("BIN DRINNEN");
+        logger.debug(xmlEditor.getDocument().getNodeValue());
+    }
+    @FXML
     private void test() {
         Path xmlExampleFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml");
 
@@ -450,7 +459,7 @@ public class XmlController {
         xmlService.setCurrentXsdFile(Paths.get("examples/xsd/FundsXML4.xsd").toFile());
 
         try {
-            XmlEditor xmlEditor = getCurrentXmlEditor();
+            xmlEditor = getCurrentXmlEditor();
             xmlEditor.setXmlFile(xmlExampleFile.toFile());
             xmlEditor.refresh();
         } catch (Exception e) {
