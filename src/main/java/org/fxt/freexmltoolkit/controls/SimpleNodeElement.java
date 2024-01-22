@@ -19,15 +19,22 @@
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Node;
 
-public class SimpleNodeElement extends VBox {
+import java.util.Objects;
 
+public class SimpleNodeElement extends VBox {
     Node node;
+
+    final Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/plus.png")).toString());
+    final ImageView imageView = new ImageView(image);
 
     public SimpleNodeElement() {
 
@@ -87,12 +94,23 @@ public class SimpleNodeElement extends VBox {
                             gridPane.add(new Label(n.getNodeValue()), 1, row);
                             row++;
                         } else {
-                            Label n = new Label(subNode.getNodeName() + "{" + calculateCount(subNode) + "}");
-                            n.setOnMouseClicked(event -> {
+                            HBox box = new HBox();
+
+                            imageView.setFitHeight(15);
+                            imageView.setFitWidth(15);
+                            imageView.setPreserveRatio(true);
+
+                            Label label = new Label(subNode.getNodeName() + " - {" + calculateCount(subNode) + "}");
+
+                            box.setOnMouseClicked(event -> {
+                                // ((ImageView) this.getChildren().get(1)).setImage(new Image(Objects.requireNonNull(getClass().getResource("/img/minus.png")).toString()));
                                 SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
                                 gridPane.add(simpleNodeElement, 1, finalRow);
                             });
-                            gridPane.add(n, 1, row);
+
+                            box.getChildren().addAll(imageView, label);
+
+                            gridPane.add(box, 1, row);
                             row++;
                         }
                     }
