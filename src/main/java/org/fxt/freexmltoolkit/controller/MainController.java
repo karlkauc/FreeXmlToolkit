@@ -27,6 +27,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -76,6 +77,8 @@ public class MainController {
     @FXML
     VBox leftMenu;
 
+    @FXML
+    ImageView logoImageView;
     List<File> lastOpenFiles = new LinkedList<>();
 
     Boolean showMenu = true;
@@ -220,6 +223,10 @@ public class MainController {
             menuText1.setText(">>");
             menuText2.setText("");
 
+            logoImageView.setFitHeight(15);
+            logoImageView.setFitWidth(75);
+            logoImageView.setPreserveRatio(true);
+
             setButtonSmall(xml);
             setButtonSmall(xsd);
             setButtonSmall(xsdValidation);
@@ -234,6 +241,10 @@ public class MainController {
 
             menuText1.setText("FundsXML Toolkit");
             menuText2.setText("Enterprise Edition");
+
+            logoImageView.setFitHeight(75);
+            logoImageView.setFitWidth(100);
+            logoImageView.setPreserveRatio(true);
 
             setButtonLarge(xml);
             setButtonLarge(xsd);
@@ -257,6 +268,4 @@ public class MainController {
         buttonLarge.getStyleClass().remove("menu_button_collapsed");
         buttonLarge.getStyleClass().add("menu_button");
     }
-
-
 }

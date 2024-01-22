@@ -1,3 +1,20 @@
+/*!
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2024.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
  * Copyright (c) Karl Kauc 2023.
@@ -50,23 +67,6 @@
   -fx-font-family: monospace;
 }
 
-/*!
- * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2024.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- */
 @font-face {
   font-family: "Open Sans";
   font-weight: normal;
@@ -286,9 +286,9 @@
 
 /* XMTree */
 .normalElement {
-    -fx-font-family: Roboto;
-    -fx-font-weight: normal;
-    -fx-font-size: 1em;
+  -fx-font-family: Roboto;
+  -fx-font-weight: normal;
+  -fx-font-size: 1em;
 }
 
 .xmlTreeComment {
@@ -299,19 +299,21 @@
 }
 
 .treeGrid {
-    -fx-font-family: Roboto;
-    -fx-padding: 3px;
-    -fx-hgap: 2px;
-    -fx-vgap: 2px;
-    -fx-background-color: white;
-    -fx-border-color: gray;
-    -fx-border-width: 2px;
-    -fx-grid-lines-visible: false;
+  -fx-font-family: Roboto;
+  -fx-padding: 3px;
+  -fx-hgap: 2px;
+  -fx-vgap: 2px;
+  -fx-background-color: white;
+  -fx-border-color: gray;
+  -fx-border-width: 2px;
+  -fx-grid-lines-visible: false;
 }
 
 .treeGrid > * {
-    -fx-font-family: Roboto;
-    -fx-padding: 2px;
+  -fx-font-family: Roboto;
+  -fx-padding: 2px;
+  -fx-border-color: #c4c4c4;
+  -fx-border-width: 1px;
 }
 
 /*# sourceMappingURL=app.css.map */
