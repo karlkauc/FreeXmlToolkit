@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Node;
 
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 public class SimpleNodeElement extends VBox {
     Node node;
@@ -63,10 +64,8 @@ public class SimpleNodeElement extends VBox {
     private final static Logger logger = LogManager.getLogger(SimpleNodeElement.class);
 
     public void createByNode(Node node) {
-        // this.getChildren().add(new Label(node.getNodeName() + " {" + calculateCount(node) + "}"));
-
         int row = 0;
-        int col = 0;
+        int col = 1;
 
         GridPane gridPane = new GridPane();
         gridPane.getStyleClass().add("treeGrid");
@@ -91,6 +90,7 @@ public class SimpleNodeElement extends VBox {
                 logger.debug("Node Type: {}", subNode.getNodeType());
 
                 int finalRow = row;
+                int finalCol = col;
                 switch (subNode.getNodeType()) {
                     case Node.COMMENT_NODE -> {
                         final Label l = new Label("COMMENT: " + subNode.getNodeValue());
@@ -105,6 +105,8 @@ public class SimpleNodeElement extends VBox {
 
                             logger.debug("adding element text node: {}", subNode.getNodeName() + ":" + n.getNodeValue());
                             logger.debug("ROW: {}", row);
+
+                            col++;
 
                             Label nodeName = new Label(subNode.getNodeName());
                             gridPane.add(nodeName, 0, row);
@@ -150,7 +152,7 @@ public class SimpleNodeElement extends VBox {
                                     gridPane.add(box, 1, finalRow);
                                 });
 
-                                gridPane.add(b, 1, finalRow);
+                                gridPane.add(b, finalCol, finalRow);
                             });
 
                             box.getChildren().addAll(imageViewPlus, label);
@@ -173,14 +175,7 @@ public class SimpleNodeElement extends VBox {
         }
     }
 
-
-    private int calculateCount(Node n) {
-        int ret = 0;
-        for (int i = 0; i < n.getChildNodes().getLength(); i++) {
-            if (n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE) {
-                ret++;
-            }
-        }
-        return ret;
+    private static int calculateCount(Node n) {
+        return (int) IntStream.range(0, n.getChildNodes().getLength()).filter(i -> n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE).count();
     }
 }
