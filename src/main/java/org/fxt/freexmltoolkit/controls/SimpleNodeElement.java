@@ -31,7 +31,6 @@ import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Node;
 
 import java.util.Objects;
-import java.util.stream.IntStream;
 
 public class SimpleNodeElement extends VBox {
     Node node;
@@ -64,8 +63,10 @@ public class SimpleNodeElement extends VBox {
     private final static Logger logger = LogManager.getLogger(SimpleNodeElement.class);
 
     public void createByNode(Node node) {
+        // this.getChildren().add(new Label(node.getNodeName() + " {" + calculateCount(node) + "}"));
+
         int row = 0;
-        int col = 1;
+        int col = 0;
 
         GridPane gridPane = new GridPane();
         gridPane.getStyleClass().add("treeGrid");
@@ -87,10 +88,9 @@ public class SimpleNodeElement extends VBox {
 
             for (int i = 0; i < node.getChildNodes().getLength(); i++) {
                 var subNode = node.getChildNodes().item(i);
-                logger.debug("Node Type: {}", subNode.getNodeType());
+                // logger.debug("Node Type: {}", subNode.getNodeType());
 
                 int finalRow = row;
-                int finalCol = col;
                 switch (subNode.getNodeType()) {
                     case Node.COMMENT_NODE -> {
                         final Label l = new Label("COMMENT: " + subNode.getNodeValue());
@@ -105,8 +105,6 @@ public class SimpleNodeElement extends VBox {
 
                             logger.debug("adding element text node: {}", subNode.getNodeName() + ":" + n.getNodeValue());
                             logger.debug("ROW: {}", row);
-
-                            col++;
 
                             Label nodeName = new Label(subNode.getNodeName());
                             gridPane.add(nodeName, 0, row);
@@ -136,23 +134,25 @@ public class SimpleNodeElement extends VBox {
                             logger.debug("Element: {}", label.getText());
 
                             box.setOnMouseClicked(event -> {
-                                logger.debug("Click Event: {}", event.getSource().toString());
+                                // logger.debug("Click Event: {}", event.getSource().toString());
                                 logger.debug("Final Row: {}", finalRow);
-
                                 gridPane.getChildren().remove(box);
 
-                                HBox b = new HBox();
+                                HBox wrapperOpen = new HBox();
+                                HBox openBox = new HBox();
                                 Label label2 = new Label("OPEN - " + subNode.getNodeName() + " - {" + calculateCount(subNode) + "}");
                                 SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
 
-                                b.getChildren().addAll(imageViewMinus, label2, simpleNodeElement);
+                                openBox.getChildren().addAll(imageViewMinus, label2);
 
-                                b.setOnMouseClicked(event1 -> {
-                                    b.getChildren().remove(b);
-                                    gridPane.add(box, 1, finalRow);
+                                openBox.setOnMouseClicked(event1 -> {
+                                    // logger.debug("Click Event - open Box");
+                                    // wieder orginal aufklappen einhängen
+                                    wrapperOpen.getChildren().removeAll(simpleNodeElement);
                                 });
+                                wrapperOpen.getChildren().addAll(openBox, simpleNodeElement);
 
-                                gridPane.add(b, finalCol, finalRow);
+                                gridPane.add(wrapperOpen, 1, finalRow);
                             });
 
                             box.getChildren().addAll(imageViewPlus, label);
@@ -175,7 +175,14 @@ public class SimpleNodeElement extends VBox {
         }
     }
 
-    private static int calculateCount(Node n) {
-        return (int) IntStream.range(0, n.getChildNodes().getLength()).filter(i -> n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE).count();
+
+    private int calculateCount(Node n) {
+        int ret = 0;
+        for (int i = 0; i < n.getChildNodes().getLength(); i++) {
+            if (n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE) {
+                ret++;
+            }
+        }
+        return ret;
     }
 }
