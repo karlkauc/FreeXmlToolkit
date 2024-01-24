@@ -88,7 +88,7 @@ public class SimpleNodeElement extends VBox {
 
             for (int i = 0; i < node.getChildNodes().getLength(); i++) {
                 var subNode = node.getChildNodes().item(i);
-                logger.debug("Node Type: {}", subNode.getNodeType());
+                // logger.debug("Node Type: {}", subNode.getNodeType());
 
                 int finalRow = row;
                 switch (subNode.getNodeType()) {
@@ -134,23 +134,25 @@ public class SimpleNodeElement extends VBox {
                             logger.debug("Element: {}", label.getText());
 
                             box.setOnMouseClicked(event -> {
-                                logger.debug("Click Event: {}", event.getSource().toString());
+                                // logger.debug("Click Event: {}", event.getSource().toString());
                                 logger.debug("Final Row: {}", finalRow);
-
                                 gridPane.getChildren().remove(box);
 
-                                HBox b = new HBox();
+                                HBox wrapperOpen = new HBox();
+                                HBox openBox = new HBox();
                                 Label label2 = new Label("OPEN - " + subNode.getNodeName() + " - {" + calculateCount(subNode) + "}");
                                 SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
 
-                                b.getChildren().addAll(imageViewMinus, label2, simpleNodeElement);
+                                openBox.getChildren().addAll(imageViewMinus, label2);
 
-                                b.setOnMouseClicked(event1 -> {
-                                    b.getChildren().remove(b);
-                                    gridPane.add(box, 1, finalRow);
+                                openBox.setOnMouseClicked(event1 -> {
+                                    // logger.debug("Click Event - open Box");
+                                    // wieder orginal aufklappen einhängen
+                                    wrapperOpen.getChildren().removeAll(simpleNodeElement);
                                 });
+                                wrapperOpen.getChildren().addAll(openBox, simpleNodeElement);
 
-                                gridPane.add(b, 1, finalRow);
+                                gridPane.add(wrapperOpen, 1, finalRow);
                             });
 
                             box.getChildren().addAll(imageViewPlus, label);
