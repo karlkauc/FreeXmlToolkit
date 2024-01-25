@@ -39,12 +39,8 @@ import java.util.stream.IntStream;
 public class SimpleNodeElement extends VBox {
     Node node;
 
-    final Image imagePlus = new Image(Objects.requireNonNull(getClass().getResource("/img/plus.png")).toString());
-    final ImageView imageViewPlus = new ImageView(imagePlus);
-
-    final Image imageMinus = new Image(Objects.requireNonNull(getClass().getResource("/img/minus.png")).toString());
-    final ImageView imageViewMinus = new ImageView(imageMinus);
-
+    final Image imagePlus = new Image(Objects.requireNonNull(getClass().getResource("/img/plus_15.png")).toString());
+    final Image imageMinus = new Image(Objects.requireNonNull(getClass().getResource("/img/minus_15.png")).toString());
 
     public SimpleNodeElement() {
 
@@ -52,23 +48,12 @@ public class SimpleNodeElement extends VBox {
 
     public SimpleNodeElement(Node node) {
         this.node = node;
-
-        imageViewPlus.setFitHeight(15);
-        imageViewPlus.setFitWidth(15);
-        imageViewPlus.setPreserveRatio(true);
-
-        imageViewMinus.setFitHeight(15);
-        imageViewMinus.setFitWidth(15);
-        imageViewMinus.setPreserveRatio(true);
-
         createByNode(node);
     }
 
     private final static Logger logger = LogManager.getLogger(SimpleNodeElement.class);
 
     public void createByNode(Node node) {
-        // this.getChildren().add(new Label(node.getNodeName() + " {" + calculateCount(node) + "}"));
-
         int row = 0;
         int col = 0;
 
@@ -76,7 +61,6 @@ public class SimpleNodeElement extends VBox {
         gridPane.getStyleClass().add("treeGrid");
 
         if (node.hasChildNodes()) {
-            // Plus
 
             if (node.getAttributes() != null) {
                 logger.debug("Attributes: {}", node.getAttributes().getLength());
@@ -114,34 +98,19 @@ public class SimpleNodeElement extends VBox {
                             gridPane.add(nodeName, 0, row);
 
                             Label nodeValue = new Label(n.getNodeValue());
-                            nodeValue.setOnMouseClicked(event -> {
-                                logger.debug("Node Value: {}", nodeValue.getText());
-                                TextField textField = new TextField(nodeValue.getText());
-                                gridPane.getChildren().remove(nodeValue);
-                                gridPane.add(textField, 1, finalRow);
-                                textField.setOnKeyPressed(keyEvent -> {
-                                    if (keyEvent.getCode() == KeyCode.ENTER) {
-                                        logger.debug("NEW VALUE: {}", textField.getText());
-                                        gridPane.getChildren().remove(textField);
-                                        nodeValue.setText(textField.getText());
-                                        gridPane.add(nodeValue, 1, finalRow);
-                                        n.setNodeValue(textField.getText());
-                                    }
-                                });
-                            });
+                            nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, gridPane, finalRow, n));
                             gridPane.add(nodeValue, 1, row);
                             row++;
                         } else {
-                            HBox box = new HBox();
-
+                            HBox elementBox = new HBox();
                             Label label = new Label(subNode.getNodeName() + " - {" + calculateCount(subNode) + "}");
                             logger.debug("Element: {}", label.getText());
+                            final ImageView imageViewPlus = new ImageView(imagePlus);
 
-                            box.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, box, subNode));
+                            elementBox.getChildren().addAll(imageViewPlus, label);
+                            elementBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, elementBox, subNode));
 
-                            box.getChildren().addAll(imageViewPlus, label);
-
-                            gridPane.add(box, 1, row);
+                            gridPane.add(elementBox, 1, row);
                             row++;
                         }
                     }
@@ -160,6 +129,25 @@ public class SimpleNodeElement extends VBox {
     }
 
     @NotNull
+    private static EventHandler<MouseEvent> editNodeValueHandler(Label nodeValue, GridPane gridPane, int finalRow, Node n) {
+        return event -> {
+            logger.debug("Node Value: {}", nodeValue.getText());
+            TextField textField = new TextField(nodeValue.getText());
+            gridPane.getChildren().remove(nodeValue);
+            gridPane.add(textField, 1, finalRow);
+            textField.setOnKeyPressed(keyEvent -> {
+                if (keyEvent.getCode() == KeyCode.ENTER) {
+                    logger.debug("NEW VALUE: {}", textField.getText());
+                    gridPane.getChildren().remove(textField);
+                    nodeValue.setText(textField.getText());
+                    gridPane.add(nodeValue, 1, finalRow);
+                    n.setNodeValue(textField.getText());
+                }
+            });
+        };
+    }
+
+    @NotNull
     private EventHandler<MouseEvent> mouseOpenHandler(int finalRow, GridPane gridPane, HBox box, Node subNode) {
         return event -> {
             // logger.debug("Click Event: {}", event.getSource().toString());
@@ -171,6 +159,7 @@ public class SimpleNodeElement extends VBox {
             Label label2 = new Label("OPEN - " + subNode.getNodeName() + " - {" + SimpleNodeElement.this.calculateCount(subNode) + "}");
             SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
 
+            final ImageView imageViewMinus = new ImageView(imageMinus);
             openBox.getChildren().addAll(imageViewMinus, label2);
 
             openBox.setOnMouseClicked(event1 -> {
