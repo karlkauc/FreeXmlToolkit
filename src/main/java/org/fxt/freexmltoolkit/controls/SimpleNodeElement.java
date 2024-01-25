@@ -18,19 +18,23 @@
 
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 public class SimpleNodeElement extends VBox {
     Node node;
@@ -133,27 +137,7 @@ public class SimpleNodeElement extends VBox {
                             Label label = new Label(subNode.getNodeName() + " - {" + calculateCount(subNode) + "}");
                             logger.debug("Element: {}", label.getText());
 
-                            box.setOnMouseClicked(event -> {
-                                // logger.debug("Click Event: {}", event.getSource().toString());
-                                logger.debug("Final Row: {}", finalRow);
-                                gridPane.getChildren().remove(box);
-
-                                HBox wrapperOpen = new HBox();
-                                HBox openBox = new HBox();
-                                Label label2 = new Label("OPEN - " + subNode.getNodeName() + " - {" + calculateCount(subNode) + "}");
-                                SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
-
-                                openBox.getChildren().addAll(imageViewMinus, label2);
-
-                                openBox.setOnMouseClicked(event1 -> {
-                                    // logger.debug("Click Event - open Box");
-                                    // wieder orginal aufklappen einhängen
-                                    wrapperOpen.getChildren().removeAll(simpleNodeElement);
-                                });
-                                wrapperOpen.getChildren().addAll(openBox, simpleNodeElement);
-
-                                gridPane.add(wrapperOpen, 1, finalRow);
-                            });
+                            box.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, box, subNode));
 
                             box.getChildren().addAll(imageViewPlus, label);
 
@@ -175,14 +159,37 @@ public class SimpleNodeElement extends VBox {
         }
     }
 
+    @NotNull
+    private EventHandler<MouseEvent> mouseOpenHandler(int finalRow, GridPane gridPane, HBox box, Node subNode) {
+        return event -> {
+            // logger.debug("Click Event: {}", event.getSource().toString());
+            logger.debug("Final Row: {}", finalRow);
+            gridPane.getChildren().remove(box);
+
+            HBox wrapperOpen = new HBox();
+            HBox openBox = new HBox();
+            Label label2 = new Label("OPEN - " + subNode.getNodeName() + " - {" + SimpleNodeElement.this.calculateCount(subNode) + "}");
+            SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
+
+            openBox.getChildren().addAll(imageViewMinus, label2);
+
+            openBox.setOnMouseClicked(event1 -> {
+                // logger.debug("Click Event - open Box");
+                // wieder orginal aufklappen einhängen
+                wrapperOpen.getChildren().removeAll(simpleNodeElement);
+                openBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, box, subNode));
+            });
+            wrapperOpen.getChildren().addAll(openBox, simpleNodeElement);
+
+            gridPane.add(wrapperOpen, 1, finalRow);
+        };
+    }
+
 
     private int calculateCount(Node n) {
-        int ret = 0;
-        for (int i = 0; i < n.getChildNodes().getLength(); i++) {
-            if (n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE) {
-                ret++;
-            }
-        }
-        return ret;
+        return (int) IntStream
+                .range(0, n.getChildNodes().getLength())
+                .filter(i -> n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE)
+                .count();
     }
 }
