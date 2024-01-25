@@ -42,10 +42,6 @@ public class SimpleNodeElement extends VBox {
     final Image imagePlus = new Image(Objects.requireNonNull(getClass().getResource("/img/plus_15.png")).toString());
     final Image imageMinus = new Image(Objects.requireNonNull(getClass().getResource("/img/minus_15.png")).toString());
 
-    public SimpleNodeElement() {
-
-    }
-
     public SimpleNodeElement(Node node) {
         this.node = node;
         createByNode(node);
@@ -108,7 +104,7 @@ public class SimpleNodeElement extends VBox {
                             final ImageView imageViewPlus = new ImageView(imagePlus);
 
                             elementBox.getChildren().addAll(imageViewPlus, label);
-                            elementBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, elementBox, subNode));
+                            elementBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, elementBox, subNode, true));
 
                             gridPane.add(elementBox, 1, row);
                             row++;
@@ -148,7 +144,7 @@ public class SimpleNodeElement extends VBox {
     }
 
     @NotNull
-    private EventHandler<MouseEvent> mouseOpenHandler(int finalRow, GridPane gridPane, HBox box, Node subNode) {
+    private EventHandler<MouseEvent> mouseOpenHandler(int finalRow, GridPane gridPane, HBox box, Node subNode, Boolean isOpen) {
         return event -> {
             // logger.debug("Click Event: {}", event.getSource().toString());
             logger.debug("Final Row: {}", finalRow);
@@ -159,14 +155,26 @@ public class SimpleNodeElement extends VBox {
             Label label2 = new Label("OPEN - " + subNode.getNodeName() + " - {" + SimpleNodeElement.this.calculateCount(subNode) + "}");
             SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
 
-            final ImageView imageViewMinus = new ImageView(imageMinus);
-            openBox.getChildren().addAll(imageViewMinus, label2);
+            ImageView imageView;
+            if (isOpen) {
+                imageView = new ImageView(imageMinus);
+            } else {
+                imageView = new ImageView(imagePlus);
+            }
+            openBox.getChildren().addAll(imageView, label2);
 
             openBox.setOnMouseClicked(event1 -> {
                 // logger.debug("Click Event - open Box");
                 // wieder orginal aufklappen einhängen
+                Image image;
+                if (isOpen) {
+                    image = imagePlus;
+                } else {
+                    image = imageMinus;
+                }
+                ((ImageView) openBox.getChildren().getFirst()).setImage(image);
                 wrapperOpen.getChildren().removeAll(simpleNodeElement);
-                openBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, box, subNode));
+                openBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, box, subNode, !isOpen));
             });
             wrapperOpen.getChildren().addAll(openBox, simpleNodeElement);
 
