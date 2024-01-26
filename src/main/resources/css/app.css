@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  *  limitations under the License.
  *
  */
+
 .tagmark {
   -fx-fill: rgb(0, 0, 255);
 }
@@ -50,23 +51,6 @@
   -fx-font-family: monospace;
 }
 
-/*!
- * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2024.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- */
 @font-face {
   font-family: "Open Sans";
   font-weight: normal;
@@ -289,7 +273,7 @@
   -fx-font-family: Roboto;
   -fx-font-weight: normal;
   -fx-font-size: 1em;
-    -fx-background-color: white;
+  -fx-background-color: white;
 }
 
 .xmlTreeComment {
