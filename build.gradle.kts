@@ -21,8 +21,8 @@ plugins {
     idea
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
-    id("com.github.ben-manes.versions") version "0.50.0"
-    id("dev.hydraulic.conveyor") version "1.6"
+    id("com.github.ben-manes.versions") version "0.51.0"
+    id("dev.hydraulic.conveyor") version "1.9"
 }
 
 application {
@@ -92,9 +92,9 @@ dependencies {
     implementation("org.apache.santuario:xmlsec:latest.release")
 
     // Lemminx
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.2")
+    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:latest.release")
-    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.33.0")
+    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.34.0")
 
     // FOP
     implementation("org.apache.xmlgraphics:fop:latest.release")

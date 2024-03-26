@@ -301,7 +301,7 @@ public class XsdDocumentationService {
         double rightBoxWidth = 0;
 
         // größe der rechten Box ermitteln
-        // um linkes element in der mitte zu plazieren
+        // um linkes element in der mitte zu platzieren
         for (ExtendedXsdElement r : childElements) {
             String elementName = "";
 
