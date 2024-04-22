@@ -216,8 +216,16 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
-    public String getCurrentXsdString() throws IOException {
-        return Files.readString(Path.of(this.currentXsdFile.toURI()));
+    public String getCurrentXsdString() {
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            StringWriter stringWriter = new StringWriter();
+            transformer.transform(new DOMSource(this.xmlDocument), new StreamResult(stringWriter));
+            return stringWriter.toString();
+        } catch (TransformerException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

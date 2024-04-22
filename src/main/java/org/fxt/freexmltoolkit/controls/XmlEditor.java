@@ -42,8 +42,6 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -177,10 +175,10 @@ public class XmlEditor extends Tab {
         }
     }
 
-    private void refreshTextView() {
+    void refreshTextView() {
         try {
             codeArea.clear();
-            codeArea.replaceText(0, 0, Files.readString(Path.of(this.xmlFile.toURI())));
+            codeArea.replaceText(0, 0, xmlService.getCurrentXsdString());
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
@@ -205,7 +203,7 @@ public class XmlEditor extends Tab {
             pane.setContent(vBox);
 
             if (document != null) {
-                var simpleNodeElement = new SimpleNodeElement(document);
+                var simpleNodeElement = new SimpleNodeElement(document, this);
                 VBox.setVgrow(simpleNodeElement, Priority.ALWAYS);
                 vBox.getChildren().add(simpleNodeElement);
             }

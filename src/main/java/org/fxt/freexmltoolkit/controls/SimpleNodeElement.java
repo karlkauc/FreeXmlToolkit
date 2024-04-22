@@ -42,8 +42,11 @@ public class SimpleNodeElement extends VBox {
     final Image imagePlus = new Image(Objects.requireNonNull(getClass().getResource("/img/plus_15.png")).toString());
     final Image imageMinus = new Image(Objects.requireNonNull(getClass().getResource("/img/minus_15.png")).toString());
 
-    public SimpleNodeElement(Node node) {
+    XmlEditor xmlEditor;
+
+    public SimpleNodeElement(Node node, XmlEditor caller) {
         this.node = node;
+        this.xmlEditor = caller;
         createByNode(node);
     }
 
@@ -124,7 +127,7 @@ public class SimpleNodeElement extends VBox {
     }
 
     @NotNull
-    private static EventHandler<MouseEvent> editNodeValueHandler(Label nodeValue, GridPane gridPane, int finalRow, Node n) {
+    private EventHandler<MouseEvent> editNodeValueHandler(Label nodeValue, GridPane gridPane, int finalRow, Node n) {
         return event -> {
             logger.debug("Node Value: {}", nodeValue.getText());
             TextField textField = new TextField(nodeValue.getText());
@@ -138,6 +141,7 @@ public class SimpleNodeElement extends VBox {
                     nodeValue.setText(textField.getText());
                     gridPane.add(nodeValue, 1, finalRow);
                     n.setNodeValue(textField.getText());
+                    this.xmlEditor.refreshTextView();
                 }
                 if (keyEvent.getCode() == KeyCode.ESCAPE) {
                     logger.debug("ESC Pressed");
@@ -157,7 +161,7 @@ public class SimpleNodeElement extends VBox {
             HBox wrapperOpen = new HBox();
             HBox openBox = new HBox();
             Label label2 = new Label(subNode.getNodeName() + " - {" + SimpleNodeElement.this.calculateCount(subNode) + "}");
-            SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode);
+            SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode, this.xmlEditor);
 
             openBox.getChildren().addAll(new ImageView(imageMinus), label2);
             openBox.setOnMouseClicked(event1 -> {
