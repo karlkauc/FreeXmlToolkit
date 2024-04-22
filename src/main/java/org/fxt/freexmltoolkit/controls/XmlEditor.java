@@ -102,6 +102,15 @@ public class XmlEditor extends Tab {
         tabPane.getTabs().addAll(xml, graphic);
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
+        xml.setOnSelectionChanged(e -> {
+                    if (xml.isSelected()) {
+                        refreshTextView();
+                    } else {
+                        refreshGraphicView();
+                    }
+                }
+        );
+
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             if (newText.length() < MAX_SIZE_FOR_FORMATTING) {
