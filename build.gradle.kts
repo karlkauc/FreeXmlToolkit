@@ -83,7 +83,7 @@ dependencies {
     // Logging
     implementation("org.apache.logging.log4j:log4j-api:latest.release")
     implementation("org.apache.logging.log4j:log4j-core:latest.release")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:latest.release")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:latest.release")
 
     // XSD Parser
     implementation("com.github.xmlet:xsdParser:latest.release")
@@ -102,6 +102,8 @@ dependencies {
     // SVG Graphic
     implementation("org.apache.xmlgraphics:batik-svggen:latest.release")
     implementation("org.apache.xmlgraphics:batik-all:1.17")
+    implementation("org.apache.xmlgraphics:batik-transcoder:1.17")
+
 
     // Create Office Documents
     implementation("org.apache.poi:poi:latest.release")

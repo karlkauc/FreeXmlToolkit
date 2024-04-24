@@ -227,7 +227,10 @@ public class XsdController {
                 && xmlService.getCurrentXsdFile().exists()) {
 
             progressDocumentation.setVisible(true);
-            progressDocumentation.setProgress(0.1);
+            try {
+                progressDocumentation.setProgress(0.1);
+            } catch (Exception ignore) {
+            }
 
             Task<Void> task = new Task<>() {
                 @Override
@@ -245,9 +248,11 @@ public class XsdController {
                         updateMessage("Analyzing File");
                         xsdDocumentationService.processXsd(useMarkdownRenderer.isSelected());
 
-                        updateProgress(50, 100);
-                        updateMessage("generating Root Page");
-                        xsdDocumentationService.generateRootPage(selectedDocumentationOutputDirectory);
+                        if (grafikFormat.getValue().equals("SVG")) {
+                            xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
+                        } else {
+                            xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.PNG);
+                        }
 
                         updateProgress(50, 100);
                         updateMessage("generating Root Page");

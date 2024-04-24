@@ -19,6 +19,10 @@
 package org.fxt.freexmltoolkit.service;
 
 import org.apache.batik.dom.GenericDOMImplementation;
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.image.JPEGTranscoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
@@ -39,9 +43,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -62,6 +64,13 @@ public class XsdDocumentationService {
     private List<XsdElement> elements;
 
     int counter;
+
+    public enum ImageOutputMethod {
+        SVG,
+        PNG
+    }
+
+    ImageOutputMethod method;
 
     XsdParser parser;
     List<XsdSchema> xmlSchema;
@@ -105,6 +114,16 @@ public class XsdDocumentationService {
 
         templateEngine = new TemplateEngine();
         templateEngine.setTemplateResolver(resolver);
+
+        method = ImageOutputMethod.SVG;
+    }
+
+    public ImageOutputMethod getMethod() {
+        return method;
+    }
+
+    public void setMethod(ImageOutputMethod method) {
+        this.method = method;
     }
 
     public String getXsdFilePath() {
@@ -142,6 +161,17 @@ public class XsdDocumentationService {
     public void setXsdFilePath(String xsdFilePath) {
         this.xsdFilePath = xsdFilePath;
     }
+
+    public void generateXsdDocumentation(File outputDirectory, ImageOutputMethod method) {
+        this.method = method;
+
+        copyResources(outputDirectory);
+        processXsd(this.useMarkdownRenderer);
+        generateRootPage(outputDirectory);
+        generateComplexTypePages(outputDirectory);
+        generateDetailPages(outputDirectory);
+    }
+
 
     public void generateXsdDocumentation(File outputDirectory) {
         logger.debug("Bin in generateXsdDocumentation");
@@ -241,10 +271,17 @@ public class XsdDocumentationService {
             var currentElement = this.getExtendedXsdElements().get(key);
 
             if (!currentElement.getChildren().isEmpty()) {
-                String svgDiagram = generateSVGDiagram(key);
-
                 var context = new Context();
-                context.setVariable("svg", svgDiagram);
+                if (this.method == ImageOutputMethod.SVG) {
+                    String svgDiagram = generateSvgString(key);
+                    context.setVariable("svg", svgDiagram);
+                } else {
+                    String fileName = currentElement.getPageName().replace(".html", ".jpg");
+                    File pngFile = new File(String.valueOf(Paths.get(outputDirectory.getPath(), "details", fileName).toFile()));
+                    String filePath = generateImage(key, pngFile);
+
+                    context.setVariable("img", filePath);
+                }
 
                 context.setVariable("xpath", getBreadCrumbs(currentElement));
                 context.setVariable("code", currentElement.getSourceCode());
@@ -282,9 +319,38 @@ public class XsdDocumentationService {
         }
     }
 
+    public String generateImage(String rootXpath, File file) {
+        try {
+            var svgString = generateSvgString(rootXpath);
+            var transcoder = new JPEGTranscoder();
+            TranscoderInput input = new TranscoderInput(new ByteArrayInputStream(svgString.getBytes()));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            TranscoderOutput output = new TranscoderOutput(outputStream);
 
-    public String generateSVGDiagram(String rootXpath) {
-        document = domImpl.createDocument(svgNS, "svg", null);
+            transcoder.transcode(input, output);
+            Files.write(file.toPath(), outputStream.toByteArray());
+
+            outputStream.flush();
+            outputStream.close();
+
+            logger.debug("File: {}", file.getAbsolutePath());
+            logger.debug("File Size: {}", file.length());
+
+            return file.getAbsolutePath();
+        } catch (IOException | TranscoderException ioException) {
+            logger.error(ioException.getMessage());
+        }
+
+        return null;
+    }
+
+    public String generateSvgString(String rootXpath) {
+        var element = generateSvgDiagramms(rootXpath);
+        return asString(element.getDocumentElement());
+    }
+
+    public Document generateSvgDiagramms(String rootXpath) {
+        Document document = domImpl.createDocument(svgNS, "svg", null);
         var svgRoot = document.getDocumentElement();
 
         var rootElement = this.getExtendedXsdElements().get(rootXpath);
@@ -472,7 +538,7 @@ public class XsdDocumentationService {
         svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 für icon
         svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
 
-        return asString(svgRoot);
+        return document;
     }
 
     private String asString(Node node) {
@@ -515,10 +581,10 @@ public class XsdDocumentationService {
     }
 
     public void getXsdAbstractElementInfo(int level,
-                                   XsdAbstractElement xsdAbstractElement,
-                                   List<String> prevElementTypes,
-                                   List<String> prevElementPath,
-                                   Node parentNode) {
+                                          XsdAbstractElement xsdAbstractElement,
+                                          List<String> prevElementTypes,
+                                          List<String> prevElementPath,
+                                          Node parentNode) {
         logger.debug("prevElementTypes = {}", prevElementTypes);
         if (level > MAX_ALLOWED_DEPTH) {
             logger.error("Too many elements");
@@ -731,3 +797,4 @@ public class XsdDocumentationService {
         return breadCrumbs;
     }
 }
+

@@ -90,7 +90,7 @@
                     <!--  pattern: [a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})* -->
 
                     <Label text="Grafik format" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
-                    <ChoiceBox fx:id="grafikFormat" disable="true" value="SVG" GridPane.columnIndex="1"
+                    <ChoiceBox fx:id="grafikFormat" value="SVG" GridPane.columnIndex="1"
                                GridPane.rowIndex="8">
                         <items>
                             <FXCollections fx:factory="observableArrayList">
