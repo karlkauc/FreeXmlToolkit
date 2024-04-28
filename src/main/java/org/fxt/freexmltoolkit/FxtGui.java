@@ -101,6 +101,7 @@ public class FxtGui extends Application {
 
     @Override
     public void stop() {
+        logger.debug("stopping Application");
         executorService.shutdown();
         mainController.scheduler.shutdown();
         try {
@@ -134,5 +135,4 @@ public class FxtGui extends Application {
     public static void main(String[] args) {
         launch();
     }
-
 }

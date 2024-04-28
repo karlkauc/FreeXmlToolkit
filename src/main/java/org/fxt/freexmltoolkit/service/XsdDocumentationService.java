@@ -30,10 +30,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import org.w3c.dom.*;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
@@ -254,6 +251,19 @@ public class XsdDocumentationService {
         }
     }
 
+    public Node getChildNodeFromXpath() {
+        return null;
+    }
+
+    public Node getChildNodeFromXpath(String xpath) {
+        try {
+            return getExtendedXsdElements().get(xpath).getCurrentNode();
+        } catch (Exception e) {
+            logger.debug("ERROR in getting Node: {}", e.getMessage());
+        }
+        return null;
+    }
+
     public String getChildInfo(String xpath) {
         try {
             return getExtendedXsdElements().get(xpath).getXsdDocumentation()
@@ -319,6 +329,12 @@ public class XsdDocumentationService {
         }
     }
 
+    /**
+     * @param rootXpath
+     * @param file
+     * @return Geht noch nicht. rendering von images geht nicht!
+     */
+    @Deprecated
     public String generateImage(String rootXpath, File file) {
         try {
             var svgString = generateSvgString(rootXpath);
@@ -347,6 +363,23 @@ public class XsdDocumentationService {
     public String generateSvgString(String rootXpath) {
         var element = generateSvgDiagramms(rootXpath);
         return asString(element.getDocumentElement());
+    }
+
+
+    public Document generateSvgDiagram(Element element) {
+        Document svgDocument = domImpl.createDocument(svgNS, "svg", null);
+        var rootElementName = element.getLocalName();
+        logger.debug("Root Element Name: {}", rootElementName);
+
+        NodeList childNodes = element.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            var subNode = element.getChildNodes().item(i);
+            if (subNode.getNodeType() == Node.ELEMENT_NODE) {
+                logger.debug("Node: {} - {} - {}", subNode.getLocalName(), subNode.getNodeValue(), subNode.getNodeName());
+            }
+        }
+
+        return svgDocument;
     }
 
     public Document generateSvgDiagramms(String rootXpath) {
@@ -404,30 +437,15 @@ public class XsdDocumentationService {
         }
         a.setAttribute("href", parentPageUrl);
 
-        Element rect1 = document.createElement("rect");
-        rect1.setAttribute("fill", BOX_COLOR);
-        rect1.setAttribute("id", rootElementName);
-        rect1.setAttribute("height", (margin + rootElementHeight + margin) + "");
-        rect1.setAttribute("width", (margin + rootElementWidth + margin) + "");
-        rect1.setAttribute("x", startX + "");
-        rect1.setAttribute("y", startY + "");
-        rect1.setAttribute("rx", "2");
-        rect1.setAttribute("ry", "2");
+
+        Element rect1 = createSvgElement(document, rootElementName, rootElementHeight, rootElementWidth, startX + "", startY + "", startX, startY);
         if (rootElement.getXsdElement().getMinOccurs() > 0) {
             rect1.setAttribute("style", MANDATORY_FORMAT);
         } else {
             rect1.setAttribute("style", OPTIONAL_FORMAT);
         }
 
-        Element text = document.createElement("text");
-        text.setAttribute("fill", "#096574");
-        text.setAttribute("font-family", font.getFontName());
-        text.setAttribute("font-size", font.getSize() + "");
-        text.setAttribute("textLength", "0");
-        text.setAttribute("x", margin + startX + "");
-        text.setAttribute("y", startY + rootElementHeight + (margin / 2) + "");
-        text.setTextContent(rootElementName);
-
+        var text = createSvgTextElement(document, margin, startY, rootElementName, rootElementHeight, startX);
         a.appendChild(rect1);
         a.appendChild(text);
         svgRoot.appendChild(a);
@@ -472,15 +490,7 @@ public class XsdDocumentationService {
             var height = z2.getBounds2D().getHeight();
             var width = z2.getBounds2D().getWidth();
 
-            Element rect2 = document.createElement("rect");
-            rect2.setAttribute("fill", BOX_COLOR);
-            rect2.setAttribute("id", elementName);
-            rect2.setAttribute("height", (margin + height + margin) + "");
-            rect2.setAttribute("width", (margin + rightBoxWidth + margin) + "");
-            rect2.setAttribute("x", rightStartX + "");
-            rect2.setAttribute("y", actualHeight + "");
-            rect2.setAttribute("rx", "2");
-            rect2.setAttribute("ry", "2");
+            var rect2 = createSvgElement(document, elementName, height, rightBoxWidth, rightStartX + "", actualHeight + "", startX, startY);
             rect2.setAttribute("style", css);
 
             Element image = null;
@@ -494,14 +504,7 @@ public class XsdDocumentationService {
                 image.setAttribute("y", actualHeight + (height / 2) + "");
             }
 
-            Element text2 = document.createElement("text");
-            text2.setAttribute("fill", "#096574");
-            text2.setAttribute("font-family", font.getFontName());
-            text2.setAttribute("font-size", font.getSize() + "");
-            text2.setAttribute("textLength", "0");
-            text2.setAttribute("x", rightStartX + margin + "");
-            text2.setAttribute("y", actualHeight + height + (margin / 2) + "");
-            text2.setTextContent(elementName);
+            Element text2 = createSvgTextElement(document, rightStartX, actualHeight, elementName, height, margin);
 
             Element a2 = document.createElement("a");
             if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
@@ -539,6 +542,33 @@ public class XsdDocumentationService {
         svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
 
         return document;
+    }
+
+    private Element createSvgTextElement(Document document, double rightStartX, double actualHeight, String elementName, double height, int margin) {
+        Element text2 = document.createElement("text");
+        text2.setAttribute("fill", "#096574");
+        text2.setAttribute("font-family", font.getFontName());
+        text2.setAttribute("font-size", font.getSize() + "");
+        text2.setAttribute("textLength", "0");
+        text2.setAttribute("x", rightStartX + margin + "");
+        text2.setAttribute("y", actualHeight + height + (margin / 2) + "");
+        text2.setTextContent(elementName);
+
+        return text2;
+    }
+
+    private Element createSvgElement(Document document, String rootElementName, double rootElementHeight, double rootElementWidth, String s, String s2, int startX, int startY) {
+        Element rect1 = document.createElement("rect");
+        rect1.setAttribute("fill", BOX_COLOR);
+        rect1.setAttribute("id", rootElementName);
+        rect1.setAttribute("height", (margin + rootElementHeight + margin) + "");
+        rect1.setAttribute("width", (margin + rootElementWidth + margin) + "");
+        rect1.setAttribute("x", s);
+        rect1.setAttribute("y", s2);
+        rect1.setAttribute("rx", "2");
+        rect1.setAttribute("ry", "2");
+
+        return rect1;
     }
 
     private String asString(Node node) {

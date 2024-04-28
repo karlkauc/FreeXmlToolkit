@@ -174,7 +174,7 @@ public class XsdController {
 
     @FXML
     private void test() {
-        final var testFilePath = Paths.get("examples/xsd/FundsXML_306.xsd");
+        final var testFilePath = Paths.get("examples/xsd/purchageOrder.xsd");
         final var outputFilePath = Paths.get("output/test");
 
         if (Files.exists(testFilePath)) {

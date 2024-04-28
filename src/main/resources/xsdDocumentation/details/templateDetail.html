@@ -100,6 +100,15 @@
 
         <div class="row p-1 bg-gradient detail-row">
             <div class="col-md-2">
+                <div class="float-end">Level</div>
+            </div>
+            <div class="col">
+                <span th:text="${element.getLevel()}">1</span>
+            </div>
+        </div>
+
+        <div class="row p-1 bg-gradient detail-row">
+            <div class="col-md-2">
                 <div class="float-end">type</div>
             </div>
             <div class="col">
@@ -122,9 +131,17 @@
             </div>
             <div class="col">
                 <table class="table d-inline-block table-bordered table-sm">
+                    <thead>
+                    <td>XPah</td>
+                    <td>Type</td>
+                    <td>Documentation</td>
+                    </thead>
                     <tbody>
                     <tr th:each="child: ${element.getChildren()}">
                         <td th:text="${child}">CHILD</td>
+                        <td th:text="${this.getChildNodeFromXpath(child) ? this.getChildNodeFromXpath(child).getNodeType() : 'default value'}">
+                            someValue
+                        </td>
                         <td th:text="${this.getChildInfo(child)}">INFO</td>
                     </tr>
                     </tbody>

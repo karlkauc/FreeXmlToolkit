@@ -25,15 +25,14 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.junit.jupiter.api.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xmlet.xsdparser.core.XsdParser;
-import org.xmlet.xsdparser.xsdelements.*;
-import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
+import org.xmlet.xsdparser.xsdelements.XsdComplexType;
+import org.xmlet.xsdparser.xsdelements.XsdElement;
+import org.xmlet.xsdparser.xsdelements.XsdSchema;
+import org.xmlet.xsdparser.xsdelements.XsdSimpleType;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -47,8 +46,9 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.awt.*;
 import java.io.*;
-import java.util.ArrayList;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,130 +95,97 @@ public class GenerateXsdHtmlDocumentationTest {
 
         logger.debug("vor generate root element");
         xsdDocumentationService.generateXsdDocumentation(new File("output/test123"));
-
     }
 
-
+    @Test
+    void generateHtmlDoc() throws IOException {
+        final var testFilePath = Paths.get("examples/xsd/purchageOrder.xsd");
+        final var outputFilePath = Paths.get("output/test");
+        this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());
+        this.xsdDocumentationService.setXmlService(xmlService);
+        this.xsdDocumentationService.generateXsdDocumentation(outputFilePath.toFile());
+        Desktop.getDesktop().open(new File(outputFilePath.toFile().getAbsolutePath() + "/index.html"));
+    }
 
 
     @Test
-    void generateNewTest() {
-        xmlService = XmlServiceImpl.getInstance();
-        parser = new XsdParser(fileName);
-        xmlService.setCurrentXmlFile(new File(fileName));
+    void generatePureSvg() {
+        final var testFilePath = Paths.get("examples/xsd/purchageOrder.xsd");
+        this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());
 
-        elements = parser.getResultXsdElements().toList();
-        xmlSchema = parser.getResultXsdSchemas().toList();
+        this.xmlService.setCurrentXmlFile(testFilePath.toFile());
+        var childNodes = this.xmlService.getXmlDocument().getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            var node = childNodes.item(i);
 
-        xsdComplexTypes = xmlSchema.get(0).getChildrenComplexTypes().toList();
-        xsdSimpleTypes = xmlSchema.get(0).getChildrenSimpleTypes().toList();
+            switch (node.getNodeType()) {
+                case Node.ATTRIBUTE_NODE:
+                    logger.debug("ATTR:");
+                    logger.debug(node.getAttributes().toString());
+                    break;
 
-        extendedXsdElements = new HashMap<>();
+                case Node.CDATA_SECTION_NODE:
+                    logger.debug("CDATA:");
+                    break;
 
-        for (XsdElement xsdElement : elements) {
-            var elementName = xsdElement.getRawName();
-            System.out.println("elementName = " + elementName);
+                case Node.COMMENT_NODE:
+                    logger.debug("COMM:");
+                    logger.debug(node.getTextContent());
+                    break;
 
-            Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
-            getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
-        }
-    }
+                case Node.DOCUMENT_FRAGMENT_NODE:
+                    logger.debug("DOC_FRAG:");
+                    break;
 
-    void getXsdAbstractElementInfo(int level,
-                                   XsdAbstractElement xsdAbstractElement,
-                                   List<String> prevElementTypes,
-                                   List<String> prevElementPath,
-                                   Node parentNode) {
-        logger.debug("prevElementTypes = {}", prevElementTypes);
-        if (level > MAX_ALLOWED_DEPTH) {
-            logger.error("Too many elements");
-            System.err.println("Too many elements");
-            return;
-        }
+                case Node.DOCUMENT_NODE:
+                    logger.debug("DOC:");
+                    break;
 
-        ExtendedXsdElement extendedXsdElement = new ExtendedXsdElement();
+                case Node.DOCUMENT_TYPE_NODE:
+                    logger.debug("DOC_TYPE:");
+                    NamedNodeMap nodeMap = ((DocumentType) node).getEntities();
+                    break;
 
-        switch (xsdAbstractElement) {
-            case XsdElement xsdElement -> {
-                logger.debug("ELEMENT: {}", xsdElement.getRawName());
-                final String currentXpath = "/" + String.join("/", prevElementPath) + "/" + xsdElement.getName();
-                logger.debug("Current XPath = {}", currentXpath);
+                case Node.ELEMENT_NODE:
+                    logger.debug("ELEM:");
+                    logger.debug("Value : {}", node.getNodeValue());
+                    logger.debug("Local Name: {}", node.getLocalName());
+                    logger.debug("Node Name: {}", node.getNodeName());
 
-                var currentType = xsdElement.getType();
+                    this.xsdDocumentationService.generateSvgDiagram((Element) node);
+                    NamedNodeMap atts = node.getAttributes();
+                    logger.debug(atts.toString());
+                    break;
 
-                if (currentType == null) {
-                    /* reines element - kein complex/simple - aber children. in doku aufnehmen und mit kinder weiter machen */
-                    Node n = xmlService.getNodeFromXpath("//xs:element[@name='" + xsdElement.getRawName() + "']", parentNode);
-                    String elementString = xmlService.getNodeAsString(n);
+                case Node.ENTITY_NODE:
+                    logger.debug("ENT:");
+                    break;
 
-                    extendedXsdElement.setCurrentNode(n);
-                    extendedXsdElement.setSourceCode(elementString);
+                case Node.ENTITY_REFERENCE_NODE:
+                    logger.debug("ENT_REF:");
+                    break;
 
-                    if (xsdElement.getXsdComplexType() != null) {
-                        ArrayList<String> prevTemp = new ArrayList<>(prevElementTypes);
-                        prevTemp.add(xsdElement.getName());
+                case Node.NOTATION_NODE:
+                    logger.debug("NOTATION:");
+                    break;
 
-                        ArrayList<String> prevPathTemp = new ArrayList<>(prevElementPath);
-                        prevPathTemp.add(xsdElement.getName());
+                case Node.PROCESSING_INSTRUCTION_NODE:
+                    logger.debug("PROC_INST:");
+                    break;
 
-                        if (xsdElement.getXsdComplexType().getElements() != null) {
-                            for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
-                                getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, n);
-                            }
-                            return;
-                        }
-                    }
-                }
+                case Node.TEXT_NODE:
+                    logger.debug("TEXT:");
+                    logger.debug(node.getTextContent());
+                    break;
 
-                if (prevElementTypes.stream().anyMatch(str -> str.trim().equals(currentType))) {
-                    System.out.println("ELEMENT SCHON BEARBEITET: " + currentType);
-                    logger.warn("Element {} schon bearbeitet.", currentType);
-                    return;
-                } else {
-                    logger.debug("noch nicht bearbeitet: {}", currentType);
-                }
-
-                // current type beginnt mit xs: oder nicht...
-                System.out.println("currentType = " + currentType);
-                ArrayList<String> prevTemp = new ArrayList<>(prevElementTypes);
-                prevTemp.add(currentType);
-
-                ArrayList<String> prevPathTemp = new ArrayList<>(prevElementPath);
-                prevPathTemp.add(xsdElement.getName());
-
-                // complex oder simple type
-                if (xsdElement.getXsdComplexType() != null) {
-                    XsdComplexType xsdComplexType = xsdElement.getXsdComplexType();
-                    System.out.println("xsdComplexType.getName() = " + xsdComplexType.getName());
-
-                    var currentNode = xmlService.getNodeFromXpath("//xs:complexType[@name='" + xsdComplexType.getRawName() + "']", parentNode);
-                    extendedXsdElement.setCurrentNode(currentNode);
-
-                    var s = xmlService.getXmlFromXpath("//xs:complexType[@name='" + xsdComplexType.getRawName() + "']");
-                    extendedXsdElement.setSourceCode(s);
-
-                    if (xsdElement.getXsdComplexType().getElements() != null) {
-                        for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
-                            getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, currentNode);
-                        }
-                        return;
-                    }
-                }
-                if (xsdElement.getXsdSimpleType() != null) {
-                    XsdSimpleType xsdSimpleType = xsdElement.getXsdSimpleType();
-                    System.out.println("xsdSimpleType = " + xsdSimpleType.getName());
-                }
-
+                default:
+                    logger.debug("UNSUPPORTED NODE: {}", node.getNodeType());
+                    break;
             }
-            case XsdChoice xsdChoice -> System.out.println("xsdChoice = " + xsdChoice);
-            case XsdSequence xsdSequence -> System.out.println("xsdSequence = " + xsdSequence);
-            case XsdAll xsdAll -> System.out.println("xsdAll = " + xsdAll);
-            case XsdGroup xsdGroup -> System.out.println("xsdGroup = " + xsdGroup);
-            case XsdAttributeGroup xsdAttributeGroup -> System.out.println("xsdAttributeGroup = " + xsdAttributeGroup);
 
-            default -> throw new IllegalStateException("Unexpected value: " + xsdAbstractElement);
         }
     }
+
 
     @Test
     void createHtmlTable420() {
