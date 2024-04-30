@@ -18,8 +18,12 @@
 
 package org.fxt.freexmltoolkit;
 
+import jlibs.xml.sax.XMLDocument;
+import jlibs.xml.xsd.XSInstance;
+import jlibs.xml.xsd.XSParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.xerces.xs.XSModel;
 import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
@@ -34,11 +38,13 @@ import org.xmlet.xsdparser.xsdelements.XsdElement;
 import org.xmlet.xsdparser.xsdelements.XsdSchema;
 import org.xmlet.xsdparser.xsdelements.XsdSimpleType;
 
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -276,4 +282,24 @@ public class GenerateXsdHtmlDocumentationTest {
 
         System.out.println("Node count: " + nodeList.getLength());
     }
+
+    @Test
+    public void createXmlSampleData() throws TransformerConfigurationException {
+        final var testFilePath = Paths.get("examples/xsd/FundsXML4.xsd");
+        XSModel xsModel = new XSParser().parse(testFilePath.toUri().toString());
+        XSInstance xsInstance = new XSInstance();
+        xsInstance.minimumElementsGenerated = 2;
+        xsInstance.maximumElementsGenerated = 4;
+        xsInstance.generateOptionalElements = Boolean.TRUE; // null means random
+
+        Writer s = new StringWriter();
+        QName rootElement = new QName(null, "FundsXML4");
+        XMLDocument sampleXml = new XMLDocument(new StreamResult(s), true, 4, null);
+        xsInstance.generate(xsModel, rootElement, sampleXml);
+
+        System.out.println("sampleXml = " + sampleXml);
+        System.out.println("s = " + s);
+    }
+
+
 }

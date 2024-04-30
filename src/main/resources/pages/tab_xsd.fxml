@@ -44,6 +44,8 @@
             <graphic>
                 <FontIcon iconLiteral="win10-notebook" iconSize="16"/>
             </graphic>
+            <HBox>
+
             <VBox style="-fx-padding: 20px; -fx-background-color: white;">
                 <GridPane hgap="10" vgap="10">
                     <Label text="XSD File: " GridPane.columnIndex="0" GridPane.rowIndex="0"/>
@@ -141,6 +143,7 @@
 
                 <Button onAction="#test" text="test"/>
             </VBox>
+            </HBox>
         </Tab>
         <Tab closable="false" text="generate Example data">
             <graphic>

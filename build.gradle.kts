@@ -88,6 +88,9 @@ dependencies {
     // XSD Parser
     implementation("com.github.xmlet:xsdParser:latest.release")
 
+    // create sample XML files
+    implementation("in.jlibs:jlibs-xsd:3.0.1")
+
     //  xml signature
     implementation("org.apache.santuario:xmlsec:latest.release")
 
