@@ -21,10 +21,10 @@ package org.fxt.freexmltoolkit;
 import jlibs.xml.sax.XMLDocument;
 import jlibs.xml.xsd.XSInstance;
 import jlibs.xml.xsd.XSParser;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.xerces.xs.XSModel;
-import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
@@ -32,11 +32,6 @@ import org.junit.jupiter.api.Test;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xmlet.xsdparser.core.XsdParser;
-import org.xmlet.xsdparser.xsdelements.XsdComplexType;
-import org.xmlet.xsdparser.xsdelements.XsdElement;
-import org.xmlet.xsdparser.xsdelements.XsdSchema;
-import org.xmlet.xsdparser.xsdelements.XsdSimpleType;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -54,9 +49,10 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.awt.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GenerateXsdHtmlDocumentationTest {
@@ -66,17 +62,6 @@ public class GenerateXsdHtmlDocumentationTest {
     final XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
 
     private final static Logger logger = LogManager.getLogger(GenerateXsdHtmlDocumentationTest.class);
-
-    String xsdFilePath;
-    static final int MAX_ALLOWED_DEPTH = 99;
-
-    private List<XsdComplexType> xsdComplexTypes;
-    private List<XsdSimpleType> xsdSimpleTypes;
-    private List<XsdElement> elements;
-
-    XsdParser parser;
-    List<XsdSchema> xmlSchema;
-    Map<String, ExtendedXsdElement> extendedXsdElements;
 
     XmlService xmlService = XmlServiceImpl.getInstance();
 
@@ -238,7 +223,7 @@ public class GenerateXsdHtmlDocumentationTest {
             logger.debug(complexTypes.get("AccountType"));
 
         } catch (Exception exe) {
-            exe.printStackTrace();
+            logger.error(exe.getMessage());
         }
     }
 
@@ -295,10 +280,18 @@ public class GenerateXsdHtmlDocumentationTest {
         Writer s = new StringWriter();
         QName rootElement = new QName(null, "FundsXML4");
         XMLDocument sampleXml = new XMLDocument(new StreamResult(s), true, 4, null);
+        logger.debug("start generating xml");
         xsInstance.generate(xsModel, rootElement, sampleXml);
+        logger.debug("end generating xml");
 
-        System.out.println("sampleXml = " + sampleXml);
-        System.out.println("s = " + s);
+        var fileName = Path.of("testdata.xml");
+
+        try {
+            Files.write(fileName, s.toString().getBytes());
+            logger.debug("File written: {} bytes", FileUtils.byteCountToDisplaySize(fileName.toFile().length()));
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
     }
 
 

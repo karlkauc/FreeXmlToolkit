@@ -65,9 +65,13 @@ dependencies {
     // XSLT
     implementation("net.sf.saxon:Saxon-HE:latest.release")
 
-    // Create Data
-    implementation("in.jlibs:jlibs-xsd:3.0.1")
+    // create sample XML files
+    implementation(files("lib/jlibs-xsd-3.0.1.jar"))
+    // implementation("in.jlibs:jlibs-xsd:3.0.1")
     implementation("in.jlibs:jlibs-xml:3.0.1")
+
+    // XML Bindings
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
 
     // Icons
     implementation("org.kordamp.ikonli:ikonli-javafx:latest.release")
@@ -87,9 +91,6 @@ dependencies {
 
     // XSD Parser
     implementation("com.github.xmlet:xsdParser:latest.release")
-
-    // create sample XML files
-    implementation("in.jlibs:jlibs-xsd:3.0.1")
 
     //  xml signature
     implementation("org.apache.santuario:xmlsec:latest.release")
@@ -141,6 +142,7 @@ tasks.jar {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+    maxHeapSize = "16G"
 }
 
 tasks.register<Exec>("convey") {
