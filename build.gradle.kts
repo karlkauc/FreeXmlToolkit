@@ -66,9 +66,12 @@ dependencies {
     implementation("net.sf.saxon:Saxon-HE:latest.release")
 
     // create sample XML files
-    implementation(files("lib/jlibs-xsd-3.0.1.jar"))
-    // implementation("in.jlibs:jlibs-xsd:3.0.1")
+    // implementation(files("lib/jlibs-xsd-3.0.1.jar"))
+    // implementation(files("lib/jlibs-core-3.0.1.jar"))
+    // implementation(files("lib/jlibs-xml-3.0.1.jar"))
+    implementation("in.jlibs:jlibs-xsd:3.0.1")
     implementation("in.jlibs:jlibs-xml:3.0.1")
+    // implementation("in.jlibs:jlibs-core:3.0.1")
 
     // XML Bindings
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")

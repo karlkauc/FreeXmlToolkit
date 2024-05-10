@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -53,6 +53,53 @@ public class ExtendedXsdElement {
     HtmlRenderer renderer;
 
     Boolean useMarkdownRenderer = true;
+
+    String sampleData;
+
+    enum XmlDataType {
+        DURATION,
+        DATETIME,
+        TIME,
+        DATE,
+        GYEARMONTH,
+        GYEAR,
+        GMONTHDAY,
+        GDAY,
+        GMONTH,
+        STRING,
+        BOOLEAN,
+        BASE64BINARY,
+        HEXBINARY,
+        FLOAT,
+        DECIMAL,
+        DOUBLE,
+        ANYURI,
+        QNAME,
+        NOTATION,
+        NORMALIZEDSTRING,
+        TOKEN,
+        LANGUAGE,
+        NAME,
+        NCNAME,
+        ID,
+        IDREF,
+        IDREFS,
+        ENTITY,
+        ENTITIES,
+        INTEGER,
+        NONPOSITIVEINTEGER,
+        NEGATIVEINTEGER,
+        LONG,
+        INT,
+        SHORT,
+        BYTE,
+        NONNEGATIVEINTEGER,
+        UNSIGNEDLONG,
+        UNSIGNEDINT,
+        UNSIGNEDSHORT,
+        UNSIGNEDBYTE,
+        POSITIVEINTEGER
+    }
 
     public ExtendedXsdElement() {
         options.set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create(), StrikethroughExtension.create()));
@@ -184,6 +231,14 @@ public class ExtendedXsdElement {
 
     public void setCurrentXpath(String currentXpath) {
         this.currentXpath = currentXpath;
+    }
+
+    public String getSampleData() {
+        return sampleData;
+    }
+
+    public void setSampleData(String sampleData) {
+        this.sampleData = sampleData;
     }
 
     public static String getMD5Hex(final String inputString) {

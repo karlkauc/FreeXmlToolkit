@@ -78,7 +78,7 @@ public class GenerateXsdHtmlDocumentationTest {
     }
 
     @Test
-    void generateSeperatedFiles() throws IOException {
+    void generateSeperatedFiles() {
         logger.debug("vor filename");
         xsdDocumentationService.setXsdFilePath("src/test/resources/simpleFile.xsd");
         logger.debug("vor process xsd");
@@ -247,7 +247,7 @@ public class GenerateXsdHtmlDocumentationTest {
                 "        <xs:element name=\"attribute\">\r\n" +
                 "            <xs:complexType>\r\n" +
                 "                <xs:sequence>\r\n" +
-                "                    <xs:element name=\"item\" type=\"xs:integer\" maxOccurs=\"1\" minOccurs=\"0\"/>                        \r\n" +
+                "                    <xs:element name=\"item\" type=\"xs:integer\" maxOccurs=\"1\" minOccurs=\"0\"/>\r\n" +
                 "                </xs:sequence>\r\n" +
                 "            </xs:complexType>\r\n" +
                 "        </xs:element>\r\n" +
@@ -270,7 +270,7 @@ public class GenerateXsdHtmlDocumentationTest {
 
     @Test
     public void createXmlSampleData() throws TransformerConfigurationException {
-        final var testFilePath = Paths.get("examples/xsd/FundsXML4.xsd");
+        final var testFilePath = Paths.get("examples/xsd/FundsXML_306.xsd");
         XSModel xsModel = new XSParser().parse(testFilePath.toUri().toString());
         XSInstance xsInstance = new XSInstance();
         xsInstance.minimumElementsGenerated = 2;
@@ -278,8 +278,8 @@ public class GenerateXsdHtmlDocumentationTest {
         xsInstance.generateOptionalElements = Boolean.TRUE; // null means random
 
         Writer s = new StringWriter();
-        QName rootElement = new QName(null, "FundsXML4");
-        XMLDocument sampleXml = new XMLDocument(new StreamResult(s), true, 4, null);
+        QName rootElement = new QName("http://www.fundsxml.org/XMLSchema/3.0.6", "FundsXML");
+        XMLDocument sampleXml = new XMLDocument(new StreamResult(s), false, 4, null);
         logger.debug("start generating xml");
         xsInstance.generate(xsModel, rootElement, sampleXml);
         logger.debug("end generating xml");
