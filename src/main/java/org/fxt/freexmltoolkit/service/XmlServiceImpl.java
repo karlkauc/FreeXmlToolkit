@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -612,9 +612,10 @@ public class XmlServiceImpl implements XmlService {
                             this.remoteXsdLocation = possibleSchemaLocation.get();
                             return true;
                         } else {
-                            logger.error("File nicht gefunden oder kein Fileinhalt: {}", pathNew.getFileName());
+                            logger.error("File not found or empty: {}", pathNew.getFileName());
                         }
                     } catch (IOException | InterruptedException exception) {
+                        logger.error("Error in downloading possible schema file at {}", possibleSchemaLocation.get(), exception);
                         logger.error(exception.getMessage());
                     }
                     return false;

@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 package org.fxt.freexmltoolkit;
 
+import jakarta.xml.bind.DatatypeConverter;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.junit.jupiter.api.Assertions;
@@ -29,7 +30,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 public class XmlValidationTest {
 
@@ -40,6 +44,15 @@ public class XmlValidationTest {
     File fundsXML420File = new File("src/test/resources/FundsXML_420.xml");
     File fundsXML420ErrorFile = new File("src/test/resources/FundsXML_420_Error.xml");
     File fundsXMl420Schema = new File("src/test/resources/FundsXML_420.xsd");
+
+    @Test
+    public void dataTypeConverterTest() {
+        Calendar cal = DatatypeConverter.parseDateTime("2018-08-17T09:30:47+04:00");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        df.setTimeZone(TimeZone.getTimeZone("GMT+00:00"));
+        String date = df.format(cal.getTime());
+        System.out.println(date);
+    }
 
     @Test
     public void testFiles() {

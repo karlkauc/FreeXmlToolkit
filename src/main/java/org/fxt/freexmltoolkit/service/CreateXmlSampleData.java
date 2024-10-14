@@ -47,8 +47,5 @@ public class CreateXmlSampleData {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
     }
-
 }

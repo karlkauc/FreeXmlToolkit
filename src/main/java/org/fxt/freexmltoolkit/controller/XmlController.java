@@ -362,7 +362,7 @@ public class XmlController {
 
             if (getCurrentCodeArea().getText().length() > 1) {
                 var errors = xmlService.validateText(getCurrentCodeArea().getText());
-                if (!errors.isEmpty()) {
+                if (errors != null && !errors.isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
 
                     // alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);

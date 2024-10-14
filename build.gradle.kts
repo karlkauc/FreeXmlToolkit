@@ -22,11 +22,19 @@ plugins {
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.github.ben-manes.versions") version "0.51.0"
-    id("dev.hydraulic.conveyor") version "1.9"
+    // id("dev.hydraulic.conveyor") version "1.11"
 }
 
 application {
     mainClass.set("org.fxt.freexmltoolkit.FxtGui")
+}
+
+configurations.all {
+    // resolutionStrategy.failOnVersionConflict()
+    resolutionStrategy {
+        cacheChangingModulesFor(15, "MINUTES")
+        cacheDynamicVersionsFor(15, "MINUTES")
+    }
 }
 
 group = "org.fxt"
@@ -63,80 +71,82 @@ run {
 
 dependencies {
     // XSLT
-    implementation("net.sf.saxon:Saxon-HE:latest.release")
+    implementation("net.sf.saxon:Saxon-HE:12.5")
 
     // create sample XML files
-    // implementation(files("lib/jlibs-xsd-3.0.1.jar"))
-    // implementation(files("lib/jlibs-core-3.0.1.jar"))
-    // implementation(files("lib/jlibs-xml-3.0.1.jar"))
     implementation("in.jlibs:jlibs-xsd:3.0.1")
     implementation("in.jlibs:jlibs-xml:3.0.1")
-    // implementation("in.jlibs:jlibs-core:3.0.1")
 
     // XML Bindings
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
 
     // Icons
-    implementation("org.kordamp.ikonli:ikonli-javafx:latest.release")
-    implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:latest.release")
-    implementation("org.kordamp.ikonli:ikonli-win10-pack:latest.release")
-    implementation("org.kordamp.ikonli:ikonli-feather-pack:latest.release")
-    implementation("org.kordamp.ikonli:ikonli-coreui-pack:latest.release")
+    implementation("org.kordamp.ikonli:ikonli-javafx:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-win10-pack:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-feather-pack:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-coreui-pack:12.3.1")
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Richtext
-    implementation("org.fxmisc.richtext:richtextfx:latest.release")
+    implementation("org.fxmisc.richtext:richtextfx:0.11.3")
 
     // Logging
-    implementation("org.apache.logging.log4j:log4j-api:latest.release")
-    implementation("org.apache.logging.log4j:log4j-core:latest.release")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:latest.release")
+    implementation("org.apache.logging.log4j:log4j-api:3.0.0-beta2")
+    implementation("org.apache.logging.log4j:log4j-core:3.0.0-beta2")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:3.0.0-beta2")
 
     // XSD Parser
-    implementation("com.github.xmlet:xsdParser:latest.release")
+    implementation("com.github.xmlet:xsdParser:1.2.15")
 
     //  xml signature
-    implementation("org.apache.santuario:xmlsec:latest.release")
+    implementation("org.apache.santuario:xmlsec:4.0.2")
 
     // Lemminx
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:latest.release")
-    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.34.0")
+    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.23.1")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.28.0")
+    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.37.0.M0")
 
     // FOP
-    implementation("org.apache.xmlgraphics:fop:latest.release")
+    implementation("org.apache.xmlgraphics:fop:2.10")
 
     // SVG Graphic
-    implementation("org.apache.xmlgraphics:batik-svggen:latest.release")
-    implementation("org.apache.xmlgraphics:batik-all:1.17")
-    implementation("org.apache.xmlgraphics:batik-transcoder:1.17")
+    implementation("org.apache.xmlgraphics:batik-svggen:1.18")
+    implementation("org.apache.xmlgraphics:batik-all:1.18")
+    implementation("org.apache.xmlgraphics:batik-transcoder:1.18")
 
 
     // Create Office Documents
-    implementation("org.apache.poi:poi:latest.release")
-    implementation("org.apache.poi:poi-ooxml:latest.release")
+    implementation("org.apache.poi:poi:5.3.0")
+    implementation("org.apache.poi:poi-ooxml:5.3.0")
 
     // Misc
-    implementation("org.apache.commons:commons-lang3:3.14.0")
-    implementation("commons-io:commons-io:2.15.1")
-    implementation("org.apache.commons:commons-text:latest.release")
+    implementation("org.apache.commons:commons-lang3:3.17.0")
+    implementation("commons-io:commons-io:2.17.0")
+    implementation("org.apache.commons:commons-text:1.12.0")
 
     // CSS reload
-    implementation("fr.brouillard.oss:cssfx:latest.release")
+    implementation("fr.brouillard.oss:cssfx:11.5.1")
 
     // HTML Template XSD Documentation
-    implementation("org.thymeleaf:thymeleaf:latest.release")
+    implementation("org.thymeleaf:thymeleaf:3.1.2.RELEASE")
 
     // markdown renderer
-    implementation("com.vladsch.flexmark:flexmark-all:latest.release")
+    implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
 
     // Update
-    implementation("jakarta.activation:jakarta.activation-api:latest.release")
+    implementation("jakarta.activation:jakarta.activation-api:2.1.3")
 
-    implementation("org.junit.jupiter:junit-jupiter:latest.release")
+    implementation("org.junit.jupiter:junit-jupiter:5.11.2")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.2")
+}
+
+tasks {
+    withType<JavaCompile> {
+        options.compilerArgs.add("-Xlint:deprecation")
+    }
 }
 
 tasks.jar {
@@ -148,9 +158,11 @@ tasks.named<Test>("test") {
     maxHeapSize = "16G"
 }
 
+/*
 tasks.register<Exec>("convey") {
     val dir = layout.buildDirectory.dir("packages")
     outputs.dir(dir)
     commandLine("conveyor", "make", "--output-dir", dir.get(), "site")
     dependsOn("jar", "writeConveyorConfig")
 }
+*/

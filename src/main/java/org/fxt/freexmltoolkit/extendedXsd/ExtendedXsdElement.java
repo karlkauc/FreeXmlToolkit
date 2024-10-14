@@ -24,11 +24,14 @@ import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.w3c.dom.Node;
+import org.xmlet.xsdparser.xsdelements.XsdAnnotation;
+import org.xmlet.xsdparser.xsdelements.XsdAnnotationChildren;
 import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 import org.xmlet.xsdparser.xsdelements.XsdElement;
 
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ExtendedXsdElement {
     XsdElement xsdElement;
@@ -109,14 +112,6 @@ public class ExtendedXsdElement {
         renderer = HtmlRenderer.builder(options).build();
     }
 
-    public Boolean getUseMarkdownRenderer() {
-        return useMarkdownRenderer;
-    }
-
-    public void setUseMarkdownRenderer(Boolean useMarkdownRenderer) {
-        this.useMarkdownRenderer = useMarkdownRenderer;
-    }
-
     public Map<String, String> getLanguageDocumentation() {
         if (this.getXsdDocumentation() == null) {
             return Map.of();
@@ -137,16 +132,57 @@ public class ExtendedXsdElement {
         }
     }
 
+    public List<String> getExampleValues() {
+        if (this.xsdElement == null) {
+            return List.of();
+        } else {
+            XsdAnnotation appInfo = this.xsdElement.getAnnotation();
+            var appInfoList = appInfo.getAppInfoList();
+            return appInfoList.stream().map(XsdAnnotationChildren::getContent).collect(Collectors.toList());
+        }
+    }
+
+    public String getPageName() {
+        return elementName + "_" + getMD5Hex(currentXpath) + ".html";
+    }
+
+    public static String getMD5Hex(final String inputString) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(inputString.getBytes());
+            byte[] digest = md.digest();
+            return convertByteToHex(digest);
+        } catch (Exception e) {
+            return UUID.randomUUID().toString().replace("-", "");
+        }
+    }
+
+    public void setUseMarkdownRenderer(Boolean useMarkdownRenderer) {
+        this.useMarkdownRenderer = useMarkdownRenderer;
+    }
+
+    private static String convertByteToHex(byte[] byteData) {
+        StringBuilder sb = new StringBuilder();
+        for (byte byteDatum : byteData) {
+            sb.append(Integer.toString((byteDatum & 0xff) + 0x100, 16).substring(1));
+        }
+        return sb.toString();
+    }
+
+    public Boolean getUseMarkdownRenderer() {
+        return useMarkdownRenderer;
+    }
+
+    public void setXsdDocumentation(List<XsdDocumentation> xsdDocumentation) {
+        this.xsdDocumentation = xsdDocumentation;
+    }
+
     public String getParentXpath() {
         return parentXpath;
     }
 
     public void setParentXpath(String parentXpath) {
         this.parentXpath = parentXpath;
-    }
-
-    public String getPageName() {
-        return elementName + "_" + getMD5Hex(currentXpath) + ".html";
     }
 
     public String getElementName() {
@@ -221,10 +257,6 @@ public class ExtendedXsdElement {
         return xsdDocumentation;
     }
 
-    public void setXsdDocumentation(List<XsdDocumentation> xsdDocumentation) {
-        this.xsdDocumentation = xsdDocumentation;
-    }
-
     public String getCurrentXpath() {
         return currentXpath;
     }
@@ -239,25 +271,6 @@ public class ExtendedXsdElement {
 
     public void setSampleData(String sampleData) {
         this.sampleData = sampleData;
-    }
-
-    public static String getMD5Hex(final String inputString) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(inputString.getBytes());
-            byte[] digest = md.digest();
-            return convertByteToHex(digest);
-        } catch (Exception e) {
-            return UUID.randomUUID().toString().replace("-", "");
-        }
-    }
-
-    private static String convertByteToHex(byte[] byteData) {
-        StringBuilder sb = new StringBuilder();
-        for (byte byteDatum : byteData) {
-            sb.append(Integer.toString((byteDatum & 0xff) + 0x100, 16).substring(1));
-        }
-        return sb.toString();
     }
 
 }

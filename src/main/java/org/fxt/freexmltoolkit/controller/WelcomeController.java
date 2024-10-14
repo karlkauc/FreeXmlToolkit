@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,8 +29,7 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 import java.awt.*;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.URI;
 import java.time.LocalTime;
 import java.util.Properties;
 
@@ -77,8 +76,8 @@ public class WelcomeController {
     @FXML
     private void openUpdatePage() {
         try {
-            Desktop.getDesktop().browse(new URL("https://github.com/karlkauc/FreeXmlToolkit").toURI());
-        } catch (IOException | URISyntaxException e) {
+            Desktop.getDesktop().browse(URI.create("https://github.com/karlkauc/FreeXmlToolkit"));
+        } catch (IOException e) {
             logger.error(e.getMessage());
         }
     }

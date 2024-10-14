@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -120,11 +120,11 @@ public class FxtGui extends Application {
         }
 
         startWatch.stop();
-        long currentDuration = startWatch.getTime() / 1000;
+        var currentDuration = startWatch.getDuration(); // / 1000;
 
         var prop = propertiesService.loadProperties();
         var oldSeconds = Integer.parseInt(prop.getProperty("usageDuration"));
-        var newSeconds = oldSeconds + currentDuration;
+        var newSeconds = oldSeconds + currentDuration.getSeconds();
         prop.setProperty("usageDuration", String.valueOf(newSeconds));
         propertiesService.saveProperties(prop);
 
