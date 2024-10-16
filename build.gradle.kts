@@ -23,10 +23,12 @@ plugins {
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.github.ben-manes.versions") version "0.51.0"
     // id("dev.hydraulic.conveyor") version "1.11"
+    id("edu.sc.seis.launch4j") version "3.0.6"
 }
 
 application {
     mainClass.set("org.fxt.freexmltoolkit.FxtGui")
+    applicationName = "FreeXmlToolkit"
 }
 
 configurations.all {
@@ -55,7 +57,7 @@ repositories {
 }
 
 javafx {
-    version = "21.0.1"
+    version = "22"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
