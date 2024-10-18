@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit;
 import org.apache.xml.security.Init;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
 import org.apache.xml.security.signature.XMLSignature;
+import org.apache.xml.security.stax.ext.XMLSecurityProperties;
 import org.apache.xml.security.transforms.Transforms;
 import org.apache.xml.security.utils.Constants;
 import org.junit.jupiter.api.Test;
@@ -37,54 +38,23 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.StringWriter;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 public class SignaturTest {
 
+
     @Test
-    public void testSignatur() {
-        try {
-            // Initialisiere die Bibliothek
-            Init.init();
-
-            // Lade die XML-Datei
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setNamespaceAware(true);
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(new FileInputStream("signed_document.xml"));
-
-            // Finde das Signature-Element
-            Element sigElement = (Element) doc.getElementsByTagNameNS(Constants.SignatureSpecNS, "Signature").item(0);
-
-            // Erstelle ein XMLSignature-Objekt
-            XMLSignature signature = new XMLSignature(sigElement, "");
-
-            // Lade den öffentlichen Schlüssel (z.B. aus einer Zertifikatsdatei)
-            FileInputStream fis = new FileInputStream("src/test/resources/public_key.cer");
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
-            PublicKey publicKey = cert.getPublicKey();
-
-            // Überprüfe die Signatur
-            boolean isValid = signature.checkSignatureValue(publicKey);
-
-            if (isValid) {
-                System.out.println("Die Signatur ist gültig.");
-            } else {
-                System.out.println("Die Signatur ist ungültig.");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void t() {
+        for (Provider provider : Security.getProviders()) {
+            System.out.println("provider = " + provider);
         }
+
     }
 
     @Test
-    public void testSignatur2() {
+    public void createSignature() {
         try {
             // Initialisiere die Bibliothek
             Init.init();
@@ -141,6 +111,48 @@ public class SignaturTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
+
+
+    @Test
+    public void verifySignature() {
+        try {
+            // Initialisiere die Bibliothek
+            Init.init();
+
+            // Lade die XML-Datei
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setNamespaceAware(true);
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(new FileInputStream("signed_document.xml"));
+
+            // Finde das Signature-Element
+            Element sigElement = (Element) doc.getElementsByTagNameNS(Constants.SignatureSpecNS, "Signature").item(0);
+
+            // Erstelle ein XMLSignature-Objekt
+            XMLSignature signature = new XMLSignature(sigElement, "");
+
+            // Lade den öffentlichen Schlüssel (z.B. aus einer Zertifikatsdatei)
+            FileInputStream fis = new FileInputStream("src/test/resources/public_key.cer");
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
+            PublicKey publicKey = cert.getPublicKey();
+
+            XMLSecurityProperties properties = new XMLSecurityProperties();
+
+            // Überprüfe die Signatur
+            boolean isValid = signature.checkSignatureValue(publicKey);
+
+            if (isValid) {
+                System.out.println("Die Signatur ist gültig.");
+            } else {
+                System.out.println("Die Signatur ist ungültig.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
