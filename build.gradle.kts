@@ -126,6 +126,7 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.17.0")
     implementation("commons-io:commons-io:2.17.0")
     implementation("org.apache.commons:commons-text:1.12.0")
+    implementation("commons-validator:commons-validator:1.9.0")
 
     // CSS reload
     implementation("fr.brouillard.oss:cssfx:11.5.1")
