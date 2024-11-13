@@ -60,13 +60,12 @@ public class SimpleNodeElement extends VBox {
         gridPane.getStyleClass().add("treeGrid");
 
         if (node.hasChildNodes()) {
-
             if (node.getAttributes() != null) {
                 logger.debug("Attributes: {}", node.getAttributes().getLength());
 
                 for (int i = 0; i < node.getAttributes().getLength(); i++) {
                     var attributes = node.getAttributes().item(i);
-                    logger.debug(attributes.getNodeName() + ":" + attributes.getNodeValue());
+                    logger.debug("{}:{}", attributes.getNodeName(), attributes.getNodeValue());
                     gridPane.add(new Label(attributes.getNodeName()), 0, row);
                     gridPane.add(new Label(attributes.getNodeValue()), 1, row);
                     row++;
@@ -101,11 +100,10 @@ public class SimpleNodeElement extends VBox {
                             gridPane.add(nodeValue, 1, row);
                         } else {
                             HBox elementBox = new HBox();
-                            Label label = new Label(subNode.getNodeName() + " - {" + calculateCount(subNode) + "}");
+                            final Label label = new Label(subNode.getNodeName() + " - {" + calculateNodeCount(subNode) + "}");
                             logger.debug("Element: {}", label.getText());
-                            final ImageView imageViewPlus = new ImageView(imagePlus);
 
-                            elementBox.getChildren().addAll(imageViewPlus, label);
+                            elementBox.getChildren().addAll(new ImageView(imagePlus), label);
                             elementBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, elementBox, subNode, true));
 
                             gridPane.add(elementBox, 1, row);
@@ -153,31 +151,32 @@ public class SimpleNodeElement extends VBox {
     }
 
     @NotNull
-    private EventHandler<MouseEvent> mouseOpenHandler(int finalRow, GridPane gridPane, HBox box, Node subNode, Boolean isOpen) {
+    private EventHandler<MouseEvent> mouseOpenHandler(int finalRow, GridPane gridPane, HBox elementBox, Node subNode, Boolean isOpen) {
         return event -> {
             logger.debug("Open Clicked: {} - isOpen: {}", subNode.getNodeName(), isOpen);
-            gridPane.getChildren().remove(box);
+            gridPane.getChildren().remove(elementBox);
+
+            ((ImageView) elementBox.getChildren().getFirst()).setImage(imageMinus);
 
             HBox wrapperOpen = new HBox();
             HBox openBox = new HBox();
-            Label label2 = new Label(subNode.getNodeName() + " - {" + SimpleNodeElement.this.calculateCount(subNode) + "}");
+            Label nodeInformation = new Label(subNode.getNodeName() + " - {" + SimpleNodeElement.this.calculateNodeCount(subNode) + "}");
             SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode, this.xmlEditor);
 
-            openBox.getChildren().addAll(new ImageView(imageMinus), label2);
-            openBox.setOnMouseClicked(event1 -> {
+            openBox.getChildren().addAll(new ImageView(imageMinus), nodeInformation);
+            openBox.setOnMouseClicked(closeEvent -> {
+
                 logger.debug("Close Event");
                 ((ImageView) openBox.getChildren().getFirst()).setImage(imagePlus);
                 wrapperOpen.getChildren().removeAll(simpleNodeElement);
-                openBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, box, subNode, !isOpen));
+                openBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, elementBox, subNode, !isOpen));
             });
             wrapperOpen.getChildren().addAll(openBox, simpleNodeElement);
-
             gridPane.add(wrapperOpen, 1, finalRow);
         };
     }
 
-
-    private int calculateCount(Node n) {
+    private int calculateNodeCount(Node n) {
         return (int) IntStream
                 .range(0, n.getChildNodes().getLength())
                 .filter(i -> n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE)
