@@ -23,6 +23,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -57,9 +58,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
-import java.net.URI;
+import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -82,6 +81,8 @@ public class XmlServiceImpl implements XmlService {
     XsltCompiler compiler = processor.newXsltCompiler();
     StringWriter sw;
     Xslt30Transformer transformer;
+
+    UrlValidator urlValidator = new UrlValidator();
 
     SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
@@ -550,78 +551,89 @@ public class XmlServiceImpl implements XmlService {
         if (possibleSchemaLocation.isPresent()) {
             var temp = possibleSchemaLocation.get().trim();
 
-            if (temp.toLowerCase().startsWith("http://") || temp.toLowerCase().startsWith("https://")) {
-                String md5Hex = DigestUtils.md5Hex(temp.toLowerCase()).toUpperCase();
-                logger.debug("Cache path: {}", md5Hex);
+            var validUrl = urlValidator.isValid(temp);
+            if (validUrl) {
+                try {
+                    URL url = new URI(temp).toURL();
+                    var protocol = url.getProtocol();
+                    logger.debug("Protocol: {}", protocol);
 
-                final Path CURRENT_XSD_CACHE_PATH = Path.of(CACHE_DIR + File.separator + md5Hex);
-                logger.debug("Absolute cache Path: {}", CURRENT_XSD_CACHE_PATH);
+                    if (protocol.equals("http") || protocol.equals("https")) {
+                        String md5Hex = DigestUtils.md5Hex(temp.toLowerCase()).toUpperCase();
+                        logger.debug("Cache path: {}", md5Hex);
 
-                if (!Files.exists(CURRENT_XSD_CACHE_PATH)) {
-                    try {
-                        Files.createDirectories(CURRENT_XSD_CACHE_PATH);
-                    } catch (IOException e) {
-                        logger.error(e.getMessage());
-                    }
-                }
+                        final Path CURRENT_XSD_CACHE_PATH = Path.of(CACHE_DIR + File.separator + md5Hex);
+                        logger.debug("Absolute cache Path: {}", CURRENT_XSD_CACHE_PATH);
 
-                String fileNameNew = FilenameUtils.getName(possibleSchemaLocation.get());
-                String possibleFileName = CURRENT_XSD_CACHE_PATH + File.separator + fileNameNew;
-                logger.debug("Cache File: {}", possibleFileName);
+                        if (!Files.exists(CURRENT_XSD_CACHE_PATH)) {
+                            try {
+                                Files.createDirectories(CURRENT_XSD_CACHE_PATH);
+                            } catch (IOException e) {
+                                logger.error(e.getMessage());
+                            }
+                        }
 
-                File newFile = new File(possibleFileName);
-                if (newFile.exists() && newFile.length() > 1) {
-                    logger.debug("Load file from cache: {}", newFile.getAbsolutePath());
-                    this.setCurrentXsdFile(newFile);
-                    this.remoteXsdLocation = possibleSchemaLocation.get();
+                        String fileNameNew = FilenameUtils.getName(possibleSchemaLocation.get());
+                        String possibleFileName = CURRENT_XSD_CACHE_PATH + File.separator + fileNameNew;
+                        logger.debug("Cache File: {}", possibleFileName);
 
-                    return true;
-                } else {
-                    logger.debug("Did not find cached Schema file.");
-
-                    var proxySelector = ProxySelector.getDefault();
-                    if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
-                        logger.debug("PROXY HOST: {}", prop.get("http.proxy.host"));
-                        logger.debug("PROXY PORT: {}", prop.get("http.proxy.port"));
-                        proxySelector = ProxySelector.of(
-                                new InetSocketAddress(
-                                        prop.get("http.proxy.host").toString(),
-                                        Integer.parseInt(prop.get("http.proxy.port").toString())));
-                    }
-
-                    client = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_2)
-                            .followRedirects(HttpClient.Redirect.NORMAL)
-                            .connectTimeout(Duration.ofSeconds(20))
-                            .proxy(proxySelector)
-                            .build();
-
-                    request = HttpRequest.newBuilder()
-                            .uri(URI.create(possibleSchemaLocation.get()))
-                            .build();
-
-                    var pathNew = Path.of(newFile.getAbsolutePath());
-
-                    try {
-                        HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
-                        logger.debug("HTTP Status Code: {}", response.statusCode());
-                        logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
-
-                        if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
-                            this.setCurrentXsdFile(pathNew.toFile());
+                        File newFile = new File(possibleFileName);
+                        if (newFile.exists() && newFile.length() > 1) {
+                            logger.debug("Load file from cache: {}", newFile.getAbsolutePath());
+                            this.setCurrentXsdFile(newFile);
                             this.remoteXsdLocation = possibleSchemaLocation.get();
+
                             return true;
                         } else {
-                            logger.error("File not found or empty: {}", pathNew.getFileName());
+                            logger.debug("Did not find cached Schema file.");
+
+                            var proxySelector = ProxySelector.getDefault();
+                            if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
+                                logger.debug("PROXY HOST: {}", prop.get("http.proxy.host"));
+                                logger.debug("PROXY PORT: {}", prop.get("http.proxy.port"));
+                                proxySelector = ProxySelector.of(
+                                        new InetSocketAddress(
+                                                prop.get("http.proxy.host").toString(),
+                                                Integer.parseInt(prop.get("http.proxy.port").toString())));
+                            }
+
+                            client = HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NORMAL)
+                                    .connectTimeout(Duration.ofSeconds(20))
+                                    .proxy(proxySelector)
+                                    .build();
+
+                            request = HttpRequest.newBuilder()
+                                    .uri(URI.create(possibleSchemaLocation.get()))
+                                    .build();
+
+                            var pathNew = Path.of(newFile.getAbsolutePath());
+
+                            try {
+                                HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
+                                logger.debug("HTTP Status Code: {}", response.statusCode());
+                                logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
+
+                                if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
+                                    this.setCurrentXsdFile(pathNew.toFile());
+                                    this.remoteXsdLocation = possibleSchemaLocation.get();
+                                    return true;
+                                } else {
+                                    logger.error("File not found or empty: {}", pathNew.getFileName());
+                                }
+                            } catch (IOException | InterruptedException exception) {
+                                logger.error("Error in downloading possible schema file at {}", possibleSchemaLocation.get(), exception);
+                                logger.error(exception.getMessage());
+                            }
+                            return false;
                         }
-                    } catch (IOException | InterruptedException exception) {
-                        logger.error("Error in downloading possible schema file at {}", possibleSchemaLocation.get(), exception);
-                        logger.error(exception.getMessage());
+                    } else {
+                        logger.debug("Schema do not start with http!");
                     }
-                    return false;
+                } catch (URISyntaxException | MalformedURLException e) {
+                    logger.error(e.getMessage());
                 }
-            } else {
-                logger.debug("Schema do not start with http!");
             }
         }
         return false;
@@ -771,7 +783,6 @@ public class XmlServiceImpl implements XmlService {
             transformer.transform(xmlSource, res);
             return res.getOutputStream().toString();
         } catch (Exception e) {
-            System.out.println("FEHLER");
             // System.out.println(e.getMessage());
             return input;
         }

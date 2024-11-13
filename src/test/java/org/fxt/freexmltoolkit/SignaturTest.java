@@ -43,14 +43,11 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 public class SignaturTest {
-
-
     @Test
     public void t() {
         for (Provider provider : Security.getProviders()) {
             System.out.println("provider = " + provider);
         }
-
     }
 
     @Test
