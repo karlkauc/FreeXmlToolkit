@@ -125,14 +125,12 @@
                                     <FontIcon iconColor="INDIANRED" iconLiteral="win10-pdf" iconSize="16"/>
                                 </graphic>
                             </Button>
-                            <!--
                             <Button fx:id="signature" mnemonicParsing="false" onAction="#loadPage"
                                     styleClass="menu_button" text="Signature" VBox.vgrow="ALWAYS">
                                 <graphic>
                                     <FontIcon iconColor="#578013" iconLiteral="win10-key" iconSize="16"/>
                                 </graphic>
                             </Button>
-                            -->
                         </VBox>
                     </top>
                     <bottom>

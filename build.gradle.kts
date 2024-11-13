@@ -99,15 +99,15 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:3.0.0-beta2")
 
     // XSD Parser
-    implementation("com.github.xmlet:xsdParser:1.2.15")
+    implementation("com.github.xmlet:xsdParser:1.2.17")
 
     //  xml signature
-    implementation("org.apache.santuario:xmlsec:4.0.2")
+    implementation("org.apache.santuario:xmlsec:4.0.3")
 
     // Lemminx
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.23.1")
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.28.0")
-    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.37.0.M0")
+    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.37.0.M2")
 
     // FOP
     implementation("org.apache.xmlgraphics:fop:2.10")
@@ -139,10 +139,9 @@ dependencies {
     // Update
     implementation("jakarta.activation:jakarta.activation-api:2.1.3")
 
-    implementation("org.junit.jupiter:junit-jupiter:5.11.2")
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.2")
+    implementation("org.junit.jupiter:junit-jupiter:5.11.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.3")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.3")
 }
 
 tasks {
