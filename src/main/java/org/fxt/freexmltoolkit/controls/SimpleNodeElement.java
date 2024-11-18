@@ -158,28 +158,30 @@ public class SimpleNodeElement extends VBox {
         return event -> {
             logger.debug("Open Clicked: {} - isOpen: {}", subNode.getNodeName(), isOpen);
 
+            var imageView = ((ImageView) event.getSource());
+
             if (isOpen) {
                 logger.debug("OPEN Pressed");
 
                 SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode, xmlEditor);
                 HBox hbox = new HBox();
-                var i = ((ImageView) elementBox.getChildren().getFirst());
-                i.setImage(imageMinus);
-                i.setOnMouseClicked(mouseOpenHandler(hbox, subNode, false));
+
+                imageView.setImage(imageMinus);
+                imageView.setOnMouseClicked(mouseOpenHandler(hbox, subNode, false));
 
                 hbox.getChildren().add(simpleNodeElement);
                 elementBox.getChildren().add(hbox);
             } else {
                 logger.debug("CLOSE Pressed");
-                ((ImageView) elementBox.getChildren().getFirst()).setImage(imagePlus);
 
-                // gridPane.getChildren().removeLast();
-                elementBox.setOnMouseClicked(mouseOpenHandler(elementBox, subNode, true));
+                imageView.setImage(imagePlus);
+                elementBox.getChildren().removeFirst();
+                imageView.setOnMouseClicked(mouseOpenHandler(elementBox, subNode, true));
             }
         };
     }
 
-    private int calculateNodeCount(Node n) {
+    private static int calculateNodeCount(Node n) {
         return (int) IntStream
                 .range(0, n.getChildNodes().getLength())
                 .filter(i -> n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE)
