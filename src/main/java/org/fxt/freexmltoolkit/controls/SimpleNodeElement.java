@@ -58,15 +58,16 @@ public class SimpleNodeElement extends VBox {
     }
 
     public void createByNode(Node node) {
-        int row = 0;
+
         this.getStyleClass().add("treeGrid");
 
         if (node.hasChildNodes()) {
-            if (node.getAttributes() != null) {
+            if (node.getAttributes() != null && node.getAttributes().getLength() != 0) {
                 logger.debug("Attributes: {}", node.getAttributes().getLength());
 
                 GridPane gridPane = new GridPane();
-                gridPane.getStyleClass().add("treeGrid");
+                // gridPane.getStyleClass().add("treeGrid");
+                int row = 0;
 
                 for (int i = 0; i < node.getAttributes().getLength(); i++) {
                     var attributes = node.getAttributes().item(i);
@@ -97,7 +98,6 @@ public class SimpleNodeElement extends VBox {
                             var n = subNode.getChildNodes().item(0);
 
                             logger.debug("adding element text node: {}", subNode.getNodeName() + ":" + n.getNodeValue());
-                            logger.debug("ROW: {}", row);
 
                             var nodeName = new Label(subNode.getNodeName());
                             var nodeValue = new Label(n.getNodeValue());
@@ -127,6 +127,7 @@ public class SimpleNodeElement extends VBox {
                             logger.debug("Element: {}", label.getText());
 
                             var btnPlus = new Button("", new ImageView(imagePlus));
+                            // btnPlus.setStyle("-fx-background-color: transparent; -fx-border-color: none; -fx-padding: 0;");
                             btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, true));
                             elementBox.getChildren().addAll(btnPlus, label);
                             this.getChildren().add(elementBox);
@@ -175,6 +176,7 @@ public class SimpleNodeElement extends VBox {
                 HBox hbox = new HBox();
 
                 Button btnMinus = new Button("", new ImageView(imageMinus));
+                // btnMinus.setStyle("-fx-background-color: transparent; -fx-border-color: none; -fx-padding: 0;");
                 btnMinus.setOnAction(mouseOpenHandler(elementBox, subNode, false));
 
                 var t = elementBox.getChildren().get(1);
@@ -187,6 +189,7 @@ public class SimpleNodeElement extends VBox {
                 logger.debug("CLOSE Pressed");
 
                 Button btnPlus = new Button("", new ImageView(imagePlus));
+                // btnPlus.setStyle("-fx-background-color: transparent; -fx-border-color: none; -fx-padding: 0;");
                 btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, false));
 
                 var t = elementBox.getChildren().get(1);
