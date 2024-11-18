@@ -18,15 +18,20 @@
 
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -66,8 +71,10 @@ public class SimpleNodeElement extends VBox {
                 for (int i = 0; i < node.getAttributes().getLength(); i++) {
                     var attributes = node.getAttributes().item(i);
                     logger.debug("{}:{}", attributes.getNodeName(), attributes.getNodeValue());
+
                     gridPane.add(new Label(attributes.getNodeName()), 0, row);
                     gridPane.add(new Label(attributes.getNodeValue()), 1, row);
+
                     row++;
                 }
                 this.getChildren().add(gridPane);
@@ -92,33 +99,36 @@ public class SimpleNodeElement extends VBox {
                             logger.debug("adding element text node: {}", subNode.getNodeName() + ":" + n.getNodeValue());
                             logger.debug("ROW: {}", row);
 
-                            Label nodeName = new Label(subNode.getNodeName());
-                            Label nodeValue = new Label(n.getNodeValue());
-                            nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, n));
+                            var nodeName = new Label(subNode.getNodeName());
+                            var nodeValue = new Label(n.getNodeValue());
 
-                            BorderPane borderPane = new BorderPane();
-                            borderPane.setLeft(new VBox(nodeName));
-                            borderPane.setRight(new VBox(nodeValue));
-                            VBox.setVgrow(borderPane.getRight(), Priority.ALWAYS);
+                            var borderPane = new BorderPane();
+                            borderPane.setLeft(nodeName);
+                            borderPane.setRight(nodeValue);
+                            BorderPane.setMargin(nodeName, new Insets(2, 5, 2, 5));
+                            BorderPane.setMargin(nodeValue, new Insets(1, 5, 1, 5));
 
-                            borderPane.setPadding(new Insets(10, 10, 10, 10));
-                            borderPane.getRight().setStyle("-fx-background-color: red");
+                            borderPane.setStyle("-fx-background-color: #e28181");
+
                             borderPane.widthProperty().addListener((observable, oldValue, newValue) -> {
                                 var a = newValue.doubleValue() / 2;
                                 logger.debug("a: {}", a);
-                                borderPane.getLeft().minWidth(a);
-                                borderPane.getRight().minWidth(a);
+                                //borderPane.getLeft().minWidth(a);
+                                //borderPane.getRight().minWidth(a);
                             });
 
                             this.getChildren().add(borderPane);
                         } else {
                             HBox elementBox = new HBox();
+                            elementBox.setSpacing(3);
+                            HBox.setMargin(elementBox, new Insets(3, 5, 3, 5));
+
                             final Label label = new Label(subNode.getNodeName() + " - {" + calculateNodeCount(subNode) + "}");
                             logger.debug("Element: {}", label.getText());
 
-                            var imageView = new ImageView(imagePlus);
-                            imageView.setOnMouseClicked(mouseOpenHandler(elementBox, subNode, true));
-                            elementBox.getChildren().addAll(imageView, label);
+                            var btnPlus = new Button("", new ImageView(imagePlus));
+                            btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, true));
+                            elementBox.getChildren().addAll(btnPlus, label);
                             this.getChildren().add(elementBox);
                         }
                     }
@@ -154,11 +164,9 @@ public class SimpleNodeElement extends VBox {
     }
 
     @NotNull
-    private EventHandler<MouseEvent> mouseOpenHandler(HBox elementBox, Node subNode, Boolean isOpen) {
+    private EventHandler<ActionEvent> mouseOpenHandler(HBox elementBox, Node subNode, Boolean isOpen) {
         return event -> {
             logger.debug("Open Clicked: {} - isOpen: {}", subNode.getNodeName(), isOpen);
-
-            var imageView = ((ImageView) event.getSource());
 
             if (isOpen) {
                 logger.debug("OPEN Pressed");
@@ -166,17 +174,26 @@ public class SimpleNodeElement extends VBox {
                 SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode, xmlEditor);
                 HBox hbox = new HBox();
 
-                imageView.setImage(imageMinus);
-                imageView.setOnMouseClicked(mouseOpenHandler(hbox, subNode, false));
+                Button btnMinus = new Button("", new ImageView(imageMinus));
+                btnMinus.setOnAction(mouseOpenHandler(elementBox, subNode, false));
 
-                hbox.getChildren().add(simpleNodeElement);
+                var t = elementBox.getChildren().get(1);
+                elementBox.getChildren().clear();
+                elementBox.getChildren().addAll(btnMinus, t);
+
+                hbox.getChildren().addAll(simpleNodeElement);
                 elementBox.getChildren().add(hbox);
             } else {
                 logger.debug("CLOSE Pressed");
 
-                imageView.setImage(imagePlus);
-                elementBox.getChildren().removeFirst();
-                imageView.setOnMouseClicked(mouseOpenHandler(elementBox, subNode, true));
+                Button btnPlus = new Button("", new ImageView(imagePlus));
+                btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, false));
+
+                var t = elementBox.getChildren().get(1);
+                elementBox.getChildren().clear();
+                elementBox.getChildren().addAll(btnPlus, t);
+
+                btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, true));
             }
         };
     }
