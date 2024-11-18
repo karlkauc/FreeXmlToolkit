@@ -291,10 +291,11 @@ $background-color: #dcdcdc;
 }
 
 .xmlTreeComment {
-  -fx-font-family: Roboto;
+  -fx-font-family: monospace;
   -fx-font-weight: normal;
-  -fx-font-size: 0.7em;
-  -fx-background-color: red;
+  -fx-font-size: 1em;
+  -fx-background-color: #dcd4d4;
+  -fx-text-fill: teal;
 }
 
 .treeGrid {

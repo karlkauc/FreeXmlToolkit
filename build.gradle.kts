@@ -27,8 +27,8 @@ plugins {
 }
 
 application {
-    mainClass.set("org.fxt.freexmltoolkit.FxtGui")
-    // mainClass.set("org.fxt.freexmltoolkit.GuiTest")
+    // mainClass.set("org.fxt.freexmltoolkit.FxtGui")
+    mainClass.set("org.fxt.freexmltoolkit.GuiTest")
     applicationName = "FreeXmlToolkit"
 }
 

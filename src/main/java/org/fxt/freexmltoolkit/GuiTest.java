@@ -38,7 +38,7 @@ public class GuiTest extends Application {
             TabPane tabPane = new TabPane();
             XmlEditor xmlEditor = new XmlEditor();
 
-            xmlEditor.setXmlFile(new File("src/test/resources/EAM_7290691_20240829_FUND_101.xml"));
+            xmlEditor.setXmlFile(new File("src/test/resources/test01.xml"));
             xmlEditor.refresh();
             tabPane.getTabs().add(xmlEditor);
             var scene = new Scene(tabPane, 1024, 768);

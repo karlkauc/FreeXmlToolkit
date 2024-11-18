@@ -66,7 +66,7 @@ public class SimpleNodeElement extends VBox {
                 logger.debug("Attributes: {}", node.getAttributes().getLength());
 
                 GridPane gridPane = new GridPane();
-                // gridPane.getStyleClass().add("treeGrid");
+                gridPane.getStyleClass().add("treeGrid");
                 int row = 0;
 
                 for (int i = 0; i < node.getAttributes().getLength(); i++) {
@@ -89,8 +89,8 @@ public class SimpleNodeElement extends VBox {
                     case Node.COMMENT_NODE -> {
                         final Label l = new Label("COMMENT: " + subNode.getNodeValue());
                         l.getStyleClass().add("xmlTreeComment");
-                        // this.getChildren().add(l);
-                        // DEBUG - nachher wieder reingeben
+                        this.getChildren().add(l);
+                        // DEBUG - nachher wieder hereingeben
                     }
                     case Node.ELEMENT_NODE -> {
                         if (subNode.getChildNodes().getLength() == 1 &&
@@ -101,6 +101,8 @@ public class SimpleNodeElement extends VBox {
 
                             var nodeName = new Label(subNode.getNodeName());
                             var nodeValue = new Label(n.getNodeValue());
+
+                            nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, n));
 
                             var borderPane = new BorderPane();
                             borderPane.setLeft(nodeName);
@@ -148,6 +150,8 @@ public class SimpleNodeElement extends VBox {
     private EventHandler<MouseEvent> editNodeValueHandler(Label nodeValue, Node n) {
         return event -> {
             logger.debug("Node Value: {}", nodeValue.getText());
+
+
             TextField textField = new TextField(nodeValue.getText());
             textField.setStyle("-fx-border-radius: 2px; -fx-background-color: #f1c4c4;");
             textField.setOnKeyPressed(keyEvent -> {
