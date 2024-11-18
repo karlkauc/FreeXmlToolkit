@@ -19,15 +19,14 @@
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -37,10 +36,13 @@ import java.util.Objects;
 import java.util.stream.IntStream;
 
 public class SimpleNodeElement extends VBox {
+
+    private final static Logger logger = LogManager.getLogger(SimpleNodeElement.class);
+
     Node node;
 
-    final Image imagePlus = new Image(Objects.requireNonNull(getClass().getResource("/img/plus_15.png")).toString());
-    final Image imageMinus = new Image(Objects.requireNonNull(getClass().getResource("/img/minus_15.png")).toString());
+    final static Image imagePlus = new Image(Objects.requireNonNull(SimpleNodeElement.class.getResource("/img/plus_15.png")).toString());
+    final static Image imageMinus = new Image(Objects.requireNonNull(SimpleNodeElement.class.getResource("/img/minus_15.png")).toString());
 
     XmlEditor xmlEditor;
 
@@ -50,18 +52,16 @@ public class SimpleNodeElement extends VBox {
         createByNode(node);
     }
 
-    private final static Logger logger = LogManager.getLogger(SimpleNodeElement.class);
-
     public void createByNode(Node node) {
         int row = 0;
-        int col = 0;
-
-        GridPane gridPane = new GridPane();
-        gridPane.getStyleClass().add("treeGrid");
+        this.getStyleClass().add("treeGrid");
 
         if (node.hasChildNodes()) {
             if (node.getAttributes() != null) {
                 logger.debug("Attributes: {}", node.getAttributes().getLength());
+
+                GridPane gridPane = new GridPane();
+                gridPane.getStyleClass().add("treeGrid");
 
                 for (int i = 0; i < node.getAttributes().getLength(); i++) {
                     var attributes = node.getAttributes().item(i);
@@ -70,13 +70,13 @@ public class SimpleNodeElement extends VBox {
                     gridPane.add(new Label(attributes.getNodeValue()), 1, row);
                     row++;
                 }
+                this.getChildren().add(gridPane);
             }
 
             for (int i = 0; i < node.getChildNodes().getLength(); i++) {
                 var subNode = node.getChildNodes().item(i);
                 // logger.debug("Node Type: {}", subNode.getNodeType());
 
-                int finalRow = row;
                 switch (subNode.getNodeType()) {
                     case Node.COMMENT_NODE -> {
                         final Label l = new Label("COMMENT: " + subNode.getNodeValue());
@@ -93,22 +93,34 @@ public class SimpleNodeElement extends VBox {
                             logger.debug("ROW: {}", row);
 
                             Label nodeName = new Label(subNode.getNodeName());
-                            gridPane.add(nodeName, 0, row);
-
                             Label nodeValue = new Label(n.getNodeValue());
-                            nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, gridPane, finalRow, n));
-                            gridPane.add(nodeValue, 1, row);
+                            nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, n));
+
+                            BorderPane borderPane = new BorderPane();
+                            borderPane.setLeft(new VBox(nodeName));
+                            borderPane.setRight(new VBox(nodeValue));
+                            VBox.setVgrow(borderPane.getRight(), Priority.ALWAYS);
+
+                            borderPane.setPadding(new Insets(10, 10, 10, 10));
+                            borderPane.getRight().setStyle("-fx-background-color: red");
+                            borderPane.widthProperty().addListener((observable, oldValue, newValue) -> {
+                                var a = newValue.doubleValue() / 2;
+                                logger.debug("a: {}", a);
+                                borderPane.getLeft().minWidth(a);
+                                borderPane.getRight().minWidth(a);
+                            });
+
+                            this.getChildren().add(borderPane);
                         } else {
                             HBox elementBox = new HBox();
                             final Label label = new Label(subNode.getNodeName() + " - {" + calculateNodeCount(subNode) + "}");
                             logger.debug("Element: {}", label.getText());
 
-                            elementBox.getChildren().addAll(new ImageView(imagePlus), label);
-                            elementBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, elementBox, subNode, true));
-
-                            gridPane.add(elementBox, 1, row);
+                            var imageView = new ImageView(imagePlus);
+                            imageView.setOnMouseClicked(mouseOpenHandler(elementBox, subNode, true));
+                            elementBox.getChildren().addAll(imageView, label);
+                            this.getChildren().add(elementBox);
                         }
-                        row++;
                     }
                     case Node.TEXT_NODE -> {
                         //this.getChildren().add(new Label("TEXT2: " + subNode.getNodeName() + ":" + subNode.getNodeValue()));
@@ -118,61 +130,52 @@ public class SimpleNodeElement extends VBox {
                 }
                 this.getStyleClass().add("normalElement");
             }
-
-            gridPane.getStyleClass().add("normalElement");
-            this.getChildren().add(gridPane);
         }
     }
 
     @NotNull
-    private EventHandler<MouseEvent> editNodeValueHandler(Label nodeValue, GridPane gridPane, int finalRow, Node n) {
+    private EventHandler<MouseEvent> editNodeValueHandler(Label nodeValue, Node n) {
         return event -> {
             logger.debug("Node Value: {}", nodeValue.getText());
             TextField textField = new TextField(nodeValue.getText());
-            gridPane.getChildren().remove(nodeValue);
-            gridPane.add(textField, 1, finalRow);
             textField.setStyle("-fx-border-radius: 2px; -fx-background-color: #f1c4c4;");
             textField.setOnKeyPressed(keyEvent -> {
                 if (keyEvent.getCode() == KeyCode.ENTER) {
                     logger.debug("NEW VALUE: {}", textField.getText());
-                    gridPane.getChildren().remove(textField);
                     nodeValue.setText(textField.getText());
-                    gridPane.add(nodeValue, 1, finalRow);
                     n.setNodeValue(textField.getText());
                     this.xmlEditor.refreshTextView();
                 }
                 if (keyEvent.getCode() == KeyCode.ESCAPE) {
                     logger.debug("ESC Pressed");
-                    gridPane.getChildren().remove(textField);
-                    gridPane.add(nodeValue, 1, finalRow);
                 }
             });
         };
     }
 
     @NotNull
-    private EventHandler<MouseEvent> mouseOpenHandler(int finalRow, GridPane gridPane, HBox elementBox, Node subNode, Boolean isOpen) {
+    private EventHandler<MouseEvent> mouseOpenHandler(HBox elementBox, Node subNode, Boolean isOpen) {
         return event -> {
             logger.debug("Open Clicked: {} - isOpen: {}", subNode.getNodeName(), isOpen);
-            gridPane.getChildren().remove(elementBox);
 
-            ((ImageView) elementBox.getChildren().getFirst()).setImage(imageMinus);
+            if (isOpen) {
+                logger.debug("OPEN Pressed");
 
-            HBox wrapperOpen = new HBox();
-            HBox openBox = new HBox();
-            Label nodeInformation = new Label(subNode.getNodeName() + " - {" + SimpleNodeElement.this.calculateNodeCount(subNode) + "}");
-            SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode, this.xmlEditor);
+                SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode, xmlEditor);
+                HBox hbox = new HBox();
+                var i = ((ImageView) elementBox.getChildren().getFirst());
+                i.setImage(imageMinus);
+                i.setOnMouseClicked(mouseOpenHandler(hbox, subNode, false));
 
-            openBox.getChildren().addAll(new ImageView(imageMinus), nodeInformation);
-            openBox.setOnMouseClicked(closeEvent -> {
+                hbox.getChildren().add(simpleNodeElement);
+                elementBox.getChildren().add(hbox);
+            } else {
+                logger.debug("CLOSE Pressed");
+                ((ImageView) elementBox.getChildren().getFirst()).setImage(imagePlus);
 
-                logger.debug("Close Event");
-                ((ImageView) openBox.getChildren().getFirst()).setImage(imagePlus);
-                wrapperOpen.getChildren().removeAll(simpleNodeElement);
-                openBox.setOnMouseClicked(mouseOpenHandler(finalRow, gridPane, elementBox, subNode, !isOpen));
-            });
-            wrapperOpen.getChildren().addAll(openBox, simpleNodeElement);
-            gridPane.add(wrapperOpen, 1, finalRow);
+                // gridPane.getChildren().removeLast();
+                elementBox.setOnMouseClicked(mouseOpenHandler(elementBox, subNode, true));
+            }
         };
     }
 
