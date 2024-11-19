@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.controls;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -28,7 +29,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -81,8 +81,8 @@ public class SimpleNodeElement extends VBox {
                 this.getChildren().add(gridPane);
             }
 
-            for (int i = 0; i < node.getChildNodes().getLength(); i++) {
-                var subNode = node.getChildNodes().item(i);
+            for (int childNodeIndex = 0; childNodeIndex < node.getChildNodes().getLength(); childNodeIndex++) {
+                var subNode = node.getChildNodes().item(childNodeIndex);
                 // logger.debug("Node Type: {}", subNode.getNodeType());
 
                 switch (subNode.getNodeType()) {
@@ -101,25 +101,45 @@ public class SimpleNodeElement extends VBox {
 
                             var nodeName = new Label(subNode.getNodeName());
                             var nodeValue = new Label(n.getNodeValue());
-
                             nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, n));
 
-                            var borderPane = new BorderPane();
-                            borderPane.setLeft(nodeName);
-                            borderPane.setRight(nodeValue);
-                            BorderPane.setMargin(nodeName, new Insets(2, 5, 2, 5));
-                            BorderPane.setMargin(nodeValue, new Insets(1, 5, 1, 5));
+                            GridPane gridPane = new GridPane();
+                            gridPane.getStyleClass().add("xmlTreeText");
+                            int row = 0;
 
-                            borderPane.setStyle("-fx-background-color: #e28181");
+                            if (subNode.hasAttributes()) {
+                                for (int attributeIndex = 0; attributeIndex < subNode.getAttributes().getLength(); attributeIndex++) {
+                                    var attributes = subNode.getAttributes().item(attributeIndex);
 
-                            borderPane.widthProperty().addListener((observable, oldValue, newValue) -> {
-                                var a = newValue.doubleValue() / 2;
-                                logger.debug("a: {}", a);
-                                //borderPane.getLeft().minWidth(a);
-                                //borderPane.getRight().minWidth(a);
-                            });
+                                    VBox nodeNameBox = new VBox();
+                                    var attributeBox = new HBox();
+                                    HBox.setMargin(attributeBox, new Insets(5, 5, 5, 5));
+                                    attributeBox.setStyle("-fx-background-color: #7272e3; -fx-text-fill: #eeeef8; -fx-padding: 2px;");
+                                    attributeBox.getChildren().add(new Label("@"));
+                                    attributeBox.getChildren().add(new Label(attributes.getNodeName()));
+                                    nodeNameBox.getChildren().add(attributeBox);
 
-                            this.getChildren().add(borderPane);
+                                    VBox nodeValueBox = new VBox();
+                                    nodeValueBox.getChildren().add(new Label(attributes.getNodeValue()));
+                                    nodeValueBox.setAlignment(Pos.CENTER_RIGHT);
+                                    nodeValueBox.setStyle("-fx-background-color: yellow");
+
+                                    gridPane.add(nodeNameBox, 0, row);
+                                    gridPane.add(nodeValueBox, 1, row);
+                                    row++;
+                                }
+                            }
+
+                            var nodeNameBox = new VBox(nodeName);
+                            nodeNameBox.setStyle("-fx-padding: 2px;");
+                            var nodeValueBox = new VBox(nodeValue);
+                            nodeValueBox.setStyle("-fx-padding: 2px;");
+                            nodeValueBox.setAlignment(Pos.CENTER_RIGHT);
+
+                            gridPane.add(nodeNameBox, 0, row);
+                            gridPane.add(nodeValueBox, 1, row);
+
+                            this.getChildren().add(gridPane);
                         } else {
                             HBox elementBox = new HBox();
                             elementBox.setSpacing(3);
@@ -180,7 +200,6 @@ public class SimpleNodeElement extends VBox {
                 HBox hbox = new HBox();
 
                 Button btnMinus = new Button("", new ImageView(imageMinus));
-                // btnMinus.setStyle("-fx-background-color: transparent; -fx-border-color: none; -fx-padding: 0;");
                 btnMinus.setOnAction(mouseOpenHandler(elementBox, subNode, false));
 
                 var t = elementBox.getChildren().get(1);
@@ -193,7 +212,6 @@ public class SimpleNodeElement extends VBox {
                 logger.debug("CLOSE Pressed");
 
                 Button btnPlus = new Button("", new ImageView(imagePlus));
-                // btnPlus.setStyle("-fx-background-color: transparent; -fx-border-color: none; -fx-padding: 0;");
                 btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, false));
 
                 var t = elementBox.getChildren().get(1);
