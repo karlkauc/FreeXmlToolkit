@@ -40,8 +40,20 @@ import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -79,6 +91,8 @@ public class XmlEditor extends Tab {
     File xmlFile;
     private int fontSize = 11;
 
+    TransformerFactory transformerFactory = TransformerFactory.newInstance();
+    DocumentBuilder db;
     Document document;
     XmlService xmlService = new XmlServiceImpl();
 
@@ -93,6 +107,12 @@ public class XmlEditor extends Tab {
     }
 
     private void init() {
+        try {
+            db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        }
+
         TabPane tabPane = new TabPane();
 
         xml.setGraphic(new FontIcon("bi-code-slash:20"));
@@ -104,8 +124,16 @@ public class XmlEditor extends Tab {
 
         xml.setOnSelectionChanged(e -> {
                     if (xml.isSelected()) {
+                        logger.debug("refresh Text view");
                         refreshTextView();
                     } else {
+                        logger.debug("refresh Graphic view");
+
+                        try {
+                            document = db.parse(new ByteArrayInputStream(codeArea.getText().getBytes(StandardCharsets.UTF_8)));
+                        } catch (SAXException | IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
                         refreshGraphicView();
                     }
                 }
@@ -187,7 +215,7 @@ public class XmlEditor extends Tab {
     void refreshTextView() {
         try {
             codeArea.clear();
-            codeArea.replaceText(0, 0, xmlService.getCurrentXsdString());
+            codeArea.replaceText(0, 0, getDocumentAsString());
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
@@ -195,6 +223,18 @@ public class XmlEditor extends Tab {
 
     public Document getDocument() {
         return this.document;
+    }
+
+    private String getDocumentAsString() {
+        try {
+            Transformer transformer = transformerFactory.newTransformer();
+            StringWriter stringWriter = new StringWriter();
+            transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
+            return stringWriter.toString();
+        } catch (Exception e) {
+            // System.out.println(e.getMessage());
+            return null;
+        }
     }
 
     private void refreshGraphicView() {

@@ -31,6 +31,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -130,11 +131,15 @@ public class SimpleNodeElement extends VBox {
                                 }
                             }
 
-                            var nodeNameBox = new VBox(nodeName);
+                            var nodeNameBox = new HBox(nodeName);
                             nodeNameBox.setStyle("-fx-padding: 2px;");
-                            var nodeValueBox = new VBox(nodeValue);
+                            HBox.setHgrow(nodeNameBox, Priority.ALWAYS);
+
+                            var nodeValueBox = new HBox(nodeValue);
                             nodeValueBox.setStyle("-fx-padding: 2px;");
                             nodeValueBox.setAlignment(Pos.CENTER_RIGHT);
+                            nodeValueBox.setStyle("-fx-background-color: #fbfb57");
+                            HBox.setHgrow(nodeValueBox, Priority.ALWAYS);
 
                             gridPane.add(nodeNameBox, 0, row);
                             gridPane.add(nodeValueBox, 1, row);
@@ -149,14 +154,13 @@ public class SimpleNodeElement extends VBox {
                             logger.debug("Element: {}", label.getText());
 
                             var btnPlus = new Button("", new ImageView(imagePlus));
-                            // btnPlus.setStyle("-fx-background-color: transparent; -fx-border-color: none; -fx-padding: 0;");
                             btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, true));
                             elementBox.getChildren().addAll(btnPlus, label);
                             this.getChildren().add(elementBox);
                         }
                     }
                     case Node.TEXT_NODE -> {
-                        //this.getChildren().add(new Label("TEXT2: " + subNode.getNodeName() + ":" + subNode.getNodeValue()));
+                        // this.getChildren().add(new Label("TEXT2: " + subNode.getNodeName() + ":" + subNode.getTextContent()));
                     }
 
                     default -> this.getChildren().add(new Label("DEFAULT: " + subNode.getNodeName()));
@@ -167,24 +171,39 @@ public class SimpleNodeElement extends VBox {
     }
 
     @NotNull
-    private EventHandler<MouseEvent> editNodeValueHandler(Label nodeValue, Node n) {
+    private EventHandler<MouseEvent> editNodeValueHandler(Label nodeValue, Node node) {
         return event -> {
             logger.debug("Node Value: {}", nodeValue.getText());
 
+            try {
+                HBox parent = (HBox) nodeValue.getParent();
 
-            TextField textField = new TextField(nodeValue.getText());
-            textField.setStyle("-fx-border-radius: 2px; -fx-background-color: #f1c4c4;");
-            textField.setOnKeyPressed(keyEvent -> {
-                if (keyEvent.getCode() == KeyCode.ENTER) {
-                    logger.debug("NEW VALUE: {}", textField.getText());
-                    nodeValue.setText(textField.getText());
-                    n.setNodeValue(textField.getText());
-                    this.xmlEditor.refreshTextView();
-                }
-                if (keyEvent.getCode() == KeyCode.ESCAPE) {
-                    logger.debug("ESC Pressed");
-                }
-            });
+                TextField textField = new TextField(nodeValue.getText());
+                textField.setStyle("-fx-border-radius: 2px; -fx-background-color: #f1c4c4;");
+                textField.setOnKeyPressed(keyEvent -> {
+                    if (keyEvent.getCode() == KeyCode.ENTER) {
+                        logger.debug("NEW VALUE: {}", textField.getText());
+                        nodeValue.setText(textField.getText());
+                        node.setNodeValue(textField.getText());
+
+                        HBox parentNew = (HBox) textField.getParent();
+                        parentNew.getChildren().remove(textField);
+                        parentNew.getChildren().add(new Label(textField.getText()));
+
+                        this.xmlEditor.refreshTextView();
+                    }
+                    if (keyEvent.getCode() == KeyCode.ESCAPE) {
+                        logger.debug("ESC Pressed");
+                    }
+                });
+                parent.getChildren().remove(nodeValue);
+                parent.getChildren().add(textField);
+
+            } catch (ClassCastException e) {
+                logger.error("Node Value: {}", nodeValue.getText());
+                logger.error("Error: {}", e.getMessage());
+            }
+
         };
     }
 
