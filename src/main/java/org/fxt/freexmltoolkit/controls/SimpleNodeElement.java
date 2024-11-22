@@ -35,7 +35,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.IntStream;
 
 public class SimpleNodeElement extends VBox {
@@ -239,12 +239,66 @@ public class SimpleNodeElement extends VBox {
                 Button btnMinus = new Button("", new ImageView(imageMinus));
                 btnMinus.setOnAction(mouseOpenHandler(elementBox, subNode, false));
 
-                var t = elementBox.getChildren().get(1);
-                elementBox.getChildren().clear();
-                elementBox.getChildren().addAll(btnMinus, t);
+                boolean shouldBeTable = shouldBeTable(subNode);
+                logger.debug("shouldBeTable: {}", shouldBeTable);
 
-                hbox.getChildren().addAll(simpleNodeElement);
-                elementBox.getChildren().add(hbox);
+                if (shouldBeTable) {
+                    GridPane gridPane = new GridPane();
+                    gridPane.getStyleClass().add("treeGrid");
+                    int row = 1;
+                    Map<String, Integer> columns = new HashMap<>();
+
+                    for (int i = 0; i < subNode.getChildNodes().getLength(); i++) {
+                        Node oneRow = subNode.getChildNodes().item(i);
+
+                        if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
+                            Pane rowCountWrapper = new Pane();
+                            rowCountWrapper.setStyle("-fx-background-color: #f1d239;");
+                            rowCountWrapper.getChildren().add(new Label(String.valueOf(row)));
+                            gridPane.add(rowCountWrapper, 0, row);
+
+                            for (int x = 0; x < oneRow.getChildNodes().getLength(); x++) {
+                                Node oneNode = oneRow.getChildNodes().item(x);
+
+                                if (oneNode.getNodeType() == Node.ELEMENT_NODE) {
+                                    var nodeName = oneNode.getNodeName();
+                                    int colPos = 1;
+                                    if (columns.containsKey(nodeName)) {
+                                        colPos = columns.get(nodeName);
+                                    } else {
+                                        colPos = columns.size() + 1;
+                                        columns.put(nodeName, colPos);
+                                        Pane textPane = new Pane();
+                                        textPane.setStyle("-fx-background-color: #fae88d;");
+                                        textPane.getChildren().add(new Label(nodeName));
+                                        gridPane.add(textPane, colPos, 0);
+                                    }
+                                    if (oneNode.getChildNodes().getLength() == 1 &&
+                                            oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
+                                        gridPane.add(new Label(oneNode.getTextContent()), colPos, row);
+                                    } else {
+                                        gridPane.add(new SimpleNodeElement(oneNode, xmlEditor), colPos, row);
+                                    }
+                                }
+                            }
+                            row++;
+                        }
+                    }
+                    var t = elementBox.getChildren().get(1);
+                    elementBox.getChildren().clear();
+                    elementBox.getChildren().addAll(btnMinus, t);
+
+                    hbox.getChildren().addAll(gridPane);
+                    elementBox.getChildren().add(hbox);
+
+                } else {
+                    var t = elementBox.getChildren().get(1);
+                    elementBox.getChildren().clear();
+                    elementBox.getChildren().addAll(btnMinus, t);
+
+                    hbox.getChildren().addAll(simpleNodeElement);
+                    elementBox.getChildren().add(hbox);
+                }
             } else {
                 logger.debug("CLOSE Pressed");
 
@@ -265,5 +319,16 @@ public class SimpleNodeElement extends VBox {
                 .range(0, n.getChildNodes().getLength())
                 .filter(i -> n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE)
                 .count();
+    }
+
+    private static boolean shouldBeTable(Node n) {
+        Set<String> nodeNames = new HashSet<>();
+        for (int i = 0; i < n.getChildNodes().getLength(); i++) {
+            if (n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE) {
+                nodeNames.add(n.getChildNodes().item(i).getNodeName());
+            }
+        }
+        logger.debug("Node Names: {}", nodeNames);
+        return nodeNames.size() == 1;
     }
 }
