@@ -29,10 +29,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -108,6 +105,14 @@ public class SimpleNodeElement extends VBox {
                             gridPane.getStyleClass().add("xmlTreeText");
                             int row = 0;
 
+                            ColumnConstraints column1 = new ColumnConstraints();
+                            ColumnConstraints column2 = new ColumnConstraints();
+                            column1.setPercentWidth(50);
+                            column2.setPercentWidth(50);
+                            column1.setHgrow(Priority.ALWAYS);
+                            column2.setHgrow(Priority.ALWAYS);
+                            gridPane.getColumnConstraints().addAll(column1, column2);
+
                             if (subNode.hasAttributes()) {
                                 for (int attributeIndex = 0; attributeIndex < subNode.getAttributes().getLength(); attributeIndex++) {
                                     var attributes = subNode.getAttributes().item(attributeIndex);
@@ -137,8 +142,8 @@ public class SimpleNodeElement extends VBox {
 
                             var nodeValueBox = new HBox(nodeValue);
                             nodeValueBox.setStyle("-fx-padding: 2px;");
-                            nodeValueBox.setAlignment(Pos.CENTER_RIGHT);
-                            nodeValueBox.setStyle("-fx-background-color: #fbfb57");
+                            nodeValueBox.setAlignment(Pos.CENTER_LEFT);
+                            nodeValueBox.setStyle("-fx-background-color: #d2f4e5");
                             HBox.setHgrow(nodeValueBox, Priority.ALWAYS);
 
                             gridPane.add(nodeNameBox, 0, row);
@@ -146,7 +151,7 @@ public class SimpleNodeElement extends VBox {
 
                             this.getChildren().add(gridPane);
                         } else {
-                            HBox elementBox = new HBox();
+                            var elementBox = new HBox();
                             elementBox.setSpacing(3);
                             HBox.setMargin(elementBox, new Insets(3, 5, 3, 5));
 
@@ -177,27 +182,40 @@ public class SimpleNodeElement extends VBox {
 
             try {
                 HBox parent = (HBox) nodeValue.getParent();
+                final String originalValue = nodeValue.getText();
 
                 TextField textField = new TextField(nodeValue.getText());
                 textField.setStyle("-fx-border-radius: 2px; -fx-background-color: #f1c4c4;");
                 textField.setOnKeyPressed(keyEvent -> {
+
+                    HBox parentNew;
                     if (keyEvent.getCode() == KeyCode.ENTER) {
                         logger.debug("NEW VALUE: {}", textField.getText());
                         nodeValue.setText(textField.getText());
                         node.setNodeValue(textField.getText());
 
-                        HBox parentNew = (HBox) textField.getParent();
+                        parentNew = (HBox) textField.getParent();
                         parentNew.getChildren().remove(textField);
                         parentNew.getChildren().add(new Label(textField.getText()));
+                        parentNew.requestLayout();
 
                         this.xmlEditor.refreshTextView();
                     }
                     if (keyEvent.getCode() == KeyCode.ESCAPE) {
                         logger.debug("ESC Pressed");
+
+                        parentNew = (HBox) textField.getParent();
+                        parentNew.getChildren().remove(textField);
+                        parentNew.getChildren().add(new Label(originalValue));
                     }
+
+                    this.setOnMouseClicked(editNodeValueHandler(nodeValue, node));
+
                 });
-                parent.getChildren().remove(nodeValue);
-                parent.getChildren().add(textField);
+                if (parent != null) {
+                    parent.getChildren().remove(nodeValue);
+                    parent.getChildren().add(textField);
+                }
 
             } catch (ClassCastException e) {
                 logger.error("Node Value: {}", nodeValue.getText());
