@@ -243,50 +243,7 @@ public class SimpleNodeElement extends VBox {
                 logger.debug("shouldBeTable: {}", shouldBeTable);
 
                 if (shouldBeTable) {
-                    GridPane gridPane = new GridPane();
-                    gridPane.getStyleClass().add("treeGrid");
-                    int row = 1;
-                    Map<String, Integer> columns = new HashMap<>();
-
-                    for (int i = 0; i < subNode.getChildNodes().getLength(); i++) {
-                        Node oneRow = subNode.getChildNodes().item(i);
-
-                        if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
-                            Pane rowCountWrapper = new Pane();
-                            rowCountWrapper.setStyle("-fx-background-color: #f1d239;");
-                            rowCountWrapper.getChildren().add(new Label(String.valueOf(row)));
-                            gridPane.add(rowCountWrapper, 0, row);
-
-                            for (int x = 0; x < oneRow.getChildNodes().getLength(); x++) {
-                                Node oneNode = oneRow.getChildNodes().item(x);
-
-                                if (oneNode.getNodeType() == Node.ELEMENT_NODE) {
-                                    var nodeName = oneNode.getNodeName();
-                                    int colPos = 1;
-                                    if (columns.containsKey(nodeName)) {
-                                        colPos = columns.get(nodeName);
-                                    } else {
-                                        colPos = columns.size() + 1;
-                                        columns.put(nodeName, colPos);
-                                        Pane textPane = new Pane();
-                                        textPane.setStyle("-fx-background-color: #fae88d;");
-                                        textPane.getChildren().add(new Label(nodeName));
-                                        gridPane.add(textPane, colPos, 0);
-                                    }
-                                    if (oneNode.getChildNodes().getLength() == 1 &&
-                                            oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
-                                        gridPane.add(new Label(oneNode.getTextContent()), colPos, row);
-                                    } else {
-                                        gridPane.add(new SimpleNodeElement(oneNode, xmlEditor), colPos, row);
-                                    }
-                                }
-                            }
-                            row++;
-                        }
-                    }
-                    var t = elementBox.getChildren().get(1);
-                    elementBox.getChildren().clear();
-                    elementBox.getChildren().addAll(btnMinus, t);
+                    GridPane gridPane = createTable(elementBox, subNode, btnMinus);
 
                     hbox.getChildren().addAll(gridPane);
                     elementBox.getChildren().add(hbox);
@@ -314,6 +271,64 @@ public class SimpleNodeElement extends VBox {
         };
     }
 
+    private GridPane createTable(HBox elementBox, Node subNode, Button btnMinus) {
+        GridPane gridPane = new GridPane();
+        gridPane.getStyleClass().add("treeGrid");
+        int row = 1;
+        Map<String, Integer> columns = new HashMap<>();
+
+        for (int i = 0; i < subNode.getChildNodes().getLength(); i++) {
+            Node oneRow = subNode.getChildNodes().item(i);
+
+            if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
+                var textContent = new Label(oneRow.getNodeName() + "# [" + row + "]");
+                Pane rowCountWrapper = getCenterPaneWithLabel(textContent);
+                rowCountWrapper.setStyle("-fx-background-color: #f1d239;");
+                gridPane.add(rowCountWrapper, 0, row);
+
+                for (int x = 0; x < oneRow.getChildNodes().getLength(); x++) {
+                    Node oneNode = oneRow.getChildNodes().item(x);
+
+                    if (oneNode.getNodeType() == Node.ELEMENT_NODE) {
+                        var nodeName = oneNode.getNodeName();
+                        int colPos = 1;
+                        if (columns.containsKey(nodeName)) {
+                            colPos = columns.get(nodeName);
+                        } else {
+                            colPos = columns.size() + 1;
+                            columns.put(nodeName, colPos);
+                            Pane textPane = getCenterPaneWithLabel(new Label(nodeName));
+                            textPane.setStyle("-fx-background-color: #fae88d; -fx-font-weight: bold;");
+                            gridPane.add(textPane, colPos, 0);
+                        }
+                        if (oneNode.getChildNodes().getLength() == 1 &&
+                                oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
+                            var t = getCenterPaneWithLabel(new Label(oneNode.getTextContent()));
+                            gridPane.add(t, colPos, row);
+                        } else {
+                            gridPane.add(new SimpleNodeElement(oneNode, xmlEditor), colPos, row);
+                        }
+                    }
+                }
+                row++;
+            }
+        }
+        var t = elementBox.getChildren().get(1);
+        elementBox.getChildren().clear();
+        elementBox.getChildren().addAll(btnMinus, t);
+
+        return gridPane;
+    }
+
+    public Pane getCenterPaneWithLabel(Label label) {
+        Pane pane = new Pane();
+        pane.getChildren().add(label);
+        label.layoutXProperty().bind(pane.widthProperty().subtract(label.widthProperty()).divide(2));
+        label.layoutYProperty().bind(pane.heightProperty().subtract(label.heightProperty()).divide(2));
+
+        return pane;
+    }
+
     private static int calculateNodeCount(Node n) {
         return (int) IntStream
                 .range(0, n.getChildNodes().getLength())
@@ -323,12 +338,20 @@ public class SimpleNodeElement extends VBox {
 
     private static boolean shouldBeTable(Node n) {
         Set<String> nodeNames = new HashSet<>();
+        int count = 0;
         for (int i = 0; i < n.getChildNodes().getLength(); i++) {
             if (n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE) {
                 nodeNames.add(n.getChildNodes().item(i).getNodeName());
+                if (nodeNames.size() > 1) {
+                    return false;
+                }
+                count++;
             }
         }
         logger.debug("Node Names: {}", nodeNames);
+        if (count == 1) {
+            return false;
+        }
         return nodeNames.size() == 1;
     }
 }
