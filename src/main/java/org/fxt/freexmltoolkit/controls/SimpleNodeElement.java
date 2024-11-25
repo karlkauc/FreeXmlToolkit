@@ -282,9 +282,29 @@ public class SimpleNodeElement extends VBox {
 
             if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
                 var textContent = new Label(oneRow.getNodeName() + "# [" + row + "]");
-                Pane rowCountWrapper = getCenterPaneWithLabel(textContent);
-                rowCountWrapper.setStyle("-fx-background-color: #f1d239;");
-                gridPane.add(rowCountWrapper, 0, row);
+                Pane rowCount = getCenterPaneWithLabel(textContent);
+                rowCount.setStyle("-fx-background-color: #f1d239;");
+
+                int finalRow = row;
+                rowCount.setOnMouseEntered(event -> {
+                    for (int c = 0; c < gridPane.getColumnCount() - 1; c++) {
+                        var node = getNodeFromGridPane(gridPane, c + 1, finalRow);
+                        if (node != null) {
+                            node.setStyle("-fx-background-color: #0a53be");
+                        }
+                    }
+                });
+                rowCount.setOnMouseExited(event -> {
+                    for (int c = 0; c < gridPane.getColumnCount() - 1; c++) {
+                        var node = getNodeFromGridPane(gridPane, c + 1, finalRow);
+                        if (node != null) {
+                            node.setStyle("-fx-background-color: white");
+                        }
+                    }
+                });
+
+                gridPane.add(rowCount, 0, row);
+
 
                 for (int x = 0; x < oneRow.getChildNodes().getLength(); x++) {
                     Node oneNode = oneRow.getChildNodes().item(x);
@@ -300,6 +320,24 @@ public class SimpleNodeElement extends VBox {
                             Pane textPane = getCenterPaneWithLabel(new Label(nodeName));
                             textPane.setStyle("-fx-background-color: #fae88d; -fx-font-weight: bold;");
                             gridPane.add(textPane, colPos, 0);
+
+                            int finalColPos = colPos;
+                            textPane.setOnMouseEntered(event -> {
+                                for (int r = 0; r < gridPane.getRowCount() - 1; r++) {
+                                    var node = getNodeFromGridPane(gridPane, finalColPos, r + 1);
+                                    if (node != null) {
+                                        node.setStyle("-fx-background-color: #0a53be");
+                                    }
+                                }
+                            });
+                            textPane.setOnMouseExited(event -> {
+                                for (int r = 0; r < gridPane.getRowCount() - 1; r++) {
+                                    var node = getNodeFromGridPane(gridPane, finalColPos, r + 1);
+                                    if (node != null) {
+                                        node.setStyle("-fx-background-color: white");
+                                    }
+                                }
+                            });
                         }
                         if (oneNode.getChildNodes().getLength() == 1 &&
                                 oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
@@ -319,6 +357,26 @@ public class SimpleNodeElement extends VBox {
 
         return gridPane;
     }
+
+    private javafx.scene.Node getNodeFromGridPane(GridPane gridPane, int col, int row) {
+        final var children = gridPane.getChildren();
+        for (final var node : children) {
+            Integer columnIndex = GridPane.getColumnIndex(node);
+            Integer rowIndex = GridPane.getRowIndex(node);
+
+            if (columnIndex == null)
+                columnIndex = 0;
+            if (rowIndex == null)
+                rowIndex = 0;
+
+            if (columnIndex == col && rowIndex == row) {
+                logger.debug("columnIndex: {}, rowIndex: {}", columnIndex, rowIndex);
+                return node;
+            }
+        }
+        return null;
+    }
+
 
     public Pane getCenterPaneWithLabel(Label label) {
         Pane pane = new Pane();
