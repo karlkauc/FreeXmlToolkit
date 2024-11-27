@@ -181,8 +181,13 @@ public class SimpleNodeElement extends VBox {
             logger.debug("Node Value: {}", nodeValue.getText());
 
             try {
-                HBox parent = (HBox) nodeValue.getParent();
                 final String originalValue = nodeValue.getText();
+                HBox parent = null;
+                if (nodeValue.getParent() instanceof HBox hBox) {
+                    parent = hBox;
+                } else {
+                    logger.debug("not HBOX: {}", nodeValue.getParent());
+                }
 
                 TextField textField = new TextField(nodeValue.getText());
                 textField.setStyle("-fx-border-radius: 2px; -fx-background-color: #f1c4c4;");
@@ -317,7 +322,10 @@ public class SimpleNodeElement extends VBox {
                         } else {
                             colPos = columns.size() + 1;
                             columns.put(nodeName, colPos);
-                            Pane textPane = getCenterPaneWithLabel(new Label(nodeName));
+                            var nn = new Label(nodeName);
+                            nn.setOnMouseClicked(editNodeValueHandler(nn, oneNode));
+                            Pane textPane = getCenterPaneWithLabel(nn);
+
                             textPane.setStyle("-fx-background-color: #fae88d; -fx-font-weight: bold;");
                             gridPane.add(textPane, colPos, 0);
 
@@ -341,7 +349,9 @@ public class SimpleNodeElement extends VBox {
                         }
                         if (oneNode.getChildNodes().getLength() == 1 &&
                                 oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
-                            var t = getCenterPaneWithLabel(new Label(oneNode.getTextContent()));
+                            var n = new Label(oneNode.getTextContent());
+                            var t = getCenterPaneWithLabel(n);
+                            t.setOnMouseClicked(editNodeValueHandler(n, oneNode));
                             gridPane.add(t, colPos, row);
                         } else {
                             gridPane.add(new SimpleNodeElement(oneNode, xmlEditor), colPos, row);
