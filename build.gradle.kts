@@ -27,8 +27,8 @@ plugins {
 }
 
 application {
-    // mainClass.set("org.fxt.freexmltoolkit.FxtGui")
-    mainClass.set("org.fxt.freexmltoolkit.GuiTest")
+    mainClass.set("org.fxt.freexmltoolkit.FxtGui")
+    // mainClass.set("org.fxt.freexmltoolkit.GuiTest")
     applicationName = "FreeXmlToolkit"
 }
 
@@ -100,15 +100,15 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:3.0.0-beta2")
 
     // XSD Parser
-    implementation("com.github.xmlet:xsdParser:1.2.17")
+    implementation("com.github.xmlet:xsdParser:1.2.18")
 
     //  xml signature
     implementation("org.apache.santuario:xmlsec:4.0.3")
 
     // Lemminx
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.23.1")
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.28.0")
-    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.37.0.M2")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.29.0")
+    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.37.0")
 
     // FOP
     implementation("org.apache.xmlgraphics:fop:2.10")
@@ -125,7 +125,7 @@ dependencies {
 
     // Misc
     implementation("org.apache.commons:commons-lang3:3.17.0")
-    implementation("commons-io:commons-io:2.17.0")
+    implementation("commons-io:commons-io:2.18.0")
     implementation("org.apache.commons:commons-text:1.12.0")
     implementation("commons-validator:commons-validator:1.9.0")
 
@@ -160,6 +160,29 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
     maxHeapSize = "16G"
 }
+
+tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
+    outfile = "FreeXMLToolkit.exe"
+    mainClassName = "org.fxt.freexmltoolkit.FxtGui"
+    headerType = "gui" // gui / console
+    icon = "${projectDir}/logo.ico"
+    // maxHeapSize = 2048
+    copyright = System.getProperty("user.name")
+
+    // https://bell-sw.com/pages/libericajdk/
+    bundledJrePath = "jre"
+    requires64Bit = true
+    jreMinVersion = "23"
+
+    doLast {
+        println("Copy JDK...")
+        copy {
+            from(zipTree("jdk/jre-23-full.zip"))
+            into(layout.buildDirectory.dir("launch4j/jre"))
+        }
+    }
+}
+
 
 /*
 tasks.register<Exec>("convey") {
