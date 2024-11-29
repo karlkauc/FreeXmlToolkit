@@ -87,6 +87,8 @@ public class XmlServiceImpl implements XmlService {
     SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
+    Transformer transform;
+
     XsltExecutable stylesheet;
 
     File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
@@ -108,11 +110,12 @@ public class XmlServiceImpl implements XmlService {
     final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
 
     private static final XmlServiceImpl instance = new XmlServiceImpl();
-    Transformer xform;
 
     public XmlServiceImpl() {
         try {
-            xform = TransformerFactory.newInstance().newTransformer();
+            transform = TransformerFactory.newInstance().newTransformer();
+            transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transform.setOutputProperty(OutputKeys.INDENT, "yes");
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
@@ -430,10 +433,7 @@ public class XmlServiceImpl implements XmlService {
     public String getNodeAsString(Node node) {
         try {
             sw = new StringWriter();
-
-            xform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            xform.setOutputProperty(OutputKeys.INDENT, "yes");
-            xform.transform(new DOMSource(node), new StreamResult(sw));
+            transform.transform(new DOMSource(node), new StreamResult(sw));
             return sw.toString();
 
         } catch (TransformerException e) {
@@ -470,14 +470,17 @@ public class XmlServiceImpl implements XmlService {
             var nodeList = (NodeList) xPathPath.compile(xPath).evaluate(xmlDocument, XPathConstants.NODESET);
             sw = new StringWriter();
 
-            if (nodeList.getLength() > 0) {
-                Node node = nodeList.item(0);
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node n = nodeList.item(i);
 
-                Transformer transform = TransformerFactory.newInstance().newTransformer();
+
                 transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
                 transform.setOutputProperty(OutputKeys.INDENT, "yes");
-                transform.transform(new DOMSource(node), new StreamResult(sw));
+                var swTemp = new StringWriter();
+                transform.transform(new DOMSource(n), new StreamResult(swTemp));
+                sw.append(swTemp.toString()).append(System.lineSeparator());
             }
+
             return sw.toString();
 
         } catch (XPathExpressionException | TransformerException | IOException | SAXException e) {

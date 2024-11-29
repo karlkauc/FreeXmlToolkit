@@ -22,7 +22,6 @@ plugins {
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.github.ben-manes.versions") version "0.51.0"
-    // id("dev.hydraulic.conveyor") version "1.11"
     id("edu.sc.seis.launch4j") version "3.0.6"
 }
 
@@ -182,13 +181,3 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
         }
     }
 }
-
-
-/*
-tasks.register<Exec>("convey") {
-    val dir = layout.buildDirectory.dir("packages")
-    outputs.dir(dir)
-    commandLine("conveyor", "make", "--output-dir", dir.get(), "site")
-    dependsOn("jar", "writeConveyorConfig")
-}
-*/

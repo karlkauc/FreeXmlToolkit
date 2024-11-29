@@ -110,7 +110,7 @@ public class XmlEditor extends Tab {
         try {
             db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+            logger.warn("Error parsing XML file: {}", e.getMessage());
         }
 
         TabPane tabPane = new TabPane();

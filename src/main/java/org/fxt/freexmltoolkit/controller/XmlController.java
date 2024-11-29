@@ -187,9 +187,9 @@ public class XmlController {
     private CodeArea getCurrentCodeArea() {
         Tab active = xmlFilesPane.getSelectionModel().getSelectedItem();
         TabPane tp = (TabPane) active.getContent();
-        Tab tabText = tp.getTabs().get(0);
+        Tab tabText = tp.getTabs().getFirst();
         StackPane sp = (StackPane) tabText.getContent();
-        VirtualizedScrollPane<?> vsp = (VirtualizedScrollPane<?>) sp.getChildren().get(0);
+        VirtualizedScrollPane<?> vsp = (VirtualizedScrollPane<?>) sp.getChildren().getFirst();
 
         return (CodeArea) vsp.getContent();
     }
@@ -212,7 +212,7 @@ public class XmlController {
 
         if (xml != null) {
             Tab selectedItem = xPathQueryPane.getSelectionModel().getSelectedItem();
-            String query = ((CodeArea) ((VirtualizedScrollPane<?>) ((StackPane) selectedItem.getContent()).getChildren().get(0)).getContent()).getText();
+            String query = ((CodeArea) ((VirtualizedScrollPane<?>) ((StackPane) selectedItem.getContent()).getChildren().getFirst()).getContent()).getText();
             String result = "";
 
             logger.debug("QUERY: {}", query);
