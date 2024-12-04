@@ -31,6 +31,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.PropertiesService;
@@ -53,8 +54,9 @@ public class MainController {
 
     XmlController xmlController;
 
-    public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     public final ExecutorService service = Executors.newCachedThreadPool();
+    final Runtime runtime = Runtime.getRuntime();
 
     @FXML
     Label version;
@@ -83,13 +85,29 @@ public class MainController {
 
     Boolean showMenu = true;
 
+
     @FXML
     public void initialize() {
-        version.setText("Version: 0.0.1");
+        // version.setText("Version: 0.0.1");
 
         scheduler.scheduleAtFixedRate(() -> {
-            Platform.runLater(() -> version.setText(new Date().toString()));
-        }, 1, 2, TimeUnit.SECONDS);
+            final String date = new Date().toString();
+
+            final long allocated = runtime.totalMemory();
+            final long used = allocated - runtime.freeMemory();
+            final long max = runtime.maxMemory();
+            final long available = max - used;
+            final var size = String.format("Max: %s Allocated: %s Used: %s Available: %s",
+                    FileUtils.byteCountToDisplaySize(max),
+                    FileUtils.byteCountToDisplaySize(allocated),
+                    FileUtils.byteCountToDisplaySize(used),
+                    FileUtils.byteCountToDisplaySize(available));
+
+            logger.debug("Text: {} {}", date, size);
+            version.setText(date + " " + size);
+
+            Platform.runLater(() -> version.setText(date + " " + size));
+        }, 1, 5, TimeUnit.SECONDS);
 
         exit.setOnAction(e -> {
             prepareShutdown();
