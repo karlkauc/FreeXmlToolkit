@@ -91,23 +91,21 @@ public class MainController {
         // version.setText("Version: 0.0.1");
 
         scheduler.scheduleAtFixedRate(() -> {
-            final String date = new Date().toString();
+            String date = new Date().toString();
 
-            final long allocated = runtime.totalMemory();
-            final long used = allocated - runtime.freeMemory();
-            final long max = runtime.maxMemory();
-            final long available = max - used;
-            final var size = String.format("Max: %s Allocated: %s Used: %s Available: %s",
+            long allocated = runtime.totalMemory();
+            long used = allocated - runtime.freeMemory();
+            long max = runtime.maxMemory();
+            long available = max - used;
+            var size = String.format("Max: %s Allocated: %s Used: %s Available: %s",
                     FileUtils.byteCountToDisplaySize(max),
                     FileUtils.byteCountToDisplaySize(allocated),
                     FileUtils.byteCountToDisplaySize(used),
                     FileUtils.byteCountToDisplaySize(available));
-
-            logger.debug("Text: {} {}", date, size);
-            version.setText(date + " " + size);
+            // logger.debug("Text: {} {}", date, size);
 
             Platform.runLater(() -> version.setText(date + " " + size));
-        }, 1, 5, TimeUnit.SECONDS);
+        }, 1, 10, TimeUnit.SECONDS);
 
         exit.setOnAction(e -> {
             prepareShutdown();
