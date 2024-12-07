@@ -85,10 +85,11 @@ public class MainController {
 
     Boolean showMenu = true;
 
+    FXMLLoader loader;
+
 
     @FXML
     public void initialize() {
-        // version.setText("Version: 0.0.1");
 
         scheduler.scheduleAtFixedRate(() -> {
             String date = new Date().toString();
@@ -102,10 +103,11 @@ public class MainController {
                     FileUtils.byteCountToDisplaySize(allocated),
                     FileUtils.byteCountToDisplaySize(used),
                     FileUtils.byteCountToDisplaySize(available));
-            // logger.debug("Text: {} {}", date, size);
 
-            Platform.runLater(() -> version.setText(date + " " + size));
-        }, 1, 10, TimeUnit.SECONDS);
+            var percent = Math.round((float) used / available * 100) + "%";
+
+            Platform.runLater(() -> version.setText(date + " " + size + " " + percent));
+        }, 1, 2, TimeUnit.SECONDS);
 
         exit.setOnAction(e -> {
             prepareShutdown();
@@ -116,7 +118,6 @@ public class MainController {
             System.exit(0);
         });
         loadLastOpenFiles();
-
         loadPageFromPath("/pages/welcome.fxml");
     }
 
@@ -187,8 +188,10 @@ public class MainController {
 
     private void loadPageFromPath(String pagePath) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(pagePath));
+            loader = new FXMLLoader(getClass().getResource(pagePath));
             Pane newLoadedPane = loader.load();
+
+            System.gc();
 
             try {
                 Class<?> aClass = loader.getController().getClass();
