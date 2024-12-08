@@ -29,7 +29,7 @@
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XsltController">
     <HBox HBox.hgrow="ALWAYS">
         <HBox style="-fx-background-color: #b1d983;">
-            <BorderPane fx:id="fileLoaderPane" maxWidth="600" minWidth="300" prefWidth="600"
+            <BorderPane fx:id="fileLoaderPane" maxWidth="500" minWidth="500" prefWidth="500"
                         style="-fx-padding: 0 5 0 0; -fx-background-color: #fafff7;">
                 <center>
                     <VBox alignment="CENTER" style="-fx-padding: 10px;" spacing="5">
@@ -40,7 +40,7 @@
                 </center>
                 <bottom>
                     <VBox>
-                        <HBox>
+                        <HBox alignment="BASELINE_CENTER" spacing="10">
                             <Button fx:id="debugButton" onAction="#test" text="TEST" visible="false"
                                     style="-fx-padding: 5px;"/>
                             <Button fx:id="openInDefaultWebBrowser" disable="true" text="Open in Web">

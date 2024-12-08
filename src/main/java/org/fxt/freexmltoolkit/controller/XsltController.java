@@ -93,6 +93,8 @@ public class XsltController {
     @FXML
     Label toggleBorderPaneLabel;
 
+    final int PANE_SIZE = 500;
+
     @FXML
     private void initialize() {
         var test = System.getenv("debug");
@@ -131,9 +133,9 @@ public class XsltController {
 
         if (this.fileLoaderPane.isVisible()) {
             this.toggleBorderPaneLabel.setText("<<");
-            this.fileLoaderPane.setMaxWidth(300);
-            this.fileLoaderPane.setMinWidth(300);
-            this.fileLoaderPane.setPrefWidth(300);
+            this.fileLoaderPane.setMaxWidth(PANE_SIZE);
+            this.fileLoaderPane.setMinWidth(PANE_SIZE);
+            this.fileLoaderPane.setPrefWidth(PANE_SIZE);
             this.fileLoaderPane.setManaged(true);
         } else {
             this.toggleBorderPaneLabel.setText(">>");
