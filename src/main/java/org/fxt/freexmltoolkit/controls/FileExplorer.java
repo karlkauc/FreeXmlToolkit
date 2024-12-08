@@ -3,7 +3,6 @@ package org.fxt.freexmltoolkit.controls;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.layout.Priority;
@@ -91,7 +90,7 @@ public class FileExplorer extends VBox {
             } catch (UnknownHostException ignored) {
             }
 
-            TreeItem<Path> root = new TreeItem<>(null);
+            FileExplorerTreeItem<Path> root = new FileExplorerTreeItem<>(new File(hostName).toPath());
 
             for (File file : File.listRoots()) {
                 logger.debug("drinnen: {}", file.getName());
@@ -99,7 +98,7 @@ public class FileExplorer extends VBox {
                 logger.debug("nach treeNode");
             }
 
-            fileTreeView.setShowRoot(false);
+            fileTreeView.setShowRoot(true);
             fileTreeView.setRoot(root);
 
             fileTreeView.getSelectionModel()
@@ -113,8 +112,9 @@ public class FileExplorer extends VBox {
                                 newValue.getChildren().clear();
                             } else {
                                 try (var walk = Files.walk(newValue.getValue(), 1)) {
-                                    List<Path> result = walk.toList();
-                                    result.forEach(System.out::println);
+                                    List<Path> result = walk
+                                            .filter(f -> f.toFile().isFile() || f.toFile().isDirectory())
+                                            .toList();
                                     for (Path file : result) {
                                         newValue.getChildren().add(new FileExplorerTreeItem<>(file));
                                     }

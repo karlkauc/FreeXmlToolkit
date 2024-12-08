@@ -17,14 +17,8 @@ public class FileExplorerTreeItem<E extends Path> extends TreeItem<Path> {
     public static Image folderExpandImage = new Image(Objects.requireNonNull(FileExplorerTreeItem.class.getResourceAsStream("/img/folder-open.png")));
     public static Image fileImage = new Image(Objects.requireNonNull(FileExplorerTreeItem.class.getResourceAsStream("/img/text-x-generic.png")));
 
-    public String fileNameString;
-
-    public String getFileName() {
-        return fileNameString;
-    }
-
     public FileExplorerTreeItem(E path) {
-        super(path);
+        // super(path);
         logger.debug("FileExplorerTreeItem created");
         logger.debug("File: {}", path.toString());
 
@@ -34,7 +28,6 @@ public class FileExplorerTreeItem<E extends Path> extends TreeItem<Path> {
         } else {
             logger.debug("is file: {}", path.toString());
             this.setGraphic(new ImageView(fileImage));
-            fileNameString = path.getFileName().toString();
         }
         this.setValue(path);
     }
