@@ -1,10 +1,30 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2024.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.apache.commons.io.FileUtils;
@@ -25,6 +45,42 @@ public class FileExplorer extends VBox {
 
     private final static Logger logger = LogManager.getLogger(FileExplorer.class);
     TreeTableView<Path> fileTreeView;
+    Label fileNameLabel = new Label();
+    StringProperty stringProperty = new SimpleStringProperty();
+
+    Path selectedFile = null;
+
+    StringProperty displayText = new SimpleStringProperty();
+    String displayString = "";
+
+    public String getDisplayString() {
+        return displayString;
+    }
+
+    public void setDisplayString(String displayString) {
+        this.displayString = displayString;
+        this.displayText.set(displayString);
+    }
+
+    public String getDisplayText() {
+        return displayText.get();
+    }
+
+    public StringProperty displayTextProperty() {
+        return displayText;
+    }
+
+    public void setDisplayText(String displayText) {
+        this.displayText.set(displayText);
+    }
+
+    public Path getSelectedFile() {
+        return selectedFile;
+    }
+
+    public void setSelectedFile(Path selectedFile) {
+        this.selectedFile = selectedFile;
+    }
 
     public FileExplorer() {
         logger.debug("FileExplorer()");
@@ -36,16 +92,24 @@ public class FileExplorer extends VBox {
             this.setPadding(new Insets(10, 10, 10, 10));
             this.setSpacing(10);
 
+            fileNameLabel.textProperty().bind(stringProperty);
+
             fileTreeView = new TreeTableView<>();
+            fileTreeView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+
             TreeTableColumn<Path, String> fileName = new TreeTableColumn<>("File Name");
             TreeTableColumn<Path, String> fileExtension = new TreeTableColumn<>("File Extension");
             TreeTableColumn<Path, String> fileSize = new TreeTableColumn<>("File Size");
             TreeTableColumn<Path, String> fileDate = new TreeTableColumn<>("File Date");
 
             fileName.setCellValueFactory(p -> {
-                if (p.getValue() != null && p.getValue().getValue() != null) {
+                if (p.getValue() != null && p.getValue().getValue() != null && p.getValue().getValue().getFileName() != null) {
                     return new SimpleStringProperty(p.getValue().getValue().toFile().getName());
+                } else if (p.getValue() != null && p.getValue().getValue() != null) {
+                    // Root Element
+                    return new SimpleStringProperty(p.getValue().getValue().toString());
                 }
+
                 return new SimpleStringProperty("");
             });
             fileExtension.setCellValueFactory(p -> {
@@ -62,7 +126,7 @@ public class FileExplorer extends VBox {
                 }
             });
             fileSize.setCellValueFactory(p -> {
-                if (p.getValue().getValue().toFile().isFile()) {
+                if (p.getValue().getValue().toFile().isFile() && !Files.isDirectory(p.getValue().getValue())) {
                     return new SimpleStringProperty(FileUtils.byteCountToDisplaySize(p.getValue().getValue().toFile().length()));
                 }
                 return new SimpleStringProperty("");
@@ -105,7 +169,8 @@ public class FileExplorer extends VBox {
                     .selectedItemProperty()
                     .addListener((observable, oldValue, newValue) -> {
                         if (newValue.getValue().toFile().isFile()) {
-                            System.out.println("LADEN = " + newValue.getValue().toFile().getAbsolutePath());
+                            stringProperty.setValue(newValue.getValue().toFile().getName());
+                            selectedFile = newValue.getValue();
                         }
                         if (newValue.getValue().toFile().isDirectory()) {
                             if (newValue.isExpanded()) {
@@ -113,6 +178,7 @@ public class FileExplorer extends VBox {
                             } else {
                                 try (var walk = Files.walk(newValue.getValue(), 1)) {
                                     List<Path> result = walk
+                                            .filter(f -> f != newValue.getValue())
                                             .filter(f -> f.toFile().isFile() || f.toFile().isDirectory())
                                             .toList();
                                     for (Path file : result) {
@@ -123,17 +189,22 @@ public class FileExplorer extends VBox {
                                 }
                             }
                         }
-                        System.out.println("Selected Text : " + newValue.getValue());
+                        // System.out.println("Selected Text : " + newValue.getValue());
                     });
 
-            this.getChildren().addAll(new Label("File browser"), fileTreeView);
+            HBox header = new HBox();
+            header.setSpacing(10);
+            var headerLabel = new Label();
+            headerLabel.textProperty().bind(displayText);
+
+            header.getChildren().add(headerLabel);
+            header.getChildren().add(fileNameLabel);
+
+            this.getChildren().addAll(header, fileTreeView);
 
             VBox.setVgrow(fileTreeView, Priority.ALWAYS);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-
     }
-
-
 }

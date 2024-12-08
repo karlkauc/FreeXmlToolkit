@@ -87,7 +87,6 @@ public class MainController {
 
     FXMLLoader loader;
 
-
     @FXML
     public void initialize() {
 

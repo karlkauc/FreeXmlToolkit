@@ -33,10 +33,8 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxt.freexmltoolkit.controls.FileLoader;
+import org.fxt.freexmltoolkit.controls.FileExplorer;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
@@ -45,14 +43,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 public class XsltController {
 
     XmlService xmlService = XmlServiceImpl.getInstance();
 
-    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     @FXML
-    FileLoader xmlFileLoader, xsltFileLoader;
+    FileExplorer xmlFileExplorer, xsltFileExplorer;
 
     @FXML
     Button reload;
@@ -103,32 +101,20 @@ public class XsltController {
             debugButton.setVisible(true);
         }
 
+        fileLoaderPane.heightProperty().addListener((observable, oldValue, newValue) -> {
+            logger.debug("oldValue: {}", oldValue);
+            logger.debug("newValue: {}", newValue);
+            var fileLoaderHeight = (newValue.doubleValue() - (double) 100) / 2;
+            xsltFileExplorer.setPrefHeight(fileLoaderHeight);
+            xmlFileExplorer.setPrefHeight(fileLoaderHeight);
+        });
+
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
         textView.getChildren().add(virtualizedScrollPane);
 
         progressBar.setDisable(true);
         progressBar.setVisible(false);
-
-        xmlFileLoader.setLoadPattern("*.xml", "XML File");
-        xmlFileLoader.getLoadButton().setText("XML File");
-        xmlFileLoader.getLoadButton().setOnAction(ae -> {
-            xmlFile = xmlFileLoader.getFileAction();
-            if (xmlFile != null) {
-                logger.debug("Loaded XML File: {}", xmlFile.getAbsolutePath());
-                xmlService.setCurrentXmlFile(xmlFile);
-                checkFiles();
-            }
-        });
-
-        xsltFileLoader.setLoadPattern("*.xslt", "XSLT File");
-        xsltFileLoader.getLoadButton().setText("XSLT File");
-        xsltFileLoader.getLoadButton().setOnAction(ae -> {
-            xsltFile = xsltFileLoader.getFileAction();
-            logger.debug("Loaded XSLT File: {}", xsltFile.getAbsolutePath());
-            xmlService.setCurrentXsltFile(xsltFile);
-            checkFiles();
-        });
 
         webEngine = webView.getEngine();
         webEngine.getLoadWorker().stateProperty().addListener(
@@ -160,13 +146,13 @@ public class XsltController {
 
     @FXML
     private void checkFiles() {
-        if (xsltFileLoader.getFile() != null) {
-            xsltFile = xsltFileLoader.getFile();
+        if (xsltFileExplorer.getSelectedFile() != null) {
+            xsltFile = xsltFileExplorer.getSelectedFile().toFile();
             xmlService.setCurrentXsltFile(xsltFile);
         }
 
-        if (xmlFileLoader.getFile() != null) {
-            this.xmlFile = xmlFileLoader.getFile();
+        if (xmlFileExplorer.getSelectedFile() != null) {
+            this.xmlFile = xmlFileExplorer.getSelectedFile().toFile();
             this.xmlService.setCurrentXmlFile(xmlFile);
         }
 
@@ -216,11 +202,16 @@ public class XsltController {
     }
 
     private void renderHTML(String output) {
-        new File("output").mkdirs();
-        final String outputFileName = "output" + File.separator + "output.html";
+        File outputDir = new File("output");
+        final String outputFileName = outputDir.getName() + File.separator + "output.html";
         logger.debug("Output File: {}", outputFileName);
 
         try {
+            // Copy Resources
+            Files.createDirectories(outputDir.toPath());
+            Files.copy(getClass().getResourceAsStream("/scss/prism.css"), Paths.get(outputDir.getPath(), "outputDir"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css"), Paths.get(outputDir.getPath(), "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
+
             File newFile = Paths.get(outputFileName).toFile();
             Files.writeString(newFile.toPath(), output);
 
@@ -249,8 +240,8 @@ public class XsltController {
         xmlFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml").toFile();
         xsltFile = Paths.get("examples/xslt/Check_FundsXML_File.xslt").toFile();
 
-        xmlFileLoader.setFile(xmlFile);
-        xsltFileLoader.setFile(xsltFile);
+        xmlFileExplorer.setSelectedFile(xmlFile.toPath());
+        xsltFileExplorer.setSelectedFile(xsltFile.toPath());
 
         if (this.xmlService != null) {
             this.xmlService.setCurrentXmlFile(xmlFile);

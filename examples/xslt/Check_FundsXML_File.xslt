@@ -242,7 +242,7 @@
                             <th class="w-25">Identifier</th>
                             <td>
                                 <xsl:attribute name="class">
-                                    <xsl:value-of select="if (count(Identifiers/*) le 1) then 'bg-danger' else '' "/>
+                                    <xsl:value-of select="if (count(Identifiers/*) lt 1) then 'bg-danger' else '' "/>
                                 </xsl:attribute>
                                 <xsl:for-each select="Identifiers">
                                     <div class="row">

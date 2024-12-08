@@ -1,11 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) Karl Kauc 2024.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
 <?import org.fxt.freexmltoolkit.controls.FileExplorer?>
-<?import org.fxt.freexmltoolkit.controls.FileLoader?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 <HBox style="-fx-padding: 5;" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
@@ -14,38 +31,39 @@
         <HBox style="-fx-background-color: #b1d983;">
             <BorderPane fx:id="fileLoaderPane" maxWidth="600" minWidth="300" prefWidth="600"
                         style="-fx-padding: 0 5 0 0; -fx-background-color: #fafff7;">
-                <top>
+                <center>
                     <VBox alignment="CENTER" style="-fx-padding: 10px;" spacing="5">
-                        <FileLoader fontIconString="bi-code-slash" VBox.vgrow="ALWAYS" fx:id="xmlFileLoader"/>
+                        <FileExplorer fx:id="xmlFileExplorer" displayString="XML File"/>
                         <Separator/>
-                        <FileLoader fontIconString="fth-git-pull-request" fx:id="xsltFileLoader"/>
-                        <Separator/>
-                        <FileExplorer/>
-                        <Separator/>
-
-                        <Button fx:id="reload" onAction="#checkFiles" text="Reload" style="-fx-padding: 5px;">
-                            <graphic>
-                                <ImageView fitHeight="20" fitWidth="20">
-                                    <Image url="@../img/icons8-aktualisieren-48.png"/>
-                                </ImageView>
-                            </graphic>
-                        </Button>
-                        <Button fx:id="debugButton" onAction="#test" text="TEST" visible="false"
-                                style="-fx-padding: 5px;"/>
-                        <Button fx:id="openInDefaultWebBrowser" disable="true" text="Open in Web">
-                            <graphic>
-                                <FontIcon iconColor="black" iconLiteral="cib-google-chrome"/>
-                            </graphic>
-                        </Button>
-                        <Button fx:id="openInDefaultTextEditor" disable="true" text="Open in Text Editor">
-                            <graphic>
-                                <FontIcon iconColor="black" iconLiteral="bi-file"/>
-                            </graphic>
-                        </Button>
+                        <FileExplorer fx:id="xsltFileExplorer" displayString="XSLT File"/>
                     </VBox>
-                </top>
+                </center>
                 <bottom>
-                    <ProgressBar fx:id="progressBar" prefWidth="300"/>
+                    <VBox>
+                        <HBox>
+                            <Button fx:id="debugButton" onAction="#test" text="TEST" visible="false"
+                                    style="-fx-padding: 5px;"/>
+                            <Button fx:id="openInDefaultWebBrowser" disable="true" text="Open in Web">
+                                <graphic>
+                                    <FontIcon iconColor="black" iconLiteral="cib-google-chrome"/>
+                                </graphic>
+                            </Button>
+                            <Button fx:id="openInDefaultTextEditor" disable="true" text="Open in Text Editor">
+                                <graphic>
+                                    <FontIcon iconColor="black" iconLiteral="bi-file"/>
+                                </graphic>
+                            </Button>
+
+                            <Button fx:id="reload" onAction="#checkFiles" text="Reload" style="-fx-padding: 5px;">
+                                <graphic>
+                                    <ImageView fitHeight="20" fitWidth="20">
+                                        <Image url="@../img/icons8-aktualisieren-48.png"/>
+                                    </ImageView>
+                                </graphic>
+                            </Button>
+                        </HBox>
+                        <ProgressBar fx:id="progressBar" prefWidth="300"/>
+                    </VBox>
                 </bottom>
             </BorderPane>
             <Label fx:id="toggleBorderPaneLabel" style="-fx-font: bold" text="&lt;&lt;"
