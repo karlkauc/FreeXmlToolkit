@@ -389,8 +389,7 @@ public class SimpleNodeElement extends VBox {
 
 
     public Pane getCenterPaneWithLabel(Label label) {
-        Pane pane = new Pane();
-        pane.getChildren().add(label);
+        Pane pane = new Pane(label);
         label.layoutXProperty().bind(pane.widthProperty().subtract(label.widthProperty()).divide(2));
         label.layoutYProperty().bind(pane.heightProperty().subtract(label.heightProperty()).divide(2));
 
