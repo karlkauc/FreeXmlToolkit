@@ -123,13 +123,18 @@ public class FxtGui extends Application {
         var currentDuration = startWatch.getDuration(); // / 1000;
 
         var prop = propertiesService.loadProperties();
+        if (prop == null) {
+            propertiesService.createDefaultProperties();
+            prop = propertiesService.loadProperties();
+        }
+
         var oldSeconds = Integer.parseInt(prop.getProperty("usageDuration"));
         var newSeconds = oldSeconds + currentDuration.getSeconds();
         prop.setProperty("usageDuration", String.valueOf(newSeconds));
         propertiesService.saveProperties(prop);
-
         logger.debug("Duration: {}", currentDuration);
         logger.debug("Duration overall: {}", newSeconds);
+
     }
 
     public static void main(String[] args) {

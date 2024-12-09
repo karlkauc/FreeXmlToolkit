@@ -316,7 +316,6 @@ public class XmlController {
             return true;
         } catch (Exception e) {
             logger.error("Exception in writing File: {}", e.getMessage());
-            // logger.error("File: {}", this.xmlService.getCurrentXmlFile().getAbsolutePath());
         }
         return false;
     }
@@ -453,10 +452,11 @@ public class XmlController {
     }
     @FXML
     private void test() {
-        Path xmlExampleFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml");
+        Path xmlExampleFile = Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml");
+        Path xsdExampleFile = Paths.get("release/examples/xsd/FundsXML4.xsd");
 
         xmlService.setCurrentXmlFile(xmlExampleFile.toFile());
-        xmlService.setCurrentXsdFile(Paths.get("examples/xsd/FundsXML4.xsd").toFile());
+        xmlService.setCurrentXsdFile(xsdExampleFile.toFile());
 
         try {
             xmlEditor = getCurrentXmlEditor();

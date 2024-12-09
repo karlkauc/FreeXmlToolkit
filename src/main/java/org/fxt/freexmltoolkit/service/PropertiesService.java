@@ -27,5 +27,7 @@ public interface PropertiesService {
 
     void saveProperties(Properties save);
 
+    void createDefaultProperties();
+
     List<File> getLastOpenFiles();
 }
