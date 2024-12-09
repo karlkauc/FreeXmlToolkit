@@ -166,7 +166,7 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     outfile = "FreeXMLToolkit.exe"
     mainClassName = "org.fxt.freexmltoolkit.FxtGui"
     headerType = "gui" // gui / console
-    icon = "${projectDir}/logo.ico"
+    icon = "${projectDir}/release/logo.ico"
     // maxHeapSize = 2048
     copyright = System.getProperty("user.name")
 
