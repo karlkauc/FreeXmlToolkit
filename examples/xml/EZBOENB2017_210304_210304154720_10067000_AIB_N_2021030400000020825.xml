@@ -1,0 +1,1693 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) Karl Kauc 2024.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
+<!-- File generated 04.03.2021 15:47:20 -->
+<FundsXML4 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="https://fdp-service.oekb.at/FundsXML_4.1.7_AI.xsd">
+    <ControlData>
+        <UniqueDocumentID>2021030400000020825</UniqueDocumentID>
+        <DocumentGenerated>2021-03-04T15:47:20</DocumentGenerated>
+        <ContentDate>2021-03-04</ContentDate>
+        <DataSupplier>
+            <SystemCountry>AT</SystemCountry>
+            <Short>AIB</Short>
+            <Name>Allianz Invest Kapitalanlagegesellschaft mbH</Name>
+            <Type>KAG</Type>
+        </DataSupplier>
+        <DataOperation>INITIAL</DataOperation>
+        <Language>DE</Language>
+        <CountrySpecificData>
+            <AT>
+                <FundDataPortalContent>FUND</FundDataPortalContent>
+            </AT>
+        </CountrySpecificData>
+    </ControlData>
+    <Funds>
+        <Fund>
+            <Identifiers>
+                <LEI>5299002D15NZZOPX2757</LEI>
+                <OtherID ListedType="AUSTRIAN OENB CODE">11449799</OtherID>
+                <OtherID ListedType="INTERNAL FUND CODE">10067000</OtherID>
+            </Identifiers>
+            <Names>
+                <OfficialName>ALLIANZ SPEZIAL 102 htm</OfficialName>
+            </Names>
+            <Currency>EUR</Currency>
+            <SingleFundFlag>true</SingleFundFlag>
+            <DataSupplier>
+                <SystemCountry>AT</SystemCountry>
+                <Short>AIB</Short>
+                <Name>Allianz Invest Kapitalanlagegesellschaft mbH</Name>
+                <Type>KAG</Type>
+            </DataSupplier>
+            <FundStaticData>
+                <StartOfFiscalYear>
+                    <Day>1</Day>
+                    <Month>12</Month>
+                </StartOfFiscalYear>
+                <Custodian>
+                    <Identifiers>
+                        <SwiftBIC>GIBAATWGXXX</SwiftBIC>
+                        <OtherID FreeType="CompanyID">118738</OtherID>
+                    </Identifiers>
+                    <Name>Erste Group Bank AG</Name>
+                    <Address>
+                        <Country>AT</Country>
+                    </Address>
+                </Custodian>
+                <InvestmentCompany>
+                    <Identifiers>
+                    </Identifiers>
+                    <Name/>
+                </InvestmentCompany>
+            </FundStaticData>
+            <FundDynamicData>
+                <TotalAssetValues>
+                    <TotalAssetValue>
+                        <NavDate>2021-03-04</NavDate>
+                        <TotalAssetNature>OFFICIAL</TotalAssetNature>
+                        <TotalNetAssetValue>
+                            <Amount ccy="EUR" isFundCcy="true">17075075.75</Amount>
+                        </TotalNetAssetValue>
+                        <OtherTotalAssetValues>
+                            <TotalAssetType>HOLD TO MATURITY</TotalAssetType>
+                            <TotalNetAssetValue>
+                                <Amount ccy="EUR" isFundCcy="true">13540745.01</Amount>
+                            </TotalNetAssetValue>
+                        </OtherTotalAssetValues>
+                    </TotalAssetValue>
+                </TotalAssetValues>
+                <Portfolios>
+                    <Portfolio>
+                        <NavDate>2021-03-04</NavDate>
+                        <Positions>
+                            <Position>
+                                <UniqueID>EUR10067000EUR01</UniqueID>
+                                <Identifiers>
+                                    <OtherID FreeType="InternalBankkontenNumber">10067000EUR01</OtherID>
+                                </Identifiers>
+                                <Currency>EUR</Currency>
+                                <TotalValue>
+                                    <Amount ccy="EUR" isFundCcy="true">459066.42</Amount>
+                                </TotalValue>
+                                <OtherTotalValues>
+                                    <OtherTotalValue>
+                                        <Type>HOLD TO MATUROTY</Type>
+                                        <Value>
+                                            <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                        </Value>
+                                    </OtherTotalValue>
+                                </OtherTotalValues>
+                                <TotalPercentage>2.688517619021</TotalPercentage>
+                                <AveragePurchasePrice>
+                                    <Amount ccy="EUR">1.0000000000</Amount>
+                                </AveragePurchasePrice>
+                                <AveragePurchaseFXRate>
+                                    <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                </AveragePurchaseFXRate>
+                                <Account>
+                                    <MarketValue>
+                                        <Amount ccy="EUR" isFundCcy="true">459066.42</Amount>
+                                    </MarketValue>
+                                    <Interests>
+                                        <Amount ccy="EUR" isFundCcy="true">0.00</Amount>
+                                    </Interests>
+                                </Account>
+                            </Position>
+                            <Position>
+                                <UniqueID>EURAT0000383864</UniqueID>
+                                <Identifiers>
+                                    <ISIN>AT0000383864</ISIN>
+                                </Identifiers>
+                                <Currency>EUR</Currency>
+                                <TotalValue>
+                                    <Amount ccy="EUR" isFundCcy="true">2929526.89</Amount>
+                                </TotalValue>
+                                <OtherTotalValues>
+                                    <OtherTotalValue>
+                                        <Type>HOLD TO MATUROTY</Type>
+                                        <Value>
+                                            <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                        </Value>
+                                    </OtherTotalValue>
+                                </OtherTotalValues>
+                                <TotalPercentage>17.156743155298</TotalPercentage>
+                                <AveragePurchasePrice>
+                                    <Amount ccy="EUR">117.3300005020</Amount>
+                                </AveragePurchasePrice>
+                                <AveragePurchaseFXRate>
+                                    <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                </AveragePurchaseFXRate>
+                                <Bond>
+                                    <Nominal>1992000.00</Nominal>
+                                    <Price>
+                                        <Amount ccy="EUR">143.092000</Amount>
+                                    </Price>
+                                    <DirtyPrice>
+                                        <Amount ccy="EUR">147.064603</Amount>
+                                    </DirtyPrice>
+                                    <MarketValue>
+                                        <Amount ccy="EUR" isFundCcy="true">2850392.64</Amount>
+                                    </MarketValue>
+                                    <InterestClaimGross>
+                                        <Amount ccy="EUR" isFundCcy="true">79134.25</Amount>
+                                    </InterestClaimGross>
+                                    <AccruedInterestDays>232</AccruedInterestDays>
+                                    <Indexfactor>1.000000</Indexfactor>
+                                    <Poolfactor>1.000000</Poolfactor>
+                                    <PurchaseValue>
+                                        <Amount ccy="EUR" isFundCcy="true">2337213.61</Amount>
+                                    </PurchaseValue>
+                                    <IndicatorRaffled>false</IndicatorRaffled>
+                                </Bond>
+                            </Position>
+                            <Position>
+                                <UniqueID>EURDBG-EUR-10067000</UniqueID>
+                                <Identifiers>
+                                    <OtherID FreeType="InternalInterne KontenNumber">DBG-EUR-10067000</OtherID>
+                                </Identifiers>
+                                <Currency>EUR</Currency>
+                                <TotalValue>
+                                    <Amount ccy="EUR" isFundCcy="true">-28.10</Amount>
+                                </TotalValue>
+                                <OtherTotalValues>
+                                    <OtherTotalValue>
+                                        <Type>HOLD TO MATUROTY</Type>
+                                        <Value>
+                                            <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                        </Value>
+                                    </OtherTotalValue>
+                                </OtherTotalValues>
+                                <TotalPercentage>-0.000164567352</TotalPercentage>
+                                <AveragePurchasePrice>
+                                    <Amount ccy="EUR">1.0000000000</Amount>
+                                </AveragePurchasePrice>
+                                <AveragePurchaseFXRate>
+                                    <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                </AveragePurchaseFXRate>
+                                <Fee/>
+                            </Position>
+                            <Position>
+                                <UniqueID>EURFAG-EUR-10067000</UniqueID>
+                                <Identifiers>
+                                    <OtherID FreeType="InternalInterne KontenNumber">FAG-EUR-10067000</OtherID>
+                                </Identifiers>
+                                <Currency>EUR</Currency>
+                                <TotalValue>
+                                    <Amount ccy="EUR" isFundCcy="true">-187.33</Amount>
+                                </TotalValue>
+                                <OtherTotalValues>
+                                    <OtherTotalValue>
+                                        <Type>HOLD TO MATUROTY</Type>
+                                        <Value>
+                                            <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                        </Value>
+                                    </OtherTotalValue>
+                                </OtherTotalValues>
+                                <TotalPercentage>-0.001097096158</TotalPercentage>
+                                <AveragePurchasePrice>
+                                    <Amount ccy="EUR">1.0000000000</Amount>
+                                </AveragePurchasePrice>
+                                <AveragePurchaseFXRate>
+                                    <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                </AveragePurchaseFXRate>
+                                <Fee/>
+                            </Position>
+                            <Position>
+                                <UniqueID>EURFR0000487225</UniqueID>
+                                <Identifiers>
+                                    <ISIN>FR0000487225</ISIN>
+                                </Identifiers>
+                                <Currency>EUR</Currency>
+                                <TotalValue>
+                                    <Amount ccy="EUR" isFundCcy="true">1690752.09</Amount>
+                                </TotalValue>
+                                <OtherTotalValues>
+                                    <OtherTotalValue>
+                                        <Type>HOLD TO MATUROTY</Type>
+                                        <Value>
+                                            <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                        </Value>
+                                    </OtherTotalValue>
+                                </OtherTotalValues>
+                                <TotalPercentage>9.901871679837</TotalPercentage>
+                                <AveragePurchasePrice>
+                                    <Amount ccy="EUR">106.2870006274</Amount>
+                                </AveragePurchasePrice>
+                                <AveragePurchaseFXRate>
+                                    <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                </AveragePurchaseFXRate>
+                                <Bond>
+                                    <Nominal>1594000.00</Nominal>
+                                    <Price>
+                                        <Amount ccy="EUR">103.691000</Amount>
+                                    </Price>
+                                    <DirtyPrice>
+                                        <Amount ccy="EUR">106.069767</Amount>
+                                    </DirtyPrice>
+                                    <MarketValue>
+                                        <Amount ccy="EUR" isFundCcy="true">1652834.54</Amount>
+                                    </MarketValue>
+                                    <InterestClaimGross>
+                                        <Amount ccy="EUR" isFundCcy="true">37917.55</Amount>
+                                    </InterestClaimGross>
+                                    <AccruedInterestDays>151</AccruedInterestDays>
+                                    <Indexfactor>1.000000</Indexfactor>
+                                    <Poolfactor>1.000000</Poolfactor>
+                                    <PurchaseValue>
+                                        <Amount ccy="EUR" isFundCcy="true">1694214.79</Amount>
+                                    </PurchaseValue>
+                                    <IndicatorRaffled>false</IndicatorRaffled>
+                                </Bond>
+                            </Position>
+                            <Position>
+                                <UniqueID>EURIT0001086567</UniqueID>
+                                <Identifiers>
+                                    <ISIN>IT0001086567</ISIN>
+                                </Identifiers>
+                                <Currency>EUR</Currency>
+                                <TotalValue>
+                                    <Amount ccy="EUR" isFundCcy="true">4110435.30</Amount>
+                                </TotalValue>
+                                <OtherTotalValues>
+                                    <OtherTotalValue>
+                                        <Type>HOLD TO MATUROTY</Type>
+                                        <Value>
+                                            <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                        </Value>
+                                    </OtherTotalValue>
+                                </OtherTotalValues>
+                                <TotalPercentage>24.072720731561</TotalPercentage>
+                                <AveragePurchasePrice>
+                                    <Amount ccy="EUR">124.8100000000</Amount>
+                                </AveragePurchasePrice>
+                                <AveragePurchaseFXRate>
+                                    <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                </AveragePurchaseFXRate>
+                                <Bond>
+                                    <Nominal>2891000.00</Nominal>
+                                    <Price>
+                                        <Amount ccy="EUR">139.717000</Amount>
+                                    </Price>
+                                    <DirtyPrice>
+                                        <Amount ccy="EUR">142.180398</Amount>
+                                    </DirtyPrice>
+                                    <MarketValue>
+                                        <Amount ccy="EUR" isFundCcy="true">4039218.47</Amount>
+                                    </MarketValue>
+                                    <InterestClaimGross>
+                                        <Amount ccy="EUR" isFundCcy="true">71216.83</Amount>
+                                    </InterestClaimGross>
+                                    <AccruedInterestDays>123</AccruedInterestDays>
+                                    <Indexfactor>1.000000</Indexfactor>
+                                    <Poolfactor>1.000000</Poolfactor>
+                                    <PurchaseValue>
+                                        <Amount ccy="EUR" isFundCcy="true">3608257.10</Amount>
+                                    </PurchaseValue>
+                                    <IndicatorRaffled>false</IndicatorRaffled>
+                                </Bond>
+                            </Position>
+                            <Position>
+                                <UniqueID>EURIT0001278511</UniqueID>
+                                <Identifiers>
+                                    <ISIN>IT0001278511</ISIN>
+                                </Identifiers>
+                                <Currency>EUR</Currency>
+                                <TotalValue>
+                                    <Amount ccy="EUR" isFundCcy="true">3231698.09</Amount>
+                                </TotalValue>
+                                <OtherTotalValues>
+                                    <OtherTotalValue>
+                                        <Type>HOLD TO MATUROTY</Type>
+                                        <Value>
+                                            <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                        </Value>
+                                    </OtherTotalValue>
+                                </OtherTotalValues>
+                                <TotalPercentage>18.926405582710</TotalPercentage>
+                                <AveragePurchasePrice>
+                                    <Amount ccy="EUR">100.9200000000</Amount>
+                                </AveragePurchasePrice>
+                                <AveragePurchaseFXRate>
+                                    <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                </AveragePurchaseFXRate>
+                                <Bond>
+                                    <Nominal>2289000.00</Nominal>
+                                    <Price>
+                                        <Amount ccy="EUR">139.400000</Amount>
+                                    </Price>
+                                    <DirtyPrice>
+                                        <Amount ccy="EUR">141.183840</Amount>
+                                    </DirtyPrice>
+                                    <MarketValue>
+                                        <Amount ccy="EUR" isFundCcy="true">3190866.00</Amount>
+                                    </MarketValue>
+                                    <InterestClaimGross>
+                                        <Amount ccy="EUR" isFundCcy="true">40832.09</Amount>
+                                    </InterestClaimGross>
+                                    <AccruedInterestDays>123</AccruedInterestDays>
+                                    <Indexfactor>1.000000</Indexfactor>
+                                    <Poolfactor>1.000000</Poolfactor>
+                                    <PurchaseValue>
+                                        <Amount ccy="EUR" isFundCcy="true">2310058.80</Amount>
+                                    </PurchaseValue>
+                                    <IndicatorRaffled>false</IndicatorRaffled>
+                                </Bond>
+                            </Position>
+                            <Position>
+                                <UniqueID>EURMG-EUR-10067000</UniqueID>
+                                <Identifiers>
+                                    <OtherID FreeType="InternalInterne KontenNumber">MG-EUR-10067000</OtherID>
+                                </Identifiers>
+                                <Currency>EUR</Currency>
+                                <TotalValue>
+                                    <Amount ccy="EUR" isFundCcy="true">-281.00</Amount>
+                                </TotalValue>
+                                <OtherTotalValues>
+                                    <OtherTotalValue>
+                                        <Type>HOLD TO MATUROTY</Type>
+                                        <Value>
+                                            <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                        </Value>
+                                    </OtherTotalValue>
+                                </OtherTotalValues>
+                                <TotalPercentage>-0.001645673519</TotalPercentage>
+                                <AveragePurchasePrice>
+                                    <Amount ccy="EUR">1.0000000000</Amount>
+                                </AveragePurchasePrice>
+                                <AveragePurchaseFXRate>
+                                    <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                </AveragePurchaseFXRate>
+                                <Fee/>
+                            </Position>
+                            <Position>
+                                <UniqueID>EURSK4120009762</UniqueID>
+                                <Identifiers>
+                                    <ISIN>SK4120009762</ISIN>
+                                </Identifiers>
+                                <Currency>EUR</Currency>
+                                <TotalValue>
+                                    <Amount ccy="EUR" isFundCcy="true">2620275.62</Amount>
+                                </TotalValue>
+                                <OtherTotalValues>
+                                    <OtherTotalValue>
+                                        <Type>HOLD TO MATUROTY</Type>
+                                        <Value>
+                                            <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                        </Value>
+                                    </OtherTotalValue>
+                                </OtherTotalValues>
+                                <TotalPercentage>15.345616373034</TotalPercentage>
+                                <AveragePurchasePrice>
+                                    <Amount ccy="EUR">105.8900000000</Amount>
+                                </AveragePurchasePrice>
+                                <AveragePurchaseFXRate>
+                                    <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                </AveragePurchaseFXRate>
+                                <Bond>
+                                    <Nominal>2000000.00</Nominal>
+                                    <Price>
+                                        <Amount ccy="EUR">130.547000</Amount>
+                                    </Price>
+                                    <DirtyPrice>
+                                        <Amount ccy="EUR">131.013781</Amount>
+                                    </DirtyPrice>
+                                    <MarketValue>
+                                        <Amount ccy="EUR" isFundCcy="true">2610940.00</Amount>
+                                    </MarketValue>
+                                    <InterestClaimGross>
+                                        <Amount ccy="EUR" isFundCcy="true">9335.62</Amount>
+                                    </InterestClaimGross>
+                                    <AccruedInterestDays>47</AccruedInterestDays>
+                                    <Indexfactor>1.000000</Indexfactor>
+                                    <Poolfactor>1.000000</Poolfactor>
+                                    <PurchaseValue>
+                                        <Amount ccy="EUR" isFundCcy="true">2117800.00</Amount>
+                                    </PurchaseValue>
+                                    <IndicatorRaffled>false</IndicatorRaffled>
+                                </Bond>
+                            </Position>
+                            <Position>
+                                <UniqueID>EURXS0162990229</UniqueID>
+                                <Identifiers>
+                                    <ISIN>XS0162990229</ISIN>
+                                </Identifiers>
+                                <Currency>EUR</Currency>
+                                <TotalValue>
+                                    <Amount ccy="EUR" isFundCcy="true">2033817.77</Amount>
+                                </TotalValue>
+                                <OtherTotalValues>
+                                    <OtherTotalValue>
+                                        <Type>HOLD TO MATUROTY</Type>
+                                        <Value>
+                                            <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                        </Value>
+                                    </OtherTotalValue>
+                                </OtherTotalValues>
+                                <TotalPercentage>11.911032195567</TotalPercentage>
+                                <AveragePurchasePrice>
+                                    <Amount ccy="EUR">131.6460000000</Amount>
+                                </AveragePurchasePrice>
+                                <AveragePurchaseFXRate>
+                                    <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                </AveragePurchaseFXRate>
+                                <Bond>
+                                    <Nominal>1300000.00</Nominal>
+                                    <Price>
+                                        <Amount ccy="EUR">156.278000</Amount>
+                                    </Price>
+                                    <DirtyPrice>
+                                        <Amount ccy="EUR">156.447521</Amount>
+                                    </DirtyPrice>
+                                    <MarketValue>
+                                        <Amount ccy="EUR" isFundCcy="true">2031614.00</Amount>
+                                    </MarketValue>
+                                    <InterestClaimGross>
+                                        <Amount ccy="EUR" isFundCcy="true">2203.77</Amount>
+                                    </InterestClaimGross>
+                                    <AccruedInterestDays>11</AccruedInterestDays>
+                                    <Indexfactor>1.000000</Indexfactor>
+                                    <Poolfactor>1.000000</Poolfactor>
+                                    <PurchaseValue>
+                                        <Amount ccy="EUR" isFundCcy="true">1711398.00</Amount>
+                                    </PurchaseValue>
+                                    <IndicatorRaffled>false</IndicatorRaffled>
+                                </Bond>
+                            </Position>
+                        </Positions>
+                        <BreakDowns>
+                            <BreakDown>
+                                <Dimensions>
+                                    <Dimension>Currency</Dimension>
+                                </Dimensions>
+                                <CalculationMethod>Exposure</CalculationMethod>
+                                <Values>
+                                    <Value>
+                                        <DimValues>
+                                            <DimValue>EUR</DimValue>
+                                        </DimValues>
+                                        <Percentage>100.000000000000</Percentage>
+                                    </Value>
+                                </Values>
+                            </BreakDown>
+                        </BreakDowns>
+                    </Portfolio>
+                </Portfolios>
+            </FundDynamicData>
+            <SingleFund>
+                <SingleFundStaticData>
+                    <SalesCategory>SPECIAL</SalesCategory>
+                </SingleFundStaticData>
+                <ShareClasses>
+                    <ShareClass>
+                        <Identifiers>
+                            <ISIN>AT0000A0VA40</ISIN>
+                            <LEI>5299002D15NZZOPX2757</LEI>
+                            <OtherID ListedType="INTERNAL FUND CODE">10067T01</OtherID>
+                        </Identifiers>
+                        <Names>
+                            <OfficialName>ALLIANZ SPEZIAL 102 HTM</OfficialName>
+                        </Names>
+                        <Currency>EUR</Currency>
+                        <ShareClassType>
+                            <Code/>
+                            <EarningUse>R</EarningUse>
+                        </ShareClassType>
+                        <InceptionDate>2012-05-10</InceptionDate>
+                        <CurrencyHedgedFlag>false</CurrencyHedgedFlag>
+                        <Prices>
+                            <Price>
+                                <ActionCode>C</ActionCode>
+                                <NavDate>2021-03-04</NavDate>
+                                <PriceCurrency>EUR</PriceCurrency>
+                                <PriceNature>OFFICIAL</PriceNature>
+                                <NavPrice>135.50</NavPrice>
+                            </Price>
+                        </Prices>
+                        <TotalAssetValues>
+                            <TotalAssetValue>
+                                <NavDate>2021-03-04</NavDate>
+                                <TotalAssetNature>OFFICIAL</TotalAssetNature>
+                                <TotalNetAssetValue>
+                                    <Amount ccy="EUR" isFundCcy="true">17075075.75</Amount>
+                                </TotalNetAssetValue>
+                                <SharesOutstanding>126013.000000</SharesOutstanding>
+                                <Ratio>100.000000</Ratio>
+                                <OtherTotalAssetValues>
+                                    <TotalAssetType>HOLD TO MATURITY</TotalAssetType>
+                                    <TotalNetAssetValue>
+                                        <Amount ccy="EUR" isShareClassCcy="true">13540745.01</Amount>
+                                    </TotalNetAssetValue>
+                                </OtherTotalAssetValues>
+                            </TotalAssetValue>
+                        </TotalAssetValues>
+                        <PerformanceFigures>
+                            <ActionCode>C</ActionCode>
+                            <Performances>
+                                <Performance>
+                                    <ValidityDate>2021-03-04</ValidityDate>
+                                    <CalculationPeriod>YTD</CalculationPeriod>
+                                    <PercentageValue>-1.435310</PercentageValue>
+                                    <CalculationMethod>BVI</CalculationMethod>
+                                </Performance>
+                                <Performance>
+                                    <ValidityDate>2021-03-04</ValidityDate>
+                                    <CalculationPeriod>1 Day</CalculationPeriod>
+                                    <PercentageValue>-0.331004</PercentageValue>
+                                    <CalculationMethod>BVI</CalculationMethod>
+                                </Performance>
+                                <Performance>
+                                    <ValidityDate>2021-03-04</ValidityDate>
+                                    <CalculationPeriod>Since launch</CalculationPeriod>
+                                    <PercentageValue>47.120042</PercentageValue>
+                                    <CalculationMethod>BVI</CalculationMethod>
+                                </Performance>
+                            </Performances>
+                        </PerformanceFigures>
+                        <Portfolios>
+                            <Portfolio>
+                                <NavDate>2021-03-04</NavDate>
+                                <Positions>
+                                    <Position>
+                                        <UniqueID>EUR10067000EUR01</UniqueID>
+                                        <Identifiers>
+                                            <OtherID FreeType="InternalBankkontenNumber">10067000EUR01</OtherID>
+                                        </Identifiers>
+                                        <Currency>EUR</Currency>
+                                        <TotalValue>
+                                            <Amount ccy="EUR" isFundCcy="true">459066.42</Amount>
+                                        </TotalValue>
+                                        <OtherTotalValues>
+                                            <OtherTotalValue>
+                                                <Type>HOLD TO MATUROTY</Type>
+                                                <Value>
+                                                    <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                                </Value>
+                                            </OtherTotalValue>
+                                        </OtherTotalValues>
+                                        <TotalPercentage>2.688517619021</TotalPercentage>
+                                        <AveragePurchasePrice>
+                                            <Amount ccy="EUR">1.0000000000</Amount>
+                                        </AveragePurchasePrice>
+                                        <AveragePurchaseFXRate>
+                                            <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                        </AveragePurchaseFXRate>
+                                        <Account>
+                                            <MarketValue>
+                                                <Amount ccy="EUR" isFundCcy="true">459066.42</Amount>
+                                            </MarketValue>
+                                            <Interests>
+                                                <Amount ccy="EUR" isFundCcy="true">0.00</Amount>
+                                            </Interests>
+                                        </Account>
+                                    </Position>
+                                    <Position>
+                                        <UniqueID>EURAT0000383864</UniqueID>
+                                        <Identifiers>
+                                            <ISIN>AT0000383864</ISIN>
+                                        </Identifiers>
+                                        <Currency>EUR</Currency>
+                                        <TotalValue>
+                                            <Amount ccy="EUR" isFundCcy="true">2929526.89</Amount>
+                                        </TotalValue>
+                                        <OtherTotalValues>
+                                            <OtherTotalValue>
+                                                <Type>HOLD TO MATUROTY</Type>
+                                                <Value>
+                                                    <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                                </Value>
+                                            </OtherTotalValue>
+                                        </OtherTotalValues>
+                                        <TotalPercentage>17.156743155298</TotalPercentage>
+                                        <AveragePurchasePrice>
+                                            <Amount ccy="EUR">117.3300005020</Amount>
+                                        </AveragePurchasePrice>
+                                        <AveragePurchaseFXRate>
+                                            <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                        </AveragePurchaseFXRate>
+                                        <Bond>
+                                            <Nominal>1992000.00</Nominal>
+                                            <Price>
+                                                <Amount ccy="EUR">143.092000</Amount>
+                                            </Price>
+                                            <DirtyPrice>
+                                                <Amount ccy="EUR">147.064603</Amount>
+                                            </DirtyPrice>
+                                            <MarketValue>
+                                                <Amount ccy="EUR" isFundCcy="true">2850392.64</Amount>
+                                            </MarketValue>
+                                            <InterestClaimGross>
+                                                <Amount ccy="EUR" isFundCcy="true">79134.25</Amount>
+                                            </InterestClaimGross>
+                                            <AccruedInterestDays>232</AccruedInterestDays>
+                                            <Indexfactor>1.000000</Indexfactor>
+                                            <Poolfactor>1.000000</Poolfactor>
+                                            <PurchaseValue>
+                                                <Amount ccy="EUR" isFundCcy="true">2337213.61</Amount>
+                                            </PurchaseValue>
+                                            <IndicatorRaffled>false</IndicatorRaffled>
+                                        </Bond>
+                                    </Position>
+                                    <Position>
+                                        <UniqueID>EURDBG-EUR-10067000</UniqueID>
+                                        <Identifiers>
+                                            <OtherID FreeType="InternalInterne KontenNumber">DBG-EUR-10067000</OtherID>
+                                        </Identifiers>
+                                        <Currency>EUR</Currency>
+                                        <TotalValue>
+                                            <Amount ccy="EUR" isFundCcy="true">-28.10</Amount>
+                                        </TotalValue>
+                                        <OtherTotalValues>
+                                            <OtherTotalValue>
+                                                <Type>HOLD TO MATUROTY</Type>
+                                                <Value>
+                                                    <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                                </Value>
+                                            </OtherTotalValue>
+                                        </OtherTotalValues>
+                                        <TotalPercentage>-0.000164567352</TotalPercentage>
+                                        <AveragePurchasePrice>
+                                            <Amount ccy="EUR">1.0000000000</Amount>
+                                        </AveragePurchasePrice>
+                                        <AveragePurchaseFXRate>
+                                            <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                        </AveragePurchaseFXRate>
+                                        <Fee/>
+                                    </Position>
+                                    <Position>
+                                        <UniqueID>EURFAG-EUR-10067000</UniqueID>
+                                        <Identifiers>
+                                            <OtherID FreeType="InternalInterne KontenNumber">FAG-EUR-10067000</OtherID>
+                                        </Identifiers>
+                                        <Currency>EUR</Currency>
+                                        <TotalValue>
+                                            <Amount ccy="EUR" isFundCcy="true">-187.33</Amount>
+                                        </TotalValue>
+                                        <OtherTotalValues>
+                                            <OtherTotalValue>
+                                                <Type>HOLD TO MATUROTY</Type>
+                                                <Value>
+                                                    <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                                </Value>
+                                            </OtherTotalValue>
+                                        </OtherTotalValues>
+                                        <TotalPercentage>-0.001097096158</TotalPercentage>
+                                        <AveragePurchasePrice>
+                                            <Amount ccy="EUR">1.0000000000</Amount>
+                                        </AveragePurchasePrice>
+                                        <AveragePurchaseFXRate>
+                                            <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                        </AveragePurchaseFXRate>
+                                        <Fee/>
+                                    </Position>
+                                    <Position>
+                                        <UniqueID>EURFR0000487225</UniqueID>
+                                        <Identifiers>
+                                            <ISIN>FR0000487225</ISIN>
+                                        </Identifiers>
+                                        <Currency>EUR</Currency>
+                                        <TotalValue>
+                                            <Amount ccy="EUR" isFundCcy="true">1690752.09</Amount>
+                                        </TotalValue>
+                                        <OtherTotalValues>
+                                            <OtherTotalValue>
+                                                <Type>HOLD TO MATUROTY</Type>
+                                                <Value>
+                                                    <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                                </Value>
+                                            </OtherTotalValue>
+                                        </OtherTotalValues>
+                                        <TotalPercentage>9.901871679837</TotalPercentage>
+                                        <AveragePurchasePrice>
+                                            <Amount ccy="EUR">106.2870006274</Amount>
+                                        </AveragePurchasePrice>
+                                        <AveragePurchaseFXRate>
+                                            <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                        </AveragePurchaseFXRate>
+                                        <Bond>
+                                            <Nominal>1594000.00</Nominal>
+                                            <Price>
+                                                <Amount ccy="EUR">103.691000</Amount>
+                                            </Price>
+                                            <DirtyPrice>
+                                                <Amount ccy="EUR">106.069767</Amount>
+                                            </DirtyPrice>
+                                            <MarketValue>
+                                                <Amount ccy="EUR" isFundCcy="true">1652834.54</Amount>
+                                            </MarketValue>
+                                            <InterestClaimGross>
+                                                <Amount ccy="EUR" isFundCcy="true">37917.55</Amount>
+                                            </InterestClaimGross>
+                                            <AccruedInterestDays>151</AccruedInterestDays>
+                                            <Indexfactor>1.000000</Indexfactor>
+                                            <Poolfactor>1.000000</Poolfactor>
+                                            <PurchaseValue>
+                                                <Amount ccy="EUR" isFundCcy="true">1694214.79</Amount>
+                                            </PurchaseValue>
+                                            <IndicatorRaffled>false</IndicatorRaffled>
+                                        </Bond>
+                                    </Position>
+                                    <Position>
+                                        <UniqueID>EURIT0001086567</UniqueID>
+                                        <Identifiers>
+                                            <ISIN>IT0001086567</ISIN>
+                                        </Identifiers>
+                                        <Currency>EUR</Currency>
+                                        <TotalValue>
+                                            <Amount ccy="EUR" isFundCcy="true">4110435.30</Amount>
+                                        </TotalValue>
+                                        <OtherTotalValues>
+                                            <OtherTotalValue>
+                                                <Type>HOLD TO MATUROTY</Type>
+                                                <Value>
+                                                    <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                                </Value>
+                                            </OtherTotalValue>
+                                        </OtherTotalValues>
+                                        <TotalPercentage>24.072720731561</TotalPercentage>
+                                        <AveragePurchasePrice>
+                                            <Amount ccy="EUR">124.8100000000</Amount>
+                                        </AveragePurchasePrice>
+                                        <AveragePurchaseFXRate>
+                                            <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                        </AveragePurchaseFXRate>
+                                        <Bond>
+                                            <Nominal>2891000.00</Nominal>
+                                            <Price>
+                                                <Amount ccy="EUR">139.717000</Amount>
+                                            </Price>
+                                            <DirtyPrice>
+                                                <Amount ccy="EUR">142.180398</Amount>
+                                            </DirtyPrice>
+                                            <MarketValue>
+                                                <Amount ccy="EUR" isFundCcy="true">4039218.47</Amount>
+                                            </MarketValue>
+                                            <InterestClaimGross>
+                                                <Amount ccy="EUR" isFundCcy="true">71216.83</Amount>
+                                            </InterestClaimGross>
+                                            <AccruedInterestDays>123</AccruedInterestDays>
+                                            <Indexfactor>1.000000</Indexfactor>
+                                            <Poolfactor>1.000000</Poolfactor>
+                                            <PurchaseValue>
+                                                <Amount ccy="EUR" isFundCcy="true">3608257.10</Amount>
+                                            </PurchaseValue>
+                                            <IndicatorRaffled>false</IndicatorRaffled>
+                                        </Bond>
+                                    </Position>
+                                    <Position>
+                                        <UniqueID>EURIT0001278511</UniqueID>
+                                        <Identifiers>
+                                            <ISIN>IT0001278511</ISIN>
+                                        </Identifiers>
+                                        <Currency>EUR</Currency>
+                                        <TotalValue>
+                                            <Amount ccy="EUR" isFundCcy="true">3231698.09</Amount>
+                                        </TotalValue>
+                                        <OtherTotalValues>
+                                            <OtherTotalValue>
+                                                <Type>HOLD TO MATUROTY</Type>
+                                                <Value>
+                                                    <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                                </Value>
+                                            </OtherTotalValue>
+                                        </OtherTotalValues>
+                                        <TotalPercentage>18.926405582710</TotalPercentage>
+                                        <AveragePurchasePrice>
+                                            <Amount ccy="EUR">100.9200000000</Amount>
+                                        </AveragePurchasePrice>
+                                        <AveragePurchaseFXRate>
+                                            <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                        </AveragePurchaseFXRate>
+                                        <Bond>
+                                            <Nominal>2289000.00</Nominal>
+                                            <Price>
+                                                <Amount ccy="EUR">139.400000</Amount>
+                                            </Price>
+                                            <DirtyPrice>
+                                                <Amount ccy="EUR">141.183840</Amount>
+                                            </DirtyPrice>
+                                            <MarketValue>
+                                                <Amount ccy="EUR" isFundCcy="true">3190866.00</Amount>
+                                            </MarketValue>
+                                            <InterestClaimGross>
+                                                <Amount ccy="EUR" isFundCcy="true">40832.09</Amount>
+                                            </InterestClaimGross>
+                                            <AccruedInterestDays>123</AccruedInterestDays>
+                                            <Indexfactor>1.000000</Indexfactor>
+                                            <Poolfactor>1.000000</Poolfactor>
+                                            <PurchaseValue>
+                                                <Amount ccy="EUR" isFundCcy="true">2310058.80</Amount>
+                                            </PurchaseValue>
+                                            <IndicatorRaffled>false</IndicatorRaffled>
+                                        </Bond>
+                                    </Position>
+                                    <Position>
+                                        <UniqueID>EURMG-EUR-10067000</UniqueID>
+                                        <Identifiers>
+                                            <OtherID FreeType="InternalInterne KontenNumber">MG-EUR-10067000</OtherID>
+                                        </Identifiers>
+                                        <Currency>EUR</Currency>
+                                        <TotalValue>
+                                            <Amount ccy="EUR" isFundCcy="true">-281.00</Amount>
+                                        </TotalValue>
+                                        <OtherTotalValues>
+                                            <OtherTotalValue>
+                                                <Type>HOLD TO MATUROTY</Type>
+                                                <Value>
+                                                    <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                                </Value>
+                                            </OtherTotalValue>
+                                        </OtherTotalValues>
+                                        <TotalPercentage>-0.001645673519</TotalPercentage>
+                                        <AveragePurchasePrice>
+                                            <Amount ccy="EUR">1.0000000000</Amount>
+                                        </AveragePurchasePrice>
+                                        <AveragePurchaseFXRate>
+                                            <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                        </AveragePurchaseFXRate>
+                                        <Fee/>
+                                    </Position>
+                                    <Position>
+                                        <UniqueID>EURSK4120009762</UniqueID>
+                                        <Identifiers>
+                                            <ISIN>SK4120009762</ISIN>
+                                        </Identifiers>
+                                        <Currency>EUR</Currency>
+                                        <TotalValue>
+                                            <Amount ccy="EUR" isFundCcy="true">2620275.62</Amount>
+                                        </TotalValue>
+                                        <OtherTotalValues>
+                                            <OtherTotalValue>
+                                                <Type>HOLD TO MATUROTY</Type>
+                                                <Value>
+                                                    <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                                </Value>
+                                            </OtherTotalValue>
+                                        </OtherTotalValues>
+                                        <TotalPercentage>15.345616373034</TotalPercentage>
+                                        <AveragePurchasePrice>
+                                            <Amount ccy="EUR">105.8900000000</Amount>
+                                        </AveragePurchasePrice>
+                                        <AveragePurchaseFXRate>
+                                            <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                        </AveragePurchaseFXRate>
+                                        <Bond>
+                                            <Nominal>2000000.00</Nominal>
+                                            <Price>
+                                                <Amount ccy="EUR">130.547000</Amount>
+                                            </Price>
+                                            <DirtyPrice>
+                                                <Amount ccy="EUR">131.013781</Amount>
+                                            </DirtyPrice>
+                                            <MarketValue>
+                                                <Amount ccy="EUR" isFundCcy="true">2610940.00</Amount>
+                                            </MarketValue>
+                                            <InterestClaimGross>
+                                                <Amount ccy="EUR" isFundCcy="true">9335.62</Amount>
+                                            </InterestClaimGross>
+                                            <AccruedInterestDays>47</AccruedInterestDays>
+                                            <Indexfactor>1.000000</Indexfactor>
+                                            <Poolfactor>1.000000</Poolfactor>
+                                            <PurchaseValue>
+                                                <Amount ccy="EUR" isFundCcy="true">2117800.00</Amount>
+                                            </PurchaseValue>
+                                            <IndicatorRaffled>false</IndicatorRaffled>
+                                        </Bond>
+                                    </Position>
+                                    <Position>
+                                        <UniqueID>EURXS0162990229</UniqueID>
+                                        <Identifiers>
+                                            <ISIN>XS0162990229</ISIN>
+                                        </Identifiers>
+                                        <Currency>EUR</Currency>
+                                        <TotalValue>
+                                            <Amount ccy="EUR" isFundCcy="true">2033817.77</Amount>
+                                        </TotalValue>
+                                        <OtherTotalValues>
+                                            <OtherTotalValue>
+                                                <Type>HOLD TO MATUROTY</Type>
+                                                <Value>
+                                                    <Amount ccy="EUR" isFundCcy="true">27081490.02</Amount>
+                                                </Value>
+                                            </OtherTotalValue>
+                                        </OtherTotalValues>
+                                        <TotalPercentage>11.911032195567</TotalPercentage>
+                                        <AveragePurchasePrice>
+                                            <Amount ccy="EUR">131.6460000000</Amount>
+                                        </AveragePurchasePrice>
+                                        <AveragePurchaseFXRate>
+                                            <FXRate fromCcy="EUR" mulDiv="D" toCcy="EUR">1.0000000000</FXRate>
+                                        </AveragePurchaseFXRate>
+                                        <Bond>
+                                            <Nominal>1300000.00</Nominal>
+                                            <Price>
+                                                <Amount ccy="EUR">156.278000</Amount>
+                                            </Price>
+                                            <DirtyPrice>
+                                                <Amount ccy="EUR">156.447521</Amount>
+                                            </DirtyPrice>
+                                            <MarketValue>
+                                                <Amount ccy="EUR" isFundCcy="true">2031614.00</Amount>
+                                            </MarketValue>
+                                            <InterestClaimGross>
+                                                <Amount ccy="EUR" isFundCcy="true">2203.77</Amount>
+                                            </InterestClaimGross>
+                                            <AccruedInterestDays>11</AccruedInterestDays>
+                                            <Indexfactor>1.000000</Indexfactor>
+                                            <Poolfactor>1.000000</Poolfactor>
+                                            <PurchaseValue>
+                                                <Amount ccy="EUR" isFundCcy="true">1711398.00</Amount>
+                                            </PurchaseValue>
+                                            <IndicatorRaffled>false</IndicatorRaffled>
+                                        </Bond>
+                                    </Position>
+                                </Positions>
+                                <Earnings from="2021-03-01" to="2021-03-04">
+                                    <Earning>
+                                        <EarningID>1288505</EarningID>
+                                        <CancellationFlag>false</CancellationFlag>
+                                        <EarningKind>Fund distribution</EarningKind>
+                                        <EntryDate>2021-03-01</EntryDate>
+                                        <ValutaDate>2021-03-01</ValutaDate>
+                                        <EntryCurrency>EUR</EntryCurrency>
+                                        <EntryValue>
+                                            <Amount ccy="EUR" isFundCcy="true">0.00</Amount>
+                                        </EntryValue>
+                                        <FundDistribution>
+                                            <PayoutGrossValue>
+                                                <Amount ccy="EUR" isFundCcy="true">0.00</Amount>
+                                            </PayoutGrossValue>
+                                        </FundDistribution>
+                                    </Earning>
+                                </Earnings>
+                                <BreakDowns>
+                                    <BreakDown>
+                                        <Dimensions>
+                                            <Dimension>Currency</Dimension>
+                                        </Dimensions>
+                                        <CalculationMethod>Exposure</CalculationMethod>
+                                        <Values>
+                                            <Value>
+                                                <DimValues>
+                                                    <DimValue>EUR</DimValue>
+                                                </DimValues>
+                                                <Percentage>100.000000000000</Percentage>
+                                            </Value>
+                                        </Values>
+                                    </BreakDown>
+                                </BreakDowns>
+                            </Portfolio>
+                        </Portfolios>
+                    </ShareClass>
+                </ShareClasses>
+            </SingleFund>
+            <CountrySpecificData>
+                <AT>
+                    <OeNB>
+                        <Subscription>
+                            <Amount ccy="EUR">0.00</Amount>
+                        </Subscription>
+                        <Redemption>
+                            <Amount ccy="EUR">0.00</Amount>
+                        </Redemption>
+                        <Distribution>
+                            <Amount ccy="EUR">0.00</Amount>
+                        </Distribution>
+                        <TotalNetAssetPreviousMonth>
+                            <Amount ccy="EUR">17173865.56</Amount>
+                        </TotalNetAssetPreviousMonth>
+                        <Meldungstyp>OFI</Meldungstyp>
+                    </OeNB>
+                    <PKG2012>
+                        <Details>
+                            <Position>
+                                <Identifiers>
+                                    <OtherID FreeType="UniqueID">EUR10067000EUR01</OtherID>
+                                    <OtherID FreeType="InternalBankkontenNumber">10067000EUR01</OtherID>
+                                </Identifiers>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">459066.42</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Identifiers>
+                                    <ISIN>AT0000383864</ISIN>
+                                    <OtherID FreeType="UniqueID">EURAT0000383864</OtherID>
+                                </Identifiers>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">2929526.89</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Identifiers>
+                                    <OtherID FreeType="UniqueID">EURDBG-EUR-10067000</OtherID>
+                                    <OtherID FreeType="InternalInterne KontenNumber">DBG-EUR-10067000</OtherID>
+                                </Identifiers>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">-28.10</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Identifiers>
+                                    <OtherID FreeType="UniqueID">EURFAG-EUR-10067000</OtherID>
+                                    <OtherID FreeType="InternalInterne KontenNumber">FAG-EUR-10067000</OtherID>
+                                </Identifiers>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">-187.33</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Identifiers>
+                                    <ISIN>FR0000487225</ISIN>
+                                    <OtherID FreeType="UniqueID">EURFR0000487225</OtherID>
+                                </Identifiers>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">1690752.09</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Identifiers>
+                                    <ISIN>IT0001086567</ISIN>
+                                    <OtherID FreeType="UniqueID">EURIT0001086567</OtherID>
+                                </Identifiers>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">4110435.30</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Identifiers>
+                                    <ISIN>IT0001278511</ISIN>
+                                    <OtherID FreeType="UniqueID">EURIT0001278511</OtherID>
+                                </Identifiers>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">3231698.09</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Identifiers>
+                                    <OtherID FreeType="UniqueID">EURMG-EUR-10067000</OtherID>
+                                    <OtherID FreeType="InternalInterne KontenNumber">MG-EUR-10067000</OtherID>
+                                </Identifiers>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">-281.00</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Identifiers>
+                                    <ISIN>SK4120009762</ISIN>
+                                    <OtherID FreeType="UniqueID">EURSK4120009762</OtherID>
+                                </Identifiers>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">2620275.62</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Identifiers>
+                                    <ISIN>XS0162990229</ISIN>
+                                    <OtherID FreeType="UniqueID">EURXS0162990229</OtherID>
+                                </Identifiers>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">2033817.77</Amount>
+                                </Value>
+                            </Position>
+                        </Details>
+                        <Summary>
+                            <Position>
+                                <Category>630</Category>
+                                <Value>
+                                    <Amount ccy="EUR">17075075.75</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Category>600</Category>
+                                <Value>
+                                    <Amount ccy="EUR">17075075.75</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Category>800</Category>
+                                <Value>
+                                    <Amount ccy="EUR">17075075.75</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Category>810</Category>
+                                <Value>
+                                    <Amount ccy="EUR">17075075.75</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Category>820</Category>
+                                <Value>
+                                    <Amount ccy="EUR">0.00</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Category>830</Category>
+                                <Value>
+                                    <Amount ccy="EUR">0.00</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Category>835</Category>
+                                <Value>
+                                    <Amount ccy="EUR">0.00</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Category>840</Category>
+                                <Value>
+                                    <Amount ccy="EUR">0.00</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Category>861</Category>
+                                <Value>
+                                    <Amount ccy="EUR">7342133.39</Amount>
+                                </Value>
+                            </Position>
+                            <Position>
+                                <Category>863</Category>
+                                <Value>
+                                    <Amount ccy="EUR">459066.42</Amount>
+                                </Value>
+                            </Position>
+                        </Summary>
+                    </PKG2012>
+                </AT>
+            </CountrySpecificData>
+        </Fund>
+    </Funds>
+    <AssetMasterData>
+        <Asset>
+            <UniqueID>EUR10067000EUR01</UniqueID>
+            <Identifiers>
+                <OtherID FreeType="InternalBankkontenNumber">10067000EUR01</OtherID>
+            </Identifiers>
+            <Currency>EUR</Currency>
+            <Country>AT</Country>
+            <Name>Bankkonto</Name>
+            <AssetType>AC</AssetType>
+            <AssetDetails>
+                <Account>
+                    <IndicatorCreditDebit>Debit</IndicatorCreditDebit>
+                    <InterestRateDebit>0.000000</InterestRateDebit>
+                    <Counterparty>
+                        <Identifiers>
+                            <SwiftBIC>GIBAATWGXXX</SwiftBIC>
+                            <OtherID FreeType="CompanyID">118738</OtherID>
+                        </Identifiers>
+                        <Name>Erste Group Bank AG</Name>
+                        <Address>
+                            <Country>AT</Country>
+                        </Address>
+                    </Counterparty>
+                </Account>
+            </AssetDetails>
+            <CountrySpecificData>
+                <AT>
+                </AT>
+            </CountrySpecificData>
+            <Securitized>false</Securitized>
+            <CustomAttributes>
+                <Attribute>
+                    <Name>pkgKlassifizierung</Name>
+                    <Type>T</Type>
+                    <ValueText>ANLEIHEN</ValueText>
+                </Attribute>
+                <Attribute>
+                    <Name>accurateSecurityType</Name>
+                    <Type>T</Type>
+                    <ValueText>Bankkonto</ValueText>
+                </Attribute>
+            </CustomAttributes>
+        </Asset>
+        <Asset>
+            <UniqueID>EURAT0000383864</UniqueID>
+            <Identifiers>
+                <ISIN>AT0000383864</ISIN>
+            </Identifiers>
+            <Currency>EUR</Currency>
+            <Name>RAGB 6 1/4 07/15/27</Name>
+            <AssetType>BO</AssetType>
+            <AssetDetails>
+                <Bond>
+                    <ConvertibleFlag>false</ConvertibleFlag>
+                    <Issuer>
+                        <Identifiers>
+                            <OtherID FreeType="CompanyID">311441</OtherID>
+                        </Identifiers>
+                        <Name>Republic of Austria Government Bond</Name>
+                        <Address>
+                            <Country>AT</Country>
+                        </Address>
+                    </Issuer>
+                    <StockMarket>HI-MTF</StockMarket>
+                    <ListingUnit>N</ListingUnit>
+                    <IssueDate>1997-07-11</IssueDate>
+                    <MaturityDate>2027-07-15</MaturityDate>
+                    <Coupon>
+                        <Type>fix</Type>
+                        <PaymentFrequency>YEAR</PaymentFrequency>
+                        <InterestRate>6.250000</InterestRate>
+                    </Coupon>
+                    <RedemptionRate>100.00</RedemptionRate>
+                    <InterestRate>6.250000</InterestRate>
+                    <InterestsStartDate>2020-07-16</InterestsStartDate>
+                    <IssueRate>99.45</IssueRate>
+                </Bond>
+            </AssetDetails>
+            <CountrySpecificData>
+                <AT>
+                </AT>
+            </CountrySpecificData>
+            <Securitized>false</Securitized>
+            <CustomAttributes>
+                <Attribute>
+                    <Name>pkgKlassifizierung</Name>
+                    <Type>T</Type>
+                    <ValueText>ANLEIHEN</ValueText>
+                </Attribute>
+                <Attribute>
+                    <Name>accurateSecurityType</Name>
+                    <Type>T</Type>
+                    <ValueText>Standard Rente/Anleihe</ValueText>
+                </Attribute>
+            </CustomAttributes>
+        </Asset>
+        <Asset>
+            <UniqueID>EURDBG-EUR-10067000</UniqueID>
+            <Identifiers>
+                <OtherID FreeType="InternalInterne KontenNumber">DBG-EUR-10067000</OtherID>
+            </Identifiers>
+            <Currency>EUR</Currency>
+            <Name>Abgegrenzte Depotbankgeb&#252;hr</Name>
+            <AssetType>FE</AssetType>
+            <AssetDetails>
+                <Fee>
+                    <Type>DBKG</Type>
+                    <Counterparty>
+                        <Identifiers>
+                            <SwiftBIC>GIBAATWGXXX</SwiftBIC>
+                            <OtherID FreeType="CompanyID">118738</OtherID>
+                        </Identifiers>
+                        <Name>Erste Group Bank AG</Name>
+                        <Address>
+                            <Country>AT</Country>
+                        </Address>
+                    </Counterparty>
+                </Fee>
+            </AssetDetails>
+            <CountrySpecificData>
+                <AT>
+                </AT>
+            </CountrySpecificData>
+            <Securitized>false</Securitized>
+            <CustomAttributes>
+                <Attribute>
+                    <Name>pkgKlassifizierung</Name>
+                    <Type>T</Type>
+                    <ValueText>SONSTIGE</ValueText>
+                </Attribute>
+                <Attribute>
+                    <Name>accurateSecurityType</Name>
+                    <Type>T</Type>
+                    <ValueText>Abgegrenzte Depotbankgeb&#252;hr</ValueText>
+                </Attribute>
+            </CustomAttributes>
+        </Asset>
+        <Asset>
+            <UniqueID>EURFAG-EUR-10067000</UniqueID>
+            <Identifiers>
+                <OtherID FreeType="InternalInterne KontenNumber">FAG-EUR-10067000</OtherID>
+            </Identifiers>
+            <Currency>EUR</Currency>
+            <Name>Abgegrenzte Fondsadministrationsgeb&#252;hr</Name>
+            <AssetType>FE</AssetType>
+            <AssetDetails>
+                <Fee>
+                    <Type>SONST</Type>
+                    <Counterparty>
+                        <Identifiers>
+                            <SwiftBIC>GIBAATWGXXX</SwiftBIC>
+                            <OtherID FreeType="CompanyID">118738</OtherID>
+                        </Identifiers>
+                        <Name>Erste Group Bank AG</Name>
+                        <Address>
+                            <Country>AT</Country>
+                        </Address>
+                    </Counterparty>
+                </Fee>
+            </AssetDetails>
+            <CountrySpecificData>
+                <AT>
+                </AT>
+            </CountrySpecificData>
+            <Securitized>false</Securitized>
+            <CustomAttributes>
+                <Attribute>
+                    <Name>pkgKlassifizierung</Name>
+                    <Type>T</Type>
+                    <ValueText>SONSTIGE</ValueText>
+                </Attribute>
+                <Attribute>
+                    <Name>accurateSecurityType</Name>
+                    <Type>T</Type>
+                    <ValueText>Abgegrenzte Fondsadministrationsgeb&#252;hr</ValueText>
+                </Attribute>
+            </CustomAttributes>
+        </Asset>
+        <Asset>
+            <UniqueID>EURFR0000487225</UniqueID>
+            <Identifiers>
+                <ISIN>FR0000487225</ISIN>
+            </Identifiers>
+            <Currency>EUR</Currency>
+            <Name>CFF 5 3/4 10/04/21</Name>
+            <AssetType>BO</AssetType>
+            <AssetDetails>
+                <Bond>
+                    <ConvertibleFlag>false</ConvertibleFlag>
+                    <Issuer>
+                        <Identifiers>
+                            <OtherID FreeType="CompanyID">823979</OtherID>
+                        </Identifiers>
+                        <Name>Cie de Financement Foncier SA</Name>
+                        <Address>
+                            <Country>FR</Country>
+                        </Address>
+                    </Issuer>
+                    <StockMarket>BERLIN</StockMarket>
+                    <ListingUnit>N</ListingUnit>
+                    <IssueDate>2001-10-04</IssueDate>
+                    <MaturityDate>2021-10-04</MaturityDate>
+                    <Coupon>
+                        <Type>fix</Type>
+                        <PaymentFrequency>YEAR</PaymentFrequency>
+                        <InterestRate>5.750000</InterestRate>
+                    </Coupon>
+                    <RedemptionRate>100.00</RedemptionRate>
+                    <InterestRate>5.750000</InterestRate>
+                    <InterestsStartDate>2020-10-05</InterestsStartDate>
+                    <IssueRate>99.01</IssueRate>
+                </Bond>
+            </AssetDetails>
+            <CountrySpecificData>
+                <AT>
+                </AT>
+            </CountrySpecificData>
+            <Securitized>false</Securitized>
+            <CustomAttributes>
+                <Attribute>
+                    <Name>pkgKlassifizierung</Name>
+                    <Type>T</Type>
+                    <ValueText>ANLEIHEN</ValueText>
+                </Attribute>
+                <Attribute>
+                    <Name>accurateSecurityType</Name>
+                    <Type>T</Type>
+                    <ValueText>Standard Rente/Anleihe</ValueText>
+                </Attribute>
+            </CustomAttributes>
+        </Asset>
+        <Asset>
+            <UniqueID>EURIT0001086567</UniqueID>
+            <Identifiers>
+                <ISIN>IT0001086567</ISIN>
+            </Identifiers>
+            <Currency>EUR</Currency>
+            <Name>BTPS 7 1/4 11/01/26</Name>
+            <AssetType>BO</AssetType>
+            <AssetDetails>
+                <Bond>
+                    <ConvertibleFlag>false</ConvertibleFlag>
+                    <Issuer>
+                        <Identifiers>
+                            <OtherID FreeType="CompanyID">311546</OtherID>
+                        </Identifiers>
+                        <Name>Italy Buoni Poliennali Del Tesoro</Name>
+                        <Address>
+                            <Country>IT</Country>
+                        </Address>
+                    </Issuer>
+                    <StockMarket>MOT</StockMarket>
+                    <ListingUnit>N</ListingUnit>
+                    <IssueDate>1997-02-03</IssueDate>
+                    <MaturityDate>2026-11-01</MaturityDate>
+                    <Coupon>
+                        <Type>fix</Type>
+                        <PaymentFrequency>SEMI</PaymentFrequency>
+                        <InterestRate>7.250000</InterestRate>
+                    </Coupon>
+                    <RedemptionRate>100.00</RedemptionRate>
+                    <InterestRate>7.250000</InterestRate>
+                    <InterestsStartDate>2020-11-02</InterestsStartDate>
+                    <IssueRate>99.45</IssueRate>
+                </Bond>
+            </AssetDetails>
+            <CountrySpecificData>
+                <AT>
+                </AT>
+            </CountrySpecificData>
+            <Securitized>false</Securitized>
+            <CustomAttributes>
+                <Attribute>
+                    <Name>pkgKlassifizierung</Name>
+                    <Type>T</Type>
+                    <ValueText>ANLEIHEN</ValueText>
+                </Attribute>
+                <Attribute>
+                    <Name>accurateSecurityType</Name>
+                    <Type>T</Type>
+                    <ValueText>Standard Rente/Anleihe</ValueText>
+                </Attribute>
+            </CustomAttributes>
+        </Asset>
+        <Asset>
+            <UniqueID>EURIT0001278511</UniqueID>
+            <Identifiers>
+                <ISIN>IT0001278511</ISIN>
+            </Identifiers>
+            <Currency>EUR</Currency>
+            <Name>BTPS 5 1/4 11/01/29</Name>
+            <AssetType>BO</AssetType>
+            <AssetDetails>
+                <Bond>
+                    <ConvertibleFlag>false</ConvertibleFlag>
+                    <Issuer>
+                        <Identifiers>
+                            <OtherID FreeType="CompanyID">311546</OtherID>
+                        </Identifiers>
+                        <Name>Italy Buoni Poliennali Del Tesoro</Name>
+                        <Address>
+                            <Country>IT</Country>
+                        </Address>
+                    </Issuer>
+                    <StockMarket>MOT</StockMarket>
+                    <ListingUnit>N</ListingUnit>
+                    <IssueDate>1998-11-18</IssueDate>
+                    <MaturityDate>2029-11-01</MaturityDate>
+                    <Coupon>
+                        <Type>fix</Type>
+                        <PaymentFrequency>SEMI</PaymentFrequency>
+                        <InterestRate>5.250000</InterestRate>
+                    </Coupon>
+                    <RedemptionRate>100.00</RedemptionRate>
+                    <InterestRate>5.250000</InterestRate>
+                    <InterestsStartDate>2020-11-02</InterestsStartDate>
+                    <IssueRate>99.70</IssueRate>
+                </Bond>
+            </AssetDetails>
+            <CountrySpecificData>
+                <AT>
+                </AT>
+            </CountrySpecificData>
+            <Securitized>false</Securitized>
+            <CustomAttributes>
+                <Attribute>
+                    <Name>pkgKlassifizierung</Name>
+                    <Type>T</Type>
+                    <ValueText>ANLEIHEN</ValueText>
+                </Attribute>
+                <Attribute>
+                    <Name>accurateSecurityType</Name>
+                    <Type>T</Type>
+                    <ValueText>Standard Rente/Anleihe</ValueText>
+                </Attribute>
+            </CustomAttributes>
+        </Asset>
+        <Asset>
+            <UniqueID>EURMG-EUR-10067000</UniqueID>
+            <Identifiers>
+                <OtherID FreeType="InternalInterne KontenNumber">MG-EUR-10067000</OtherID>
+            </Identifiers>
+            <Currency>EUR</Currency>
+            <Name>Abgegrenzte Verwaltungsgeb&#252;hr</Name>
+            <AssetType>FE</AssetType>
+            <AssetDetails>
+                <Fee>
+                    <Type>VG</Type>
+                    <Counterparty>
+                        <Identifiers>
+                            <SwiftBIC>GIBAATWGXXX</SwiftBIC>
+                            <OtherID FreeType="CompanyID">118738</OtherID>
+                        </Identifiers>
+                        <Name>Erste Group Bank AG</Name>
+                        <Address>
+                            <Country>AT</Country>
+                        </Address>
+                    </Counterparty>
+                </Fee>
+            </AssetDetails>
+            <CountrySpecificData>
+                <AT>
+                </AT>
+            </CountrySpecificData>
+            <Securitized>false</Securitized>
+            <CustomAttributes>
+                <Attribute>
+                    <Name>pkgKlassifizierung</Name>
+                    <Type>T</Type>
+                    <ValueText>SONSTIGE</ValueText>
+                </Attribute>
+                <Attribute>
+                    <Name>accurateSecurityType</Name>
+                    <Type>T</Type>
+                    <ValueText>Abgegrenzte Verwaltungsgeb&#252;hr</ValueText>
+                </Attribute>
+            </CustomAttributes>
+        </Asset>
+        <Asset>
+            <UniqueID>EURSK4120009762</UniqueID>
+            <Identifiers>
+                <ISIN>SK4120009762</ISIN>
+            </Identifiers>
+            <Currency>EUR</Currency>
+            <Name>SLOVGB 3 5/8 01/16/29</Name>
+            <AssetType>BO</AssetType>
+            <AssetDetails>
+                <Bond>
+                    <ConvertibleFlag>false</ConvertibleFlag>
+                    <Issuer>
+                        <Identifiers>
+                            <OtherID FreeType="CompanyID">311656</OtherID>
+                        </Identifiers>
+                        <Name>Slovakia Government Bond</Name>
+                        <Address>
+                            <Country>SK</Country>
+                        </Address>
+                    </Issuer>
+                    <StockMarket>STUTTGART</StockMarket>
+                    <ListingUnit>N</ListingUnit>
+                    <IssueDate>2014-01-16</IssueDate>
+                    <MaturityDate>2029-01-16</MaturityDate>
+                    <Coupon>
+                        <Type>fix</Type>
+                        <PaymentFrequency>YEAR</PaymentFrequency>
+                        <InterestRate>3.625000</InterestRate>
+                    </Coupon>
+                    <RedemptionRate>100.00</RedemptionRate>
+                    <InterestRate>3.625000</InterestRate>
+                    <InterestsStartDate>2021-01-17</InterestsStartDate>
+                    <IssueRate>99.66</IssueRate>
+                </Bond>
+            </AssetDetails>
+            <CountrySpecificData>
+                <AT>
+                </AT>
+            </CountrySpecificData>
+            <Securitized>false</Securitized>
+            <CustomAttributes>
+                <Attribute>
+                    <Name>pkgKlassifizierung</Name>
+                    <Type>T</Type>
+                    <ValueText>ANLEIHEN</ValueText>
+                </Attribute>
+                <Attribute>
+                    <Name>accurateSecurityType</Name>
+                    <Type>T</Type>
+                    <ValueText>Standard Rente/Anleihe</ValueText>
+                </Attribute>
+            </CustomAttributes>
+        </Asset>
+        <Asset>
+            <UniqueID>EURXS0162990229</UniqueID>
+            <Identifiers>
+                <ISIN>XS0162990229</ISIN>
+            </Identifiers>
+            <Currency>EUR</Currency>
+            <Name>EDF 5 5/8 02/21/33</Name>
+            <AssetType>BO</AssetType>
+            <AssetDetails>
+                <Bond>
+                    <ConvertibleFlag>false</ConvertibleFlag>
+                    <Issuer>
+                        <Identifiers>
+                            <OtherID FreeType="CompanyID">162060</OtherID>
+                        </Identifiers>
+                        <Name>Electricite de France SA</Name>
+                        <Address>
+                            <Country>FR</Country>
+                        </Address>
+                    </Issuer>
+                    <StockMarket>SIX</StockMarket>
+                    <ListingUnit>N</ListingUnit>
+                    <IssueDate>2003-02-21</IssueDate>
+                    <MaturityDate>2033-02-21</MaturityDate>
+                    <Coupon>
+                        <Type>fix</Type>
+                        <PaymentFrequency>YEAR</PaymentFrequency>
+                        <InterestRate>5.625000</InterestRate>
+                    </Coupon>
+                    <RedemptionRate>100.00</RedemptionRate>
+                    <InterestRate>5.625000</InterestRate>
+                    <InterestsStartDate>2021-02-22</InterestsStartDate>
+                    <IssueRate>98.90</IssueRate>
+                </Bond>
+            </AssetDetails>
+            <CountrySpecificData>
+                <AT>
+                </AT>
+            </CountrySpecificData>
+            <Securitized>false</Securitized>
+            <CustomAttributes>
+                <Attribute>
+                    <Name>pkgKlassifizierung</Name>
+                    <Type>T</Type>
+                    <ValueText>ANLEIHEN</ValueText>
+                </Attribute>
+                <Attribute>
+                    <Name>accurateSecurityType</Name>
+                    <Type>T</Type>
+                    <ValueText>Standard Rente/Anleihe</ValueText>
+                </Attribute>
+            </CustomAttributes>
+        </Asset>
+    </AssetMasterData>
+</FundsXML4>

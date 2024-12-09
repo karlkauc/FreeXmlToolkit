@@ -91,7 +91,7 @@ dependencies {
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Richtext
-    implementation("org.fxmisc.richtext:richtextfx:0.11.3")
+    implementation("org.fxmisc.richtext:richtextfx:0.11.4")
 
     // Logging
     implementation("org.apache.logging.log4j:log4j-api:3.0.0-beta2")
@@ -161,6 +161,8 @@ tasks.named<Test>("test") {
 }
 
 tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
+    dependsOn("clean")
+
     outfile = "FreeXMLToolkit.exe"
     mainClassName = "org.fxt.freexmltoolkit.FxtGui"
     headerType = "gui" // gui / console
@@ -168,7 +170,8 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     // maxHeapSize = 2048
     copyright = System.getProperty("user.name")
 
-    // https://bell-sw.com/pages/libericajdk/
+    outputDir = "FreeXMLToolkit"
+
     bundledJrePath = "jre"
     requires64Bit = true
     jreMinVersion = "23"
@@ -176,8 +179,29 @@ tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
     doLast {
         println("Copy JDK...")
         copy {
-            from(zipTree("jdk/jre-23-full.zip"))
-            into(layout.buildDirectory.dir("launch4j/jre"))
+            from(zipTree("release/jdk/jre-23-full.zip"))
+            into(layout.buildDirectory.dir("/FreeXMLToolkit/jre"))
+        }
+        println("Copy additional files...")
+        copy {
+            from(projectDir.path + "/release/examples")
+            into(layout.buildDirectory.dir("/FreeXMLToolkit/examples"))
+        }
+        copy {
+            from(projectDir.path + "/release/log4j2.xml")
+            from(projectDir.path + "/release/FreeXMLToolkit.properties")
+            into(layout.buildDirectory.dir("FreeXMLToolkit"))
         }
     }
+}
+
+tasks.register<Zip>("packageDistribution") {
+    dependsOn("createAllExecutables")
+
+    archiveFileName.set("FreeXMLToolkit.zip")
+    destinationDirectory.set(layout.buildDirectory.get())
+
+    val tree: ConfigurableFileTree = fileTree(layout.buildDirectory.get())
+    tree.include("FreeXMLToolkit/**")
+    from(tree)
 }
