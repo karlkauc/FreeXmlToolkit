@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,13 +22,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.ProxySelector;
-import java.net.URI;
+import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.List;
 
 public class ConnectionServiceImpl implements ConnectionService {
 
@@ -83,5 +82,30 @@ public class ConnectionServiceImpl implements ConnectionService {
         }
 
         return false;
+    }
+
+    @Override
+    public Proxy getSystemProxy() {
+        try {
+            System.setProperty("java.net.useSystemProxies", "true");
+            List<Proxy> l = ProxySelector.getDefault().select(
+                    new URI("http://www.google.com/"));
+
+            for (Proxy proxy : l) {
+                logger.debug("proxy type: {}", proxy.type());
+                InetSocketAddress addr = (InetSocketAddress) proxy.address();
+
+                if (addr == null) {
+                    System.out.println("No Proxy");
+                } else {
+                    logger.debug("proxy hostname: {}", addr.getHostName());
+                    logger.debug("proxy port: {}", addr.getPort());
+                    return proxy;
+                }
+            }
+        } catch (Exception e) {
+            logger.warn(e.getMessage());
+        }
+        return null;
     }
 }

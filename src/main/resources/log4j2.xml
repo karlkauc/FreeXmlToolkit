@@ -39,5 +39,8 @@
         <Logger name="org.thymeleaf" level="INFO">
             <AppenderRef ref="Console"/>
         </Logger>
+        <Logger name="org.fxt.freexmltoolkit.controls.SimpleNodeElement" level="INFO">
+            <AppenderRef ref="Console"/>
+        </Logger>
     </Loggers>
 </Configuration>

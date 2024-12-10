@@ -68,35 +68,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class XmlServiceImpl implements XmlService {
     private final static Logger logger = LogManager.getLogger(XmlService.class);
+    private static final XmlServiceImpl instance = new XmlServiceImpl();
+    final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
     XPathFactory xPathFactory = new net.sf.saxon.xpath.XPathFactoryImpl();
     XPath xPathPath = xPathFactory.newXPath();
     Processor processor = new Processor(false);
     XsltCompiler compiler = processor.newXsltCompiler();
     StringWriter sw;
     Xslt30Transformer transformer;
-
     UrlValidator urlValidator = new UrlValidator();
-
     SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
-
     Transformer transform;
-
     XsltExecutable stylesheet;
-
     File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
-
-    private String remoteXsdLocation;
-
-    private String xsltOutputMethod;
-
     DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder;
     Document xmlDocument;
@@ -106,10 +95,8 @@ public class XmlServiceImpl implements XmlService {
 
     HttpClient client;
     HttpRequest request;
-
-    final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
-
-    private static final XmlServiceImpl instance = new XmlServiceImpl();
+    private String remoteXsdLocation;
+    private String xsltOutputMethod;
 
     public XmlServiceImpl() {
         try {
@@ -125,6 +112,30 @@ public class XmlServiceImpl implements XmlService {
         return instance;
     }
 
+    static boolean isContainBOM(Path path) {
+        if (Files.notExists(path)) {
+            throw new IllegalArgumentException("Path: " + path + " does not exists!");
+        }
+
+        boolean result = false;
+
+        byte[] bom = new byte[3];
+        try (InputStream is = new FileInputStream(path.toFile())) {
+            // read 3 bytes of a file.
+            is.read(bom);
+
+            // BOM encoded as ef bb bf
+            String content = new String(Hex.encodeHex(bom));
+            if ("efbbbf".equalsIgnoreCase(content)) {
+                result = true;
+            }
+
+        } catch (IOException ignore) {
+        }
+
+        return result;
+    }
+
     @Override
     public Document getXmlDocument() {
         return xmlDocument;
@@ -133,30 +144,6 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public File getCurrentXmlFile() {
         return currentXmlFile;
-    }
-
-    @Override
-    public String getFormatedXmlFile() {
-        String t = "";
-        try {
-            t = String.join(System.lineSeparator(), Files.readAllLines(this.currentXmlFile.toPath()));
-        } catch (IOException ioException) {
-            logger.error(ioException.getMessage());
-        }
-        return prettyFormat(t, 20);
-    }
-
-    @Override
-    public void prettyFormatCurrentFile() {
-        logger.debug("pretty format file");
-        try {
-            var temp = String.join(System.lineSeparator(), Files.readAllLines(this.currentXmlFile.toPath()));
-            temp = prettyFormat(temp, 20);
-            Files.write(this.currentXmlFile.toPath(), temp.getBytes());
-            logger.debug("done: {}", temp.getBytes().length);
-        } catch (IOException ioException) {
-            logger.error(ioException.getMessage());
-        }
     }
 
     @Override
@@ -182,6 +169,30 @@ public class XmlServiceImpl implements XmlService {
         } catch (Exception e) {
             logger.error(e.getMessage());
             logger.error(e.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    public String getFormatedXmlFile() {
+        String t = "";
+        try {
+            t = String.join(System.lineSeparator(), Files.readAllLines(this.currentXmlFile.toPath()));
+        } catch (IOException ioException) {
+            logger.error(ioException.getMessage());
+        }
+        return prettyFormat(t, 20);
+    }
+
+    @Override
+    public void prettyFormatCurrentFile() {
+        logger.debug("pretty format file");
+        try {
+            var temp = String.join(System.lineSeparator(), Files.readAllLines(this.currentXmlFile.toPath()));
+            temp = prettyFormat(temp, 20);
+            Files.write(this.currentXmlFile.toPath(), temp.getBytes());
+            logger.debug("done: {}", temp.getBytes().length);
+        } catch (IOException ioException) {
+            logger.error(ioException.getMessage());
         }
     }
 
@@ -220,6 +231,11 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
+    public void setCurrentXsdFile(File xsdFile) {
+        this.currentXsdFile = xsdFile;
+    }
+
+    @Override
     public String getCurrentXsdString() {
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -243,11 +259,6 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
-    public void setCurrentXsdFile(File xsdFile) {
-        this.currentXsdFile = xsdFile;
-    }
-
-    @Override
     public String performXsltTransformation() {
         try {
             stylesheet = compiler.compile(new StreamSource(getCurrentXsltFile()));
@@ -265,7 +276,6 @@ public class XmlServiceImpl implements XmlService {
             throw new RuntimeException(e);
         }
     }
-
 
     @Override
     public List<SAXParseException> validateText(String xmlString, File schemaFile) {
@@ -318,7 +328,6 @@ public class XmlServiceImpl implements XmlService {
     public List<SAXParseException> validateText(String xmlString) {
         return validateText(xmlString, currentXsdFile);
     }
-
 
     @Override
     public File createExcelValidationReport() {
@@ -460,7 +469,6 @@ public class XmlServiceImpl implements XmlService {
         return null;
     }
 
-
     @Override
     public String getXmlFromXpath(String xml, String xPath) {
         try {
@@ -533,7 +541,6 @@ public class XmlServiceImpl implements XmlService {
         return resultList;
     }
 
-
     @Override
     public boolean loadSchemaFromXMLFile() {
         var prop = propertiesService.loadProperties();
@@ -591,24 +598,66 @@ public class XmlServiceImpl implements XmlService {
                             logger.debug("Did not find cached Schema file.");
 
                             var proxySelector = ProxySelector.getDefault();
-                            if (prop.get("http.proxy.host") != null && prop.get("http.proxy.port") != null) {
-                                logger.debug("PROXY HOST: {}", prop.get("http.proxy.host"));
-                                logger.debug("PROXY PORT: {}", prop.get("http.proxy.port"));
-                                proxySelector = ProxySelector.of(
-                                        new InetSocketAddress(
-                                                prop.get("http.proxy.host").toString(),
-                                                Integer.parseInt(prop.get("http.proxy.port").toString())));
+
+                            var httpProxyHost = prop.get("http.proxy.host");
+                            var httpProxyPort = prop.get("http.proxy.port");
+                            var httpProxyUser = prop.get("http.proxy.user").toString();
+                            var httpProxyPassword = prop.get("http.proxy.password").toString();
+                            String encoded = new String(Base64.getEncoder().encode((httpProxyUser + ":" + httpProxyPassword).getBytes()));
+                            String authHeader = new String(Base64.getEncoder().encode((httpProxyUser + ":" + httpProxyPassword).getBytes()));
+
+                            System.out.println("encoded = " + encoded);
+                            System.out.println("authHeader = " + authHeader);
+
+                            if (httpProxyHost != null && httpProxyHost.toString() != null && !Objects.equals(httpProxyHost.toString(), "")) {
+                                logger.debug("PROXY HOST: {}", httpProxyHost);
+                                logger.debug("PROXY PORT: {}", httpProxyPort);
+
+                                try {
+                                    proxySelector = ProxySelector.of(
+                                            new InetSocketAddress(
+                                                    prop.get("http.proxy.host").toString(),
+                                                    Integer.parseInt(httpProxyPort.toString())));
+                                } catch (Exception e) {
+                                    logger.error(e.getMessage());
+                                }
                             }
+
+                            Authenticator authenticator = Authenticator.getDefault();
+                            authenticator = new Authenticator() {
+                                @Override
+                                protected PasswordAuthentication getPasswordAuthentication() {
+                                    return new PasswordAuthentication(String.valueOf(httpProxyUser), String.valueOf(httpProxyPassword).toCharArray());
+                                }
+                            };
+
+                            Authenticator.setDefault(
+                                    new Authenticator() {
+                                        @Override
+                                        public PasswordAuthentication getPasswordAuthentication() {
+                                            return new PasswordAuthentication(String.valueOf(httpProxyUser), String.valueOf(httpProxyPassword).toCharArray());
+                                        }
+                                    }
+                            );
+
+                            System.setProperty("http.proxyUser", String.valueOf(httpProxyUser));
+                            System.setProperty("http.proxyPassword", String.valueOf(httpProxyPassword));
+
+                            System.setProperty("jdk.http.auth.proxying.disabledSchemes", "");
+                            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
+                            System.setProperty("https.protocols", "TLSv1.2,TLSv1.3");
 
                             client = HttpClient.newBuilder()
                                     .version(HttpClient.Version.HTTP_2)
                                     .followRedirects(HttpClient.Redirect.NORMAL)
                                     .connectTimeout(Duration.ofSeconds(20))
                                     .proxy(proxySelector)
+                                    .authenticator(authenticator)
                                     .build();
 
                             request = HttpRequest.newBuilder()
                                     .uri(URI.create(possibleSchemaLocation.get()))
+                                    .setHeader("Proxy-Authorization", "Basic " + authHeader)
                                     .build();
 
                             var pathNew = Path.of(newFile.getAbsolutePath());
@@ -748,30 +797,6 @@ public class XmlServiceImpl implements XmlService {
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
-    }
-
-    static boolean isContainBOM(Path path) {
-        if (Files.notExists(path)) {
-            throw new IllegalArgumentException("Path: " + path + " does not exists!");
-        }
-
-        boolean result = false;
-
-        byte[] bom = new byte[3];
-        try (InputStream is = new FileInputStream(path.toFile())) {
-            // read 3 bytes of a file.
-            is.read(bom);
-
-            // BOM encoded as ef bb bf
-            String content = new String(Hex.encodeHex(bom));
-            if ("efbbbf".equalsIgnoreCase(content)) {
-                result = true;
-            }
-
-        } catch (IOException ignore) {
-        }
-
-        return result;
     }
 
     public String prettyFormat(String input, int indent) {

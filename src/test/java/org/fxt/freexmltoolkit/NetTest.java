@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ public class NetTest {
         ConnectionService connectionService = ConnectionServiceImpl.getInstance();
         var result = connectionService.testConnection();
         assert result;
-
     }
 
     @Test
@@ -48,14 +47,14 @@ public class NetTest {
                     new URI("http://www.google.com/"));
 
             for (Proxy proxy : l) {
-                System.out.println("proxy hostname : " + proxy.type());
+                System.out.println("proxy type: " + proxy.type());
                 InetSocketAddress addr = (InetSocketAddress) proxy.address();
 
                 if (addr == null) {
                     System.out.println("No Proxy");
                 } else {
-                    System.out.println("proxy hostname : " + addr.getHostName());
-                    System.out.println("proxy port : " + addr.getPort());
+                    System.out.println("proxy hostname: " + addr.getHostName());
+                    System.out.println("proxy port: " + addr.getPort());
                 }
             }
         } catch (Exception e) {

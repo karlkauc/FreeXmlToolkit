@@ -56,7 +56,6 @@ public class SimpleNodeElement extends VBox {
     }
 
     public void createByNode(Node node) {
-
         this.getStyleClass().add("treeGrid");
 
         if (node.hasChildNodes()) {

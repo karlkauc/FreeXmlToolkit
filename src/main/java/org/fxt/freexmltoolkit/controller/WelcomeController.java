@@ -52,8 +52,6 @@ public class WelcomeController {
     Properties properties;
 
 
-
-
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
@@ -62,7 +60,6 @@ public class WelcomeController {
     private void initialize() {
         properties = propertiesService.loadProperties();
         logger.debug("Properties: {}", properties);
-
 
         if (properties.get("version") != null && properties.getProperty("version").equals("20221008")) {
             versionUpdate.setVisible(true);
