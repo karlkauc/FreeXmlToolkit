@@ -209,6 +209,9 @@ public class MainController {
                 } else if (aClass.equals(XsltController.class)) {
                     logger.debug("set XSLT Controller");
                     ((XsltController) loader.getController()).setParentController(this);
+                } else if (aClass.equals(FopController.class)) {
+                    logger.debug("set FOP Controller");
+                    ((FopController) loader.getController()).setParentController(this);
                 }
 
                 var controller = loader.getController();

@@ -453,10 +453,10 @@ public class XmlController {
     }
     @FXML
     private void test() {
-        Path xmlExampleFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml");
+        Path xmlExampleFile = Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml");
 
         xmlService.setCurrentXmlFile(xmlExampleFile.toFile());
-        xmlService.setCurrentXsdFile(Paths.get("examples/xsd/FundsXML4.xsd").toFile());
+        xmlService.setCurrentXsdFile(Paths.get("release/examples/xsd/FundsXML4.xsd").toFile());
 
         try {
             xmlEditor = getCurrentXmlEditor();

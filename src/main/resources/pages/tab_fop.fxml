@@ -2,7 +2,7 @@
 
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
-  ~ Copyright (c) 2023.
+  ~ Copyright (c) Karl Kauc 2024.
   ~
   ~  Licensed under the Apache License, Version 2.0 (the "License");
   ~  you may not use this file except in compliance with the License.
@@ -23,13 +23,11 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-<AnchorPane prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-            AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
-            stylesheets="@../css/app.css"
-            style="-fx-background-color: #fff;"
-            xmlns="http://javafx.com/javafx/11.0.14-internal"
-            xmlns:fx="http://javafx.com/fxml/1"
+<AnchorPane prefHeight="768.0" prefWidth="1024.0" style="-fx-background-color: #fff;" stylesheets="@../css/app.css"
+            AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
+            xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.FopController">
 
     <VBox styleClass="my_container">
@@ -63,7 +61,7 @@
 
             <Label text="PDF File" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
             <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
-                <TextField text="PDF File" fx:id="pdfFileName"/>
+                <TextField fx:id="pdfFileName" text="PDF File"/>
                 <Button onAction="#openPdfFile">
                     <graphic>
                         <ImageView fitHeight="16" preserveRatio="true">
@@ -73,16 +71,45 @@
                 </Button>
             </HBox>
 
-            <Button text="Options" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-
-            <Button fx:id="startConversion" onAction="#buttonConversion" text="create PDF"
-                    GridPane.columnIndex="0" GridPane.rowIndex="4">
+            <Button fx:id="startConversion" onAction="#buttonConversion" text="create PDF" GridPane.rowIndex="10">
                 <graphic>
                     <FontIcon iconColor="#e2c352" iconLiteral="fth-play" iconSize="16"/>
                 </graphic>
             </Button>
 
-            <ProgressIndicator fx:id="progressIndicator" progress="0.0" GridPane.columnIndex="2" GridPane.rowIndex="5"/>
+            <ProgressIndicator fx:id="progressIndicator" progress="0.0" GridPane.columnIndex="2"
+                               GridPane.rowIndex="10"/>
+            <Label text="Producer" GridPane.rowIndex="4"/>
+            <TextField GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+            <Label text="Options" GridPane.rowIndex="3">
+                <font>
+                    <Font name="System Bold" size="12.0"/>
+                </font>
+            </Label>
+            <Label text="Author" GridPane.rowIndex="5"/>
+            <Label text="CreationDate" GridPane.rowIndex="6"/>
+            <Label text="Title" GridPane.rowIndex="7"/>
+            <Label text="Keywords" GridPane.rowIndex="8"/>
+            <Label text="Config File" GridPane.rowIndex="9"/>
+            <columnConstraints>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints maxHeight="49.0" minHeight="10.0" prefHeight="42.0"/>
+                <RowConstraints maxHeight="40.0" minHeight="10.0" prefHeight="18.0"/>
+                <RowConstraints maxHeight="33.0" minHeight="10.0" prefHeight="14.0"/>
+                <RowConstraints maxHeight="16.0" minHeight="5.0" prefHeight="16.0"/>
+                <RowConstraints maxHeight="29.0" minHeight="0.0" prefHeight="13.0"/>
+                <RowConstraints maxHeight="29.0" minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints maxHeight="29.0" minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints maxHeight="40.666666666666686" minHeight="12.333333333333314"
+                                prefHeight="28.333333333333314"/>
+            </rowConstraints>
 
         </GridPane>
     </VBox>

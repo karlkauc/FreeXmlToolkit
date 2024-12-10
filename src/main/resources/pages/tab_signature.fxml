@@ -1,18 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) Karl Kauc 2024.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
+<AnchorPane xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.SignatureController">
     <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <GridPane prefWidth="200" style="-fx-background-color: #f8f816;">
-            <padding>
-                <Insets bottom="25" left="25" right="25" top="25"/>
-            </padding>
-            <Text id="welcome-text" style="-fx-font: 24 arial;" text="Comming soon" wrappingWidth="293.82421875"
-                  GridPane.columnSpan="3" GridPane.rowIndex="0"/>
-        </GridPane>
+        <TitledPane animated="false" collapsible="false" text="Create Certificate">
+            <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+            </content>
+        </TitledPane>
+        <TitledPane animated="false" collapsible="false" text="Use Certificate">
+            <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+            </content>
+        </TitledPane>
+        <TitledPane animated="false" collapsible="false" text="Use File or Password">
+            <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+            </content>
+        </TitledPane>
+        <TitledPane animated="false" collapsible="false" layoutX="10.0" layoutY="423.0" text="References">
+            <content>
+                <HBox prefHeight="100.0" prefWidth="200.0"/>
+            </content>
+        </TitledPane>
+        <TitledPane animated="false" collapsible="false" layoutX="10.0" layoutY="217.0" text="Signature Creation">
+            <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+            </content>
+        </TitledPane>
+        <TitledPane animated="false" collapsible="false" layoutX="10.0" layoutY="757.0" text="Save Options">
+            <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+            </content>
+        </TitledPane>
     </VBox>
 </AnchorPane>
