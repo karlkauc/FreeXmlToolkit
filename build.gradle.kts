@@ -21,6 +21,7 @@ plugins {
     idea
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
+    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.24"
     id("com.github.ben-manes.versions") version "0.51.0"
     id("edu.sc.seis.launch4j") version "3.0.6"
 }
@@ -132,7 +133,7 @@ dependencies {
     implementation("fr.brouillard.oss:cssfx:11.5.1")
 
     // HTML Template XSD Documentation
-    implementation("org.thymeleaf:thymeleaf:3.1.2.RELEASE")
+    implementation("org.thymeleaf:thymeleaf:3.1.3.RELEASE")
 
     // markdown renderer
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
@@ -204,4 +205,8 @@ tasks.register<Zip>("packageDistribution") {
     val tree: ConfigurableFileTree = fileTree(layout.buildDirectory.get())
     tree.include("FreeXMLToolkit/**")
     from(tree)
+}
+
+gluonfx {
+    graalvmHome = "/Users/karlkauc/.sdkman/candidates/java/23.0.1-graalce"
 }

@@ -100,15 +100,14 @@
                 <RowConstraints/>
                 <RowConstraints/>
                 <RowConstraints/>
-                <RowConstraints maxHeight="49.0" minHeight="10.0" prefHeight="42.0"/>
-                <RowConstraints maxHeight="40.0" minHeight="10.0" prefHeight="18.0"/>
-                <RowConstraints maxHeight="33.0" minHeight="10.0" prefHeight="14.0"/>
-                <RowConstraints maxHeight="16.0" minHeight="5.0" prefHeight="16.0"/>
-                <RowConstraints maxHeight="29.0" minHeight="0.0" prefHeight="13.0"/>
-                <RowConstraints maxHeight="29.0" minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints maxHeight="29.0" minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints maxHeight="40.666666666666686" minHeight="12.333333333333314"
-                                prefHeight="28.333333333333314"/>
+                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
             </rowConstraints>
 
         </GridPane>
