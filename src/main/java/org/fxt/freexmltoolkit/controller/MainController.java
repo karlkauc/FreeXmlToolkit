@@ -41,6 +41,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -51,6 +52,7 @@ public class MainController {
     private final static Logger logger = LogManager.getLogger(MainController.class);
 
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    Properties properties = propertiesService.loadProperties();
 
     XmlController xmlController;
 
@@ -89,7 +91,6 @@ public class MainController {
 
     @FXML
     public void initialize() {
-
         scheduler.scheduleAtFixedRate(() -> {
             String date = new Date().toString();
 
@@ -144,6 +145,7 @@ public class MainController {
 
     private void loadLastOpenFiles() {
         lastOpenFiles.clear();
+
         lastOpenFiles = propertiesService.getLastOpenFiles();
         logger.debug("Last open Files: {}", lastOpenFiles.toString());
 
