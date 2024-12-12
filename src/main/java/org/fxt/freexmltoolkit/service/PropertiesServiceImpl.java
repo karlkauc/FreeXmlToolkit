@@ -25,8 +25,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -82,6 +80,7 @@ public class PropertiesServiceImpl implements PropertiesService {
             this.properties = new Properties();
 
             ConnectionService connectionService = ConnectionServiceImpl.getInstance();
+            /*
             var proxy = connectionService.getSystemProxy();
             if (proxy != null && proxy.type() == Proxy.Type.HTTP) {
                 this.properties.setProperty("http.proxy.host", ((InetSocketAddress) proxy.address()).getHostName());
@@ -90,6 +89,7 @@ public class PropertiesServiceImpl implements PropertiesService {
                 this.properties.setProperty("http.proxy.host", "");
                 this.properties.setProperty("http.proxy.port", "");
             }
+             */
 
             this.properties.setProperty("customTempFolder", System.getProperty("java.io.tmpdir"));
             this.properties.setProperty("font.family", "");

@@ -93,6 +93,8 @@ public class FxtGui extends Application {
 
             primaryStage.setScene(scene);
             primaryStage.setMaximized(true);
+
+            // ScenicView.show(primaryStage.getScene());
             primaryStage.show();
         } catch (IOException e) {
             logger.error(e.getMessage());

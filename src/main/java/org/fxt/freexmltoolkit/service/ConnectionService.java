@@ -18,12 +18,11 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import java.net.Proxy;
+import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
 
 public interface ConnectionService {
-    boolean testConnection();
+    void testConnection() throws NoSuchAlgorithmException;
 
-    boolean testConnection(String URL);
-
-    Proxy getSystemProxy();
+    void testConnection(String URL) throws NoSuchAlgorithmException, UnknownHostException;
 }

@@ -141,6 +141,12 @@ dependencies {
     // Update
     implementation("jakarta.activation:jakarta.activation-api:2.1.3")
 
+    // debugging
+    implementation("io.github.palexdev:scenicview:17.0.2")
+    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.1")
+    implementation("org.apache.httpcomponents.client5:httpclient5-win:5.2.3")
+
+
     implementation("org.junit.jupiter:junit-jupiter:5.11.3")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.3")
@@ -208,5 +214,6 @@ tasks.register<Zip>("packageDistribution") {
 }
 
 gluonfx {
-    graalvmHome = "/Users/karlkauc/.sdkman/candidates/java/23.0.1-graalce"
+    // graalvmHome = "/Users/karlkauc/.sdkman/candidates/java/23.0.1-graalce"
+    graalvmHome = "C:\\Data\\Apps\\Scoop\\apps\\graalvm-oracle-jdk\\23.0.1"
 }
