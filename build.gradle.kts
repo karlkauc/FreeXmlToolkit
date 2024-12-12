@@ -102,8 +102,9 @@ dependencies {
     // XSD Parser
     implementation("com.github.xmlet:xsdParser:1.2.18")
 
-    //  xml signature
+    //  Certificate & XML Signature
     implementation("org.apache.santuario:xmlsec:4.0.3")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.79")
 
     // Lemminx
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.23.1")
@@ -117,7 +118,6 @@ dependencies {
     implementation("org.apache.xmlgraphics:batik-svggen:1.18")
     implementation("org.apache.xmlgraphics:batik-all:1.18")
     implementation("org.apache.xmlgraphics:batik-transcoder:1.18")
-
 
     // Create Office Documents
     implementation("org.apache.poi:poi:5.3.0")
@@ -143,9 +143,10 @@ dependencies {
 
     // debugging
     implementation("io.github.palexdev:scenicview:17.0.2")
+
+    // http connection with NTLM Proxy Auth
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.1")
     implementation("org.apache.httpcomponents.client5:httpclient5-win:5.2.3")
-
 
     implementation("org.junit.jupiter:junit-jupiter:5.11.3")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.3")

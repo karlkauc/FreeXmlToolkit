@@ -606,6 +606,7 @@ public class XmlServiceImpl implements XmlService {
                                 String textContent = connectionService.getTextContentFromURL(new URI(possibleSchemaLocation.get()));
                                 Files.write(pathNew, textContent.getBytes());
                                 logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());
+                                this.currentXsdFile = new File(pathNew.toUri());
 
                                 return true;
                             } catch (Exception e) {

@@ -180,16 +180,7 @@ public class XsdValidationController {
             if (autodetect.isSelected()) {
                 var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
 
-                if (schemaName.isPresent()) {
-                    logger.debug("SchemaName: {}", schemaName.get());
-                } else {
-                    logger.debug("Schema name is not present!");
-                }
-
-                var load = xmlService.loadSchemaFromXMLFile();
-                logger.debug("Could Load Schema: {}", load);
-
-                if (schemaName.isPresent() && load) {
+                if (schemaName.isPresent() && xmlService.loadSchemaFromXMLFile()) {
                     logger.debug("Loading remote schema successfully!");
                     xsdFileName.setText(schemaName.get());
                 } else {
