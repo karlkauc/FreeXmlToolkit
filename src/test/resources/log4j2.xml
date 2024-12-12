@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ FreeXMLToolkit - Universal Toolkit for XML
-  ~ Copyright (c) Karl Kauc 2023-2024.
+  ~ Copyright (c) Karl Kauc 2024.
   ~
   ~  Licensed under the Apache License, Version 2.0 (the "License");
   ~  you may not use this file except in compliance with the License.
@@ -36,6 +36,9 @@
             <AppenderRef ref="Console"/>
         </Logger>
         <Logger name="org.thymeleaf" level="INFO">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.apache.hc.client5.http" level="ERROR">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>

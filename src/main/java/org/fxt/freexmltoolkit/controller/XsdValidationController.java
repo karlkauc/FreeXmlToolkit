@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -171,15 +171,25 @@ public class XsdValidationController {
         errorListBox.getChildren().clear();
 
         Platform.runLater(() -> {
-
             xmlService.setCurrentXmlFile(file);
             xmlService.prettyFormatCurrentFile();
             xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
 
             progressIndicator.setProgress(0.2);
+
             if (autodetect.isSelected()) {
                 var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
-                if (schemaName.isPresent() && xmlService.loadSchemaFromXMLFile()) {
+
+                if (schemaName.isPresent()) {
+                    logger.debug("SchemaName: {}", schemaName.get());
+                } else {
+                    logger.debug("Schema name is not present!");
+                }
+
+                var load = xmlService.loadSchemaFromXMLFile();
+                logger.debug("Could Load Schema: {}", load);
+
+                if (schemaName.isPresent() && load) {
                     logger.debug("Loading remote schema successfully!");
                     xsdFileName.setText(schemaName.get());
                 } else {

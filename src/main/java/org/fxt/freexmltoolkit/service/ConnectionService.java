@@ -18,11 +18,9 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import java.net.UnknownHostException;
-import java.security.NoSuchAlgorithmException;
+import java.net.URI;
 
 public interface ConnectionService {
-    void testConnection() throws NoSuchAlgorithmException;
 
-    void testConnection(String URL) throws NoSuchAlgorithmException, UnknownHostException;
+    String getTextContentFromURL(URI uri);
 }

@@ -18,25 +18,22 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.UnknownHostException;
+import java.net.URI;
 
 public class ConnectionServiceImpl implements ConnectionService {
 
@@ -53,18 +50,8 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
-
     @Override
-    public void testConnection() {
-        try {
-            testConnection("https://www.github.com");
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-    }
-
-    @Override
-    public void testConnection(String URL) throws UnknownHostException {
+    public String getTextContentFromURL(URI uri) {
         var properties = propertiesService.loadProperties();
         System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
         System.setProperty("jdk.http.auth.proxying.disabledSchemes", "");
@@ -74,49 +61,35 @@ public class ConnectionServiceImpl implements ConnectionService {
         final var httpProxyPort = properties.get("http.proxy.port").toString();
         final var httpProxyUser = properties.get("http.proxy.user").toString();
         final var httpProxyPassword = properties.get("http.proxy.password").toString();
-        final var proxyDomain = "I0013";
 
-        // String proxyHost = "proxy.example.com";
-        // int proxyPort = 8080;
-        // String proxyUser = "username";
-        // String proxyPassword = "password";
-        // String proxyDomain = "domain";
-        // String targetUrl = "http://example.com/file.zip";
-        // String destinationFile = "file.zip";
-
-        Credentials ntlmCredentials = new NTCredentials(httpProxyUser, httpProxyPassword.toCharArray(), null, proxyDomain);
-        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), ntlmCredentials);
+        Credentials ntlmCredentials = new NTCredentials(httpProxyUser, httpProxyPassword.toCharArray(), null, null);
+        BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), ntlmCredentials);
 
         HttpHost proxy = new HttpHost(httpProxyHost, Integer.parseInt(httpProxyPort));
-        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+        var connManager = new BasicHttpClientConnectionManager();
 
         try (CloseableHttpClient httpClient = HttpClients.custom()
-                .setDefaultCredentialsProvider(credsProvider)
+                .setDefaultCredentialsProvider(credentialsProvider)
                 .setProxy(proxy)
                 .setConnectionManager(connManager)
                 .build()) {
 
-            HttpGet httpGet = new HttpGet(URL);
-            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
-                System.out.println(response.getCode());
+            HttpGet httpGet = new HttpGet(uri);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-                if (response.getCode() == 200) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         FileOutputStream outputStream = new FileOutputStream("index.html")) {
-                        byte[] buffer = new byte[1024];
-                        int bytesRead;
-                        while ((bytesRead = inputStream.read(buffer)) != -1) {
-                            outputStream.write(buffer, 0, bytesRead);
-                        }
-                    }
-                } else {
-                    throw new HttpResponseException(response.getCode(), response.getReasonPhrase());
+            httpClient.execute(httpGet, response -> {
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    response.getEntity().writeTo(byteArrayOutputStream);
                 }
-                EntityUtils.consume(response.getEntity());
-            }
+                return response;
+            });
+
+            // logger.debug("Content: {}", byteArrayOutputStream);
+            return byteArrayOutputStream.toString();
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
+        return null;
     }
 }

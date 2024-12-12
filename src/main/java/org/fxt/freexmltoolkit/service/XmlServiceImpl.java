@@ -58,21 +58,27 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
-import java.net.*;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 public class XmlServiceImpl implements XmlService {
+
     private final static Logger logger = LogManager.getLogger(XmlService.class);
+
     private static final XmlServiceImpl instance = new XmlServiceImpl();
+    private static final ConnectionService connectionService = ConnectionServiceImpl.getInstance();
+
     final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
     XPathFactory xPathFactory = new net.sf.saxon.xpath.XPathFactoryImpl();
     XPath xPathPath = xPathFactory.newXPath();
@@ -93,8 +99,6 @@ public class XmlServiceImpl implements XmlService {
     Schema schema;
     Validator validator;
 
-    HttpClient client;
-    HttpRequest request;
     private String remoteXsdLocation;
     private String xsltOutputMethod;
 
@@ -596,89 +600,18 @@ public class XmlServiceImpl implements XmlService {
                             return true;
                         } else {
                             logger.debug("Did not find cached Schema file.");
-
-                            var proxySelector = ProxySelector.getDefault();
-
-                            var httpProxyHost = prop.get("http.proxy.host");
-                            var httpProxyPort = prop.get("http.proxy.port");
-                            var httpProxyUser = prop.get("http.proxy.user").toString();
-                            var httpProxyPassword = prop.get("http.proxy.password").toString();
-                            String encoded = new String(Base64.getEncoder().encode((httpProxyUser + ":" + httpProxyPassword).getBytes()));
-                            String authHeader = new String(Base64.getEncoder().encode((httpProxyUser + ":" + httpProxyPassword).getBytes()));
-
-                            System.out.println("encoded = " + encoded);
-                            System.out.println("authHeader = " + authHeader);
-
-                            if (httpProxyHost != null && httpProxyHost.toString() != null && !Objects.equals(httpProxyHost.toString(), "")) {
-                                logger.debug("PROXY HOST: {}", httpProxyHost);
-                                logger.debug("PROXY PORT: {}", httpProxyPort);
-
-                                try {
-                                    proxySelector = ProxySelector.of(
-                                            new InetSocketAddress(
-                                                    prop.get("http.proxy.host").toString(),
-                                                    Integer.parseInt(httpProxyPort.toString())));
-                                } catch (Exception e) {
-                                    logger.error(e.getMessage());
-                                }
-                            }
-
-                            Authenticator authenticator = Authenticator.getDefault();
-                            authenticator = new Authenticator() {
-                                @Override
-                                protected PasswordAuthentication getPasswordAuthentication() {
-                                    return new PasswordAuthentication(String.valueOf(httpProxyUser), String.valueOf(httpProxyPassword).toCharArray());
-                                }
-                            };
-
-                            Authenticator.setDefault(
-                                    new Authenticator() {
-                                        @Override
-                                        public PasswordAuthentication getPasswordAuthentication() {
-                                            return new PasswordAuthentication(String.valueOf(httpProxyUser), String.valueOf(httpProxyPassword).toCharArray());
-                                        }
-                                    }
-                            );
-
-                            System.setProperty("http.proxyUser", String.valueOf(httpProxyUser));
-                            System.setProperty("http.proxyPassword", String.valueOf(httpProxyPassword));
-
-                            System.setProperty("jdk.http.auth.proxying.disabledSchemes", "");
-                            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
-                            System.setProperty("https.protocols", "TLSv1.2,TLSv1.3");
-
-                            client = HttpClient.newBuilder()
-                                    .version(HttpClient.Version.HTTP_2)
-                                    .followRedirects(HttpClient.Redirect.NORMAL)
-                                    .connectTimeout(Duration.ofSeconds(20))
-                                    .proxy(proxySelector)
-                                    .authenticator(authenticator)
-                                    .build();
-
-                            request = HttpRequest.newBuilder()
-                                    .uri(URI.create(possibleSchemaLocation.get()))
-                                    .setHeader("Proxy-Authorization", "Basic " + authHeader)
-                                    .build();
-
                             var pathNew = Path.of(newFile.getAbsolutePath());
 
                             try {
-                                HttpResponse<Path> response = client.send(request, HttpResponse.BodyHandlers.ofFile(pathNew));
-                                logger.debug("HTTP Status Code: {}", response.statusCode());
-                                logger.debug("Loaded file to: {}", pathNew.toFile().getAbsolutePath());
+                                String textContent = connectionService.getTextContentFromURL(new URI(possibleSchemaLocation.get()));
+                                Files.write(pathNew, textContent.getBytes());
+                                logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());
 
-                                if (pathNew.toFile().exists() && pathNew.toFile().length() > 1) {
-                                    this.setCurrentXsdFile(pathNew.toFile());
-                                    this.remoteXsdLocation = possibleSchemaLocation.get();
-                                    return true;
-                                } else {
-                                    logger.error("File not found or empty: {}", pathNew.getFileName());
-                                }
-                            } catch (IOException | InterruptedException exception) {
-                                logger.error("Error in downloading possible schema file at {}", possibleSchemaLocation.get(), exception);
-                                logger.error(exception.getMessage());
+                                return true;
+                            } catch (Exception e) {
+                                logger.error(e.getMessage());
+                                return false;
                             }
-                            return false;
                         }
                     } else {
                         logger.debug("Schema do not start with http!");

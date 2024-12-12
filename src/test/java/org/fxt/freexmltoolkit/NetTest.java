@@ -18,33 +18,27 @@
 
 package org.fxt.freexmltoolkit;
 
-import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.ConnectionService;
 import org.fxt.freexmltoolkit.service.ConnectionServiceImpl;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.ProxySelector;
-import java.net.URI;
-import java.security.NoSuchAlgorithmException;
+import java.net.*;
 import java.util.List;
 
 public class NetTest {
@@ -53,9 +47,17 @@ public class NetTest {
 
     @Test
     // @Disabled("Currently not testable")
-    public void testService() throws NoSuchAlgorithmException {
+    public void testService() {
         ConnectionService connectionService = ConnectionServiceImpl.getInstance();
-        connectionService.testConnection();
+        try {
+            URI uri = new URI("https://www.google.com");
+            var r = connectionService.getTextContentFromURL(uri);
+
+            // logger.debug(r);
+            Assertions.assertTrue(r.startsWith("<!doctype html><html itemscope=\"\""));
+        } catch (URISyntaxException e) {
+            logger.error(e.getMessage());
+        }
     }
 
     @Test
@@ -92,14 +94,13 @@ public class NetTest {
         final var httpProxyPort = properties.get("http.proxy.port").toString();
         final var httpProxyUser = properties.get("http.proxy.user").toString();
         final var httpProxyPassword = properties.get("http.proxy.password").toString();
-        final var proxyDomain = "I0013";
 
-        Credentials ntlmCredentials = new NTCredentials(httpProxyUser, httpProxyPassword.toCharArray(), null, proxyDomain);
+        Credentials ntlmCredentials = new NTCredentials(httpProxyUser, httpProxyPassword.toCharArray(), null, null);
         BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), ntlmCredentials);
 
         HttpHost proxy = new HttpHost(httpProxyHost, Integer.parseInt(httpProxyPort));
-        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+        var connManager = new BasicHttpClientConnectionManager();
 
         try (CloseableHttpClient httpClient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
@@ -108,23 +109,17 @@ public class NetTest {
                 .build()) {
 
             HttpGet httpGet = new HttpGet("https://www.github.com");
-            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
-                logger.error("Response Code: {}", response.getCode());
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-                if (response.getCode() == 200) {
-                    try (InputStream inputStream = response.getEntity().getContent();
-                         FileOutputStream outputStream = new FileOutputStream("index.html")) {
-                        byte[] buffer = new byte[1024];
-                        int bytesRead;
-                        while ((bytesRead = inputStream.read(buffer)) != -1) {
-                            outputStream.write(buffer, 0, bytesRead);
-                        }
-                    }
-                } else {
-                    throw new HttpResponseException(response.getCode(), response.getReasonPhrase());
+            httpClient.execute(httpGet, response -> {
+                System.out.println("response.getCode() = " + response.getCode());
+                if (response.getCode() == HttpStatus.SC_OK) {
+                    response.getEntity().writeTo(byteArrayOutputStream);
                 }
-                EntityUtils.consume(response.getEntity());
-            }
+                return response;
+            });
+
+            logger.debug("Content: {}", byteArrayOutputStream);
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
