@@ -85,11 +85,12 @@
         </TitledPane>
         <TitledPane animated="false" collapsible="false" text="Use Certificate">
             <content>
-                <GridPane>
-                    <Button GridPane.columnIndex="0" GridPane.rowIndex="0" text="load certificate"/>
+                <GridPane hgap="10.0" vgap="3.0">
+                    <Button GridPane.columnIndex="0" GridPane.rowIndex="0" fx:id="loadCertificate"
+                            text="load certificate"/>
                     <Label GridPane.columnIndex="1" GridPane.rowIndex="0" text="certificate info"/>
 
-                    <Button GridPane.columnIndex="0" GridPane.rowIndex="1" text="load XML File"/>
+                    <Button GridPane.columnIndex="0" GridPane.rowIndex="1" fx:id="loadXmlFile" text="load XML File"/>
                     <Label GridPane.columnIndex="1" GridPane.rowIndex="1" text="xml info"/>
                 </GridPane>
             </content>
@@ -101,25 +102,58 @@
         </TitledPane>
         <TitledPane animated="false" collapsible="false" layoutX="10.0" text="References">
             <content>
-                <VBox>
+                <VBox style="-fx-hgap: 10; -fx-vgap: 3">
                     <fx:define>
                         <ToggleGroup fx:id="signGroup"/>
                     </fx:define>
-                    <RadioButton GridPane.columnIndex="0" GridPane.rowIndex="0" toggleGroup="$signGroup"
+                    <RadioButton toggleGroup="$signGroup"
                                  text="Sign complete XML document"/>
-                    <RadioButton GridPane.columnIndex="0" GridPane.rowIndex="1" toggleGroup="$signGroup"
-                                 text="Sign elements with the follsing IDs"/>
+                    <RadioButton toggleGroup="$signGroup"
+                                 text="Sign elements with the following IDs"/>
                 </VBox>
             </content>
         </TitledPane>
         <TitledPane animated="false" collapsible="false" layoutX="10.0" text="Signature Creation">
             <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+                <HBox>
+                    <VBox>
+                        <fx:define>
+                            <ToggleGroup fx:id="enveloped"/>
+                        </fx:define>
+                        <RadioButton toggleGroup="$enveloped" text="Enveloped"/>
+                        <RadioButton toggleGroup="$enveloped" text="Enveloping"/>
+                    </VBox>
+                    <VBox>
+                        <fx:define>
+                            <ToggleGroup fx:id="canonicalXML"/>
+                        </fx:define>
+                        <RadioButton toggleGroup="$canonicalXML" text="Canonical XML"/>
+                        <RadioButton toggleGroup="$canonicalXML" text="Canonical XML with comments"/>
+                        <RadioButton toggleGroup="$canonicalXML" text="Canonical XML Exclusive"/>
+                        <RadioButton toggleGroup="$canonicalXML" text="Canonical XML Exclusive with comments"/>
+                    </VBox>
+                </HBox>
             </content>
         </TitledPane>
         <TitledPane animated="false" collapsible="false" layoutX="10.0" text="Save Options">
             <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+                <BorderPane>
+                    <left>
+                        <VBox>
+                            <RadioButton text="Ask.."/>
+                            <RadioButton text="Save signed file automatically"/>
+                            <HBox>
+                                <Label>Append to Filename:</Label>
+                                <TextField text="_signed"/>
+                            </HBox>
+                        </VBox>
+                    </left>
+                    <right>
+                        <VBox>
+                            <Button onAction="#signDocument">Sign</Button>
+                        </VBox>
+                    </right>
+                </BorderPane>
             </content>
         </TitledPane>
     </VBox>
