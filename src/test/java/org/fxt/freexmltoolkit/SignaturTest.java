@@ -71,12 +71,7 @@ public class SignaturTest {
             System.out.println("x.name() = " + x.name());
 
         }
-
-        // final DefaultSignatureAlgorithmIdentifierFinder SIGNATURE_ALGORITHM_IDENTIFIER_FINDER = new DefaultSignatureAlgorithmIdentifierFinder();
-
-
     }
-
 
     @Test
     public void createNewSignatureFile() throws NoSuchAlgorithmException, NoSuchProviderException, CertificateException, OperatorCreationException, IOException, KeyStoreException {

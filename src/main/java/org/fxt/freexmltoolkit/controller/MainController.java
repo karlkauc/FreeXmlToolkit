@@ -214,6 +214,9 @@ public class MainController {
                 } else if (aClass.equals(FopController.class)) {
                     logger.debug("set FOP Controller");
                     ((FopController) loader.getController()).setParentController(this);
+                } else if (aClass.equals(SignatureController.class)) {
+                    logger.debug("set Signature Controller");
+                    ((SignatureController) loader.getController()).setParentController(this);
                 }
 
                 var controller = loader.getController();

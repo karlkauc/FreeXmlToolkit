@@ -18,37 +18,106 @@
   ~
   -->
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <AnchorPane xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.SignatureController">
     <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <TitledPane animated="false" collapsible="false" text="Create Certificate">
+        <TitledPane text="Create Certificate" expanded="false">
             <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+                <GridPane hgap="10.0" vgap="3.0">
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="0">Common Name (CN)</Label>
+                    <TextField fx:id="commonName" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="1">Organization Unit (OU)</Label>
+                    <TextField fx:id="organizationUnit" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="2">Organization Name (O)</Label>
+                    <TextField fx:id="organizationName" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="3">Locality Name (L)</Label>
+                    <TextField fx:id="localityName" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="4">State Name (ST)</Label>
+                    <TextField fx:id="streetName" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="5">Country (C)</Label>
+                    <TextField fx:id="country" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="6">Email (E)</Label>
+                    <TextField fx:id="email" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="7">Alias*</Label>
+                    <TextField fx:id="alias" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="8">Password</Label>
+                    <PasswordField fx:id="passwordField" GridPane.columnIndex="1" GridPane.rowIndex="8"/>
+
+                    <Button onAction="#createNewSignatureFile" GridPane.columnIndex="0" GridPane.rowIndex="9"
+                            text="Generate Certificate">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-file-earmark-lock" iconSize="16"/>
+                        </graphic>
+                    </Button>
+                    <columnConstraints>
+                        <ColumnConstraints/>
+                        <ColumnConstraints/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                    </rowConstraints>
+                    <opaqueInsets>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    </opaqueInsets>
+                </GridPane>
             </content>
         </TitledPane>
         <TitledPane animated="false" collapsible="false" text="Use Certificate">
             <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+                <GridPane>
+                    <Button GridPane.columnIndex="0" GridPane.rowIndex="0" text="load certificate"/>
+                    <Label GridPane.columnIndex="1" GridPane.rowIndex="0" text="certificate info"/>
+
+                    <Button GridPane.columnIndex="0" GridPane.rowIndex="1" text="load XML File"/>
+                    <Label GridPane.columnIndex="1" GridPane.rowIndex="1" text="xml info"/>
+                </GridPane>
             </content>
         </TitledPane>
-        <TitledPane animated="false" collapsible="false" text="Use File or Password">
+        <TitledPane visible="false" managed="false" animated="false" collapsible="false" text="Use File or Password">
             <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
             </content>
         </TitledPane>
-        <TitledPane animated="false" collapsible="false" layoutX="10.0" layoutY="423.0" text="References">
+        <TitledPane animated="false" collapsible="false" layoutX="10.0" text="References">
             <content>
-                <HBox prefHeight="100.0" prefWidth="200.0"/>
+                <VBox>
+                    <fx:define>
+                        <ToggleGroup fx:id="signGroup"/>
+                    </fx:define>
+                    <RadioButton GridPane.columnIndex="0" GridPane.rowIndex="0" toggleGroup="$signGroup"
+                                 text="Sign complete XML document"/>
+                    <RadioButton GridPane.columnIndex="0" GridPane.rowIndex="1" toggleGroup="$signGroup"
+                                 text="Sign elements with the follsing IDs"/>
+                </VBox>
             </content>
         </TitledPane>
-        <TitledPane animated="false" collapsible="false" layoutX="10.0" layoutY="217.0" text="Signature Creation">
+        <TitledPane animated="false" collapsible="false" layoutX="10.0" text="Signature Creation">
             <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
             </content>
         </TitledPane>
-        <TitledPane animated="false" collapsible="false" layoutX="10.0" layoutY="757.0" text="Save Options">
+        <TitledPane animated="false" collapsible="false" layoutX="10.0" text="Save Options">
             <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
             </content>

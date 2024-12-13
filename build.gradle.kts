@@ -218,3 +218,10 @@ gluonfx {
     // graalvmHome = "/Users/karlkauc/.sdkman/candidates/java/23.0.1-graalce"
     graalvmHome = "C:\\Data\\Apps\\Scoop\\apps\\graalvm-oracle-jdk\\23.0.1"
 }
+
+idea {
+    module {
+        isDownloadJavadoc = true
+        isDownloadSources = true
+    }
+}
