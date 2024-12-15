@@ -35,7 +35,9 @@ import org.bouncycastle.openssl.jcajce.JcePEMEncryptorBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.fxt.freexmltoolkit.service.SignatureService;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -260,6 +262,17 @@ public class SignaturTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void testSign() {
+        File signedFile = new File("test01_signed.xml");
+        File cerFile = new File("release/examples/certs/karl/karl.pem");
+
+
+        SignatureService signatureService = new SignatureService();
+        var t = signatureService.isSignatureValid(signedFile, cerFile);
+        Assertions.assertTrue(t);
     }
 
 
