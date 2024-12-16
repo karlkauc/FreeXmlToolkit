@@ -17,7 +17,7 @@
   ~
   -->
 
-<Configuration status="DEBUG">
+<Configuration status="warn">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%highlight{[%-5level]} [%thread][%class][%line] %d{yyyy-MM-dd HH:mm:ss} - %msg%n"
