@@ -3,94 +3,158 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<AnchorPane xmlns="http://javafx.com/javafx/11.0.14-internal"
-            AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-            AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
-            style="-fx-padding: 5px"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.fxt.freexmltoolkit.controller.SignatureController">
-    <TabPane AnchorPane.bottomAnchor="0"
-             AnchorPane.leftAnchor="0"
-             AnchorPane.rightAnchor="0"
-             AnchorPane.topAnchor="0"
-             tabClosingPolicy="UNAVAILABLE" style="-fx-padding: 5px">
+<AnchorPane style="-fx-padding: 5px" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+            AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.SignatureController">
+    <TabPane style="-fx-padding: 5px" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0"
+             AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <Tab text="create Certificate">
-            <GridPane hgap="10" vgap="10"
-                      style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5">
-                <Label GridPane.rowIndex="0" GridPane.columnIndex="0">CommonName (CN):</Label>
-                <TextField GridPane.rowIndex="0" GridPane.columnIndex="1" fx:id="commonName"/>
-                <Label GridPane.rowIndex="1" GridPane.columnIndex="0">OrganizationalUnit (OU):</Label>
-                <TextField GridPane.rowIndex="1" GridPane.columnIndex="1" fx:id="organizationUnit"/>
-                <Label GridPane.rowIndex="2" GridPane.columnIndex="0">Organization (O):</Label>
-                <TextField GridPane.rowIndex="2" GridPane.columnIndex="1" fx:id="organizationName"/>
-                <Label GridPane.rowIndex="3" GridPane.columnIndex="0">Locality (L):</Label>
-                <TextField GridPane.rowIndex="3" GridPane.columnIndex="1" fx:id="localityName"/>
-                <Label GridPane.rowIndex="4" GridPane.columnIndex="0">StateOrProvinceName (ST):</Label>
-                <TextField GridPane.rowIndex="4" GridPane.columnIndex="1" fx:id="streetName"/>
-                <Label GridPane.rowIndex="5" GridPane.columnIndex="0">CountryName (C):</Label>
-                <TextField GridPane.rowIndex="5" GridPane.columnIndex="1" fx:id="country"/>
+            <GridPane hgap="10" style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5" vgap="10">
+                <Label GridPane.columnIndex="0" GridPane.rowIndex="0">CommonName (CN):</Label>
+                <TextField fx:id="commonName" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <Label GridPane.columnIndex="0" GridPane.rowIndex="1">OrganizationalUnit (OU):</Label>
+                <TextField fx:id="organizationUnit" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label GridPane.columnIndex="0" GridPane.rowIndex="2">Organization (O):</Label>
+                <TextField fx:id="organizationName" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                <Label GridPane.columnIndex="0" GridPane.rowIndex="3">Locality (L):</Label>
+                <TextField fx:id="localityName" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                <Label GridPane.columnIndex="0" GridPane.rowIndex="4">StateOrProvinceName (ST):</Label>
+                <TextField fx:id="streetName" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                <Label GridPane.columnIndex="0" GridPane.rowIndex="5">CountryName (C):</Label>
+                <TextField fx:id="country" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+                <Label GridPane.columnIndex="0" GridPane.rowIndex="6">Email (E):</Label>
+                <TextField fx:id="email" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
 
-                <Label GridPane.rowIndex="6" GridPane.columnIndex="0">Email (E):</Label>
-                <TextField GridPane.rowIndex="6" GridPane.columnIndex="1" fx:id="email"/>
+                <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="7">Keystore Password*:
+                </Label>
+                <PasswordField fx:id="createCertificateKeystorePassword" promptText="Keystore Password"
+                               GridPane.columnIndex="1" GridPane.rowIndex="7"/>
 
-                <Label GridPane.rowIndex="7" GridPane.columnIndex="0">Alias*:</Label>
-                <TextField GridPane.rowIndex="7" GridPane.columnIndex="1" fx:id="alias"/>
+                <Label text="Keystore Alias*" GridPane.columnIndex="0" GridPane.rowIndex="8">Alias*:</Label>
+                <TextField fx:id="createCertificateAlias" promptText="Keystore Alias" GridPane.columnIndex="1"
+                           GridPane.rowIndex="8"/>
 
-                <Label GridPane.rowIndex="8" GridPane.columnIndex="0">Password*:</Label>
-                <PasswordField GridPane.rowIndex="8" GridPane.columnIndex="1" fx:id="passwordField"/>
+                <Label text="Alias Password*" GridPane.columnIndex="0" GridPane.rowIndex="9">Alias Password*:</Label>
+                <PasswordField fx:id="createCertificateAliasPassword" promptText="Alias Password"
+                               GridPane.columnIndex="1" GridPane.rowIndex="9"/>
 
-                <Button GridPane.rowIndex="9" GridPane.columnIndex="0" onAction="#createNewSignatureFile"
-                        text="Create Certificate">
+                <Button onAction="#createNewSignatureFile" text="Create Certificate" GridPane.columnIndex="0"
+                        GridPane.rowIndex="10">
                     <graphic>
                         <ImageView fitHeight="16" preserveRatio="true">
                             <Image url="@../img/key.png"/>
                         </ImageView>
                     </graphic>
                 </Button>
+                <columnConstraints>
+                    <ColumnConstraints/>
+                    <ColumnConstraints/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                </rowConstraints>
             </GridPane>
 
         </Tab>
         <Tab text="Sign XML File">
-            <GridPane hgap="10" vgap="10"
-                      style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5">
-                <Button GridPane.rowIndex="0" GridPane.columnIndex="0" fx:id="loadXmlFile">XML File</Button>
-                <Label GridPane.rowIndex="0" GridPane.columnIndex="1" fx:id="xmlFileInfo">xml File Info</Label>
+            <GridPane hgap="10" style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5" vgap="10">
 
-                <Button GridPane.rowIndex="1" GridPane.columnIndex="0" fx:id="loadCertificate">Keystore File
+                <Button fx:id="signLoadXmlFileButton" text="XML File" GridPane.columnIndex="0" GridPane.rowIndex="0">XML
+                    File
                 </Button>
-                <Label GridPane.rowIndex="1" GridPane.columnIndex="1" fx:id="certFileInfo">keystore File Info
-                </Label>
+                <Label GridPane.columnIndex="1" GridPane.rowIndex="0" fx:id="xmlFileInfo"/>
 
-                <TextField GridPane.rowIndex="2" GridPane.columnIndex="0" fx:id="newFileName">_signed
-                </TextField>
-                <Button GridPane.rowIndex="2" GridPane.columnIndex="1" onAction="#signDocument"
-                        text="Sign Document">
+                <Button fx:id="signLoadKeystoreButton" text="Keystore File" GridPane.columnIndex="0"
+                        GridPane.rowIndex="1"/>
+                <Label fx:id="certFileInfo" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <PasswordField fx:id="signKeystorePassword" promptText="Keystore Password" GridPane.columnIndex="1"
+                               GridPane.rowIndex="2"/>
+
+                <Label text="Keystore Alias*" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                <TextField fx:id="signKeystoreAlias" promptText="Keystore Alias" GridPane.columnIndex="1"
+                           GridPane.rowIndex="3"/>
+
+                <Label text="Alias Password*" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                <PasswordField fx:id="signAliasPassword" promptText="Alias Password" GridPane.columnIndex="1"
+                               GridPane.rowIndex="4"/>
+
+                <Label text="new Filename postfix" GridPane.rowIndex="5"/>
+                <TextField fx:id="newFileName" text="_signed" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+                <Button onAction="#signDocument" text="Sign Document" GridPane.rowIndex="6">
                     <graphic>
                         <ImageView fitHeight="16" preserveRatio="true">
                             <Image url="@../img/certificate.png"/>
                         </ImageView>
                     </graphic>
                 </Button>
+                <Label text="Keystore Alias*" GridPane.rowIndex="3"/>
+                <columnConstraints>
+                    <ColumnConstraints/>
+                    <ColumnConstraints/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                </rowConstraints>
             </GridPane>
         </Tab>
         <Tab text="Validate Signed File">
-            <GridPane hgap="10" vgap="10"
-                      style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5">
+            <GridPane hgap="10" style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5" vgap="10">
 
-                <Button GridPane.rowIndex="0" GridPane.columnIndex="0">XML File</Button>
-                <Label GridPane.rowIndex="0" GridPane.columnIndex="1">xml File Info</Label>
+                <Button fx:id="validateLoadXmlFileButton" text="XML File" GridPane.columnIndex="0"
+                        GridPane.rowIndex="0">XML File
+                </Button>
+                <Label fx:id="validateXmlFileInfo" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-                <Button GridPane.rowIndex="1" GridPane.columnIndex="0">Keystore File</Button>
-                <Label GridPane.rowIndex="1" GridPane.columnIndex="1">keystore File Info</Label>
+                <Button fx:id="validateLoadKeystoreButton" text="Keystore File" GridPane.columnIndex="0"
+                        GridPane.rowIndex="1">Keystore File
+                </Button>
+                <Label fx:id="validateKeystoreInfo" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-                <Button GridPane.rowIndex="2" GridPane.columnIndex="1" onAction="#validateSignedDocument"
-                        text="Validate Document">
+                <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="2">Password</Label>
+                <PasswordField fx:id="validatePasswordField" promptText="Keystore Password" GridPane.columnIndex="1"
+                               GridPane.rowIndex="2"/>
+
+                <Label text="Keystore Alias*" GridPane.columnIndex="0" GridPane.rowIndex="3">Alias</Label>
+                <TextField fx:id="validateKeystoreAlias" promptText="Keystore Alias" GridPane.columnIndex="1"
+                           GridPane.rowIndex="3"/>
+
+                <Button onAction="#validateSignedDocument" text="Validate Document" GridPane.rowIndex="4">
                     <graphic>
                         <ImageView fitHeight="16" preserveRatio="true">
                             <Image url="@../img/validate-cert.png"/>
                         </ImageView>
                     </graphic>
                 </Button>
+                <columnConstraints>
+                    <ColumnConstraints/>
+                    <ColumnConstraints/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                    <RowConstraints/>
+                </rowConstraints>
             </GridPane>
         </Tab>
     </TabPane>

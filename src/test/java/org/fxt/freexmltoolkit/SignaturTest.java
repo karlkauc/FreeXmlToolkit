@@ -53,7 +53,7 @@ public class SignaturTest {
 
     @Test
     public void createNewSignatureFile() {
-        signatureService.createNewKeystoreFile(null, "karl", "123");
+        signatureService.createNewKeystoreFile(null, "karl", "123", "123");
     }
 
     @Test
@@ -68,7 +68,7 @@ public class SignaturTest {
             new File(outputFileName).delete();
         }
 
-        var outputFile = signatureService.signDocument(fileToCheck, keyFile, alias, password, outputFileName);
+        var outputFile = signatureService.signDocument(fileToCheck, keyFile, password, alias, password, outputFileName);
         logger.debug("OutFile: {}", outputFile.getAbsoluteFile());
     }
 

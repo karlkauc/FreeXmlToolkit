@@ -57,7 +57,8 @@ public class SignatureService {
     private final static Logger logger = LogManager.getLogger(SignatureService.class);
 
     public File signDocument(File documentToSign,
-                             File keystore, String alias, String password,
+                             File keystore, String keystorePassword,
+                             String alias, String aliasPassword,
                              String outputFileName) {
         try {
             // Lade das unsignierte XML-Dokument
@@ -68,8 +69,8 @@ public class SignatureService {
 
             // Lade den privaten Schlüssel und das Zertifikat aus dem KeyStore
             KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(new FileInputStream(keystore), password.toCharArray());
-            PrivateKey privateKey = (PrivateKey) ks.getKey(alias, password.toCharArray());
+            ks.load(new FileInputStream(keystore), keystorePassword.toCharArray());
+            PrivateKey privateKey = (PrivateKey) ks.getKey(alias, aliasPassword.toCharArray());
             X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
 
             // Erstelle die XMLSignatureFactory
@@ -158,7 +159,7 @@ public class SignatureService {
     }
 
 
-    public File createNewKeystoreFile(X500NameBuilder x500NameBuilder, String alias, String password) {
+    public File createNewKeystoreFile(X500NameBuilder x500NameBuilder, String alias, String keystorePassword, String aliasPassword) {
         try {
             Security.addProvider(new BouncyCastleProvider());
 
@@ -184,7 +185,8 @@ public class SignatureService {
             X500Name subject = issuer;
 
             // Zertifikat erstellen
-            X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(issuer, serialNumber, startDate, endDate, subject, keyPair.getPublic());
+            X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(issuer, serialNumber, startDate, endDate, subject,
+                    keyPair.getPublic());
             // Zertifikat signieren
             // Original: SHA256WithRSA
             // System.out.println("BCFKSLoadStoreParameter.SignatureAlgorithm.SHA512withRSA.toString() = " + BCFKSLoadStoreParameter.SignatureAlgorithm.SHA512withRSA.toString());
@@ -201,7 +203,7 @@ public class SignatureService {
             try (JcaPEMWriter certWriter = new JcaPEMWriter(new FileWriter("meinZertifikat.pem"))) {
                 certWriter.writeObject(certificate);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage());
             }
 
             /*
@@ -219,7 +221,7 @@ public class SignatureService {
             // Privaten Schlüssel mit AES verschlüsseln und speichern
             var encryptor = new JcePEMEncryptorBuilder("AES-256-CFB")
                     .setProvider("BC")
-                    .build(password.toCharArray());
+                    .build(keystorePassword.toCharArray());
 
             try (JcaPEMWriter keyWriter = new JcaPEMWriter(new FileWriter("meinVerschluesselterSchluessel.pem"))) {
                 keyWriter.writeObject(keyPair.getPrivate(), encryptor);
@@ -232,12 +234,12 @@ public class SignatureService {
             keyStore.load(null, null);
 
             // Privaten Schlüssel und Zertifikat in den KeyStore laden
-            keyStore.setKeyEntry(alias, keyPair.getPrivate(), password.toCharArray(), new java.security.cert.Certificate[]{certificate});
+            keyStore.setKeyEntry(alias, keyPair.getPrivate(), aliasPassword.toCharArray(), new java.security.cert.Certificate[]{certificate});
 
             // KeyStore in eine Datei speichern
             File outputFile = new File(outputDir + File.separator + alias + "_KeyStore.jks");
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                keyStore.store(fos, password.toCharArray());
+                keyStore.store(fos, keystorePassword.toCharArray());
             }
 
             logger.debug("Zertifikat und Schlüssel wurden gespeichert.");
