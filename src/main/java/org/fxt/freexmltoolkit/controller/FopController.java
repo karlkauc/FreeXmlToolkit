@@ -59,7 +59,8 @@ public class FopController {
     private void initialize() {
         progressIndicator.setVisible(false);
 
-        if (System.getenv("debug") != null) {
+        var debug = System.getenv("debug");
+        if (debug != null && debug.equals("true")) {
             xmlFile = new File("src/test/resources/projectteam.xml");
             xslFile = new File("src/test/resources/projectteam2fo.xsl");
             pdfFile = new File("output/ResultXML2PDF.pdf");

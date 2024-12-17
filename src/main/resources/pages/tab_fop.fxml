@@ -58,7 +58,6 @@
                 </Button>
             </HBox>
 
-
             <Label text="PDF File" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
             <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
                 <TextField fx:id="pdfFileName" text="PDF File"/>
@@ -91,6 +90,8 @@
             <Label text="Title" GridPane.rowIndex="7"/>
             <Label text="Keywords" GridPane.rowIndex="8"/>
             <Label text="Config File" GridPane.rowIndex="9"/>
+            <TextField GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+            <TextField GridPane.columnIndex="1" GridPane.rowIndex="6"/>
             <columnConstraints>
                 <ColumnConstraints/>
                 <ColumnConstraints/>
