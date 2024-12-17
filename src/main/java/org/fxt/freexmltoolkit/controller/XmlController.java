@@ -170,6 +170,16 @@ public class XmlController {
         }
     }
 
+    protected void loadFile(File f) {
+        logger.debug("Loading file " + f.getAbsolutePath());
+
+        XmlEditor xmlEditor = new XmlEditor(f);
+        xmlEditor.refresh();
+
+        xmlFilesPane.getTabs().add(xmlEditor);
+        xmlFilesPane.getSelectionModel().select(xmlEditor);
+    }
+
     @FXML
     private void newFilePressed() {
         logger.debug("New File Pressed");

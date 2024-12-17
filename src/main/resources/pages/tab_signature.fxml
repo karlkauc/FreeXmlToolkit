@@ -3,12 +3,19 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <AnchorPane style="-fx-padding: 5px" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
             AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.SignatureController">
     <TabPane style="-fx-padding: 5px" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0"
              AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <Tab text="create Certificate">
+            <graphic>
+                <ImageView fitHeight="16" preserveRatio="true">
+                    <Image url="@../img/key.png"/>
+                </ImageView>
+            </graphic>
+
             <GridPane hgap="10" style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5" vgap="10">
                 <Label GridPane.columnIndex="0" GridPane.rowIndex="0">CommonName (CN):</Label>
                 <TextField fx:id="commonName" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
@@ -67,15 +74,29 @@
 
         </Tab>
         <Tab text="Sign XML File">
+            <graphic>
+                <ImageView fitHeight="16" preserveRatio="true">
+                    <Image url="@../img/certificate.png"/>
+                </ImageView>
+            </graphic>
             <GridPane hgap="10" style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5" vgap="10">
 
                 <Button fx:id="signLoadXmlFileButton" text="XML File" GridPane.columnIndex="0" GridPane.rowIndex="0">XML
                     File
+                    <graphic>
+                        <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                    </graphic>
                 </Button>
                 <Label GridPane.columnIndex="1" GridPane.rowIndex="0" fx:id="xmlFileInfo"/>
 
                 <Button fx:id="signLoadKeystoreButton" text="Keystore File" GridPane.columnIndex="0"
-                        GridPane.rowIndex="1"/>
+                        GridPane.rowIndex="1">
+                    <graphic>
+                        <ImageView fitHeight="16" preserveRatio="true">
+                            <Image url="@../img/keystore.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
                 <Label fx:id="certFileInfo" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
                 <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
@@ -117,15 +138,28 @@
             </GridPane>
         </Tab>
         <Tab text="Validate Signed File">
+            <graphic>
+                <ImageView fitHeight="16" preserveRatio="true">
+                    <Image url="@../img/validate-cert.png"/>
+                </ImageView>
+            </graphic>
             <GridPane hgap="10" style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5" vgap="10">
 
                 <Button fx:id="validateLoadXmlFileButton" text="XML File" GridPane.columnIndex="0"
                         GridPane.rowIndex="0">XML File
+                    <graphic>
+                        <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                    </graphic>
                 </Button>
                 <Label fx:id="validateXmlFileInfo" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
                 <Button fx:id="validateLoadKeystoreButton" text="Keystore File" GridPane.columnIndex="0"
                         GridPane.rowIndex="1">Keystore File
+                    <graphic>
+                        <ImageView fitHeight="16" preserveRatio="true">
+                            <Image url="@../img/keystore.png"/>
+                        </ImageView>
+                    </graphic>
                 </Button>
                 <Label fx:id="validateKeystoreInfo" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 

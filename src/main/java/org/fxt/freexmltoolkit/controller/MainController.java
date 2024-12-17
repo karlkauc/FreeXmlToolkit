@@ -261,6 +261,7 @@ public class MainController {
             setButtonSmall(help);
             setButtonSmall(settings);
             setButtonSmall(exit);
+            setButtonSmall(signature);
         } else {
             leftMenu.setMinWidth(200);
             leftMenu.setMaxWidth(200);
@@ -280,6 +281,7 @@ public class MainController {
             setButtonLarge(help);
             setButtonLarge(settings);
             setButtonLarge(exit);
+            setButtonLarge(signature);
         }
 
         showMenu = !showMenu;
