@@ -126,7 +126,7 @@ dependencies {
     // Misc
     implementation("org.apache.commons:commons-lang3:3.17.0")
     implementation("commons-io:commons-io:2.18.0")
-    implementation("org.apache.commons:commons-text:1.12.0")
+    implementation("org.apache.commons:commons-text:1.13.0")
     implementation("commons-validator:commons-validator:1.9.0")
 
     // CSS reload
@@ -148,9 +148,9 @@ dependencies {
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.1")
     implementation("org.apache.httpcomponents.client5:httpclient5-win:5.2.3")
 
-    implementation("org.junit.jupiter:junit-jupiter:5.11.3")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.3")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.3")
+    implementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.4")
 }
 
 tasks {

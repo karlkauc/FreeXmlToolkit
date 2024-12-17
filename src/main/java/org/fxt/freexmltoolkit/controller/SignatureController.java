@@ -33,7 +33,7 @@ import org.fxt.freexmltoolkit.service.SignatureService;
 import java.io.File;
 
 public class SignatureController {
-    private MainController parentController;
+    private final static Logger logger = LogManager.getLogger(SignatureController.class);
     private final SignatureService signatureService = new SignatureService();
 
     @FXML
@@ -55,8 +55,7 @@ public class SignatureController {
 
     @FXML
     PasswordField createCertificateKeystorePassword, createCertificateAliasPassword, signKeystorePassword, signAliasPassword, validatePasswordField;
-
-    private final static Logger logger = LogManager.getLogger(SignatureController.class);
+    private MainController parentController;
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
@@ -71,7 +70,9 @@ public class SignatureController {
         FileChooser.ExtensionFilter certFilter = new FileChooser.ExtensionFilter("Certificate Files", "*.jks");
         fileChooserCertificate.getExtensionFilters().add(certFilter);
         signLoadKeystoreButton.setOnAction(e -> {
-            certificateFile = fileChooserCertificate.showOpenDialog(null);
+            this.certificateFile = fileChooserCertificate.showOpenDialog(null);
+            this.certFileInfo.setText(this.certificateFile.getName());
+            logger.debug("Setting Keystore File: {}", this.certificateFile.getAbsoluteFile().getName());
         });
         signLoadKeystoreButton.setOnDragOver(event -> {
             Dragboard db = event.getDragboard();
@@ -98,9 +99,11 @@ public class SignatureController {
 
         FileChooser.ExtensionFilter xmlFilter = new FileChooser.ExtensionFilter("XML Files", "*.xml");
         fileChooserCertificate.getExtensionFilters().add(xmlFilter);
-        signLoadXmlFileButton.setOnAction(e ->
-                this.xmlFile = fileChooserXMl.showOpenDialog(null)
-        );
+        signLoadXmlFileButton.setOnAction(e -> {
+            this.xmlFile = fileChooserXMl.showOpenDialog(null);
+            this.xmlFileInfo.setText(this.xmlFile.getName());
+            logger.debug("Setting XML File: {}", this.xmlFile.getAbsoluteFile().getName());
+        });
         signLoadXmlFileButton.setOnDragOver(event -> {
             Dragboard db = event.getDragboard();
             if (db.hasFiles()) {
@@ -124,10 +127,12 @@ public class SignatureController {
             event.consume();
         });
 
-
         // validate xml file
         validateLoadKeystoreButton.setOnAction(e -> {
             this.certificateFile = fileChooserCertificate.showOpenDialog(null);
+            this.validateKeystoreInfo.setText(this.certificateFile.getName());
+            logger.debug("Setting Keystore File: {}", this.certificateFile.getAbsoluteFile().getName());
+
         });
         validateLoadKeystoreButton.setOnDragOver(event -> {
             Dragboard db = event.getDragboard();
@@ -154,6 +159,8 @@ public class SignatureController {
 
         validateLoadXmlFileButton.setOnAction(e -> {
             this.xmlFile = fileChooserXMl.showOpenDialog(null);
+            this.validateXmlFileInfo.setText(this.xmlFile.getName());
+            logger.debug("Setting XML File: {}", this.xmlFile.getAbsoluteFile().getName());
         });
         validateLoadXmlFileButton.setOnDragOver(event -> {
             Dragboard db = event.getDragboard();
@@ -177,7 +184,6 @@ public class SignatureController {
             event.setDropCompleted(success);
             event.consume();
         });
-
 
         if (System.getenv("debug") != null) {
             logger.debug("set Debug to True");
@@ -236,7 +242,6 @@ public class SignatureController {
 
     @FXML
     public void signDocument() {
-        logger.debug("Signing Document");
         final var keystoreAlias = signKeystoreAlias.getText();
         final var keystorePassword = signKeystorePassword.getText();
         final var aliasPassword = signAliasPassword.getText();
@@ -262,8 +267,6 @@ public class SignatureController {
 
     @FXML
     public void validateSignedDocument() {
-        logger.debug("isDocumentSigned");
-
         final var validateAlias = validateKeystoreAlias.getText();
         final var validateKeystorePassword = validatePasswordField.getText();
 
