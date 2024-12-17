@@ -150,26 +150,23 @@ public class SignatureController {
         }
     }
 
-    //  @FXML
-    public void isDocumentSigned() {
+    @FXML
+    public void validateSignedDocument() {
         logger.debug("isDocumentSigned");
 
-        File signedFile = new File("test01_signed.xml");
-        File cerFile = new File("release/examples/certs/karl/karl_SignedKey.pem");
+        if (this.certificateFile != null && this.xmlFile != null) {
+            var isValid = signatureService.isSignatureValid(this.xmlFile, this.certificateFile, "karl", "123");
 
-        /*var i = signatureService.isSignatureValid(signedFile, cerFile);
-
-        if (i) {
-            logger.debug("Certificate is valid");
-        } else {
-            logger.debug("Certificate is not valid");
+            Alert alert;
+            if (isValid) {
+                alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setContentText("File is valid!");
+            } else {
+                alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText("File is not valid!");
+            }
+            alert.showAndWait();
         }
-         */
-    }
-
-    private void setCertificateFile(File certificateFile) {
-        this.certificateFile = certificateFile;
-        // hier noch label ändern
     }
 
 }

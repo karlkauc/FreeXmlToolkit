@@ -91,7 +91,6 @@ public class SignatureService {
             X509Data x509Data = kif.newX509Data(java.util.Collections.singletonList(cert));
             KeyInfo ki = kif.newKeyInfo(java.util.Arrays.asList(kv, x509Data));
 
-
             // Erstelle die XML-Signatur
             XMLSignature signature = fac.newXMLSignature(si, ki);
 
