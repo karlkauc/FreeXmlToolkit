@@ -104,10 +104,10 @@ public class SignatureController {
             final var keystorePasswordText = createCertificateKeystorePassword.getText();
             final var aliasPasswordText = createCertificateAliasPassword.getText();
 
-            if (aliasText.isEmpty() || keystorePasswordText.isEmpty() || aliasPasswordText.isEmpty()) {
+            if (aliasText.isEmpty() || keystorePasswordText.isEmpty()) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
-                alert.setContentText("Alias and password need to be provided!!!");
+                alert.setContentText("Alias and Keystore Password need to be provided!");
                 alert.showAndWait();
             } else {
                 // X.500 Name für das Zertifikat
@@ -139,7 +139,7 @@ public class SignatureController {
         final var aliasPassword = signAliasPassword.getText();
         final var outputFileName = this.xmlFile.getName().toLowerCase().replace(".xml", newFileName.getText() + ".xml");
 
-        if (certificateFile != null && xmlFile != null && !keystoreAlias.isEmpty() && !keystorePassword.isEmpty() && !aliasPassword.isEmpty()) {
+        if (certificateFile != null && xmlFile != null && !keystoreAlias.isEmpty() && !keystorePassword.isEmpty()) {
             try {
                 var signedDocument = signatureService.signDocument(xmlFile, certificateFile, keystorePassword, keystoreAlias, aliasPassword, outputFileName);
                 if (signedDocument != null) {
@@ -184,7 +184,7 @@ public class SignatureController {
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText("Certificate file or XML file are empty!");
-            alert.setContentText("Certificate File, XML File, Keystore Password and Keystore Alias must be provided!");
+            alert.setContentText("Certificate File, XML File and Keystore Alias must be provided!");
             alert.showAndWait();
         }
     }
@@ -206,6 +206,7 @@ public class SignatureController {
             for (File file : db.getFiles()) {
                 this.xmlFile = file;
                 this.xmlFileInfo.setText(this.xmlFile.getName());
+                this.validateXmlFileInfo.setText(this.xmlFile.getName());
                 logger.debug("Setting XML File from DragEvent: {}", this.xmlFile.getAbsoluteFile().getName());
             }
         }
@@ -221,6 +222,7 @@ public class SignatureController {
             for (File file : db.getFiles()) {
                 this.certificateFile = file;
                 this.certFileInfo.setText(this.certificateFile.getName());
+                this.validateKeystoreInfo.setText(this.certificateFile.getName());
                 logger.debug("Setting Keystore File from dragEvent: {}", this.certificateFile.getAbsoluteFile().getName());
             }
         }

@@ -45,6 +45,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,6 +56,11 @@ import java.util.Date;
 public class SignatureService {
 
     private final static Logger logger = LogManager.getLogger(SignatureService.class);
+    public static final int KEY_SIZE = 2048;
+    public static final String SIGNATURE_ALGORITHM = "SHA512withRSA";
+    public static final String PEM_ENCRYPT_ALGORITHM = "AES-256-CFB";
+
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
     public File signDocument(File documentToSign,
                              File keystore, String keystorePassword,
@@ -62,7 +68,6 @@ public class SignatureService {
                              String outputFileName) {
         try {
             // Lade das unsignierte XML-Dokument
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(documentToSign);
@@ -70,6 +75,7 @@ public class SignatureService {
             // Lade den privaten Schlüssel und das Zertifikat aus dem KeyStore
             KeyStore ks = KeyStore.getInstance("JKS");
             ks.load(new FileInputStream(keystore), keystorePassword.toCharArray());
+
             PrivateKey privateKey = (PrivateKey) ks.getKey(alias, aliasPassword.toCharArray());
             X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
 
@@ -116,7 +122,6 @@ public class SignatureService {
     public boolean isSignatureValid(File signedFile, File keyStore, String alias, String password) {
         try {
             // Lade das signierte XML-Dokument
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(signedFile);
@@ -158,8 +163,10 @@ public class SignatureService {
         return false;
     }
 
-
-    public File createNewKeystoreFile(X500NameBuilder x500NameBuilder, String alias, String keystorePassword, String aliasPassword) {
+    public File createNewKeystoreFile(X500NameBuilder x500NameBuilder,
+                                      String alias,
+                                      String keystorePassword,
+                                      String aliasPassword) {
         try {
             Security.addProvider(new BouncyCastleProvider());
 
@@ -168,7 +175,7 @@ public class SignatureService {
 
             // Schlüsselpaar generieren
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
-            keyPairGenerator.initialize(2048, new SecureRandom());
+            keyPairGenerator.initialize(KEY_SIZE, new SecureRandom());
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
             // Zertifikatsinformationen festlegen
@@ -187,43 +194,38 @@ public class SignatureService {
             // Zertifikat erstellen
             X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(issuer, serialNumber, startDate, endDate, subject,
                     keyPair.getPublic());
+
             // Zertifikat signieren
-            // Original: SHA256WithRSA
-            // System.out.println("BCFKSLoadStoreParameter.SignatureAlgorithm.SHA512withRSA.toString() = " + BCFKSLoadStoreParameter.SignatureAlgorithm.SHA512withRSA.toString());
-            ContentSigner contentSigner = new JcaContentSignerBuilder("SHA512withRSA").build(keyPair.getPrivate());
+            ContentSigner contentSigner = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM).build(keyPair.getPrivate());
             X509Certificate certificate = new JcaX509CertificateConverter()
                     .setProvider("BC")
                     .getCertificate(certBuilder.build(contentSigner));
 
             // Zertifikat anzeigen
-            logger.debug("Zertifikat: {}", certificate);
+            // logger.debug("Zertifikat: {}", certificate);
+
+            File summary = new File(outputDir + File.separator + "summary.txt");
+            String summaryText = "Keystore Alias: " + alias + System.lineSeparator() +
+                    "Keystore Password: " + keystorePassword + System.lineSeparator() +
+                    "Alias Password: " + aliasPassword + System.lineSeparator() +
+                    System.lineSeparator() +
+                    "Certificate: " + System.lineSeparator() +
+                    certificate;
+            Files.writeString(summary.toPath(), summaryText, Charset.defaultCharset());
 
             // Zertifikat und Schlüssel speichern
             // kann auch die Endung .cer haben
-            try (JcaPEMWriter certWriter = new JcaPEMWriter(new FileWriter("meinZertifikat.pem"))) {
+            try (JcaPEMWriter certWriter = new JcaPEMWriter(new FileWriter(outputDir + File.separator + alias + "_publicKey.pem"))) {
                 certWriter.writeObject(certificate);
             } catch (IOException e) {
                 logger.error(e.getMessage());
             }
 
-            /*
-            ohne passwort:
-            // Zertifikat und Schlüssel speichern
-            try (JcaPEMWriter certWriter = new JcaPEMWriter(new FileWriter("meinZertifikat.pem"));
-                 JcaPEMWriter keyWriter = new JcaPEMWriter(new FileWriter("meinSchluessel.pem"))) {
-                certWriter.writeObject(certificate);
-                keyWriter.writeObject(keyPair.getPrivate());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-             */
-
-            // Privaten Schlüssel mit AES verschlüsseln und speichern
-            var encryptor = new JcePEMEncryptorBuilder("AES-256-CFB")
+            final var encryptor = new JcePEMEncryptorBuilder(PEM_ENCRYPT_ALGORITHM)
                     .setProvider("BC")
                     .build(keystorePassword.toCharArray());
 
-            try (JcaPEMWriter keyWriter = new JcaPEMWriter(new FileWriter("meinVerschluesselterSchluessel.pem"))) {
+            try (JcaPEMWriter keyWriter = new JcaPEMWriter(new FileWriter(outputDir + File.separator + alias + "_privateKey.pem"))) {
                 keyWriter.writeObject(keyPair.getPrivate(), encryptor);
             } catch (IOException e) {
                 logger.error(e.getMessage());
