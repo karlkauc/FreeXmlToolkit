@@ -36,6 +36,6 @@ public class FopTest {
         parameter.put("versionParam", "3");
 
         FOPService fopService = new FOPService();
-        fopService.createPdfFile(xmlfile, xsltfile, pdffile, parameter);
+        fopService.createPdfFile(xmlfile, xsltfile, pdffile, null);
     }
 }

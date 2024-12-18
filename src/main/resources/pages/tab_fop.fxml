@@ -38,7 +38,7 @@
                 <Insets bottom="25" left="25" right="25" top="25"/>
             </padding>
 
-            <Label text="XML File" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <Label GridPane.columnIndex="0" GridPane.rowIndex="0" text="XML File"/>
             <HBox GridPane.columnIndex="1" GridPane.rowIndex="0">
                 <TextField text="XML File" fx:id="xmlFileName"/>
                 <Button onAction="#openXmlFile">
@@ -48,7 +48,7 @@
                 </Button>
             </HBox>
 
-            <Label text="XSLT File" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <Label GridPane.columnIndex="0" GridPane.rowIndex="1" text="XSLT File"/>
             <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
                 <TextField text="XML File" fx:id="xslFileName"/>
                 <Button onAction="#openXslFile">
@@ -58,7 +58,7 @@
                 </Button>
             </HBox>
 
-            <Label text="PDF File" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <Label GridPane.columnIndex="0" GridPane.rowIndex="2" text="PDF File"/>
             <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
                 <TextField fx:id="pdfFileName" text="PDF File"/>
                 <Button onAction="#openPdfFile">
@@ -69,31 +69,43 @@
                     </graphic>
                 </Button>
             </HBox>
-
-            <Button fx:id="startConversion" onAction="#buttonConversion" text="create PDF" GridPane.rowIndex="10">
-                <graphic>
-                    <FontIcon iconColor="#e2c352" iconLiteral="fth-play" iconSize="16"/>
-                </graphic>
-            </Button>
-
-            <ProgressIndicator fx:id="progressIndicator" progress="0.0" GridPane.columnIndex="2"
-                               GridPane.rowIndex="10"/>
-            <Label text="Producer" GridPane.rowIndex="4"/>
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-            <Label text="Options" GridPane.rowIndex="3">
+            <Label GridPane.rowIndex="3" text="Options">
                 <font>
                     <Font name="System Bold" size="12.0"/>
                 </font>
             </Label>
-            <Label text="Author" GridPane.rowIndex="5"/>
-            <Label text="CreationDate" GridPane.rowIndex="6"/>
-            <Label text="Title" GridPane.rowIndex="7"/>
-            <Label text="Keywords" GridPane.rowIndex="8"/>
+
+            <Label GridPane.rowIndex="4" text="Producer"/>
+            <TextField GridPane.columnIndex="1" GridPane.rowIndex="4" fx:id="producer" promptText="producer"/>
+
+            <Label GridPane.rowIndex="5" text="Author"/>
+            <TextField GridPane.columnIndex="1" GridPane.rowIndex="5" fx:id="author" promptText="author"/>
+
+            <Label GridPane.rowIndex="6" text="CreationDate"/>
+            <TextField GridPane.columnIndex="1" GridPane.rowIndex="6" fx:id="creationDate" disable="true"/>
+
+            <Label GridPane.columnIndex="0" GridPane.rowIndex="7" text="Title"/>
+            <TextField GridPane.columnIndex="1" GridPane.rowIndex="7" fx:id="title" promptText="title"/>
+
+            <Label GridPane.rowIndex="8" text="Keywords"/>
+            <TextField GridPane.columnIndex="1" GridPane.rowIndex="8" fx:id="keywords" promptText="keywords"/>
+
             <Label text="Config File" GridPane.rowIndex="9"/>
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="5"/>
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+
+            <Label GridPane.columnIndex="0" GridPane.rowIndex="10" text="Open File after creation:"/>
+            <CheckBox GridPane.columnIndex="1" GridPane.rowIndex="10" GridPane.halignment="CENTER" selected="true"
+                      fx:id="openPdfAfterCreation" textAlignment="CENTER"/>
+
+            <Button GridPane.rowIndex="11" GridPane.columnIndex="0" fx:id="startConversion" onAction="#buttonConversion"
+                    text="create PDF">
+                <graphic>
+                    <FontIcon iconColor="#e2c352" iconLiteral="fth-play" iconSize="16"/>
+                </graphic>
+            </Button>
+            <ProgressIndicator GridPane.rowIndex="11" GridPane.columnIndex="1" fx:id="progressIndicator" progress="0.0"
+                               GridPane.halignment="CENTER"/>
+
             <columnConstraints>
-                <ColumnConstraints/>
                 <ColumnConstraints/>
                 <ColumnConstraints/>
             </columnConstraints>
@@ -101,16 +113,16 @@
                 <RowConstraints/>
                 <RowConstraints/>
                 <RowConstraints/>
-                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
-                <RowConstraints maxHeight="50.0" minHeight="10.0" prefHeight="30.0"/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
             </rowConstraints>
-
         </GridPane>
     </VBox>
 </AnchorPane>

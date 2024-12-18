@@ -24,6 +24,7 @@ import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.PDFSettings;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -35,6 +36,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -44,7 +46,7 @@ public class FOPService {
 
     HashMap<String, String> defaultParameter;
 
-    public void createPdfFile(File xmlFile, File xslFile, File pdfOutput, HashMap<String, String> inputParameter) {
+    public void createPdfFile(File xmlFile, File xslFile, File pdfOutput, PDFSettings pdfSettings) {
 
         assert xmlFile.exists();
         assert xslFile.exists();
@@ -58,6 +60,14 @@ public class FOPService {
 
             final FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
             FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
+            if (!pdfSettings.producer().isEmpty()) foUserAgent.setProducer(pdfSettings.producer());
+            if (!pdfSettings.author().isEmpty()) foUserAgent.setAuthor(pdfSettings.author());
+            if (!pdfSettings.creator().isEmpty()) foUserAgent.setCreator(pdfSettings.creator());
+            if (!pdfSettings.title().isEmpty()) foUserAgent.setTitle(pdfSettings.title());
+            if (!pdfSettings.keywords().isEmpty()) foUserAgent.setKeywords(pdfSettings.keywords());
+            // foUserAgent.setSubject("subject");
+
+            Files.createDirectories(pdfOutput.toPath().getParent());
 
             OutputStream out = new FileOutputStream(pdfOutput);
             out = new BufferedOutputStream(out);
@@ -71,9 +81,9 @@ public class FOPService {
                 transformer.setParameter(key, defaultParameter.get(key));
             }
 
-            for (String key : inputParameter.keySet()) {
-                logger.debug("Set individual parameter: '{}' - '{}'", key, inputParameter.get(key));
-                transformer.setParameter(key, inputParameter.get(key));
+            for (String key : pdfSettings.customParameter().keySet()) {
+                logger.debug("Set individual parameter: '{}' - '{}'", key, pdfSettings.customParameter().get(key));
+                transformer.setParameter(key, pdfSettings.customParameter().get(key));
             }
             Source src = new StreamSource(xmlFile);
             Result res = new SAXResult(fop.getDefaultHandler());
@@ -81,6 +91,8 @@ public class FOPService {
             out.close();
         } catch (Exception e) {
             logger.error(e.getMessage());
+            logger.error(e.getStackTrace());
+            logger.error(e);
         }
     }
 

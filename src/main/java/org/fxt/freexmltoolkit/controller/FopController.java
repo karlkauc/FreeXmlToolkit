@@ -20,17 +20,20 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.FOPService;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 
 public class FopController {
@@ -43,6 +46,13 @@ public class FopController {
     File xmlFile, xslFile, pdfFile;
     @FXML
     TextField xmlFileName, xslFileName, pdfFileName;
+
+    @FXML
+    TextField producer, author, creationDate, title, keywords, subject;
+
+    @FXML
+    CheckBox openPdfAfterCreation;
+
     @FXML
     ProgressIndicator progressIndicator;
     String lastOpenDir = ".";
@@ -69,6 +79,9 @@ public class FopController {
             xslFileName.setText(xslFile.getName());
             pdfFileName.setText(pdfFile.getName());
         }
+
+        this.creationDate.setText(new Date().toString());
+        this.author.setText(System.getProperty("user.name"));
     }
 
     @FXML
@@ -132,14 +145,17 @@ public class FopController {
         HashMap<String, String> parameter = new HashMap<>();
         parameter.put("versionParam", "3");
 
-        fopService.createPdfFile(xmlFile, xslFile, pdfFile, parameter);
+        PDFSettings pdfSettings = new PDFSettings(parameter, producer.getText(), author.getText(), "created with FreeXMLToolkit", creationDate.getText(), title.getText(), keywords.getText());
+
+        fopService.createPdfFile(xmlFile, xslFile, pdfFile, pdfSettings);
 
         if (pdfFile != null && pdfFile.exists()) {
             logger.debug("Written {} bytes", pdfFile.length());
-
-            progressIndicator.setProgress(0.9);
-            Desktop.getDesktop().open(pdfFile);
             progressIndicator.setProgress(1.0);
+
+            if (openPdfAfterCreation.isSelected() && pdfFile.exists() && pdfFile.length() > 0) {
+                Desktop.getDesktop().open(pdfFile);
+            }
         } else {
             logger.warn("PDF File do not exits");
         }
