@@ -36,6 +36,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxmisc.richtext.model.TwoDimensional;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -144,6 +145,13 @@ public class XmlEditor extends Tab {
             if (newText.length() < MAX_SIZE_FOR_FORMATTING) {
                 Platform.runLater(() -> codeArea.setStyleSpans(0, computeHighlighting(newText)));
             }
+
+            int caretPosition = codeArea.getCaretPosition();
+            var lineColumn = codeArea.offsetToPosition(caretPosition, TwoDimensional.Bias.Forward);
+            int lineNumber = lineColumn.getMajor() + 1; // Line numbers are 0-based, so add 1
+            int columnNumber = lineColumn.getMinor() + 1; // Column numbers are 0-based, so add 1
+            logger.debug("Line: {}, Column: {}", lineNumber, columnNumber);
+            //}
         });
 
         codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
@@ -162,6 +170,10 @@ public class XmlEditor extends Tab {
                 resetFontSize();
             }
         });
+
+
+        // I want to know the actual position of the curor. write me some java code that returns me the actual position of the cursor.
+
 
         stackPane.getChildren().add(virtualizedScrollPane);
         codeArea.setLineHighlighterOn(true);

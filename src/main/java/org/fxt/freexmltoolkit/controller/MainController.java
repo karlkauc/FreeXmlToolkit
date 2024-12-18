@@ -118,6 +118,7 @@ public class MainController {
             System.exit(0);
         });
         loadLastOpenFiles();
+
         loadPageFromPath("/pages/welcome.fxml");
     }
 

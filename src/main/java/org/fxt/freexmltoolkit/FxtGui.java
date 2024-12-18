@@ -31,6 +31,7 @@ import javafx.stage.Stage;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.lemminx.XMLServerLauncher;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
@@ -140,6 +141,19 @@ public class FxtGui extends Application {
     }
 
     public static void main(String[] args) {
+        startLemMinXServer();
         launch();
+    }
+
+    private static void startLemMinXServer() {
+        logger.debug("Starting LemMinX Server");
+        System.setProperty("LEMMINX_DEBUG", "true");
+        new Thread(() -> {
+            try {
+                XMLServerLauncher.main(new String[]{});
+            } catch (Exception e) {
+                logger.debug("Error starting LemMinX Server: {}", e.getMessage());
+            }
+        }).start();
     }
 }
