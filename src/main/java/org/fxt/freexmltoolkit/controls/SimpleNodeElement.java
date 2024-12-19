@@ -119,7 +119,7 @@ public class SimpleNodeElement extends VBox {
                                     VBox nodeNameBox = new VBox();
                                     var attributeBox = new HBox();
                                     HBox.setMargin(attributeBox, new Insets(5, 5, 5, 5));
-                                    attributeBox.setStyle("-fx-background-color: #7272e3; -fx-text-fill: #eeeef8; -fx-padding: 2px;");
+                                    attributeBox.setStyle("-fx-background-color: #c9c9ec; -fx-text-fill: #eeeef8; -fx-padding: 2px;");
                                     attributeBox.getChildren().add(new Label("@"));
                                     attributeBox.getChildren().add(new Label(attributes.getNodeName()));
                                     nodeNameBox.getChildren().add(attributeBox);
@@ -127,7 +127,7 @@ public class SimpleNodeElement extends VBox {
                                     VBox nodeValueBox = new VBox();
                                     nodeValueBox.getChildren().add(new Label(attributes.getNodeValue()));
                                     nodeValueBox.setAlignment(Pos.CENTER_RIGHT);
-                                    nodeValueBox.setStyle("-fx-background-color: yellow");
+                                    nodeValueBox.setStyle("-fx-background-color: #f6f691");
 
                                     gridPane.add(nodeNameBox, 0, row);
                                     gridPane.add(nodeValueBox, 1, row);

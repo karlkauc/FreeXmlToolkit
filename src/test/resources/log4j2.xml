@@ -41,5 +41,9 @@
         <Logger name="org.apache.hc.client5.http" level="ERROR">
             <AppenderRef ref="Console"/>
         </Logger>
+        <Logger name="org.eclipse.lemminx" level="DEBUG">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
     </Loggers>
 </Configuration>

@@ -437,7 +437,6 @@ public class XsdDocumentationService {
         }
         a.setAttribute("href", parentPageUrl);
 
-
         Element rect1 = createSvgElement(document, rootElementName, rootElementHeight, rootElementWidth, startX + "", startY + "", startX, startY);
         if (rootElement.getXsdElement().getMinOccurs() > 0) {
             rect1.setAttribute("style", MANDATORY_FORMAT);
@@ -597,8 +596,8 @@ public class XsdDocumentationService {
         elements = parser.getResultXsdElements().collect(Collectors.toList());
         xmlSchema = parser.getResultXsdSchemas().toList();
 
-        xsdComplexTypes = xmlSchema.get(0).getChildrenComplexTypes().collect(Collectors.toList());
-        xsdSimpleTypes = xmlSchema.get(0).getChildrenSimpleTypes().collect(Collectors.toList());
+        xsdComplexTypes = xmlSchema.getFirst().getChildrenComplexTypes().collect(Collectors.toList());
+        xsdSimpleTypes = xmlSchema.getFirst().getChildrenSimpleTypes().collect(Collectors.toList());
 
         extendedXsdElements = new LinkedHashMap<>();
         counter = 0;
