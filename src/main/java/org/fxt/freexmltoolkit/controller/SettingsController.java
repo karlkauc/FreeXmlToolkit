@@ -27,6 +27,8 @@ import org.fxt.freexmltoolkit.service.ConnectionServiceImpl;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
+import java.util.Properties;
+
 public class SettingsController {
 
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
@@ -39,6 +41,9 @@ public class SettingsController {
     RadioButton noProxy, systemProxy, manualProxy;
 
     @FXML
+    TextField username, password, customTempFolder, httpProxyHost, httpProxyPort, httpProxyUser, httpProxyPass;
+
+    @FXML
     Spinner<Integer> portSpinner;
 
     @FXML
@@ -46,6 +51,8 @@ public class SettingsController {
 
     @FXML
     ToggleGroup proxy;
+
+    Properties props;
 
     SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, 8080);
 
@@ -58,7 +65,10 @@ public class SettingsController {
     @FXML
     public void initialize() {
         portSpinner.setValueFactory(valueFactory);
-        //loadCurrentSettings();
+        props = propertiesService.loadProperties();
+
+        if (props.get("httpProxyHost") != null) this.httpProxyHost.setText(props.get("httpProxyHost").toString());
+
     }
 
     @FXML
@@ -68,7 +78,15 @@ public class SettingsController {
 
     @FXML
     private void performSave() {
+        props.setProperty("username", username.getText());
+        props.setProperty("password", password.getText());
+        props.setProperty("customTempFolder", customTempFolder.getText());
+        props.setProperty("httpProxyHost", httpProxyHost.getText());
+        props.setProperty("httpProxyPort", httpProxyPort.getText());
+        props.setProperty("httpProxyUser", httpProxyUser.getText());
+        props.setProperty("httpProxyPass", httpProxyPass.getText());
 
+        propertiesService.saveProperties(props);
     }
 
     @FXML

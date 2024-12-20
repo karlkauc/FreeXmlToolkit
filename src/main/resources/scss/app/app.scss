@@ -71,7 +71,7 @@ $background-color: #dcdcdc;
 
 .menu_button {
   -fx-text-fill: black;
-  -fx-alignment: center;
+  -fx-alignment: BASELINE_LEFT;
   -fx-pref-height: 50;
   -fx-min-width: 200;
   -fx-pref-width: 200;
@@ -321,3 +321,8 @@ $background-color: #dcdcdc;
   -fx-background-color: #faf1f1;
 }
 */
+
+.signature-main {
+  -fx-background-color: white;
+  -fx-padding: 5px;
+}

@@ -28,6 +28,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.junit.jupiter.api.Test;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
@@ -35,6 +36,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class LemminxTest {
 
@@ -51,22 +53,18 @@ public class LemminxTest {
             InputStream in = System.in;
             OutputStream out = System.out;
 
+            // Load and process the XML file
+            String xmlFilePath = "src/test/resources/FundsXML_306.xml";
+            Path p = Paths.get(xmlFilePath);
+
+            FileInputStream fis = new FileInputStream(p.toFile());
+
             // Launch the server
-            Launcher<LanguageServer> serverLauncher = Launcher.createLauncher(server, LanguageServer.class, in, out);
+            Launcher<LanguageServer> serverLauncher = Launcher.createLauncher(server, LanguageServer.class, fis, out);
             LanguageServer languageServer = serverLauncher.getRemoteProxy();
             serverLauncher.startListening();
             RemoteEndpoint remoteEndpoint = serverLauncher.getRemoteEndpoint();
 
-            String customMessage = "{\"jsonrpc\":\"2.0\",\"method\":\"custom/method\",\"params\":{},\"id\":1}";
-            var x = remoteEndpoint.request("custom/method", customMessage).thenAccept(response -> {
-                System.out.println("Custom method response: " + response);
-            });
-
-            x.get();
-
-            // Load and process the XML file
-            String xmlFilePath = "src/test/resources/FundsXML_306.xml";
-            Path p = Paths.get(xmlFilePath);
 
             TextDocumentIdentifier textDocumentIdentifier = new TextDocumentIdentifier();
             textDocumentIdentifier.setUri(p.toUri().toString());
@@ -78,9 +76,9 @@ public class LemminxTest {
             );
 
             // Call textDocument/completion
-            // CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion = languageServer.getTextDocumentService().completion(completionParams);
-            // Either<List<CompletionItem>, CompletionList> completionResult = completion.get(5, TimeUnit.SECONDS);
-            // System.out.println("Completion result: " + completionResult);
+            CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion = languageServer.getTextDocumentService().completion(completionParams);
+            Either<List<CompletionItem>, CompletionList> completionResult = completion.get(5, TimeUnit.SECONDS);
+            System.out.println("Completion result: " + completionResult);
 
             // Call textDocument/hover
             /*HoverParams hoverParams = new HoverParams(new TextDocumentIdentifier(xmlFilePath), new Position(0, 0));

@@ -7,8 +7,9 @@
 <AnchorPane style="-fx-padding: 5px" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
             AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.SignatureController">
-    <TabPane style="-fx-padding: 5px" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0"
-             AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+    <TabPane tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0"
+             AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
+             styleClass="signature-main">
         <Tab text="create Certificate">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
@@ -32,8 +33,7 @@
                 <Label GridPane.columnIndex="0" GridPane.rowIndex="6">Email (E):</Label>
                 <TextField fx:id="email" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
 
-                <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="7">Keystore Password*:
-                </Label>
+                <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
                 <PasswordField fx:id="createCertificateKeystorePassword" promptText="Keystore Password"
                                GridPane.columnIndex="1" GridPane.rowIndex="7"/>
 

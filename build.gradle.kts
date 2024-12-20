@@ -91,6 +91,9 @@ dependencies {
     implementation("org.kordamp.ikonli:ikonli-coreui-pack:12.3.1")
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
+    // Style
+    implementation("io.github.mkpaz:atlantafx-base:2.0.1")
+
     // Richtext
     implementation("org.fxmisc.richtext:richtextfx:0.11.4")
 

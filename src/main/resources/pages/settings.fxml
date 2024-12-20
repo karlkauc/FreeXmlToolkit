@@ -20,75 +20,80 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<VBox prefHeight="768.0" prefWidth="1024.0" spacing="10.0" styleClass="my_container"
-      AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
+<VBox prefHeight="768.0" prefWidth="1024.0" spacing="10.0" styleClass="my_container" AnchorPane.bottomAnchor="0"
+      AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
       xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.SettingsController">
-
-    <Label styleClass="h2" text="HTTP Proxy"/>
-
-    <VBox spacing="10.0">
-        <children>
-            <RadioButton fx:id="noProxy" mnemonicParsing="false" text="No Proxy">
-                <toggleGroup>
-                    <ToggleGroup fx:id="proxy"/>
-                </toggleGroup>
-                <VBox.margin>
-                    <Insets/>
-                </VBox.margin>
-            </RadioButton>
-            <RadioButton fx:id="systemProxy" mnemonicParsing="false" selected="true" text="Use System proxy"
-                         toggleGroup="$proxy"/>
-            <RadioButton fx:id="manualProxy" mnemonicParsing="false" text="Manual proxy configuration"
-                         toggleGroup="$proxy"/>
-            <VBox spacing="20.0">
-                <children>
-                    <HBox>
-                        <children>
-                            <Label prefWidth="200.0" text="Host Name"/>
-                            <TextField prefWidth="200.0" promptText="host name"/>
-                        </children>
-                        <opaqueInsets>
-                            <Insets/>
-                        </opaqueInsets>
-                    </HBox>
-                    <HBox>
-                        <children>
-                            <Label prefWidth="200.0" text="Port Number"/>
-                            <Spinner fx:id="portSpinner" editable="true" initialValue="50" prefWidth="200.0"/>
-                        </children>
-                    </HBox>
-                    <HBox>
-                        <children>
-                            <Label prefWidth="200.0" text="no proxy for"/>
-                            <TextField prefWidth="200.0" promptText="*.domain.com, 192.168.*"/>
-                        </children>
-                    </HBox>
-                    <HBox>
-                        <children>
-                            <Button fx:id="checkConnection" mnemonicParsing="false" onAction="#performCheck"
-                                    prefWidth="200.0" text="Check connection">
-                                <HBox.margin>
-                                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
-                                </HBox.margin>
-                            </Button>
-                            <Label/>
-                        </children>
-                    </HBox>
-                    <HBox spacing="20.0">
-                        <children>
-                            <Button mnemonicParsing="false" onAction="#performSave" text="Save"/>
-                            <Button mnemonicParsing="false" onAction="#loadCurrentSettings" text="Cancle"/>
-                        </children>
-                    </HBox>
-                </children>
+    <TitledPane animated="false" collapsible="false" text="Proxy Settings">
+        <graphic>
+            <ImageView fitHeight="16" preserveRatio="true">
+                <Image url="@../img/proxy.png"/>
+            </ImageView>
+        </graphic>
+        <VBox>
+            <VBox spacing="10.0">
+                <RadioButton fx:id="noProxy" mnemonicParsing="false" text="No Proxy">
+                    <toggleGroup>
+                        <ToggleGroup fx:id="proxy"/>
+                    </toggleGroup>
+                </RadioButton>
+                <RadioButton fx:id="systemProxy" mnemonicParsing="false" selected="true" text="Use System proxy"
+                             toggleGroup="$proxy"/>
+                <RadioButton fx:id="manualProxy" mnemonicParsing="false" text="Manual proxy configuration"
+                             toggleGroup="$proxy"/>
             </VBox>
-        </children>
-        <VBox.margin>
-            <Insets left="20.0"/>
-        </VBox.margin>
-    </VBox>
+            <VBox spacing="20.0">
+                <GridPane vgap="10" hgap="10">
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="0" text="Host Name"/>
+                    <TextField GridPane.columnIndex="1" GridPane.rowIndex="0" fx:id="httpProxyHost"
+                               promptText="host name"/>
 
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="1" text="Port Number"/>
+                    <Spinner GridPane.columnIndex="1" GridPane.rowIndex="1"
+                             fx:id="portSpinner" editable="true" initialValue="8080"/>
+
+                    <Label GridPane.columnIndex="0" GridPane.rowIndex="2" text="no proxy for"/>
+                    <TextField GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="*.domain.com, 192.168.*"/>
+
+                    <Button GridPane.columnIndex="0" GridPane.rowIndex="3" fx:id="checkConnection"
+                            mnemonicParsing="false" onAction="#performCheck" prefWidth="200.0" text="Check connection">
+                        <graphic>
+                            <ImageView fitHeight="16" preserveRatio="true">
+                                <Image url="@../img/connection.png"/>
+                            </ImageView>
+                        </graphic>
+                        <HBox.margin>
+                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                        </HBox.margin>
+                    </Button>
+                </GridPane>
+            </VBox>
+        </VBox>
+    </TitledPane>
+    <TitledPane animated="false" collapsible="false" text="Folders">
+        <graphic>
+            <ImageView fitHeight="16" preserveRatio="true">
+                <Image url="@../img/folder.png"/>
+            </ImageView>
+        </graphic>
+        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+    </TitledPane>
+    <HBox spacing="20.0">
+        <Button mnemonicParsing="false" onAction="#performSave" text="Save">
+            <graphic>
+                <ImageView fitHeight="16" preserveRatio="true">
+                    <Image url="@../img/save.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+        <Button mnemonicParsing="false" onAction="#loadCurrentSettings" text="Cancle">
+            <graphic>
+                <ImageView fitHeight="16" preserveRatio="true">
+                    <Image url="@../img/icons8-stornieren-48.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+    </HBox>
 </VBox>
