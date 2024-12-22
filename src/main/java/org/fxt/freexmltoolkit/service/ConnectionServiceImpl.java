@@ -138,7 +138,7 @@ public class ConnectionServiceImpl implements ConnectionService {
             });
         } catch (IOException e) {
             logger.error(e.getMessage());
+            return new ConnectionResult(url, 0, 0L, new String[0], e.getMessage());
         }
-        return null;
     }
 }

@@ -54,11 +54,20 @@
                     <Spinner fx:id="portSpinner" editable="true" initialValue="8080" GridPane.columnIndex="1"
                              GridPane.rowIndex="1"/>
 
-                    <Label text="No Proxy for:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                    <TextField promptText="*.domain.com, 192.168.*" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                    <Label text="Username" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <TextField fx:id="httpProxyUser" promptText="username" GridPane.columnIndex="1"
+                               GridPane.rowIndex="2"/>
+
+                    <Label text="Password" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                    <PasswordField fx:id="httpProxyPass" promptText="password" GridPane.columnIndex="1"
+                                   GridPane.rowIndex="3"/>
+
+                    <Label text="No Proxy for:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                    <TextField fx:id="noProxyHost" promptText="*.domain.com, 192.168.*" GridPane.columnIndex="1"
+                               GridPane.rowIndex="4"/>
 
                     <Button fx:id="checkConnection" mnemonicParsing="false" onAction="#performCheck" prefWidth="200.0"
-                            text="Check connection" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                            text="Check connection" GridPane.columnIndex="0" GridPane.rowIndex="5">
                         <graphic>
                             <ImageView fitHeight="16" preserveRatio="true">
                                 <Image url="@../img/connection.png"/>
@@ -79,13 +88,13 @@
             </ImageView>
         </graphic>
         <VBox spacing="20.0">
-            <RadioButton text="use System Temp Folder">
+            <RadioButton fx:id="useSystemTempFolder" text="use System Temp Folder">
                 <toggleGroup>
                     <ToggleGroup fx:id="tempFolder"/>
                 </toggleGroup>
             </RadioButton>
-            <RadioButton text="use Custom Temp Folder:" toggleGroup="$tempFolder"/>
-
+            <RadioButton fx:id="useCustomTempFolder" text="use Custom Temp Folder:" toggleGroup="$tempFolder"/>
+            <TextField fx:id="customTempFolder" promptText="C:/temp" VBox.vgrow="ALWAYS"/>
         </VBox>
     </TitledPane>
     <HBox spacing="20.0">
@@ -96,7 +105,7 @@
                 </ImageView>
             </graphic>
         </Button>
-        <Button mnemonicParsing="false" onAction="#loadCurrentSettings" text="Cancle">
+        <Button mnemonicParsing="false" onAction="#loadCurrentSettings" text="Cancel">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/icons8-stornieren-48.png"/>

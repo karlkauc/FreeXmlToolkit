@@ -22,12 +22,15 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.ConnectionResult;
 import org.fxt.freexmltoolkit.service.ConnectionService;
 import org.fxt.freexmltoolkit.service.ConnectionServiceImpl;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Properties;
 
 public class SettingsController {
@@ -39,10 +42,10 @@ public class SettingsController {
     private final static Logger logger = LogManager.getLogger(SettingsController.class);
 
     @FXML
-    RadioButton noProxy, systemProxy, manualProxy;
+    RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder;
 
     @FXML
-    TextField username, password, customTempFolder, httpProxyHost, httpProxyPort, httpProxyUser, httpProxyPass;
+    TextField customTempFolder, httpProxyHost, httpProxyUser, httpProxyPass, noProxyHost;
 
     @FXML
     Spinner<Integer> portSpinner;
@@ -68,27 +71,63 @@ public class SettingsController {
         portSpinner.setValueFactory(valueFactory);
         props = propertiesService.loadProperties();
 
-        if (props.get("httpProxyHost") != null) this.httpProxyHost.setText(props.get("httpProxyHost").toString());
+        if (props.get("httpProxyHost") != null) {
+            manualProxy.setSelected(true);
+            httpProxyHost.setText(props.get("httpProxyHost").toString());
+            portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, Integer.parseInt(props.get("httpProxyPort").toString())));
+            httpProxyUser.setText(props.get("httpProxyUser").toString());
+            httpProxyPass.setText(props.get("httpProxyPass").toString());
+        } else {
+            noProxy.setSelected(true);
+            enableProxyFields(false);
+        }
 
+        if (props.get("customTempFolder") != null) {
+            useCustomTempFolder.setSelected(true);
+            customTempFolder.setText(props.get("customTempFolder").toString());
+        } else {
+            useSystemTempFolder.setSelected(true);
+            enableTempFolderFields(false);
+        }
+
+        manualProxy.selectedProperty().addListener((observable, oldValue, newValue) -> enableProxyFields(newValue));
+        useCustomTempFolder.selectedProperty().addListener((observable, oldValue, newValue) -> enableTempFolderFields(newValue));
+    }
+
+    private void enableTempFolderFields(boolean enable) {
+        customTempFolder.setDisable(!enable);
+    }
+
+    private void enableProxyFields(boolean enable) {
+        httpProxyHost.setDisable(!enable);
+        portSpinner.setDisable(!enable);
+        httpProxyUser.setDisable(!enable);
+        httpProxyPass.setDisable(!enable);
+        noProxyHost.setDisable(!enable);
     }
 
     @FXML
     private void performCheck() {
         logger.debug("Perform Connection Check");
         try {
-            var r = connectionService.executeHttpRequest(new URI("https://www.github.com"));
-            logger.debug(r.httpStatus());
+            var connectionResult = connectionService.executeHttpRequest(new URI("https://www.github.com"));
+            logger.debug("HTTP Status: {}", connectionResult.httpStatus());
 
             Alert alert;
-            if (r.httpStatus() == 200) {
+            if (connectionResult.httpStatus() == 200) {
                 alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setHeaderText("Connection Check successful.");
             } else {
                 alert = new Alert(Alert.AlertType.ERROR);
+                alert.setHeaderText("Connection Check failed.");
             }
-
             alert.setTitle("Connection Check");
-            alert.setHeaderText("Connection Check");
-            alert.setContentText("Connection Check successful. " + r);
+
+            StringBuilder headerString = new StringBuilder();
+            List.of(connectionResult.resultHeader()).forEach(h -> headerString.append(h).append(System.lineSeparator()));
+            final String connectionDetail = getString(headerString, connectionResult);
+
+            alert.setContentText(connectionDetail);
             alert.showAndWait();
 
         } catch (Exception e) {
@@ -96,13 +135,21 @@ public class SettingsController {
         }
     }
 
+    private static @NotNull String getString(StringBuilder headerString, ConnectionResult connectionResult) {
+        final String temp = headerString.toString().trim();
+
+        return "URL: " + connectionResult.url() + "\n\n" +
+                "Http Status: " + connectionResult.httpStatus() + "\n\n" +
+                "Duration: " + connectionResult.duration() + " ms\n\n" +
+                "Result Header: \n" + temp.substring(0, Math.min(temp.length(), 100)) + "\n\n" +
+                "Result Body: \n" + connectionResult.resultBody().trim().substring(0, Math.min(connectionResult.resultBody().trim().length(), 100)) + "...";
+    }
+
     @FXML
     private void performSave() {
-        props.setProperty("username", username.getText());
-        props.setProperty("password", password.getText());
         props.setProperty("customTempFolder", customTempFolder.getText());
         props.setProperty("httpProxyHost", httpProxyHost.getText());
-        props.setProperty("httpProxyPort", httpProxyPort.getText());
+        props.setProperty("httpProxyPort", portSpinner.getValue().toString());
         props.setProperty("httpProxyUser", httpProxyUser.getText());
         props.setProperty("httpProxyPass", httpProxyPass.getText());
 
@@ -112,5 +159,6 @@ public class SettingsController {
     @FXML
     private void loadCurrentSettings() {
         // connectionService.testConnection();
+
     }
 }
