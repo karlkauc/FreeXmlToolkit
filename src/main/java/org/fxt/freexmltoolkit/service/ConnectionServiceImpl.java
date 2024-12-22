@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
@@ -45,8 +46,11 @@ import java.util.stream.Collectors;
 public class ConnectionServiceImpl implements ConnectionService {
 
     private final static Logger logger = LogManager.getLogger(ConnectionService.class);
-
     private static final ConnectionServiceImpl instance = new ConnectionServiceImpl();
+    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+
+    private ConnectionServiceImpl() {
+    }
 
     /**
      * Returns the singleton instance of ConnectionServiceImpl.
@@ -56,11 +60,6 @@ public class ConnectionServiceImpl implements ConnectionService {
     public static ConnectionServiceImpl getInstance() {
         return instance;
     }
-
-    private ConnectionServiceImpl() {
-    }
-
-    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     /**
      * Retrieves the text content from the specified URL.
@@ -107,22 +106,19 @@ public class ConnectionServiceImpl implements ConnectionService {
                 credentialsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), null);
             }
         }
-        var connManager = new BasicHttpClientConnectionManager();
-
         long start = System.currentTimeMillis();
 
         try (CloseableHttpClient httpClient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credentialsProvider)
                 .setProxy(proxy)
-                .setConnectionManager(connManager)
+                .setConnectionManager(new BasicHttpClientConnectionManager())
                 .build()) {
             HttpGet httpGet = new HttpGet(url);
 
             return httpClient.execute(httpGet, response -> {
-                String[] headers = new String[response.getHeaders().length];
-                for (int i = 0; i < response.getHeaders().length; i++) {
-                    headers[i] = response.getHeaders()[i].getName() + ":" + response.getHeaders()[i].getValue();
-                }
+                String[] headers = Arrays.stream(response.getHeaders())
+                        .map(header -> header.getName() + ":" + header.getValue())
+                        .toArray(String[]::new);
 
                 String text = new BufferedReader(
                         new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))

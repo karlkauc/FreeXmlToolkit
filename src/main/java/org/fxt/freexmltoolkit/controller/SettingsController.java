@@ -35,11 +35,11 @@ import java.util.Properties;
 
 public class SettingsController {
 
+    Properties props;
+    private final static Logger logger = LogManager.getLogger(SettingsController.class);
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
-
     ConnectionService connectionService = ConnectionServiceImpl.getInstance();
 
-    private final static Logger logger = LogManager.getLogger(SettingsController.class);
 
     @FXML
     RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder;
@@ -56,10 +56,6 @@ public class SettingsController {
     @FXML
     ToggleGroup proxy, tempFolder;
 
-    Properties props;
-
-    SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, 8080);
-
     private MainController parentController;
 
     public void setParentController(MainController parentController) {
@@ -68,7 +64,7 @@ public class SettingsController {
 
     @FXML
     public void initialize() {
-        portSpinner.setValueFactory(valueFactory);
+        portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, 8080));
         props = propertiesService.loadProperties();
 
         if (props.get("httpProxyHost") != null) {
@@ -113,21 +109,13 @@ public class SettingsController {
             var connectionResult = connectionService.executeHttpRequest(new URI("https://www.github.com"));
             logger.debug("HTTP Status: {}", connectionResult.httpStatus());
 
-            Alert alert;
-            if (connectionResult.httpStatus() == 200) {
-                alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText("Connection Check successful.");
-            } else {
-                alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText("Connection Check failed.");
-            }
+            Alert alert = new Alert(connectionResult.httpStatus() == 200 ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+            alert.setHeaderText(connectionResult.httpStatus() == 200 ? "Connection Check successful." : "Connection Check failed.");
             alert.setTitle("Connection Check");
 
             StringBuilder headerString = new StringBuilder();
             List.of(connectionResult.resultHeader()).forEach(h -> headerString.append(h).append(System.lineSeparator()));
-            final String connectionDetail = getString(headerString, connectionResult);
-
-            alert.setContentText(connectionDetail);
+            alert.setContentText(getString(headerString, connectionResult));
             alert.showAndWait();
 
         } catch (Exception e) {

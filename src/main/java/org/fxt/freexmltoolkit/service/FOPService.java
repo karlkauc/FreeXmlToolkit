@@ -40,12 +40,23 @@ import java.nio.file.Files;
 import java.util.Date;
 import java.util.HashMap;
 
+/**
+ * Service class for creating PDF files from XML and XSL files using Apache FOP.
+ */
 public class FOPService {
 
     private final static Logger logger = LogManager.getLogger(FOPService.class);
 
     HashMap<String, String> defaultParameter;
 
+    /**
+     * Creates a PDF file from the given XML and XSL files.
+     *
+     * @param xmlFile     the XML file to transform
+     * @param xslFile     the XSL file to use for transformation
+     * @param pdfOutput   the output PDF file
+     * @param pdfSettings the settings for the PDF file
+     */
     public void createPdfFile(File xmlFile, File xslFile, File pdfOutput, PDFSettings pdfSettings) {
 
         assert xmlFile.exists();
@@ -65,7 +76,6 @@ public class FOPService {
             if (!pdfSettings.creator().isEmpty()) foUserAgent.setCreator(pdfSettings.creator());
             if (!pdfSettings.title().isEmpty()) foUserAgent.setTitle(pdfSettings.title());
             if (!pdfSettings.keywords().isEmpty()) foUserAgent.setKeywords(pdfSettings.keywords());
-            // foUserAgent.setSubject("subject");
 
             Files.createDirectories(pdfOutput.toPath().getParent());
 
@@ -96,6 +106,9 @@ public class FOPService {
         }
     }
 
+    /**
+     * Sets the default parameters for the PDF transformation.
+     */
     private void setDefaultParameter() {
         defaultParameter = new HashMap<>();
         defaultParameter.put("currentDate", new Date().toString());
