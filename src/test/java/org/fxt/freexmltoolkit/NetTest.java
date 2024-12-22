@@ -45,10 +45,18 @@ public class NetTest {
 
     private final static Logger logger = LogManager.getLogger(NetTest.class);
 
+    ConnectionService connectionService = ConnectionServiceImpl.getInstance();
+
+    @Test
+    public void testConnection() throws URISyntaxException {
+        var result = connectionService.executeHttpRequest(new URI("https://www.google.com"));
+        System.out.println("result = " + result.httpStatus());
+    }
+
     @Test
     // @Disabled("Currently not testable")
     public void testService() {
-        ConnectionService connectionService = ConnectionServiceImpl.getInstance();
+
         try {
             URI uri = new URI("https://www.google.com");
             var r = connectionService.getTextContentFromURL(uri);

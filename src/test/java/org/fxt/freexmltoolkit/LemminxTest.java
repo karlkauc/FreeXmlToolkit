@@ -23,7 +23,6 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.lemminx.XMLLanguageServer;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.jsonrpc.RemoteEndpoint;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.junit.jupiter.api.Test;
@@ -62,9 +61,8 @@ public class LemminxTest {
             // Launch the server
             Launcher<LanguageServer> serverLauncher = Launcher.createLauncher(server, LanguageServer.class, fis, out);
             LanguageServer languageServer = serverLauncher.getRemoteProxy();
-            serverLauncher.startListening();
-            RemoteEndpoint remoteEndpoint = serverLauncher.getRemoteEndpoint();
-
+            var r = serverLauncher.startListening();
+            r.get();
 
             TextDocumentIdentifier textDocumentIdentifier = new TextDocumentIdentifier();
             textDocumentIdentifier.setUri(p.toUri().toString());

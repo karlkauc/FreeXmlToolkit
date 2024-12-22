@@ -27,20 +27,32 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.ConnectionResult;
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
+/**
+ * Implementation of the ConnectionService interface.
+ * Provides methods for executing HTTP requests and retrieving text content from URLs.
+ */
 public class ConnectionServiceImpl implements ConnectionService {
 
     private final static Logger logger = LogManager.getLogger(ConnectionService.class);
 
     private static final ConnectionServiceImpl instance = new ConnectionServiceImpl();
 
+    /**
+     * Returns the singleton instance of ConnectionServiceImpl.
+     *
+     * @return the singleton instance
+     */
     public static ConnectionServiceImpl getInstance() {
         return instance;
     }
@@ -50,9 +62,27 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
+    /**
+     * Retrieves the text content from the specified URL.
+     *
+     * @param uri the URI of the target URL
+     * @return a String containing the text content of the URL
+     */
     @Override
     public String getTextContentFromURL(URI uri) {
+        return executeHttpRequest(uri).resultBody();
+    }
+
+    /**
+     * Executes an HTTP request to the specified URL.
+     *
+     * @param url the URI of the target URL
+     * @return a ConnectionResult object containing the details of the HTTP response
+     */
+    @Override
+    public ConnectionResult executeHttpRequest(URI url) {
         var properties = propertiesService.loadProperties();
+
         System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
         System.setProperty("jdk.http.auth.proxying.disabledSchemes", "");
         // System.setProperty("javax.net.debug", "all");
@@ -62,31 +92,50 @@ public class ConnectionServiceImpl implements ConnectionService {
         final var httpProxyUser = properties.get("http.proxy.user").toString();
         final var httpProxyPassword = properties.get("http.proxy.password").toString();
 
-        Credentials ntlmCredentials = new NTCredentials(httpProxyUser, httpProxyPassword.toCharArray(), null, null);
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), ntlmCredentials);
+        HttpHost proxy = null;
 
-        HttpHost proxy = new HttpHost(httpProxyHost, Integer.parseInt(httpProxyPort));
+        if (httpProxyHost != null && !httpProxyHost.isEmpty() &&
+                httpProxyPort != null && !httpProxyPort.isEmpty()) {
+            proxy = new HttpHost(httpProxyHost, Integer.parseInt(httpProxyPort));
+
+            if (httpProxyUser != null && !httpProxyUser.isEmpty() &&
+                    httpProxyPassword != null && !httpProxyPassword.isEmpty()) {
+                Credentials ntlmCredentials = new NTCredentials(httpProxyUser, httpProxyPassword.toCharArray(), null, null);
+                credentialsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), ntlmCredentials);
+            } else {
+                credentialsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), null);
+            }
+        }
         var connManager = new BasicHttpClientConnectionManager();
+
+        long start = System.currentTimeMillis();
 
         try (CloseableHttpClient httpClient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credentialsProvider)
                 .setProxy(proxy)
                 .setConnectionManager(connManager)
                 .build()) {
+            HttpGet httpGet = new HttpGet(url);
 
-            HttpGet httpGet = new HttpGet(uri);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-            httpClient.execute(httpGet, response -> {
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    response.getEntity().writeTo(byteArrayOutputStream);
+            return httpClient.execute(httpGet, response -> {
+                String[] headers = new String[response.getHeaders().length];
+                for (int i = 0; i < response.getHeaders().length; i++) {
+                    headers[i] = response.getHeaders()[i].getName() + ":" + response.getHeaders()[i].getValue();
                 }
-                return response;
-            });
 
-            // logger.debug("Content: {}", byteArrayOutputStream);
-            return byteArrayOutputStream.toString();
+                String text = new BufferedReader(
+                        new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))
+                        .lines()
+                        .collect(Collectors.joining("\n"));
+
+                return new ConnectionResult(
+                        url,
+                        response.getCode(),
+                        System.currentTimeMillis() - start,
+                        headers,
+                        text);
+            });
         } catch (IOException e) {
             logger.error(e.getMessage());
         }

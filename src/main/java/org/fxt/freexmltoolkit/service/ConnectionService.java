@@ -18,9 +18,28 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import org.fxt.freexmltoolkit.domain.ConnectionResult;
+
 import java.net.URI;
 
+/**
+ * The ConnectionService interface provides methods for executing HTTP requests and retrieving text content from URLs.
+ */
 public interface ConnectionService {
 
+    /**
+     * Executes an HTTP request to the specified URL.
+     *
+     * @param url the URI of the target URL
+     * @return a ConnectionResult object containing the details of the HTTP response
+     */
+    ConnectionResult executeHttpRequest(URI url);
+
+    /**
+     * Retrieves the text content from the specified URL.
+     *
+     * @param uri the URI of the target URL
+     * @return a String containing the text content of the URL
+     */
     String getTextContentFromURL(URI uri);
 }

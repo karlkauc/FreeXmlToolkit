@@ -45,20 +45,20 @@
                              toggleGroup="$proxy"/>
             </VBox>
             <VBox spacing="20.0">
-                <GridPane vgap="10" hgap="10">
-                    <Label GridPane.columnIndex="0" GridPane.rowIndex="0" text="Host Name"/>
-                    <TextField GridPane.columnIndex="1" GridPane.rowIndex="0" fx:id="httpProxyHost"
-                               promptText="host name"/>
+                <GridPane hgap="10" vgap="10">
+                    <Label text="Proxy Host Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <TextField fx:id="httpProxyHost" promptText="host name" GridPane.columnIndex="1"
+                               GridPane.rowIndex="0"/>
 
-                    <Label GridPane.columnIndex="0" GridPane.rowIndex="1" text="Port Number"/>
-                    <Spinner GridPane.columnIndex="1" GridPane.rowIndex="1"
-                             fx:id="portSpinner" editable="true" initialValue="8080"/>
+                    <Label text="Proxy Port Number:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <Spinner fx:id="portSpinner" editable="true" initialValue="8080" GridPane.columnIndex="1"
+                             GridPane.rowIndex="1"/>
 
-                    <Label GridPane.columnIndex="0" GridPane.rowIndex="2" text="no proxy for"/>
-                    <TextField GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="*.domain.com, 192.168.*"/>
+                    <Label text="No Proxy for:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <TextField promptText="*.domain.com, 192.168.*" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
-                    <Button GridPane.columnIndex="0" GridPane.rowIndex="3" fx:id="checkConnection"
-                            mnemonicParsing="false" onAction="#performCheck" prefWidth="200.0" text="Check connection">
+                    <Button fx:id="checkConnection" mnemonicParsing="false" onAction="#performCheck" prefWidth="200.0"
+                            text="Check connection" GridPane.columnIndex="0" GridPane.rowIndex="3">
                         <graphic>
                             <ImageView fitHeight="16" preserveRatio="true">
                                 <Image url="@../img/connection.png"/>
@@ -78,7 +78,15 @@
                 <Image url="@../img/folder.png"/>
             </ImageView>
         </graphic>
-        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"/>
+        <VBox spacing="20.0">
+            <RadioButton text="use System Temp Folder">
+                <toggleGroup>
+                    <ToggleGroup fx:id="tempFolder"/>
+                </toggleGroup>
+            </RadioButton>
+            <RadioButton text="use Custom Temp Folder:" toggleGroup="$tempFolder"/>
+
+        </VBox>
     </TitledPane>
     <HBox spacing="20.0">
         <Button mnemonicParsing="false" onAction="#performSave" text="Save">

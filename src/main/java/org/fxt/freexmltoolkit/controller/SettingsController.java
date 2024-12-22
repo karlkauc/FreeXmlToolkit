@@ -27,6 +27,7 @@ import org.fxt.freexmltoolkit.service.ConnectionServiceImpl;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
+import java.net.URI;
 import java.util.Properties;
 
 public class SettingsController {
@@ -50,7 +51,7 @@ public class SettingsController {
     Button checkConnection;
 
     @FXML
-    ToggleGroup proxy;
+    ToggleGroup proxy, tempFolder;
 
     Properties props;
 
@@ -74,6 +75,25 @@ public class SettingsController {
     @FXML
     private void performCheck() {
         logger.debug("Perform Connection Check");
+        try {
+            var r = connectionService.executeHttpRequest(new URI("https://www.github.com"));
+            logger.debug(r.httpStatus());
+
+            Alert alert;
+            if (r.httpStatus() == 200) {
+                alert = new Alert(Alert.AlertType.INFORMATION);
+            } else {
+                alert = new Alert(Alert.AlertType.ERROR);
+            }
+
+            alert.setTitle("Connection Check");
+            alert.setHeaderText("Connection Check");
+            alert.setContentText("Connection Check successful. " + r);
+            alert.showAndWait();
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
     }
 
     @FXML
