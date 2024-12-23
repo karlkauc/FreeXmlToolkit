@@ -40,7 +40,6 @@ public class SettingsController {
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     ConnectionService connectionService = ConnectionServiceImpl.getInstance();
 
-
     @FXML
     RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder;
 
@@ -65,26 +64,7 @@ public class SettingsController {
     @FXML
     public void initialize() {
         portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, 8080));
-        props = propertiesService.loadProperties();
-
-        if (props.get("httpProxyHost") != null) {
-            manualProxy.setSelected(true);
-            httpProxyHost.setText(props.get("httpProxyHost").toString());
-            portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, Integer.parseInt(props.get("httpProxyPort").toString())));
-            httpProxyUser.setText(props.get("httpProxyUser").toString());
-            httpProxyPass.setText(props.get("httpProxyPass").toString());
-        } else {
-            noProxy.setSelected(true);
-            enableProxyFields(false);
-        }
-
-        if (props.get("customTempFolder") != null) {
-            useCustomTempFolder.setSelected(true);
-            customTempFolder.setText(props.get("customTempFolder").toString());
-        } else {
-            useSystemTempFolder.setSelected(true);
-            enableTempFolderFields(false);
-        }
+        loadCurrentSettings();
 
         manualProxy.selectedProperty().addListener((observable, oldValue, newValue) -> enableProxyFields(newValue));
         useCustomTempFolder.selectedProperty().addListener((observable, oldValue, newValue) -> enableTempFolderFields(newValue));
@@ -136,6 +116,12 @@ public class SettingsController {
     @FXML
     private void performSave() {
         props.setProperty("customTempFolder", customTempFolder.getText());
+        props.setProperty("useCustomTempFolder", String.valueOf(useCustomTempFolder.isSelected()));
+        props.setProperty("useSystemTempFolder", String.valueOf(useSystemTempFolder.isSelected()));
+
+        props.setProperty("useSystemProxy", String.valueOf(systemProxy.isSelected()));
+        props.setProperty("manualProxy", String.valueOf(manualProxy.isSelected()));
+        props.setProperty("noProxyHost", noProxyHost.getText());
         props.setProperty("httpProxyHost", httpProxyHost.getText());
         props.setProperty("httpProxyPort", portSpinner.getValue().toString());
         props.setProperty("httpProxyUser", httpProxyUser.getText());
@@ -146,7 +132,25 @@ public class SettingsController {
 
     @FXML
     private void loadCurrentSettings() {
-        // connectionService.testConnection();
+        props = propertiesService.loadProperties();
 
+        if (props.get("httpProxyHost") != null && !props.get("httpProxyHost").toString().isEmpty()) {
+            manualProxy.setSelected(true);
+            httpProxyHost.setText(props.get("httpProxyHost").toString());
+            portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, Integer.parseInt(props.get("httpProxyPort").toString())));
+            httpProxyUser.setText(props.get("httpProxyUser").toString());
+            httpProxyPass.setText(props.get("httpProxyPass").toString());
+        } else {
+            noProxy.setSelected(true);
+            enableProxyFields(false);
+        }
+
+        if (props.get("customTempFolder") != null) {
+            useCustomTempFolder.setSelected(true);
+            customTempFolder.setText(props.get("customTempFolder").toString());
+        } else {
+            useSystemTempFolder.setSelected(true);
+            enableTempFolderFields(false);
+        }
     }
 }
