@@ -44,69 +44,50 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Objects;
 
 public class XsltController {
 
-    XmlService xmlService = XmlServiceImpl.getInstance();
-
-    @FXML
-    FileExplorer xmlFileExplorer, xsltFileExplorer;
-
-    @FXML
-    Button reload;
-
+    private static final Logger logger = LogManager.getLogger(XsltController.class);
+    private static final int PANE_SIZE = 500;
+    private final XmlService xmlService = XmlServiceImpl.getInstance();
     private MainController parentController;
+    private File xmlFile, xsltFile;
+    private WebEngine webEngine;
+    private final CodeArea codeArea = new CodeArea();
+    private VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
+
+    @FXML
+    private FileExplorer xmlFileExplorer, xsltFileExplorer;
+    @FXML
+    private Button reload, debugButton, openInDefaultWebBrowser, openInDefaultTextEditor;
+    @FXML
+    private ProgressBar progressBar;
+    @FXML
+    private WebView webView;
+    @FXML
+    private StackPane textView;
+    @FXML
+    private TabPane outputMethodSwitch;
+    @FXML
+    private Tab tabWeb, tabText;
+    @FXML
+    private BorderPane fileLoaderPane;
+    @FXML
+    private Label toggleBorderPaneLabel;
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
 
-    private final static Logger logger = LogManager.getLogger(XsltController.class);
-
-    @FXML
-    ProgressBar progressBar;
-
-    @FXML
-    WebView webView;
-    WebEngine webEngine;
-
-    @FXML
-    StackPane textView;
-
-    @FXML
-    TabPane outputMethodSwitch;
-
-    @FXML
-    Tab tabWeb, tabText;
-
-    File xmlFile, xsltFile;
-
-    CodeArea codeArea = new CodeArea();
-    VirtualizedScrollPane<CodeArea> virtualizedScrollPane;
-
-    @FXML
-    Button debugButton, openInDefaultWebBrowser, openInDefaultTextEditor;
-
-    @FXML
-    BorderPane fileLoaderPane;
-
-    @FXML
-    Label toggleBorderPaneLabel;
-
-    final int PANE_SIZE = 500;
-
     @FXML
     private void initialize() {
-        var test = System.getenv("debug");
-        if (test != null) {
-            logger.debug("set visible false");
+        if (System.getenv("debug") != null) {
             debugButton.setVisible(true);
         }
 
         fileLoaderPane.heightProperty().addListener((observable, oldValue, newValue) -> {
-            logger.debug("oldValue: {}", oldValue);
-            logger.debug("newValue: {}", newValue);
-            var fileLoaderHeight = (newValue.doubleValue() - (double) 100) / 2;
+            double fileLoaderHeight = (newValue.doubleValue() - 100) / 2;
             xsltFileExplorer.setPrefHeight(fileLoaderHeight);
             xmlFileExplorer.setPrefHeight(fileLoaderHeight);
         });
@@ -119,31 +100,22 @@ public class XsltController {
         progressBar.setVisible(false);
 
         webEngine = webView.getEngine();
-        webEngine.getLoadWorker().stateProperty().addListener(
-                (ov, oldState, newState) -> {
-                    if (newState == Worker.State.SUCCEEDED) {
-                        logger.debug("Loading Web Content successfully: " + webEngine.getLocation());
-                    }
-                });
+        webEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
+            if (newState == Worker.State.SUCCEEDED) {
+                logger.debug("Loading Web Content successfully: {}", webEngine.getLocation());
+            }
+        });
     }
 
     @FXML
     private void toggleBorderPane() {
-        this.fileLoaderPane.setVisible(!this.fileLoaderPane.isVisible());
-
-        if (this.fileLoaderPane.isVisible()) {
-            this.toggleBorderPaneLabel.setText("<<");
-            this.fileLoaderPane.setMaxWidth(PANE_SIZE);
-            this.fileLoaderPane.setMinWidth(PANE_SIZE);
-            this.fileLoaderPane.setPrefWidth(PANE_SIZE);
-            this.fileLoaderPane.setManaged(true);
-        } else {
-            this.toggleBorderPaneLabel.setText(">>");
-            this.fileLoaderPane.setMaxWidth(0);
-            this.fileLoaderPane.setMinWidth(0);
-            this.fileLoaderPane.setPrefWidth(0);
-            this.fileLoaderPane.setManaged(false);
-        }
+        boolean isVisible = fileLoaderPane.isVisible();
+        fileLoaderPane.setVisible(!isVisible);
+        toggleBorderPaneLabel.setText(isVisible ? ">>" : "<<");
+        fileLoaderPane.setMaxWidth(isVisible ? 0 : PANE_SIZE);
+        fileLoaderPane.setMinWidth(isVisible ? 0 : PANE_SIZE);
+        fileLoaderPane.setPrefWidth(isVisible ? 0 : PANE_SIZE);
+        fileLoaderPane.setManaged(!isVisible);
     }
 
     @FXML
@@ -154,17 +126,14 @@ public class XsltController {
         }
 
         if (xmlFileExplorer.getSelectedFile() != null) {
-            this.xmlFile = xmlFileExplorer.getSelectedFile().toFile();
-            this.xmlService.setCurrentXmlFile(xmlFile);
+            xmlFile = xmlFileExplorer.getSelectedFile().toFile();
+            xmlService.setCurrentXmlFile(xmlFile);
         }
 
         if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXmlFile().exists()
                 && xmlService.getCurrentXsltFile() != null && xmlService.getCurrentXsltFile().exists()) {
-            logger.debug("RENDER FILE");
-
             try {
-                final String output = xmlService.performXsltTransformation();
-
+                String output = xmlService.performXsltTransformation();
                 progressBar.setProgress(0.1);
                 renderHTML(output);
                 progressBar.setProgress(0.6);
@@ -173,21 +142,14 @@ public class XsltController {
                 renderText(output);
                 progressBar.setProgress(1);
 
-                var outputMethod = xmlService.getXsltOutputMethod();
-                logger.debug("Output Method: {}", outputMethod);
-
-                switch (outputMethod.toLowerCase().trim()) {
-                    case "html", "xhtml" -> {
-                        logger.debug("BIN IM HTML");
-                        outputMethodSwitch.getSelectionModel().select(tabWeb);
-                    }
-                    case "xml" -> outputMethodSwitch.getSelectionModel().select(tabText);
-                    case "text" -> outputMethodSwitch.getSelectionModel().select(tabText);
+                String outputMethod = xmlService.getXsltOutputMethod().toLowerCase().trim();
+                switch (outputMethod) {
+                    case "html", "xhtml" -> outputMethodSwitch.getSelectionModel().select(tabWeb);
+                    case "xml", "text" -> outputMethodSwitch.getSelectionModel().select(tabText);
                     default -> outputMethodSwitch.getSelectionModel().select(tabText);
                 }
             } catch (Exception exception) {
                 logger.error("Exception: {}", exception.getMessage());
-                logger.error(exception.getStackTrace());
             }
             progressBar.setVisible(false);
         }
@@ -205,14 +167,12 @@ public class XsltController {
 
     private void renderHTML(String output) {
         File outputDir = new File("output");
-        final String outputFileName = outputDir.getName() + File.separator + "output.html";
-        logger.debug("Output File: {}", outputFileName);
+        String outputFileName = outputDir.getName() + File.separator + "output.html";
 
         try {
-            // Copy Resources
             Files.createDirectories(outputDir.toPath());
-            Files.copy(getClass().getResourceAsStream("/scss/prism.css"), Paths.get(outputDir.getPath(), "outputDir"), StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css"), Paths.get(outputDir.getPath(), "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/scss/prism.css")), Paths.get(outputDir.getPath(), "outputDir"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css")), Paths.get(outputDir.getPath(), "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
 
             File newFile = Paths.get(outputFileName).toFile();
             Files.writeString(newFile.toPath(), output);
@@ -227,11 +187,6 @@ public class XsltController {
             openInDefaultWebBrowser.setDisable(false);
 
             webEngine.load(newFile.toURI().toString());
-            logger.debug("Loaded Content");
-
-            if (xmlFile != null && xmlFile.exists()) {
-                logger.debug("CURRENT FILE: {}", xmlFile.getAbsolutePath());
-            }
         } catch (IOException e) {
             logger.error(e.getLocalizedMessage());
         }
@@ -239,16 +194,15 @@ public class XsltController {
 
     @FXML
     private void test() {
-        xmlFile = Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml").toFile();
-        xsltFile = Paths.get("examples/xslt/Check_FundsXML_File.xslt").toFile();
+        xmlFile = Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml").toFile();
+        xsltFile = Paths.get("release/examples/xslt/Check_FundsXML_File.xslt").toFile();
 
         xmlFileExplorer.setSelectedFile(xmlFile.toPath());
         xsltFileExplorer.setSelectedFile(xsltFile.toPath());
 
-        if (this.xmlService != null) {
-            this.xmlService.setCurrentXmlFile(xmlFile);
-            this.xmlService.setCurrentXsltFile(xsltFile);
-
+        if (xmlService != null) {
+            xmlService.setCurrentXmlFile(xmlFile);
+            xmlService.setCurrentXsltFile(xsltFile);
             checkFiles();
         }
     }

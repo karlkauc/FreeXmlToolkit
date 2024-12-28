@@ -35,101 +35,78 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 public class FopController {
-    FOPService fopService = new FOPService();
-    @FXML
-    GridPane settings;
-    @FXML
-    Button startConversion;
-
-    File xmlFile, xslFile, pdfFile;
-    @FXML
-    TextField xmlFileName, xslFileName, pdfFileName;
-
-    @FXML
-    TextField producer, author, creationDate, title, keywords, subject;
-
-    @FXML
-    CheckBox openPdfAfterCreation;
-
-    @FXML
-    ProgressIndicator progressIndicator;
-    String lastOpenDir = ".";
-    FileChooser fileChooser = new FileChooser();
+    private static final Logger logger = LogManager.getLogger(FopController.class);
+    private final FOPService fopService = new FOPService();
+    private final FileChooser fileChooser = new FileChooser();
+    private String lastOpenDir = ".";
+    private File xmlFile, xslFile, pdfFile;
     private MainController parentController;
+
+    @FXML
+    private GridPane settings;
+    @FXML
+    private Button startConversion;
+    @FXML
+    private TextField xmlFileName, xslFileName, pdfFileName, producer, author, creationDate, title, keywords, subject;
+    @FXML
+    private CheckBox openPdfAfterCreation;
+    @FXML
+    private ProgressIndicator progressIndicator;
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
 
-    private final static Logger logger = LogManager.getLogger(FopController.class);
-
     @FXML
     private void initialize() {
         progressIndicator.setVisible(false);
-
-        var debug = System.getenv("debug");
-        if (debug != null && debug.equals("true")) {
+        if ("true".equals(System.getenv("debug"))) {
             xmlFile = new File("src/test/resources/projectteam.xml");
             xslFile = new File("src/test/resources/projectteam2fo.xsl");
             pdfFile = new File("output/ResultXML2PDF.pdf");
-
             xmlFileName.setText(xmlFile.getName());
             xslFileName.setText(xslFile.getName());
             pdfFileName.setText(pdfFile.getName());
         }
-
-        this.creationDate.setText(new Date().toString());
-        this.author.setText(System.getProperty("user.name"));
+        creationDate.setText(new Date().toString());
+        author.setText(System.getProperty("user.name"));
     }
 
     @FXML
     private void openXmlFile() {
-        logger.debug("Last open Dir: {}", lastOpenDir);
-        fileChooser.setInitialDirectory(new File(lastOpenDir));
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
-        File selectedFile = fileChooser.showOpenDialog(null);
-
-        if (selectedFile != null && selectedFile.exists()) {
-            logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
-            this.lastOpenDir = selectedFile.getParent();
-            xmlFile = selectedFile;
-            xmlFileName.setText(xmlFile.getName());
-        } else {
-            logger.debug("No file selected");
-        }
+        openFile("XML files (*.xml)", "*.xml", file -> {
+            xmlFile = file;
+            xmlFileName.setText(file.getName());
+        });
     }
 
     @FXML
     private void openXslFile() {
-        logger.debug("Last open Dir: {}", lastOpenDir);
-        fileChooser.setInitialDirectory(new File(lastOpenDir));
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSL files (*.xsl)", "*.xsl"));
-        File selectedFile = fileChooser.showOpenDialog(null);
-
-        if (selectedFile != null && selectedFile.exists()) {
-            logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
-            this.lastOpenDir = selectedFile.getParent();
-            xslFile = selectedFile;
-            xslFileName.setText(xslFile.getName());
-        } else {
-            logger.debug("No file selected");
-        }
+        openFile("XSL files (*.xsl)", "*.xsl", file -> {
+            xslFile = file;
+            xslFileName.setText(file.getName());
+        });
     }
 
     @FXML
     private void openPdfFile() {
-        logger.debug("Last open Dir: {}", lastOpenDir);
-        fileChooser.setInitialDirectory(new File(lastOpenDir));
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF files (*.pdf)", "*.pdf"));
-        File selectedFile = fileChooser.showOpenDialog(null);
+        openFile("PDF files (*.pdf)", "*.pdf", file -> {
+            pdfFile = file;
+            pdfFileName.setText(file.getName());
+        });
+    }
 
+    private void openFile(String description, String extension, java.util.function.Consumer<File> fileConsumer) {
+        fileChooser.setInitialDirectory(new File(lastOpenDir));
+        fileChooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter(description, extension));
+        File selectedFile = fileChooser.showOpenDialog(null);
         if (selectedFile != null && selectedFile.exists()) {
+            lastOpenDir = selectedFile.getParent();
+            fileConsumer.accept(selectedFile);
             logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
-            this.lastOpenDir = selectedFile.getParent();
-            pdfFile = selectedFile;
-            pdfFileName.setText(pdfFile.getName());
         } else {
             logger.debug("No file selected");
         }
@@ -138,27 +115,25 @@ public class FopController {
     @FXML
     private void buttonConversion() throws IOException {
         logger.debug("Start Conversion!");
-
         progressIndicator.setVisible(true);
         progressIndicator.setProgress(0);
 
-        HashMap<String, String> parameter = new HashMap<>();
-        parameter.put("versionParam", "3");
-
-        PDFSettings pdfSettings = new PDFSettings(parameter, producer.getText(), author.getText(), "created with FreeXMLToolkit", creationDate.getText(), title.getText(), keywords.getText());
+        PDFSettings pdfSettings = new PDFSettings(
+                new HashMap<>(Map.of("versionParam", "3")),
+                producer.getText(), author.getText(), "created with FreeXMLToolkit",
+                creationDate.getText(), title.getText(), keywords.getText()
+        );
 
         fopService.createPdfFile(xmlFile, xslFile, pdfFile, pdfSettings);
 
         if (pdfFile != null && pdfFile.exists()) {
             logger.debug("Written {} bytes", pdfFile.length());
             progressIndicator.setProgress(1.0);
-
-            if (openPdfAfterCreation.isSelected() && pdfFile.exists() && pdfFile.length() > 0) {
+            if (openPdfAfterCreation.isSelected() && pdfFile.length() > 0) {
                 Desktop.getDesktop().open(pdfFile);
             }
         } else {
-            logger.warn("PDF File do not exits");
+            logger.warn("PDF File does not exist");
         }
     }
 }
-

@@ -1,21 +1,3 @@
-/*
- * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2024.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- */
-
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.event.ActionEvent;
@@ -28,6 +10,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import org.apache.logging.log4j.LogManager;
@@ -38,142 +21,223 @@ import org.w3c.dom.Node;
 import java.util.*;
 import java.util.stream.IntStream;
 
+/**
+ * A custom VBox implementation for displaying XML nodes in a tree structure.
+ */
 public class SimpleNodeElement extends VBox {
 
-    private final static Logger logger = LogManager.getLogger(SimpleNodeElement.class);
+    private static final Logger logger = LogManager.getLogger(SimpleNodeElement.class);
+    private static final Image imagePlus = new Image(Objects.requireNonNull(SimpleNodeElement.class.getResource("/img/plus_15.png")).toString());
+    private static final Image imageMinus = new Image(Objects.requireNonNull(SimpleNodeElement.class.getResource("/img/minus_15.png")).toString());
 
-    Node node;
+    // CSS style constants
+    private static final String TREE_GRID_STYLE = "treeGrid";
+    private static final String NORMAL_ELEMENT_STYLE = "normalElement";
+    private static final String XML_TREE_COMMENT_STYLE = "xmlTreeComment";
+    private static final String XML_TREE_TEXT_STYLE = "xmlTreeText";
+    private static final String PADDING_STYLE = "-fx-padding: 2px;";
+    private static final String BACKGROUND_COLOR_GREEN_STYLE = "-fx-padding: 2px; -fx-background-color: #d2f4e5";
+    private static final String ATTRIBUTE_BOX_STYLE = "-fx-background-color: #c9c9ec; -fx-text-fill: #eeeef8; -fx-padding: 2px;";
+    private static final String ATTRIBUTE_VALUE_BOX_STYLE = "-fx-background-color: #f6f691";
+    private static final String ELEMENT_BOX_STYLE = "-fx-background-color: #f1d239;";
+    private static final String TEXT_FIELD_STYLE = "-fx-border-radius: 2px; -fx-background-color: #f1c4c4;";
+    private static final String TABLE_HEADER_STYLE = "-fx-background-color: #fae88d; -fx-font-weight: bold;";
+    private static final String HOVER_STYLE = "-fx-background-color: #0a53be";
+    private static final String DEFAULT_STYLE = "-fx-background-color: white";
 
-    final static Image imagePlus = new Image(Objects.requireNonNull(SimpleNodeElement.class.getResource("/img/plus_15.png")).toString());
-    final static Image imageMinus = new Image(Objects.requireNonNull(SimpleNodeElement.class.getResource("/img/minus_15.png")).toString());
+    private final Node node;
+    private final XmlEditor xmlEditor;
 
-    XmlEditor xmlEditor;
-
+    /**
+     * Constructs a SimpleNodeElement for the given XML node.
+     *
+     * @param node   the XML node represented by this element
+     * @param caller the XmlEditor instance that created this element
+     */
     public SimpleNodeElement(Node node, XmlEditor caller) {
         this.node = node;
         this.xmlEditor = caller;
         createByNode(node);
     }
 
+    /**
+     * Creates the visual representation of the XML node.
+     *
+     * @param node the XML node to be represented
+     */
     public void createByNode(Node node) {
-        this.getStyleClass().add("treeGrid");
+        this.getStyleClass().add(TREE_GRID_STYLE);
 
         if (node.hasChildNodes()) {
-            if (node.getAttributes() != null && node.getAttributes().getLength() != 0) {
-                logger.debug("Attributes: {}", node.getAttributes().getLength());
+            addAttributes(node);
+            addChildNodes(node);
+        }
+    }
 
-                GridPane gridPane = new GridPane();
-                gridPane.getStyleClass().add("treeGrid");
-                int row = 0;
+    /**
+     * Adds the attributes of the XML node to the visual representation.
+     *
+     * @param node the XML node whose attributes are to be added
+     */
+    private void addAttributes(Node node) {
+        if (node.getAttributes() != null && node.getAttributes().getLength() != 0) {
+            logger.debug("Attributes: {}", node.getAttributes().getLength());
 
-                for (int i = 0; i < node.getAttributes().getLength(); i++) {
-                    var attributes = node.getAttributes().item(i);
-                    logger.debug("{}:{}", attributes.getNodeName(), attributes.getNodeValue());
+            GridPane gridPane = new GridPane();
+            gridPane.getStyleClass().add(TREE_GRID_STYLE);
 
-                    gridPane.add(new Label(attributes.getNodeName()), 0, row);
-                    gridPane.add(new Label(attributes.getNodeValue()), 1, row);
+            for (int i = 0; i < node.getAttributes().getLength(); i++) {
+                var attributes = node.getAttributes().item(i);
+                logger.debug("{}:{}", attributes.getNodeName(), attributes.getNodeValue());
 
-                    row++;
-                }
-                this.getChildren().add(gridPane);
+                gridPane.add(new Label(attributes.getNodeName()), 0, i);
+                gridPane.add(new Label(attributes.getNodeValue()), 1, i);
             }
+            this.getChildren().add(gridPane);
+        }
+    }
 
-            for (int childNodeIndex = 0; childNodeIndex < node.getChildNodes().getLength(); childNodeIndex++) {
-                var subNode = node.getChildNodes().item(childNodeIndex);
-                // logger.debug("Node Type: {}", subNode.getNodeType());
+    /**
+     * Adds the child nodes of the XML node to the visual representation.
+     *
+     * @param node the XML node whose child nodes are to be added
+     */
+    private void addChildNodes(Node node) {
+        for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+            var subNode = node.getChildNodes().item(i);
 
-                switch (subNode.getNodeType()) {
-                    case Node.COMMENT_NODE -> {
-                        final Label l = new Label("COMMENT: " + subNode.getNodeValue());
-                        l.getStyleClass().add("xmlTreeComment");
-                        this.getChildren().add(l);
-                        // DEBUG - nachher wieder hereingeben
-                    }
-                    case Node.ELEMENT_NODE -> {
-                        if (subNode.getChildNodes().getLength() == 1 &&
-                                subNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
-                            var n = subNode.getChildNodes().item(0);
+            switch (subNode.getNodeType()) {
+                case Node.COMMENT_NODE -> addCommentNode(subNode);
+                case Node.ELEMENT_NODE -> addElementNode(subNode);
+                case Node.TEXT_NODE -> {
+                } // No action needed
+                default -> this.getChildren().add(new Label("DEFAULT: " + subNode.getNodeName()));
+            }
+        }
+        this.getStyleClass().add(NORMAL_ELEMENT_STYLE);
+    }
 
-                            logger.debug("adding element text node: {}", subNode.getNodeName() + ":" + n.getNodeValue());
+    /**
+     * Adds a comment node to the visual representation.
+     *
+     * @param subNode the comment node to be added
+     */
+    private void addCommentNode(Node subNode) {
+        Label label = new Label("COMMENT: " + subNode.getNodeValue());
+        label.getStyleClass().add(XML_TREE_COMMENT_STYLE);
+        this.getChildren().add(label);
+    }
 
-                            var nodeName = new Label(subNode.getNodeName());
-                            var nodeValue = new Label(n.getNodeValue());
-                            nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, n));
+    /**
+     * Adds an element node to the visual representation.
+     *
+     * @param subNode the element node to be added
+     */
+    private void addElementNode(Node subNode) {
+        if (subNode.getChildNodes().getLength() == 1 && subNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
+            addTextNode(subNode);
+        } else {
+            addComplexNode(subNode);
+        }
+    }
 
-                            GridPane gridPane = new GridPane();
-                            gridPane.getStyleClass().add("xmlTreeText");
-                            int row = 0;
+    /**
+     * Adds a text node to the visual representation.
+     *
+     * @param subNode the text node to be added
+     */
+    private void addTextNode(Node subNode) {
+        var firstItem = subNode.getChildNodes().item(0);
+        logger.debug("adding element text node: {}", subNode.getNodeName() + ":" + firstItem.getNodeValue());
 
-                            ColumnConstraints column1 = new ColumnConstraints();
-                            ColumnConstraints column2 = new ColumnConstraints();
-                            column1.setPercentWidth(50);
-                            column2.setPercentWidth(50);
-                            column1.setHgrow(Priority.ALWAYS);
-                            column2.setHgrow(Priority.ALWAYS);
-                            gridPane.getColumnConstraints().addAll(column1, column2);
+        var nodeName = new Label(subNode.getNodeName());
+        var nodeValue = new Label(firstItem.getNodeValue());
+        nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, firstItem));
 
-                            if (subNode.hasAttributes()) {
-                                for (int attributeIndex = 0; attributeIndex < subNode.getAttributes().getLength(); attributeIndex++) {
-                                    var attributes = subNode.getAttributes().item(attributeIndex);
+        GridPane gridPane = new GridPane();
+        gridPane.getStyleClass().add(XML_TREE_TEXT_STYLE);
 
-                                    VBox nodeNameBox = new VBox();
-                                    var attributeBox = new HBox();
-                                    HBox.setMargin(attributeBox, new Insets(5, 5, 5, 5));
-                                    attributeBox.setStyle("-fx-background-color: #c9c9ec; -fx-text-fill: #eeeef8; -fx-padding: 2px;");
-                                    attributeBox.getChildren().add(new Label("@"));
-                                    attributeBox.getChildren().add(new Label(attributes.getNodeName()));
-                                    nodeNameBox.getChildren().add(attributeBox);
+        ColumnConstraints column1 = new ColumnConstraints();
+        ColumnConstraints column2 = new ColumnConstraints();
+        column1.setPercentWidth(50);
+        column2.setPercentWidth(50);
+        column1.setHgrow(Priority.ALWAYS);
+        column2.setHgrow(Priority.ALWAYS);
+        gridPane.getColumnConstraints().addAll(column1, column2);
 
-                                    VBox nodeValueBox = new VBox();
-                                    nodeValueBox.getChildren().add(new Label(attributes.getNodeValue()));
-                                    nodeValueBox.setAlignment(Pos.CENTER_RIGHT);
-                                    nodeValueBox.setStyle("-fx-background-color: #f6f691");
+        addAttributesToGridPane(subNode, gridPane);
 
-                                    gridPane.add(nodeNameBox, 0, row);
-                                    gridPane.add(nodeValueBox, 1, row);
-                                    row++;
-                                }
-                            }
+        var nodeNameBox = new HBox(nodeName);
+        nodeNameBox.setStyle(PADDING_STYLE);
+        HBox.setHgrow(nodeNameBox, Priority.ALWAYS);
 
-                            var nodeNameBox = new HBox(nodeName);
-                            nodeNameBox.setStyle("-fx-padding: 2px;");
-                            HBox.setHgrow(nodeNameBox, Priority.ALWAYS);
+        var nodeValueBox = new HBox(nodeValue);
+        nodeValueBox.setStyle(BACKGROUND_COLOR_GREEN_STYLE);
+        nodeValueBox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(nodeValueBox, Priority.ALWAYS);
 
-                            var nodeValueBox = new HBox(nodeValue);
-                            nodeValueBox.setStyle("-fx-padding: 2px;");
-                            nodeValueBox.setAlignment(Pos.CENTER_LEFT);
-                            nodeValueBox.setStyle("-fx-background-color: #d2f4e5");
-                            HBox.setHgrow(nodeValueBox, Priority.ALWAYS);
+        final int row = gridPane.getRowCount();
+        gridPane.add(nodeNameBox, 0, row);
+        gridPane.add(nodeValueBox, 1, row);
 
-                            gridPane.add(nodeNameBox, 0, row);
-                            gridPane.add(nodeValueBox, 1, row);
+        this.getChildren().add(gridPane);
+    }
 
-                            this.getChildren().add(gridPane);
-                        } else {
-                            var elementBox = new HBox();
-                            elementBox.setSpacing(3);
-                            HBox.setMargin(elementBox, new Insets(3, 5, 3, 5));
+    /**
+     * Adds the attributes of a sub-node to the specified GridPane.
+     *
+     * @param subNode  the sub-node whose attributes are to be added
+     * @param gridPane the GridPane to which the attributes are to be added
+     */
+    private void addAttributesToGridPane(Node subNode, GridPane gridPane) {
+        if (subNode.hasAttributes()) {
+            for (int i = 0; i < subNode.getAttributes().getLength(); i++) {
+                var attributes = subNode.getAttributes().item(i);
 
-                            final Label label = new Label(subNode.getNodeName() + " - {" + calculateNodeCount(subNode) + "}");
-                            logger.debug("Element: {}", label.getText());
+                VBox nodeNameBox = new VBox();
+                var attributeBox = new HBox();
+                HBox.setMargin(attributeBox, new Insets(5, 5, 5, 5));
+                attributeBox.setStyle(ATTRIBUTE_BOX_STYLE);
+                attributeBox.getChildren().add(new Label("@"));
+                attributeBox.getChildren().add(new Label(attributes.getNodeName()));
+                nodeNameBox.getChildren().add(attributeBox);
 
-                            var btnPlus = new Button("", new ImageView(imagePlus));
-                            btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, true));
-                            elementBox.getChildren().addAll(btnPlus, label);
-                            this.getChildren().add(elementBox);
-                        }
-                    }
-                    case Node.TEXT_NODE -> {
-                        // this.getChildren().add(new Label("TEXT2: " + subNode.getNodeName() + ":" + subNode.getTextContent()));
-                    }
+                VBox nodeValueBox = new VBox();
+                nodeValueBox.getChildren().add(new Label(attributes.getNodeValue()));
+                nodeValueBox.setAlignment(Pos.CENTER_RIGHT);
+                nodeValueBox.setStyle(ATTRIBUTE_VALUE_BOX_STYLE);
 
-                    default -> this.getChildren().add(new Label("DEFAULT: " + subNode.getNodeName()));
-                }
-                this.getStyleClass().add("normalElement");
+                gridPane.add(nodeNameBox, 0, i);
+                gridPane.add(nodeValueBox, 1, i);
             }
         }
     }
 
+    /**
+     * Adds a complex node to the visual representation.
+     *
+     * @param subNode the complex node to be added
+     */
+    private void addComplexNode(Node subNode) {
+        var elementBox = new HBox(3);
+        HBox.setMargin(elementBox, new Insets(3, 5, 3, 5));
+
+        final Label label = new Label(subNode.getNodeName() + " - {" + calculateNodeCount(subNode) + "}");
+        logger.debug("Element: {}", label.getText());
+
+        var btnPlus = new Button("", new ImageView(imagePlus));
+        btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, true));
+        elementBox.getChildren().addAll(btnPlus, label);
+        this.getChildren().add(elementBox);
+    }
+
+    /**
+     * Creates an event handler for editing the value of a node.
+     *
+     * @param nodeValue the label displaying the node value
+     * @param node the node to be edited
+     * @return the event handler for editing the node value
+     */
     @NotNull
     private EventHandler<MouseEvent> editNodeValueHandler(Label nodeValue, Node node) {
         return event -> {
@@ -181,103 +245,133 @@ public class SimpleNodeElement extends VBox {
 
             try {
                 final String originalValue = nodeValue.getText();
-                HBox parent = null;
-                if (nodeValue.getParent() instanceof HBox hBox) {
-                    parent = hBox;
-                } else {
-                    logger.debug("not HBOX: {}", nodeValue.getParent());
-                }
+                HBox parent = (HBox) nodeValue.getParent();
 
                 TextField textField = new TextField(nodeValue.getText());
-                textField.setStyle("-fx-border-radius: 2px; -fx-background-color: #f1c4c4;");
-                textField.setOnKeyPressed(keyEvent -> {
+                textField.setStyle(TEXT_FIELD_STYLE);
+                textField.setOnKeyPressed(keyEvent -> handleKeyPress(keyEvent, textField, nodeValue, node, originalValue));
 
-                    HBox parentNew;
-                    if (keyEvent.getCode() == KeyCode.ENTER) {
-                        logger.debug("NEW VALUE: {}", textField.getText());
-                        nodeValue.setText(textField.getText());
-                        node.setNodeValue(textField.getText());
-
-                        parentNew = (HBox) textField.getParent();
-                        parentNew.getChildren().remove(textField);
-                        parentNew.getChildren().add(new Label(textField.getText()));
-                        parentNew.requestLayout();
-
-                        this.xmlEditor.refreshTextView();
-                    }
-                    if (keyEvent.getCode() == KeyCode.ESCAPE) {
-                        logger.debug("ESC Pressed");
-
-                        parentNew = (HBox) textField.getParent();
-                        parentNew.getChildren().remove(textField);
-                        parentNew.getChildren().add(new Label(originalValue));
-                    }
-
-                    this.setOnMouseClicked(editNodeValueHandler(nodeValue, node));
-
-                });
-                if (parent != null) {
-                    parent.getChildren().remove(nodeValue);
-                    parent.getChildren().add(textField);
-                }
+                parent.getChildren().remove(nodeValue);
+                parent.getChildren().add(textField);
 
             } catch (ClassCastException e) {
                 logger.error("Node Value: {}", nodeValue.getText());
                 logger.error("Error: {}", e.getMessage());
             }
-
         };
     }
 
+    /**
+     * Handles key press events for editing the value of a node.
+     *
+     * @param keyEvent      the key event
+     * @param textField     the text field for editing the node value
+     * @param nodeValue     the label displaying the node value
+     * @param node          the node to be edited
+     * @param originalValue the original value of the node
+     */
+    private void handleKeyPress(KeyEvent keyEvent, TextField textField, Label nodeValue, Node node, String originalValue) {
+        HBox parentNew;
+        if (keyEvent.getCode() == KeyCode.ENTER) {
+            logger.debug("NEW VALUE: {}", textField.getText());
+            nodeValue.setText(textField.getText());
+            node.setNodeValue(textField.getText());
+
+            parentNew = (HBox) textField.getParent();
+            parentNew.getChildren().remove(textField);
+            parentNew.getChildren().add(new Label(textField.getText()));
+            parentNew.requestLayout();
+
+            this.xmlEditor.refreshTextView();
+        }
+        if (keyEvent.getCode() == KeyCode.ESCAPE) {
+            logger.debug("ESC Pressed");
+
+            parentNew = (HBox) textField.getParent();
+            parentNew.getChildren().remove(textField);
+            parentNew.getChildren().add(new Label(originalValue));
+        }
+
+        this.setOnMouseClicked(editNodeValueHandler(nodeValue, node));
+    }
+
+    /**
+     * Creates an event handler for opening or closing a node.
+     *
+     * @param elementBox the HBox containing the node
+     * @param subNode the node to be opened or closed
+     * @param isOpen whether the node is currently open
+     * @return the event handler for opening or closing the node
+     */
     @NotNull
     private EventHandler<ActionEvent> mouseOpenHandler(HBox elementBox, Node subNode, Boolean isOpen) {
         return event -> {
             logger.debug("Open Clicked: {} - isOpen: {}", subNode.getNodeName(), isOpen);
 
             if (isOpen) {
-                logger.debug("OPEN Pressed");
-
-                SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode, xmlEditor);
-                HBox hbox = new HBox();
-
-                Button btnMinus = new Button("", new ImageView(imageMinus));
-                btnMinus.setOnAction(mouseOpenHandler(elementBox, subNode, false));
-
-                boolean shouldBeTable = shouldBeTable(subNode);
-                logger.debug("shouldBeTable: {}", shouldBeTable);
-
-                if (shouldBeTable) {
-                    GridPane gridPane = createTable(elementBox, subNode, btnMinus);
-
-                    hbox.getChildren().addAll(gridPane);
-                    elementBox.getChildren().add(hbox);
-
-                } else {
-                    var t = elementBox.getChildren().get(1);
-                    elementBox.getChildren().clear();
-                    elementBox.getChildren().addAll(btnMinus, t);
-
-                    hbox.getChildren().addAll(simpleNodeElement);
-                    elementBox.getChildren().add(hbox);
-                }
+                openNode(elementBox, subNode);
             } else {
-                logger.debug("CLOSE Pressed");
-
-                Button btnPlus = new Button("", new ImageView(imagePlus));
-                btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, false));
-
-                var t = elementBox.getChildren().get(1);
-                elementBox.getChildren().clear();
-                elementBox.getChildren().addAll(btnPlus, t);
-
-                btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, true));
+                closeNode(elementBox, subNode);
             }
         };
     }
 
+    /**
+     * Opens a node, displaying its children.
+     *
+     * @param elementBox the HBox containing the node
+     * @param subNode    the node to be opened
+     */
+    private void openNode(HBox elementBox, Node subNode) {
+        logger.debug("OPEN Pressed");
+
+        SimpleNodeElement simpleNodeElement = new SimpleNodeElement(subNode, xmlEditor);
+        HBox hbox = new HBox();
+
+        Button btnMinus = new Button("", new ImageView(imageMinus));
+        btnMinus.setOnAction(mouseOpenHandler(elementBox, subNode, false));
+
+        if (shouldBeTable(subNode)) {
+            GridPane gridPane = createTable(elementBox, subNode, btnMinus);
+            hbox.getChildren().addAll(gridPane);
+        } else {
+            var t = elementBox.getChildren().get(1);
+            elementBox.getChildren().clear();
+            elementBox.getChildren().addAll(btnMinus, t);
+
+            hbox.getChildren().addAll(simpleNodeElement);
+        }
+        elementBox.getChildren().add(hbox);
+    }
+
+    /**
+     * Closes a node, hiding its children.
+     *
+     * @param elementBox the HBox containing the node
+     * @param subNode    the node to be closed
+     */
+    private void closeNode(HBox elementBox, Node subNode) {
+        logger.debug("CLOSE Pressed");
+
+        Button btnPlus = new Button("", new ImageView(imagePlus));
+        btnPlus.setOnAction(mouseOpenHandler(elementBox, subNode, true));
+
+        var t = elementBox.getChildren().get(1);
+        elementBox.getChildren().clear();
+        elementBox.getChildren().addAll(btnPlus, t);
+    }
+
+    /**
+     * Creates a table representation of the node's children.
+     *
+     * @param elementBox the HBox containing the node
+     * @param subNode the node whose children are to be displayed in a table
+     * @param btnMinus the button for collapsing the node
+     * @return the GridPane representing the table
+     */
     private GridPane createTable(HBox elementBox, Node subNode, Button btnMinus) {
         GridPane gridPane = new GridPane();
-        gridPane.getStyleClass().add("treeGrid");
+        gridPane.getStyleClass().add(TREE_GRID_STYLE);
         int row = 1;
         Map<String, Integer> columns = new HashMap<>();
 
@@ -285,78 +379,7 @@ public class SimpleNodeElement extends VBox {
             Node oneRow = subNode.getChildNodes().item(i);
 
             if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
-                var textContent = new Label(oneRow.getNodeName() + "# [" + row + "]");
-                Pane rowCount = getCenterPaneWithLabel(textContent);
-                rowCount.setStyle("-fx-background-color: #f1d239;");
-
-                int finalRow = row;
-                rowCount.setOnMouseEntered(event -> {
-                    for (int c = 0; c < gridPane.getColumnCount() - 1; c++) {
-                        var node = getNodeFromGridPane(gridPane, c + 1, finalRow);
-                        if (node != null) {
-                            node.setStyle("-fx-background-color: #0a53be");
-                        }
-                    }
-                });
-                rowCount.setOnMouseExited(event -> {
-                    for (int c = 0; c < gridPane.getColumnCount() - 1; c++) {
-                        var node = getNodeFromGridPane(gridPane, c + 1, finalRow);
-                        if (node != null) {
-                            node.setStyle("-fx-background-color: white");
-                        }
-                    }
-                });
-
-                gridPane.add(rowCount, 0, row);
-
-
-                for (int x = 0; x < oneRow.getChildNodes().getLength(); x++) {
-                    Node oneNode = oneRow.getChildNodes().item(x);
-
-                    if (oneNode.getNodeType() == Node.ELEMENT_NODE) {
-                        var nodeName = oneNode.getNodeName();
-                        int colPos = 1;
-                        if (columns.containsKey(nodeName)) {
-                            colPos = columns.get(nodeName);
-                        } else {
-                            colPos = columns.size() + 1;
-                            columns.put(nodeName, colPos);
-                            var nn = new Label(nodeName);
-                            nn.setOnMouseClicked(editNodeValueHandler(nn, oneNode));
-                            Pane textPane = getCenterPaneWithLabel(nn);
-
-                            textPane.setStyle("-fx-background-color: #fae88d; -fx-font-weight: bold;");
-                            gridPane.add(textPane, colPos, 0);
-
-                            int finalColPos = colPos;
-                            textPane.setOnMouseEntered(event -> {
-                                for (int r = 0; r < gridPane.getRowCount() - 1; r++) {
-                                    var node = getNodeFromGridPane(gridPane, finalColPos, r + 1);
-                                    if (node != null) {
-                                        node.setStyle("-fx-background-color: #0a53be");
-                                    }
-                                }
-                            });
-                            textPane.setOnMouseExited(event -> {
-                                for (int r = 0; r < gridPane.getRowCount() - 1; r++) {
-                                    var node = getNodeFromGridPane(gridPane, finalColPos, r + 1);
-                                    if (node != null) {
-                                        node.setStyle("-fx-background-color: white");
-                                    }
-                                }
-                            });
-                        }
-                        if (oneNode.getChildNodes().getLength() == 1 &&
-                                oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
-                            var n = new Label(oneNode.getTextContent());
-                            var t = getCenterPaneWithLabel(n);
-                            t.setOnMouseClicked(editNodeValueHandler(n, oneNode));
-                            gridPane.add(t, colPos, row);
-                        } else {
-                            gridPane.add(new SimpleNodeElement(oneNode, xmlEditor), colPos, row);
-                        }
-                    }
-                }
+                addTableRow(gridPane, oneRow, row, columns);
                 row++;
             }
         }
@@ -367,18 +390,101 @@ public class SimpleNodeElement extends VBox {
         return gridPane;
     }
 
+    /**
+     * Adds a row to the table representation of the node's children.
+     *
+     * @param gridPane the GridPane representing the table
+     * @param oneRow   the node representing the row
+     * @param row      the row index
+     * @param columns  the map of column names to column indices
+     */
+    private void addTableRow(GridPane gridPane, Node oneRow, int row, Map<String, Integer> columns) {
+        var textContent = new Label(oneRow.getNodeName() + "# [" + row + "]");
+        Pane rowCount = getCenterPaneWithLabel(textContent);
+        rowCount.setStyle(ELEMENT_BOX_STYLE);
+        setRowHoverEffect(gridPane, rowCount, row);
+
+        gridPane.add(rowCount, 0, row);
+
+        for (int x = 0; x < oneRow.getChildNodes().getLength(); x++) {
+            Node oneNode = oneRow.getChildNodes().item(x);
+
+            if (oneNode.getNodeType() == Node.ELEMENT_NODE) {
+                addTableCell(gridPane, oneNode, row, columns);
+            }
+        }
+    }
+
+    /**
+     * Sets the hover effect for a row in the table.
+     *
+     * @param gridPane the GridPane representing the table
+     * @param rowCount the Pane representing the row count
+     * @param row      the row index
+     */
+    private void setRowHoverEffect(GridPane gridPane, Pane rowCount, int row) {
+        rowCount.setOnMouseEntered(event -> setHoverEffect(gridPane, row, true));
+        rowCount.setOnMouseExited(event -> setHoverEffect(gridPane, row, false));
+    }
+
+    /**
+     * Sets the hover effect for a cell in the table.
+     *
+     * @param gridPane  the GridPane representing the table
+     * @param row       the row index
+     * @param isHovered whether the cell is hovered
+     */
+    private void setHoverEffect(GridPane gridPane, int row, boolean isHovered) {
+        for (int c = 0; c < gridPane.getColumnCount() - 1; c++) {
+            var node = getNodeFromGridPane(gridPane, c + 1, row);
+            if (node != null) {
+                node.setStyle(isHovered ? HOVER_STYLE : DEFAULT_STYLE);
+            }
+        }
+    }
+
+    /**
+     * Adds a cell to the table representation of the node's children.
+     *
+     * @param gridPane the GridPane representing the table
+     * @param oneNode  the node representing the cell
+     * @param row      the row index
+     * @param columns  the map of column names to column indices
+     */
+    private void addTableCell(GridPane gridPane, Node oneNode, int row, Map<String, Integer> columns) {
+        var nodeName = oneNode.getNodeName();
+        int colPos = columns.computeIfAbsent(nodeName, k -> columns.size() + 1);
+
+        if (columns.get(nodeName) == colPos) {
+            var nn = new Label(nodeName);
+            nn.setOnMouseClicked(editNodeValueHandler(nn, oneNode));
+            Pane textPane = getCenterPaneWithLabel(nn);
+            textPane.setStyle(TABLE_HEADER_STYLE);
+            gridPane.add(textPane, colPos, 0);
+            setColumnHoverEffect(gridPane, textPane, colPos);
+        }
+
+        if (oneNode.getChildNodes().getLength() == 1 && oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
+            var n = new Label(oneNode.getTextContent());
+            var t = getCenterPaneWithLabel(n);
+            t.setOnMouseClicked(editNodeValueHandler(n, oneNode));
+            gridPane.add(t, colPos, row);
+        } else {
+            gridPane.add(new SimpleNodeElement(oneNode, xmlEditor), colPos, row);
+        }
+    }
+
+    private void setColumnHoverEffect(GridPane gridPane, Pane textPane, int colPos) {
+        textPane.setOnMouseEntered(event -> setHoverEffect(gridPane, colPos, true));
+        textPane.setOnMouseExited(event -> setHoverEffect(gridPane, colPos, false));
+    }
+
     private javafx.scene.Node getNodeFromGridPane(GridPane gridPane, int col, int row) {
-        final var children = gridPane.getChildren();
-        for (final var node : children) {
+        for (var node : gridPane.getChildren()) {
             Integer columnIndex = GridPane.getColumnIndex(node);
             Integer rowIndex = GridPane.getRowIndex(node);
 
-            if (columnIndex == null)
-                columnIndex = 0;
-            if (rowIndex == null)
-                rowIndex = 0;
-
-            if (columnIndex == col && rowIndex == row) {
+            if (Objects.equals(columnIndex, col) && Objects.equals(rowIndex, row)) {
                 logger.debug("columnIndex: {}, rowIndex: {}", columnIndex, rowIndex);
                 return node;
             }
@@ -386,18 +492,15 @@ public class SimpleNodeElement extends VBox {
         return null;
     }
 
-
     public Pane getCenterPaneWithLabel(Label label) {
         Pane pane = new Pane(label);
         label.layoutXProperty().bind(pane.widthProperty().subtract(label.widthProperty()).divide(2));
         label.layoutYProperty().bind(pane.heightProperty().subtract(label.heightProperty()).divide(2));
-
         return pane;
     }
 
     private static int calculateNodeCount(Node n) {
-        return (int) IntStream
-                .range(0, n.getChildNodes().getLength())
+        return (int) IntStream.range(0, n.getChildNodes().getLength())
                 .filter(i -> n.getChildNodes().item(i).getNodeType() == Node.ELEMENT_NODE)
                 .count();
     }
@@ -415,9 +518,6 @@ public class SimpleNodeElement extends VBox {
             }
         }
         logger.debug("Node Names: {}", nodeNames);
-        if (count == 1) {
-            return false;
-        }
-        return nodeNames.size() == 1;
+        return count > 1 && nodeNames.size() == 1;
     }
 }

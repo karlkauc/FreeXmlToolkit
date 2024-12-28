@@ -41,170 +41,209 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
+/**
+ * A custom VBox implementation for displaying a file explorer.
+ */
 public class FileExplorer extends VBox {
 
-    private final static Logger logger = LogManager.getLogger(FileExplorer.class);
-    TreeTableView<Path> fileTreeView;
-    Label fileNameLabel = new Label();
-    StringProperty stringProperty = new SimpleStringProperty();
+    private static final Logger logger = LogManager.getLogger(FileExplorer.class);
+    private final TreeTableView<Path> fileTreeView = new TreeTableView<>();
+    private final Label fileNameLabel = new Label();
+    private final StringProperty stringProperty = new SimpleStringProperty();
+    private final StringProperty displayText = new SimpleStringProperty();
+    private Path selectedFile;
 
-    Path selectedFile = null;
-
-    StringProperty displayText = new SimpleStringProperty();
-    String displayString = "";
-
-    public String getDisplayString() {
-        return displayString;
-    }
-
-    public void setDisplayString(String displayString) {
-        this.displayString = displayString;
-        this.displayText.set(displayString);
-    }
-
-    public String getDisplayText() {
-        return displayText.get();
-    }
-
-    public StringProperty displayTextProperty() {
-        return displayText;
-    }
-
-    public void setDisplayText(String displayText) {
-        this.displayText.set(displayText);
-    }
-
-    public Path getSelectedFile() {
-        return selectedFile;
-    }
-
-    public void setSelectedFile(Path selectedFile) {
-        this.selectedFile = selectedFile;
-    }
-
+    /**
+     * Constructs a FileExplorer instance and initializes the UI components.
+     */
     public FileExplorer() {
         logger.debug("FileExplorer()");
         init();
     }
 
+    /**
+     * Initializes the UI components and sets up the file tree view.
+     */
     private void init() {
-        try {
-            this.setPadding(new Insets(10, 10, 10, 10));
-            this.setSpacing(10);
+        setPadding(new Insets(10));
+        setSpacing(10);
 
-            fileNameLabel.textProperty().bind(stringProperty);
+        fileNameLabel.textProperty().bind(stringProperty);
 
-            fileTreeView = new TreeTableView<>();
-            fileTreeView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        fileTreeView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        fileTreeView.getColumns().addAll(createColumn("File Name", this::getFileName),
+                createColumn("File Extension", this::getFileExtension),
+                createColumn("File Size", this::getFileSize),
+                createColumn("File Date", this::getFileDate));
 
-            TreeTableColumn<Path, String> fileName = new TreeTableColumn<>("File Name");
-            TreeTableColumn<Path, String> fileExtension = new TreeTableColumn<>("File Extension");
-            TreeTableColumn<Path, String> fileSize = new TreeTableColumn<>("File Size");
-            TreeTableColumn<Path, String> fileDate = new TreeTableColumn<>("File Date");
-
-            fileName.setCellValueFactory(p -> {
-                if (p.getValue() != null && p.getValue().getValue() != null && p.getValue().getValue().getFileName() != null) {
-                    return new SimpleStringProperty(p.getValue().getValue().toFile().getName());
-                } else if (p.getValue() != null && p.getValue().getValue() != null) {
-                    // Root Element
-                    return new SimpleStringProperty(p.getValue().getValue().toString());
-                }
-
-                return new SimpleStringProperty("");
-            });
-            fileExtension.setCellValueFactory(p -> {
-                if (p.getValue() != null && p.getValue().getValue() != null && p.getValue().getValue().getFileName() != null) {
-                    var file = p.getValue().getValue();
-                    logger.debug("Is directory: {}, {}", file.getFileName().toFile().getAbsoluteFile(), Files.isDirectory(file));
-
-                    if (Files.isDirectory(file)) {
-                        return new SimpleStringProperty("");
-                    }
-                    return new SimpleStringProperty(FilenameUtils.getExtension(p.getValue().getValue().getFileName().toString()));
-                } else {
-                    return new SimpleStringProperty("");
-                }
-            });
-            fileSize.setCellValueFactory(p -> {
-                if (p.getValue().getValue().toFile().isFile() && !Files.isDirectory(p.getValue().getValue())) {
-                    return new SimpleStringProperty(FileUtils.byteCountToDisplaySize(p.getValue().getValue().toFile().length()));
-                }
-                return new SimpleStringProperty("");
-            });
-            fileDate.setCellValueFactory(p -> {
-                final Path file = p.getValue().getValue();
-                try {
-                    final BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
-                    return new SimpleStringProperty(attr.lastModifiedTime().toString());
-                } catch (IOException e) {
-                    // logger.error(e.getMessage());
-                }
-
-                return new SimpleStringProperty("");
-            });
-
-            fileTreeView.getColumns().add(fileName);
-            fileTreeView.getColumns().add(fileExtension);
-            fileTreeView.getColumns().add(fileSize);
-            fileTreeView.getColumns().add(fileDate);
-
-            String hostName = "computer";
-            try {
-                hostName = InetAddress.getLocalHost().getHostName();
-            } catch (UnknownHostException ignored) {
-            }
-
-            FileExplorerTreeItem<Path> root = new FileExplorerTreeItem<>(new File(hostName).toPath());
-
-            for (File file : File.listRoots()) {
-                logger.debug("drinnen: {}", file.getName());
-                root.getChildren().add(new FileExplorerTreeItem<>(file.toPath()));
-                logger.debug("nach treeNode");
-            }
-
-            fileTreeView.setShowRoot(true);
-            fileTreeView.setRoot(root);
-
-            fileTreeView.getSelectionModel()
-                    .selectedItemProperty()
-                    .addListener((observable, oldValue, newValue) -> {
-                        if (newValue.getValue().toFile().isFile()) {
-                            stringProperty.setValue(newValue.getValue().toFile().getName());
-                            selectedFile = newValue.getValue();
-                        }
-                        if (newValue.getValue().toFile().isDirectory()) {
-                            if (newValue.isExpanded()) {
-                                newValue.getChildren().clear();
-                            } else {
-                                try (var walk = Files.walk(newValue.getValue(), 1)) {
-                                    List<Path> result = walk
-                                            .filter(f -> f != newValue.getValue())
-                                            .filter(f -> f.toFile().isFile() || f.toFile().isDirectory())
-                                            .toList();
-                                    for (Path file : result) {
-                                        newValue.getChildren().add(new FileExplorerTreeItem<>(file));
-                                    }
-                                } catch (IOException e) {
-                                    // e.printStackTrace();
-                                }
-                            }
-                        }
-                        // System.out.println("Selected Text : " + newValue.getValue());
-                    });
-
-            HBox header = new HBox();
-            header.setSpacing(10);
-            var headerLabel = new Label();
-            headerLabel.textProperty().bind(displayText);
-
-            header.getChildren().add(headerLabel);
-            header.getChildren().add(fileNameLabel);
-
-            this.getChildren().addAll(header, fileTreeView);
-
-            VBox.setVgrow(fileTreeView, Priority.ALWAYS);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+        String hostName = getHostName();
+        FileExplorerTreeItem<Path> root = new FileExplorerTreeItem<>(new File(hostName).toPath());
+        for (File file : File.listRoots()) {
+            root.getChildren().add(new FileExplorerTreeItem<>(file.toPath()));
         }
+
+        fileTreeView.setShowRoot(true);
+        fileTreeView.setRoot(root);
+        fileTreeView.getSelectionModel().selectedItemProperty().addListener(
+                (obs, oldVal, newVal) -> handleSelection((FileExplorerTreeItem<Path>) newVal));
+
+        HBox header = new HBox(10, new Label(), fileNameLabel);
+        ((Label) header.getChildren().getFirst()).textProperty().bind(displayText);
+
+        getChildren().addAll(header, fileTreeView);
+        VBox.setVgrow(fileTreeView, Priority.ALWAYS);
+    }
+
+    /**
+     * Creates a TreeTableColumn with the specified title and cell value factory.
+     *
+     * @param title  the title of the column
+     * @param mapper the function to map cell data to a StringProperty
+     * @return the created TreeTableColumn
+     */
+    private TreeTableColumn<Path, String> createColumn(String title, java.util.function.Function<TreeTableColumn.CellDataFeatures<Path, String>, StringProperty> mapper) {
+        TreeTableColumn<Path, String> column = new TreeTableColumn<>(title);
+        column.setCellValueFactory(mapper::apply);
+        return column;
+    }
+
+    /**
+     * Gets the file name from the specified cell data.
+     *
+     * @param p the cell data
+     * @return the file name as a StringProperty
+     */
+    private StringProperty getFileName(TreeTableColumn.CellDataFeatures<Path, String> p) {
+        Path path = p.getValue().getValue();
+        return new SimpleStringProperty(path != null ? path.toFile().getName() : "");
+    }
+
+    /**
+     * Gets the file extension from the specified cell data.
+     *
+     * @param p the cell data
+     * @return the file extension as a StringProperty
+     */
+    private StringProperty getFileExtension(TreeTableColumn.CellDataFeatures<Path, String> p) {
+        Path path = p.getValue().getValue();
+        if (path != null && !Files.isDirectory(path)) {
+            return new SimpleStringProperty(FilenameUtils.getExtension(path.toString()));
+        }
+        return new SimpleStringProperty("");
+    }
+
+    /**
+     * Gets the file size from the specified cell data.
+     *
+     * @param p the cell data
+     * @return the file size as a StringProperty
+     */
+    private StringProperty getFileSize(TreeTableColumn.CellDataFeatures<Path, String> p) {
+        Path path = p.getValue().getValue();
+        if (path != null && path.toFile().isFile()) {
+            return new SimpleStringProperty(FileUtils.byteCountToDisplaySize(path.toFile().length()));
+        }
+        return new SimpleStringProperty("");
+    }
+
+    /**
+     * Gets the file date from the specified cell data.
+     *
+     * @param p the cell data
+     * @return the file date as a StringProperty
+     */
+    private StringProperty getFileDate(TreeTableColumn.CellDataFeatures<Path, String> p) {
+        Path path = p.getValue().getValue();
+        try {
+            BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+            return new SimpleStringProperty(attr.lastModifiedTime().toString());
+        } catch (IOException e) {
+            return new SimpleStringProperty("");
+        }
+    }
+
+    /**
+     * Gets the host name of the local machine.
+     *
+     * @return the host name
+     */
+    private String getHostName() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return "computer";
+        }
+    }
+
+    /**
+     * Handles the selection of a file or directory in the file tree view.
+     *
+     * @param newVal the selected TreeItem
+     */
+    private void handleSelection(FileExplorerTreeItem<Path> newVal) {
+        if (newVal == null) return;
+        Path path = newVal.getValue();
+        if (path.toFile().isFile()) {
+            stringProperty.setValue(path.toFile().getName());
+            selectedFile = path;
+        } else if (path.toFile().isDirectory()) {
+            if (newVal.isExpanded()) {
+                newVal.getChildren().clear();
+            } else {
+                try (var walk = Files.walk(path, 1)) {
+                    List<Path> result = walk.filter(f -> !f.equals(path)).toList();
+                    for (Path file : result) {
+                        newVal.getChildren().add(new FileExplorerTreeItem<>(file));
+                    }
+                } catch (IOException e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets the currently selected file.
+     *
+     * @return the selected file
+     */
+    public Path getSelectedFile() {
+        return selectedFile;
+    }
+
+    /**
+     * Sets the selected file.
+     *
+     * @param selectedFile the file to select
+     */
+    public void setSelectedFile(Path selectedFile) {
+        this.selectedFile = selectedFile;
+    }
+
+    /**
+     * Gets the display text.
+     *
+     * @return the display text
+     */
+    public String getDisplayText() {
+        return displayText.get();
+    }
+
+    /**
+     * Sets the display text.
+     *
+     * @param displayText the text to display
+     */
+    public void setDisplayText(String displayText) {
+        this.displayText.set(displayText);
+    }
+
+    /**
+     * Gets the display text property.
+     *
+     * @return the display text property
+     */
+    public StringProperty displayTextProperty() {
+        return displayText;
     }
 }

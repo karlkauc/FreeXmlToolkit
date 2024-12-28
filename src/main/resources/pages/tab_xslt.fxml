@@ -33,9 +33,9 @@
                         style="-fx-padding: 0 5 0 0; -fx-background-color: #fafff7;">
                 <center>
                     <VBox alignment="CENTER" style="-fx-padding: 10px;" spacing="5">
-                        <FileExplorer fx:id="xmlFileExplorer" displayString="XML File"/>
+                        <FileExplorer fx:id="xmlFileExplorer" displayText="XML File"/>
                         <Separator/>
-                        <FileExplorer fx:id="xsltFileExplorer" displayString="XSLT File"/>
+                        <FileExplorer fx:id="xsltFileExplorer" displayText="XSLT File"/>
                     </VBox>
                 </center>
                 <bottom>

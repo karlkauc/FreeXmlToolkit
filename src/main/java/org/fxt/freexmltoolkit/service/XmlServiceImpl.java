@@ -152,7 +152,7 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public void setCurrentXmlFile(File currentXmlFile) {
-        if (isContainBOM(currentXmlFile.toPath())) {
+        if (currentXmlFile != null && currentXmlFile.exists() && isContainBOM(currentXmlFile.toPath())) {
             removeBom(currentXmlFile.toPath());
         }
 

@@ -48,45 +48,35 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class XsdValidationController {
 
-    XmlService xmlService = XmlServiceImpl.getInstance();
-
+    private static final Logger logger = LogManager.getLogger(XsdValidationController.class);
+    private final XmlService xmlService = XmlServiceImpl.getInstance();
+    private final FileChooser xmlFileChooser = new FileChooser();
+    private final FileChooser xsdFileChooser = new FileChooser();
+    private final FileChooser excelFileChooser = new FileChooser();
+    private List<SAXParseException> validationErrors;
     private MainController parentController;
 
     @FXML
-    AnchorPane anchorPane;
-
-    FileChooser xmlFileChooser = new FileChooser(), xsdFileChooser = new FileChooser(), excelFileChooser = new FileChooser();
-
+    private AnchorPane anchorPane;
     @FXML
-    GridPane auswertung;
-
+    private GridPane auswertung;
     @FXML
-    Button xmlLoadButton, xsdLoadButton, test, excelExport, clearResults;
-
+    private Button xmlLoadButton, xsdLoadButton, test, excelExport, clearResults;
     @FXML
-    TextField xmlFileName, xsdFileName, remoteXsdLocation;
-
+    private TextField xmlFileName, xsdFileName, remoteXsdLocation;
     @FXML
-    VBox errorListBox;
-
+    private VBox errorListBox;
     @FXML
-    CheckBox autodetect;
-
+    private CheckBox autodetect;
     @FXML
-    ImageView statusImage;
-
+    private ImageView statusImage;
     @FXML
-    ProgressIndicator progressIndicator;
-
-    List<SAXParseException> validationErrors;
-
-    private final static Logger logger = LogManager.getLogger(XsdValidationController.class);
+    private ProgressIndicator progressIndicator;
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
@@ -94,67 +84,52 @@ public class XsdValidationController {
 
     @FXML
     private void toggleAutoDetection() {
-        xsdLoadButton.setDisable(!xsdLoadButton.isDisable());
-        xsdFileName.setDisable(!xsdFileName.isDisable());
+        boolean disable = !xsdLoadButton.isDisable();
+        xsdLoadButton.setDisable(disable);
+        xsdFileName.setDisable(disable);
     }
 
     @FXML
     private void initialize() {
-        final Path path = FileSystems.getDefault().getPath(".");
+        Path path = FileSystems.getDefault().getPath(".");
         xmlFileChooser.setInitialDirectory(path.toFile());
         xsdFileChooser.setInitialDirectory(path.toFile());
+        xmlFileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML File", "*.xml"));
+        xsdFileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD File", "*.xsd"));
 
-        xmlFileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML File", "*.xml"));
-        xsdFileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XSD File", "*.xsd"));
+        xmlLoadButton.setOnAction(ae -> loadFile(xmlFileChooser, this::processXmlFile));
+        xmlLoadButton.setOnDragOver(event -> handleDragOver(event));
+        xmlLoadButton.setOnDragDropped(event -> handleDragDropped(event, this::processXmlFile));
 
-        xmlLoadButton.setOnAction(ae -> {
-            var tempFile = xmlFileChooser.showOpenDialog(null);
-            if (tempFile != null) {
-                logger.debug("Loaded XML File: {}", tempFile.getAbsolutePath());
-                processXmlFile(tempFile);
-            }
-        });
+        xsdLoadButton.setOnAction(ae -> loadFile(xsdFileChooser, file -> {
+            xmlService.setCurrentXsdFile(file);
+            xsdFileName.setText(file.getName());
+            if (xmlService.getCurrentXmlFile() != null) processXmlFile();
+        }));
 
-        xmlLoadButton.setOnDragOver(event -> {
-            Dragboard db = event.getDragboard();
-            if (db.hasFiles()) {
-                event.acceptTransferModes(TransferMode.COPY);
-            } else {
-                event.consume();
-            }
-        });
+        if (System.getenv("debug") != null) test.setVisible(true);
+    }
 
-        xmlLoadButton.setOnDragDropped(event -> {
-            Dragboard db = event.getDragboard();
-            boolean success = false;
-            if (db.hasFiles()) {
-                success = true;
-                for (File file : db.getFiles()) {
-                    xmlService.setCurrentXmlFile(file);
-                    processXmlFile(file);
-                }
-            }
-            event.setDropCompleted(success);
-            event.consume();
-        });
-
-        xsdLoadButton.setOnAction(ae -> {
-            var tempFile = xsdFileChooser.showOpenDialog(null);
-            if (tempFile != null) {
-                logger.debug("Loaded XSLT File: {}", tempFile.getAbsolutePath());
-                xmlService.setCurrentXsdFile(tempFile);
-                xsdFileName.setText(xmlService.getCurrentXsdFile().getName());
-                if (xmlService.getCurrentXmlFile() != null) {
-                    processXmlFile();
-                }
-            }
-        });
-
-        var t = System.getenv("debug");
-        if (t != null) {
-            logger.debug("set visible false");
-            test.setVisible(true);
+    private void loadFile(FileChooser fileChooser, java.util.function.Consumer<File> fileProcessor) {
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            logger.debug("Loaded File: {}", file.getAbsolutePath());
+            fileProcessor.accept(file);
         }
+    }
+
+    private void handleDragOver(javafx.scene.input.DragEvent event) {
+        if (event.getDragboard().hasFiles()) event.acceptTransferModes(TransferMode.COPY);
+        else event.consume();
+    }
+
+    private void handleDragDropped(javafx.scene.input.DragEvent event, java.util.function.Consumer<File> fileProcessor) {
+        Dragboard db = event.getDragboard();
+        if (db.hasFiles()) {
+            db.getFiles().forEach(fileProcessor);
+            event.setDropCompleted(true);
+        } else event.setDropCompleted(false);
+        event.consume();
     }
 
     @FXML
@@ -165,114 +140,126 @@ public class XsdValidationController {
     private void processXmlFile(File file) {
         progressIndicator.setVisible(true);
         progressIndicator.setProgress(0.1);
-
-        remoteXsdLocation.setText("");
-        statusImage.setImage(null);
-        errorListBox.getChildren().clear();
+        resetUI();
 
         Platform.runLater(() -> {
             xmlService.setCurrentXmlFile(file);
             xmlService.prettyFormatCurrentFile();
-            xmlFileName.setText(xmlService.getCurrentXmlFile().getName());
-
+            xmlFileName.setText(file.getName());
             progressIndicator.setProgress(0.2);
 
             if (autodetect.isSelected()) {
-                var schemaName = xmlService.getSchemaNameFromCurrentXMLFile();
-
-                if (schemaName.isPresent() && xmlService.loadSchemaFromXMLFile()) {
-                    logger.debug("Loading remote schema successfully!");
-                    xsdFileName.setText(schemaName.get());
-                } else {
-                    logger.debug("Could not load remote schema");
-                    xsdFileName.setText("");
-                    xmlService.setCurrentXsdFile(null);
-                }
-            } else {
-                if (xmlService.getCurrentXsdFile() != null) {
-                    xsdFileName.setText(xmlService.getCurrentXsdFile().getName());
-                }
+                xmlService.getSchemaNameFromCurrentXMLFile().ifPresentOrElse(
+                        schemaName -> {
+                            if (xmlService.loadSchemaFromXMLFile()) {
+                                logger.debug("Loaded remote schema successfully!");
+                                xsdFileName.setText(schemaName);
+                            } else {
+                                logger.debug("Could not load remote schema");
+                                xsdFileName.setText("");
+                                xmlService.setCurrentXsdFile(null);
+                            }
+                        },
+                        () -> {
+                            logger.debug("Could not load remote schema");
+                            xsdFileName.setText("");
+                            xmlService.setCurrentXsdFile(null);
+                        }
+                );
+            } else if (xmlService.getCurrentXsdFile() != null) {
+                xsdFileName.setText(xmlService.getCurrentXsdFile().getName());
             }
 
             if (xmlService.getCurrentXmlFile() != null && xmlService.getCurrentXsdFile() != null) {
                 progressIndicator.setProgress(0.4);
                 validationErrors = xmlService.validate();
-                if (validationErrors != null && !validationErrors.isEmpty()) {
-                    logger.warn(Arrays.toString(validationErrors.toArray()));
-                    int i = 0;
-                    for (SAXParseException saxParseException : validationErrors) {
-                        TextFlow textFlowPane = new TextFlow();
-                        textFlowPane.setLineSpacing(5.0);
-
-                        Text headerText = new Text("#" + i++ + ": " + saxParseException.getLocalizedMessage() + System.lineSeparator());
-                        headerText.setFont(Font.font("Verdana", 20));
-
-                        textFlowPane.getChildren().add(headerText);
-
-                        Text lineText = new Text("Line#: " + saxParseException.getLineNumber() + " Col#: " + saxParseException.getColumnNumber() + System.lineSeparator());
-                        textFlowPane.getChildren().add(lineText);
-
-                        try {
-                            var lineBefore = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() - 1).trim();
-                            textFlowPane.getChildren().add(new Text(lineBefore + System.lineSeparator()));
-
-                            var line = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber()).trim();
-                            textFlowPane.getChildren().add(new Text(line + System.lineSeparator()));
-
-                            var lineAfter = Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(saxParseException.getLineNumber() + 1).trim();
-                            textFlowPane.getChildren().add(new Text(lineAfter + System.lineSeparator()));
-                        } catch (IOException exception) {
-                            logger.error("Exception: {}", exception.getMessage());
-                        }
-                        errorListBox.getChildren().add(textFlowPane);
-
-                        Button goToError = new Button("Go to error");
-                        goToError.setOnAction(ae -> {
-                            try {
-                                var p = (TabPane) anchorPane.getParent().getParent();
-                                var t = p.getTabs();
-                                t.forEach(e -> {
-                                    if (Objects.equals(e.getId(), "tabPaneXml")) {
-                                        p.getSelectionModel().select(e);
-                                    }
-                                });
-
-                            } catch (Exception e) {
-                                logger.error(e.getMessage());
-                            }
-                        });
-                        errorListBox.getChildren().add(goToError);
-                        errorListBox.getChildren().add(new Separator());
-                    }
-
-                    Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-stornieren-48.png")).toString());
-                    statusImage.setImage(image);
-
-                } else {
-                    logger.debug("No errors in Validation of file {} - schema {}", xmlService.getCurrentXsdFile(), xmlService.getCurrentXsdFile());
-                    Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-ok-48.png")).toString());
-                    statusImage.setImage(image);
-                }
+                displayValidationResults();
             } else {
-                logger.debug("war nicht alles ausgewählt!!");
-                logger.debug("Current XML File: {}", xmlService.getCurrentXmlFile());
-                logger.debug("Current XSD File: {}", xmlService.getCurrentXsdFile());
-
+                logger.debug("Schema not found!");
                 errorListBox.getChildren().add(new Label("Schema not found!"));
-
-                Image image = new Image(Objects.requireNonNull(getClass().getResource("/img/icons8-stornieren-48.png")).toString());
-                statusImage.setImage(image);
+                setStatusImage("/img/icons8-stornieren-48.png");
             }
 
             progressIndicator.setProgress(1.0);
         });
     }
 
+    private void resetUI() {
+        remoteXsdLocation.setText("");
+        statusImage.setImage(null);
+        errorListBox.getChildren().clear();
+    }
+
+    private void displayValidationResults() {
+        if (validationErrors != null && !validationErrors.isEmpty()) {
+            logger.warn(validationErrors.toString());
+            for (int i = 0; i < validationErrors.size(); i++) {
+                SAXParseException ex = validationErrors.get(i);
+                TextFlow textFlow = createTextFlow(i, ex);
+                errorListBox.getChildren().addAll(textFlow, createGoToErrorButton(), new Separator());
+            }
+            setStatusImage("/img/icons8-stornieren-48.png");
+        } else {
+            logger.debug("No errors in validation");
+            setStatusImage("/img/icons8-ok-48.png");
+        }
+    }
+
+    private TextFlow createTextFlow(int index, SAXParseException ex) {
+        TextFlow textFlow = new TextFlow();
+        textFlow.setLineSpacing(5.0);
+        textFlow.getChildren().addAll(
+                createText("#" + index + ": " + ex.getLocalizedMessage(), 20),
+                createText("Line#: " + ex.getLineNumber() + " Col#: " + ex.getColumnNumber()),
+                createText(getFileLine(ex.getLineNumber() - 1)),
+                createText(getFileLine(ex.getLineNumber())),
+                createText(getFileLine(ex.getLineNumber() + 1))
+        );
+        return textFlow;
+    }
+
+    private Text createText(String content, int fontSize) {
+        Text text = new Text(content + System.lineSeparator());
+        text.setFont(Font.font("Verdana", fontSize));
+        return text;
+    }
+
+    private Text createText(String content) {
+        return new Text(content + System.lineSeparator());
+    }
+
+    private String getFileLine(int lineNumber) {
+        try {
+            return Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(lineNumber).trim();
+        } catch (IOException e) {
+            logger.error("Exception: {}", e.getMessage());
+            return "";
+        }
+    }
+
+    private Button createGoToErrorButton() {
+        Button goToError = new Button("Go to error");
+        goToError.setOnAction(ae -> {
+            try {
+                TabPane tabPane = (TabPane) anchorPane.getParent().getParent();
+                tabPane.getTabs().stream()
+                        .filter(tab -> "tabPaneXml".equals(tab.getId()))
+                        .findFirst()
+                        .ifPresent(tabPane.getSelectionModel()::select);
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+            }
+        });
+        return goToError;
+    }
+
+    private void setStatusImage(String imagePath) {
+        statusImage.setImage(new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toString()));
+    }
+
     @FXML
     private void clearResultAction() {
         logger.debug("clear results");
-
-
     }
 
     @FXML
@@ -280,28 +267,35 @@ public class XsdValidationController {
         if (validationErrors != null && !validationErrors.isEmpty()) {
             excelFileChooser.setInitialFileName("ValidationErrors.xlsx");
             File exportFile = excelFileChooser.showSaveDialog(null);
-
             if (exportFile != null) {
                 var result = xmlService.createExcelValidationReport(exportFile, validationErrors);
                 logger.debug("Written {} bytes.", result.length());
-                if (exportFile.exists() && exportFile.length() > 0) {
-                    try {
-                        Desktop.getDesktop().open(exportFile);
-                    } catch (IOException ioException) {
-                        logger.error("Could not open File: {}", exportFile.toString());
-                    }
-                }
+                openFile(exportFile);
             }
         } else {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setHeaderText("Export not possible.");
-            alert.setContentText("No Errors found.");
-            alert.showAndWait();
+            showAlert("Export not possible.", "No Errors found.");
         }
+    }
+
+    private void openFile(File file) {
+        if (file.exists() && file.length() > 0) {
+            try {
+                Desktop.getDesktop().open(file);
+            } catch (IOException e) {
+                logger.error("Could not open File: {}", file);
+            }
+        }
+    }
+
+    private void showAlert(String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     @FXML
     private void test() {
-        processXmlFile(Paths.get("examples/xml/FundsXML_422_Bond_Fund.xml").toFile());
+        processXmlFile(Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml").toFile());
     }
 }

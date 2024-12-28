@@ -35,22 +35,17 @@ import java.util.Properties;
 
 public class WelcomeController {
 
-    private final static Logger logger = LogManager.getLogger(WelcomeController.class);
-
+    private static final Logger logger = LogManager.getLogger(WelcomeController.class);
+    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    private Properties properties;
     private MainController parentController;
 
     @FXML
-    HBox versionUpdate;
-
+    private HBox versionUpdate;
     @FXML
-    CheckBox sendUsageStatistics;
-
+    private CheckBox sendUsageStatistics;
     @FXML
-    Label duration;
-
-    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
-    Properties properties;
-
+    private Label duration;
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
@@ -61,20 +56,10 @@ public class WelcomeController {
         properties = propertiesService.loadProperties();
         logger.debug("Properties: {}", properties);
 
-        if (properties.get("version") != null && properties.getProperty("version").equals("20221008")) {
-            versionUpdate.setVisible(true);
-        } else {
-            logger.debug("not visible");
-            versionUpdate.setVisible(false);
-        }
+        versionUpdate.setVisible("20221008".equals(properties.getProperty("version")));
 
-        int oldSeconds = Integer.parseInt(properties.getProperty("usageDuration"));
-        if (oldSeconds > 0) {
-            var oldSecondsText = formatSecondsHumanReadable(oldSeconds);
-            duration.setText(duration.getText().replace("{duration}", oldSecondsText));
-        } else {
-            duration.setText("You are here the first time!");
-        }
+        int oldSeconds = Integer.parseInt(properties.getProperty("usageDuration", "0"));
+        duration.setText(oldSeconds > 0 ? formatSecondsHumanReadable(oldSeconds) : "You are here the first time!");
     }
 
     @FXML
@@ -86,10 +71,8 @@ public class WelcomeController {
         }
     }
 
-    private String formatSecondsHumanReadable(Integer seconds) {
+    private String formatSecondsHumanReadable(int seconds) {
         logger.debug("Format: {}", seconds);
-
         return LocalTime.MIN.plusSeconds(seconds).toString();
     }
-
 }
