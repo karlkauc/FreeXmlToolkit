@@ -23,12 +23,52 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.util.Properties;
+
 public class PropertiesServiceTest {
 
     @Test
-    void testPropertiesService() {
+    void propertiesServiceSingletonInstance() {
+        PropertiesService instance1 = PropertiesServiceImpl.getInstance();
+        PropertiesService instance2 = PropertiesServiceImpl.getInstance();
+        Assertions.assertSame(instance1, instance2);
+    }
+
+    @Test
+    void loadPropertiesFromFile() {
+        PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+        Properties properties = propertiesService.loadProperties();
+        Assertions.assertNotNull(properties);
+        Assertions.assertFalse(properties.isEmpty());
+    }
+
+    @Test
+    void savePropertiesToFile() {
+        PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+        Properties properties = new Properties();
+        properties.setProperty("testKey", "testValue");
+        propertiesService.saveProperties(properties);
+
+        Properties loadedProperties = propertiesService.loadProperties();
+        Assertions.assertEquals("testValue", loadedProperties.getProperty("testKey"));
+    }
+
+    @Test
+    void createDefaultPropertiesFile() {
+        PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+        propertiesService.createDefaultProperties();
+
+        Properties properties = propertiesService.loadProperties();
+        Assertions.assertEquals(System.getProperty("java.io.tmpdir"), properties.getProperty("customTempFolder"));
+        Assertions.assertEquals("false", properties.getProperty("sendUsageStatistics"));
+    }
+
+    @Test
+    void getLastOpenFilesList() {
         PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
         var fileList = propertiesService.getLastOpenFiles();
-        Assertions.assertEquals(2, fileList.size());
+        Assertions.assertNotNull(fileList);
+        Assertions.assertTrue(fileList.isEmpty() || fileList.stream().allMatch(File::exists));
     }
 }

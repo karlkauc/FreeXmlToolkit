@@ -49,6 +49,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
@@ -169,7 +172,6 @@ public class XsdDocumentationService {
         generateDetailPages(outputDirectory);
     }
 
-
     public void generateXsdDocumentation(File outputDirectory) {
         logger.debug("Bin in generateXsdDocumentation");
 
@@ -203,14 +205,14 @@ public class XsdDocumentationService {
     }
 
     public void generateRootPage(File outputDirectory) {
-        final var rootElementName = elements.get(0).getName();
+        final var rootElementName = elements.getFirst().getName();
 
         var context = new Context();
         context.setVariable("date", LocalDate.now());
         context.setVariable("filename", this.getXsdFilePath());
         context.setVariable("rootElementName", rootElementName);
-        context.setVariable("rootElement", getXmlSchema().get(0));
-        context.setVariable("xsdElements", elements.get(0));
+        context.setVariable("rootElement", getXmlSchema().getFirst());
+        context.setVariable("xsdElements", elements.getFirst());
         context.setVariable("xsdComplexTypes", getXsdComplexTypes());
         context.setVariable("xsdSimpleTypes", getXsdSimpleTypes());
         context.setVariable("rootElementLink", "details/" + getExtendedXsdElements().get("/" + rootElementName).getPageName());
@@ -240,7 +242,7 @@ public class XsdDocumentationService {
 
             final var result = templateEngine.process("complexTypes/templateComplexType", context);
             final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", complexType.getRawName() + ".html");
-            logger.debug("File: " + outputFilePath.toFile().getAbsolutePath());
+            logger.debug("File: {}", outputFilePath.toFile().getAbsolutePath());
 
             try {
                 Files.write(outputFilePath, result.getBytes());
@@ -251,8 +253,22 @@ public class XsdDocumentationService {
         }
     }
 
-    public Node getChildNodeFromXpath() {
-        return null;
+    public String getNodeTypeNameFromNodeType(short nodeType) {
+        return switch (nodeType) {
+            case Node.ELEMENT_NODE -> "Element";
+            case Node.ATTRIBUTE_NODE -> "Attribute";
+            case Node.TEXT_NODE -> "Text";
+            case Node.CDATA_SECTION_NODE -> "CDATA Section";
+            case Node.ENTITY_REFERENCE_NODE -> "Entity Reference";
+            case Node.ENTITY_NODE -> "Entity";
+            case Node.PROCESSING_INSTRUCTION_NODE -> "Processing Instruction";
+            case Node.COMMENT_NODE -> "Comment";
+            case Node.DOCUMENT_NODE -> "Document";
+            case Node.DOCUMENT_TYPE_NODE -> "Document Type";
+            case Node.DOCUMENT_FRAGMENT_NODE -> "Document Fragment";
+            case Node.NOTATION_NODE -> "Notation";
+            default -> "Unknown";
+        };
     }
 
     public Node getChildNodeFromXpath(String xpath) {
@@ -277,55 +293,65 @@ public class XsdDocumentationService {
     }
 
     public void generateDetailPages(File outputDirectory) {
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+
         for (String key : this.getExtendedXsdElements().keySet()) {
             var currentElement = this.getExtendedXsdElements().get(key);
 
             if (!currentElement.getChildren().isEmpty()) {
-                var context = new Context();
-                if (this.method == ImageOutputMethod.SVG) {
-                    String svgDiagram = generateSvgString(key);
-                    context.setVariable("svg", svgDiagram);
-                } else {
-                    String fileName = currentElement.getPageName().replace(".html", ".jpg");
-                    File pngFile = new File(String.valueOf(Paths.get(outputDirectory.getPath(), "details", fileName).toFile()));
-                    String filePath = generateImage(key, pngFile);
+                executor.submit(() -> {
+                    var context = new Context();
+                    if (this.method == ImageOutputMethod.SVG) {
+                        final String svgDiagram = generateSvgString(key);
+                        context.setVariable("svg", svgDiagram);
+                    } else {
+                        final String fileName = currentElement.getPageName().replace(".html", ".jpg");
+                        final File pngFile = new File(String.valueOf(Paths.get(outputDirectory.getPath(), "details", fileName).toFile()));
+                        final String filePath = generateImage(key, pngFile);
 
-                    context.setVariable("img", filePath);
-                }
+                        context.setVariable("img", filePath);
+                    }
 
-                context.setVariable("xpath", getBreadCrumbs(currentElement));
-                context.setVariable("code", currentElement.getSourceCode());
-                context.setVariable("element", currentElement);
-                context.setVariable("namespace", getXmlSchema().get(0).getTargetNamespace());
-                context.setVariable("this", this);
+                    context.setVariable("xpath", getBreadCrumbs(currentElement));
+                    context.setVariable("code", currentElement.getSourceCode());
+                    context.setVariable("element", currentElement);
+                    context.setVariable("namespace", getXmlSchema().getFirst().getTargetNamespace());
+                    context.setVariable("this", this);
 
-                if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getType() != null) {
-                    context.setVariable("type", currentElement.getElementType());
-                } else {
-                    context.setVariable("type", "NULL");
-                }
+                    if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getType() != null) {
+                        context.setVariable("type", currentElement.getElementType());
+                    } else {
+                        context.setVariable("type", "NULL");
+                    }
 
-                if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getAnnotation() != null) {
-                    context.setVariable("appInfos", currentElement.getXsdElement().getAnnotation().getAppInfoList());
-                }
+                    if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getAnnotation() != null) {
+                        context.setVariable("appInfos", currentElement.getXsdElement().getAnnotation().getAppInfoList());
+                    }
 
-                Map<String, String> docTemp = new LinkedHashMap<>();
-                if (currentElement.getLanguageDocumentation() != null && !currentElement.getLanguageDocumentation().isEmpty()) {
-                    docTemp = currentElement.getLanguageDocumentation();
-                }
-                context.setVariable("documentation", docTemp);
+                    Map<String, String> docTemp = new LinkedHashMap<>();
+                    if (currentElement.getLanguageDocumentation() != null && !currentElement.getLanguageDocumentation().isEmpty()) {
+                        docTemp = currentElement.getLanguageDocumentation();
+                    }
+                    context.setVariable("documentation", docTemp);
 
-                final var result = templateEngine.process("details/templateDetail", context);
-                final var outputFileName = Paths.get(outputDirectory.getPath(), "details", currentElement.getPageName()).toFile().getAbsolutePath();
-                logger.debug("File: " + outputFileName);
+                    final var result = templateEngine.process("details/templateDetail", context);
+                    final var outputFileName = Paths.get(outputDirectory.getPath(), "details", currentElement.getPageName()).toFile().getAbsolutePath();
+                    logger.debug("File: {}", outputFileName);
 
-                try {
-                    Files.write(Paths.get(outputFileName), result.getBytes());
-                    logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                    try {
+                        Files.write(Paths.get(outputFileName), result.getBytes());
+                        logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             }
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -383,7 +409,7 @@ public class XsdDocumentationService {
     }
 
     public Document generateSvgDiagramms(String rootXpath) {
-        Document document = domImpl.createDocument(svgNS, "svg", null);
+        final Document document = domImpl.createDocument(svgNS, "svg", null);
         var svgRoot = document.getDocumentElement();
 
         var rootElement = this.getExtendedXsdElements().get(rootXpath);
@@ -407,7 +433,7 @@ public class XsdDocumentationService {
             if (r != null && r.getXsdElement() != null) {
                 elementName = r.getXsdElement().getName();
             }
-            logger.debug("Element Name = " + elementName);
+            logger.debug("Element Name = {}", elementName);
 
             var z = font.getStringBounds(elementName, frc);
             var height = z.getBounds2D().getHeight();
@@ -646,6 +672,10 @@ public class XsdDocumentationService {
                 extendedXsdElement.setElementName(xsdElement.getRawName());
                 extendedXsdElement.setXsdElement(xsdElement);
 
+                if (xsdElement.getAnnotation() != null && xsdElement.getAnnotation().getDocumentations() != null) {
+                    extendedXsdElement.setXsdDocumentation(xsdElement.getAnnotation().getDocumentations());
+                }
+
                 if (xsdElement.getTypeAsBuiltInDataType() != null) {
                     logger.debug("BUILD IN DATATYPE {}", xsdElement.getTypeAsBuiltInDataType().getRawName());
 
@@ -653,7 +683,14 @@ public class XsdDocumentationService {
                     extendedXsdElement.setElementName(xsdElement.getRawName());
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
-                    extendedXsdElement.setElementType("BUILDIN");
+                    extendedXsdElement.setElementType(xsdElement.getType());
+
+                    /*
+                    if (xsdElement.getAnnotation() != null && xsdElement.getAnnotation().getDocumentations() != null) {
+                        extendedXsdElement.setXsdDocumentation(xsdElement.getAnnotation().getDocumentations());
+                    }
+                     */
+
                     extendedXsdElements.put(currentXpath, extendedXsdElement);
                 }
                 if (xsdElement.getTypeAsComplexType() != null) {
@@ -675,10 +712,6 @@ public class XsdDocumentationService {
 
                     extendedXsdElement.setCurrentNode(n);
                     extendedXsdElement.setSourceCode(elementString);
-
-                    if (xsdElement.getAnnotation() != null && xsdElement.getAnnotation().getDocumentations() != null) {
-                        extendedXsdElement.setXsdDocumentation(xsdElement.getAnnotation().getDocumentations());
-                    }
 
                     if (xsdElement.getXsdComplexType() != null) {
                         ArrayList<String> prevTemp = new ArrayList<>(prevElementTypes);
@@ -722,10 +755,6 @@ public class XsdDocumentationService {
                     var currentNode = xmlService.getNodeFromXpath("//xs:complexType[@name='" + xsdComplexType.getRawName() + "']", parentNode);
                     var s = xmlService.getXmlFromXpath("//xs:complexType[@name='" + xsdComplexType.getRawName() + "']");
 
-                    if (xsdComplexType.getAnnotation() != null && xsdComplexType.getAnnotation().getDocumentations() != null) {
-                        extendedXsdElement.setXsdDocumentation(xsdComplexType.getAnnotation().getDocumentations());
-                    }
-
                     if (currentNode == null) {
                         currentNode = parentNode;
                     }
@@ -735,6 +764,7 @@ public class XsdDocumentationService {
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
                     extendedXsdElement.setElementType("COMPLEX");
+
                     extendedXsdElements.put(currentXpath, extendedXsdElement);
 
                     if (xsdElement.getXsdComplexType().getElements() != null) {
@@ -746,7 +776,7 @@ public class XsdDocumentationService {
                 }
                 if (xsdElement.getXsdSimpleType() != null) {
                     XsdSimpleType xsdSimpleType = xsdElement.getXsdSimpleType();
-                    System.out.println("xsdSimpleType = " + xsdSimpleType.getName());
+                    logger.debug("xsdSimpleType = {}", xsdSimpleType.getName());
 
                     var currentNode = xmlService.getNodeFromXpath("//xs:simpleType[@name='" + xsdSimpleType.getRawName() + "']", parentNode);
                     var s = xmlService.getXmlFromXpath("//xs:simpleType[@name='" + xsdSimpleType.getRawName() + "']");
@@ -755,8 +785,8 @@ public class XsdDocumentationService {
                         currentNode = parentNode;
                     }
 
-                    if (xsdSimpleType.getAnnotation() != null && xsdSimpleType.getAnnotation().getDocumentations() != null) {
-                        extendedXsdElement.setXsdDocumentation(xsdSimpleType.getAnnotation().getDocumentations());
+                    if (xsdSimpleType.getRestriction() != null) {
+                        extendedXsdElement.setXsdRestriction(xsdSimpleType.getRestriction());
                     }
 
                     extendedXsdElement.setSourceCode(s);

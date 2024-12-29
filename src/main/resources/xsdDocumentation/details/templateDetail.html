@@ -132,14 +132,16 @@
             <div class="col">
                 <table class="table d-inline-block table-bordered table-sm">
                     <thead>
-                    <td>XPah</td>
-                    <td>Type</td>
-                    <td>Documentation</td>
+                    <tr>
+                        <td class="fw-bold">XPah</td>
+                        <td class="fw-bold">Type</td>
+                        <td class="fw-bold">Documentation</td>
+                    </tr>
                     </thead>
                     <tbody>
                     <tr th:each="child: ${element.getChildren()}">
                         <td th:text="${child}">CHILD</td>
-                        <td th:text="${this.getChildNodeFromXpath(child) ? this.getChildNodeFromXpath(child).getNodeType() : 'default value'}">
+                        <td th:text="${this.getChildNodeFromXpath(child) ? this.getNodeTypeNameFromNodeType(this.getChildNodeFromXpath(child).getNodeType()) : this.getExtendedXsdElements().get(child).getElementType()}">
                             someValue
                         </td>
                         <td th:text="${this.getChildInfo(child)}">INFO</td>
@@ -151,10 +153,10 @@
 
         <div class="row p-1 bg-gradient detail-row">
             <div class="col-md-2">
-                <div class="float-end">facets</div>
+                <div class="float-end">Restrictions</div>
             </div>
             <div class="col">
-                facets
+                <span th:text="${element.getXsdRestrictionString()}">RESTRICTIONS</span>
             </div>
         </div>
 

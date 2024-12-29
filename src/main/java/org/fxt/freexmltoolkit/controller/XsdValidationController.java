@@ -51,6 +51,9 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Controller class for handling XSD validation operations.
+ */
 public class XsdValidationController {
 
     private static final Logger logger = LogManager.getLogger(XsdValidationController.class);
@@ -78,10 +81,18 @@ public class XsdValidationController {
     @FXML
     private ProgressIndicator progressIndicator;
 
+    /**
+     * Sets the parent controller.
+     *
+     * @param parentController the parent controller
+     */
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
 
+    /**
+     * Toggles the auto-detection of XSD files.
+     */
     @FXML
     private void toggleAutoDetection() {
         boolean disable = !xsdLoadButton.isDisable();
@@ -89,6 +100,9 @@ public class XsdValidationController {
         xsdFileName.setDisable(disable);
     }
 
+    /**
+     * Initializes the controller and sets up the file choosers and event handlers.
+     */
     @FXML
     private void initialize() {
         Path path = FileSystems.getDefault().getPath(".");
@@ -110,6 +124,12 @@ public class XsdValidationController {
         if (System.getenv("debug") != null) test.setVisible(true);
     }
 
+    /**
+     * Loads a file using the specified file chooser and processes it with the given file processor.
+     *
+     * @param fileChooser   the file chooser
+     * @param fileProcessor the file processor
+     */
     private void loadFile(FileChooser fileChooser, java.util.function.Consumer<File> fileProcessor) {
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
@@ -118,11 +138,22 @@ public class XsdValidationController {
         }
     }
 
+    /**
+     * Handles the drag over event for file loading.
+     *
+     * @param event the drag event
+     */
     private void handleDragOver(javafx.scene.input.DragEvent event) {
         if (event.getDragboard().hasFiles()) event.acceptTransferModes(TransferMode.COPY);
         else event.consume();
     }
 
+    /**
+     * Handles the drag dropped event for file loading.
+     *
+     * @param event the drag event
+     * @param fileProcessor the file processor
+     */
     private void handleDragDropped(javafx.scene.input.DragEvent event, java.util.function.Consumer<File> fileProcessor) {
         Dragboard db = event.getDragboard();
         if (db.hasFiles()) {
@@ -132,11 +163,19 @@ public class XsdValidationController {
         event.consume();
     }
 
+    /**
+     * Processes the currently selected XML file.
+     */
     @FXML
     private void processXmlFile() {
         processXmlFile(xmlService.getCurrentXmlFile());
     }
 
+    /**
+     * Processes the specified XML file.
+     *
+     * @param file the XML file
+     */
     private void processXmlFile(File file) {
         progressIndicator.setVisible(true);
         progressIndicator.setProgress(0.1);
@@ -184,12 +223,18 @@ public class XsdValidationController {
         });
     }
 
+    /**
+     * Resets the UI elements to their default state.
+     */
     private void resetUI() {
         remoteXsdLocation.setText("");
         statusImage.setImage(null);
         errorListBox.getChildren().clear();
     }
 
+    /**
+     * Displays the validation results in the UI.
+     */
     private void displayValidationResults() {
         if (validationErrors != null && !validationErrors.isEmpty()) {
             logger.warn(validationErrors.toString());
@@ -205,6 +250,13 @@ public class XsdValidationController {
         }
     }
 
+    /**
+     * Creates a TextFlow element for displaying a validation error.
+     *
+     * @param index the index of the error
+     * @param ex the SAXParseException representing the error
+     * @return the created TextFlow element
+     */
     private TextFlow createTextFlow(int index, SAXParseException ex) {
         TextFlow textFlow = new TextFlow();
         textFlow.setLineSpacing(5.0);
@@ -218,16 +270,35 @@ public class XsdValidationController {
         return textFlow;
     }
 
+    /**
+     * Creates a Text element with the specified content and font size.
+     *
+     * @param content the content of the text
+     * @param fontSize the font size of the text
+     * @return the created Text element
+     */
     private Text createText(String content, int fontSize) {
         Text text = new Text(content + System.lineSeparator());
         text.setFont(Font.font("Verdana", fontSize));
         return text;
     }
 
+    /**
+     * Creates a Text element with the specified content.
+     *
+     * @param content the content of the text
+     * @return the created Text element
+     */
     private Text createText(String content) {
         return new Text(content + System.lineSeparator());
     }
 
+    /**
+     * Retrieves the specified line from the current XML file.
+     *
+     * @param lineNumber the line number to retrieve
+     * @return the content of the specified line
+     */
     private String getFileLine(int lineNumber) {
         try {
             return Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(lineNumber).trim();
@@ -237,6 +308,11 @@ public class XsdValidationController {
         }
     }
 
+    /**
+     * Creates a button for navigating to the error in the XML file.
+     *
+     * @return the created button
+     */
     private Button createGoToErrorButton() {
         Button goToError = new Button("Go to error");
         goToError.setOnAction(ae -> {
@@ -253,15 +329,26 @@ public class XsdValidationController {
         return goToError;
     }
 
+    /**
+     * Sets the status image to the specified image path.
+     *
+     * @param imagePath the path to the image
+     */
     private void setStatusImage(String imagePath) {
         statusImage.setImage(new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toString()));
     }
 
+    /**
+     * Clears the validation results from the UI.
+     */
     @FXML
     private void clearResultAction() {
         logger.debug("clear results");
     }
 
+    /**
+     * Exports the validation errors to an Excel file.
+     */
     @FXML
     private void excelExport() {
         if (validationErrors != null && !validationErrors.isEmpty()) {
@@ -277,6 +364,11 @@ public class XsdValidationController {
         }
     }
 
+    /**
+     * Opens the specified file using the default desktop application.
+     *
+     * @param file the file to open
+     */
     private void openFile(File file) {
         if (file.exists() && file.length() > 0) {
             try {
@@ -287,6 +379,12 @@ public class XsdValidationController {
         }
     }
 
+    /**
+     * Shows an alert with the specified header and content.
+     *
+     * @param header the header text
+     * @param content the content text
+     */
     private void showAlert(String header, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setHeaderText(header);
@@ -294,6 +392,9 @@ public class XsdValidationController {
         alert.showAndWait();
     }
 
+    /**
+     * Test method for processing a sample XML file.
+     */
     @FXML
     private void test() {
         processXmlFile(Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml").toFile());

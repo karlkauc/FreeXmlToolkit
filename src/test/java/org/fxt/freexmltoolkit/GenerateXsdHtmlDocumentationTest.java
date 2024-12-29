@@ -56,8 +56,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GenerateXsdHtmlDocumentationTest {
-    final static String fileName = "src/test/resources/FundsXML_420.xsd";
-    final static String fundsXml306Xsd = "src/test/resources/FundsXML_306.xsd";
+    final static String XML_420_XSD = "src/test/resources/FundsXML_420.xsd";
+    final static String XML_306_XSD = "src/test/resources/FundsXML_306.xsd";
+    final static String SIMPLE_XSD_FILE = "src/test/resources/simpleFile.xsd";
 
     final XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
 
@@ -67,7 +68,8 @@ public class GenerateXsdHtmlDocumentationTest {
 
     @Test
     void parseXsdTest() {
-        xsdDocumentationService.setXsdFilePath(fileName);
+        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
+        xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
         xsdDocumentationService.processXsd(true);
         var elements = xsdDocumentationService.getExtendedXsdElements();
 
@@ -75,16 +77,13 @@ public class GenerateXsdHtmlDocumentationTest {
         for (String s : elements.keySet()) {
             logger.debug("xPath: {}", s);
         }
+        logger.debug("Size: {}", elements.size());
     }
 
     @Test
     void generateSeperatedFiles() {
-        logger.debug("vor filename");
-        xsdDocumentationService.setXsdFilePath("src/test/resources/simpleFile.xsd");
-        logger.debug("vor process xsd");
-        xsdDocumentationService.processXsd(true);
-
-        logger.debug("vor generate root element");
+        logger.debug("Creating Documentation");
+        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
         xsdDocumentationService.generateXsdDocumentation(new File("output/test123"));
     }
 
@@ -180,13 +179,13 @@ public class GenerateXsdHtmlDocumentationTest {
 
     @Test
     void createHtmlTable420() {
-        xsdDocumentationService.setXsdFilePath(fileName);
+        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
         // xsdDocumentationService.generateDocumentation("test-doc.html");
     }
 
     @Test
     void createHtmlTable() {
-        xsdDocumentationService.setXsdFilePath(fundsXml306Xsd);
+        xsdDocumentationService.setXsdFilePath(XML_306_XSD);
         // xsdDocumentationService.generateDocumentation("test-doc_306.html");
     }
 
@@ -197,7 +196,7 @@ public class GenerateXsdHtmlDocumentationTest {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new FileReader(fileName)));
+            Document doc = builder.parse(new InputSource(new FileReader(XML_420_XSD)));
 
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
@@ -293,6 +292,5 @@ public class GenerateXsdHtmlDocumentationTest {
             logger.error(e.getMessage());
         }
     }
-
 
 }
