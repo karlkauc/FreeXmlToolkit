@@ -89,9 +89,6 @@
         <span>Root Element Name</span>
         <span th:utext="${rootElementName}">Root Element Name</span>
 
-        <span>Root Element Name</span>
-        <span th:utext="${rootElementName}">Root Element Name</span>
-
         <span>attributeFormDefault</span>
         <span th:utext="${rootElement.getAttributeFormDefault()}">UNQUALIFIED</span>
 
@@ -104,8 +101,11 @@
         <span>finalDefault</span>
         <span th:utext="${rootElement.getFinalDefault()}">DEFAULT</span>
 
-        <span>targetNamespace</span>
-        <span th:utext="${rootElement.getTargetNamespace()}">DEFAULT</span>
+        <span>Namespaces</span>
+        <span th:utext="${namespace}">Namespace List</span>
+
+        <span>TargetNamespace</span>
+        <span th:text="${targetNamespace}">TargetName</span>
 
         <span>noNamespaceLocation</span>
         <span>DEFAULT</span>

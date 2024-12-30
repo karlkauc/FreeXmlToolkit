@@ -32,6 +32,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.w3c.dom.*;
 import org.xmlet.xsdparser.core.XsdParser;
+import org.xmlet.xsdparser.core.utils.NamespaceInfo;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
 
@@ -45,10 +46,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -75,6 +74,7 @@ public class XsdDocumentationService {
     XsdParser parser;
     List<XsdSchema> xmlSchema;
     Map<String, ExtendedXsdElement> extendedXsdElements;
+    Map<String, NamespaceInfo> namespaces = new HashMap<>();
 
     XmlService xmlService = XmlServiceImpl.getInstance();
 
@@ -190,15 +190,15 @@ public class XsdDocumentationService {
             Files.createDirectories(Paths.get(outputDirectory.getPath(), "complexTypes"));
             Files.createDirectories(Paths.get(outputDirectory.getPath(), "simpleTypes"));
 
-            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.bundle.min.js"), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.bundle.min.js"), StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.js"), Paths.get(outputDirectory.getPath(), "assets", "prism.js"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.bundle.min.js")), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.bundle.min.js"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.js")), Paths.get(outputDirectory.getPath(), "assets", "prism.js"), StandardCopyOption.REPLACE_EXISTING);
 
-            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css"), Paths.get(outputDirectory.getPath(), "assets", "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css")), Paths.get(outputDirectory.getPath(), "assets", "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
 
-            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/plus.png"), Paths.get(outputDirectory.getPath(), "assets", "plus.png"), StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/logo.png"), Paths.get(outputDirectory.getPath(), "assets", "logo.png"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/plus.png")), Paths.get(outputDirectory.getPath(), "assets", "plus.png"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/logo.png")), Paths.get(outputDirectory.getPath(), "assets", "logo.png"), StandardCopyOption.REPLACE_EXISTING);
 
-            Files.copy(getClass().getResourceAsStream("/xsdDocumentation/assets/Roboto-Regular.ttf"), Paths.get(outputDirectory.getPath(), "assets", "Roboto-Regular.ttf"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/Roboto-Regular.ttf")), Paths.get(outputDirectory.getPath(), "assets", "Roboto-Regular.ttf"), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -215,11 +215,13 @@ public class XsdDocumentationService {
         context.setVariable("xsdElements", elements.getFirst());
         context.setVariable("xsdComplexTypes", getXsdComplexTypes());
         context.setVariable("xsdSimpleTypes", getXsdSimpleTypes());
+        context.setVariable("namespace", getNameSpacesAsString());
+        context.setVariable("targetNamespace", getXmlSchema().getFirst().getTargetNamespace());
         context.setVariable("rootElementLink", "details/" + getExtendedXsdElements().get("/" + rootElementName).getPageName());
 
         final var result = templateEngine.process("templateRootElement", context);
         final var outputFileName = Paths.get(outputDirectory.getPath(), "index.html").toFile().getAbsolutePath();
-        logger.debug("Root File: " + outputFileName);
+        logger.debug("Root File: {}", outputFileName);
 
         try {
             Files.write(Paths.get(outputFileName), result.getBytes());
@@ -251,6 +253,20 @@ public class XsdDocumentationService {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public String getNameSpacesAsString() {
+        StringBuilder result = new StringBuilder();
+        for (var ns : namespaces.keySet()) {
+            result.append(ns)
+                    .append("=")
+                    .append("'")
+                    .append(namespaces.get(ns).getName())
+                    .append("'")
+                    .append("<br />");
+        }
+
+        return result.toString();
     }
 
     public String getNodeTypeNameFromNodeType(short nodeType) {
@@ -315,7 +331,7 @@ public class XsdDocumentationService {
                     context.setVariable("xpath", getBreadCrumbs(currentElement));
                     context.setVariable("code", currentElement.getSourceCode());
                     context.setVariable("element", currentElement);
-                    context.setVariable("namespace", getXmlSchema().getFirst().getTargetNamespace());
+                    context.setVariable("namespace", getNameSpacesAsString());
                     context.setVariable("this", this);
 
                     if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getType() != null) {
@@ -628,6 +644,8 @@ public class XsdDocumentationService {
         extendedXsdElements = new LinkedHashMap<>();
         counter = 0;
 
+        parser.getResultXsdSchemas().forEach(n -> namespaces.putAll(n.getNamespaces()));
+
         for (XsdElement xsdElement : elements) {
             var elementName = xsdElement.getRawName();
             final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
@@ -653,7 +671,6 @@ public class XsdDocumentationService {
 
         switch (xsdAbstractElement) {
             case XsdElement xsdElement -> {
-                final String elementRawName = xsdElement.getRawName();
                 logger.debug("ELEMENT: {}", xsdElement.getRawName());
 
                 final String parentXpath = "/" + String.join("/", prevElementPath);
@@ -685,12 +702,6 @@ public class XsdDocumentationService {
                     extendedXsdElement.setXsdElement(xsdElement);
                     extendedXsdElement.setElementType(xsdElement.getType());
 
-                    /*
-                    if (xsdElement.getAnnotation() != null && xsdElement.getAnnotation().getDocumentations() != null) {
-                        extendedXsdElement.setXsdDocumentation(xsdElement.getAnnotation().getDocumentations());
-                    }
-                     */
-
                     extendedXsdElements.put(currentXpath, extendedXsdElement);
                 }
                 if (xsdElement.getTypeAsComplexType() != null) {
@@ -707,10 +718,10 @@ public class XsdDocumentationService {
 
                 if (currentType == null) {
                     /* reines element - kein complex/simple - aber children. in doku aufnehmen und mit kinder weiter machen */
-                    Node n = xmlService.getNodeFromXpath("//xs:element[@name='" + xsdElement.getRawName() + "']", parentNode);
-                    String elementString = xmlService.getNodeAsString(n);
+                    Node nodeFromXpath = xmlService.getNodeFromXpath("//xs:element[@name='" + xsdElement.getRawName() + "']", parentNode);
+                    String elementString = xmlService.getNodeAsString(nodeFromXpath);
 
-                    extendedXsdElement.setCurrentNode(n);
+                    extendedXsdElement.setCurrentNode(nodeFromXpath);
                     extendedXsdElement.setSourceCode(elementString);
 
                     if (xsdElement.getXsdComplexType() != null) {
@@ -724,7 +735,7 @@ public class XsdDocumentationService {
                         extendedXsdElements.put(currentXpath, extendedXsdElement);
                         if (xsdElement.getXsdComplexType().getElements() != null) {
                             for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
-                                getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, n);
+                                getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, nodeFromXpath);
                             }
                             return;
                         }
@@ -732,15 +743,15 @@ public class XsdDocumentationService {
                 }
 
                 if (prevElementTypes.stream().anyMatch(str -> str.trim().equals(currentType))) {
-                    System.out.println("ELEMENT SCHON BEARBEITET: " + currentType);
+                    // System.out.println("ELEMENT SCHON BEARBEITET: " + currentType);
                     logger.warn("Element {} schon bearbeitet.", currentType);
                     return;
                 } else {
                     logger.debug("noch nicht bearbeitet: {}", currentType);
                 }
 
-                // current type beginnt mit xs: oder nicht...
-                System.out.println("currentType = " + currentType);
+                // current type beginnt mit xs: oder nicht ...
+                logger.debug("currentType = {}", currentType);
                 ArrayList<String> prevTemp = new ArrayList<>(prevElementTypes);
                 prevTemp.add(currentType);
 
@@ -775,11 +786,11 @@ public class XsdDocumentationService {
                     }
                 }
                 if (xsdElement.getXsdSimpleType() != null) {
-                    XsdSimpleType xsdSimpleType = xsdElement.getXsdSimpleType();
+                    final XsdSimpleType xsdSimpleType = xsdElement.getXsdSimpleType();
                     logger.debug("xsdSimpleType = {}", xsdSimpleType.getName());
 
                     var currentNode = xmlService.getNodeFromXpath("//xs:simpleType[@name='" + xsdSimpleType.getRawName() + "']", parentNode);
-                    var s = xmlService.getXmlFromXpath("//xs:simpleType[@name='" + xsdSimpleType.getRawName() + "']");
+                    final var xmlFromXpath = xmlService.getXmlFromXpath("//xs:simpleType[@name='" + xsdSimpleType.getRawName() + "']");
 
                     if (currentNode == null) {
                         currentNode = parentNode;
@@ -789,7 +800,7 @@ public class XsdDocumentationService {
                         extendedXsdElement.setXsdRestriction(xsdSimpleType.getRestriction());
                     }
 
-                    extendedXsdElement.setSourceCode(s);
+                    extendedXsdElement.setSourceCode(xmlFromXpath);
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
@@ -798,37 +809,37 @@ public class XsdDocumentationService {
                 }
             }
             case XsdChoice xsdChoice -> {
-                logger.debug("xsdChoice = " + xsdChoice);
+                logger.debug("xsdChoice = {}", xsdChoice);
                 for (ReferenceBase x : xsdChoice.getElements()) {
                     getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }
             case XsdSequence xsdSequence -> {
-                logger.debug("xsdSequence = " + xsdSequence);
+                logger.debug("xsdSequence = {}", xsdSequence);
                 for (ReferenceBase x : xsdSequence.getElements()) {
                     getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }
             case XsdAll xsdAll -> {
-                logger.debug("xsdAll = " + xsdAll);
+                logger.debug("xsdAll = {}", xsdAll);
                 for (ReferenceBase x : xsdAll.getElements()) {
                     getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }
             case XsdGroup xsdGroup -> {
-                logger.debug("xsdGroup = " + xsdGroup);
+                logger.debug("xsdGroup = {}", xsdGroup);
                 for (ReferenceBase x : xsdGroup.getElements()) {
                     getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }
             case XsdAttributeGroup xsdAttributeGroup -> {
-                logger.debug("xsdAttributeGroup = " + xsdAttributeGroup);
+                logger.debug("xsdAttributeGroup = {}", xsdAttributeGroup);
                 for (ReferenceBase x : xsdAttributeGroup.getElements()) {
                     getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
             }
             case XsdExtension xsdExtension -> {
-                logger.debug("XsdExtension = " + xsdExtension);
+                logger.debug("XsdExtension = {}", xsdExtension);
                 for (ReferenceBase x : xsdExtension.getElements()) {
                     getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
                 }
