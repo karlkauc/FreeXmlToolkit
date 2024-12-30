@@ -133,14 +133,15 @@
                 <table class="table d-inline-block table-bordered table-sm">
                     <thead>
                     <tr>
-                        <td class="fw-bold">XPah</td>
-                        <td class="fw-bold">Type</td>
-                        <td class="fw-bold">Documentation</td>
+                        <td class="fw-bold text-center">XPah</td>
+                        <td class="fw-bold text-center">Type</td>
+                        <td class="fw-bold text-center">Documentation</td>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="child: ${element.getChildren()}">
-                        <td th:text="${child}">CHILD</td>
+                        <td><a th:href="${this.getExtendedXsdElements().get(child).getPageName()}" th:text="${child}">CHILD</a>
+                        </td>
                         <td th:text="${this.getChildNodeFromXpath(child) ? this.getNodeTypeNameFromNodeType(this.getChildNodeFromXpath(child).getNodeType()) : this.getExtendedXsdElements().get(child).getElementType()}">
                             someValue
                         </td>

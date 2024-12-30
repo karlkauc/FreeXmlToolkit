@@ -18,11 +18,6 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.batik.dom.GenericDOMImplementation;
-import org.apache.batik.transcoder.TranscoderException;
-import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.transcoder.TranscoderOutput;
-import org.apache.batik.transcoder.image.JPEGTranscoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
@@ -30,23 +25,18 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import org.w3c.dom.*;
+import org.w3c.dom.Node;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.core.utils.NamespaceInfo;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
 
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.awt.*;
-import java.awt.font.FontRenderContext;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
+
     String xsdFilePath;
     static final int MAX_ALLOWED_DEPTH = 99;
     private final static Logger logger = LogManager.getLogger(XsdDocumentationService.class);
@@ -78,21 +69,6 @@ public class XsdDocumentationService {
 
     XmlService xmlService = XmlServiceImpl.getInstance();
 
-    final int margin = 10;
-    final int gapBetweenSides = 100;
-
-    final static String BOX_COLOR = "#d5e3e8";
-    final static String OPTIONAL_FORMAT = "stroke: rgb(2,23,23); stroke-width: 1.5; stroke-dasharray: 7, 7; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
-    final static String OPTIONAL_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 1.5; stroke-dasharray: 7, 7;";
-    final static String MANDATORY_FORMAT = "stroke: rgb(2,23,23); stroke-width: 1.5; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
-    final static String MANDATORY_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 1.5;";
-
-    Font font;
-    FontRenderContext frc;
-    DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
-    final String svgNS = "http://www.w3.org/2000/svg";
-    Document document;
-
     Boolean useMarkdownRenderer = true;
 
     StringBuilder xpath;
@@ -100,12 +76,6 @@ public class XsdDocumentationService {
     TemplateEngine templateEngine;
 
     public XsdDocumentationService() {
-        font = new Font("Arial", Font.PLAIN, 16);
-        frc = new FontRenderContext(
-                null,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF,
-                RenderingHints.VALUE_FRACTIONALMETRICS_DEFAULT);
-
         resolver = new ClassLoaderTemplateResolver();
         resolver.setTemplateMode(TemplateMode.HTML);
         resolver.setCharacterEncoding("UTF-8");
@@ -182,454 +152,6 @@ public class XsdDocumentationService {
         generateDetailPages(outputDirectory);
     }
 
-    public void copyResources(File outputDirectory) {
-        try {
-            Files.createDirectories(outputDirectory.toPath());
-            Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
-            Files.createDirectories(Paths.get(outputDirectory.getPath(), "details"));
-            Files.createDirectories(Paths.get(outputDirectory.getPath(), "complexTypes"));
-            Files.createDirectories(Paths.get(outputDirectory.getPath(), "simpleTypes"));
-
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.bundle.min.js")), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.bundle.min.js"), StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.js")), Paths.get(outputDirectory.getPath(), "assets", "prism.js"), StandardCopyOption.REPLACE_EXISTING);
-
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css")), Paths.get(outputDirectory.getPath(), "assets", "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
-
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/plus.png")), Paths.get(outputDirectory.getPath(), "assets", "plus.png"), StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/logo.png")), Paths.get(outputDirectory.getPath(), "assets", "logo.png"), StandardCopyOption.REPLACE_EXISTING);
-
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/Roboto-Regular.ttf")), Paths.get(outputDirectory.getPath(), "assets", "Roboto-Regular.ttf"), StandardCopyOption.REPLACE_EXISTING);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    public void generateRootPage(File outputDirectory) {
-        final var rootElementName = elements.getFirst().getName();
-
-        var context = new Context();
-        context.setVariable("date", LocalDate.now());
-        context.setVariable("filename", this.getXsdFilePath());
-        context.setVariable("rootElementName", rootElementName);
-        context.setVariable("rootElement", getXmlSchema().getFirst());
-        context.setVariable("xsdElements", elements.getFirst());
-        context.setVariable("xsdComplexTypes", getXsdComplexTypes());
-        context.setVariable("xsdSimpleTypes", getXsdSimpleTypes());
-        context.setVariable("namespace", getNameSpacesAsString());
-        context.setVariable("targetNamespace", getXmlSchema().getFirst().getTargetNamespace());
-        context.setVariable("rootElementLink", "details/" + getExtendedXsdElements().get("/" + rootElementName).getPageName());
-
-        final var result = templateEngine.process("templateRootElement", context);
-        final var outputFileName = Paths.get(outputDirectory.getPath(), "index.html").toFile().getAbsolutePath();
-        logger.debug("Root File: {}", outputFileName);
-
-        try {
-            Files.write(Paths.get(outputFileName), result.getBytes());
-            logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void generateComplexTypePages(File outputDirectory) {
-        logger.debug("Complex Types");
-
-        for (var complexType : getXsdComplexTypes()) {
-            var context = new Context();
-            context.setVariable("complexType", complexType);
-
-            if (complexType.getAnnotation() != null) {
-                context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
-            }
-
-            final var result = templateEngine.process("complexTypes/templateComplexType", context);
-            final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", complexType.getRawName() + ".html");
-            logger.debug("File: {}", outputFilePath.toFile().getAbsolutePath());
-
-            try {
-                Files.write(outputFilePath, result.getBytes());
-                logger.debug("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    public String getNameSpacesAsString() {
-        StringBuilder result = new StringBuilder();
-        for (var ns : namespaces.keySet()) {
-            result.append(ns)
-                    .append("=")
-                    .append("'")
-                    .append(namespaces.get(ns).getName())
-                    .append("'")
-                    .append("<br />");
-        }
-
-        return result.toString();
-    }
-
-    public String getNodeTypeNameFromNodeType(short nodeType) {
-        return switch (nodeType) {
-            case Node.ELEMENT_NODE -> "Element";
-            case Node.ATTRIBUTE_NODE -> "Attribute";
-            case Node.TEXT_NODE -> "Text";
-            case Node.CDATA_SECTION_NODE -> "CDATA Section";
-            case Node.ENTITY_REFERENCE_NODE -> "Entity Reference";
-            case Node.ENTITY_NODE -> "Entity";
-            case Node.PROCESSING_INSTRUCTION_NODE -> "Processing Instruction";
-            case Node.COMMENT_NODE -> "Comment";
-            case Node.DOCUMENT_NODE -> "Document";
-            case Node.DOCUMENT_TYPE_NODE -> "Document Type";
-            case Node.DOCUMENT_FRAGMENT_NODE -> "Document Fragment";
-            case Node.NOTATION_NODE -> "Notation";
-            default -> "Unknown";
-        };
-    }
-
-    public Node getChildNodeFromXpath(String xpath) {
-        try {
-            return getExtendedXsdElements().get(xpath).getCurrentNode();
-        } catch (Exception e) {
-            logger.debug("ERROR in getting Node: {}", e.getMessage());
-        }
-        return null;
-    }
-
-    public String getChildInfo(String xpath) {
-        try {
-            return getExtendedXsdElements().get(xpath).getXsdDocumentation()
-                    .stream()
-                    .map(XsdAnnotationChildren::getContent)
-                    .collect(Collectors.joining());
-        } catch (Exception e) {
-            logger.debug("ERROR: {}", e.getMessage());
-        }
-        return "";
-    }
-
-    public void generateDetailPages(File outputDirectory) {
-        ExecutorService executor = Executors.newFixedThreadPool(5);
-
-        for (String key : this.getExtendedXsdElements().keySet()) {
-            var currentElement = this.getExtendedXsdElements().get(key);
-
-            if (!currentElement.getChildren().isEmpty()) {
-                executor.submit(() -> {
-                    var context = new Context();
-                    if (this.method == ImageOutputMethod.SVG) {
-                        final String svgDiagram = generateSvgString(key);
-                        context.setVariable("svg", svgDiagram);
-                    } else {
-                        final String fileName = currentElement.getPageName().replace(".html", ".jpg");
-                        final File pngFile = new File(String.valueOf(Paths.get(outputDirectory.getPath(), "details", fileName).toFile()));
-                        final String filePath = generateImage(key, pngFile);
-
-                        context.setVariable("img", filePath);
-                    }
-
-                    context.setVariable("xpath", getBreadCrumbs(currentElement));
-                    context.setVariable("code", currentElement.getSourceCode());
-                    context.setVariable("element", currentElement);
-                    context.setVariable("namespace", getNameSpacesAsString());
-                    context.setVariable("this", this);
-
-                    if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getType() != null) {
-                        context.setVariable("type", currentElement.getElementType());
-                    } else {
-                        context.setVariable("type", "NULL");
-                    }
-
-                    if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getAnnotation() != null) {
-                        context.setVariable("appInfos", currentElement.getXsdElement().getAnnotation().getAppInfoList());
-                    }
-
-                    Map<String, String> docTemp = new LinkedHashMap<>();
-                    if (currentElement.getLanguageDocumentation() != null && !currentElement.getLanguageDocumentation().isEmpty()) {
-                        docTemp = currentElement.getLanguageDocumentation();
-                    }
-                    context.setVariable("documentation", docTemp);
-
-                    final var result = templateEngine.process("details/templateDetail", context);
-                    final var outputFileName = Paths.get(outputDirectory.getPath(), "details", currentElement.getPageName()).toFile().getAbsolutePath();
-                    logger.debug("File: {}", outputFileName);
-
-                    try {
-                        Files.write(Paths.get(outputFileName), result.getBytes());
-                        logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-            }
-        }
-        executor.shutdown();
-        try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    /**
-     * @param rootXpath
-     * @param file
-     * @return Geht noch nicht. rendering von images geht nicht!
-     */
-    @Deprecated
-    public String generateImage(String rootXpath, File file) {
-        try {
-            var svgString = generateSvgString(rootXpath);
-            var transcoder = new JPEGTranscoder();
-            TranscoderInput input = new TranscoderInput(new ByteArrayInputStream(svgString.getBytes()));
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            TranscoderOutput output = new TranscoderOutput(outputStream);
-
-            transcoder.transcode(input, output);
-            Files.write(file.toPath(), outputStream.toByteArray());
-
-            outputStream.flush();
-            outputStream.close();
-
-            logger.debug("File: {}", file.getAbsolutePath());
-            logger.debug("File Size: {}", file.length());
-
-            return file.getAbsolutePath();
-        } catch (IOException | TranscoderException ioException) {
-            logger.error(ioException.getMessage());
-        }
-
-        return null;
-    }
-
-    public String generateSvgString(String rootXpath) {
-        var element = generateSvgDiagramms(rootXpath);
-        return asString(element.getDocumentElement());
-    }
-
-
-    public Document generateSvgDiagram(Element element) {
-        Document svgDocument = domImpl.createDocument(svgNS, "svg", null);
-        var rootElementName = element.getLocalName();
-        logger.debug("Root Element Name: {}", rootElementName);
-
-        NodeList childNodes = element.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            var subNode = element.getChildNodes().item(i);
-            if (subNode.getNodeType() == Node.ELEMENT_NODE) {
-                logger.debug("Node: {} - {} - {}", subNode.getLocalName(), subNode.getNodeValue(), subNode.getNodeName());
-            }
-        }
-
-        return svgDocument;
-    }
-
-    public Document generateSvgDiagramms(String rootXpath) {
-        final Document document = domImpl.createDocument(svgNS, "svg", null);
-        var svgRoot = document.getDocumentElement();
-
-        var rootElement = this.getExtendedXsdElements().get(rootXpath);
-        var rootElementName = rootElement.getElementName();
-        logger.debug("rootElementName = {}", rootElementName);
-        logger.debug("rootElement.getParentXpath() = {}", rootElement.getParentXpath());
-
-        java.util.List<ExtendedXsdElement> childElements = new ArrayList<>();
-        for (String temp : rootElement.getChildren()) {
-            childElements.add(this.getExtendedXsdElements().get(temp));
-        }
-
-        double rightBoxHeight = 20;
-        double rightBoxWidth = 0;
-
-        // größe der rechten Box ermitteln
-        // um linkes element in der mitte zu platzieren
-        for (ExtendedXsdElement r : childElements) {
-            String elementName = "";
-
-            if (r != null && r.getXsdElement() != null) {
-                elementName = r.getXsdElement().getName();
-            }
-            logger.debug("Element Name = {}", elementName);
-
-            var z = font.getStringBounds(elementName, frc);
-            var height = z.getBounds2D().getHeight();
-            var width = z.getBounds2D().getWidth();
-
-            rightBoxHeight = rightBoxHeight + margin + height + margin + 20; // inkl. 20 abstand zwischen boxen
-            rightBoxWidth = Math.max(rightBoxWidth, width);
-        }
-
-        logger.debug("height = {}", rightBoxHeight);
-        logger.debug("width = {}", rightBoxWidth);
-
-        // erstes Element - Abstände Berechnen
-        var z = font.getStringBounds(rootElementName, frc);
-        var rootElementHeight = z.getBounds2D().getHeight();
-        var rootElementWidth = z.getBounds2D().getWidth();
-        // root node sollte genau in der mitte der rechten boxen sein.
-        // also rightBoxHeight / 2 minus boxgröße / 2
-
-        int startX = 20;
-        int startY = (int) ((rightBoxHeight / 2) - ((margin + rootElementHeight + margin) / 2));
-
-        Element a = document.createElement("a");
-        String parentPageUrl = "#";
-        if (this.getExtendedXsdElements().get(rootElement.getParentXpath()) != null) {
-            parentPageUrl = this.getExtendedXsdElements().get(rootElement.getParentXpath()).getPageName();
-        }
-        a.setAttribute("href", parentPageUrl);
-
-        Element rect1 = createSvgElement(document, rootElementName, rootElementHeight, rootElementWidth, startX + "", startY + "", startX, startY);
-        if (rootElement.getXsdElement().getMinOccurs() > 0) {
-            rect1.setAttribute("style", MANDATORY_FORMAT);
-        } else {
-            rect1.setAttribute("style", OPTIONAL_FORMAT);
-        }
-
-        var text = createSvgTextElement(document, margin, startY, rootElementName, rootElementHeight, startX);
-        a.appendChild(rect1);
-        a.appendChild(text);
-        svgRoot.appendChild(a);
-
-        final double rightStartX = margin + rootElementWidth + margin + gapBetweenSides;
-
-        final double pathStartX = startX + margin + rootElementWidth + margin;
-        final double pathStartY = startY + rootElementHeight;
-
-        double actualHeight = 20;
-        for (ExtendedXsdElement childElement : childElements) {
-            String elementName = "";
-            String css = OPTIONAL_FORMAT;
-
-            if (childElement != null) {
-                elementName = childElement.getElementName();
-            }
-
-            Element minMaxOccurs = document.createElement("text");
-            if (childElement != null && childElement.getXsdElement() != null) {
-                if (childElement.getXsdElement().getMinOccurs() > 0) {
-                    css = MANDATORY_FORMAT;
-                }
-
-                final String minOccurs = childElement.getXsdElement().getMinOccurs().toString();
-                final String maxOccurs = childElement.getXsdElement().getMaxOccurs().equals("unbounded") ? "∞" : childElement.getXsdElement().getMaxOccurs();
-                logger.debug("Min/Max Occurs: {}/{}", minOccurs, maxOccurs);
-
-                minMaxOccurs.setAttribute("fill", "#096574");
-                minMaxOccurs.setAttribute("font-family", font.getFontName());
-                minMaxOccurs.setAttribute("font-size", font.getSize() - 2 + "");
-                minMaxOccurs.setAttribute("textLength", "0");
-                minMaxOccurs.setAttribute("x", rightStartX + margin - 35 + "");
-                minMaxOccurs.setAttribute("y", actualHeight + (margin / 2) + 10 + "");
-                minMaxOccurs.setTextContent(minOccurs + ":" + maxOccurs);
-                svgRoot.appendChild(minMaxOccurs);
-            }
-
-            logger.debug("Element Name = " + elementName);
-
-            var z2 = font.getStringBounds(elementName, frc);
-            var height = z2.getBounds2D().getHeight();
-            var width = z2.getBounds2D().getWidth();
-
-            var rect2 = createSvgElement(document, elementName, height, rightBoxWidth, rightStartX + "", actualHeight + "", startX, startY);
-            rect2.setAttribute("style", css);
-
-            Element image = null;
-            if (childElement != null && childElement.getChildren() != null
-                    && !childElement.getChildren().isEmpty()) {
-                image = document.createElement("image");
-                image.setAttribute("href", "../assets/plus.png");
-                image.setAttribute("height", "20");
-                image.setAttribute("width", "20");
-                image.setAttribute("x", rightStartX + (margin + rightBoxWidth + margin) + 2 + "");
-                image.setAttribute("y", actualHeight + (height / 2) + "");
-            }
-
-            Element text2 = createSvgTextElement(document, rightStartX, actualHeight, elementName, height, margin);
-
-            Element a2 = document.createElement("a");
-            if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
-                // link erstellen
-                a2.setAttribute("href", childElement.getPageName());
-                a2.appendChild(rect2);
-                a2.appendChild(text2);
-                a2.appendChild(image);
-
-                svgRoot.appendChild(a2);
-            } else {
-                svgRoot.appendChild(rect2);
-                svgRoot.appendChild(text2);
-            }
-
-            Element path2 = document.createElement("path");
-            path2.setAttribute("d", "M " + pathStartX + " " + pathStartY +
-                    " h " + ((gapBetweenSides / 2) - margin) +
-                    " V " + (actualHeight + ((margin + height + margin) / 2)) +
-                    " h " + ((gapBetweenSides / 2) - margin));
-            path2.setAttribute("fill", "none");
-            if (childElement != null && childElement.getXsdElement() != null && childElement.getXsdElement().getMinOccurs() > 0) {
-                path2.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
-            } else {
-                path2.setAttribute("style", OPTIONAL_FORMAT_NO_SHADOW);
-            }
-            svgRoot.appendChild(path2);
-
-            actualHeight = actualHeight + margin + height + margin + 20; // 20 pixel abstand zwischen boxen
-        }
-
-        // ToDo: größe automatisch anpassen
-        svgRoot.setAttributeNS(svgNS, "height", rightBoxHeight + (margin * 2) + "");
-        svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 für icon
-        svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
-
-        return document;
-    }
-
-    private Element createSvgTextElement(Document document, double rightStartX, double actualHeight, String elementName, double height, int margin) {
-        Element text2 = document.createElement("text");
-        text2.setAttribute("fill", "#096574");
-        text2.setAttribute("font-family", font.getFontName());
-        text2.setAttribute("font-size", font.getSize() + "");
-        text2.setAttribute("textLength", "0");
-        text2.setAttribute("x", rightStartX + margin + "");
-        text2.setAttribute("y", actualHeight + height + (margin / 2) + "");
-        text2.setTextContent(elementName);
-
-        return text2;
-    }
-
-    private Element createSvgElement(Document document, String rootElementName, double rootElementHeight, double rootElementWidth, String s, String s2, int startX, int startY) {
-        Element rect1 = document.createElement("rect");
-        rect1.setAttribute("fill", BOX_COLOR);
-        rect1.setAttribute("id", rootElementName);
-        rect1.setAttribute("height", (margin + rootElementHeight + margin) + "");
-        rect1.setAttribute("width", (margin + rootElementWidth + margin) + "");
-        rect1.setAttribute("x", s);
-        rect1.setAttribute("y", s2);
-        rect1.setAttribute("rx", "2");
-        rect1.setAttribute("ry", "2");
-
-        return rect1;
-    }
-
-    private String asString(Node node) {
-        StringWriter writer = new StringWriter();
-        try {
-            Transformer trans = TransformerFactory.newInstance().newTransformer();
-            trans.setOutputProperty(OutputKeys.INDENT, "yes");
-            trans.setOutputProperty(OutputKeys.VERSION, "1.0");
-            if (!(node instanceof Document)) {
-                trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            }
-            trans.transform(new DOMSource(node), new StreamResult(writer));
-        } catch (final TransformerConfigurationException ex) {
-            throw new IllegalStateException(ex);
-        } catch (final TransformerException ex) {
-            throw new IllegalArgumentException(ex);
-        }
-        return writer.toString();
-    }
-
     public void processXsd(Boolean useMarkdownRenderer) {
         this.useMarkdownRenderer = useMarkdownRenderer;
         parser = new XsdParser(xsdFilePath);
@@ -697,9 +219,9 @@ public class XsdDocumentationService {
                     logger.debug("BUILD IN DATATYPE {}", xsdElement.getTypeAsBuiltInDataType().getRawName());
 
                     // hier setzten!!!
-                    extendedXsdElement.setElementName(xsdElement.getRawName());
-                    extendedXsdElement.setLevel(level);
-                    extendedXsdElement.setXsdElement(xsdElement);
+                    // extendedXsdElement.setElementName(xsdElement.getRawName());
+                    // extendedXsdElement.setLevel(level);
+                    // extendedXsdElement.setXsdElement(xsdElement);
                     extendedXsdElement.setElementType(xsdElement.getType());
 
                     extendedXsdElements.put(currentXpath, extendedXsdElement);
@@ -848,6 +370,196 @@ public class XsdDocumentationService {
             default -> throw new IllegalStateException("Unexpected value: " + xsdAbstractElement);
         }
     }
+
+    public void copyResources(File outputDirectory) {
+        try {
+            Files.createDirectories(outputDirectory.toPath());
+            Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
+            Files.createDirectories(Paths.get(outputDirectory.getPath(), "details"));
+            Files.createDirectories(Paths.get(outputDirectory.getPath(), "complexTypes"));
+            Files.createDirectories(Paths.get(outputDirectory.getPath(), "simpleTypes"));
+
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.bundle.min.js")), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.bundle.min.js"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.js")), Paths.get(outputDirectory.getPath(), "assets", "prism.js"), StandardCopyOption.REPLACE_EXISTING);
+
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css")), Paths.get(outputDirectory.getPath(), "assets", "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
+
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/plus.png")), Paths.get(outputDirectory.getPath(), "assets", "plus.png"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/logo.png")), Paths.get(outputDirectory.getPath(), "assets", "logo.png"), StandardCopyOption.REPLACE_EXISTING);
+
+            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/Roboto-Regular.ttf")), Paths.get(outputDirectory.getPath(), "assets", "Roboto-Regular.ttf"), StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public void generateRootPage(File outputDirectory) {
+        final var rootElementName = elements.getFirst().getName();
+
+        var context = new Context();
+        context.setVariable("date", LocalDate.now());
+        context.setVariable("filename", this.getXsdFilePath());
+        context.setVariable("rootElementName", rootElementName);
+        context.setVariable("rootElement", getXmlSchema().getFirst());
+        context.setVariable("xsdElements", elements.getFirst());
+        context.setVariable("xsdComplexTypes", getXsdComplexTypes());
+        context.setVariable("xsdSimpleTypes", getXsdSimpleTypes());
+        context.setVariable("namespace", getNameSpacesAsString());
+        context.setVariable("targetNamespace", getXmlSchema().getFirst().getTargetNamespace());
+        context.setVariable("rootElementLink", "details/" + getExtendedXsdElements().get("/" + rootElementName).getPageName());
+
+        final var result = templateEngine.process("templateRootElement", context);
+        final var outputFileName = Paths.get(outputDirectory.getPath(), "index.html").toFile().getAbsolutePath();
+        logger.debug("Root File: {}", outputFileName);
+
+        try {
+            Files.write(Paths.get(outputFileName), result.getBytes());
+            logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void generateComplexTypePages(File outputDirectory) {
+        logger.debug("Complex Types");
+
+        for (var complexType : getXsdComplexTypes()) {
+            var context = new Context();
+            context.setVariable("complexType", complexType);
+
+            if (complexType.getAnnotation() != null) {
+                context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
+            }
+
+            final var result = templateEngine.process("complexTypes/templateComplexType", context);
+            final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", complexType.getRawName() + ".html");
+            logger.debug("File: {}", outputFilePath.toFile().getAbsolutePath());
+
+            try {
+                Files.write(outputFilePath, result.getBytes());
+                logger.debug("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public String getNameSpacesAsString() {
+        StringBuilder result = new StringBuilder();
+        for (var ns : namespaces.keySet()) {
+            result.append(ns)
+                    .append("=")
+                    .append("'")
+                    .append(namespaces.get(ns).getName())
+                    .append("'")
+                    .append("<br />");
+        }
+
+        return result.toString();
+    }
+
+    public String getNodeTypeNameFromNodeType(short nodeType) {
+        return switch (nodeType) {
+            case Node.ELEMENT_NODE -> "Element";
+            case Node.ATTRIBUTE_NODE -> "Attribute";
+            case Node.TEXT_NODE -> "Text";
+            case Node.CDATA_SECTION_NODE -> "CDATA Section";
+            case Node.ENTITY_REFERENCE_NODE -> "Entity Reference";
+            case Node.ENTITY_NODE -> "Entity";
+            case Node.PROCESSING_INSTRUCTION_NODE -> "Processing Instruction";
+            case Node.COMMENT_NODE -> "Comment";
+            case Node.DOCUMENT_NODE -> "Document";
+            case Node.DOCUMENT_TYPE_NODE -> "Document Type";
+            case Node.DOCUMENT_FRAGMENT_NODE -> "Document Fragment";
+            case Node.NOTATION_NODE -> "Notation";
+            default -> "Unknown";
+        };
+    }
+
+    public Node getChildNodeFromXpath(String xpath) {
+        try {
+            return getExtendedXsdElements().get(xpath).getCurrentNode();
+        } catch (Exception e) {
+            logger.debug("ERROR in getting Node: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    public String getChildInfo(String xpath) {
+        if (getExtendedXsdElements().get(xpath).getXsdDocumentation() != null) {
+            return getExtendedXsdElements().get(xpath).getXsdDocumentation()
+                    .stream()
+                    .map(XsdAnnotationChildren::getContent)
+                    .collect(Collectors.joining());
+        }
+        return "";
+    }
+
+    public void generateDetailPages(File outputDirectory) {
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        final XsdDocumentationImageService xsdDocumentationImageService = new XsdDocumentationImageService(extendedXsdElements);
+
+        for (String key : this.getExtendedXsdElements().keySet()) {
+            var currentElement = this.getExtendedXsdElements().get(key);
+
+            if (!currentElement.getChildren().isEmpty()) {
+                executor.submit(() -> {
+                    var context = new Context();
+
+                    if (this.method == ImageOutputMethod.SVG) {
+                        final String svgDiagram = xsdDocumentationImageService.generateSvgString(key);
+                        context.setVariable("svg", svgDiagram);
+                    } else {
+                        final String fileName = currentElement.getPageName().replace(".html", ".jpg");
+                        final File pngFile = new File(String.valueOf(Paths.get(outputDirectory.getPath(), "details", fileName).toFile()));
+                        final String filePath = xsdDocumentationImageService.generateImage(key, pngFile);
+
+                        context.setVariable("img", filePath);
+                    }
+
+                    context.setVariable("xpath", getBreadCrumbs(currentElement));
+                    context.setVariable("code", currentElement.getSourceCode());
+                    context.setVariable("element", currentElement);
+                    context.setVariable("namespace", getNameSpacesAsString());
+                    context.setVariable("this", this);
+
+                    if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getType() != null) {
+                        context.setVariable("type", currentElement.getElementType());
+                    } else {
+                        context.setVariable("type", "NULL");
+                    }
+
+                    if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getAnnotation() != null) {
+                        context.setVariable("appInfos", currentElement.getXsdElement().getAnnotation().getAppInfoList());
+                    }
+
+                    Map<String, String> docTemp = new LinkedHashMap<>();
+                    if (currentElement.getLanguageDocumentation() != null && !currentElement.getLanguageDocumentation().isEmpty()) {
+                        docTemp = currentElement.getLanguageDocumentation();
+                    }
+                    context.setVariable("documentation", docTemp);
+
+                    final var result = templateEngine.process("details/templateDetail", context);
+                    final var outputFileName = Paths.get(outputDirectory.getPath(), "details", currentElement.getPageName()).toFile().getAbsolutePath();
+                    logger.debug("File: {}", outputFileName);
+
+                    try {
+                        Files.write(Paths.get(outputFileName), result.getBytes());
+                        logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
 
     Map<String, String> getBreadCrumbs(ExtendedXsdElement currentElement) {
         xpath = new StringBuilder();

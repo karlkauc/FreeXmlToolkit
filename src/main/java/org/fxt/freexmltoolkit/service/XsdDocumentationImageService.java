@@ -1,0 +1,337 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2024.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+package org.fxt.freexmltoolkit.service;
+
+import org.apache.batik.dom.GenericDOMImplementation;
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.image.JPEGTranscoder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
+import org.w3c.dom.*;
+
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.io.*;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class XsdDocumentationImageService {
+
+    private final static Logger logger = LogManager.getLogger(XsdDocumentationImageService.class);
+
+    final int margin = 10;
+    final int gapBetweenSides = 100;
+
+    final static String BOX_COLOR = "#d5e3e8";
+    final static String OPTIONAL_FORMAT = "stroke: rgb(2,23,23); stroke-width: 1.5; stroke-dasharray: 7, 7; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
+    final static String OPTIONAL_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 1.5; stroke-dasharray: 7, 7;";
+    final static String MANDATORY_FORMAT = "stroke: rgb(2,23,23); stroke-width: 1.5; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
+    final static String MANDATORY_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 1.5;";
+
+    Font font;
+    FontRenderContext frc;
+    DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
+    final static String svgNS = "http://www.w3.org/2000/svg";
+
+
+    Map<String, ExtendedXsdElement> extendedXsdElements;
+
+    public XsdDocumentationImageService(Map<String, ExtendedXsdElement> extendedXsdElements) {
+        this.extendedXsdElements = extendedXsdElements;
+
+        font = new Font("Arial", Font.PLAIN, 16);
+        frc = new FontRenderContext(
+                null,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_OFF,
+                RenderingHints.VALUE_FRACTIONALMETRICS_DEFAULT);
+    }
+
+    /**
+     * @param rootXpath
+     * @param file
+     * @return Geht noch nicht. rendering von images geht nicht!
+     */
+    // @Deprecated
+    public String generateImage(String rootXpath, File file) {
+        try {
+            var svgString = generateSvgString(rootXpath);
+            var transcoder = new JPEGTranscoder();
+            TranscoderInput input = new TranscoderInput(new ByteArrayInputStream(svgString.getBytes()));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            TranscoderOutput output = new TranscoderOutput(outputStream);
+
+            transcoder.transcode(input, output);
+            Files.write(file.toPath(), outputStream.toByteArray());
+
+            outputStream.flush();
+            outputStream.close();
+
+            logger.debug("File: {}", file.getAbsolutePath());
+            logger.debug("File Size: {}", file.length());
+
+            return file.getAbsolutePath();
+        } catch (IOException | TranscoderException ioException) {
+            logger.error(ioException.getMessage());
+        }
+
+        return null;
+    }
+
+    public String generateSvgString(String rootXpath) {
+        var element = generateSvgDiagramms(rootXpath);
+        return asString(element.getDocumentElement());
+    }
+
+
+    /**
+     * TEST - create SVG Image without Extended Elements (pure XML)
+     *
+     * @param element
+     * @return
+     */
+    public Document generateSvgDiagram(Element element) {
+        Document svgDocument = domImpl.createDocument(svgNS, "svg", null);
+        var rootElementName = element.getLocalName();
+        logger.debug("Root Element Name: {}", rootElementName);
+
+        NodeList childNodes = element.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            var subNode = element.getChildNodes().item(i);
+            if (subNode.getNodeType() == Node.ELEMENT_NODE) {
+                logger.debug("Node: {} - {} - {}", subNode.getLocalName(), subNode.getNodeValue(), subNode.getNodeName());
+            }
+        }
+
+        return svgDocument;
+    }
+
+    public Document generateSvgDiagramms(String rootXpath) {
+        final Document document = domImpl.createDocument(svgNS, "svg", null);
+        var svgRoot = document.getDocumentElement();
+
+        var rootElement = extendedXsdElements.get(rootXpath);
+        var rootElementName = rootElement.getElementName();
+        logger.debug("rootElementName = {}", rootElementName);
+        logger.debug("rootElement.getParentXpath() = {}", rootElement.getParentXpath());
+
+        List<ExtendedXsdElement> childElements = new ArrayList<>();
+        for (String temp : rootElement.getChildren()) {
+            childElements.add(extendedXsdElements.get(temp));
+        }
+
+        double rightBoxHeight = 20;
+        double rightBoxWidth = 0;
+
+        // größe der rechten Box ermitteln
+        // um linkes element in der mitte zu platzieren
+        for (ExtendedXsdElement childElement : childElements) {
+            String elementName = "";
+
+            if (childElement != null && childElement.getXsdElement() != null) {
+                elementName = childElement.getXsdElement().getName();
+            }
+            logger.debug("Element Name = {}", elementName);
+
+            var z = font.getStringBounds(elementName, frc);
+            var height = z.getBounds2D().getHeight();
+            var width = z.getBounds2D().getWidth();
+
+            rightBoxHeight = rightBoxHeight + margin + height + margin + 20; // inkl. 20 abstand zwischen boxen
+            rightBoxWidth = Math.max(rightBoxWidth, width);
+        }
+
+        logger.debug("height = {}", rightBoxHeight);
+        logger.debug("width = {}", rightBoxWidth);
+
+        // erstes Element - Abstände Berechnen
+        var z = font.getStringBounds(rootElementName, frc);
+        var rootElementHeight = z.getBounds2D().getHeight();
+        var rootElementWidth = z.getBounds2D().getWidth();
+        // root node sollte genau in der mitte der rechten boxen sein.
+        // also rightBoxHeight / 2 minus boxgröße / 2
+
+        int startX = 20;
+        int startY = (int) ((rightBoxHeight / 2) - ((margin + rootElementHeight + margin) / 2));
+
+        Element a = document.createElement("a");
+        String parentPageUrl = "#";
+        if (extendedXsdElements.get(rootElement.getParentXpath()) != null) {
+            parentPageUrl = extendedXsdElements.get(rootElement.getParentXpath()).getPageName();
+        }
+        a.setAttribute("href", parentPageUrl);
+
+        Element rect1 = createSvgElement(document, rootElementName, rootElementHeight, rootElementWidth, startX + "", startY + "", startX, startY);
+        if (rootElement.getXsdElement().getMinOccurs() > 0) {
+            rect1.setAttribute("style", MANDATORY_FORMAT);
+        } else {
+            rect1.setAttribute("style", OPTIONAL_FORMAT);
+        }
+
+        var text = createSvgTextElement(document, margin, startY, rootElementName, rootElementHeight, startX);
+        a.appendChild(rect1);
+        a.appendChild(text);
+        svgRoot.appendChild(a);
+
+        final double rightStartX = margin + rootElementWidth + margin + gapBetweenSides;
+
+        final double pathStartX = startX + margin + rootElementWidth + margin;
+        final double pathStartY = startY + rootElementHeight;
+
+        double actualHeight = 20;
+        for (ExtendedXsdElement childElement : childElements) {
+            String elementName = "";
+            String css = OPTIONAL_FORMAT;
+
+            if (childElement != null) {
+                elementName = childElement.getElementName();
+            }
+
+            Element minMaxOccurs = document.createElement("text");
+            if (childElement != null && childElement.getXsdElement() != null) {
+                if (childElement.getXsdElement().getMinOccurs() > 0) {
+                    css = MANDATORY_FORMAT;
+                }
+
+                final String minOccurs = childElement.getXsdElement().getMinOccurs().toString();
+                final String maxOccurs = childElement.getXsdElement().getMaxOccurs().equals("unbounded") ? "∞" : childElement.getXsdElement().getMaxOccurs();
+                logger.debug("Min/Max Occurs: {}/{}", minOccurs, maxOccurs);
+
+                minMaxOccurs.setAttribute("fill", "#096574");
+                minMaxOccurs.setAttribute("font-family", font.getFontName());
+                minMaxOccurs.setAttribute("font-size", font.getSize() - 2 + "");
+                minMaxOccurs.setAttribute("textLength", "0");
+                minMaxOccurs.setAttribute("x", rightStartX + margin - 35 + "");
+                minMaxOccurs.setAttribute("y", actualHeight + (margin / 2) + 10 + "");
+                minMaxOccurs.setTextContent(minOccurs + ":" + maxOccurs);
+                svgRoot.appendChild(minMaxOccurs);
+            }
+
+            logger.debug("Element Name = " + elementName);
+
+            var z2 = font.getStringBounds(elementName, frc);
+            var height = z2.getBounds2D().getHeight();
+            var width = z2.getBounds2D().getWidth();
+
+            var rect2 = createSvgElement(document, elementName, height, rightBoxWidth, rightStartX + "", actualHeight + "", startX, startY);
+            rect2.setAttribute("style", css);
+
+            Element image = null;
+            if (childElement != null && childElement.getChildren() != null
+                    && !childElement.getChildren().isEmpty()) {
+                image = document.createElement("image");
+                image.setAttribute("href", "../assets/plus.png");
+                image.setAttribute("height", "20");
+                image.setAttribute("width", "20");
+                image.setAttribute("x", rightStartX + (margin + rightBoxWidth + margin) + 2 + "");
+                image.setAttribute("y", actualHeight + (height / 2) + "");
+            }
+
+            Element text2 = createSvgTextElement(document, rightStartX, actualHeight, elementName, height, margin);
+
+            Element a2 = document.createElement("a");
+            if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
+                // link erstellen
+                a2.setAttribute("href", childElement.getPageName());
+                a2.appendChild(rect2);
+                a2.appendChild(text2);
+                a2.appendChild(image);
+
+                svgRoot.appendChild(a2);
+            } else {
+                svgRoot.appendChild(rect2);
+                svgRoot.appendChild(text2);
+            }
+
+            Element path2 = document.createElement("path");
+            path2.setAttribute("d", "M " + pathStartX + " " + pathStartY +
+                    " h " + ((gapBetweenSides / 2) - margin) +
+                    " V " + (actualHeight + ((margin + height + margin) / 2)) +
+                    " h " + ((gapBetweenSides / 2) - margin));
+            path2.setAttribute("fill", "none");
+            if (childElement != null && childElement.getXsdElement() != null && childElement.getXsdElement().getMinOccurs() > 0) {
+                path2.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
+            } else {
+                path2.setAttribute("style", OPTIONAL_FORMAT_NO_SHADOW);
+            }
+            svgRoot.appendChild(path2);
+
+            actualHeight = actualHeight + margin + height + margin + 20; // 20 pixel abstand zwischen boxen
+        }
+
+        // ToDo: größe automatisch anpassen
+        svgRoot.setAttributeNS(svgNS, "height", rightBoxHeight + (margin * 2) + "");
+        svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 für icon
+        svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
+
+        return document;
+    }
+
+    private Element createSvgTextElement(Document document, double rightStartX, double actualHeight, String elementName, double height, int margin) {
+        Element text2 = document.createElement("text");
+        text2.setAttribute("fill", "#096574");
+        text2.setAttribute("font-family", font.getFontName());
+        text2.setAttribute("font-size", font.getSize() + "");
+        text2.setAttribute("textLength", "0");
+        text2.setAttribute("x", rightStartX + margin + "");
+        text2.setAttribute("y", actualHeight + height + (margin / 2) + "");
+        text2.setTextContent(elementName);
+
+        return text2;
+    }
+
+    private Element createSvgElement(Document document, String rootElementName, double rootElementHeight, double rootElementWidth, String s, String s2, int startX, int startY) {
+        Element rect1 = document.createElement("rect");
+        rect1.setAttribute("fill", BOX_COLOR);
+        rect1.setAttribute("id", rootElementName);
+        rect1.setAttribute("height", (margin + rootElementHeight + margin) + "");
+        rect1.setAttribute("width", (margin + rootElementWidth + margin) + "");
+        rect1.setAttribute("x", s);
+        rect1.setAttribute("y", s2);
+        rect1.setAttribute("rx", "2");
+        rect1.setAttribute("ry", "2");
+
+        return rect1;
+    }
+
+    private static String asString(Node node) {
+        StringWriter writer = new StringWriter();
+        try {
+            Transformer trans = TransformerFactory.newInstance().newTransformer();
+            trans.setOutputProperty(OutputKeys.INDENT, "yes");
+            trans.setOutputProperty(OutputKeys.VERSION, "1.0");
+            if (!(node instanceof Document)) {
+                trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            }
+            trans.transform(new DOMSource(node), new StreamResult(writer));
+        } catch (final TransformerConfigurationException ex) {
+            throw new IllegalStateException(ex);
+        } catch (final TransformerException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+        return writer.toString();
+    }
+}

@@ -27,6 +27,7 @@ import org.xmlet.xsdparser.xsdelements.XsdAnnotationChildren;
 import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 import org.xmlet.xsdparser.xsdelements.XsdElement;
 import org.xmlet.xsdparser.xsdelements.XsdRestriction;
+import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdStringRestrictions;
 
 import java.io.StringWriter;
 import java.security.MessageDigest;
@@ -133,7 +134,7 @@ public class ExtendedXsdElement {
         if (xsdRestriction.getEnumeration() != null) {
             stringWriter
                     .append("Enumeration: ")
-                    .append(xsdRestriction.getEnumeration().stream().map(e -> e.getValue()).collect(Collectors.joining(", ")))
+                    .append(xsdRestriction.getEnumeration().stream().map(XsdStringRestrictions::getValue).collect(Collectors.joining(", ")))
                     .append(System.lineSeparator());
         }
 

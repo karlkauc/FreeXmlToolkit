@@ -122,10 +122,10 @@ public class SettingsController {
         props.setProperty("useSystemProxy", String.valueOf(systemProxy.isSelected()));
         props.setProperty("manualProxy", String.valueOf(manualProxy.isSelected()));
         props.setProperty("noProxyHost", noProxyHost.getText());
-        props.setProperty("httpProxyHost", httpProxyHost.getText());
-        props.setProperty("httpProxyPort", portSpinner.getValue().toString());
-        props.setProperty("httpProxyUser", httpProxyUser.getText());
-        props.setProperty("httpProxyPass", httpProxyPass.getText());
+        props.setProperty("http.proxy.host", httpProxyHost.getText());
+        props.setProperty("http.proxy.port", portSpinner.getValue().toString());
+        props.setProperty("http.proxy.user", httpProxyUser.getText());
+        props.setProperty("http.proxy.password", httpProxyPass.getText());
 
         propertiesService.saveProperties(props);
     }
@@ -134,12 +134,12 @@ public class SettingsController {
     private void loadCurrentSettings() {
         props = propertiesService.loadProperties();
 
-        if (props.get("httpProxyHost") != null && !props.get("httpProxyHost").toString().isEmpty()) {
+        if (props.get("http.proxy.host") != null && !props.get("http.proxy.host").toString().isEmpty()) {
             manualProxy.setSelected(true);
-            httpProxyHost.setText(props.get("httpProxyHost").toString());
-            portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, Integer.parseInt(props.get("httpProxyPort").toString())));
-            httpProxyUser.setText(props.get("httpProxyUser").toString());
-            httpProxyPass.setText(props.get("httpProxyPass").toString());
+            httpProxyHost.setText(props.get("http.proxy.host").toString());
+            portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, Integer.parseInt(props.get("http.proxy.port").toString())));
+            httpProxyUser.setText(props.get("http.proxy.user").toString());
+            httpProxyPass.setText(props.get("http.proxy.password").toString());
         } else {
             noProxy.setSelected(true);
             enableProxyFields(false);

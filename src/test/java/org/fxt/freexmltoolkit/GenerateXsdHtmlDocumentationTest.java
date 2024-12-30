@@ -27,8 +27,10 @@ import org.apache.logging.log4j.Logger;
 import org.apache.xerces.xs.XSModel;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.fxt.freexmltoolkit.service.XsdDocumentationImageService;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -55,6 +57,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GenerateXsdHtmlDocumentationTest {
     final static String XML_420_XSD = "src/test/resources/FundsXML_420.xsd";
     final static String XML_306_XSD = "src/test/resources/FundsXML_306.xsd";
@@ -83,7 +86,7 @@ public class GenerateXsdHtmlDocumentationTest {
     @Test
     void generateSeperatedFiles() {
         logger.debug("Creating Documentation");
-        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
+        xsdDocumentationService.setXsdFilePath(SIMPLE_XSD_FILE);
         xsdDocumentationService.generateXsdDocumentation(new File("output/test123"));
     }
 
@@ -102,6 +105,8 @@ public class GenerateXsdHtmlDocumentationTest {
     void generatePureSvg() {
         final var testFilePath = Paths.get("examples/xsd/purchageOrder.xsd");
         this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());
+
+        XsdDocumentationImageService xsdDocumentationImageService = new XsdDocumentationImageService(null);
 
         this.xmlService.setCurrentXmlFile(testFilePath.toFile());
         var childNodes = this.xmlService.getXmlDocument().getChildNodes();
@@ -142,7 +147,7 @@ public class GenerateXsdHtmlDocumentationTest {
                     logger.debug("Local Name: {}", node.getLocalName());
                     logger.debug("Node Name: {}", node.getNodeName());
 
-                    this.xsdDocumentationService.generateSvgDiagram((Element) node);
+                    var document = xsdDocumentationImageService.generateSvgDiagram((Element) node);
                     NamedNodeMap atts = node.getAttributes();
                     logger.debug(atts.toString());
                     break;
