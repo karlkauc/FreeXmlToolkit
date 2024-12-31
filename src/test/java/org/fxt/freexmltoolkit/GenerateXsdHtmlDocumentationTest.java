@@ -86,7 +86,7 @@ public class GenerateXsdHtmlDocumentationTest {
     @Test
     void generateSeperatedFiles() {
         logger.debug("Creating Documentation");
-        xsdDocumentationService.setXsdFilePath(SIMPLE_XSD_FILE);
+        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
         xsdDocumentationService.generateXsdDocumentation(new File("output/test123"));
     }
 

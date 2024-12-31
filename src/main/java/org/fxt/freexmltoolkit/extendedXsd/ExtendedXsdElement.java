@@ -34,6 +34,9 @@ import java.security.MessageDigest;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Represents an extended XSD element with additional properties and methods.
+ */
 public class ExtendedXsdElement {
     private XsdElement xsdElement;
     private XsdRestriction xsdRestriction;
@@ -48,19 +51,27 @@ public class ExtendedXsdElement {
     private int counter;
     private String elementName;
     private String elementType;
-    private final MutableDataSet options = new MutableDataSet();
     private final Parser parser;
     private final HtmlRenderer renderer;
     private Boolean useMarkdownRenderer = true;
     private String sampleData;
 
+    /**
+     * Constructs an ExtendedXsdElement with default settings.
+     */
     public ExtendedXsdElement() {
+        MutableDataSet options = new MutableDataSet();
         options.set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create(), StrikethroughExtension.create()));
         options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
         parser = Parser.builder(options).build();
         renderer = HtmlRenderer.builder(options).build();
     }
 
+    /**
+     * Retrieves the language documentation for the XSD element.
+     *
+     * @return a map of language codes to documentation content
+     */
     public Map<String, String> getLanguageDocumentation() {
         if (xsdDocumentation == null) {
             return Map.of();
@@ -77,6 +88,11 @@ public class ExtendedXsdElement {
         return stringContent;
     }
 
+    /**
+     * Retrieves example values from the XSD element's annotations.
+     *
+     * @return a list of example values
+     */
     public List<String> getExampleValues() {
         if (xsdElement == null) {
             return List.of();
@@ -85,10 +101,21 @@ public class ExtendedXsdElement {
         return appInfoList.stream().map(XsdAnnotationChildren::getContent).collect(Collectors.toList());
     }
 
+    /**
+     * Generates the page name for the XSD element.
+     *
+     * @return the page name
+     */
     public String getPageName() {
         return elementName + "_" + getMD5Hex(currentXpath) + ".html";
     }
 
+    /**
+     * Generates an MD5 hash for the given input string.
+     *
+     * @param inputString the input string
+     * @return the MD5 hash
+     */
     public static String getMD5Hex(final String inputString) {
         try {
             var md = MessageDigest.getInstance("MD5");
@@ -99,6 +126,12 @@ public class ExtendedXsdElement {
         }
     }
 
+    /**
+     * Converts a byte array to a hexadecimal string.
+     *
+     * @param byteData the byte array
+     * @return the hexadecimal string
+     */
     private static String convertByteToHex(byte[] byteData) {
         var sb = new StringBuilder();
         for (byte b : byteData) {
@@ -108,6 +141,7 @@ public class ExtendedXsdElement {
     }
 
     // Getters and setters
+
     public void setUseMarkdownRenderer(Boolean useMarkdownRenderer) {
         this.useMarkdownRenderer = useMarkdownRenderer;
     }
@@ -124,6 +158,11 @@ public class ExtendedXsdElement {
         return xsdRestriction;
     }
 
+    /**
+     * Retrieves the string representation of the XSD restriction.
+     *
+     * @return the XSD restriction string
+     */
     public String getXsdRestrictionString() {
         if (xsdRestriction == null) {
             return "";

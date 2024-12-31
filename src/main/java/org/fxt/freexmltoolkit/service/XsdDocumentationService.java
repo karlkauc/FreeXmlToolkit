@@ -25,14 +25,25 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.core.utils.NamespaceInfo;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -61,6 +72,8 @@ public class XsdDocumentationService {
     }
 
     ImageOutputMethod method;
+    Boolean generateSampleXml = false;
+    Boolean useMarkdownRenderer = true;
 
     XsdParser parser;
     List<XsdSchema> xmlSchema;
@@ -68,8 +81,6 @@ public class XsdDocumentationService {
     Map<String, NamespaceInfo> namespaces = new HashMap<>();
 
     XmlService xmlService = XmlServiceImpl.getInstance();
-
-    Boolean useMarkdownRenderer = true;
 
     StringBuilder xpath;
     ClassLoaderTemplateResolver resolver;
@@ -130,6 +141,18 @@ public class XsdDocumentationService {
 
     public void setXsdFilePath(String xsdFilePath) {
         this.xsdFilePath = xsdFilePath;
+    }
+
+    public void setGenerateSampleXml(Boolean generateSampleXml) {
+        this.generateSampleXml = generateSampleXml;
+    }
+
+    public Boolean getGenerateSampleXml() {
+        return generateSampleXml;
+    }
+
+    public void setUseMarkdownRenderer(Boolean useMarkdownRenderer) {
+        this.useMarkdownRenderer = useMarkdownRenderer;
     }
 
     public void generateXsdDocumentation(File outputDirectory, ImageOutputMethod method) {
@@ -215,15 +238,35 @@ public class XsdDocumentationService {
                     extendedXsdElement.setXsdDocumentation(xsdElement.getAnnotation().getDocumentations());
                 }
 
+                if (xsdElement.getAnnotation() != null && xsdElement.getAnnotation().getAppInfoList() != null) {
+                    List<XsdAppInfo> appInfoList = xsdElement.getAnnotation().getAppInfoList();
+                    /*
+                     <xs:appinfo>
+                        <altova:exampleValues>
+                            <altova:example value="WBAH"/>
+                        </altova:exampleValues>
+                    </xs:appinfo>
+                     */
+                    for (XsdAppInfo appInfo : appInfoList) {
+                        if (appInfo.getSource() != null) {
+                            logger.debug("SOURCE: {}", appInfo.getSource());
+                        }
+                        if (appInfo.getContent() != null) {
+                            logger.debug("CONTENT: {}", appInfo.getContent());
+                            var d = convertStringToDocument(appInfo.getContent());
+
+                            String temp = convertDocumentToString(d);
+                            logger.debug("TEMP: {}", temp);
+                        }
+                    }
+
+                    // extendedXsdElement.setXsdAppInfo(xsdElement.getAnnotation().getAppInfoList());
+                }
+
                 if (xsdElement.getTypeAsBuiltInDataType() != null) {
                     logger.debug("BUILD IN DATATYPE {}", xsdElement.getTypeAsBuiltInDataType().getRawName());
 
-                    // hier setzten!!!
-                    // extendedXsdElement.setElementName(xsdElement.getRawName());
-                    // extendedXsdElement.setLevel(level);
-                    // extendedXsdElement.setXsdElement(xsdElement);
                     extendedXsdElement.setElementType(xsdElement.getType());
-
                     extendedXsdElements.put(currentXpath, extendedXsdElement);
                 }
                 if (xsdElement.getTypeAsComplexType() != null) {
@@ -578,5 +621,36 @@ public class XsdDocumentationService {
         }
         return breadCrumbs;
     }
+
+    private static Document convertStringToDocument(String xmlStr) {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder;
+        try {
+            builder = factory.newDocumentBuilder();
+            return builder.parse(new InputSource(new StringReader(xmlStr)));
+        } catch (Exception e) {
+            logger.error("Error in converting String to Document: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private static String convertDocumentToString(Document doc) {
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer transformer;
+        try {
+            transformer = tf.newTransformer();
+            // below code to remove XML declaration
+            // transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(doc), new StreamResult(writer));
+            String output = writer.getBuffer().toString();
+            return output;
+        } catch (TransformerException e) {
+            logger.error("Error in converting Document to String: {}", e.getMessage());
+        }
+
+        return null;
+    }
+
 }
 

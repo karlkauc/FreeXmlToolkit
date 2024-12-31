@@ -39,6 +39,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Service for generating images and SVG diagrams from XSD documentation.
+ */
 public class XsdDocumentationImageService {
 
     private final static Logger logger = LogManager.getLogger(XsdDocumentationImageService.class);
@@ -57,9 +60,13 @@ public class XsdDocumentationImageService {
     DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
     final static String svgNS = "http://www.w3.org/2000/svg";
 
-
     Map<String, ExtendedXsdElement> extendedXsdElements;
 
+    /**
+     * Constructs a new XsdDocumentationImageService with the given extended XSD elements.
+     *
+     * @param extendedXsdElements the extended XSD elements
+     */
     public XsdDocumentationImageService(Map<String, ExtendedXsdElement> extendedXsdElements) {
         this.extendedXsdElements = extendedXsdElements;
 
@@ -71,11 +78,12 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * @param rootXpath
-     * @param file
-     * @return Geht noch nicht. rendering von images geht nicht!
+     * Generates an image from the SVG representation of the XSD element.
+     *
+     * @param rootXpath the root XPath of the XSD element
+     * @param file the file to save the generated image
+     * @return the file path of the generated image
      */
-    // @Deprecated
     public String generateImage(String rootXpath, File file) {
         try {
             var svgString = generateSvgString(rootXpath);
@@ -101,17 +109,22 @@ public class XsdDocumentationImageService {
         return null;
     }
 
+    /**
+     * Generates an SVG string representation of the XSD element.
+     *
+     * @param rootXpath the root XPath of the XSD element
+     * @return the SVG string representation
+     */
     public String generateSvgString(String rootXpath) {
         var element = generateSvgDiagramms(rootXpath);
         return asString(element.getDocumentElement());
     }
 
-
     /**
-     * TEST - create SVG Image without Extended Elements (pure XML)
+     * Generates an SVG diagram from the given XML element.
      *
-     * @param element
-     * @return
+     * @param element the XML element
+     * @return the SVG document
      */
     public Document generateSvgDiagram(Element element) {
         Document svgDocument = domImpl.createDocument(svgNS, "svg", null);
@@ -129,6 +142,12 @@ public class XsdDocumentationImageService {
         return svgDocument;
     }
 
+    /**
+     * Generates an SVG diagram for the XSD element and its children.
+     *
+     * @param rootXpath the root XPath of the XSD element
+     * @return the SVG document
+     */
     public Document generateSvgDiagramms(String rootXpath) {
         final Document document = domImpl.createDocument(svgNS, "svg", null);
         var svgRoot = document.getDocumentElement();
@@ -146,8 +165,7 @@ public class XsdDocumentationImageService {
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;
 
-        // größe der rechten Box ermitteln
-        // um linkes element in der mitte zu platzieren
+        // Determine the size of the right box to center the left element
         for (ExtendedXsdElement childElement : childElements) {
             String elementName = "";
 
@@ -160,19 +178,19 @@ public class XsdDocumentationImageService {
             var height = z.getBounds2D().getHeight();
             var width = z.getBounds2D().getWidth();
 
-            rightBoxHeight = rightBoxHeight + margin + height + margin + 20; // inkl. 20 abstand zwischen boxen
+            rightBoxHeight = rightBoxHeight + margin + height + margin + 20; // including 20 spacing between boxes
             rightBoxWidth = Math.max(rightBoxWidth, width);
         }
 
         logger.debug("height = {}", rightBoxHeight);
         logger.debug("width = {}", rightBoxWidth);
 
-        // erstes Element - Abstände Berechnen
+        // Calculate the position of the first element
         var z = font.getStringBounds(rootElementName, frc);
         var rootElementHeight = z.getBounds2D().getHeight();
         var rootElementWidth = z.getBounds2D().getWidth();
-        // root node sollte genau in der mitte der rechten boxen sein.
-        // also rightBoxHeight / 2 minus boxgröße / 2
+        // The root node should be exactly in the middle of the right boxes.
+        // So rightBoxHeight / 2 minus box size / 2
 
         int startX = 20;
         int startY = (int) ((rightBoxHeight / 2) - ((margin + rootElementHeight + margin) / 2));
@@ -254,7 +272,7 @@ public class XsdDocumentationImageService {
 
             Element a2 = document.createElement("a");
             if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
-                // link erstellen
+                // create link
                 a2.setAttribute("href", childElement.getPageName());
                 a2.appendChild(rect2);
                 a2.appendChild(text2);
@@ -279,17 +297,28 @@ public class XsdDocumentationImageService {
             }
             svgRoot.appendChild(path2);
 
-            actualHeight = actualHeight + margin + height + margin + 20; // 20 pixel abstand zwischen boxen
+            actualHeight = actualHeight + margin + height + margin + 20; // 20 pixels spacing between boxes
         }
 
-        // ToDo: größe automatisch anpassen
+        // ToDo: automatically adjust size
         svgRoot.setAttributeNS(svgNS, "height", rightBoxHeight + (margin * 2) + "");
-        svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 für icon
+        svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 for icon
         svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
 
         return document;
     }
 
+    /**
+     * Creates an SVG text element.
+     *
+     * @param document     the SVG document
+     * @param rightStartX  the x-coordinate of the text element
+     * @param actualHeight the y-coordinate of the text element
+     * @param elementName  the name of the element
+     * @param height       the height of the text element
+     * @param margin       the margin around the text element
+     * @return the created SVG text element
+     */
     private Element createSvgTextElement(Document document, double rightStartX, double actualHeight, String elementName, double height, int margin) {
         Element text2 = document.createElement("text");
         text2.setAttribute("fill", "#096574");
@@ -303,6 +332,19 @@ public class XsdDocumentationImageService {
         return text2;
     }
 
+    /**
+     * Creates an SVG rectangle element.
+     *
+     * @param document the SVG document
+     * @param rootElementName the name of the root element
+     * @param rootElementHeight the height of the root element
+     * @param rootElementWidth the width of the root element
+     * @param s the x-coordinate of the rectangle
+     * @param s2 the y-coordinate of the rectangle
+     * @param startX the starting x-coordinate
+     * @param startY the starting y-coordinate
+     * @return the created SVG rectangle element
+     */
     private Element createSvgElement(Document document, String rootElementName, double rootElementHeight, double rootElementWidth, String s, String s2, int startX, int startY) {
         Element rect1 = document.createElement("rect");
         rect1.setAttribute("fill", BOX_COLOR);
@@ -317,6 +359,12 @@ public class XsdDocumentationImageService {
         return rect1;
     }
 
+    /**
+     * Converts a DOM node to a string representation.
+     *
+     * @param node the DOM node
+     * @return the string representation of the node
+     */
     private static String asString(Node node) {
         StringWriter writer = new StringWriter();
         try {
