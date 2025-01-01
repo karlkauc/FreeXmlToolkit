@@ -18,6 +18,7 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import com.google.gson.Gson;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
@@ -66,6 +67,8 @@ public class XsdDocumentationService {
     private List<XsdElement> elements;
 
     int counter;
+
+    boolean debug = false;
 
     public enum ImageOutputMethod {
         SVG,
@@ -176,7 +179,7 @@ public class XsdDocumentationService {
         generateDetailPages(outputDirectory);
     }
 
-    public void processXsd(Boolean useMarkdownRenderer) {
+    void processXsd(Boolean useMarkdownRenderer) {
         this.useMarkdownRenderer = useMarkdownRenderer;
         parser = new XsdParser(xsdFilePath);
         xmlService.setCurrentXmlFile(new File(xsdFilePath));
@@ -192,10 +195,33 @@ public class XsdDocumentationService {
 
         parser.getResultXsdSchemas().forEach(n -> namespaces.putAll(n.getNamespaces()));
 
-        for (XsdElement xsdElement : elements) {
-            var elementName = xsdElement.getRawName();
-            final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
-            getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
+        if (debug && new File("extendedXsdElements.json").exists()) {
+            try {
+                String json = Files.readString(Paths.get("extendedXsdElements.json"));
+                extendedXsdElements = new Gson().fromJson(json, Map.class);
+                logger.debug("Deserialized data from extendedXsdElements.xml");
+            } catch (IOException i) {
+                logger.error("Error in reading extendedXsdElements.xml: {}", i.getMessage());
+                return;
+            }
+        } else {
+            for (XsdElement xsdElement : elements) {
+                var elementName = xsdElement.getRawName();
+                final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
+                getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
+            }
+        }
+
+
+        // ToDo: serialize extendedXsdElements
+        if (debug && !new File("extendedXsdElements.json").exists()) {
+            try {
+                String jsonCollection = new Gson().toJson(extendedXsdElements);
+                Files.write(Paths.get("extendedXsdElements.json"), jsonCollection.getBytes());
+                logger.debug("Serialized data is saved in extendedXsdElements.json");
+            } catch (IOException i) {
+                logger.error("Error in writing extendedXsdElements.json: {}", i.getMessage());
+            }
         }
     }
 
@@ -415,7 +441,7 @@ public class XsdDocumentationService {
         }
     }
 
-    public void copyResources(File outputDirectory) {
+    void copyResources(File outputDirectory) {
         try {
             Files.createDirectories(outputDirectory.toPath());
             Files.createDirectories(Paths.get(outputDirectory.getPath(), ASSETS_PATH));
@@ -439,7 +465,7 @@ public class XsdDocumentationService {
         Files.copy(Objects.requireNonNull(getClass().getResourceAsStream(resourcePath)), Paths.get(outputDirectory.getPath(), targetPath, new File(resourcePath).getName()), StandardCopyOption.REPLACE_EXISTING);
     }
 
-    public void generateRootPage(File outputDirectory) {
+    void generateRootPage(File outputDirectory) {
         final var rootElementName = elements.getFirst().getName();
 
         var context = new Context();
@@ -466,7 +492,7 @@ public class XsdDocumentationService {
         }
     }
 
-    public void generateComplexTypePages(File outputDirectory) {
+    void generateComplexTypePages(File outputDirectory) {
         logger.debug("Complex Types");
 
         for (var complexType : getXsdComplexTypes()) {
@@ -541,7 +567,7 @@ public class XsdDocumentationService {
         return "";
     }
 
-    public void generateDetailPages(File outputDirectory) {
+    void generateDetailPages(File outputDirectory) {
         ExecutorService executor = Executors.newFixedThreadPool(5);
         final XsdDocumentationImageService xsdDocumentationImageService = new XsdDocumentationImageService(extendedXsdElements);
 

@@ -29,6 +29,8 @@ import org.xmlet.xsdparser.xsdelements.XsdElement;
 import org.xmlet.xsdparser.xsdelements.XsdRestriction;
 import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdStringRestrictions;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.security.MessageDigest;
 import java.util.*;
@@ -37,7 +39,7 @@ import java.util.stream.Collectors;
 /**
  * Represents an extended XSD element with additional properties and methods.
  */
-public class ExtendedXsdElement {
+public class ExtendedXsdElement implements Serializable {
     private XsdElement xsdElement;
     private XsdRestriction xsdRestriction;
     private int level;
@@ -55,6 +57,9 @@ public class ExtendedXsdElement {
     private final HtmlRenderer renderer;
     private Boolean useMarkdownRenderer = true;
     private String sampleData;
+
+    @Serial
+    private static final long serialVersionUID = 1234567L;
 
     /**
      * Constructs an ExtendedXsdElement with default settings.

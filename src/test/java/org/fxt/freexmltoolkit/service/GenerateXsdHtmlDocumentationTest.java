@@ -87,6 +87,27 @@ public class GenerateXsdHtmlDocumentationTest {
     }
 
     @Test
+    void testWithSeparateCalls() {
+        final var testFilePath = new File("output/test123");
+        xsdDocumentationService.debug = true;
+        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
+        xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
+        xsdDocumentationService.processXsd(true);
+        // xsdDocumentationService.generateRootPage(testFilePath);
+        // xsdDocumentationService.generateComplexTypePages(testFilePath);
+        // xsdDocumentationService.generateDetailPages(testFilePath);
+
+        /*
+        copyResources(outputDirectory);
+        processXsd(this.useMarkdownRenderer);
+        generateRootPage(outputDirectory);
+        generateComplexTypePages(outputDirectory);
+        generateDetailPages(outputDirectory);
+         */
+        //  xsdDocumentationService.generateHtmlDocumentation(new File("output/test123"));
+    }
+
+    @Test
     void generateHtmlDoc() throws IOException {
         final var testFilePath = Paths.get("examples/xsd/purchageOrder.xsd");
         final var outputFilePath = Paths.get("output/test");

@@ -241,30 +241,13 @@ public class XsdController {
                     try {
                         xsdDocumentationService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
                         updateProgress(1, 100);
-                        updateMessage("Copy Resources");
-                        xsdDocumentationService.copyResources(selectedDocumentationOutputDirectory);
-
-                        updateProgress(2, 100);
-                        updateMessage("Analyzing File");
-                        xsdDocumentationService.processXsd(useMarkdownRenderer.isSelected());
-
                         if (grafikFormat.getValue().equals("SVG")) {
                             xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
                         } else {
                             xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.PNG);
                         }
 
-                        updateProgress(50, 100);
-                        updateMessage("generating Root Page");
-                        xsdDocumentationService.generateRootPage(selectedDocumentationOutputDirectory);
-
-                        updateProgress(75, 100);
-                        updateMessage("generating complex types");
-                        xsdDocumentationService.generateComplexTypePages(selectedDocumentationOutputDirectory);
-
-                        updateProgress(90, 100);
-                        updateMessage("generating details pages");
-                        xsdDocumentationService.generateDetailPages(selectedDocumentationOutputDirectory);
+                        xsdDocumentationService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
 
                         updateMessage("Completed");
                         updateProgress(100, 100);

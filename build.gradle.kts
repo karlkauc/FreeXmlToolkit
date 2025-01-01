@@ -83,6 +83,10 @@ dependencies {
     // XML Bindings
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
 
+    // Serialization
+    implementation("com.google.code.gson:gson:2.11.0")
+
+
     // Icons
     implementation("org.kordamp.ikonli:ikonli-javafx:12.3.1")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.3.1")
