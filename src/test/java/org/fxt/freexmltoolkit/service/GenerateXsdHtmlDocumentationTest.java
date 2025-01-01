@@ -16,7 +16,7 @@
  *
  */
 
-package org.fxt.freexmltoolkit;
+package org.fxt.freexmltoolkit.service;
 
 import jlibs.xml.sax.XMLDocument;
 import jlibs.xml.xsd.XSInstance;
@@ -25,10 +25,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.xerces.xs.XSModel;
-import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.fxt.freexmltoolkit.service.XsdDocumentationImageService;
-import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.w3c.dom.*;

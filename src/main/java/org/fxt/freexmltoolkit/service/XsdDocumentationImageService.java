@@ -27,6 +27,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
 import org.w3c.dom.*;
+import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
@@ -195,12 +196,12 @@ public class XsdDocumentationImageService {
         int startX = 20;
         int startY = (int) ((rightBoxHeight / 2) - ((margin + rootElementHeight + margin) / 2));
 
-        Element a = document.createElement("a");
+        Element leftRootElement = document.createElement("a");
         String parentPageUrl = "#";
         if (extendedXsdElements.get(rootElement.getParentXpath()) != null) {
             parentPageUrl = extendedXsdElements.get(rootElement.getParentXpath()).getPageName();
         }
-        a.setAttribute("href", parentPageUrl);
+        leftRootElement.setAttribute("href", parentPageUrl);
 
         Element rect1 = createSvgElement(document, rootElementName, rootElementHeight, rootElementWidth, startX + "", startY + "", startX, startY);
         if (rootElement.getXsdElement().getMinOccurs() > 0) {
@@ -209,10 +210,52 @@ public class XsdDocumentationImageService {
             rect1.setAttribute("style", OPTIONAL_FORMAT);
         }
 
-        var text = createSvgTextElement(document, margin, startY, rootElementName, rootElementHeight, startX);
-        a.appendChild(rect1);
-        a.appendChild(text);
-        svgRoot.appendChild(a);
+        final var text = createSvgTextElement(document, margin, startY - (int) (rootElementHeight / 2) + ((double) margin / 2), rootElementName, rootElementHeight, startX);
+        leftRootElement.appendChild(rect1);
+        leftRootElement.appendChild(text);
+        svgRoot.appendChild(leftRootElement);
+
+        /*
+        Hier probieren wir einmal die Dokumentation zu erweitern
+         */
+        final var docText = document.createElement("text");
+        docText.setAttribute("x", startX + margin + "");
+        docText.setAttribute("y", startY + (margin * 3) + rootElementHeight + (margin / 2) + "");
+
+        int docHeightTotal = 0;
+        for (XsdDocumentation xsdDocumentation : extendedXsdElements.get(rootElement.getCurrentXpath()).getXsdDocumentation()) {
+            int length = 0;
+            StringWriter writer = new StringWriter();
+            for (String word : xsdDocumentation.getContent().split(" ")) {
+                var rectangle2D = font.getStringBounds(word + " ", frc);
+                var docHeight = rectangle2D.getBounds2D().getHeight();
+                var docWidth = rectangle2D.getBounds2D().getWidth();
+                docHeightTotal += (int) docHeight;
+
+                var newSize = docWidth + length;
+                logger.debug("DocWidth: {} - Length: {} - NewSize: {}, rootElementWidth: {}", docWidth, length, newSize, rootElementWidth);
+
+                if ((docWidth + length) > (rootElementWidth + (margin * 2))) {
+                    final var tspan = document.createElement("tspan");
+                    tspan.setAttribute("x", (margin + 15) + "");
+                    tspan.setAttribute("dy", "1.2em");
+                    tspan.setTextContent(writer + " ");
+                    docText.appendChild(tspan);
+                    length = 0;
+                    writer = new StringWriter();
+                } else {
+                    length += (int) docWidth;
+                }
+                writer.append(word).append(" ");
+            }
+            final var tspan = document.createElement("tspan");
+            tspan.setAttribute("x", (margin + 15) + "");
+            tspan.setAttribute("dy", "1.2em");
+            tspan.setTextContent(writer + " ");
+            docText.appendChild(tspan);
+        }
+        svgRoot.appendChild(docText);
+
 
         final double rightStartX = margin + rootElementWidth + margin + gapBetweenSides;
 
@@ -248,7 +291,7 @@ public class XsdDocumentationImageService {
                 svgRoot.appendChild(minMaxOccurs);
             }
 
-            logger.debug("Element Name = " + elementName);
+            logger.debug("Element Name = {}", elementName);
 
             var z2 = font.getStringBounds(elementName, frc);
             var height = z2.getBounds2D().getHeight();
@@ -301,7 +344,7 @@ public class XsdDocumentationImageService {
         }
 
         // ToDo: automatically adjust size
-        svgRoot.setAttributeNS(svgNS, "height", rightBoxHeight + (margin * 2) + "");
+        svgRoot.setAttributeNS(svgNS, "height", Math.max(rightBoxHeight, rootElementHeight + docHeightTotal) + (margin * 2) + "");
         svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 for icon
         svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
 

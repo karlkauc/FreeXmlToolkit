@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
 
+    public static final String ASSETS_PATH = "assets";
     String xsdFilePath;
     static final int MAX_ALLOWED_DEPTH = 99;
     private final static Logger logger = LogManager.getLogger(XsdDocumentationService.class);
@@ -417,23 +418,25 @@ public class XsdDocumentationService {
     public void copyResources(File outputDirectory) {
         try {
             Files.createDirectories(outputDirectory.toPath());
-            Files.createDirectories(Paths.get(outputDirectory.getPath(), "assets"));
+            Files.createDirectories(Paths.get(outputDirectory.getPath(), ASSETS_PATH));
             Files.createDirectories(Paths.get(outputDirectory.getPath(), "details"));
             Files.createDirectories(Paths.get(outputDirectory.getPath(), "complexTypes"));
             Files.createDirectories(Paths.get(outputDirectory.getPath(), "simpleTypes"));
 
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/bootstrap.bundle.min.js")), Paths.get(outputDirectory.getPath(), "assets", "bootstrap.bundle.min.js"), StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/prism.js")), Paths.get(outputDirectory.getPath(), "assets", "prism.js"), StandardCopyOption.REPLACE_EXISTING);
 
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css")), Paths.get(outputDirectory.getPath(), "assets", "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
-
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/plus.png")), Paths.get(outputDirectory.getPath(), "assets", "plus.png"), StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/logo.png")), Paths.get(outputDirectory.getPath(), "assets", "logo.png"), StandardCopyOption.REPLACE_EXISTING);
-
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/Roboto-Regular.ttf")), Paths.get(outputDirectory.getPath(), "assets", "Roboto-Regular.ttf"), StandardCopyOption.REPLACE_EXISTING);
+            copyResource("/xsdDocumentation/assets/bootstrap.bundle.min.js", outputDirectory, ASSETS_PATH);
+            copyResource("/xsdDocumentation/assets/prism.js", outputDirectory, ASSETS_PATH);
+            copyResource("/xsdDocumentation/assets/freeXmlToolkit.css", outputDirectory, ASSETS_PATH);
+            copyResource("/xsdDocumentation/assets/plus.png", outputDirectory, ASSETS_PATH);
+            copyResource("/xsdDocumentation/assets/logo.png", outputDirectory, ASSETS_PATH);
+            copyResource("/xsdDocumentation/assets/Roboto-Regular.ttf", outputDirectory, ASSETS_PATH);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    private void copyResource(String resourcePath, File outputDirectory, String targetPath) throws IOException {
+        Files.copy(Objects.requireNonNull(getClass().getResourceAsStream(resourcePath)), Paths.get(outputDirectory.getPath(), targetPath, new File(resourcePath).getName()), StandardCopyOption.REPLACE_EXISTING);
     }
 
     public void generateRootPage(File outputDirectory) {
