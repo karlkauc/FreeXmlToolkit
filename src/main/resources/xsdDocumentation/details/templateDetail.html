@@ -140,8 +140,16 @@
                     </thead>
                     <tbody>
                     <tr th:each="child: ${element.getChildren()}">
-                        <td><a th:href="${this.getExtendedXsdElements().get(child).getPageName()}" th:text="${child}">CHILD</a>
+
+                        <!--/*-->
+                        falls child elemente vorhanden sind -> link rendern. ansonsten nur td element mit text
+                        <!--*/-->
+                        <td th:if="${this.getExtendedXsdElements().get(child).getChildren().size() > 0}">
+                            <a th:href="${this.getExtendedXsdElements().get(child).getPageName()}" th:text="${child}">CHILD</a>
                         </td>
+                        <td th:unless="${this.getExtendedXsdElements().get(child).getChildren().size() > 0}"
+                            th:text="${child}"/>
+
                         <td th:text="${this.getChildNodeFromXpath(child) ? this.getNodeTypeNameFromNodeType(this.getChildNodeFromXpath(child).getNodeType()) : this.getExtendedXsdElements().get(child).getElementType()}">
                             someValue
                         </td>
