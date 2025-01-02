@@ -57,7 +57,7 @@ import java.util.Map;
 public class GenerateXsdHtmlDocumentationTest {
     final static String XML_420_XSD = "src/test/resources/FundsXML_420.xsd";
     final static String XML_306_XSD = "src/test/resources/FundsXML_306.xsd";
-    final static String SIMPLE_XSD_FILE = "src/test/resources/simpleFile.xsd";
+    final static String SIMPLE_XSD_FILE = "src/test/resources/testSchema.xsd";
 
     final XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
 
@@ -82,15 +82,15 @@ public class GenerateXsdHtmlDocumentationTest {
     @Test
     void generateSeperatedFiles() {
         logger.debug("Creating Documentation");
-        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
-        xsdDocumentationService.generateXsdDocumentation(new File("output/test123"));
+        xsdDocumentationService.setXsdFilePath(SIMPLE_XSD_FILE);
+        xsdDocumentationService.generateXsdDocumentation(new File("output/testSchema"));
     }
 
     @Test
     void testWithSeparateCalls() {
-        final var testFilePath = new File("output/test123");
+        final var testFilePath = new File("output/testSchema");
         xsdDocumentationService.debug = true;
-        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
+        xsdDocumentationService.setXsdFilePath(SIMPLE_XSD_FILE);
         xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
         xsdDocumentationService.processXsd(true);
         // xsdDocumentationService.generateRootPage(testFilePath);

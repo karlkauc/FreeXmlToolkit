@@ -450,15 +450,19 @@ public class XsdDocumentationService {
             Files.createDirectories(Paths.get(outputDirectory.getPath(), "simpleTypes"));
 
 
-            copyResource("/xsdDocumentation/assets/bootstrap.bundle.min.js", outputDirectory, ASSETS_PATH);
-            copyResource("/xsdDocumentation/assets/prism.js", outputDirectory, ASSETS_PATH);
-            copyResource("/xsdDocumentation/assets/freeXmlToolkit.css", outputDirectory, ASSETS_PATH);
-            copyResource("/xsdDocumentation/assets/plus.png", outputDirectory, ASSETS_PATH);
-            copyResource("/xsdDocumentation/assets/logo.png", outputDirectory, ASSETS_PATH);
-            copyResource("/xsdDocumentation/assets/Roboto-Regular.ttf", outputDirectory, ASSETS_PATH);
+            copyAssets("/xsdDocumentation/assets/bootstrap.bundle.min.js", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/prism.js", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/freeXmlToolkit.css", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/plus.png", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/logo.png", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/Roboto-Regular.ttf", outputDirectory);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    private void copyAssets(String resourcePath, File assetsDirectory) throws Exception {
+        copyResource(resourcePath, assetsDirectory, ASSETS_PATH);
     }
 
     private void copyResource(String resourcePath, File outputDirectory, String targetPath) throws IOException {
@@ -672,8 +676,7 @@ public class XsdDocumentationService {
             // transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(doc), new StreamResult(writer));
-            String output = writer.getBuffer().toString();
-            return output;
+            return writer.getBuffer().toString();
         } catch (TransformerException e) {
             logger.error("Error in converting Document to String: {}", e.getMessage());
         }

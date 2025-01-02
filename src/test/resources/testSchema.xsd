@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mit XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) von XMLSpy2013 (s IT Solutions AT Spardat GmbH z.B. Buchhaltung) bearbeitet -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:altova="http://www.altova.com/xml-schema-extensions"
+           elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xs:element name="Cars">
+        <xs:annotation>
+            <xs:documentation>Comment describing your root element</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence maxOccurs="3">
+                <xs:annotation>
+                    <xs:documentation>bla bla bla bla</xs:documentation>
+                </xs:annotation>
+                <xs:element name="ElectronicCars">
+                    <xs:annotation>
+                        <xs:documentation source="source id" xml:lang="de"/>
+                        <xs:documentation source="öasldkfjöasdlfjk" xml:lang="en"/>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:choice>
+                            <xs:element name="PureElectric" type="xs:boolean"/>
+                            <xs:element name="Hybrid">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="ManufatorDate" type="xs:date" minOccurs="0" maxOccurs="3">
+                                            <xs:annotation>
+                                                <xs:appinfo>
+                                                    <altova:exampleValues>
+                                                        <altova:example value="2024-01-01"/>
+                                                        <altova:example value="2024-01-02"/>
+                                                    </altova:exampleValues>
+                                                </xs:appinfo>
+                                            </xs:annotation>
+                                        </xs:element>
+                                        <xs:element name="Manufatorer">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:pattern value="Toyota"/>
+                                                    <xs:pattern value="Honda"/>
+                                                    <xs:pattern value="BMW"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:choice>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="OldStyle">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Type">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="Name">
+                                            <xs:annotation>
+                                                <xs:documentation>This is a comment</xs:documentation>
+                                            </xs:annotation>
+                                        </xs:element>
+                                        <xs:element name="Child">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:int">
+                                                    <xs:totalDigits value="5"/>
+                                                    <xs:maxExclusive value="8"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="agrecultural">
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:int">
+                                                <xs:minInclusive value="1"/>
+                                                <xs:maxInclusive value="5"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:attribute>
+                                    <xs:attribute name="industrial" type="xs:boolean"/>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
