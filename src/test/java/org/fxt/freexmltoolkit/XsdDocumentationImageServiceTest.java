@@ -1,6 +1,6 @@
 package org.fxt.freexmltoolkit;
 
-import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
+import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
 import org.fxt.freexmltoolkit.service.XsdDocumentationImageService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

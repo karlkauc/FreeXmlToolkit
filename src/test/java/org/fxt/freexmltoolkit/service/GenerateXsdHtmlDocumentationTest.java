@@ -70,7 +70,7 @@ public class GenerateXsdHtmlDocumentationTest {
         xsdDocumentationService.setXsdFilePath(XML_420_XSD);
         xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
         xsdDocumentationService.processXsd(true);
-        var elements = xsdDocumentationService.getExtendedXsdElements();
+        var elements = xsdDocumentationService.xsdDocumentationData.getExtendedXsdElementMap();
 
         System.out.println("------------");
         for (String s : elements.keySet()) {
@@ -82,7 +82,8 @@ public class GenerateXsdHtmlDocumentationTest {
     @Test
     void generateSeperatedFiles() {
         logger.debug("Creating Documentation");
-        xsdDocumentationService.setXsdFilePath(SIMPLE_XSD_FILE);
+        xsdDocumentationService.setXsdFilePath(XML_420_XSD);
+        xsdDocumentationService.parallelProcessing = true;
         xsdDocumentationService.generateXsdDocumentation(new File("output/testSchema"));
     }
 
@@ -93,17 +94,12 @@ public class GenerateXsdHtmlDocumentationTest {
         xsdDocumentationService.setXsdFilePath(SIMPLE_XSD_FILE);
         xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
         xsdDocumentationService.processXsd(true);
+
+
         // xsdDocumentationService.generateRootPage(testFilePath);
         // xsdDocumentationService.generateComplexTypePages(testFilePath);
         // xsdDocumentationService.generateDetailPages(testFilePath);
 
-        /*
-        copyResources(outputDirectory);
-        processXsd(this.useMarkdownRenderer);
-        generateRootPage(outputDirectory);
-        generateComplexTypePages(outputDirectory);
-        generateDetailPages(outputDirectory);
-         */
         //  xsdDocumentationService.generateHtmlDocumentation(new File("output/test123"));
     }
 
