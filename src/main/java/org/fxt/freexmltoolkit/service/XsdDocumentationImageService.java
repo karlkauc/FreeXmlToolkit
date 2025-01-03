@@ -307,10 +307,6 @@ public class XsdDocumentationImageService {
         }
 
         var imageHeight = Math.max(docHeightTotal, rightBoxHeight);
-        if (rootXpath.equals("/FundsXML4/ControlData")) {
-            logger.debug("Image Height = {}", imageHeight);
-        }
-
         // ToDo: automatically adjust size
         svgRoot.setAttributeNS(svgNS, "height", imageHeight + "");
         svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 for icon
@@ -352,10 +348,6 @@ public class XsdDocumentationImageService {
                     docText.appendChild(tspan);
                     length = 0;
                     docHeightTotal += docHeight;
-
-                    if (writer.toString().equals("Meta data of ")) {
-                        Object o = null;
-                    }
 
                     writer = new StringWriter();
                 } else {
