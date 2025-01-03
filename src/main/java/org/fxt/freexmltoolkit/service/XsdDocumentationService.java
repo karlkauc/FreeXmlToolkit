@@ -18,7 +18,6 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import com.google.gson.Gson;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
@@ -195,33 +194,10 @@ public class XsdDocumentationService {
 
         parser.getResultXsdSchemas().forEach(n -> namespaces.putAll(n.getNamespaces()));
 
-        if (debug && new File("extendedXsdElements.json").exists()) {
-            try {
-                String json = Files.readString(Paths.get("extendedXsdElements.json"));
-                extendedXsdElements = new Gson().fromJson(json, Map.class);
-                logger.debug("Deserialized data from extendedXsdElements.xml");
-            } catch (IOException i) {
-                logger.error("Error in reading extendedXsdElements.xml: {}", i.getMessage());
-                return;
-            }
-        } else {
-            for (XsdElement xsdElement : elements) {
-                var elementName = xsdElement.getRawName();
-                final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
-                getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
-            }
-        }
-
-
-        // ToDo: serialize extendedXsdElements
-        if (debug && !new File("extendedXsdElements.json").exists()) {
-            try {
-                String jsonCollection = new Gson().toJson(extendedXsdElements);
-                Files.write(Paths.get("extendedXsdElements.json"), jsonCollection.getBytes());
-                logger.debug("Serialized data is saved in extendedXsdElements.json");
-            } catch (IOException i) {
-                logger.error("Error in writing extendedXsdElements.json: {}", i.getMessage());
-            }
+        for (XsdElement xsdElement : elements) {
+            var elementName = xsdElement.getRawName();
+            final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
+            getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
         }
     }
 

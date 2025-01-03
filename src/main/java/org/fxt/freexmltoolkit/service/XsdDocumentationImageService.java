@@ -18,6 +18,7 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import org.apache.batik.anim.dom.SVGLocatableSupport;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
@@ -82,7 +83,7 @@ public class XsdDocumentationImageService {
      * Generates an image from the SVG representation of the XSD element.
      *
      * @param rootXpath the root XPath of the XSD element
-     * @param file the file to save the generated image
+     * @param file      the file to save the generated image
      * @return the file path of the generated image
      */
     public String generateImage(String rootXpath, File file) {
@@ -218,6 +219,9 @@ public class XsdDocumentationImageService {
         /*
         Hier probieren wir einmal die Dokumentation zu erweitern
          */
+        final var docTextGroup = document.createElement("g");
+        docTextGroup.setAttribute("id", "comment");
+
         final var docText = document.createElement("text");
         docText.setAttribute("x", startX + margin + "");
         docText.setAttribute("y", startY + (margin * 3) + rootElementHeight + (margin / 2) + "");
@@ -254,8 +258,13 @@ public class XsdDocumentationImageService {
             tspan.setTextContent(writer + " ");
             docText.appendChild(tspan);
         }
-        svgRoot.appendChild(docText);
 
+        docTextGroup.appendChild(docText);
+        svgRoot.appendChild(docTextGroup);
+
+        var x = SVGLocatableSupport.getBBox(docText);
+        logger.debug("x.getHeight() = {}", x.getHeight());
+        logger.debug("x.getWidth() = {}", x.getWidth());
 
         final double rightStartX = margin + rootElementWidth + margin + gapBetweenSides;
 
@@ -378,14 +387,14 @@ public class XsdDocumentationImageService {
     /**
      * Creates an SVG rectangle element.
      *
-     * @param document the SVG document
-     * @param rootElementName the name of the root element
+     * @param document          the SVG document
+     * @param rootElementName   the name of the root element
      * @param rootElementHeight the height of the root element
-     * @param rootElementWidth the width of the root element
-     * @param s the x-coordinate of the rectangle
-     * @param s2 the y-coordinate of the rectangle
-     * @param startX the starting x-coordinate
-     * @param startY the starting y-coordinate
+     * @param rootElementWidth  the width of the root element
+     * @param s                 the x-coordinate of the rectangle
+     * @param s2                the y-coordinate of the rectangle
+     * @param startX            the starting x-coordinate
+     * @param startY            the starting y-coordinate
      * @return the created SVG rectangle element
      */
     private Element createSvgElement(Document document, String rootElementName, double rootElementHeight, double rootElementWidth, String s, String s2, int startX, int startY) {
