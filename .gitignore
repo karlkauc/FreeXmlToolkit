@@ -84,3 +84,4 @@ logs
 gradle.properties
 
 /**/config.properties*
+/src/main/resources/scss/node_modules/
