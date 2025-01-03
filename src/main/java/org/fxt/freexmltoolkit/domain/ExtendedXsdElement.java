@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2024.
+ * Copyright (c) Karl Kauc 2025.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  *  limitations under the License.
  *
  */
-package org.fxt.freexmltoolkit.extendedXsd;
+package org.fxt.freexmltoolkit.domain;
 
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
@@ -113,6 +113,10 @@ public class ExtendedXsdElement implements Serializable {
      */
     public String getPageName() {
         return elementName + "_" + getMD5Hex(currentXpath) + ".html";
+    }
+
+    public boolean hasChildren() {
+        return !children.isEmpty();
     }
 
     /**
