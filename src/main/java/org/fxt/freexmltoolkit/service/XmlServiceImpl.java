@@ -161,9 +161,11 @@ public class XmlServiceImpl implements XmlService {
         this.currentXmlFile = currentXmlFile;
 
         try {
-            var schemaLocation = getSchemaNameFromCurrentXMLFile();
-            if (schemaLocation.isPresent() && !schemaLocation.get().isEmpty()) {
-                remoteXsdLocation = schemaLocation.get();
+            if (currentXmlFile != null && currentXmlFile.exists() && currentXmlFile.getName().toLowerCase().endsWith("xml")) {
+                var schemaLocation = getSchemaNameFromCurrentXMLFile();
+                if (schemaLocation.isPresent() && !schemaLocation.get().isEmpty()) {
+                    remoteXsdLocation = schemaLocation.get();
+                }
             }
         } catch (Exception ignore) {
         }

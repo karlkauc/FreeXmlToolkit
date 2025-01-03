@@ -18,7 +18,6 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.batik.anim.dom.SVGLocatableSupport;
 import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
@@ -26,7 +25,7 @@ import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.JPEGTranscoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
+import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
 import org.w3c.dom.*;
 import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 
@@ -194,8 +193,8 @@ public class XsdDocumentationImageService {
         // The root node should be exactly in the middle of the right boxes.
         // So rightBoxHeight / 2 minus box size / 2
 
-        int startX = 20;
-        int startY = (int) ((rightBoxHeight / 2) - ((margin + rootElementHeight + margin) / 2));
+        int rootStartX = 20;
+        int rootStartY = (int) ((rightBoxHeight / 2) - ((margin + rootElementHeight + margin) / 2));
 
         Element leftRootElement = document.createElement("a");
         String parentPageUrl = "#";
@@ -204,72 +203,27 @@ public class XsdDocumentationImageService {
         }
         leftRootElement.setAttribute("href", parentPageUrl);
 
-        Element rect1 = createSvgElement(document, rootElementName, rootElementHeight, rootElementWidth, startX + "", startY + "", startX, startY);
+        Element rect1 = createSvgElement(document, rootElementName, rootElementHeight, rootElementWidth, rootStartX + "", rootStartY + "", rootStartX, rootStartY);
         if (rootElement.getXsdElement().getMinOccurs() > 0) {
             rect1.setAttribute("style", MANDATORY_FORMAT);
         } else {
             rect1.setAttribute("style", OPTIONAL_FORMAT);
         }
 
-        final var text = createSvgTextElement(document, margin, startY - (int) (rootElementHeight / 2) + ((double) margin / 2), rootElementName, rootElementHeight, startX);
+        final var text = createSvgTextElement(document, margin, rootStartY - (int) (rootElementHeight / 2) + ((double) margin / 2), rootElementName, rootElementHeight, rootStartX);
         leftRootElement.appendChild(rect1);
         leftRootElement.appendChild(text);
         svgRoot.appendChild(leftRootElement);
 
-        /*
-        Hier probieren wir einmal die Dokumentation zu erweitern
-         */
-        final var docTextGroup = document.createElement("g");
-        docTextGroup.setAttribute("id", "comment");
-
-        final var docText = document.createElement("text");
-        docText.setAttribute("x", startX + margin + "");
-        docText.setAttribute("y", startY + (margin * 3) + rootElementHeight + (margin / 2) + "");
-
-        int docHeightTotal = 0;
-        for (XsdDocumentation xsdDocumentation : extendedXsdElements.get(rootElement.getCurrentXpath()).getXsdDocumentation()) {
-            int length = 0;
-            StringWriter writer = new StringWriter();
-            for (String word : xsdDocumentation.getContent().split(" ")) {
-                var rectangle2D = font.getStringBounds(word + " ", frc);
-                var docHeight = rectangle2D.getBounds2D().getHeight();
-                var docWidth = rectangle2D.getBounds2D().getWidth();
-                docHeightTotal += (int) docHeight;
-
-                var newSize = docWidth + length;
-                logger.debug("DocWidth: {} - Length: {} - NewSize: {}, rootElementWidth: {}", docWidth, length, newSize, rootElementWidth);
-
-                if ((docWidth + length) > (rootElementWidth + (margin * 2))) {
-                    final var tspan = document.createElement("tspan");
-                    tspan.setAttribute("x", (margin + 15) + "");
-                    tspan.setAttribute("dy", "1.2em");
-                    tspan.setTextContent(writer + " ");
-                    docText.appendChild(tspan);
-                    length = 0;
-                    writer = new StringWriter();
-                } else {
-                    length += (int) docWidth;
-                }
-                writer.append(word).append(" ");
-            }
-            final var tspan = document.createElement("tspan");
-            tspan.setAttribute("x", (margin + 15) + "");
-            tspan.setAttribute("dy", "1.2em");
-            tspan.setTextContent(writer + " ");
-            docText.appendChild(tspan);
+        double docHeightTotal = 0;
+        if (extendedXsdElements.get(rootElement.getCurrentXpath()).getXsdDocumentation() != null) {
+            docHeightTotal = generateDocumentationElement(document, extendedXsdElements.get(rootElement.getCurrentXpath()).getXsdDocumentation(), rootElementWidth, rootElementHeight, rootStartX, rootStartY);
         }
-
-        docTextGroup.appendChild(docText);
-        svgRoot.appendChild(docTextGroup);
-
-        var x = SVGLocatableSupport.getBBox(docText);
-        logger.debug("x.getHeight() = {}", x.getHeight());
-        logger.debug("x.getWidth() = {}", x.getWidth());
 
         final double rightStartX = margin + rootElementWidth + margin + gapBetweenSides;
 
-        final double pathStartX = startX + margin + rootElementWidth + margin;
-        final double pathStartY = startY + rootElementHeight;
+        final double pathStartX = rootStartX + margin + rootElementWidth + margin;
+        final double pathStartY = rootStartY + rootElementHeight;
 
         double actualHeight = 20;
         for (ExtendedXsdElement childElement : childElements) {
@@ -306,7 +260,7 @@ public class XsdDocumentationImageService {
             var height = z2.getBounds2D().getHeight();
             var width = z2.getBounds2D().getWidth();
 
-            var rect2 = createSvgElement(document, elementName, height, rightBoxWidth, rightStartX + "", actualHeight + "", startX, startY);
+            var rect2 = createSvgElement(document, elementName, height, rightBoxWidth, rightStartX + "", actualHeight + "", rootStartX, rootStartY);
             rect2.setAttribute("style", css);
 
             Element image = null;
@@ -352,12 +306,74 @@ public class XsdDocumentationImageService {
             actualHeight = actualHeight + margin + height + margin + 20; // 20 pixels spacing between boxes
         }
 
+        var imageHeight = Math.max(docHeightTotal, rightBoxHeight);
+        if (rootXpath.equals("/FundsXML4/ControlData")) {
+            logger.debug("Image Height = {}", imageHeight);
+        }
+
         // ToDo: automatically adjust size
-        svgRoot.setAttributeNS(svgNS, "height", Math.max(rightBoxHeight, rootElementHeight + docHeightTotal) + (margin * 2) + "");
+        svgRoot.setAttributeNS(svgNS, "height", imageHeight + "");
         svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 for icon
         svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
 
         return document;
+    }
+
+    private double generateDocumentationElement(Document document, List<XsdDocumentation> xsdDocumentation, double rootElementWidth, double rootElementHeight, int startX, int startY) {
+        /*
+        Hier probieren wir einmal die Dokumentation zu erweitern
+         */
+        final var docTextGroup = document.createElement("g");
+        docTextGroup.setAttribute("id", "comment");
+
+        final var docText = document.createElement("text");
+        docText.setAttribute("x", startX + margin + "");
+        docText.setAttribute("y", startY + (margin * 3) + rootElementHeight + (margin / 2) + "");
+
+        double docHeightTotal = 0;
+        for (XsdDocumentation documentation : xsdDocumentation) {
+            int length = 0;
+            StringWriter writer = new StringWriter();
+
+            for (String word : documentation.getContent().split(" ")) {
+                var rectangle2D = font.getStringBounds(word + " ", frc);
+                var docHeight = rectangle2D.getBounds2D().getHeight();
+                var docWidth = rectangle2D.getBounds2D().getWidth();
+
+                var newSize = docWidth + length;
+                logger.debug("DocWidth: {} - Length: {} - NewSize: {}, rootElementWidth: {}", docWidth, length, newSize, rootElementWidth);
+                logger.debug("DocHeight: {} - docHeightTotal: {}", docHeight, docHeightTotal);
+
+                if ((docWidth + length) > (rootElementWidth + (margin * 2))) {
+                    final var tspan = document.createElement("tspan");
+                    tspan.setAttribute("x", (margin + 15) + "");
+                    tspan.setAttribute("dy", "1.2em");
+                    tspan.setTextContent(writer + " ");
+                    docText.appendChild(tspan);
+                    length = 0;
+                    docHeightTotal += docHeight;
+
+                    if (writer.toString().equals("Meta data of ")) {
+                        Object o = null;
+                    }
+
+                    writer = new StringWriter();
+                } else {
+                    length += (int) docWidth;
+                }
+                writer.append(word).append(" ");
+            }
+            final var tspan = document.createElement("tspan");
+            tspan.setAttribute("x", (margin + 15) + "");
+            tspan.setAttribute("dy", "1.2em");
+            tspan.setTextContent(writer + " ");
+            docText.appendChild(tspan);
+        }
+
+        docTextGroup.appendChild(docText);
+        document.getDocumentElement().appendChild(docTextGroup);
+
+        return startY + margin + docHeightTotal + margin;
     }
 
     /**

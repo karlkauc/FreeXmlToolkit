@@ -20,16 +20,12 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.extendedXsd.ExtendedXsdElement;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xmlet.xsdparser.core.XsdParser;
-import org.xmlet.xsdparser.core.utils.NamespaceInfo;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
 
@@ -41,33 +37,23 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
 
-    public static final String ASSETS_PATH = "assets";
-    String xsdFilePath;
     static final int MAX_ALLOWED_DEPTH = 99;
     private final static Logger logger = LogManager.getLogger(XsdDocumentationService.class);
 
-    private List<XsdComplexType> xsdComplexTypes;
-    private List<XsdSimpleType> xsdSimpleTypes;
-    private List<XsdElement> elements;
+    String xsdFilePath;
+    XsdDocumentationData xsdDocumentationData = new XsdDocumentationData();
 
     int counter;
-
     boolean debug = false;
+    boolean parallelProcessing = false;
 
     public enum ImageOutputMethod {
         SVG,
@@ -79,27 +65,15 @@ public class XsdDocumentationService {
     Boolean useMarkdownRenderer = true;
 
     XsdParser parser;
-    List<XsdSchema> xmlSchema;
-    Map<String, ExtendedXsdElement> extendedXsdElements;
-    Map<String, NamespaceInfo> namespaces = new HashMap<>();
-
     XmlService xmlService = XmlServiceImpl.getInstance();
 
-    StringBuilder xpath;
-    ClassLoaderTemplateResolver resolver;
-    TemplateEngine templateEngine;
-
     public XsdDocumentationService() {
-        resolver = new ClassLoaderTemplateResolver();
-        resolver.setTemplateMode(TemplateMode.HTML);
-        resolver.setCharacterEncoding("UTF-8");
-        resolver.setPrefix("xsdDocumentation/");
-        resolver.setSuffix(".html");
-
-        templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(resolver);
-
         method = ImageOutputMethod.SVG;
+    }
+
+    public void setXsdFilePath(String xsdFilePath) {
+        this.xsdFilePath = xsdFilePath;
+        this.xsdDocumentationData.setXsdFilePath(xsdFilePath);
     }
 
     public ImageOutputMethod getMethod() {
@@ -110,40 +84,12 @@ public class XsdDocumentationService {
         this.method = method;
     }
 
-    public String getXsdFilePath() {
-        return xsdFilePath;
-    }
-
-    public XmlService getXmlService() {
-        return xmlService;
-    }
-
-    public Map<String, ExtendedXsdElement> getExtendedXsdElements() {
-        return extendedXsdElements;
-    }
-
-    public List<XsdComplexType> getXsdComplexTypes() {
-        return xsdComplexTypes;
-    }
-
-    public List<XsdSimpleType> getXsdSimpleTypes() {
-        return xsdSimpleTypes;
-    }
-
-    public List<XsdElement> getElements() {
-        return elements;
-    }
-
-    public List<XsdSchema> getXmlSchema() {
-        return xmlSchema;
+    public void setParallelProcessing(boolean parallelProcessing) {
+        this.parallelProcessing = parallelProcessing;
     }
 
     public void setXmlService(XmlService xmlService) {
         this.xmlService = xmlService;
-    }
-
-    public void setXsdFilePath(String xsdFilePath) {
-        this.xsdFilePath = xsdFilePath;
     }
 
     public void setGenerateSampleXml(Boolean generateSampleXml) {
@@ -158,24 +104,22 @@ public class XsdDocumentationService {
         this.useMarkdownRenderer = useMarkdownRenderer;
     }
 
-    public void generateXsdDocumentation(File outputDirectory, ImageOutputMethod method) {
-        this.method = method;
-
-        copyResources(outputDirectory);
-        processXsd(this.useMarkdownRenderer);
-        generateRootPage(outputDirectory);
-        generateComplexTypePages(outputDirectory);
-        generateDetailPages(outputDirectory);
-    }
-
     public void generateXsdDocumentation(File outputDirectory) {
         logger.debug("Bin in generateXsdDocumentation");
-
-        copyResources(outputDirectory);
         processXsd(this.useMarkdownRenderer);
-        generateRootPage(outputDirectory);
-        generateComplexTypePages(outputDirectory);
-        generateDetailPages(outputDirectory);
+
+        XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
+        xsdDocumentationHtmlService.setOutputDirectory(outputDirectory);
+        xsdDocumentationHtmlService.setDocumentationData(xsdDocumentationData);
+
+        xsdDocumentationHtmlService.copyResources();
+        xsdDocumentationHtmlService.generateRootPage();
+        xsdDocumentationHtmlService.generateComplexTypePages();
+        if (parallelProcessing) {
+            xsdDocumentationHtmlService.generateDetailsPagesInParallel();
+        } else {
+            xsdDocumentationHtmlService.generateDetailPages();
+        }
     }
 
     void processXsd(Boolean useMarkdownRenderer) {
@@ -183,18 +127,13 @@ public class XsdDocumentationService {
         parser = new XsdParser(xsdFilePath);
         xmlService.setCurrentXmlFile(new File(xsdFilePath));
 
-        elements = parser.getResultXsdElements().collect(Collectors.toList());
-        xmlSchema = parser.getResultXsdSchemas().toList();
+        xsdDocumentationData.setElements(parser.getResultXsdElements().collect(Collectors.toList()));
+        xsdDocumentationData.setXmlSchema(parser.getResultXsdSchemas().toList());
+        parser.getResultXsdSchemas().forEach(n -> xsdDocumentationData.getNamespaces().putAll(n.getNamespaces()));
 
-        xsdComplexTypes = xmlSchema.getFirst().getChildrenComplexTypes().collect(Collectors.toList());
-        xsdSimpleTypes = xmlSchema.getFirst().getChildrenSimpleTypes().collect(Collectors.toList());
-
-        extendedXsdElements = new LinkedHashMap<>();
         counter = 0;
 
-        parser.getResultXsdSchemas().forEach(n -> namespaces.putAll(n.getNamespaces()));
-
-        for (XsdElement xsdElement : elements) {
+        for (XsdElement xsdElement : xsdDocumentationData.getElements()) {
             var elementName = xsdElement.getRawName();
             final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
             getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
@@ -226,7 +165,7 @@ public class XsdDocumentationService {
                 if (prevElementPath.isEmpty()) {
                     currentXpath = "/" + xsdElement.getName();
                 } else {
-                    extendedXsdElements.get(parentXpath).getChildren().add(currentXpath);
+                    xsdDocumentationData.getExtendedXsdElementMap().get(parentXpath).getChildren().add(currentXpath);
                     logger.debug("Added current Node {} to parent {}", currentXpath, parentXpath);
                 }
 
@@ -270,12 +209,12 @@ public class XsdDocumentationService {
                     logger.debug("BUILD IN DATATYPE {}", xsdElement.getTypeAsBuiltInDataType().getRawName());
 
                     extendedXsdElement.setElementType(xsdElement.getType());
-                    extendedXsdElements.put(currentXpath, extendedXsdElement);
+                    xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
                 }
                 if (xsdElement.getTypeAsComplexType() != null) {
                     logger.debug("Complex DATATYPE {}", xsdElement.getTypeAsComplexType().getRawName());
                     // ToDo: als ENUM abspeichern
-                    extendedXsdElement.setElementType("COMPLEX");
+                    extendedXsdElement.setElementType(xsdElement.getTypeAsComplexType().getName());
                 }
                 if (xsdElement.getTypeAsSimpleType() != null) {
                     logger.debug("Simple DATATYPE {}", xsdElement.getTypeAsSimpleType().getRawName());
@@ -299,8 +238,8 @@ public class XsdDocumentationService {
                         ArrayList<String> prevPathTemp = new ArrayList<>(prevElementPath);
                         prevPathTemp.add(xsdElement.getName());
 
-                        extendedXsdElement.setElementType("CURRENT - NULL");
-                        extendedXsdElements.put(currentXpath, extendedXsdElement);
+                        extendedXsdElement.setElementType(""); // CURRENT - NULL
+                        xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
                         if (xsdElement.getXsdComplexType().getElements() != null) {
                             for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
                                 getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, nodeFromXpath);
@@ -317,11 +256,9 @@ public class XsdDocumentationService {
                 } else {
                     logger.debug("noch nicht bearbeitet: {}", currentType);
                 }
-
-                // current type beginnt mit xs: oder nicht ...
-                logger.debug("currentType = {}", currentType);
                 ArrayList<String> prevTemp = new ArrayList<>(prevElementTypes);
                 prevTemp.add(currentType);
+
 
                 ArrayList<String> prevPathTemp = new ArrayList<>(prevElementPath);
                 prevPathTemp.add(xsdElement.getName());
@@ -342,9 +279,9 @@ public class XsdDocumentationService {
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
-                    extendedXsdElement.setElementType("COMPLEX");
+                    extendedXsdElement.setElementType(xsdComplexType.getName());
 
-                    extendedXsdElements.put(currentXpath, extendedXsdElement);
+                    xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
 
                     if (xsdElement.getXsdComplexType().getElements() != null) {
                         for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
@@ -368,12 +305,20 @@ public class XsdDocumentationService {
                         extendedXsdElement.setXsdRestriction(xsdSimpleType.getRestriction());
                     }
 
+                    if (xsdSimpleType.getRawName() != null) {
+                        extendedXsdElement.setElementType(xsdSimpleType.getName());
+                    } else {
+                        if (xsdSimpleType.getRestriction().getBase() != null) {
+                            extendedXsdElement.setElementType(xsdSimpleType.getRestriction().getBase());
+                        }
+                    }
+
                     extendedXsdElement.setSourceCode(xmlFromXpath);
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
-                    extendedXsdElement.setElementType("SIMPLE");
-                    extendedXsdElements.put(currentXpath, extendedXsdElement);
+
+                    xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
                 }
             }
             case XsdChoice xsdChoice -> {
@@ -417,219 +362,6 @@ public class XsdDocumentationService {
         }
     }
 
-    void copyResources(File outputDirectory) {
-        try {
-            Files.createDirectories(outputDirectory.toPath());
-            Files.createDirectories(Paths.get(outputDirectory.getPath(), ASSETS_PATH));
-            Files.createDirectories(Paths.get(outputDirectory.getPath(), "details"));
-            Files.createDirectories(Paths.get(outputDirectory.getPath(), "complexTypes"));
-            Files.createDirectories(Paths.get(outputDirectory.getPath(), "simpleTypes"));
-
-
-            copyAssets("/xsdDocumentation/assets/bootstrap.bundle.min.js", outputDirectory);
-            copyAssets("/xsdDocumentation/assets/prism.js", outputDirectory);
-            copyAssets("/xsdDocumentation/assets/freeXmlToolkit.css", outputDirectory);
-            copyAssets("/xsdDocumentation/assets/plus.png", outputDirectory);
-            copyAssets("/xsdDocumentation/assets/logo.png", outputDirectory);
-            copyAssets("/xsdDocumentation/assets/Roboto-Regular.ttf", outputDirectory);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    private void copyAssets(String resourcePath, File assetsDirectory) throws Exception {
-        copyResource(resourcePath, assetsDirectory, ASSETS_PATH);
-    }
-
-    private void copyResource(String resourcePath, File outputDirectory, String targetPath) throws IOException {
-        Files.copy(Objects.requireNonNull(getClass().getResourceAsStream(resourcePath)), Paths.get(outputDirectory.getPath(), targetPath, new File(resourcePath).getName()), StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    void generateRootPage(File outputDirectory) {
-        final var rootElementName = elements.getFirst().getName();
-
-        var context = new Context();
-        context.setVariable("date", LocalDate.now());
-        context.setVariable("filename", this.getXsdFilePath());
-        context.setVariable("rootElementName", rootElementName);
-        context.setVariable("rootElement", getXmlSchema().getFirst());
-        context.setVariable("xsdElements", elements.getFirst());
-        context.setVariable("xsdComplexTypes", getXsdComplexTypes());
-        context.setVariable("xsdSimpleTypes", getXsdSimpleTypes());
-        context.setVariable("namespace", getNameSpacesAsString());
-        context.setVariable("targetNamespace", getXmlSchema().getFirst().getTargetNamespace());
-        context.setVariable("rootElementLink", "details/" + getExtendedXsdElements().get("/" + rootElementName).getPageName());
-
-        final var result = templateEngine.process("templateRootElement", context);
-        final var outputFileName = Paths.get(outputDirectory.getPath(), "index.html").toFile().getAbsolutePath();
-        logger.debug("Root File: {}", outputFileName);
-
-        try {
-            Files.write(Paths.get(outputFileName), result.getBytes());
-            logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    void generateComplexTypePages(File outputDirectory) {
-        logger.debug("Complex Types");
-
-        for (var complexType : getXsdComplexTypes()) {
-            var context = new Context();
-            context.setVariable("complexType", complexType);
-
-            if (complexType.getAnnotation() != null) {
-                context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
-            }
-
-            final var result = templateEngine.process("complexTypes/templateComplexType", context);
-            final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", complexType.getRawName() + ".html");
-            logger.debug("File: {}", outputFilePath.toFile().getAbsolutePath());
-
-            try {
-                Files.write(outputFilePath, result.getBytes());
-                logger.debug("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    public String getNameSpacesAsString() {
-        StringBuilder result = new StringBuilder();
-        for (var ns : namespaces.keySet()) {
-            result.append(ns)
-                    .append("=")
-                    .append("'")
-                    .append(namespaces.get(ns).getName())
-                    .append("'")
-                    .append("<br />");
-        }
-
-        return result.toString();
-    }
-
-    public String getNodeTypeNameFromNodeType(short nodeType) {
-        return switch (nodeType) {
-            case Node.ELEMENT_NODE -> "Element";
-            case Node.ATTRIBUTE_NODE -> "Attribute";
-            case Node.TEXT_NODE -> "Text";
-            case Node.CDATA_SECTION_NODE -> "CDATA Section";
-            case Node.ENTITY_REFERENCE_NODE -> "Entity Reference";
-            case Node.ENTITY_NODE -> "Entity";
-            case Node.PROCESSING_INSTRUCTION_NODE -> "Processing Instruction";
-            case Node.COMMENT_NODE -> "Comment";
-            case Node.DOCUMENT_NODE -> "Document";
-            case Node.DOCUMENT_TYPE_NODE -> "Document Type";
-            case Node.DOCUMENT_FRAGMENT_NODE -> "Document Fragment";
-            case Node.NOTATION_NODE -> "Notation";
-            default -> "Unknown";
-        };
-    }
-
-    public Node getChildNodeFromXpath(String xpath) {
-        try {
-            return getExtendedXsdElements().get(xpath).getCurrentNode();
-        } catch (Exception e) {
-            logger.debug("ERROR in getting Node: {}", e.getMessage());
-        }
-        return null;
-    }
-
-    public String getChildInfo(String xpath) {
-        if (getExtendedXsdElements().get(xpath).getXsdDocumentation() != null) {
-            return getExtendedXsdElements().get(xpath).getXsdDocumentation()
-                    .stream()
-                    .map(XsdAnnotationChildren::getContent)
-                    .collect(Collectors.joining());
-        }
-        return "";
-    }
-
-    void generateDetailPages(File outputDirectory) {
-        ExecutorService executor = Executors.newFixedThreadPool(5);
-        final XsdDocumentationImageService xsdDocumentationImageService = new XsdDocumentationImageService(extendedXsdElements);
-
-        for (String key : this.getExtendedXsdElements().keySet()) {
-            var currentElement = this.getExtendedXsdElements().get(key);
-
-            if (!currentElement.getChildren().isEmpty()) {
-                executor.submit(() -> {
-                    var context = new Context();
-
-                    if (this.method == ImageOutputMethod.SVG) {
-                        final String svgDiagram = xsdDocumentationImageService.generateSvgString(key);
-                        context.setVariable("svg", svgDiagram);
-                    } else {
-                        final String fileName = currentElement.getPageName().replace(".html", ".jpg");
-                        final File pngFile = new File(String.valueOf(Paths.get(outputDirectory.getPath(), "details", fileName).toFile()));
-                        final String filePath = xsdDocumentationImageService.generateImage(key, pngFile);
-
-                        context.setVariable("img", filePath);
-                    }
-
-                    context.setVariable("xpath", getBreadCrumbs(currentElement));
-                    context.setVariable("code", currentElement.getSourceCode());
-                    context.setVariable("element", currentElement);
-                    context.setVariable("namespace", getNameSpacesAsString());
-                    context.setVariable("this", this);
-
-                    if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getType() != null) {
-                        context.setVariable("type", currentElement.getElementType());
-                    } else {
-                        context.setVariable("type", "NULL");
-                    }
-
-                    if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getAnnotation() != null) {
-                        context.setVariable("appInfos", currentElement.getXsdElement().getAnnotation().getAppInfoList());
-                    }
-
-                    Map<String, String> docTemp = new LinkedHashMap<>();
-                    if (currentElement.getLanguageDocumentation() != null && !currentElement.getLanguageDocumentation().isEmpty()) {
-                        docTemp = currentElement.getLanguageDocumentation();
-                    }
-                    context.setVariable("documentation", docTemp);
-
-                    final var result = templateEngine.process("details/templateDetail", context);
-                    final var outputFileName = Paths.get(outputDirectory.getPath(), "details", currentElement.getPageName()).toFile().getAbsolutePath();
-                    logger.debug("File: {}", outputFileName);
-
-                    try {
-                        Files.write(Paths.get(outputFileName), result.getBytes());
-                        logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-            }
-        }
-        executor.shutdown();
-        try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-
-    Map<String, String> getBreadCrumbs(ExtendedXsdElement currentElement) {
-        xpath = new StringBuilder();
-        Map<String, String> breadCrumbs = new LinkedHashMap<>();
-
-        final var t = currentElement.getCurrentXpath().split("/");
-        for (String element : t) {
-            if (!element.isEmpty()) {
-                xpath.append("/").append(element);
-                String link = "#";
-                if (this.getExtendedXsdElements() != null && this.getExtendedXsdElements().get(xpath.toString()) != null) {
-                    link = this.getExtendedXsdElements().get(xpath.toString()).getPageName();
-                }
-                breadCrumbs.put(element, link);
-            }
-        }
-        return breadCrumbs;
-    }
 
     private static Document convertStringToDocument(String xmlStr) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

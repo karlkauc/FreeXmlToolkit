@@ -53,12 +53,12 @@
                             <xs:element name="Type">
                                 <xs:complexType>
                                     <xs:sequence>
-                                        <xs:element name="Name">
+                                        <xs:element name="Name" type="xs:anySimpleType">
                                             <xs:annotation>
                                                 <xs:documentation>This is a comment</xs:documentation>
                                             </xs:annotation>
                                         </xs:element>
-                                        <xs:element name="Child">
+                                        <xs:element name="ChildName">
                                             <xs:simpleType>
                                                 <xs:restriction base="xs:int">
                                                     <xs:totalDigits value="5"/>
