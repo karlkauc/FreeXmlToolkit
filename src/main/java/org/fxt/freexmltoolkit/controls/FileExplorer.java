@@ -115,7 +115,15 @@ public class FileExplorer extends VBox {
      */
     private StringProperty getFileName(TreeTableColumn.CellDataFeatures<Path, String> p) {
         Path path = p.getValue().getValue();
-        return new SimpleStringProperty(path != null ? path.toFile().getName() : "");
+
+        if (path == null) {
+            return new SimpleStringProperty("");
+        }
+        if (path.getFileName() == null) {
+            return new SimpleStringProperty(path.toString());
+        }
+
+        return new SimpleStringProperty(path.toFile().getName());
     }
 
     /**
