@@ -409,7 +409,13 @@ public class XmlController {
 
         var area = getCurrentCodeArea();
         if (area != null && area.getText() != null) {
-            area.moveTo(0, area.getText().length());
+
+            if (area.getCaretBounds().isPresent()) {
+                var caretBounds = area.getCaretBounds().get();
+                logger.debug("getMaxX: {}, getMaxY: {}", caretBounds.getMaxX(), caretBounds.getMaxY());
+                area.scrollToPixel(caretBounds.getMaxX(), caretBounds.getMaxY());
+            }
+
         }
     }
 
