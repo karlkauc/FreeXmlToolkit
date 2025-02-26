@@ -50,7 +50,7 @@
 
             <Label GridPane.columnIndex="0" GridPane.rowIndex="1" text="XSLT File"/>
             <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
-                <TextField text="XML File" fx:id="xslFileName"/>
+                <TextField text="XSL File" fx:id="xslFileName"/>
                 <Button onAction="#openXslFile">
                     <graphic>
                         <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>

@@ -37,6 +37,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Controller class for handling FOP (Formatting Objects Processor) related actions.
+ */
 public class FopController {
     private static final Logger logger = LogManager.getLogger(FopController.class);
     private final FOPService fopService = new FOPService();
@@ -56,10 +59,18 @@ public class FopController {
     @FXML
     private ProgressIndicator progressIndicator;
 
+    /**
+     * Sets the parent controller.
+     *
+     * @param parentController the parent controller
+     */
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
 
+    /**
+     * Initializes the controller. Sets default values and configurations.
+     */
     @FXML
     private void initialize() {
         progressIndicator.setVisible(false);
@@ -75,6 +86,9 @@ public class FopController {
         author.setText(System.getProperty("user.name"));
     }
 
+    /**
+     * Opens a file chooser dialog to select an XML file.
+     */
     @FXML
     private void openXmlFile() {
         openFile("XML files (*.xml)", "*.xml", file -> {
@@ -83,6 +97,9 @@ public class FopController {
         });
     }
 
+    /**
+     * Opens a file chooser dialog to select an XSL file.
+     */
     @FXML
     private void openXslFile() {
         openFile("XSL files (*.xsl)", "*.xsl", file -> {
@@ -91,14 +108,24 @@ public class FopController {
         });
     }
 
+    /**
+     * Opens a file chooser dialog to select a PDF file.
+     */
     @FXML
     private void openPdfFile() {
-        openFile("PDF files (*.pdf)", "*.pdf", file -> {
-            pdfFile = file;
-            pdfFileName.setText(file.getName());
-        });
+        pdfFile = saveFile("PDF files (*.pdf)", "*.pdf");
+        if (pdfFile != null) {
+            pdfFileName.setText(pdfFile.getName());
+        }
     }
 
+    /**
+     * Opens a file chooser dialog with the specified description and extension filter.
+     *
+     * @param description  the description of the file type
+     * @param extension    the file extension filter
+     * @param fileConsumer the consumer to handle the selected file
+     */
     private void openFile(String description, String extension, java.util.function.Consumer<File> fileConsumer) {
         fileChooser.setInitialDirectory(new File(lastOpenDir));
         fileChooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter(description, extension));
@@ -112,6 +139,32 @@ public class FopController {
         }
     }
 
+    /**
+     * Opens a file chooser dialog to save a file with the specified description and extension filter.
+     *
+     * @param description the description of the file type
+     * @param extension   the file extension filter
+     * @return the selected file
+     */
+    private File saveFile(String description, String extension) {
+        fileChooser.setInitialDirectory(new File(lastOpenDir));
+        fileChooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter(description, extension));
+        File selectedFile = fileChooser.showSaveDialog(null);
+        if (selectedFile != null) {
+            lastOpenDir = selectedFile.getParent();
+            logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
+            return selectedFile;
+        } else {
+            logger.debug("No file selected");
+        }
+        return null;
+    }
+
+    /**
+     * Starts the conversion process from XML and XSL to PDF.
+     *
+     * @throws IOException if an I/O error occurs
+     */
     @FXML
     private void buttonConversion() throws IOException {
         logger.debug("Start Conversion!");
