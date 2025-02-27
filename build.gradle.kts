@@ -21,8 +21,8 @@ plugins {
     idea
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
-    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.24"
-    id("com.github.ben-manes.versions") version "0.51.0"
+    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.25"
+    id("com.github.ben-manes.versions") version "0.52.0"
     id("edu.sc.seis.launch4j") version "3.0.6"
     id("org.jreleaser") version "1.16.0"
 }
@@ -85,7 +85,7 @@ dependencies {
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
 
     // Serialization
-    implementation("com.google.code.gson:gson:2.11.0")
+    implementation("com.google.code.gson:gson:2.12.1")
 
 
     // Icons
@@ -115,9 +115,9 @@ dependencies {
     implementation("org.bouncycastle:bcpkix-jdk18on:1.80")
 
     // Lemminx
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.23.1")
+    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.29.0")
-    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.37.0")
+    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.38.0")
 
     // FOP
     implementation("org.apache.xmlgraphics:fop:2.10")
@@ -153,12 +153,12 @@ dependencies {
     implementation("io.github.palexdev:scenicview:17.0.2")
 
     // http connection with NTLM Proxy Auth
-    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.2")
+    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.2.3")
     implementation("org.apache.httpcomponents.client5:httpclient5-win:5.2.3")
 
-    implementation("org.junit.jupiter:junit-jupiter:5.11.4")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.4")
+    implementation("org.junit.jupiter:junit-jupiter:5.12.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.12.0")
     testImplementation("org.mockito:mockito-core:5.15.2")
 }
 

@@ -23,6 +23,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -84,7 +87,43 @@ public class FopController {
         }
         creationDate.setText(new Date().toString());
         author.setText(System.getProperty("user.name"));
+
+        xmlFileName.setOnDragOver(this::handleDragOver);
+        xmlFileName.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            if (db.hasFiles()) {
+                logger.debug("Dropped Files: {}", db.getFiles());
+                xmlFile = db.getFiles().getFirst();
+                xmlFileName.setText(xmlFile.getName());
+
+                event.setDropCompleted(true);
+            } else event.setDropCompleted(false);
+            event.consume();
+        });
+
+        xslFileName.setOnDragOver(this::handleDragOver);
+        xslFileName.setOnDragDropped(event -> {
+            Dragboard dragboard = event.getDragboard();
+            if (dragboard.hasFiles()) {
+                logger.debug("Dropped Files: {}", dragboard.getFiles());
+                xslFile = dragboard.getFiles().getFirst();
+                xslFileName.setText(xslFile.getName());
+                event.setDropCompleted(true);
+            } else event.setDropCompleted(false);
+            event.consume();
+        });
     }
+
+    /**
+     * Handles the drag over event for file loading.
+     *
+     * @param event the drag event
+     */
+    private void handleDragOver(DragEvent event) {
+        if (event.getDragboard().hasFiles()) event.acceptTransferModes(TransferMode.COPY);
+        else event.consume();
+    }
+
 
     /**
      * Opens a file chooser dialog to select an XML file.
