@@ -222,7 +222,7 @@ public class FopController {
         fopService.createPdfFile(xmlFile, xslFile, pdfFile, pdfSettings);
 
         if (pdfFile != null && pdfFile.exists()) {
-            logger.debug("Written {} bytes", pdfFile.length());
+            logger.debug("Written {} bytes in File {}", pdfFile.length(), pdfFile.getAbsoluteFile());
             progressIndicator.setProgress(1.0);
             if (openPdfAfterCreation.isSelected() && pdfFile.length() > 0) {
                 Desktop.getDesktop().open(pdfFile);
