@@ -89,29 +89,16 @@ public class FopController {
         author.setText(System.getProperty("user.name"));
 
         xmlFileName.setOnDragOver(this::handleDragOver);
-        xmlFileName.setOnDragDropped(event -> {
-            Dragboard db = event.getDragboard();
-            if (db.hasFiles()) {
-                logger.debug("Dropped Files: {}", db.getFiles());
-                xmlFile = db.getFiles().getFirst();
-                xmlFileName.setText(xmlFile.getName());
-
-                event.setDropCompleted(true);
-            } else event.setDropCompleted(false);
-            event.consume();
-        });
+        xmlFileName.setOnDragDropped(event -> handleDragDropped(event, file -> {
+            xmlFile = file;
+            xmlFileName.setText(file.getName());
+        }));
 
         xslFileName.setOnDragOver(this::handleDragOver);
-        xslFileName.setOnDragDropped(event -> {
-            Dragboard dragboard = event.getDragboard();
-            if (dragboard.hasFiles()) {
-                logger.debug("Dropped Files: {}", dragboard.getFiles());
-                xslFile = dragboard.getFiles().getFirst();
-                xslFileName.setText(xslFile.getName());
-                event.setDropCompleted(true);
-            } else event.setDropCompleted(false);
-            event.consume();
-        });
+        xslFileName.setOnDragDropped(event -> handleDragDropped(event, file -> {
+            xslFile = file;
+            xslFileName.setText(file.getName());
+        }));
     }
 
     /**
@@ -122,6 +109,22 @@ public class FopController {
     private void handleDragOver(DragEvent event) {
         if (event.getDragboard().hasFiles()) event.acceptTransferModes(TransferMode.COPY);
         else event.consume();
+    }
+
+    /**
+     * Handles the drag dropped event for file loading.
+     *
+     * @param event the drag event
+     * @param fileConsumer the consumer to handle the dropped file
+     */
+    private void handleDragDropped(DragEvent event, java.util.function.Consumer<File> fileConsumer) {
+        Dragboard db = event.getDragboard();
+        if (db.hasFiles()) {
+            logger.debug("Dropped Files: {}", db.getFiles());
+            fileConsumer.accept(db.getFiles().getFirst());
+            event.setDropCompleted(true);
+        } else event.setDropCompleted(false);
+        event.consume();
     }
 
 
