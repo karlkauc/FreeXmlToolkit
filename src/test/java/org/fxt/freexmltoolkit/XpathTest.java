@@ -25,12 +25,26 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class XpathTest {
     XmlService xmlService = XmlServiceImpl.getInstance();
 
     File xmlFile = new File("src/test/resources/FundsXML_420.xml");
     File xsdFile = new File("src/test/resources/FundsXML_420.xsd");
+
+    @Test
+    void calendarTest() {
+        xmlService.setCurrentXmlFile(xmlFile);
+        var dateTimeString = xmlService.getXmlFromXpath("/FundsXML4/ControlData/DocumentGenerated/text()").trim();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+        LocalDateTime localDateTime = LocalDateTime.parse(dateTimeString, formatter);
+        assertEquals(localDateTime.toString(), "2021-11-30T16:14:04");
+    }
 
     @Test
     void xPathElementTest() {
@@ -66,7 +80,7 @@ public class XpathTest {
 
         String result = xmlService.getNodeAsString(rate);
         System.out.println(result);
-        Assertions.assertEquals(StringUtils.deleteWhitespace(result), StringUtils.deleteWhitespace(expected));
+        assertEquals(StringUtils.deleteWhitespace(result), StringUtils.deleteWhitespace(expected));
     }
 
     @Test
@@ -87,8 +101,8 @@ public class XpathTest {
         Assertions.assertNotNull(xmlService);
         xmlService.setCurrentXmlFile(xmlFile);
 
-        Assertions.assertEquals(xmlService.getSchemaNameFromCurrentXMLFile().get(), "https://github.com/fundsxml/schema/releases/download/4.2.2/FundsXML.xsd");
-        Assertions.assertEquals(xmlService.getCurrentXmlFile().getPath(), "src/test/resources/FundsXML_420.xml");
+        assertEquals(xmlService.getSchemaNameFromCurrentXMLFile().get(), "https://github.com/fundsxml/schema/releases/download/4.2.2/FundsXML.xsd");
+        assertEquals(xmlService.getCurrentXmlFile().getPath(), "src/test/resources/FundsXML_420.xml");
 
         String expectedOutput = """
                 <ControlData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -110,7 +124,7 @@ public class XpathTest {
 
         String result = xmlService.getXmlFromXpath("/FundsXML4/ControlData");
 
-        Assertions.assertEquals(result.trim(), expectedOutput.trim());
+        assertEquals(result.trim(), expectedOutput.trim());
     }
 
     @Test
@@ -155,7 +169,7 @@ public class XpathTest {
                             string($i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency] - sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency]))
                         ), ' | '
                     )
-                    """;
+                """;
 
         xmlService.setCurrentXmlFile(xmlFile);
         var r = xmlService.getXQueryResult(xquery);
@@ -219,6 +233,6 @@ public class XpathTest {
                 </xs:complexType>
                 """;
 
-        Assertions.assertEquals(s, expectedOutput);
+        assertEquals(s, expectedOutput);
     }
 }

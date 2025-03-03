@@ -114,7 +114,7 @@ public class FopController {
     /**
      * Handles the drag dropped event for file loading.
      *
-     * @param event the drag event
+     * @param event        the drag event
      * @param fileConsumer the consumer to handle the dropped file
      */
     private void handleDragDropped(DragEvent event, java.util.function.Consumer<File> fileConsumer) {

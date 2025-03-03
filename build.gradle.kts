@@ -156,9 +156,16 @@ dependencies {
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.2.3")
     implementation("org.apache.httpcomponents.client5:httpclient5-win:5.2.3")
 
+    testImplementation(platform("org.junit:junit-bom:5.12.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    /*
     implementation("org.junit.jupiter:junit-jupiter:5.12.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.12.0")
+     */
+
     testImplementation("org.mockito:mockito-core:5.15.2")
 }
 
@@ -175,6 +182,13 @@ tasks.jar {
 tasks.named<Test>("test") {
     useJUnitPlatform()
     maxHeapSize = "16G"
+}
+
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }
 
 tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
