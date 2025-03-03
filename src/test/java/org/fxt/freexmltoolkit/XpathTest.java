@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -43,14 +44,35 @@ public class XpathTest {
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
         LocalDateTime localDateTime = LocalDateTime.parse(dateTimeString, formatter);
-        assertEquals(localDateTime.toString(), "2021-11-30T16:14:04");
+        assertEquals("2021-11-30T16:14:04", localDateTime.toString());
     }
 
     @Test
     void xPathElementTest() {
         xmlService.setCurrentXmlFile(xsdFile);
-        var s = xmlService.getXmlFromXpath("//xs:element[@name='OtherID']");
-        System.out.println("s = " + s);
+        var s = xmlService.getXmlFromXpath("//xs:element[@name='OtherID']").trim();
+
+        final String expectedResult = """
+                <xs:element xmlns:altova="http://www.altova.com/xml-schema-extensions"
+                            xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+                            xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                            maxOccurs="unbounded"
+                            minOccurs="0"
+                            name="OtherID">
+                   <xs:annotation>
+                      <xs:documentation>All other identifiers (with listed or free type)</xs:documentation>
+                   </xs:annotation>
+                   <xs:complexType>
+                      <xs:simpleContent>
+                         <xs:extension base="Text256Type">
+                            <xs:attribute name="ListedType" type="ListedIdentifierType"/>
+                            <xs:attribute name="FreeType" type="Text100Type"/>
+                         </xs:extension>
+                      </xs:simpleContent>
+                   </xs:complexType>
+                </xs:element>""";
+
+        assertEquals(expectedResult, s);
     }
 
     @Test
@@ -102,7 +124,7 @@ public class XpathTest {
         xmlService.setCurrentXmlFile(xmlFile);
 
         assertEquals(xmlService.getSchemaNameFromCurrentXMLFile().get(), "https://github.com/fundsxml/schema/releases/download/4.2.2/FundsXML.xsd");
-        assertEquals(xmlService.getCurrentXmlFile().getPath(), "src/test/resources/FundsXML_420.xml");
+        assertEquals(xmlService.getCurrentXmlFile().getPath(), Path.of("src", "test", "resources", "FundsXML_420.xml").toString());
 
         String expectedOutput = """
                 <ControlData xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -177,18 +199,20 @@ public class XpathTest {
         for (var r2 : r) {
             System.out.println("Result = " + r2);
         }
+
+        assertEquals("DEMO FUND 01 | EUR | 255355819.05 | 2.5535581905E8 | 0", r.getFirst());
     }
 
     @Test
     void xpathFromXsdTest() {
         xmlService.setCurrentXmlFile(xsdFile);
-        var s = xmlService.getXmlFromXpath("//xs:complexType[@name='AccountType']");
+        var s = xmlService.getXmlFromXpath("//xs:complexType[@name='AccountType']").trim();
 
         String expectedOutput = """
                 <xs:complexType xmlns:altova="http://www.altova.com/xml-schema-extensions"
-                                 xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
-                                 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-                                 name="AccountType">
+                                xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+                                xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                                name="AccountType">
                    <xs:annotation>
                       <xs:documentation>Master data of accounts</xs:documentation>
                    </xs:annotation>
@@ -233,6 +257,6 @@ public class XpathTest {
                 </xs:complexType>
                 """;
 
-        assertEquals(s, expectedOutput);
+        assertEquals(StringUtils.deleteWhitespace(s), StringUtils.deleteWhitespace(expectedOutput));
     }
 }
