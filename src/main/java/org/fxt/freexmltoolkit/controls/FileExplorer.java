@@ -24,6 +24,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -92,6 +93,19 @@ public class FileExplorer extends VBox {
 
         getChildren().addAll(header, fileTreeView);
         VBox.setVgrow(fileTreeView, Priority.ALWAYS);
+
+        this.setOnDragOver(this::handleDragOver);
+        this.setOnDragDropped(event -> {
+            System.out.println("event.getDragboard().getFiles().getFirst().getName() = " + event.getDragboard().getFiles().getFirst().getName());
+            File file = event.getDragboard().getFiles().getFirst();
+            var toAdd = new FileExplorerTreeItem<>(file.toPath());
+            handleSelection(toAdd);
+        });
+    }
+
+    private void handleDragOver(javafx.scene.input.DragEvent event) {
+        if (event.getDragboard().hasFiles()) event.acceptTransferModes(TransferMode.COPY);
+        else event.consume();
     }
 
     /**

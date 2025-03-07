@@ -24,7 +24,7 @@ plugins {
     id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.25"
     id("com.github.ben-manes.versions") version "0.52.0"
     id("edu.sc.seis.launch4j") version "3.0.6"
-    id("org.jreleaser") version "1.16.0"
+    id("org.jreleaser") version "1.17.0"
 }
 
 application {
@@ -116,7 +116,7 @@ dependencies {
 
     // Lemminx
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.29.0")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.30.0")
     implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.38.0")
 
     // FOP
@@ -166,7 +166,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.12.0")
      */
 
-    testImplementation("org.mockito:mockito-core:5.15.2")
+    testImplementation("org.mockito:mockito-core:5.16.0")
 }
 
 tasks {

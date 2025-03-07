@@ -21,9 +21,9 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
@@ -60,7 +60,7 @@ public class XsltController {
     @FXML
     private FileExplorer xmlFileExplorer, xsltFileExplorer;
     @FXML
-    private Button reload, debugButton, openInDefaultWebBrowser, openInDefaultTextEditor;
+    private Button debugButton, openInDefaultWebBrowser, openInDefaultTextEditor;
     @FXML
     private ProgressBar progressBar;
     @FXML

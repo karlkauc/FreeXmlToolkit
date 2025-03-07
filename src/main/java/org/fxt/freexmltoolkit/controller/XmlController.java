@@ -228,7 +228,7 @@ public class XmlController {
             logger.debug("QUERY: {}", query);
 
             switch (selectedItem.getId()) {
-                case "xQueryTab" -> result = xmlService.getXQueryResult(query).toString();
+                case "xQueryTab" -> result = String.join(System.lineSeparator(), xmlService.getXQueryResult(query));
                 case "xPathTab" -> result = xmlService.getXmlFromXpath(xml, query);
             }
 
