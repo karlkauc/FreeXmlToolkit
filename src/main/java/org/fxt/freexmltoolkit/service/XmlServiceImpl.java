@@ -566,6 +566,8 @@ public class XmlServiceImpl implements XmlService {
             var temp = possibleSchemaLocation.get().trim();
 
             var validUrl = urlValidator.isValid(temp);
+            logger.debug("Valid URL: {}", validUrl);
+
             if (validUrl) {
                 try {
                     URL url = new URI(temp).toURL();

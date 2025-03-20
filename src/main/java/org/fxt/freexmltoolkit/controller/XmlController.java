@@ -116,16 +116,22 @@ public class XmlController {
             codeAreaXpath.replaceText(0, 0, "/FundsXML4/ControlData");
             codeAreaXQuery.replaceText(0, 0, """
                     for $i in /FundsXML4/Funds/Fund
-                        return
-                            string-join(
-                                (
-                                    $i/Names/OfficialName,
-                                    $i/Currency,
-                                    $i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency]/text(),
-                                    string(sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency])),
-                                    string($i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency] - sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency]))
-                                ), ' | '
-                            )""");
+                                      	where number($i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency]/text()) -\s
+                                      			sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency]) > 10
+                                          return
+                                              string-join(
+                                                  (
+                                                      $i/Names/OfficialName,
+                                                      $i/Currency,
+                                                      format-number(number($i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency]/text()), "###,##0.00"),
+                                                      format-number(sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency]), "###,##0.00"),
+                                                      format-number(
+                                      			number($i/FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$i/Currency]/text()) -\s
+                                      			sum($i/FundDynamicData/Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$i/Currency])
+                                      		, "###,##0.00")
+                                                  ), ' | '
+                                              )
+                    """);
         }
 
         reloadXmlText();
