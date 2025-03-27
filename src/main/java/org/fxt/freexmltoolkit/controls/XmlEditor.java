@@ -193,6 +193,10 @@ public class XmlEditor extends Tab {
         this.setText(xmlFile.getName());
     }
 
+    public XmlService getXmlService() {
+        return xmlService;
+    }
+
     public void increaseFontSize() {
         setFontSize(++fontSize);
     }

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import org.fxt.freexmltoolkit.controls.*?>
+<?import org.fxt.freexmltoolkit.controls.XmlEditor?>
 <?import org.kordamp.ikonli.javafx.*?>
-
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       stylesheets="@../css/app.css"
@@ -94,8 +93,10 @@
 
     <SplitPane VBox.vgrow="ALWAYS">
         <SplitPane dividerPositions="0.8" orientation="VERTICAL" VBox.vgrow="ALWAYS">
-            <TabPane side="BOTTOM" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" fx:id="xmlFilesPane">
-                <XmlEditor fx:id="xmlEditor" />
+            <TabPane side="BOTTOM"
+                     AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+                     AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" fx:id="xmlFilesPane">
+                <XmlEditor fx:id="emptyXmlEditor"/>
             </TabPane>
             <HBox prefHeight="100">
                 <VBox spacing="5.0">

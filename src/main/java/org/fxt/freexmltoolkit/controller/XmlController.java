@@ -35,7 +35,6 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.transform.TransformerException;
@@ -48,9 +47,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 
 public class XmlController {
-
-    XmlService xmlService = XmlServiceImpl.getInstance();
-
     private MainController parentController;
 
     private final static Logger logger = LogManager.getLogger(XmlController.class);
@@ -89,13 +85,11 @@ public class XmlController {
     TextArea textAreaTemp;
 
     @FXML
-    XmlEditor xmlEditor;
+    XmlEditor emptyXmlEditor;
 
     @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
-        xmlService = XmlServiceImpl.getInstance();
-
         schemaValidText.setText("");
 
         codeAreaXpath.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXpath));
@@ -165,9 +159,8 @@ public class XmlController {
         Dragboard db = event.getDragboard();
 
         for (File f : db.getFiles()) {
-            xmlService.setCurrentXmlFile(f);
-            xmlService.prettyFormatCurrentFile();
-
+            logger.debug("add File: '{}': {}", f.getName(), f.getAbsolutePath());
+            XmlEditor xmlEditor = new XmlEditor(f);
             xmlEditor.setXmlFile(f);
             xmlEditor.refresh();
 
@@ -177,7 +170,7 @@ public class XmlController {
     }
 
     protected void loadFile(File f) {
-        logger.debug("Loading file " + f.getAbsolutePath());
+        logger.debug("Loading file {}", f.getAbsolutePath());
 
         XmlEditor xmlEditor = new XmlEditor(f);
         xmlEditor.refresh();
@@ -234,8 +227,9 @@ public class XmlController {
             logger.debug("QUERY: {}", query);
 
             switch (selectedItem.getId()) {
-                case "xQueryTab" -> result = String.join(System.lineSeparator(), xmlService.getXQueryResult(query));
-                case "xPathTab" -> result = xmlService.getXmlFromXpath(xml, query);
+                case "xQueryTab" ->
+                        result = String.join(System.lineSeparator(), getCurrentXmlEditor().getXmlService().getXQueryResult(query));
+                case "xPathTab" -> result = getCurrentXmlEditor().getXmlService().getXmlFromXpath(xml, query);
             }
 
             if (result != null && !result.isEmpty()) {
@@ -269,7 +263,7 @@ public class XmlController {
 
     @FXML
     private boolean saveFile() {
-        var errors = xmlService.validateText(getCurrentCodeArea().getText());
+        var errors = getCurrentXmlEditor().getXmlService().validateText(getCurrentCodeArea().getText());
 
         if (errors == null || errors.isEmpty()) {
             return saveTextToFile();
@@ -306,7 +300,7 @@ public class XmlController {
                 File selectedFile = fileChooser.showSaveDialog(null);
 
                 if (selectedFile != null) {
-                    this.xmlService.setCurrentXmlFile(selectedFile);
+                    getCurrentXmlEditor().getXmlService().setCurrentXmlFile(selectedFile);
                     currentXmlEditor.setXmlFile(selectedFile);
                     currentXmlEditor.setText(selectedFile.getName());
 
@@ -321,12 +315,12 @@ public class XmlController {
                 Files.write(xmlFile.toPath(), strToBytes);
             }
 
-            Path path = Paths.get(this.xmlService.getCurrentXmlFile().getPath());
+            Path path = Paths.get(getCurrentXmlEditor().getXmlService().getCurrentXmlFile().getPath());
             byte[] strToBytes = getCurrentCodeArea().getText().getBytes();
             Files.write(path, strToBytes);
 
             logger.debug("File saved!");
-            this.xmlService.setCurrentXmlFile(path.toFile());
+            getCurrentXmlEditor().getXmlService().setCurrentXmlFile(path.toFile());
             schemaValidText.setText("File '" + path + "' saved (" + path.toFile().length() + " bytes)");
 
             return true;
@@ -368,16 +362,16 @@ public class XmlController {
     @FXML
     private void validateSchema() {
         logger.debug("Validate Schema");
-        xmlService.loadSchemaFromXMLFile(); // schaut, ob er schema selber finden kann
-        String xsdLocation = xmlService.getRemoteXsdLocation();
+        getCurrentXmlEditor().getXmlService().loadSchemaFromXMLFile(); // schaut, ob er schema selber finden kann
+        String xsdLocation = getCurrentXmlEditor().getXmlService().getRemoteXsdLocation();
         logger.debug("XSD Location: {}", xsdLocation);
 
         if (xsdLocation != null) {
-            xmlService.loadSchemaFromXMLFile();
+            getCurrentXmlEditor().getXmlService().loadSchemaFromXMLFile();
             logger.debug("Schema loaded: {}", xsdLocation);
 
             if (getCurrentCodeArea().getText().length() > 1) {
-                var errors = xmlService.validateText(getCurrentCodeArea().getText());
+                var errors = getCurrentXmlEditor().getXmlService().validateText(getCurrentCodeArea().getText());
                 if (errors != null && !errors.isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
 
@@ -447,9 +441,9 @@ public class XmlController {
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
 
-            xmlService.setCurrentXmlFile(selectedFile);
-            if (xmlService.loadSchemaFromXMLFile()) {
-                schemaList.getItems().add(xmlService.getCurrentXsdFile());
+            getCurrentXmlEditor().getXmlService().setCurrentXmlFile(selectedFile);
+            if (getCurrentXmlEditor().getXmlService().loadSchemaFromXMLFile()) {
+                schemaList.getItems().add(getCurrentXmlEditor().getXmlService().getCurrentXsdFile());
             }
 
             validateSchema();
@@ -471,26 +465,26 @@ public class XmlController {
     @FXML
     private void print() {
         logger.debug("BIN DRINNEN");
-        logger.debug(xmlEditor.getDocument().getNodeValue());
+        logger.debug(emptyXmlEditor.getDocument().getNodeValue());
     }
     @FXML
     private void test() {
         Path xmlExampleFile = Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml");
 
-        xmlService.setCurrentXmlFile(xmlExampleFile.toFile());
-        xmlService.setCurrentXsdFile(Paths.get("release/examples/xsd/FundsXML4.xsd").toFile());
+        getCurrentXmlEditor().getXmlService().setCurrentXmlFile(xmlExampleFile.toFile());
+        getCurrentXmlEditor().getXmlService().setCurrentXsdFile(Paths.get("release/examples/xsd/FundsXML4.xsd").toFile());
 
         try {
-            xmlEditor = getCurrentXmlEditor();
-            xmlEditor.setXmlFile(xmlExampleFile.toFile());
-            xmlEditor.refresh();
+            emptyXmlEditor = getCurrentXmlEditor();
+            emptyXmlEditor.setXmlFile(xmlExampleFile.toFile());
+            emptyXmlEditor.refresh();
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
 
-        xmlService.setCurrentXmlFile(xmlExampleFile.toFile());
-        if (xmlService.loadSchemaFromXMLFile()) {
-            schemaList.getItems().add(xmlService.getCurrentXsdFile());
+        getCurrentXmlEditor().getXmlService().setCurrentXmlFile(xmlExampleFile.toFile());
+        if (getCurrentXmlEditor().getXmlService().loadSchemaFromXMLFile()) {
+            schemaList.getItems().add(getCurrentXmlEditor().getXmlService().getCurrentXsdFile());
         }
 
         validateSchema();
