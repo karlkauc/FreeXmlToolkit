@@ -167,12 +167,23 @@ public class XsltController {
 
     private void renderHTML(String output) {
         File outputDir = new File("output");
-        String outputFileName = outputDir.getName() + File.separator + "output.html";
+        String outputFileName = outputDir.getAbsolutePath() + File.separator + "output.html";
 
         try {
             Files.createDirectories(outputDir.toPath());
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/scss/prism.css")), Paths.get(outputDir.getPath(), "outputDir"), StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css")), Paths.get(outputDir.getPath(), "freeXmlToolkit.css"), StandardCopyOption.REPLACE_EXISTING);
+
+            Files.copy(
+                    Objects.requireNonNull(getClass().getResourceAsStream("/scss/prism.css")),
+                    Paths.get(outputDir.getAbsolutePath(), "prism.css"),
+                    StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(
+                    Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css")),
+                    Paths.get(outputDir.getAbsolutePath(), "freeXmlToolkit.css"),
+                    StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(
+                    Objects.requireNonNull(getClass().getResourceAsStream("/css/fonts/Roboto-Regular.ttf")),
+                    Paths.get(outputDir.getAbsolutePath(), "Roboto-Regular.ttf"),
+                    StandardCopyOption.REPLACE_EXISTING);
 
             File newFile = Paths.get(outputFileName).toFile();
             Files.writeString(newFile.toPath(), output);

@@ -22,7 +22,6 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -47,6 +46,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Hauptcontroller für die Anwendung.
+ */
 public class MainController {
 
     private final static Logger logger = LogManager.getLogger(MainController.class);
@@ -89,61 +91,61 @@ public class MainController {
 
     FXMLLoader loader;
 
+    /**
+     * Initialisiert den Controller.
+     */
     @FXML
     public void initialize() {
-        scheduler.scheduleAtFixedRate(() -> {
-            String date = new Date().toString();
-
-            long allocated = runtime.totalMemory();
-            long used = allocated - runtime.freeMemory();
-            long max = runtime.maxMemory();
-            long available = max - used;
-            var size = String.format("Max: %s Allocated: %s Used: %s Available: %s",
-                    FileUtils.byteCountToDisplaySize(max),
-                    FileUtils.byteCountToDisplaySize(allocated),
-                    FileUtils.byteCountToDisplaySize(used),
-                    FileUtils.byteCountToDisplaySize(available));
-
-            var percent = Math.round((float) used / available * 100) + "%";
-
-            Platform.runLater(() -> version.setText(date + " " + size + " " + percent));
-        }, 1, 2, TimeUnit.SECONDS);
-
-        exit.setOnAction(e -> {
-            prepareShutdown();
-            System.exit(0);
-        });
-        menuItemExit.setOnAction(e -> {
-            prepareShutdown();
-            System.exit(0);
-        });
+        scheduler.scheduleAtFixedRate(this::updateMemoryUsage, 1, 2, TimeUnit.SECONDS);
+        exit.setOnAction(e -> shutdown());
+        menuItemExit.setOnAction(e -> shutdown());
         loadLastOpenFiles();
-
         loadPageFromPath("/pages/welcome.fxml");
     }
 
-    private void prepareShutdown() {
-        scheduler.shutdown();
-        try {
-            if (!scheduler.awaitTermination(800, TimeUnit.MILLISECONDS)) {
-                scheduler.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            logger.info("Forcing scheduler shutdown");
-            scheduler.shutdownNow();
-        }
+    private void updateMemoryUsage() {
+        String date = new Date().toString();
+        long allocated = runtime.totalMemory();
+        long used = allocated - runtime.freeMemory();
+        long max = runtime.maxMemory();
+        long available = max - used;
+        String size = String.format("Max: %s Allocated: %s Used: %s Available: %s",
+                FileUtils.byteCountToDisplaySize(max),
+                FileUtils.byteCountToDisplaySize(allocated),
+                FileUtils.byteCountToDisplaySize(used),
+                FileUtils.byteCountToDisplaySize(available));
+        String percent = Math.round((float) used / available * 100) + "%";
+        Platform.runLater(() -> version.setText(date + " " + size + " " + percent));
+    }
 
-        service.shutdown();
+    /**
+     * Bereitet das Herunterfahren der Anwendung vor.
+     */
+    private void shutdown() {
+        prepareShutdown();
+        System.exit(0);
+    }
+
+    private void prepareShutdown() {
+        shutdownExecutor(scheduler);
+        shutdownExecutor(service);
+    }
+
+    private void shutdownExecutor(ExecutorService executor) {
+        executor.shutdown();
         try {
-            if (!service.awaitTermination(800, TimeUnit.MILLISECONDS)) {
-                service.shutdownNow();
+            if (!executor.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                executor.shutdownNow();
             }
         } catch (InterruptedException e) {
-            logger.info("Forcing service shutdown");
-            service.shutdownNow();
+            logger.info("Forcing executor shutdown");
+            executor.shutdownNow();
         }
     }
 
+    /**
+     * Lädt die zuletzt geöffneten Dateien.
+     */
     private void loadLastOpenFiles() {
         lastOpenFiles.clear();
 
@@ -162,6 +164,11 @@ public class MainController {
         }
     }
 
+    /**
+     * Lädt eine Seite basierend auf dem ActionEvent.
+     *
+     * @param ae das ActionEvent
+     */
     @FXML
     public void loadPage(ActionEvent ae) {
         Button currentButton = (Button) ae.getSource();
@@ -181,120 +188,82 @@ public class MainController {
             loadPageFromPath(pagePath);
         }
 
-        for (Node node : currentButton.getParent().getChildrenUnmodifiable()) {
-            node.getStyleClass().remove("active");
-        }
+        currentButton.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
         currentButton.getStyleClass().add("active");
 
     }
 
+    /**
+     * Lädt eine Seite von einem bestimmten Pfad.
+     *
+     * @param pagePath der Pfad zur Seite
+     */
     private void loadPageFromPath(String pagePath) {
         try {
             loader = new FXMLLoader(getClass().getResource(pagePath));
             Pane newLoadedPane = loader.load();
-
             System.gc();
-
-            try {
-                Class<?> aClass = loader.getController().getClass();
-
-                if (aClass.equals(XmlController.class)) {
-                    ((XmlController) loader.getController()).setParentController(this);
-                } else if (aClass.equals(XsdValidationController.class)) {
-                    ((XsdValidationController) loader.getController()).setParentController(this);
-                } else if (aClass.equals(SettingsController.class)) {
-                    ((SettingsController) loader.getController()).setParentController(this);
-                } else if (aClass.equals(WelcomeController.class)) {
-                    ((WelcomeController) loader.getController()).setParentController(this);
-                } else if (aClass.equals(XsdController.class)) {
-                    logger.debug("set XSD Controller");
-                    ((XsdController) loader.getController()).setParentController(this);
-                } else if (aClass.equals(XsltController.class)) {
-                    logger.debug("set XSLT Controller");
-                    ((XsltController) loader.getController()).setParentController(this);
-                } else if (aClass.equals(FopController.class)) {
-                    logger.debug("set FOP Controller");
-                    ((FopController) loader.getController()).setParentController(this);
-                } else if (aClass.equals(SignatureController.class)) {
-                    logger.debug("set Signature Controller");
-                    ((SignatureController) loader.getController()).setParentController(this);
-                }
-
-                var controller = loader.getController();
-                logger.debug("Controller Class: {}", controller.getClass());
-
-            } catch (Exception e) {
-                logger.error("Error in Controller setting.");
-                logger.error(e.getStackTrace());
-                logger.error(e.getMessage());
-            }
-
+            setParentController(loader.getController());
             contentPane.getChildren().clear();
             contentPane.getChildren().add(newLoadedPane);
-
         } catch (Exception e) {
-            logger.error(e.getMessage());
-            logger.error(e.getCause());
-            logger.error(e.getStackTrace());
+            logger.error(e.getMessage(), e);
         }
+    }
+
+    private void setParentController(Object controller) {
+        if (controller instanceof XmlController) {
+            ((XmlController) controller).setParentController(this);
+        } else if (controller instanceof XsdValidationController) {
+            ((XsdValidationController) controller).setParentController(this);
+        } else if (controller instanceof SettingsController) {
+            ((SettingsController) controller).setParentController(this);
+        } else if (controller instanceof WelcomeController) {
+            ((WelcomeController) controller).setParentController(this);
+        } else if (controller instanceof XsdController) {
+            logger.debug("set XSD Controller");
+            ((XsdController) controller).setParentController(this);
+        } else if (controller instanceof XsltController) {
+            logger.debug("set XSLT Controller");
+            ((XsltController) controller).setParentController(this);
+        } else if (controller instanceof FopController) {
+            logger.debug("set FOP Controller");
+            ((FopController) controller).setParentController(this);
+        } else if (controller instanceof SignatureController) {
+            logger.debug("set Signature Controller");
+            ((SignatureController) controller).setParentController(this);
+        }
+        logger.debug("Controller Class: {}", controller.getClass());
     }
 
     @FXML
     private void toggleMenuBar() {
         logger.debug("Show Menu: {}", showMenu);
-
         if (showMenu) {
-            leftMenu.setMaxWidth(50);
-            leftMenu.setMinWidth(50);
-
-            menuText1.setText(">>");
-            menuText2.setText("");
-
-            logoImageView.setFitHeight(15);
-            logoImageView.setFitWidth(75);
-            logoImageView.setPreserveRatio(true);
-
-            setButtonSmall(xml);
-            setButtonSmall(xsd);
-            setButtonSmall(xsdValidation);
-            setButtonSmall(xslt);
-            setButtonSmall(fop);
-            setButtonSmall(help);
-            setButtonSmall(settings);
-            setButtonSmall(exit);
-            setButtonSmall(signature);
+            setMenuSize(50, ">>", "", 15, 75);
+            setButtonSize("menu_button_collapsed", xml, xsd, xsdValidation, xslt, fop, help, settings, exit, signature);
         } else {
-            leftMenu.setMinWidth(200);
-            leftMenu.setMaxWidth(200);
-
-            menuText1.setText("FundsXML Toolkit");
-            menuText2.setText("Enterprise Edition");
-
-            logoImageView.setFitHeight(75);
-            logoImageView.setFitWidth(100);
-            logoImageView.setPreserveRatio(true);
-
-            setButtonLarge(xml);
-            setButtonLarge(xsd);
-            setButtonLarge(xsdValidation);
-            setButtonLarge(xslt);
-            setButtonLarge(fop);
-            setButtonLarge(help);
-            setButtonLarge(settings);
-            setButtonLarge(exit);
-            setButtonLarge(signature);
+            setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
+            setButtonSize("menu_button", xml, xsd, xsdValidation, xslt, fop, help, settings, exit, signature);
         }
-
         showMenu = !showMenu;
     }
 
-    private void setButtonSmall(Button buttonSmall) {
-        buttonSmall.getStyleClass().remove("menu_button");
-        buttonSmall.getStyleClass().add("menu_button_collapsed");
+    private void setMenuSize(int width, String text1, String text2, int logoHeight, int logoWidth) {
+        leftMenu.setMaxWidth(width);
+        leftMenu.setMinWidth(width);
+        menuText1.setText(text1);
+        menuText2.setText(text2);
+        logoImageView.setFitHeight(logoHeight);
+        logoImageView.setFitWidth(logoWidth);
+        logoImageView.setPreserveRatio(true);
     }
 
-    private void setButtonLarge(Button buttonLarge) {
-        buttonLarge.getStyleClass().remove("menu_button_collapsed");
-        buttonLarge.getStyleClass().add("menu_button");
+    private void setButtonSize(String styleClass, Button... buttons) {
+        for (Button button : buttons) {
+            button.getStyleClass().remove("menu_button");
+            button.getStyleClass().remove("menu_button_collapsed");
+            button.getStyleClass().add(styleClass);
+        }
     }
 }

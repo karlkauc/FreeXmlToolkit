@@ -248,7 +248,7 @@ public class XmlController {
     @FXML
     public void reloadXmlText() {
         try {
-            XmlEditor xmlEditor = (XmlEditor) xmlFilesPane.getSelectionModel().getSelectedItem();
+            XmlEditor xmlEditor = getCurrentXmlEditor();
             if (xmlEditor != null && xmlEditor.getXmlFile() != null && xmlEditor.getXmlFile().exists()) {
                 xmlEditor.refresh();
 

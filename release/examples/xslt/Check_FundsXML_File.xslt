@@ -86,11 +86,13 @@
                 <hr/>
                 <div id="list_errors">
                     <h1>ERROR LIST</h1>
+                    <ul id="listOfErrors"></ul>
                 </div>
                 <hr/>
 
                 <div id="list_warnings">
                     <h1>WARNING LIST</h1>
+                    <ul id="listOfWarnings"></ul>
                 </div>
                 <hr/>
 
@@ -157,14 +159,14 @@
         </html>
     </xsl:template>
 
-    <xsl:template match="ControlData">
+    <xsl:template match="ControlData" expand-text="yes">
         <p>
             <h1>Control Data</h1>
             <table class="table table-bordered table-striped table-hover">
                 <tr>
                     <th class="w-25">UniqueDocumentID:</th>
                     <td>
-                        <xslt:value-of select="UniqueDocumentID"/>
+                        {UniqueDocumentID}
                     </td>
                 </tr>
                 <tr>
@@ -178,7 +180,7 @@
                     <td>
                         <xsl:if test="not(Version)">
                             <span id="WARNING_{generate-id(.)}" data-error-message="Missing FundsXML Version"
-                                  class="badge eg_status--orange">Missing FundsXML Version
+                                  class="badge bg-warning text-dark">Missing FundsXML Version
                             </span>
                         </xsl:if>
                         <xsl:value-of select="Version"/>

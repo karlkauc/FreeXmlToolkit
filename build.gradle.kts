@@ -21,7 +21,7 @@ plugins {
     idea
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
-    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.25"
+    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.26"
     id("com.github.ben-manes.versions") version "0.52.0"
     id("edu.sc.seis.launch4j") version "3.0.6"
     id("org.jreleaser") version "1.17.0"
@@ -59,13 +59,13 @@ repositories {
 }
 
 javafx {
-    version = "23.0.1"
+    version = "24"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(23)
     }
 }
 
@@ -100,7 +100,7 @@ dependencies {
     implementation("io.github.mkpaz:atlantafx-base:2.0.1")
 
     // Richtext
-    implementation("org.fxmisc.richtext:richtextfx:0.11.4")
+    implementation("org.fxmisc.richtext:richtextfx:0.11.5")
 
     // Logging
     implementation("org.apache.logging.log4j:log4j-api:3.0.0-beta2")
@@ -108,7 +108,7 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:3.0.0-beta2")
 
     // XSD Parser
-    implementation("com.github.xmlet:xsdParser:1.2.18")
+    implementation("com.github.xmlet:xsdParser:1.2.19")
 
     //  Certificate & XML Signature
     implementation("org.apache.santuario:xmlsec:4.0.3")
@@ -153,8 +153,8 @@ dependencies {
     implementation("io.github.palexdev:scenicview:17.0.2")
 
     // http connection with NTLM Proxy Auth
-    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.2.3")
-    implementation("org.apache.httpcomponents.client5:httpclient5-win:5.2.3")
+    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.4")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.3")
 
     testImplementation(platform("org.junit:junit-bom:5.12.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
