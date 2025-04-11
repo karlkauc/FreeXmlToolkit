@@ -21,45 +21,49 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 <?import org.kordamp.ikonli.javafx.StackedFontIcon?>
-<AnchorPane prefHeight="800" prefWidth="1204" stylesheets="@../css/app.css" AnchorPane.bottomAnchor="0"
-            AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
-            xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.fxt.freexmltoolkit.controller.WelcomeController">
+<AnchorPane prefHeight="800" prefWidth="1204" stylesheets="@../css/app.css" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.WelcomeController">
     <VBox styleClass="my_container" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-        <Label text="Welcome to FreeXmlToolkit!" styleClass="h1"/>
+        <Label styleClass="h1" text="Welcome to FreeXmlToolkit!" />
         <Label>Your are using version {version}.</Label>
         <HBox fx:id="versionUpdate">
             <Label>There is an update available! Please check here:</Label>
-            <Hyperlink onAction="#openUpdatePage" text="FreeXMLToolkit"/>
+            <Hyperlink onAction="#openUpdatePage" text="FreeXMLToolkit" />
         </HBox>
 
         <Label fx:id="duration">You have already used this application for {duration}</Label>
         <HBox styleClass="information">
-            <VBox>
-                <Text>Did you know....</Text>
+            <VBox spacing="20.0">
                 <StackedFontIcon alignment="CENTER_LEFT" iconSize="48" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                    <FontIcon iconColor="#1b1b4b" iconLiteral="bi-question-square"/>
+                    <FontIcon iconColor="#1b1b4b" iconLiteral="bi-question-square" />
                 </StackedFontIcon>
+            <padding>
+               <Insets right="20.0" />
+            </padding>
             </VBox>
-            <VBox alignment="CENTER_LEFT">
+            <VBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                <Text text="Did you know...">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font></Text>
                 <Text>You can customize the application by using your own CSS</Text>
             </VBox>
         </HBox>
 
         <HBox spacing="5.0">
             <Label>Send Usage Statistics:</Label>
-            <CheckBox fx:id="sendUsageStatistics" mnemonicParsing="false"/>
+            <CheckBox fx:id="sendUsageStatistics" mnemonicParsing="false" />
         </HBox>
 
         <Label>xxx Items in cache...</Label>
-        <Button text="delete cache"/>
+        <Button text="delete cache" />
 
         <Label>Settings...</Label>
         <padding>
-            <Insets bottom="100.0" left="10.0" right="10.0" top="10.0"/>
+            <Insets bottom="100.0" left="10.0" right="10.0" top="10.0" />
         </padding>
     </VBox>
 </AnchorPane>
