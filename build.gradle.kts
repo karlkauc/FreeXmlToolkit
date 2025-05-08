@@ -64,9 +64,11 @@ javafx {
 }
 
 java {
+    /*
     toolchain {
         languageVersion = JavaLanguageVersion.of(23)
     }
+     */
 }
 
 run {
@@ -75,7 +77,7 @@ run {
 
 dependencies {
     // XSLT
-    implementation("net.sf.saxon:Saxon-HE:12.5")
+    implementation("net.sf.saxon:Saxon-HE:12.6")
 
     // create sample XML files
     implementation("in.jlibs:jlibs-xsd:3.0.1")
@@ -85,15 +87,15 @@ dependencies {
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
 
     // Serialization
-    implementation("com.google.code.gson:gson:2.12.1")
+    implementation("com.google.code.gson:gson:2.13.1")
 
 
     // Icons
-    implementation("org.kordamp.ikonli:ikonli-javafx:12.3.1")
-    implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.3.1")
-    implementation("org.kordamp.ikonli:ikonli-win10-pack:12.3.1")
-    implementation("org.kordamp.ikonli:ikonli-feather-pack:12.3.1")
-    implementation("org.kordamp.ikonli:ikonli-coreui-pack:12.3.1")
+    implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
+    implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.4.0")
+    implementation("org.kordamp.ikonli:ikonli-win10-pack:12.4.0")
+    implementation("org.kordamp.ikonli:ikonli-feather-pack:12.4.0")
+    implementation("org.kordamp.ikonli:ikonli-coreui-pack:12.4.0")
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Style
@@ -111,7 +113,7 @@ dependencies {
     implementation("com.github.xmlet:xsdParser:1.2.19")
 
     //  Certificate & XML Signature
-    implementation("org.apache.santuario:xmlsec:4.0.3")
+    implementation("org.apache.santuario:xmlsec:4.0.4")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.80")
 
     // Lemminx
@@ -128,13 +130,13 @@ dependencies {
     implementation("org.apache.xmlgraphics:batik-transcoder:1.18")
 
     // Create Office Documents
-    implementation("org.apache.poi:poi:5.4.0")
-    implementation("org.apache.poi:poi-ooxml:5.4.0")
+    implementation("org.apache.poi:poi:5.4.1")
+    implementation("org.apache.poi:poi-ooxml:5.4.1")
 
     // Misc
     implementation("org.apache.commons:commons-lang3:3.17.0")
-    implementation("commons-io:commons-io:2.18.0")
-    implementation("org.apache.commons:commons-text:1.13.0")
+    implementation("commons-io:commons-io:2.19.0")
+    implementation("org.apache.commons:commons-text:1.13.1")
     implementation("commons-validator:commons-validator:1.9.0")
 
     // CSS reload
@@ -166,7 +168,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.12.0")
      */
 
-    testImplementation("org.mockito:mockito-core:5.16.0")
+    testImplementation("org.mockito:mockito-core:5.17.0")
 }
 
 tasks {

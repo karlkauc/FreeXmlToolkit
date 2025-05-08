@@ -18,42 +18,86 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import jlibs.xml.sax.XMLDocument;
-import jlibs.xml.xsd.XSInstance;
-import jlibs.xml.xsd.XSParser;
-import org.apache.xerces.xs.XSModel;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.StringWriter;
-import java.nio.file.Path;
+import java.io.File;
 
 public class CreateXmlSampleData {
 
     public static void main(String[] args) {
-        Path p = Path.of("src/test/resources/FundsXML_306.xsd");
-        var s = createData(p, "FundsXML", "http://www.fundsxml.org/XMLSchema/3.0.6");
-        System.out.println(s);
-    }
 
-    public static String createData(Path schemaFilePath, String rootElementName, String namespaceURI) {
+        String xsdPath = "src/test/resources/FundsXML_306.xsd";
+        String xmlPath = "output_111.xml";
+
         try {
-            XSModel xsModel = new XSParser().parse(schemaFilePath.toUri().toString());
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document xsdDoc = builder.parse(new File(xsdPath));
 
-            XSInstance xsInstance = new XSInstance();
-            xsInstance.minimumElementsGenerated = 2;
-            xsInstance.maximumElementsGenerated = 4;
-            xsInstance.generateOptionalElements = Boolean.TRUE; // null means random
+            Node rootElement = findRootElement(xsdDoc);
+            if (rootElement == null) {
+                System.out.println("No root element found in XSD.");
+                return;
+            }
 
-            StringWriter stringWriter = new StringWriter();
-            XMLDocument sampleXml = new XMLDocument(new StreamResult(stringWriter), false, 4, null);
-            QName rootElement = new QName(namespaceURI, rootElementName);
-            xsInstance.generate(xsModel, rootElement, sampleXml);
+            Document xmlDoc = builder.newDocument();
+            Element xmlRoot = xmlDoc.createElement(rootElement.getAttributes().getNamedItem("name").getNodeValue());
+            xmlDoc.appendChild(xmlRoot);
 
-            return stringWriter.toString();
+            generateSampleElements(xsdDoc, xmlRoot, rootElement.getAttributes().getNamedItem("type").getNodeValue(), xmlDoc);
+
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.transform(new DOMSource(xmlDoc), new StreamResult(new File(xmlPath)));
+
+            System.out.println("Sample XML generated at: " + xmlPath);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return rootElementName;
     }
+
+    private static Node findRootElement(Document xsdDoc) {
+        NodeList elements = xsdDoc.getElementsByTagName("xs:element");
+        for (int i = 0; i < elements.getLength(); i++) {
+            Node node = elements.item(i);
+            if (node.getParentNode().getNodeName().equals("xs:schema")) {
+                System.out.println("node.getNodeName() = " + node.getNodeName());
+                return node;
+            }
+        }
+        return null;
+    }
+
+    private static void generateSampleElements(Document xsdDoc, Element parent, String typeName, Document xmlDoc) {
+        NodeList complexTypes = xsdDoc.getElementsByTagName("xs:complexType");
+        for (int i = 0; i < complexTypes.getLength(); i++) {
+            Element complexType = (Element) complexTypes.item(i);
+            if (complexType.getAttribute("name").equals(typeName)) {
+                NodeList sequences = complexType.getElementsByTagName("xs:sequence");
+                for (int j = 0; j < sequences.getLength(); j++) {
+                    NodeList elements = ((Element) sequences.item(j)).getElementsByTagName("xs:element");
+                    for (int k = 0; k < elements.getLength(); k++) {
+                        Element el = (Element) elements.item(k);
+                        String name = el.getAttribute("name");
+                        Element child = xmlDoc.createElement(name);
+                        child.setTextContent("sample_" + name);
+                        parent.appendChild(child);
+                    }
+                }
+            }
+        }
+    }
+
+
 }

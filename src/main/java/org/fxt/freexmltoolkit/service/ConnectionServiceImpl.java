@@ -20,7 +20,7 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.NTCredentials;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -100,10 +100,15 @@ public class ConnectionServiceImpl implements ConnectionService {
 
             if (httpProxyUser != null && !httpProxyUser.isEmpty() &&
                     httpProxyPassword != null && !httpProxyPassword.isEmpty()) {
-                Credentials ntlmCredentials = new NTCredentials(httpProxyUser, httpProxyPassword.toCharArray(), null, null);
-                credentialsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), ntlmCredentials);
+
+                Credentials credentials = new UsernamePasswordCredentials(httpProxyUser, httpProxyPassword.toCharArray());
+                credentialsProvider.setCredentials(new AuthScope(null, -1), credentials);
+
+                // Credentials ntlmCredentials = new NTCredentials(httpProxyUser, httpProxyPassword.toCharArray(), null, null);
+                // credentialsProvider.setCredentials(new AuthScope(null, -1), ntlmCredentials);
+                // credentialsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), ntlmCredentials);
             } else {
-                credentialsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), null);
+                credentialsProvider.setCredentials(new AuthScope(null, -1), null);
             }
         }
         long start = System.currentTimeMillis();
