@@ -77,7 +77,7 @@ run {
 
 dependencies {
     // XSLT
-    implementation("net.sf.saxon:Saxon-HE:12.6")
+    implementation("net.sf.saxon:Saxon-HE:12.7")
 
     // create sample XML files
     implementation("in.jlibs:jlibs-xsd:3.0.1")
@@ -118,16 +118,16 @@ dependencies {
 
     // Lemminx
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.30.0")
+    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.31.0")
     implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.38.0")
 
     // FOP
-    implementation("org.apache.xmlgraphics:fop:2.10")
+    implementation("org.apache.xmlgraphics:fop:2.11")
 
     // SVG Graphic
-    implementation("org.apache.xmlgraphics:batik-svggen:1.18")
-    implementation("org.apache.xmlgraphics:batik-all:1.18")
-    implementation("org.apache.xmlgraphics:batik-transcoder:1.18")
+    implementation("org.apache.xmlgraphics:batik-svggen:1.19")
+    implementation("org.apache.xmlgraphics:batik-all:1.19")
+    implementation("org.apache.xmlgraphics:batik-transcoder:1.19")
 
     // Create Office Documents
     implementation("org.apache.poi:poi:5.4.1")
@@ -168,7 +168,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.12.0")
      */
 
-    testImplementation("org.mockito:mockito-core:5.17.0")
+    testImplementation("org.mockito:mockito-core:5.18.0")
 }
 
 tasks {

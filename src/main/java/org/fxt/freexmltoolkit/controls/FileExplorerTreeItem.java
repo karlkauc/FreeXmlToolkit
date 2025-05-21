@@ -23,4 +23,20 @@ public class FileExplorerTreeItem<E extends Path> extends TreeItem<Path> {
         logger.debug("FileExplorerTreeItem created for: {}", path);
         this.setValue(path);
     }
+
+    public void expandToPath(E filePath) {
+        logger.debug("Expanding to path: {}", filePath);
+        if (filePath != null) {
+            TreeItem<Path> currentItem = this;
+            Path currentPath = filePath;
+
+            while (currentItem != null && !currentItem.getValue().equals(currentPath)) {
+                currentItem.setExpanded(true);
+                currentItem = currentItem.getParent();
+                if (currentItem != null) {
+                    currentPath = currentItem.getValue();
+                }
+            }
+        }
+    }
 }

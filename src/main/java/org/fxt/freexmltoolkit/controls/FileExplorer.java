@@ -98,8 +98,13 @@ public class FileExplorer extends VBox {
         this.setOnDragDropped(event -> {
             System.out.println("event.getDragboard().getFiles().getFirst().getName() = " + event.getDragboard().getFiles().getFirst().getName());
             File file = event.getDragboard().getFiles().getFirst();
-            var toAdd = new FileExplorerTreeItem<>(file.toPath());
-            handleSelection(toAdd);
+            Path filePath = file.toPath();
+            FileExplorerTreeItem<Path> r = (FileExplorerTreeItem<Path>) fileTreeView.getRoot();
+            r.expandToPath(filePath);
+            handleSelection(new FileExplorerTreeItem<>(filePath));
+
+            //var toAdd = new FileExplorerTreeItem<>(file.toPath());
+            //handleSelection(toAdd);
         });
     }
 
