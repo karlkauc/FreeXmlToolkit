@@ -21,10 +21,8 @@ plugins {
     idea
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
-    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.26"
     id("com.github.ben-manes.versions") version "0.52.0"
     id("edu.sc.seis.launch4j") version "3.0.6"
-    id("org.jreleaser") version "1.17.0"
 }
 
 application {
@@ -59,20 +57,8 @@ repositories {
 }
 
 javafx {
-    version = "24"
+    version = "24.0.1"
     modules("javafx.controls", "javafx.fxml", "javafx.web")
-}
-
-java {
-    /*
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(23)
-    }
-     */
-}
-
-run {
-    // jvmArgs = [" -Xmx8g", "-Dfile.encoding=utf-8"]
 }
 
 dependencies {
@@ -237,11 +223,6 @@ tasks.register<Zip>("packageDistribution") {
     val tree: ConfigurableFileTree = fileTree(layout.buildDirectory.get())
     tree.include("FreeXMLToolkit/**")
     from(tree)
-}
-
-gluonfx {
-    // graalvmHome = "/Users/karlkauc/.sdkman/candidates/java/23.0.1-graalce"
-    graalvmHome = "C:\\Data\\Apps\\Scoop\\apps\\graalvm-oracle-jdk\\23.0.1"
 }
 
 idea {

@@ -19,24 +19,40 @@ public class FileExplorerTreeItem<E extends Path> extends TreeItem<Path> {
      *
      * @param path the file system path represented by this TreeItem
      */
-    public FileExplorerTreeItem(E path) {
+    public FileExplorerTreeItem(Path path) {
         logger.debug("FileExplorerTreeItem created for: {}", path);
         this.setValue(path);
     }
 
     public void expandToPath(E filePath) {
         logger.debug("Expanding to path: {}", filePath);
-        if (filePath != null) {
-            TreeItem<Path> currentItem = this;
-            Path currentPath = filePath;
+        if (filePath == null || getValue() == null) {
+            return;
+        }
 
-            while (currentItem != null && !currentItem.getValue().equals(currentPath)) {
-                currentItem.setExpanded(true);
-                currentItem = currentItem.getParent();
-                if (currentItem != null) {
-                    currentPath = currentItem.getValue();
+        // Überprüfen, ob der aktuelle Knoten der Zielpfad ist
+        if (getValue().equals(filePath)) {
+            setExpanded(true);
+            return;
+        }
+
+        // Knoten erweitern
+        setExpanded(true);
+
+        for (TreeItem<Path> child : getChildren()) {
+            logger.debug("Expanding to path: {}", child.getValue());
+        }
+
+        // Passenden Kindknoten finden
+        /*
+        for (TreeItem<Path> child : getChildren()) {
+            if (filePath.startsWith(child.getValue())) {
+                if (child instanceof FileExplorerTreeItem<Path> explorerTreeItem) {
+                    explorerTreeItem.expandToPath(filePath);
                 }
+                break;
             }
         }
+         */
     }
 }

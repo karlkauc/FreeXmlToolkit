@@ -39,7 +39,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -99,12 +101,25 @@ public class FileExplorer extends VBox {
             System.out.println("event.getDragboard().getFiles().getFirst().getName() = " + event.getDragboard().getFiles().getFirst().getName());
             File file = event.getDragboard().getFiles().getFirst();
             Path filePath = file.toPath();
-            FileExplorerTreeItem<Path> r = (FileExplorerTreeItem<Path>) fileTreeView.getRoot();
-            r.expandToPath(filePath);
-            handleSelection(new FileExplorerTreeItem<>(filePath));
+            // FileExplorerTreeItem<Path> r = (FileExplorerTreeItem<Path>) fileTreeView.getRoot();
+            // r.expandToPath(filePath);
 
-            //var toAdd = new FileExplorerTreeItem<>(file.toPath());
-            //handleSelection(toAdd);
+            logger.debug("FilePath: " + file.getAbsolutePath());
+            List<String> pathElements = new ArrayList<>();
+
+            Paths.get(file.getAbsolutePath()).forEach(p -> pathElements.add(p.toString()));
+
+            logger.debug("PathElements: " + pathElements);
+            String pathTemp = "";
+            for (String pathElement : pathElements) {
+                pathTemp = pathTemp + pathElement + File.separator;
+                logger.debug("pathTemp = " + pathTemp);
+                handleSelection(new FileExplorerTreeItem<>(Path.of(pathTemp)));
+            }
+
+            // handleSelection(new FileExplorerTreeItem<>(filePath));
+            // var toAdd = new FileExplorerTreeItem<>(file.toPath());
+            // handleSelection(toAdd);
         });
     }
 
