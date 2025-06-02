@@ -71,7 +71,7 @@ public class XsdController {
     Label schemaValidText, statusText;
 
     @FXML
-    StackPane stackPane;
+    StackPane stackPane, xsdStackPane;
 
     @FXML
     TextArea sampleData;
@@ -104,6 +104,17 @@ public class XsdController {
         setupCodeArea();
         setupDragAndDrop();
         reloadXmlText();
+        setupXsdDiagram();
+    }
+
+    private void setupXsdDiagram() {
+        if (this.xmlService.getCurrentXsdFile() != null) {
+            logger.debug("Loading XSD File: {}", this.xmlService.getCurrentXsdFile().getAbsolutePath());
+            xsdStackPane.getChildren().clear();
+
+            //xsdStackPane.getChildren().add()
+        }
+
     }
 
     private void setupCodeArea() {

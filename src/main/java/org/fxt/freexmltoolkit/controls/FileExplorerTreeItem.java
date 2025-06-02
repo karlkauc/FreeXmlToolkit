@@ -23,36 +23,4 @@ public class FileExplorerTreeItem<E extends Path> extends TreeItem<Path> {
         logger.debug("FileExplorerTreeItem created for: {}", path);
         this.setValue(path);
     }
-
-    public void expandToPath(E filePath) {
-        logger.debug("Expanding to path: {}", filePath);
-        if (filePath == null || getValue() == null) {
-            return;
-        }
-
-        // Überprüfen, ob der aktuelle Knoten der Zielpfad ist
-        if (getValue().equals(filePath)) {
-            setExpanded(true);
-            return;
-        }
-
-        // Knoten erweitern
-        setExpanded(true);
-
-        for (TreeItem<Path> child : getChildren()) {
-            logger.debug("Expanding to path: {}", child.getValue());
-        }
-
-        // Passenden Kindknoten finden
-        /*
-        for (TreeItem<Path> child : getChildren()) {
-            if (filePath.startsWith(child.getValue())) {
-                if (child instanceof FileExplorerTreeItem<Path> explorerTreeItem) {
-                    explorerTreeItem.expandToPath(filePath);
-                }
-                break;
-            }
-        }
-         */
-    }
 }

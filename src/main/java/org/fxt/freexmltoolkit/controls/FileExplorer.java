@@ -37,12 +37,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * A custom VBox implementation for displaying a file explorer.
@@ -50,11 +51,14 @@ import java.util.List;
 public class FileExplorer extends VBox {
 
     private static final Logger logger = LogManager.getLogger(FileExplorer.class);
+    public static final String SEPARATOR = Pattern.quote(FileSystems.getDefault().getSeparator());
     private final TreeTableView<Path> fileTreeView = new TreeTableView<>();
     private final Label fileNameLabel = new Label();
     private final StringProperty stringProperty = new SimpleStringProperty();
     private final StringProperty displayText = new SimpleStringProperty();
     private Path selectedFile;
+
+    FileExplorerTreeItem<Path> root;
 
     /**
      * Constructs a FileExplorer instance and initializes the UI components.
@@ -80,7 +84,7 @@ public class FileExplorer extends VBox {
                 createColumn("File Date", this::getFileDate));
 
         String hostName = getHostName();
-        FileExplorerTreeItem<Path> root = new FileExplorerTreeItem<>(new File(hostName).toPath());
+        root = new FileExplorerTreeItem<>(new File(hostName).toPath());
         for (File file : File.listRoots()) {
             root.getChildren().add(new FileExplorerTreeItem<>(file.toPath()));
         }
@@ -100,26 +104,23 @@ public class FileExplorer extends VBox {
         this.setOnDragDropped(event -> {
             System.out.println("event.getDragboard().getFiles().getFirst().getName() = " + event.getDragboard().getFiles().getFirst().getName());
             File file = event.getDragboard().getFiles().getFirst();
-            Path filePath = file.toPath();
-            // FileExplorerTreeItem<Path> r = (FileExplorerTreeItem<Path>) fileTreeView.getRoot();
-            // r.expandToPath(filePath);
 
             logger.debug("FilePath: " + file.getAbsolutePath());
-            List<String> pathElements = new ArrayList<>();
+            var pathElements = file.getAbsolutePath().split(SEPARATOR);
 
-            Paths.get(file.getAbsolutePath()).forEach(p -> pathElements.add(p.toString()));
-
-            logger.debug("PathElements: " + pathElements);
             String pathTemp = "";
+            var fileExplorerTreeItem = new FileExplorerTreeItem<>(null);
+            this.root.setExpanded(true);
+
             for (String pathElement : pathElements) {
                 pathTemp = pathTemp + pathElement + File.separator;
                 logger.debug("pathTemp = " + pathTemp);
-                handleSelection(new FileExplorerTreeItem<>(Path.of(pathTemp)));
-            }
 
-            // handleSelection(new FileExplorerTreeItem<>(filePath));
-            // var toAdd = new FileExplorerTreeItem<>(file.toPath());
-            // handleSelection(toAdd);
+                fileExplorerTreeItem = new FileExplorerTreeItem<>(Paths.get(pathTemp));
+                handleSelection(fileExplorerTreeItem);
+                fileExplorerTreeItem.setExpanded(true);
+                // fileExplorerTreeItem.expandToPath(pathElement);
+            }
         });
     }
 
@@ -225,22 +226,29 @@ public class FileExplorer extends VBox {
     private void handleSelection(FileExplorerTreeItem<Path> newVal) {
         if (newVal == null) return;
         Path path = newVal.getValue();
+
+        var absoluteFile = path.toFile().getAbsoluteFile();
+        logger.debug("absoluteFile = " + absoluteFile);
+
         if (path.toFile().isFile()) {
             stringProperty.setValue(path.toFile().getName());
             selectedFile = path;
-        } else if (path.toFile().isDirectory()) {
+        } else if (absoluteFile.isDirectory()) {
             if (newVal.isExpanded()) {
                 newVal.getChildren().clear();
             } else {
                 try (var walk = Files.walk(path, 1)) {
                     List<Path> result = walk.filter(f -> !f.equals(path)).toList();
                     for (Path file : result) {
-                        newVal.getChildren().add(new FileExplorerTreeItem<>(file));
+                        var n = new FileExplorerTreeItem<>(file);
+                        newVal.getChildren().add(n);
+                        n.setExpanded(true);
                     }
                 } catch (IOException e) {
                     logger.error(e.getMessage(), e);
                 }
             }
+            newVal.setExpanded(true);
         }
     }
 
