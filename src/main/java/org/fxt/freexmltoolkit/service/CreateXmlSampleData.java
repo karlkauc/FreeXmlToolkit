@@ -21,9 +21,11 @@ package org.fxt.freexmltoolkit.service;
 import org.apache.xerces.impl.xs.XSImplementationImpl;
 import org.apache.xerces.xs.*;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.xmlet.xsdparser.core.XsdParser;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -34,6 +36,7 @@ public class CreateXmlSampleData {
 
     private final XSModel schema;
     private final Random random = new Random();
+    private final XmlService xmlService = XmlServiceImpl.getInstance();
 
     /**
      * Lädt das XSD-Schema aus der angegebenen Datei.
@@ -45,6 +48,14 @@ public class CreateXmlSampleData {
         XSImplementation impl = new XSImplementationImpl();
         XSLoader schemaLoader = impl.createXSLoader(null);
         this.schema = schemaLoader.loadURI(xsdPath);
+
+        xmlService.setCurrentXsdFile(new File(xsdPath));
+        xmlService.setCurrentXmlFile(new File(xsdPath));
+        var parser = new XsdParser(xsdPath);
+        var schema1 = parser.getResultXsdSchemas().toList().getFirst();
+        System.out.println("Name " + schema1);
+
+        System.out.println("xsdPath = " + xsdPath);
     }
 
 
