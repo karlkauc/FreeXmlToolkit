@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "bootstrap": "^5.3.3",
+    "bootstrap": "^5.3.5",
     "bootstrap-icons": "^1.11.3",
     "prism-js-fold": "^1.0.1",
-    "prismjs": "^1.29.0"
+    "prismjs": "^1.30.0"
   }
 }

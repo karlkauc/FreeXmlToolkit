@@ -71,7 +71,7 @@ $background-color: #dcdcdc;
 
 .menu_button {
   -fx-text-fill: black;
-  -fx-alignment: BASELINE_LEFT;
+  -fx-alignment: baseline-left;
   -fx-pref-height: 50;
   -fx-min-width: 200;
   -fx-pref-width: 200;
@@ -92,7 +92,6 @@ $background-color: #dcdcdc;
 
 .menu_button_collapsed {
   -fx-text-fill: transparent;
-  -fx-alignment: graphic-only;
   -fx-pref-height: 50;
   -fx-pref-width: 50;
   -fx-max-width: 50;

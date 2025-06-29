@@ -19,7 +19,7 @@ public class FileExplorerTreeItem<E extends Path> extends TreeItem<Path> {
      *
      * @param path the file system path represented by this TreeItem
      */
-    public FileExplorerTreeItem(E path) {
+    public FileExplorerTreeItem(Path path) {
         logger.debug("FileExplorerTreeItem created for: {}", path);
         this.setValue(path);
     }

@@ -47,112 +47,125 @@
 
                 <link rel="stylesheet" href="freeXmlToolkit.css"/>
                 <link rel="stylesheet" href="prism.css"/>
+                <link rel="stylesheet" href="prism-unescaped-markup.min.css"/>
             </head>
             <body class="container-fluid">
-                <h1>Analyzing File</h1>
-                <table class="table">
-                    <tr>
-                        <th>Report Created</th>
-                        <td>{current-dateTime()}</td>
-                    </tr>
-                    <tr>
-                        <th>Filename:</th>
-                        <td>
-                            <xsl:value-of select="tokenize(base-uri(.), '/')[last()]" disable-output-escaping="yes"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="w-25"># Funds:</th>
-                        <td>
-                            <xsl:value-of select="count(FundsXML4/Funds/Fund)"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="w-25"># ShareClasses:</th>
-                        <td>
-                            <xsl:if test="count(//SingleFund/ShareClasses/ShareClass) = 0">
-                                <xsl:attribute name="class">bg-danger bg-gradient</xsl:attribute>
-                            </xsl:if>
-                            <xsl:value-of select="count(//SingleFund/ShareClasses/ShareClass)"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="w-25"># Asset Master Data:</th>
-                        <td>
-                            <xsl:value-of select="count(FundsXML4/AssetMasterData/Asset)"/>
-                        </td>
-                    </tr>
-                </table>
-                <hr/>
-                <div id="list_errors">
-                    <h1>ERROR LIST</h1>
-                </div>
-                <hr/>
+                <main id="content">
+                    <h1>Analyzing File</h1>
+                    <table class="table">
+                        <tr>
+                            <th>Report Created</th>
+                            <td>{current-dateTime()}</td>
+                        </tr>
+                        <tr>
+                            <th>Filename:</th>
+                            <td>
+                                <xsl:value-of select="tokenize(base-uri(.), '/')[last()]"
+                                              disable-output-escaping="yes"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="w-25"># Funds:</th>
+                            <td>
+                                <xsl:value-of select="count(FundsXML4/Funds/Fund)"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="w-25"># ShareClasses:</th>
+                            <td>
+                                <xsl:if test="count(//SingleFund/ShareClasses/ShareClass) = 0">
+                                    <xsl:attribute name="class">bg-danger bg-gradient</xsl:attribute>
+                                </xsl:if>
+                                <xsl:value-of select="count(//SingleFund/ShareClasses/ShareClass)"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="w-25"># Asset Master Data:</th>
+                            <td>
+                                <xsl:value-of select="count(FundsXML4/AssetMasterData/Asset)"/>
+                            </td>
+                        </tr>
+                    </table>
+                    <hr/>
+                    <div>
+                        <h1>ERROR LIST</h1>
+                        <ul id="listOfErrors"></ul>
+                    </div>
+                    <hr/>
 
-                <div id="list_warnings">
-                    <h1>WARNING LIST</h1>
-                </div>
-                <hr/>
+                    <div>
+                        <h1>WARNING LIST</h1>
+                        <ul id="listOfWarnings"></ul>
+                    </div>
+                    <hr/>
 
-                <xsl:apply-templates select="FundsXML4/ControlData"/>
-                <hr/>
+                    <xsl:apply-templates select="FundsXML4/ControlData"/>
+                    <hr/>
 
-                <h1>FundList</h1>
-                <ol>
-                    <xsl:for-each select="FundsXML4/Funds/Fund">
-                        <li>
-                            <a href="#{generate-id(.)}">{Names/OfficialName/text()}</a>
-                            <ol>
-                                <xsl:for-each select="SingleFund/ShareClasses/ShareClass">
-                                    <li>
-                                        <a href="#{Identifiers/ISIN}">{Identifiers/ISIN}</a>
-                                    </li>
-                                </xsl:for-each>
-                            </ol>
-                        </li>
-                    </xsl:for-each>
-                </ol>
-                <hr/>
+                    <h1>FundList</h1>
+                    <ol>
+                        <xsl:for-each select="FundsXML4/Funds/Fund">
+                            <li>
+                                <a href="#{generate-id(.)}">{Names/OfficialName/text()}</a>
+                                <ol>
+                                    <xsl:for-each select="SingleFund/ShareClasses/ShareClass">
+                                        <li>
+                                            <a href="#{Identifiers/ISIN}">{Identifiers/ISIN}</a>
+                                        </li>
+                                    </xsl:for-each>
+                                </ol>
+                            </li>
+                        </xsl:for-each>
+                    </ol>
+                    <hr/>
 
-                <div class="ps-1 fs-4">
-                    <a href="#AssetMasterData">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
-                             class="bi bi-link" viewBox="0 0 16 16">
-                            <path d="M6.354 5.5H4a3 3 0 0 0 0 6h3a3 3 0 0 0 2.83-4H9c-.086 0-.17.01-.25.031A2 2 0 0 1 7 10.5H4a2 2 0 1 1 0-4h1.535c.218-.376.495-.714.82-1z"/>
-                            <path d="M9 5.5a3 3 0 0 0-2.83 4h1.098A2 2 0 0 1 9 6.5h3a2 2 0 1 1 0 4h-1.535a4.02 4.02 0 0 1-.82 1H12a3 3 0 1 0 0-6H9z"/>
+                    <div class="ps-1 fs-4">
+                        <a href="#AssetMasterData">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                                 class="bi bi-link" viewBox="0 0 16 16">
+                                <path d="M6.354 5.5H4a3 3 0 0 0 0 6h3a3 3 0 0 0 2.83-4H9c-.086 0-.17.01-.25.031A2 2 0 0 1 7 10.5H4a2 2 0 1 1 0-4h1.535c.218-.376.495-.714.82-1z"/>
+                                <path d="M9 5.5a3 3 0 0 0-2.83 4h1.098A2 2 0 0 1 9 6.5h3a2 2 0 1 1 0 4h-1.535a4.02 4.02 0 0 1-.82 1H12a3 3 0 1 0 0-6H9z"/>
+                            </svg>
+                            Asset Master Data
+                        </a>
+                    </div>
+
+                    <hr/>
+
+                    <xsl:apply-templates select="FundsXML4/Funds"/>
+                    <hr/>
+                    <xsl:apply-templates select="FundsXML4/AssetMasterData"/>
+                    <hr/>
+
+                    <p>
+                        File Comment:
+                        <pre>
+                            <xsl:value-of select="comment()"/>
+                        </pre>
+                    </p>
+
+                    <!--
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"
+                            integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ=="
+                            crossorigin="anonymous" referrerpolicy="no-referrer"/>
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"
+                            integrity="sha512-i9cEfJwUwViEPFKdC1enz4ZRGBj8YQo6QByFTF92YXHi7waCqyexvRD75S5NVTsSiTv7rKWqG9Y5eFxmRsOn0A=="
+                            crossorigin="anonymous" referrerpolicy="no-referrer"/>
+                        -->
+
+                    <a href="#content" class="back-to-top">
+                        <span>Back to top</span>
+                        <svg width="32" height="32" viewbox=" 0 0 24 24" aria-hidden="true">
+                            <path d="M5 12h14"/>
+                            <path d="m12 5 7 7-7 7"/>
                         </svg>
-                        Asset Master Data
                     </a>
-                </div>
-
-                <hr/>
-
-                <xsl:apply-templates select="FundsXML4/Funds"/>
-                <hr/>
-                <xsl:apply-templates select="FundsXML4/AssetMasterData"/>
-                <hr/>
-
-                <p>
-                    File Comment:
-                    <pre>
-                        <xsl:value-of select="comment()"/>
-                    </pre>
-                </p>
-
-                <script src="bootstrap.bundle.min.js"></script>
-                <script src="prism.js"></script>
-
-                <!--
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"
-                        integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ=="
-                        crossorigin="anonymous" referrerpolicy="no-referrer"/>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"
-                        integrity="sha512-i9cEfJwUwViEPFKdC1enz4ZRGBj8YQo6QByFTF92YXHi7waCqyexvRD75S5NVTsSiTv7rKWqG9Y5eFxmRsOn0A=="
-                        crossorigin="anonymous" referrerpolicy="no-referrer"/>
-                    -->
-
+                </main>
                 <script src="replaceNodes.js"/>
                 <script src="prism.js"/>
+
+                <script src="bootstrap.bundle.min.js"/>
+                <script src="prism-unescaped-markup.min.js"/>
             </body>
         </html>
     </xsl:template>
@@ -178,7 +191,7 @@
                     <td>
                         <xsl:if test="not(Version)">
                             <span id="WARNING_{generate-id(.)}" data-error-message="Missing FundsXML Version"
-                                  class="badge eg_status--orange">Missing FundsXML Version
+                                  class="badge bg-warning text-dark">Missing FundsXML Version
                             </span>
                         </xsl:if>
                         <xsl:value-of select="Version"/>
@@ -227,7 +240,7 @@
                     <td>
                         <xsl:if test="not(DataOperation)">
                             <span id="ERROR_{generate-id(.)}" data-error-message="Data Operation Missing"
-                                  class="badge eg_status--red">Missing
+                                  class="badge text-bg-danger">Missing
                             </span>
                         </xsl:if>
                         <xsl:value-of select="DataOperation"/>
@@ -380,7 +393,7 @@
                     <table class="table table-striped">
                         <xsl:for-each select="FundDynamicData/TotalAssetValues/TotalAssetValue">
                             <tr>
-                                <th>Nav Date</th>
+                                <th class="w-25">Nav Date</th>
                                 <td>
                                     <xsl:value-of select="NavDate"/>
                                 </td>
@@ -406,12 +419,10 @@
                                     <xsl:value-of select="../../../Currency"/>:
                                     <xsl:value-of
                                             select="format-number($sumOfShareClassVolume, '#,##0.00')"/>
-
                                 </td>
                             </tr>
                         </xsl:for-each>
                     </table>
-
 
                     <h3>Portfolio Data [Fund Level]:</h3>
                     <xsl:if test="not(FundDynamicData/Portfolios)">
@@ -503,7 +514,7 @@
 
                         <h3>Portfolio Data [ShareClass Level]:</h3>
                         <xsl:if test="not(Portfolios)">
-                            <span class="fs-5 pe-3">No portfolio data on shareclass found</span>
+                            <span class="fs-5 pe-3">No portfolio data on ShareClass found</span>
                         </xsl:if>
 
                         <xsl:for-each select="Portfolios">
@@ -524,21 +535,16 @@
         <xsl:param name="totalAmount"/>
 
         <xsl:for-each select="Portfolio">
-
             <div class="d-flex flex-row mb-3">
                 <div class="pe-2">
-                    <table class="table table-bordered table-responsive" style="width:auto;">
+                    <table class="table table-bordered table-responsive" style="width: auto;">
                         <tr>
                             <th scope="row">Portfolio Date:</th>
-                            <td class="text-end">
-                                <xsl:value-of select="NavDate"/>
-                            </td>
+                            <td class="text-end">{NavDate}</td>
                         </tr>
                         <tr>
                             <th scope="row">Position Count:</th>
-                            <td class="text-end">
-                                <xsl:value-of select="count(Positions/Position)"/>
-                            </td>
+                            <td class="text-end">{count(Positions/Position)}</td>
                         </tr>
                     </table>
 
@@ -573,7 +579,7 @@
             </div>
 
             <xsl:variable name="myId" select="generate-id(.)"/>
-            <div class="accordion" id="accordeonDiv">
+            <div class="accordion">
                 <div class="accordion-item">
                     <h2 class="accordion-header accordion-bodyNoBorderTop" id="panelsStayOpen-headingOne">
                         <button class="accordion-button" type="button" data-bs-toggle="collapse"
@@ -583,7 +589,7 @@
                                  class="bi bi-bar-chart-steps" viewBox="0 0 16 16">
                                 <path d="M.5 0a.5.5 0 0 1 .5.5v15a.5.5 0 0 1-1 0V.5A.5.5 0 0 1 .5 0zM2 1.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1z"/>
                             </svg>
-                            <span class="fs-4 padding-right: 10px;">Portfolio Data</span>
+                            <span class="fs-4" style="padding-left: 10px;">Portfolio Data</span>
                         </button>
                     </h2>
                     <div id="{$myId}" class="accordion-collapse collapse show"
@@ -629,7 +635,7 @@
                                             </xsl:otherwise>
                                         </xsl:choose>
 
-                                        &#x2211; TotalPercentage:
+                                        &#x2211; Total%:
                                         <span style="float:right;">
                                             <span class="eg_status eg_status--blue">
                                                 <xsl:value-of select="format-number($totalPercent, '#0.00')"/>
@@ -682,8 +688,9 @@
                                         </td>
                                         <td>
                                             <div class="row row-cols-2">
-                                                <div class="col text-start">(Pos. CCY) <xsl:value-of
-                                                        select="$assetCcy"/>:
+                                                <div class="col text-start">
+                                                    <xsl:value-of select="$assetCcy"/> <br/>
+                                                    <span class="fs-6 fw-light">(Pos. CCY):</span>
                                                 </div>
                                                 <div class="col text-end">
                                                     <xsl:choose>
@@ -692,13 +699,14 @@
                                                                     select="format-number(TotalValue/Amount[@ccy=$assetCcy], '#,##0.00')"/>
                                                         </xsl:when>
                                                         <xsl:otherwise>
-                                                            <span class="eg_status eg_status--red">Missing</span>
+                                                            <span class="eg_status text-bg-danger">Missing</span>
                                                         </xsl:otherwise>
                                                     </xsl:choose>
                                                 </div>
                                             </div>
                                             <div class="row row-cols-2">
-                                                <div class="col text-start">(Port. CCY) <xsl:value-of select="$ccy"/>:
+                                                <div class="col text-start"><xsl:value-of select="$ccy"/> <br/>
+                                                    <span class="fs-6 fw-light">(Port. CCY):</span>
                                                 </div>
                                                 <div class="col text-end">
                                                     <xsl:choose>
@@ -707,7 +715,7 @@
                                                                     select="format-number(TotalValue/Amount[@ccy=$ccy], '#,##0.00')"/>
                                                         </xsl:when>
                                                         <xsl:otherwise>
-                                                            <span class="badge eg_status--red">Missing</span>
+                                                            <span class="badge text-bg-danger">Missing</span>
                                                         </xsl:otherwise>
                                                     </xsl:choose>
                                                 </div>
@@ -726,14 +734,14 @@
                                             <xsl:choose>
                                                 <xsl:when test="not(TotalValue/Amount[@ccy=$ccy])">
                                                     <div class="row">
-                                                        <span class="eg_status eg_status--red">Missing TotalValue in
+                                                        <span class="eg_status text-bg-danger">Missing TotalValue in
                                                             Portfolio CCY
                                                         </span>
                                                     </div>
                                                 </xsl:when>
                                                 <xsl:when test="not(TotalValue/Amount[@ccy=$assetCcy])">
                                                     <div class="row">
-                                                        <span class="eg_status eg_status--red">Missing TotalValue in
+                                                        <span class="eg_status text-bg-danger">Missing TotalValue in
                                                             Asset CCY
                                                         </span>
                                                     </div>
@@ -750,7 +758,7 @@
                                                 <div class="row">
                                                     <span id="ERROR_{generate-id(.)}"
                                                           data-error-message="ERROR: Negativ and Positiv Value"
-                                                          class="badge eg_status--red">ERROR: NEGATIVE AND POSITIVE
+                                                          class="badge text-bg-danger">ERROR: NEGATIVE AND POSITIVE
                                                         AMOUNTS
                                                     </span>
                                                 </div>
@@ -784,7 +792,7 @@
                                                         <xsl:if test="@fromCcy eq @toCcy and number(.) ne 1">
                                                             <span id="ERROR_{generate-id(.)}"
                                                                   data-error-message="ERROR: FX for same Currency not 1 {@fromCcy}/{@toCcy}: [{.}]"
-                                                                  class="badge eg_status--red">ERROR: FX for same
+                                                                  class="badge text-bg-danger">ERROR: FX for same
                                                                 Currency not 1 {@fromCcy}/{@toCcy}: [{.}]
                                                             </span>
                                                         </xsl:if>
@@ -793,7 +801,7 @@
                                             </xsl:for-each>
                                         </td>
                                         <td>
-                                            <div class="container" style="padding: 0">
+                                            <div class="container">
                                                 <div class="row">
                                                     <xsl:apply-templates select="Equity">
                                                         <xsl:with-param name="portfolioCcy" select="$ccy"/>
@@ -843,6 +851,9 @@
 
                                                     <xsl:apply-templates select="CommercialPaper"/>
 
+                                                    <xsl:apply-templates select="Index"/>
+
+                                                    <xsl:apply-templates select="Crypto"/>
                                                 </div>
                                                 <div class="row">
                                                     <div class="fs-small">
@@ -851,7 +862,7 @@
                                                                 <summary>Original XML</summary>
                                                                 <p>
                                                                     <script type="text/plain" class="language-xml">
-                                                                        <xsl:copy-of select="node()"/>
+                                                                        <xsl:copy-of select="node()" copy-namespaces="false"/>
                                                                     </script>
                                                                 </p>
                                                             </details>
@@ -871,13 +882,16 @@
     </xsl:template>
 
 
-    <!-- templates for position asset types -->
+    <!--
+        templates for position asset types
+        one template per asset type!!!
+    -->
     <xsl:template match="Position/Equity">
         <xsl:param name="portfolioCcy"/>
         <xsl:variable name="positionCCY" select="../Currency"/>
 
-        <span class="fw-bold">Equity</span>
-        <table class="table">
+        <span class="fw-bold fs-5">Equity</span>
+        <table class="table" style="margin-left: 10px;">
 
             <!--<xsl:attribute name="class">
                 <xsl:value-of
@@ -894,7 +908,7 @@
                         <xsl:otherwise>
                             <span id="ERROR_{generate-id(.)}"
                                   data-error-message="Missing Equity Unit for Asset {../UniqueID}"
-                                  class="badge eg_status--red">Missing
+                                  class="badge text-bg-danger">Missing
                             </span>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -910,7 +924,7 @@
                         <xsl:otherwise>
                             <span id="ERROR_{generate-id(.)}"
                                   data-error-message="Missing Equity Price in Position CCY for Asset {../UniqueID}"
-                                  class="badge eg_status--red">Missing
+                                  class="badge text-bg-danger">Missing
                             </span>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -931,7 +945,7 @@
                             <xsl:otherwise>
                                 <span id="ERROR_{generate-id(.)}"
                                       data-error-message="Missing Market Value in Position CCY {$positionCCY} for Asset {../UniqueID}"
-                                      class="badge eg_status--red">Missing
+                                      class="badge text-bg-danger">Missing
                                 </span>
                             </xsl:otherwise>
                         </xsl:choose>
@@ -948,7 +962,7 @@
                             <xsl:otherwise>
                                 <span id="ERROR_{generate-id(.)}"
                                       data-error-message="Missing Market Value in Portolio CCY {$portfolioCcy} for Asset {../UniqueID}"
-                                      class="badge eg_status--red">Missing
+                                      class="badge text-bg-danger">Missing
                                 </span>
                             </xsl:otherwise>
                         </xsl:choose>
@@ -1040,7 +1054,7 @@
                                     <xsl:otherwise>
                                         <span id="ERROR_{generate-id(.)}"
                                               data-error-message="Missing Bond Price in Position CCY for Asset {../UniqueID}"
-                                              class="badge eg_status--red">Missing
+                                              class="badge text-bg-danger">Missing
                                         </span>
                                     </xsl:otherwise>
                                 </xsl:choose>
@@ -1179,7 +1193,7 @@
                                     <xsl:otherwise>
                                         <span id="ERROR_{generate-id(.)}"
                                               data-error-message="Missing Exposure in Position CCY for Asset {../UniqueID}"
-                                              class="badge eg_status--red">Missing
+                                              class="badge text-bg-danger">Missing
                                         </span>
                                     </xsl:otherwise>
                                 </xsl:choose>
@@ -1197,7 +1211,7 @@
                                     <xsl:otherwise>
                                         <span id="ERROR_{generate-id(.)}"
                                               data-error-message="Missing Exposure in Portfolio CCY for Asset {../UniqueID}"
-                                              class="eg_status eg_status--red">Missing
+                                              class="eg_status text-bg-danger">Missing
                                         </span>
                                     </xsl:otherwise>
                                 </xsl:choose>
@@ -1234,7 +1248,7 @@
                                     <xsl:otherwise>
                                         <span id="ERROR_{generate-id(.)}"
                                               data-error-message="Missing Bond Price in Position CCY for Asset {../UniqueID}"
-                                              class="badge eg_status--red">Missing
+                                              class="badge text-bg-danger">Missing
                                         </span>
                                     </xsl:otherwise>
                                 </xsl:choose>
@@ -1312,7 +1326,18 @@
     </xsl:template>
 
     <xsl:template match="Position/CallMoney">
+        <xsl:variable name="positionCCY" select="../Currency"/>
+
         <span class="fw-bold">CallMoney</span>
+        <xsl:if test="../TotalValue/Amount[@ccy=$positionCCY] &lt; 0">
+            <div class="row">
+                <span id="ERROR_{generate-id(.)}"
+                      data-error-message="Position Error: Call Money with negative TotalValue {TotalValue/Amount[@ccy=$positionCCY]} for Asset {../UniqueID}"
+                      data-error-type="ERROR"
+                      class="badge text-bg-danger">Call Money with negative TotalValue
+                </span>
+            </div>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="Position/Account">
@@ -1368,8 +1393,18 @@
         <span class="fw-bold">Commercial Paper</span>
     </xsl:template>
 
+    <xsl:template match="Position/Index">
+        <span class="fw-bold">Index</span>
+    </xsl:template>
 
-    <!-- template for AssetMasterData -->
+    <xsl:template match="Position/Crypto">
+        <span class="fw-bold">Crypto</span>
+    </xsl:template>
+
+
+    <!--
+        template for AssetMasterData
+    -->
     <xsl:template match="AssetMasterData">
         <div class="AssetMasterData" id="AssetMasterData">
             <h1>Asset Master Data</h1>
@@ -1397,6 +1432,7 @@
                                 <xsl:attribute name="class">
                                     <xsl:value-of select="if (count(Identifiers/*) = 0) then 'bg-warning' else '' "/>
                                 </xsl:attribute>
+
                                 <xsl:for-each select="Identifiers/*[name() != 'OtherID']">
                                     <xsl:value-of select="concat(name(), ': ', .)"/>
                                     <br/>
@@ -1417,12 +1453,12 @@
                                     <br/>
                                 </xsl:for-each>
 
-                                <!-- check if stock, bond and ShareClass do have an ISIN -->
+                                <!-- check if stock, bond, ShareClass or Warrant do have an ISIN -->
                                 <xsl:choose>
-                                    <xsl:when test="AssetType = ('EQ', 'BO', 'SC') and not(Identifiers/ISIN)">
+                                    <xsl:when test="AssetType = ('EQ', 'BO', 'SC', 'WA') and not(Identifiers/ISIN)">
                                         <span id="ERROR_{generate-id(.)}"
-                                              data-error-message="Missing ISIN for Instument Type {AssetType} Asset {../UniqueID}"
-                                              class="badge eg_status--red">Missing ISIN for Instument Type {AssetType}
+                                              data-error-message="Missing ISIN for Instrument Type {AssetType} Asset {../UniqueID}"
+                                              class="badge text-bg-danger">Missing ISIN for Instrument Type {AssetType}
                                         </span>
                                     </xsl:when>
                                 </xsl:choose>
@@ -1455,11 +1491,9 @@
                                                     <xsl:if test="$renderXMLContent">
                                                         <details>
                                                             <summary>Original XML</summary>
-                                                            <p>
-                                                                <script type="text/plain" class="language-xml">
-                                                                    <xsl:copy-of select="node()"/>
-                                                                </script>
-                                                            </p>
+                                                            <script type="text/plain" class="language-xml">
+                                                                <xsl:copy-of select="node()" copy-namespaces="false"/>
+                                                            </script>
                                                         </details>
                                                     </xsl:if>
                                                 </div>
@@ -1703,19 +1737,18 @@
                 </div>
             </xsl:for-each>
         </div>
-
     </xsl:template>
 
     <xsl:template match="AssetDetails/Repo">
-
+        REPO
     </xsl:template>
 
     <xsl:template match="AssetDetails/FixedTimeDeposit">
-
+        Fixed Time Deposit
     </xsl:template>
 
     <xsl:template match="AssetDetails/CallMoney">
-
+        Call Money
     </xsl:template>
 
     <xsl:template match="AssetDetails/Account | AssetDetails/Fee">
@@ -1744,11 +1777,11 @@
     </xsl:template>
 
     <xsl:template match="AssetDetails/RealEstate">
-
+        Real Estate
     </xsl:template>
 
     <xsl:template match="AssetDetails/REIT">
-
+        REIT
     </xsl:template>
 
     <xsl:template match="AssetDetails/Loan">
@@ -1756,11 +1789,11 @@
     </xsl:template>
 
     <xsl:template match="AssetDetails/Right">
-
+        Right
     </xsl:template>
 
     <xsl:template match="AssetDetails/Commodity">
-
+        Commodity
     </xsl:template>
 
     <xsl:template match="AssetDetails/PrivateEquity">
@@ -1768,7 +1801,15 @@
     </xsl:template>
 
     <xsl:template match="AssetDetails/CommercialPaper">
+        Commercial Paper
+    </xsl:template>
 
+    <xsl:template match="AssetDetails/Index">
+        Index
+    </xsl:template>
+
+    <xsl:template match="AssetDetails/Crypto">
+        Crypto
     </xsl:template>
 
 </xsl:stylesheet>

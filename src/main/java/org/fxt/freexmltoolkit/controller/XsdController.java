@@ -21,11 +21,11 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.*;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -71,7 +71,7 @@ public class XsdController {
     Label schemaValidText, statusText;
 
     @FXML
-    StackPane stackPane;
+    StackPane stackPane, xsdStackPane;
 
     @FXML
     TextArea sampleData;
@@ -98,33 +98,45 @@ public class XsdController {
         this.parentController = parentController;
     }
 
+
     @FXML
     private void initialize() {
-        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText.length() < 1024 * 1024 * 2) { // MAX 2 MB große Files
-                logger.debug("Format Text begin!");
-                Platform.runLater(() -> {
-                    codeArea.setStyleSpans(0, XmlEditor.computeHighlighting(newText));
-                });
-                logger.debug("Format Text fertig!");
-            }
-        });
+        setupCodeArea();
+        setupDragAndDrop();
+        reloadXmlText();
+        setupXsdDiagram();
+    }
 
-        try {
-            virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
-            stackPane.getChildren().add(virtualizedScrollPane);
-            reloadXmlText();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
+    private void setupXsdDiagram() {
+        if (this.xmlService.getCurrentXsdFile() != null) {
+            logger.debug("Loading XSD File: {}", this.xmlService.getCurrentXsdFile().getAbsolutePath());
+            xsdStackPane.getChildren().clear();
+
+            //xsdStackPane.getChildren().add()
         }
 
-        SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
-        selectionModel.select(documentation);
+    }
 
+    private void setupCodeArea() {
+        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            if (newText.length() < 2 * 1024 * 1024) { // Max 2 MB
+                Platform.runLater(() -> codeArea.setStyleSpans(0, XmlEditor.computeHighlighting(newText)));
+            }
+        });
+        virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
+        stackPane.getChildren().add(virtualizedScrollPane);
+    }
+
+    private void setupDragAndDrop() {
         xsdPane.setOnDragOver(this::handleFileOverEvent);
-        xsdPane.setOnDragExited(this::handleDragExitedEvent);
+        xsdPane.setOnDragExited(event -> resetDragStyle());
         xsdPane.setOnDragDropped(this::handleFileDroppedEvent);
+    }
+
+    private void resetDragStyle() {
+        xsdPane.getStyleClass().clear();
+        xsdPane.getStyleClass().add("tab-pane");
     }
 
     @FXML
@@ -173,30 +185,6 @@ public class XsdController {
     }
 
     @FXML
-    private void test() {
-        final var testFilePath = Paths.get("examples/xsd/purchageOrder.xsd");
-        final var outputFilePath = Paths.get("output/test");
-
-        if (Files.exists(testFilePath)) {
-            this.xmlService.setCurrentXsdFile(testFilePath.toFile());
-            this.xsdFilePath.setText(testFilePath.toFile().getName());
-
-            this.selectedDocumentationOutputDirectory = outputFilePath.toFile();
-            this.documentationOutputDirPath.setText(outputFilePath.toFile().getAbsolutePath());
-
-            generateDocumentation();
-
-            try {
-                this.codeArea.replaceText(0, 0, this.xmlService.getCurrentXsdString());
-            } catch (IOException ioException) {
-                logger.error(ioException.getMessage());
-            }
-        } else {
-            logger.debug("test file not found: {}", testFilePath.toFile().getAbsolutePath());
-        }
-    }
-
-    @FXML
     private void openOutputFolderDialog() {
         documentationOutputDirectory = new DirectoryChooser();
         documentationOutputDirectory.setTitle("Output Directory");
@@ -214,84 +202,57 @@ public class XsdController {
 
     @FXML
     private void generateDocumentation() {
-
-        if (documentationOutputDirPath.getText() != null) {
-            if (new File(documentationOutputDirPath.getText()).exists()
-                    && new File(documentationOutputDirPath.getText()).isDirectory()) {
-                selectedDocumentationOutputDirectory = new File(documentationOutputDirPath.getText());
-            }
-        }
-
-        if (selectedDocumentationOutputDirectory != null
-                && xmlService.getCurrentXsdFile() != null
-                && xmlService.getCurrentXsdFile().exists()) {
-
+        if (isValidDocumentationSetup()) {
             progressDocumentation.setVisible(true);
-            try {
-                progressDocumentation.setProgress(0.1);
-            } catch (Exception ignore) {
-            }
-
-            Task<Void> task = new Task<>() {
-                @Override
-                protected Void call() {
-                    logger.debug("XSD File: {}", xmlService.getCurrentXsdFile().getAbsolutePath());
-
-                    XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
-                    try {
-                        xsdDocumentationService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
-                        updateProgress(1, 100);
-                        if (grafikFormat.getValue().equals("SVG")) {
-                            xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
-                        } else {
-                            xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.PNG);
-                        }
-
-                        xsdDocumentationService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
-
-                        updateMessage("Completed");
-                        updateProgress(100, 100);
-
-                        openDocFolder.setDisable(false);
-                        openDocFolder.setOnAction((event) -> {
-                            try {
-                                Desktop.getDesktop().open(selectedDocumentationOutputDirectory);
-                            } catch (IOException ioException) {
-                                logger.error(ioException.getMessage());
-                            }
-                        });
-
-                        if (openFileAfterCreation.isSelected()) {
-                            Desktop.getDesktop().open(new File(selectedDocumentationOutputDirectory.getAbsolutePath() + "/index.html"));
-                        }
-                    } catch (IOException ex) {
-                        logger.error(ex.getMessage());
-                    }
-                    return null;
-                }
-            };
-
+            Task<Void> task = createDocumentationTask();
             progressDocumentation.progressProperty().bind(task.progressProperty());
             statusText.textProperty().bind(task.messageProperty());
-            if (parentController != null) {
-                parentController.service.execute(task);
-            } else {
-                logger.debug("parent controller is null");
-            }
+            executeTask(task);
         } else {
-            if (selectedDocumentationOutputDirectory == null) {
-                logger.debug("selected output Directory is null");
+            logger.debug("Invalid setup for documentation generation");
+        }
+    }
+
+    private boolean isValidDocumentationSetup() {
+        return selectedDocumentationOutputDirectory != null &&
+                xmlService.getCurrentXsdFile() != null &&
+                xmlService.getCurrentXsdFile().exists();
+    }
+
+    private Task<Void> createDocumentationTask() {
+        return new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    XsdDocumentationService xsdDocService = new XsdDocumentationService();
+                    xsdDocService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
+                    xsdDocService.setMethod(grafikFormat.getValue().equals("SVG") ?
+                            XsdDocumentationService.ImageOutputMethod.SVG :
+                            XsdDocumentationService.ImageOutputMethod.PNG);
+                    xsdDocService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
+
+                    if (openFileAfterCreation.isSelected()) {
+                        Desktop.getDesktop().open(new File(selectedDocumentationOutputDirectory, "index.html"));
+                    }
+                } catch (IOException e) {
+                    logger.error("Error generating documentation", e);
+                }
+                return null;
             }
-            if (xmlService.getCurrentXsdFile() == null) {
-                logger.debug("current xsd File is null");
-            }
+        };
+    }
+
+    private void executeTask(Task<Void> task) {
+        if (parentController != null) {
+            parentController.service.execute(task);
+        } else {
+            logger.warn("Parent controller is null");
         }
     }
 
     @FXML
     void handleFileOverEvent(DragEvent event) {
-        Dragboard db = event.getDragboard();
-        if (db.hasFiles()) {
+        if (event.getDragboard().hasFiles()) {
             event.acceptTransferModes(TransferMode.COPY);
             if (!xsdPane.getStyleClass().contains("xmlPaneFileDragDrop-active")) {
                 xsdPane.getStyleClass().add("xmlPaneFileDragDrop-active");
@@ -317,6 +278,30 @@ public class XsdController {
                 this.xmlService.setCurrentXsdFile(f);
                 this.xsdFilePath.setText(f.getName());
             }
+        }
+    }
+
+    @FXML
+    private void test() {
+        final var testFilePath = Paths.get("release/examples/xsd/purchageOrder.xsd");
+        final var outputFilePath = Paths.get("output/test");
+
+        if (Files.exists(testFilePath)) {
+            this.xmlService.setCurrentXsdFile(testFilePath.toFile());
+            this.xsdFilePath.setText(testFilePath.toFile().getName());
+
+            this.selectedDocumentationOutputDirectory = outputFilePath.toFile();
+            this.documentationOutputDirPath.setText(outputFilePath.toFile().getAbsolutePath());
+
+            generateDocumentation();
+
+            try {
+                this.codeArea.replaceText(0, 0, this.xmlService.getCurrentXsdString());
+            } catch (IOException ioException) {
+                logger.error(ioException.getMessage());
+            }
+        } else {
+            logger.debug("test file not found: {}", testFilePath.toFile().getAbsolutePath());
         }
     }
 }
