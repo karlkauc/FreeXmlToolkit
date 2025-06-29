@@ -157,20 +157,20 @@
         </html>
     </xsl:template>
 
-    <xsl:template match="ControlData">
+    <xsl:template match="ControlData" expand-text="yes">
         <p>
             <h1>Control Data</h1>
             <table class="table table-bordered table-striped table-hover">
                 <tr>
                     <th class="w-25">UniqueDocumentID:</th>
                     <td>
-                        <xslt:value-of select="UniqueDocumentID"/>
+                        {UniqueDocumentID}
                     </td>
                 </tr>
                 <tr>
                     <th>DocumentGenerated:</th>
                     <td>
-                        <xslt:value-of select="DocumentGenerated"/>
+                        {DocumentGenerated}
                     </td>
                 </tr>
                 <tr>
@@ -202,7 +202,7 @@
                     <td>
                         <xsl:choose>
                             <xsl:when test="count(DataSupplier/Contact) = 0">
-                                <span class="eg_status eg_status--orange">Missing</span>
+                                <span class="eg_status text-bg-warning">Missing</span>
                             </xsl:when>
                             <xsl:otherwise>
                                 <a>

@@ -176,6 +176,7 @@ public class XsltController {
 
             File newFile = Paths.get(outputFileName).toFile();
             Files.writeString(newFile.toPath(), output);
+            logger.debug("Rendering HTML file: {}", newFile.getAbsolutePath());
 
             openInDefaultWebBrowser.setOnAction(event -> {
                 try {
