@@ -21,11 +21,11 @@ package org.fxt.freexmltoolkit.service;
 import org.apache.xerces.impl.xs.XSImplementationImpl;
 import org.apache.xerces.xs.*;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
-import org.xmlet.xsdparser.core.XsdParser;
 
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -49,15 +49,40 @@ public class CreateXmlSampleData {
         XSLoader schemaLoader = impl.createXSLoader(null);
         this.schema = schemaLoader.loadURI(xsdPath);
 
-        xmlService.setCurrentXsdFile(new File(xsdPath));
-        xmlService.setCurrentXmlFile(new File(xsdPath));
-        var parser = new XsdParser(xsdPath);
-        var schema1 = parser.getResultXsdSchemas().toList().getFirst();
-        System.out.println("Name " + schema1);
-
         System.out.println("xsdPath = " + xsdPath);
+        try {
+            String targetNamespace = getNamespace(xsdPath);
+            System.out.println("targetNamespace = " + targetNamespace);
+        } catch (XMLStreamException | FileNotFoundException e) {
+            System.out.println("e.getMessage() = " + e.getMessage());
+        }
     }
 
+
+    public String getNamespace(String xsdPath) throws FileNotFoundException, XMLStreamException {
+
+        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        File f = new File(xsdPath);
+        System.out.println("f.getAbsolutePath() = " + f.getAbsolutePath());
+
+        XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(f.getName()));
+        String targetNamespace = null;
+        while (eventReader.hasNext()) {
+            var event = eventReader.nextEvent();
+            System.out.println("event.toString() = " + event.toString());
+            if (event.isStartElement()) {
+                var startElement = event.asStartElement();
+                if ("schema".equals(startElement.getName().getLocalPart())) {
+                    try {
+                        targetNamespace = startElement.getAttributeByName(new javax.xml.namespace.QName("targetNamespace")).getValue();
+                    }
+                    catch (NullPointerException e) {e.printStackTrace();}
+                    return targetNamespace;
+                }
+            }
+        }
+        return targetNamespace;
+    }
 
     /**
      * Startet die Generierung, indem Wurzelelement und Namespace automatisch

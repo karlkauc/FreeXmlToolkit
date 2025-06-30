@@ -98,6 +98,8 @@ public class XmlServiceImpl implements XmlService {
 
     Schema schema;
     Validator validator;
+    Element rootElement;
+    String targetNamespace;
 
     private String remoteXsdLocation;
     private String xsltOutputMethod;
@@ -243,6 +245,24 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public void setCurrentXsdFile(File xsdFile) {
         this.currentXsdFile = xsdFile;
+
+        try {
+            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            this.schema = schemaFactory.newSchema(xsdFile);
+
+            builderFactory = DocumentBuilderFactory.newInstance();
+            builderFactory.setNamespaceAware(true);
+            DocumentBuilder builder = builderFactory.newDocumentBuilder();
+            Document document = builder.parse(xsdFile);
+
+            this.rootElement = document.getDocumentElement();
+            this.targetNamespace = rootElement.getAttribute("targetNamespace").toString();
+        }
+        catch (SAXException | IOException | ParserConfigurationException e) {
+            logger.error("Could not set current XSD File: {}", xsdFile.getAbsolutePath());
+            logger.error(e.getMessage());
+        }
+
     }
 
     @Override

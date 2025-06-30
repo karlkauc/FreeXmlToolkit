@@ -100,12 +100,12 @@ dependencies {
 
     //  Certificate & XML Signature
     implementation("org.apache.santuario:xmlsec:4.0.4")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.80")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.81")
 
     // Lemminx
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.31.0")
-    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.38.0")
+    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.40.0.M0")
 
     // FOP
     implementation("org.apache.xmlgraphics:fop:2.11")
@@ -142,13 +142,21 @@ dependencies {
 
     // http connection with NTLM Proxy Auth
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.4")
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.3")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.5")
 
-    testImplementation(platform("org.junit:junit-bom:5.12.0"))
+    testImplementation(platform("org.junit:junit-bom:5.13.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.12.0")
+
+    /*
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+
+    testImplementation(platform("org.junit:junit-bom:5.13.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.2")
+     */
 
     /*
     implementation("org.junit.jupiter:junit-jupiter:5.12.0")
@@ -169,10 +177,12 @@ tasks.jar {
     exclude("**/*.txt")
 }
 
+/*
 tasks.named<Test>("test") {
     useJUnitPlatform()
     maxHeapSize = "16G"
 }
+ */
 
 tasks.test {
     useJUnitPlatform()

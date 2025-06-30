@@ -9,16 +9,11 @@ public class GenerateXmlDataTest {
 
     @Test
     void testCreate() {
+        System.out.println("Starte Generierung von XML-Daten...");
         try {
-            // Pfad zur XSD-Datei im resources-Ordner holen
             File xsdFile = new File("src/test/resources/FundsXML_428.xsd");
-
-            // Generator instanziieren
             CreateXmlSampleData generator = new CreateXmlSampleData(xsdFile.toURI().toString());
-
-            // XML-Generierung starten
             generator.generate("beispiel-person-dynamisch.xml");
-
         } catch (Exception e) {
             System.err.println("Ein Fehler ist aufgetreten:");
             e.printStackTrace();
