@@ -8,70 +8,71 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Eine einfache Implementierung des LanguageClient.
- * In einer echten Anwendung würden diese Methoden z.B. UI-Elemente
- * aktualisieren, um Diagnosen (Fehler/Warnungen) anzuzeigen.
+ * Implementiert den LanguageClient, um auf Nachrichten vom Server zu reagieren.
+ * Empfängt und verarbeitet z. B. Fehlerdiagnosen.
  */
 public class MyLspClient implements LanguageClient {
+
     private LanguageServer server;
 
+    /**
+     * Speichert eine Referenz auf den Server-Proxy, um bei Bedarf
+     * Nachrichten an den Server senden zu können.
+     *
+     * @param server Der Language-Server-Proxy.
+     */
     public void connect(LanguageServer server) {
         this.server = server;
     }
 
     @Override
     public void showMessage(MessageParams messageParams) {
-        System.out.println("Server Message: [" + messageParams.getType() + "] " + messageParams.getMessage());
-    }
-
-    @Override
-    public CompletableFuture<MessageActionItem> showMessageRequest(ShowMessageRequestParams requestParams) {
-        // Nicht implementiert für dieses Beispiel
-        return new CompletableFuture<>();
-    }
-
-    @Override
-    public CompletableFuture<ShowDocumentResult> showDocument(ShowDocumentParams params) {
-        // Nicht implementiert für dieses Beispiel
-        return null;
+        System.out.println("SERVER MESSAGE: [" + messageParams.getType() + "] " + messageParams.getMessage());
     }
 
     @Override
     public void logMessage(MessageParams messageParams) {
-        System.out.println("Server Log: " + messageParams.getMessage());
-    }
-
-    @Override
-    public void telemetryEvent(Object object) {
-        // Nicht implementiert für dieses Beispiel
-    }
-
-    @Override
-    public CompletableFuture<List<WorkspaceFolder>> workspaceFolders() {
-        // Nicht implementiert für dieses Beispiel
-        return new CompletableFuture<>();
-    }
-
-    @Override
-    public CompletableFuture<List<Object>> configuration(ConfigurationParams configurationParams) {
-        // Nicht implementiert für dieses Beispiel
-        return new CompletableFuture<>();
+        System.out.println("SERVER LOG: " + messageParams.getMessage());
     }
 
     @Override
     public void publishDiagnostics(PublishDiagnosticsParams diagnostics) {
-        System.out.println("DIAGNOSTICS for " + diagnostics.getUri());
+        System.out.println("💡 DIAGNOSTICS for " + diagnostics.getUri());
         for (Diagnostic d : diagnostics.getDiagnostics()) {
             System.out.printf("  -> [%s] %s @ Line %d%n",
                     d.getSeverity(), d.getMessage(), d.getRange().getStart().getLine());
         }
     }
 
+    // -- Die restlichen Methoden der Schnittstelle sind hier nicht implementiert --
+    // -- Sie haben Standardimplementierungen oder können bei Bedarf überschrieben werden --
+
     @Override
-    public CompletableFuture<ApplyWorkspaceEditResponse> applyEdit(ApplyWorkspaceEditParams params) {
-        // Nicht implementiert für dieses Beispiel
+    public CompletableFuture<MessageActionItem> showMessageRequest(ShowMessageRequestParams requestParams) {
         return new CompletableFuture<>();
     }
 
-    // Viele weitere Methoden mit Default-Implementierungen...
+    @Override
+    public CompletableFuture<ShowDocumentResult> showDocument(ShowDocumentParams params) {
+        return null;
+    }
+
+    @Override
+    public void telemetryEvent(Object object) {
+    }
+
+    @Override
+    public CompletableFuture<List<WorkspaceFolder>> workspaceFolders() {
+        return new CompletableFuture<>();
+    }
+
+    @Override
+    public CompletableFuture<List<Object>> configuration(ConfigurationParams configurationParams) {
+        return new CompletableFuture<>();
+    }
+
+    @Override
+    public CompletableFuture<ApplyWorkspaceEditResponse> applyEdit(ApplyWorkspaceEditParams params) {
+        return new CompletableFuture<>();
+    }
 }

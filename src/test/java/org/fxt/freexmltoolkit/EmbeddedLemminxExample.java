@@ -1,14 +1,19 @@
 package org.fxt.freexmltoolkit;
 
+import org.eclipse.lemminx.XMLServerLauncher;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.CompletableFuture;
+import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -16,18 +21,23 @@ import java.util.concurrent.Future;
 public class EmbeddedLemminxExample {
 
     public static void main(String[] args) throws Exception {
-        // 1. Erstellen Sie den Server und den Client
-        LemminxServer server = new LemminxServer();
+        // --- Datei für das Beispiel erstellen ---
+        Path beispielXmlPath = Paths.get("beispiel.xml");
+        String fileContent = "<root>\n  <element attr='val' />\n</root"; // Absichtlich fehlerhaft
+        Files.writeString(beispielXmlPath, fileContent);
+        String fileUri = beispielXmlPath.toUri().toString();
+
+        // 1. Server und Client instanziieren
+
         MyLspClient client = new MyLspClient();
 
-        // 2. Erstellen Sie In-Memory-Streams für die Kommunikation (unverändert)
+        // 2. In-Memory-Streams für die bidirektionale Kommunikation erstellen
         PipedInputStream clientInputStream = new PipedInputStream();
-        PipedOutputStream serverOutputStream = new PipedOutputStream(clientInputStream);
-        PipedInputStream serverInputStream = new PipedInputStream();
-        PipedOutputStream clientOutputStream = new PipedOutputStream(serverInputStream);
+        OutputStream serverOutputStream = new PipedOutputStream(clientInputStream);
+        InputStream serverInputStream = new PipedInputStream();
+        OutputStream clientOutputStream = new PipedOutputStream((PipedInputStream) serverInputStream);
 
-
-        // 3. Erstellen Sie den Launcher für den Client mit dem Builder
+        // 3. Launcher für den Client mit dem Builder erstellen
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Launcher<LanguageServer> launcher = new LSPLauncher.Builder<LanguageServer>()
                 .setLocalService(client)
@@ -37,55 +47,60 @@ public class EmbeddedLemminxExample {
                 .setExecutorService(executor)
                 .create();
 
-        // 4. Holen Sie sich den Server-Proxy und verbinden Sie ihn mit dem Client
+        // 4. Server-Proxy holen und mit dem Client verbinden
         LanguageServer serverProxy = launcher.getRemoteProxy();
-        client.connect(serverProxy); // Geben Sie dem Client eine Referenz auf den Server
+        client.connect(serverProxy);
 
-        // 5. Starten Sie den Listener-Thread des Clients (dies funktioniert jetzt)
+        // 5. Client-Listener-Thread starten
         Future<?> clientListening = launcher.startListening();
 
-        // 6. Verbinden und starten Sie den Server (unverändert)
-        server.start(serverInputStream, serverOutputStream);
+        // 6. Server starten und mit den Streams verbinden
+        XMLServerLauncher.launch(serverInputStream, serverOutputStream);
+        System.out.println("🚀 Server und Client gestartet und verbunden.");
 
-
-        // --- Initialisierung des Language Servers (Handshake) ---
-
-        // 7. Senden Sie die "initialize" Anfrage
+        // 7. Initialisierungsparameter vorbereiten (moderner Stil)
         InitializeParams initParams = new InitializeParams();
         initParams.setProcessId((int) ProcessHandle.current().pid());
-        initParams.setRootUri(Paths.get(".").toUri().toString()); // Projekt-Root
-        initParams.setCapabilities(new ClientCapabilities()); // Leere Capabilities für das Beispiel
-        // Für Leminx-spezifische Einstellungen können Sie hier JSON übergeben:
-        // initParams.setInitializationOptions(getLemminxSettings());
 
-        CompletableFuture<InitializeResult> initResult = serverProxy.initialize(initParams);
-        initResult.get();
+        // Workspace Folder definieren
+        WorkspaceFolder workspaceFolder = new WorkspaceFolder(Paths.get(".").toUri().toString(), "lemminx-project");
+        initParams.setWorkspaceFolders(Collections.singletonList(workspaceFolder));
 
-        // 8. Senden Sie die "initialized" Benachrichtigung
+        // Client-Fähigkeiten setzen, um Workspace-Folder-Support zu signalisieren
+        ClientCapabilities capabilities = new ClientCapabilities();
+
+        /*
+        WorkspaceCapabilities workspaceCapabilities = new WorkspaceCapabilities();
+        WorkspaceFolderCapabilities workspaceFolderCapabilities = new WorkspaceFolderCapabilities();
+        workspaceFolderCapabilities.setSupported(true);
+        workspaceCapabilities.setWorkspaceFolders(workspaceFolderCapabilities);
+        capabilities.setWorkspace(workspaceCapabilities);
+        initParams.setCapabilities(capabilities);
+        */
+
+        // 8. LSP-Handshake durchführen
+        System.out.println("🤝 Sende 'initialize' Anfrage...");
+        InitializeResult initResult = serverProxy.initialize(initParams).get();
         serverProxy.initialized(new InitializedParams());
+        System.out.println("...Initialisierung abgeschlossen.");
 
-        System.out.println("Server-Client-Verbindung hergestellt.");
-
-        // --- Nun können Sie mit dem Server arbeiten ---
-
-        // 9. Simulieren Sie das Öffnen eines XML-Dokuments
-        String fileUri = Paths.get("beispiel.xml").toUri().toString();
-        String fileContent = "<root>\n  <element attr='val' />\n</root"; // Absichtlich fehlerhaft
-
+        // 9. Dokument öffnen, um eine Analyse auszulösen
+        System.out.println("📂 Sende 'textDocument/didOpen' für: " + fileUri);
         TextDocumentItem textDocument = new TextDocumentItem(fileUri, "xml", 1, fileContent);
         serverProxy.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(textDocument));
 
-        // Warten Sie einen Moment, damit der Server Zeit hat, die Diagnosen zu senden
+        // Kurz warten, damit der Server die Diagnosen verarbeiten und senden kann
         Thread.sleep(2000);
 
-        // 10. Fahren Sie den Server sauber herunter
-        System.out.println("Server wird heruntergefahren...");
+        // 10. Server und Client sauber herunterfahren
+        System.out.println("🔌 Fahre Server herunter...");
         serverProxy.shutdown().get();
         serverProxy.exit();
+        System.out.println("...Server heruntergefahren.");
 
-        // Aufräumen
+        // 11. Threads und Ressourcen freigeben
         clientListening.cancel(true);
         executor.shutdown();
-        System.out.println("Beendet.");
+        System.out.println("✅ Beispiel beendet.");
     }
 }
