@@ -155,13 +155,105 @@ public class XsdDocumentationImageService {
 
         var rootElement = extendedXsdElements.get(rootXpath);
         var rootElementName = rootElement.getElementName();
+
+        // Details-Box für Root-Element erstellen
+        Element detailsGroup = document.createElement("g");
+        detailsGroup.setAttribute("id", "details-" + rootElementName);
+
+        // Hintergrund für Details
+        Element detailsBackground = document.createElement("rect");
+        detailsBackground.setAttribute("fill", "#f8f9fa");
+        detailsBackground.setAttribute("x", "20");
+        detailsBackground.setAttribute("y", "80");
+        detailsBackground.setAttribute("width", "250");
+        detailsBackground.setAttribute("height", "100");
+        detailsBackground.setAttribute("rx", "5");
+        detailsBackground.setAttribute("ry", "5");
+        detailsGroup.appendChild(detailsBackground);
+
+        // Details-Texte hinzufügen
+        int yOffset = 100;
+        if (rootElement.getXsdElement() != null) {
+            addDetailText(document, detailsGroup, "Typ: " + rootElement.getXsdElement().getType(), 30, yOffset);
+            yOffset += 20;
+            addDetailText(document, detailsGroup, "Min Occurs: " + rootElement.getXsdElement().getMinOccurs(), 30, yOffset);
+            yOffset += 20;
+            addDetailText(document, detailsGroup, "Max Occurs: " + rootElement.getXsdElement().getMaxOccurs(), 30, yOffset);
+            yOffset += 20;
+            //addDetailText(document, detailsGroup, "Complex Type: " + rootElement.getXsdElement().isComplexType(), 30, yOffset);
+        }
+
+        // Dokumentation hinzufügen, falls vorhanden
+        if (rootElement.getXsdDocumentation() != null && !rootElement.getXsdDocumentation().isEmpty()) {
+            Element docGroup = document.createElement("g");
+            docGroup.setAttribute("id", "documentation");
+
+            Element docBackground = document.createElement("rect");
+            docBackground.setAttribute("fill", "#e9ecef");
+            docBackground.setAttribute("x", "20");
+            docBackground.setAttribute("y", String.valueOf(yOffset + 20));
+            docBackground.setAttribute("width", "250");
+            docBackground.setAttribute("height", "60");
+            docBackground.setAttribute("rx", "5");
+            docBackground.setAttribute("ry", "5");
+            docGroup.appendChild(docBackground);
+
+            String docContent = rootElement.getXsdDocumentation().get(0).getContent();
+            addDetailText(document, docGroup, "Dokumentation:", 30, yOffset + 40);
+            addDetailText(document, docGroup, docContent, 30, yOffset + 60);
+
+            svgRoot.appendChild(docGroup);
+        }
+
+        svgRoot.appendChild(detailsGroup);
+
+        // Ursprünglicher Code für die Diagramm-Generierung...
+
+
+        // Erweiterte Logging-Informationen über den Root-Element
+        logger.debug("=== Root Element Details ===");
+        logger.debug("Name: {}", rootElementName);
+        logger.debug("XPath: {}", rootElement.getCurrentXpath());
+        logger.debug("Parent XPath: {}", rootElement.getParentXpath());
+        if (rootElement.getXsdElement() != null) {
+            logger.debug("Min Occurs: {}", rootElement.getXsdElement().getMinOccurs());
+            logger.debug("Max Occurs: {}", rootElement.getXsdElement().getMaxOccurs());
+            logger.debug("Type: {}", rootElement.getXsdElement().getType());
+            // logger.debug("Is Complex Type: {}", rootElement.getXsdElement().isComplexType());
+        }
+
+        // Logging der Dokumentation
+        if (rootElement.getXsdDocumentation() != null && !rootElement.getXsdDocumentation().isEmpty()) {
+            logger.debug("=== Documentation ===");
+            rootElement.getXsdDocumentation().forEach(doc ->
+                    logger.debug("Documentation: {}", doc.getContent())
+            );
+        }
+
+        // Logging der Kinder-Elemente
+        List<ExtendedXsdElement> childElements = new ArrayList<>();
+        logger.debug("=== Child Elements ===");
+        for (String temp : rootElement.getChildren()) {
+            var childElement = extendedXsdElements.get(temp);
+            childElements.add(childElement);
+
+            if (childElement != null) {
+                logger.debug("Child Element: {}", childElement.getElementName());
+                logger.debug("  XPath: {}", childElement.getCurrentXpath());
+                if (childElement.getXsdElement() != null) {
+                    logger.debug("  Min Occurs: {}", childElement.getXsdElement().getMinOccurs());
+                    logger.debug("  Max Occurs: {}", childElement.getXsdElement().getMaxOccurs());
+                    logger.debug("  Has Children: {}", !childElement.getChildren().isEmpty());
+                }
+            }
+        }
+
+        // Rest der ursprünglichen Implementierung bleibt gleich...
+        
+
         logger.debug("rootElementName = {}", rootElementName);
         logger.debug("rootElement.getParentXpath() = {}", rootElement.getParentXpath());
 
-        List<ExtendedXsdElement> childElements = new ArrayList<>();
-        for (String temp : rootElement.getChildren()) {
-            childElements.add(extendedXsdElements.get(temp));
-        }
 
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;
@@ -313,6 +405,17 @@ public class XsdDocumentationImageService {
         svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
 
         return document;
+    }
+
+    private void addDetailText(Document document, Element parent, String text, int x, int y) {
+        Element textElement = document.createElement("text");
+        textElement.setAttribute("x", String.valueOf(x));
+        textElement.setAttribute("y", String.valueOf(y));
+        textElement.setAttribute("fill", "#212529");
+        textElement.setAttribute("font-family", "Arial");
+        textElement.setAttribute("font-size", "12");
+        textElement.setTextContent(text);
+        parent.appendChild(textElement);
     }
 
     private double generateDocumentationElement(Document document, List<XsdDocumentation> xsdDocumentation, double rootElementWidth, double rootElementHeight, int startX, int startY) {
