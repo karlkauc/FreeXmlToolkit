@@ -33,18 +33,19 @@ import javafx.scene.layout.VBox;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.lemminx.XMLServerLauncher;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageServer;
+import org.fxt.freexmltoolkit.service.MyLspClient;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
-import java.io.File;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.io.*;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Hauptcontroller für die Anwendung.
@@ -91,16 +92,76 @@ public class MainController {
 
     FXMLLoader loader;
 
+    // Leminx Server Setup
+    MyLspClient client = new MyLspClient();
+    PipedInputStream clientInputStream;
+    OutputStream serverOutputStream;
+    PipedInputStream serverInputStream;
+    OutputStream clientOutputStream;
+    public ExecutorService lspExecutor = Executors.newSingleThreadExecutor();
+    LanguageServer serverProxy;
+    Future<?> clientListening;
+
     /**
      * Initialisiert den Controller.
      */
     @FXML
     public void initialize() {
         scheduler.scheduleAtFixedRate(this::updateMemoryUsage, 1, 2, TimeUnit.SECONDS);
-        exit.setOnAction(e -> shutdown());
-        menuItemExit.setOnAction(e -> shutdown());
+        exit.setOnAction(e -> System.exit(0));
+        menuItemExit.setOnAction(e -> System.exit(0));
         loadLastOpenFiles();
+        try {
+            setupLSPServer();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
         loadPageFromPath("/pages/welcome.fxml");
+    }
+
+    private void setupLSPServer() throws IOException, ExecutionException, InterruptedException {
+        // 2. In-Memory-Streams für die bidirektionale Kommunikation erstellen
+        clientInputStream = new PipedInputStream();
+        serverOutputStream = new PipedOutputStream(clientInputStream);
+        serverInputStream = new PipedInputStream();
+        clientOutputStream = new PipedOutputStream(serverInputStream);
+
+        // 3. Launcher für den Client mit dem Builder erstellen
+        Launcher<LanguageServer> launcher = new LSPLauncher.Builder<LanguageServer>()
+                .setLocalService(client)
+                .setRemoteInterface(LanguageServer.class)
+                .setInput(clientInputStream)
+                .setOutput(clientOutputStream)
+                .setExecutorService(lspExecutor)
+                .create();
+
+        // 4. Server-Proxy holen und mit dem Client verbinden
+        serverProxy = launcher.getRemoteProxy();
+        client.connect(serverProxy);
+
+        // 5. Client-Listener-Thread starten
+        clientListening = launcher.startListening();
+
+        // 6. Server starten und mit den Streams verbinden
+        XMLServerLauncher.launch(serverInputStream, serverOutputStream);
+        logger.debug("🚀 Server und Client gestartet und verbunden.");
+
+        // 7. Initialisierungsparameter vorbereiten (moderner Stil)
+        InitializeParams initParams = new InitializeParams();
+        initParams.setProcessId((int) ProcessHandle.current().pid());
+
+        // Workspace Folder definieren
+        WorkspaceFolder workspaceFolder = new WorkspaceFolder(Paths.get(".").toUri().toString(), "lemminx-project");
+        initParams.setWorkspaceFolders(Collections.singletonList(workspaceFolder));
+
+        // Client-Fähigkeiten setzen, um Workspace-Folder-Support zu signalisieren
+        ClientCapabilities capabilities = new ClientCapabilities();
+
+        // 8. LSP-Handshake durchführen
+        logger.debug("🤝 Sende 'initialize' Anfrage...");
+        InitializeResult initResult = serverProxy.initialize(initParams).get();
+        serverProxy.initialized(new InitializedParams());
+        logger.debug("...Initialisierung abgeschlossen.");
     }
 
     private void updateMemoryUsage() {
@@ -118,30 +179,23 @@ public class MainController {
         Platform.runLater(() -> version.setText(date + " " + size + " " + percent));
     }
 
-    /**
-     * Bereitet das Herunterfahren der Anwendung vor.
-     */
-    private void shutdown() {
-        prepareShutdown();
-        System.exit(0);
-    }
 
-    private void prepareShutdown() {
-        shutdownExecutor(scheduler);
-        shutdownExecutor(service);
-    }
-
-    private void shutdownExecutor(ExecutorService executor) {
-        executor.shutdown();
+    public void shutdownLSPServer() {
         try {
-            if (!executor.awaitTermination(800, TimeUnit.MILLISECONDS)) {
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            logger.info("Forcing executor shutdown");
-            executor.shutdownNow();
+            // 10. Server und Client sauber herunterfahren
+            logger.debug("🔌 Fahre Server herunter...");
+            serverProxy.shutdown().get();
+            serverProxy.exit();
+            logger.debug("...Server heruntergefahren.");
+
+            // 11. Threads und Ressourcen freigeben
+            clientListening.cancel(true);
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("Error shutting down LSP Server: {}", e.getMessage());
         }
+        logger.debug("✅ LSP Server beendet.");
     }
+
 
     /**
      * Lädt die zuletzt geöffneten Dateien.

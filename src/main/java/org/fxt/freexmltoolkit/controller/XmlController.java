@@ -30,6 +30,8 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+import org.eclipse.lsp4j.TextDocumentItem;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
@@ -254,6 +256,10 @@ public class XmlController {
 
                 if (xmlEditor.getXmlFile() != null) {
                     textAreaTemp.setText(xmlEditor.getXmlFile().getName());
+
+                    logger.debug("TEXT DOCUMENT");
+                    TextDocumentItem textDocument = new TextDocumentItem(xmlEditor.getXmlFile().toURI().toString(), "xml", 1, xmlEditor.getText());
+                    parentController.serverProxy.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(textDocument));
                 }
             }
         } catch (Exception e) {

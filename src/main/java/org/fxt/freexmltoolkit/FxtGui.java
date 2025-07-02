@@ -108,20 +108,13 @@ public class FxtGui extends Application {
         logger.debug("stopping Application");
         executorService.shutdown();
         mainController.scheduler.shutdown();
-        try {
-            if (!executorService.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executorService.shutdownNow();
-        }
-        try {
-            if (!mainController.scheduler.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                mainController.scheduler.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            mainController.scheduler.shutdownNow();
-        }
+
+        shutdownExecutor(executorService);
+        shutdownExecutor(mainController.scheduler);
+        shutdownExecutor(mainController.service);
+
+        mainController.shutdownLSPServer();
+        shutdownExecutor(mainController.lspExecutor);
 
         startWatch.stop();
         var currentDuration = startWatch.getDuration(); // / 1000;
@@ -139,6 +132,18 @@ public class FxtGui extends Application {
         logger.debug("Duration: {}", currentDuration);
         logger.debug("Duration overall: {}", newSeconds);
 
+    }
+
+    private void shutdownExecutor(ExecutorService executor) {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            logger.info("Forcing executor shutdown");
+            executor.shutdownNow();
+        }
     }
 
     public static void main(String[] args) {

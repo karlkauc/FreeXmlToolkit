@@ -75,7 +75,6 @@ dependencies {
     // Serialization
     implementation("com.google.code.gson:gson:2.13.1")
 
-
     // Icons
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.4.0")
@@ -148,22 +147,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    /*
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
-
-    testImplementation(platform("org.junit:junit-bom:5.13.2"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.2")
-     */
-
-    /*
-    implementation("org.junit.jupiter:junit-jupiter:5.12.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.12.0")
-     */
-
     testImplementation("org.mockito:mockito-core:5.18.0")
 }
 
@@ -186,6 +169,7 @@ tasks.named<Test>("test") {
 
 tasks.test {
     useJUnitPlatform()
+    maxHeapSize = "16G"
     testLogging {
         events("passed", "skipped", "failed")
     }
