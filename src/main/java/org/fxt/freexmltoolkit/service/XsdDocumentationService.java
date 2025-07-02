@@ -61,7 +61,7 @@ public class XsdDocumentationService {
         PNG
     }
 
-    ImageOutputMethod method;
+    public ImageOutputMethod imageOutputMethod;
     Boolean generateSampleXml = false;
     Boolean useMarkdownRenderer = true;
 
@@ -70,8 +70,10 @@ public class XsdDocumentationService {
 
     String prefix;
 
+    XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
+
     public XsdDocumentationService() {
-        method = ImageOutputMethod.SVG;
+        imageOutputMethod = ImageOutputMethod.SVG;
     }
 
     public void setXsdFilePath(String xsdFilePath) {
@@ -81,11 +83,11 @@ public class XsdDocumentationService {
     }
 
     public ImageOutputMethod getMethod() {
-        return method;
+        return imageOutputMethod;
     }
 
     public void setMethod(ImageOutputMethod method) {
-        this.method = method;
+        this.imageOutputMethod = method;
     }
 
     public void setParallelProcessing(boolean parallelProcessing) {
@@ -112,7 +114,6 @@ public class XsdDocumentationService {
         logger.debug("Bin in generateXsdDocumentation");
         processXsd(this.useMarkdownRenderer);
 
-        XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
         xsdDocumentationHtmlService.setOutputDirectory(outputDirectory);
         xsdDocumentationHtmlService.setDocumentationData(xsdDocumentationData);
 

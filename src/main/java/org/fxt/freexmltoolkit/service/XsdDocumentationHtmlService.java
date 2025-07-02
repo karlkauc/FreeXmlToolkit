@@ -155,7 +155,7 @@ public class XsdDocumentationHtmlService {
         var context = new Context();
 
         // if (true == XsdDocumentationService.ImageOutputMethod.SVG) {
-        if (true) {
+        if (false) {
             final String svgDiagram = xsdDocumentationImageService.generateSvgString(currentXpath);
             context.setVariable("svg", svgDiagram);
         } else {

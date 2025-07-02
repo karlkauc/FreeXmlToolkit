@@ -248,12 +248,8 @@ public class XsdDocumentationImageService {
             }
         }
 
-        // Rest der ursprünglichen Implementierung bleibt gleich...
-        
-
         logger.debug("rootElementName = {}", rootElementName);
         logger.debug("rootElement.getParentXpath() = {}", rootElement.getParentXpath());
-
 
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;
@@ -296,7 +292,8 @@ public class XsdDocumentationImageService {
         leftRootElement.setAttribute("href", parentPageUrl);
 
         Element rect1 = createSvgElement(document, rootElementName, rootElementHeight, rootElementWidth, rootStartX + "", rootStartY + "", rootStartX, rootStartY);
-        if (rootElement.getXsdElement().getMinOccurs() > 0) {
+        if (rootElement.getXsdElement() != null &&
+                rootElement.getXsdElement().getMinOccurs() > 0) {
             rect1.setAttribute("style", MANDATORY_FORMAT);
         } else {
             rect1.setAttribute("style", OPTIONAL_FORMAT);
@@ -308,8 +305,10 @@ public class XsdDocumentationImageService {
         svgRoot.appendChild(leftRootElement);
 
         double docHeightTotal = 0;
-        if (extendedXsdElements.get(rootElement.getCurrentXpath()).getXsdDocumentation() != null) {
-            docHeightTotal = generateDocumentationElement(document, extendedXsdElements.get(rootElement.getCurrentXpath()).getXsdDocumentation(), rootElementWidth, rootElementHeight, rootStartX, rootStartY);
+        if (rootElement.getCurrentXpath() != null) {
+            if (extendedXsdElements.get(rootElement.getCurrentXpath()).getXsdDocumentation() != null) {
+                docHeightTotal = generateDocumentationElement(document, extendedXsdElements.get(rootElement.getCurrentXpath()).getXsdDocumentation(), rootElementWidth, rootElementHeight, rootStartX, rootStartY);
+            }
         }
 
         final double rightStartX = margin + rootElementWidth + margin + gapBetweenSides;

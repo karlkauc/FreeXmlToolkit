@@ -35,7 +35,7 @@ class XsdDocumentationImageServiceTest {
 
         Assertions.assertNotNull(result);
         Assertions.assertTrue(file.exists());
-        file.delete();
+        // file.delete();
     }
 
     @Test
