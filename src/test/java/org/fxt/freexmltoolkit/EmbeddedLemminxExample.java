@@ -6,7 +6,6 @@ import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageServer;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -34,8 +33,8 @@ public class EmbeddedLemminxExample {
         // 2. In-Memory-Streams für die bidirektionale Kommunikation erstellen
         PipedInputStream clientInputStream = new PipedInputStream();
         OutputStream serverOutputStream = new PipedOutputStream(clientInputStream);
-        InputStream serverInputStream = new PipedInputStream();
-        OutputStream clientOutputStream = new PipedOutputStream((PipedInputStream) serverInputStream);
+        PipedInputStream serverInputStream = new PipedInputStream();
+        OutputStream clientOutputStream = new PipedOutputStream(serverInputStream);
 
         // 3. Launcher für den Client mit dem Builder erstellen
         ExecutorService executor = Executors.newSingleThreadExecutor();
