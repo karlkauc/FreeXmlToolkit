@@ -1,5 +1,5 @@
 <!--
-  ~ FreeXMLToolkit - Universal Toolkit for XML 
+  ~ FreeXMLToolkit - Universal Toolkit for XML
   ~ Copyright (c) Karl Kauc 2024.
   ~
   ~  Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,32 +17,59 @@
   -->
 
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>XSD Documentation</title>
+    <title th:text="'Detail: ' + ${element.elementName}">XSD Documentation</title>
 
-    <link href="../assets/freeXmlToolkit.css" rel="stylesheet"/>
+    <!-- Tailwind CSS & Modern Font -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+    <!-- PrismJS for Syntax Highlighting -->
+    <link href="../assets/prism.css" rel="stylesheet"/>
 </head>
-<body>
+<body class="font-sans text-slate-800">
 
-<nav class="py-2 bg-body-tertiary border-bottom">
-    <div class="container d-flex flex-wrap">
-        <ul class="nav me-auto">
-            <li class="nav-item"><a href="../index.html" class="nav-link link-body-emphasis px-2 active"
-                                    aria-current="page">Home</a></li>
-            <li class="nav-item"><a href="../complexTypes.html" class="nav-link link-body-emphasis px-2">Complex
-                Types</a></li>
-            <li class="nav-item"><a href="../simpleTypes.html" class="nav-link link-body-emphasis px-2">Simple Types</a>
-            </li>
-        </ul>
-        <ul class="nav">
-            <li class="nav-item">
-                <a href="https://github.com/karlkauc/FreeXmlToolkit"
-                   target="_blank"
-                   class="nav-link link-body-emphasis px-2">
-                    <img src="../assets/logo.png" width="32" height="32" alt="logo"/>
+<!-- Moderne Navigation (identisch zur Startseite) -->
+<nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <!-- Linke Navigationsgruppe -->
+            <div class="flex items-center space-x-8">
+                <a href="../index.html" class="flex items-center space-x-2 text-slate-700 font-bold">
+                    <img src="../assets/logo.png" alt="logo" class="h-8 w-8"/>
+                    <span>FreeXmlToolKit</span>
+                </a>
+                <div class="hidden md:flex items-baseline space-x-6">
+                    <a href="../index.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Home</a>
+                    <a href="../complexTypes.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Complex
+                        Types</a>
+                    <a href="../simpleTypes.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Simple
+                        Types</a>
+                </div>
+            </div>
+            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <div class="hidden md:block">
+                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
+                   class="inline-flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900">
+                    <span>GitHub</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                          class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
                         <path fill-rule="evenodd"
@@ -50,182 +77,151 @@
                         <path fill-rule="evenodd"
                               d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
                     </svg>
-                    FreeXmlToolKit
                 </a>
-            </li>
-        </ul>
+            </div>
+        </div>
     </div>
 </nav>
 
-<div class="container">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li th:each="path, state: ${xpath}" class="breadcrumb-item">
-                <a href="#" th:href="${path.value}" th:text="${path.key}">#</a>
+<!-- Hauptinhalt -->
+<main class="container mx-auto px-4 py-8 md:py-12">
+
+    <!-- Breadcrumb-Navigation -->
+    <nav aria-label="breadcrumb" class="mb-6">
+        <ol class="flex items-center space-x-1 text-sm text-slate-500">
+            <li th:each="path, state : ${xpath}" class="flex items-center">
+                <a th:href="${path.value}" th:text="${path.key}" class="hover:text-sky-600 hover:underline"></a>
+                <svg th:if="${!state.last}" class="h-5 w-5 flex-shrink-0 text-slate-400" viewBox="0 0 20 20"
+                     fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                          d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                          clip-rule="evenodd"/>
+                </svg>
             </li>
         </ol>
     </nav>
 
-    <div class="container">
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">diagramm</div>
-            </div>
-            <div class="col">
-                <span th:utext="${svg}">SVG</span>
-                <img th:src="${img}" src="a.png"/>
-            </div>
-        </div>
+    <!-- Zentrale Detail-Karte -->
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+        <!-- Karten-Header mit Elementname und XPath -->
+        <header class="p-6 border-b border-slate-200 bg-slate-50">
+            <h1 class="text-2xl font-bold text-slate-900" th:text="${element.elementName}">ElementName</h1>
+            <p class="mt-1 text-sm text-slate-600 font-mono" th:text="${element.xpath}">/path/to/element</p>
+        </header>
 
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">Documentation</div>
-            </div>
-            <div class="col">
-                <span th:each="doc: ${documentation}">
-                    <strong><div th:utext="${doc.getKey()}">KEY</div></strong>
-                    <div th:utext="${doc.getValue()}">VALUE</div>
-                </span>
-            </div>
-        </div>
+        <!-- Karten-Body mit allen Detail-Sektionen -->
+        <div class="p-6 md:p-8 space-y-10">
 
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">Sample Data</div>
-            </div>
-            <div class="col">
-                <span th:utext="${sampleData}">Sample Data</span>
-            </div>
-        </div>
+            <!-- Sektion: Diagramm -->
+            <section>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Diagramm</h2>
+                <div class="p-4 border border-slate-200 rounded-lg bg-slate-50/50 overflow-x-auto" th:utext="${svg}">
+                    <!-- SVG wird hier von Thymeleaf eingefügt -->
+                </div>
+            </section>
 
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">namespace</div>
-            </div>
-            <div class="col">
-                <span th:utext="${namespace}">Namespace</span>
-            </div>
-        </div>
+            <!-- Sektion: Dokumentation -->
+            <section th:if="${documentation != null and not #maps.isEmpty(documentation)}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Dokumentation</h2>
+                <div class="bg-slate-100/75 p-4 rounded-md space-y-2">
+                    <div th:each="doc: ${documentation}">
+                        <strong th:if="${doc.key != 'default'}" class="text-slate-700 block"
+                                th:utext="${doc.key}">KEY</strong>
+                        <p class="text-slate-600" th:utext="${doc.value}">VALUE</p>
+                    </div>
+                </div>
+            </section>
 
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">Level</div>
-            </div>
-            <div class="col">
-                <span th:text="${element.getLevel()}">1</span>
-            </div>
-        </div>
+            <!-- Sektion: Eigenschaften -->
+            <section>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Eigenschaften</h2>
+                <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
+                    <div class="flex flex-col">
+                        <dt class="text-sm font-medium text-slate-500">Typ</dt>
+                        <dd class="mt-1 text-slate-900 font-mono" th:text="${element.elementType}">element-type</dd>
+                    </div>
+                    <div class="flex flex-col">
+                        <dt class="text-sm font-medium text-slate-500">Kardinalität (min/max)</dt>
+                        <dd class="mt-1 text-slate-900 font-mono"
+                            th:text="${element.getXsdElement().getMinOccurs()} + ' / ' + ${element.getXsdElement().getMaxOccurs()}">
+                            1 / 1
+                        </dd>
+                    </div>
+                    <div class="flex flex-col">
+                        <dt class="text-sm font-medium text-slate-500">Namespace</dt>
+                        <dd class="mt-1 text-slate-900" th:utext="${namespace}">namespace</dd>
+                    </div>
+                    <div class="flex flex-col">
+                        <dt class="text-sm font-medium text-slate-500">Level</dt>
+                        <dd class="mt-1 text-slate-900" th:text="${element.level}">1</dd>
+                    </div>
+                    <div class="flex flex-col md:col-span-2" th:if="${sampleData != null and sampleData != '...'}">
+                        <dt class="text-sm font-medium text-slate-500">Beispieldaten</dt>
+                        <dd class="mt-1 text-slate-900 bg-slate-100 p-2 rounded-md font-mono text-sm"
+                            th:text="${sampleData}">Sample Data
+                        </dd>
+                    </div>
+                    <div class="flex flex-col md:col-span-full"
+                         th:if="${element.xsdRestrictionString != null and not #strings.isEmpty(element.xsdRestrictionString)}">
+                        <dt class="text-sm font-medium text-slate-500">Einschränkungen</dt>
+                        <dd class="mt-1 text-slate-900 bg-slate-100 p-2 rounded-md font-mono text-sm"
+                            th:text="${element.xsdRestrictionString}">RESTRICTIONS
+                        </dd>
+                    </div>
+                </dl>
+            </section>
 
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">type</div>
-            </div>
-            <div class="col">
-                <div th:text="${element.getXsdElement().getType()}">ELEMENT TYPE</div>
-            </div>
-        </div>
+            <!-- Sektion: Kind-Elemente & Attribute -->
+            <section th:if="${element.children != null and not #lists.isEmpty(element.children)}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Kind-Elemente &amp; Attribute</h2>
+                <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-sm">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Name (XPath)</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Typ</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Dokumentation</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm">
+                        <tr th:each="child: ${element.children}">
+                            <td class="px-4 py-3 font-mono">
+                                <a th:href="${this.getPageName(child)}" th:text="${child}"
+                                   class="text-sky-600 hover:text-sky-800 hover:underline">child-xpath</a>
+                            </td>
+                            <td class="px-4 py-3 font-mono" th:text="${this.getChildType(child)}">child-type</td>
+                            <td class="px-4 py-3 text-slate-600" th:text="${this.getChildDocumentation(child)}">
+                                child-docs
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">Properties</div>
-            </div>
-            <div class="col">
-                prop
-            </div>
-        </div>
+            <!-- Sektion: App Info -->
+            <section th:if="${appInfos != null and not #lists.isEmpty(appInfos)}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">App Info</h2>
+                <div class="space-y-2">
+                    <div th:each="appInfo: ${appInfos}" th:text="${appInfo}"
+                         class="p-3 bg-slate-100 rounded-md text-sm text-slate-700">APP INFO
+                    </div>
+                </div>
+            </section>
 
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">Children</div>
-            </div>
-            <div class="col">
-                <table class="table d-inline-block table-bordered table-sm">
-                    <thead>
-                    <tr>
-                        <td class="fw-bold text-center">XPah</td>
-                        <td class="fw-bold text-center">Type</td>
-                        <td class="fw-bold text-center">Documentation</td>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="child: ${element.getChildren()}">
+            <!-- Sektion: XML-Ausschnitt -->
+            <section th:if="${code != null}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">XML-Ausschnitt</h2>
+                <div class="rounded-lg overflow-hidden border border-slate-200">
+                    <pre class="language-xml !m-0"><code th:text="${code}">... code ...</code></pre>
+                </div>
+            </section>
 
-                        <!--/*-->
-                        falls child elemente vorhanden sind -> link rendern. ansonsten nur td element mit text
-                        <!--*/-->
-                        <td th:if="${element.hasChildren()}">
-                            <a th:href="${this.getPageName(child)}" th:text="${child}">CHILD</a>
-                        </td>
-                        <td th:unless="${element.hasChildren()}"
-                            th:text="${child}"/>
-
-                        <td th:text="${this.getChildType(child)}">
-                            someValue
-                        </td>
-
-                        <td th:text="${this.getChildDocumentation(child)}">INFO</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">Restrictions</div>
-            </div>
-            <div class="col">
-                <span th:text="${element.getXsdRestrictionString()}">RESTRICTIONS</span>
-            </div>
-        </div>
-
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">annotation</div>
-            </div>
-            <div class="col">
-                <table class="table d-inline-block table-bordered table-sm">
-                    <tbody>
-                    <tr>
-                        <td>Min Occurs</td>
-                        <td>
-                            <div class="col" th:text="${element.getXsdElement().getMinOccurs()}">MIN OCCURS</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Max Occurs</td>
-                        <td>
-                            <div class="col" th:text="${element.getXsdElement().getMaxOccurs()}">MAX OCCURS</div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">App Info</div>
-            </div>
-            <div class="col">
-                <span th:each="appInfo: ${appInfos}">
-                    <div th:text="${appInfo}">APP INFO</div>
-                </span>
-            </div>
-        </div>
-
-        <div class="row p-1 bg-gradient detail-row">
-            <div class="col-md-2">
-                <div class="float-end">source</div>
-            </div>
-            <div class="col">
-                <pre class="language-xml"><code th:text="${code}">Code</code></pre>
-            </div>
         </div>
     </div>
-</div>
+</main>
 
-<script src="../assets/bootstrap.bundle.min.js"></script>
+<!-- Skripte am Ende laden -->
 <script src="../assets/prism.js"></script>
 </body>
 </html>

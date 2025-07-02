@@ -123,8 +123,16 @@ public class XsdDocumentationService {
 
         xsdDocumentationHtmlService.copyResources();
         xsdDocumentationHtmlService.generateRootPage();
-        xsdDocumentationHtmlService.generateComplexTypePages();
-        xsdDocumentationHtmlService.generateSimpleTypePages();
+        try {
+            xsdDocumentationHtmlService.generateComplexTypePages();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        try {
+            xsdDocumentationHtmlService.generateSimpleTypePages();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
         if (parallelProcessing) {
             xsdDocumentationHtmlService.generateDetailsPagesInParallel();
         } else {

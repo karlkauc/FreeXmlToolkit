@@ -17,30 +17,29 @@
   -->
 
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>XSD Documentation</title>
+    <title th:text="'Complex Type: ' + ${complexType.getRawName()}">XSD Documentation</title>
 
     <link href="../assets/freeXmlToolkit.css" rel="stylesheet"/>
 </head>
 <body>
 
+<!-- Navigation -->
 <nav class="py-2 bg-body-tertiary border-bottom">
     <div class="container d-flex flex-wrap">
         <ul class="nav me-auto">
-            <li class="nav-item"><a href="../index.html" class="nav-link link-body-emphasis px-2 active"
-                                    aria-current="page">Home</a></li>
-            <li class="nav-item"><a href="../complexTypes.html" class="nav-link link-body-emphasis px-2">Complex
-                Types</a></li>
+            <li class="nav-item"><a href="../index.html" class="nav-link link-body-emphasis px-2">Home</a></li>
+            <li class="nav-item"><a href="../complexTypes.html" class="nav-link link-body-emphasis px-2 active"
+                                    aria-current="page">Complex Types</a></li>
             <li class="nav-item"><a href="../simpleTypes.html" class="nav-link link-body-emphasis px-2">Simple Types</a>
             </li>
         </ul>
         <ul class="nav">
             <li class="nav-item">
-                <a href="https://github.com/karlkauc/FreeXmlToolkit"
-                   target="_blank"
+                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
                    class="nav-link link-body-emphasis px-2">
                     <img src="../assets/logo.png" width="32" height="32" alt="logo"/>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -57,20 +56,65 @@
     </div>
 </nav>
 
-<div class="container">
-    <h1 th:text="${complexType.getRawName()}">Complex Types</h1>
+<!-- Hauptinhalt -->
+<div class="container mt-4 mb-4">
+    <div class="card">
+        <div class="card-header">
+            <!-- Titel und Badges -->
+            <h1>Complex Type: <span class="text-monospace" th:text="${complexType.getRawName()}">TypeName</span>
+                <span th:if="${complexType.isElementAbstract()}" class="badge bg-secondary align-middle">Abstract</span>
+                <span th:if="${complexType.isMixed()}" class="badge bg-info align-middle">Mixed Content</span>
+            </h1>
+        </div>
 
-    <div th:each="annotation : ${complexType.getAttributesMap()}">
-        <span th:text="${annotation.key}">KEY</span>
-        <span th:text="${annotation.value}">VALUE</span>
+        <div class="card-body">
+            <!-- Dokumentation -->
+            <div th:if="${documentations != null and not #lists.isEmpty(documentations)}">
+                <h4 class="card-title">Dokumentation</h4>
+                <div class="alert alert-secondary">
+                    <p th:each="doc : ${documentations}" th:text="${doc.getContent()}" class="mb-1"></p>
+                </div>
+            </div>
+
+            <!-- Attribute -->
+            <th:block
+                    th:if="${complexType != null and complexType.attributesMap != null and !#maps.isEmpty(complexType.attributesMap)}">
+                <!-- Inhalt -->
+            </th:block>
+            <div th:if="${complexType != null and complexType?.attributesMap != null and not #maps.isEmpty(complexType?.attributesMap)}">
+                <h4 class="card-title mt-4">Attribute</h4>
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Typ</th>
+                        <th>Verwendung</th>
+                        <th>Dokumentation</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="attr : ${complexType.getAttributesMap()}">
+                        <td class="text-monospace" th:text="${attr.getKey()}"></td>
+                        <!--
+                        <td>
+                            <!- Annahme: Es gibt eine Map 'typeLinks', die den Link zur Detailseite des Typs enthält ->
+                            <a th:href="${typeLinks[attr.getType()] ?: '#'}" th:text="${attr.getType()}"></a>
+                        </td>
+                        -->
+                        <td th:text="${attr.getValue()()}"></td>
+                        <!--<td th:text="${attr.getAnnotation()?.getDocumentations()?.get(0)?.getContent()}"></td> -->
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
     </div>
 
-    <h3>Documentation</h3>
-    <div th:each="documentation : ${documentations}">
-        <span th:text="${documentation.getSource()}">LANG</span>
-        <span th:text="${documentation.getContent()}">VALUE</span>
+    <!-- Navigations-Button zurück zur Übersicht -->
+    <div class="mt-3">
+        <a href="../complexTypes.html" class="btn btn-primary">Zurück zur Übersicht</a>
     </div>
-
 </div>
 
 <script src="../assets/bootstrap.bundle.min.js"></script>

@@ -286,6 +286,7 @@ public class XsdDocumentationHtmlService {
                 breadCrumbs.put(element, link);
             }
         }
+
         return breadCrumbs;
     }
 

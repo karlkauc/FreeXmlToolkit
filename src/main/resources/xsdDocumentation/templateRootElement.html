@@ -17,53 +17,57 @@
   -->
 
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
+<!-- Setzt eine leichte Hintergrundfarbe für die ganze Seite -->
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>XSD Documentation</title>
-    <link href="assets/freeXmlToolkit.css" rel="stylesheet"/>
+    <!-- Einbindung von Tailwind CSS über CDN für eine einfache Integration -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Optionale: Eigene Design-Anpassungen für Tailwind
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'], // Eine moderne, gut lesbare Schriftart
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
-<body>
+<body class="font-sans text-slate-800">
 
-<nav class="py-2 bg-body-tertiary border-bottom bg-newlight">
-    <div class="container d-flex flex-wrap">
-        <ul class="nav me-auto">
-            <li class="nav-item">
-                <a href="#" class="nav-link link-body-emphasis px-2 active"
-                   aria-current="page">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                         class="bi bi-house" viewBox="0 0 16 16">
-                        <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/>
-                    </svg>
-                    Home
+<!-- Moderne Navigation mit Schatten und klaren Abständen -->
+<nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <!-- Linke Navigationsgruppe -->
+            <div class="flex items-center space-x-8">
+                <a href="#" class="flex items-center space-x-2 text-slate-700 font-bold">
+                    <img src="assets/logo.png" alt="logo" class="h-8 w-8"/>
+                    <span>FreeXmlToolKit</span>
                 </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link link-body-emphasis px-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                         class="bi bi-diamond-fill" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd"
-                              d="M6.95.435c.58-.58 1.52-.58 2.1 0l6.515 6.516c.58.58.58 1.519 0 2.098L9.05 15.565c-.58.58-1.519.58-2.098 0L.435 9.05a1.482 1.482 0 0 1 0-2.098L6.95.435z"/>
-                    </svg>
-                    Complex Types
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link link-body-emphasis px-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                         class="bi bi-diamond" viewBox="0 0 16 16">
-                        <path d="M6.95.435c.58-.58 1.52-.58 2.1 0l6.515 6.516c.58.58.58 1.519 0 2.098L9.05 15.565c-.58.58-1.519.58-2.098 0L.435 9.05a1.482 1.482 0 0 1 0-2.098L6.95.435zm1.4.7a.495.495 0 0 0-.7 0L1.134 7.65a.495.495 0 0 0 0 .7l6.516 6.516a.495.495 0 0 0 .7 0l6.516-6.516a.495.495 0 0 0 0-.7L8.35 1.134z"/>
-                    </svg>
-                    Simple Types</a>
-            </li>
-        </ul>
-        <ul class="nav">
-            <li class="nav-item">
-                <a href="https://github.com/karlkauc/FreeXmlToolkit"
-                   target="_blank"
-                   class="nav-link link-body-emphasis px-2">
-                    <img src="assets/logo.png" alt="logo"/>
+                <div class="hidden md:flex items-baseline space-x-6">
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
+                       aria-current="page">Home</a>
+                    <a href="#"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Complex
+                        Types</a>
+                    <a href="#"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Simple
+                        Types</a>
+                </div>
+            </div>
+            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <div class="hidden md:block">
+                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
+                   class="inline-flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900">
+                    <span>GitHub</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                          class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
                         <path fill-rule="evenodd"
@@ -71,78 +75,102 @@
                         <path fill-rule="evenodd"
                               d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
                     </svg>
-                    FreeXmlToolKit
                 </a>
-            </li>
-        </ul>
+            </div>
+        </div>
     </div>
 </nav>
 
-<div class="container pt-3">
-    <div class="grid">
-        <span>Date Created:</span>
-        <span th:text="${date}">2022-12-30</span>
+<!-- Hauptinhalt mit großzügigem Padding -->
+<main class="container mx-auto px-4 py-8 md:py-12">
 
-        <span>Filename:</span>
-        <span th:utext="${filename}">filename.xsd</span>
-
-        <span>Root Element Name</span>
-        <span th:utext="${rootElementName}">Root Element Name</span>
-
-        <span>attributeFormDefault</span>
-        <span th:utext="${rootElement.getAttributeFormDefault()}">UNQUALIFIED</span>
-
-        <span>elementFormDefault</span>
-        <span th:utext="${rootElement.getElementFormDefault()}">UNQUALIFIED</span>
-
-        <span>Namespaces</span>
-        <span th:utext="${namespace}">Namespace List</span>
-
-        <span>TargetNamespace</span>
-        <span th:text="${targetNamespace}">TargetName</span>
-
-        <span>noNamespaceLocation</span>
-        <span>DEFAULT</span>
+    <!-- Informations-Grid als "Card" für Metadaten -->
+    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 mb-12">
+        <h2 class="text-xl font-semibold text-slate-900 mb-4">Schema-Informationen</h2>
+        <!-- Semantische Definitionsliste für bessere Struktur und Zugänglichkeit -->
+        <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+            <div class="flex flex-col">
+                <dt class="text-sm font-medium text-slate-500">Erstellt am</dt>
+                <dd class="mt-1 text-slate-900" th:text="${date}">2022-12-30</dd>
+            </div>
+            <div class="flex flex-col">
+                <dt class="text-sm font-medium text-slate-500">Dateiname</dt>
+                <dd class="mt-1 text-slate-900" th:utext="${filename}">filename.xsd</dd>
+            </div>
+            <div class="flex flex-col">
+                <dt class="text-sm font-medium text-slate-500">Wurzelelement</dt>
+                <dd class="mt-1 font-mono text-slate-900" th:utext="${rootElementName}">RootElementName</dd>
+            </div>
+            <div class="flex flex-col">
+                <dt class="text-sm font-medium text-slate-500">Target Namespace</dt>
+                <dd class="mt-1 text-slate-900" th:text="${targetNamespace}">TargetName</dd>
+            </div>
+            <div class="flex flex-col">
+                <dt class="text-sm font-medium text-slate-500">attributeFormDefault</dt>
+                <dd class="mt-1 font-mono text-sm text-slate-900" th:utext="${rootElement.getAttributeFormDefault()}">
+                    UNQUALIFIED
+                </dd>
+            </div>
+            <div class="flex flex-col">
+                <dt class="text-sm font-medium text-slate-500">elementFormDefault</dt>
+                <dd class="mt-1 font-mono text-sm text-slate-900" th:utext="${rootElement.getElementFormDefault()}">
+                    UNQUALIFIED
+                </dd>
+            </div>
+            <div class="flex flex-col md:col-span-2">
+                <dt class="text-sm font-medium text-slate-500">Namespaces</dt>
+                <dd class="mt-1 font-mono text-xs text-slate-700 bg-slate-100 p-2 rounded" th:utext="${namespace}">
+                    Namespace List
+                </dd>
+            </div>
+        </dl>
     </div>
 
-    <hr/>
+    <!-- Tabelle in einer "Card" für eine saubere Abgrenzung -->
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+                <th scope="col" class="px-6 py-4 text-sm font-semibold text-slate-900">Elements</th>
+                <th scope="col" class="px-6 py-4 text-sm font-semibold text-slate-900">Complex Types</th>
+                <th scope="col" class="px-6 py-4 text-sm font-semibold text-slate-900">Simple Types</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+            <tr>
+                <td class="px-6 py-4 align-top">
+                    <!-- Vertikales Layout für die Links -->
+                    <div class="flex flex-col space-y-2">
+                        <a href="#"
+                           th:each="xsdElement : ${xsdElements}"
+                           th:href="${rootElementLink}"
+                           th:text="${xsdElement.name}"
+                           class="text-sky-600 hover:text-sky-800 hover:underline">Name
+                        </a>
+                    </div>
+                </td>
+                <td class="px-6 py-4 align-top">
+                    <div class="flex flex-col space-y-2">
+                        <a th:each="xsdComplexType : ${xsdComplexTypes}"
+                           th:href="${'complexTypes/' + xsdComplexType.name + '.html'}"
+                           th:text="${xsdComplexType.name}"
+                           class="text-sky-600 hover:text-sky-800 hover:underline">LINK</a>
+                    </div>
+                </td>
+                <td class="px-6 py-4 align-top">
+                    <div class="flex flex-col space-y-2">
+                        <a th:each="xsdSimpleType : ${xsdSimpleTypes}"
+                           th:href="${'simpleTypes/' + xsdSimpleType.name + '.html'}"
+                           th:text="${xsdSimpleType.name}"
+                           class="text-sky-600 hover:text-sky-800 hover:underline">LINK</a>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 
-    <table class="table table-bordered">
-        <thead>
-        <tr>
-            <th scope="col">Elements</th>
-            <th scope="col">Complex Types</th>
-            <th scope="col">Simple Types</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td class="align-text-top">
-                <a href="#"
-                   th:each="xsdElement : ${xsdElements}"
-                   th:href="${rootElementLink}"
-                   th:text="${xsdElement.name}">Name
-                </a>
-            </td>
-            <td class="align-text-top">
-                <div th:each="xsdComplexType, iterStat : ${xsdComplexTypes}"
-                     class="bg-gradient detail-row p-1">
-                    <a th:href="${'complexTypes/' + xsdComplexType.name + '.html'}"
-                       th:text="${xsdComplexType.name}">LINK</a>
-                </div>
-            </td>
-            <td class="align-text-top">
-                <div th:each="xsdSimpleType, iterStat : ${xsdSimpleTypes}"
-                     class="bg-gradient detail-row p-1">
-                    <a th:href="${'simpleTypes/' + xsdSimpleType.name + '.html'}"
-                       th:text="${xsdSimpleType.name}">LINK</a>
-                </div>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+</main>
 
-</div>
-<script src="assets/bootstrap.bundle.min.js"></script>
 </body>
 </html>
