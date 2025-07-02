@@ -105,7 +105,7 @@ public class GenerateXsdHtmlDocumentationTest {
 
     @Test
     void generateHtmlDoc() throws IOException {
-        final var testFilePath = Paths.get("examples/xsd/purchageOrder.xsd");
+        final var testFilePath = Paths.get("release/examples/xsd/FundsXML_428.xsd");
         final var outputFilePath = Paths.get("output/test");
         this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());
         this.xsdDocumentationService.setXmlService(xmlService);

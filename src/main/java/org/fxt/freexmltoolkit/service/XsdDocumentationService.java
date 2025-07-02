@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xmlet.xsdparser.core.XsdParser;
@@ -67,6 +68,8 @@ public class XsdDocumentationService {
     XsdParser parser;
     XmlService xmlService = XmlServiceImpl.getInstance();
 
+    String prefix;
+
     public XsdDocumentationService() {
         method = ImageOutputMethod.SVG;
     }
@@ -74,6 +77,7 @@ public class XsdDocumentationService {
     public void setXsdFilePath(String xsdFilePath) {
         this.xsdFilePath = xsdFilePath;
         this.xsdDocumentationData.setXsdFilePath(xsdFilePath);
+        this.prefix = getSchemaPrefix();
     }
 
     public ImageOutputMethod getMethod() {
@@ -135,7 +139,7 @@ public class XsdDocumentationService {
 
         for (XsdElement xsdElement : xsdDocumentationData.getElements()) {
             var elementName = xsdElement.getRawName();
-            final Node startNode = xmlService.getNodeFromXpath("//xs:element[@name='" + elementName + "']");
+            final Node startNode = xmlService.getNodeFromXpath("//" + this.prefix + ":element[@name='" + elementName + "']");
             getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
         }
     }
@@ -225,7 +229,7 @@ public class XsdDocumentationService {
 
                 if (currentType == null) {
                     /* reines element - kein complex/simple - aber children. in doku aufnehmen und mit kinder weiter machen */
-                    Node nodeFromXpath = xmlService.getNodeFromXpath("//xs:element[@name='" + xsdElement.getRawName() + "']", parentNode);
+                    Node nodeFromXpath = xmlService.getNodeFromXpath("//" + this.prefix + ":element[@name='" + xsdElement.getRawName() + "']", parentNode);
                     String elementString = xmlService.getNodeAsString(nodeFromXpath);
 
                     extendedXsdElement.setCurrentNode(nodeFromXpath);
@@ -244,6 +248,14 @@ public class XsdDocumentationService {
                             for (ReferenceBase referenceBase : xsdElement.getXsdComplexType().getElements()) {
                                 getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, nodeFromXpath);
                             }
+
+                            // NEU: Verarbeite auch die Attribute des ComplexType
+                            if (xsdElement.getXsdComplexType().getAllXsdAttributes() != null) {
+                                xsdElement.getXsdComplexType().getAllXsdAttributes().forEach(xsdAttribute -> {
+                                    // Wir rufen die Methode direkt mit dem xsdAttribute auf
+                                    getXsdAbstractElementInfo(level + 1, xsdAttribute, prevTemp, prevPathTemp, nodeFromXpath);
+                                });
+                            }
                             return;
                         }
                     }
@@ -259,7 +271,6 @@ public class XsdDocumentationService {
                 ArrayList<String> prevTemp = new ArrayList<>(prevElementTypes);
                 prevTemp.add(currentType);
 
-
                 ArrayList<String> prevPathTemp = new ArrayList<>(prevElementPath);
                 prevPathTemp.add(xsdElement.getName());
 
@@ -268,8 +279,8 @@ public class XsdDocumentationService {
                     XsdComplexType xsdComplexType = xsdElement.getXsdComplexType();
                     System.out.println("xsdComplexType.getName() = " + xsdComplexType.getName());
 
-                    var currentNode = xmlService.getNodeFromXpath("//xs:complexType[@name='" + xsdComplexType.getRawName() + "']", parentNode);
-                    var s = xmlService.getXmlFromXpath("//xs:complexType[@name='" + xsdComplexType.getRawName() + "']");
+                    var currentNode = xmlService.getNodeFromXpath("//" + this.prefix + ":complexType[@name='" + xsdComplexType.getRawName() + "']", parentNode);
+                    var s = xmlService.getXmlFromXpath("//" + this.prefix + ":complexType[@name='" + xsdComplexType.getRawName() + "']");
 
                     if (currentNode == null) {
                         currentNode = parentNode;
@@ -294,8 +305,8 @@ public class XsdDocumentationService {
                     final XsdSimpleType xsdSimpleType = xsdElement.getXsdSimpleType();
                     logger.debug("xsdSimpleType = {}", xsdSimpleType.getName());
 
-                    var currentNode = xmlService.getNodeFromXpath("//xs:simpleType[@name='" + xsdSimpleType.getRawName() + "']", parentNode);
-                    final var xmlFromXpath = xmlService.getXmlFromXpath("//xs:simpleType[@name='" + xsdSimpleType.getRawName() + "']");
+                    var currentNode = xmlService.getNodeFromXpath("//" + this.prefix + ":simpleType[@name='" + xsdSimpleType.getRawName() + "']", parentNode);
+                    final var xmlFromXpath = xmlService.getXmlFromXpath("//" + this.prefix + ":simpleType[@name='" + xsdSimpleType.getRawName() + "']");
 
                     if (currentNode == null) {
                         currentNode = parentNode;
@@ -358,6 +369,139 @@ public class XsdDocumentationService {
                 }
             }
 
+            case XsdAny xsdAny -> {
+                logger.debug("XsdAny = {}", xsdAny);
+
+                // Erstellt ein neues Dokumentations-Element für den xs:any Platzhalter.
+                ExtendedXsdElement x = new ExtendedXsdElement();
+                x.setCounter(counter++);
+                x.setUseMarkdownRenderer(useMarkdownRenderer);
+                x.setLevel(level);
+                x.setElementName(this.prefix + ":any"); // Ein deskriptiver Name für die Anzeige
+
+                // Da <xs:any> keinen 'name'-Attribut hat, erstellen wir einen eindeutigen XPath.
+                final String parentXpath = "/" + String.join("/", prevElementPath);
+                String currentXpath = parentXpath + "/any_" + x.getCounter();
+                x.setParentXpath(parentXpath);
+                x.setCurrentXpath(currentXpath);
+
+                // Verknüpft dieses Element mit seinem Eltern-Element in der Hierarchie.
+                if (!prevElementPath.isEmpty()) {
+                    xsdDocumentationData.getExtendedXsdElementMap().get(parentXpath).getChildren().add(currentXpath);
+                    logger.debug("Added current Node {} to parent {}", currentXpath, parentXpath);
+                }
+
+                // Extrahiert eine eventuell vorhandene Dokumentation (Annotation).
+                if (xsdAny.getAnnotation() != null && xsdAny.getAnnotation().getDocumentations() != null) {
+                    x.setXsdDocumentation(xsdAny.getAnnotation().getDocumentations());
+                }
+
+                // Beschreibt den Typ des Elements basierend auf seinen Eigenschaften.
+                String namespaceInfo = xsdAny.getNamespace() != null ? xsdAny.getNamespace() : "##any";
+                String processContentsInfo = xsdAny.getProcessContents() != null ? xsdAny.getProcessContents() : "strict";
+                x.setElementType(String.format("Wildcard (namespace: %s, process: %s)", namespaceInfo, processContentsInfo));
+
+                // Versucht, den Quellcode-Ausschnitt des <xs:any>-Tags zu finden.
+                Node anyNode = xmlService.getNodeFromXpath(this.prefix + ":any", parentNode);
+                if (anyNode != null) {
+                    x.setCurrentNode(anyNode);
+                    x.setSourceCode(xmlService.getNodeAsString(anyNode));
+                }
+
+                // Fügt das neue Element zur globalen Map hinzu.
+                xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, x);
+
+                // Keine rekursive Verarbeitung, da <xs:any> ein Endpunkt ist.
+            }
+
+            case XsdAttribute xsdAttribute -> {
+                logger.debug("XsdAttribute = {}", xsdAttribute.getName());
+
+                // Erstellt ein neues Dokumentations-Element für das Attribut.
+                ExtendedXsdElement x = new ExtendedXsdElement();
+                x.setCounter(counter++);
+                x.setUseMarkdownRenderer(useMarkdownRenderer);
+                x.setLevel(level);
+                // Das '@' ist eine gängige Konvention, um Attribute zu kennzeichnen.
+                x.setElementName("@" + xsdAttribute.getName());
+
+                // Erstellt einen eindeutigen XPath für das Attribut.
+                final String parentXpath = "/" + String.join("/", prevElementPath);
+                String currentXpath = parentXpath + "/@" + xsdAttribute.getName();
+                x.setParentXpath(parentXpath);
+                x.setCurrentXpath(currentXpath);
+
+                // Verknüpft dieses Attribut mit seinem Eltern-Element in der Hierarchie.
+                if (!prevElementPath.isEmpty()) {
+                    xsdDocumentationData.getExtendedXsdElementMap().get(parentXpath).getChildren().add(currentXpath);
+                    logger.debug("Added current Node {} to parent {}", currentXpath, parentXpath);
+                }
+
+                // Extrahiert eine eventuell vorhandene Dokumentation (Annotation).
+                if (xsdAttribute.getAnnotation() != null && xsdAttribute.getAnnotation().getDocumentations() != null) {
+                    x.setXsdDocumentation(xsdAttribute.getAnnotation().getDocumentations());
+                }
+
+                // Setzt den Typ des Attributs.
+                x.setElementType(xsdAttribute.getType());
+                if (xsdAttribute.getXsdSimpleType() != null && xsdAttribute.getXsdSimpleType().getRestriction() != null) {
+                    x.setXsdRestriction(xsdAttribute.getXsdSimpleType().getRestriction());
+                    if (x.getElementType() == null) {
+                        x.setElementType(xsdAttribute.getXsdSimpleType().getRestriction().getBase());
+                    }
+                }
+
+                // Versucht, den Quellcode-Ausschnitt des <xs:attribute>-Tags zu finden.
+                Node attributeNode = xmlService.getNodeFromXpath(this.prefix + ":attribute[@name='" + xsdAttribute.getName() + "']", parentNode);
+                if (attributeNode != null) {
+                    x.setCurrentNode(attributeNode);
+                    x.setSourceCode(xmlService.getNodeAsString(attributeNode));
+                }
+
+                // Fügt das neue Element zur globalen Map hinzu.
+                xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, x);
+
+                // Keine rekursive Verarbeitung, da Attribute Endpunkte sind.
+            }
+            case XsdComplexContent xsdComplexContent -> {
+                logger.debug("XsdComplexContent = {}", xsdComplexContent);
+                // Dies ist ein Wrapper, der die Rekursion an seinen Inhalt (extension oder restriction) weiterleitet.
+                // Die Ebene (level) wird beibehalten, da dies nur ein logischer Container ist.
+                if (xsdComplexContent.getXsdExtension() != null) {
+                    getXsdAbstractElementInfo(level, xsdComplexContent.getXsdExtension(), prevElementTypes, prevElementPath, parentNode);
+                }
+                if (xsdComplexContent.getXsdRestriction() != null) {
+                    getXsdAbstractElementInfo(level, xsdComplexContent.getXsdRestriction(), prevElementTypes, prevElementPath, parentNode);
+                }
+            }
+            case XsdSimpleContent xsdSimpleContent -> {
+                logger.debug("XsdSimpleContent = {}", xsdSimpleContent);
+                // Dies ist ein Wrapper, der die Rekursion an seinen Inhalt (extension oder restriction) weiterleitet.
+                if (xsdSimpleContent.getXsdExtension() != null) {
+                    getXsdAbstractElementInfo(level, xsdSimpleContent.getXsdExtension(), prevElementTypes, prevElementPath, parentNode);
+                }
+                if (xsdSimpleContent.getXsdRestriction() != null) {
+                    getXsdAbstractElementInfo(level, xsdSimpleContent.getXsdRestriction(), prevElementTypes, prevElementPath, parentNode);
+                }
+            }
+            case XsdRestriction xsdRestriction -> {
+                logger.debug("XsdRestriction = {}", xsdRestriction);
+                // Eine Restriction kann Attribute und Kind-Elemente (z.B. in einem Kompositor) enthalten.
+                // Wir leiten die Verarbeitung an diese weiter.
+
+                // Verarbeite Attribute in der Restriction
+                if (xsdRestriction.getXsdAttributes() != null) {
+                    xsdRestriction.getXsdAttributes().forEach(xsdAttribute -> {
+                        getXsdAbstractElementInfo(level + 1, xsdAttribute, prevElementTypes, prevElementPath, parentNode);
+                    });
+                }
+
+                // Verarbeite Kind-Elemente in der Restriction (falls vorhanden)
+                for (ReferenceBase x : xsdRestriction.getElements()) {
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
+                }
+            }
+
             default -> throw new IllegalStateException("Unexpected value: " + xsdAbstractElement);
         }
     }
@@ -392,5 +536,33 @@ public class XsdDocumentationService {
         return null;
     }
 
+
+    public String getSchemaPrefix() {
+        try {
+            // 1. Factory und Builder erstellen
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            // Wichtig: Namespace-Unterstützung aktivieren
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+
+            // 2. XSD-Datei parsen
+            Document doc = builder.parse(new File(xsdFilePath));
+
+            // 3. Wurzelelement holen
+            Element rootElement = doc.getDocumentElement();
+
+            // 4. Überprüfen, ob es sich um das Schema-Element handelt
+            // Der "local name" ist der Name ohne Präfix.
+            if (rootElement != null && "schema".equals(rootElement.getLocalName())) {
+                // 5. Das Präfix zurückgeben
+                return rootElement.getPrefix();
+            }
+
+        } catch (Exception e) {
+            logger.error("Fehler beim Parsen der XML-Datei: {}", e.getMessage());
+        }
+
+        return null; // Falls etwas schiefgeht oder es kein Schema ist
+    }
 }
 
