@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Simple Type: ' + ${simpleType.name}">Simple Type Details</title>
+    <!-- Verweis auf die zentrale CSS-Datei für ein konsistentes Design -->
+    <link href="../assets/freeXmlToolkit.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-4 mb-4">
+    <!-- Haupt-Karte für den Simple Type -->
+    <div class="card">
+        <div class="card-header">
+            <!-- Titel mit dem Namen des Typs -->
+            <h1>Simple Type: <span class="text-monospace" th:text="${simpleType.name}">TypeName</span></h1>
+        </div>
+        <div class="card-body">
+            <!-- 1. Dokumentation (falls vorhanden) -->
+            <div th:if="${documentations != null and not #lists.isEmpty(documentations)}">
+                <h4 class="card-title">Dokumentation</h4>
+                <div class="alert alert-secondary">
+                    <!-- Iteriert durch alle Dokumentations-Einträge -->
+                    <p th:each="doc : ${documentations}" th:text="${doc.content}" class="mb-1"></p>
+                </div>
+            </div>
+
+            <!-- 2. Einschränkungen (Restrictions) -->
+            <div th:if="${restriction != null}">
+                <h4 class="card-title mt-4">Einschränkungen (Restrictions)</h4>
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-light">
+                    <tr>
+                        <th style="width: 250px;">Eigenschaft</th>
+                        <th>Wert</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Basis-Typ -->
+                    <tr>
+                        <th>Basis-Typ</th>
+                        <td><code th:text="${restriction.base}">xs:string</code></td>
+                    </tr>
+                    <!-- Längen-Einschränkungen -->
+                    <tr th:if="${restriction.length != null}">
+                        <th>Feste Länge (length)</th>
+                        <td th:text="${restriction.length.value}"></td>
+                    </tr>
+                    <tr th:if="${restriction.minLength != null}">
+                        <th>Minimale Länge (minLength)</th>
+                        <td th:text="${restriction.minLength.value}"></td>
+                    </tr>
+                    <tr th:if="${restriction.maxLength != null}">
+                        <th>Maximale Länge (maxLength)</th>
+                        <td th:text="${restriction.maxLength.value}"></td>
+                    </tr>
+                    <!-- Pattern (Regulärer Ausdruck) -->
+                    <tr th:if="${restriction.pattern != null}">
+                        <th>Pattern (Muster)</th>
+                        <td><code class="text-monospace" th:text="${restriction.pattern.value}"></code></td>
+                    </tr>
+                    <!-- Wertebereich-Einschränkungen -->
+                    <tr th:if="${restriction.minInclusive != null}">
+                        <th>Minimaler Wert (inklusiv)</th>
+                        <td th:text="${restriction.minInclusive.value}"></td>
+                    </tr>
+                    <tr th:if="${restriction.maxInclusive != null}">
+                        <th>Maximaler Wert (inklusiv)</th>
+                        <td th:text="${restriction.maxInclusive.value}"></td>
+                    </tr>
+                    <tr th:if="${restriction.minExclusive != null}">
+                        <th>Minimaler Wert (exklusiv)</th>
+                        <td th:text="${restriction.minExclusive.value}"></td>
+                    </tr>
+                    <tr th:if="${restriction.maxExclusive != null}">
+                        <th>Maximaler Wert (exklusiv)</th>
+                        <td th:text="${restriction.maxExclusive.value}"></td>
+                    </tr>
+                    <!-- Ziffern-Einschränkungen -->
+                    <tr th:if="${restriction.totalDigits != null}">
+                        <th>Gesamtzahl Ziffern (totalDigits)</th>
+                        <td th:text="${restriction.totalDigits.value}"></td>
+                    </tr>
+                    <tr th:if="${restriction.fractionDigits != null}">
+                        <th>Anzahl Nachkommastellen (fractionDigits)</th>
+                        <td th:text="${restriction.fractionDigits.value}"></td>
+                    </tr>
+                    <!-- Enumeration (Aufzählung von Werten) -->
+                    <tr th:if="${restriction.enumeration != null and not #lists.isEmpty(restriction.enumeration)}">
+                        <th>Erlaubte Werte (enumeration)</th>
+                        <td>
+                            <ul class="list-unstyled mb-0">
+                                <li th:each="enumValue : ${restriction.enumeration}" class="mb-1">
+                                    <!-- Der erlaubte Wert -->
+                                    <code th:text="${enumValue.value}"></code>
+                                    <!-- Dokumentation für den einzelnen Enum-Wert (falls vorhanden) -->
+                                    <div th:if="${enumValue.annotation != null and enumValue.annotation.documentations != null and not #lists.isEmpty(enumValue.annotation.documentations)}">
+                                        <small th:each="doc : ${enumValue.annotation.documentations}"
+                                               th:text="${doc.content}"></small>
+                                    </div>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Fallback-Nachricht, falls keine Einschränkungen definiert sind -->
+            <div th:if="${restriction == null}">
+                <p class="text-muted">Für diesen Typ sind keine spezifischen Einschränkungen definiert.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigations-Button zurück zur Übersicht -->
+    <div class="mt-3">
+        <a href="../index.html" class="btn btn-primary">Zurück zur Übersicht</a>
+    </div>
+</div>
+
+</body>
+</html>

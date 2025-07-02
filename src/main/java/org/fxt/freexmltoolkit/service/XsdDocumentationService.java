@@ -40,6 +40,10 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -120,6 +124,7 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.copyResources();
         xsdDocumentationHtmlService.generateRootPage();
         xsdDocumentationHtmlService.generateComplexTypePages();
+        xsdDocumentationHtmlService.generateSimpleTypePages();
         if (parallelProcessing) {
             xsdDocumentationHtmlService.generateDetailsPagesInParallel();
         } else {
@@ -291,6 +296,8 @@ public class XsdDocumentationService {
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
+                    // NEU
+                    // extendedXsdElement.setSampleData(generateSampleData(extendedXsdElement));
                     extendedXsdElement.setElementType(xsdComplexType.getName());
 
                     xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
@@ -329,6 +336,7 @@ public class XsdDocumentationService {
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
+                    extendedXsdElement.setSampleData(generateSampleData(extendedXsdElement, 0));
 
                     xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
                 }
@@ -409,6 +417,8 @@ public class XsdDocumentationService {
                 }
 
                 // Fügt das neue Element zur globalen Map hinzu.
+                // extendedXsdElement.setSampleData(generateSampleData(extendedXsdElement));
+
                 xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
 
                 // Keine rekursive Verarbeitung, da <xs:any> ein Endpunkt ist.
@@ -457,6 +467,7 @@ public class XsdDocumentationService {
                     extendedXsdElement.setSourceCode(xmlService.getNodeAsString(attributeNode));
                 }
 
+                // extendedXsdElement.setSampleData(generateSampleData(extendedXsdElement));
                 // Fügt das neue Element zur globalen Map hinzu.
                 xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
 
@@ -563,5 +574,112 @@ public class XsdDocumentationService {
 
         return null; // Falls etwas schiefgeht oder es kein Schema ist
     }
-}
 
+    /**
+     * Generiert Beispieldaten für ein gegebenes XSD-Element unter Berücksichtigung
+     * von Datentypen und Einschränkungen.
+     *
+     * @param element Das ExtendedXsdElement, für das Daten generiert werden sollen.
+     * @return Ein String mit den passenden Beispieldaten.
+     */
+    private static String generateSampleData(ExtendedXsdElement element, int recursionDepth) {
+        if (element == null || recursionDepth > 10) { // Maximale Rekursionstiefe
+            return "";
+        }
+
+        // Priorität 1: Enumerations (Auswahllisten)
+        XsdRestriction restriction = element.getXsdRestriction();
+        if (restriction != null && restriction.getEnumeration() != null && !restriction.getEnumeration().isEmpty()) {
+            return restriction.getEnumeration().get(0).getValue();
+        }
+
+        // Priorität 2: Datentyp-basierte Generierung
+        String elementType = element.getElementType();
+        if (elementType == null && restriction != null) {
+            elementType = restriction.getBase();
+        }
+
+        // Für komplexe Typen ohne einfachen Inhalt gibt es keine direkten Beispieldaten
+        if (elementType == null || element.getXsdElement() != null && element.getXsdElement().getXsdComplexType() != null) {
+            return "...";
+        }
+
+        // Normalisiere den Typnamen (z.B. "xs:string" -> "string")
+        String finalType = elementType.substring(elementType.lastIndexOf(":") + 1);
+
+        switch (finalType.toLowerCase()) {
+            case "string":
+            case "token":
+            case "normalizedstring":
+            case "language":
+            case "name":
+            case "ncname":
+                String sample = "Beispieltext";
+                if (restriction != null) {
+                    if (restriction.getMinLength() != null) {
+                        int min = restriction.getMinLength().getValue();
+                        while (sample.length() < min) {
+                            sample += " Text";
+                        }
+                    }
+                    if (restriction.getMaxLength() != null) {
+                        int max = restriction.getMaxLength().getValue();
+                        if (sample.length() > max) {
+                            sample = sample.substring(0, max);
+                        }
+                    }
+                    if (restriction.getLength() != null) {
+                        int len = restriction.getLength().getValue();
+                        sample = "x".repeat(Math.max(0, len));
+                    }
+                }
+                return sample;
+
+            case "decimal":
+                if (restriction != null && restriction.getMinInclusive() != null) {
+                    return restriction.getMinInclusive().getValue();
+                }
+                return "123.45";
+
+            case "integer":
+            case "positiveinteger":
+            case "nonnegativeinteger":
+            case "negativeinteger":
+            case "nonpositiveinteger":
+            case "long":
+            case "int":
+            case "short":
+            case "byte":
+            case "unsignedlong":
+            case "unsignedint":
+            case "unsignedshort":
+            case "unsignedbyte":
+                if (restriction != null && restriction.getMinInclusive() != null) {
+                    return restriction.getMinInclusive().getValue();
+                }
+                return "100";
+
+            case "date":
+                return LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE); // z.B. "2024-10-26"
+            case "datetime":
+                return LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME); // z.B. "2024-10-26T10:00:00"
+            case "time":
+                return LocalTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME); // z.B. "10:00:00"
+            case "gyear":
+                return String.valueOf(LocalDate.now().getYear()); // z.B. "2024"
+
+            case "boolean":
+                return "true";
+
+            // Modifizierter default-Block
+            default:
+                if (restriction != null && restriction.getBase() != null) {
+                    ExtendedXsdElement tempElement = new ExtendedXsdElement();
+                    tempElement.setElementType(restriction.getBase());
+                    tempElement.setXsdRestriction(restriction);
+                    return generateSampleData(tempElement, recursionDepth + 1);
+                }
+                return "";
+        }
+    }
+}

@@ -134,7 +134,7 @@
             <td class="align-text-top">
                 <div th:each="xsdSimpleType, iterStat : ${xsdSimpleTypes}"
                      class="bg-gradient detail-row p-1">
-                    <a th:href="${'#' + xsdSimpleType.name}"
+                    <a th:href="${'simpleTypes/' + xsdSimpleType.name + '.html'}"
                        th:text="${xsdSimpleType.name}">LINK</a>
                 </div>
             </td>

@@ -149,13 +149,50 @@ public class XsdDocumentationHtmlService {
         }
     }
 
+    void generateSimpleTypePages() {
+        logger.debug("Generating Simple Type Pages");
+
+        // Iteriere durch alle gefundenen SimpleTypes aus den XSD-Daten
+        for (var simpleType : xsdDocumentationData.getXsdSimpleTypes()) {
+            // Erstelle einen neuen Kontext für das Thymeleaf-Template
+            var context = new Context();
+
+            // Füge die relevanten Daten zum Kontext hinzu, damit sie im Template verfügbar sind
+            context.setVariable("simpleType", simpleType);
+            context.setVariable("restriction", simpleType.getRestriction());
+
+            // Füge die Dokumentation hinzu, falls vorhanden
+            if (simpleType.getAnnotation() != null
+                    && simpleType.getAnnotation().getDocumentations() != null) {
+                context.setVariable("documentations", simpleType.getAnnotation().getDocumentations());
+            }
+
+            // Verarbeite das Template mit den gefüllten Daten
+            final var result = templateEngine.process("simpleTypes/templateSimpleType", context);
+
+            // Definiere den Ausgabepfad und den Dateinamen
+            final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", simpleType.getName() + ".html");
+            logger.debug("File: {}", outputFilePath.toFile().getAbsolutePath());
+
+            // Schreibe die generierte HTML-Datei in das Ausgabeverzeichnis
+            try {
+                Files.write(outputFilePath, result.getBytes());
+                logger.debug("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
+            } catch (IOException e) {
+                // Wirf eine RuntimeException, um den Prozess bei einem Fehler abzubrechen
+                // throw new RuntimeException(e);
+                logger.error(e.getMessage());
+            }
+        }
+    }
+
     void writeDetailsPageContent(ExtendedXsdElement currentElement,
                                  String currentXpath,
                                  XsdDocumentationImageService xsdDocumentationImageService) {
         var context = new Context();
 
         // if (true == XsdDocumentationService.ImageOutputMethod.SVG) {
-        if (false) {
+        if (true) {
             final String svgDiagram = xsdDocumentationImageService.generateSvgString(currentXpath);
             context.setVariable("svg", svgDiagram);
         } else {
@@ -169,6 +206,9 @@ public class XsdDocumentationHtmlService {
         context.setVariable("xpath", getBreadCrumbs(currentElement));
         context.setVariable("code", currentElement.getSourceCode());
         context.setVariable("element", currentElement);
+        if (currentElement.getSampleData() != null) {
+            context.setVariable("sampleData", currentElement.getSampleData());
+        }
         context.setVariable("namespace", xsdDocumentationData.getNameSpacesAsString());
         context.setVariable("this", this);
 
