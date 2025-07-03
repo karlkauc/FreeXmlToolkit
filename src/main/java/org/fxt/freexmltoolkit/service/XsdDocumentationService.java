@@ -25,6 +25,7 @@ import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
@@ -584,18 +585,53 @@ public class XsdDocumentationService {
      * @param element Das ExtendedXsdElement, für das Daten generiert werden sollen.
      * @return Ein String mit den passenden Beispieldaten.
      */
-    private static String generateSampleData(ExtendedXsdElement element, int recursionDepth) {
+    private String generateSampleData(ExtendedXsdElement element, int recursionDepth) {
         if (element == null || recursionDepth > 10) { // Maximale Rekursionstiefe
             return "";
         }
 
-        // Priorität 1: Enumerations (Auswahllisten)
+        // Priorität 1: AppInfo mit Altova-Beispieldaten
+        if (element.getXsdElement() != null && element.getXsdElement().getAnnotation() != null) {
+            List<XsdAppInfo> appInfoList = element.getXsdElement().getAnnotation().getAppInfoList();
+            if (appInfoList != null) {
+                for (XsdAppInfo appInfo : appInfoList) {
+                    if (appInfo.getContent() != null) {
+                        Document appInfoDoc = convertStringToDocument(appInfo.getContent());
+                        if (appInfoDoc != null) {
+                            // Das Wurzelelement sollte <...:exampleValues> sein
+                            Element root = appInfoDoc.getDocumentElement();
+                            // Wir prüfen nur den lokalen Namen, um Namespace-Präfixe zu ignorieren
+                            if (root != null && "altova:exampleValues".equals(root.getNodeName())) {
+                                // Finde das <...:example> Kind-Element
+                                NodeList children = root.getChildNodes();
+                                for (int i = 0; i < children.getLength(); i++) {
+                                    Node child = children.item(i);
+                                    if (child.getNodeType() == Node.ELEMENT_NODE && "altova:example".equals(child.getNodeName())) {
+                                        Element exampleElement = (Element) child;
+                                        if (exampleElement.hasAttribute("value")) {
+                                            String exampleValue = exampleElement.getAttribute("value");
+                                            if (!exampleValue.isBlank()) {
+                                                logger.debug("Found sample data in appinfo for {}: {}", element.getElementName(), exampleValue);
+                                                return exampleValue; // Wert gefunden, sofort zurückgeben
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        // Priorität 2: Enumerations (Auswahllisten)
         XsdRestriction restriction = element.getXsdRestriction();
         if (restriction != null && restriction.getEnumeration() != null && !restriction.getEnumeration().isEmpty()) {
             return restriction.getEnumeration().get(0).getValue();
         }
 
-        // Priorität 2: Datentyp-basierte Generierung
+        // Priorität 3: Datentyp-basierte Generierung
         String elementType = element.getElementType();
         if (elementType == null && restriction != null) {
             elementType = restriction.getBase();
@@ -611,9 +647,11 @@ public class XsdDocumentationService {
 
         switch (finalType.toLowerCase()) {
             case "string":
+                return "Beispieltext";
             case "token":
             case "normalizedstring":
             case "language":
+                return "DE";
             case "name":
             case "ncname":
                 String sample = "Beispieltext";

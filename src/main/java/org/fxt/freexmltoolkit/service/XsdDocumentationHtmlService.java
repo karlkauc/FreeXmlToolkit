@@ -347,6 +347,7 @@ public class XsdDocumentationHtmlService {
 
             copyAssets("/xsdDocumentation/assets/bootstrap.bundle.min.js", outputDirectory);
             copyAssets("/xsdDocumentation/assets/prism.js", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/prism.css", outputDirectory);
             copyAssets("/xsdDocumentation/assets/freeXmlToolkit.css", outputDirectory);
             copyAssets("/xsdDocumentation/assets/plus.png", outputDirectory);
             copyAssets("/xsdDocumentation/assets/logo.png", outputDirectory);

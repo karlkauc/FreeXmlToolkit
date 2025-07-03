@@ -404,24 +404,29 @@ public class XmlController {
 
     @FXML
     private void moveUp() {
-        logger.debug("Caret Pos: {}", getCurrentCodeArea().caretPositionProperty().getValue());
-        getCurrentCodeArea().scrollToPixel(0, 0);
-        getCurrentCodeArea().requestFocus();
+        logger.debug("Moving caret and scrollbar to the beginning.");
+        var area = getCurrentCodeArea();
+        if (area != null) {
+            // Setzt den Cursor an die Position 0 (Anfang des Dokuments)
+            area.moveTo(0);
+            // Erzwingt, dass der Scrollbalken ganz nach oben geht, indem die erste Zeile oben angezeigt wird
+            area.showParagraphAtTop(0);
+            // Stellt sicher, dass der Bereich den Fokus erhält, damit der Cursor sichtbar ist
+            area.requestFocus();
+        }
     }
 
     @FXML
     private void moveDown() {
-        logger.debug("Caret Pos: {}", getCurrentCodeArea().caretPositionProperty().getValue());
-
+        logger.debug("Moving caret and scrollbar to the end.");
         var area = getCurrentCodeArea();
-        if (area != null && area.getText() != null) {
-
-            if (area.getCaretBounds().isPresent()) {
-                var caretBounds = area.getCaretBounds().get();
-                logger.debug("getMaxX: {}, getMaxY: {}", caretBounds.getMaxX(), caretBounds.getMaxY());
-                area.scrollToPixel(caretBounds.getMaxX(), caretBounds.getMaxY());
-            }
-
+        if (area != null && area.getText() != null && !area.getParagraphs().isEmpty()) {
+            // Setzt den Cursor an das Ende des Textes
+            area.moveTo(area.getLength());
+            // Erzwingt, dass der Scrollbalken ganz nach unten geht, indem die letzte Zeile unten angezeigt wird
+            area.showParagraphAtBottom(area.getParagraphs().size() - 1);
+            // Stellt sicher, dass der Bereich den Fokus erhält, damit der Cursor sichtbar ist
+            area.requestFocus();
         }
     }
 
