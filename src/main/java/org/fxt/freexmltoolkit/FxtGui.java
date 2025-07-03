@@ -18,7 +18,6 @@
 
 package org.fxt.freexmltoolkit;
 
-import atlantafx.base.theme.PrimerLight;
 import fr.brouillard.oss.cssfx.CSSFX;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -183,7 +182,7 @@ public class FxtGui extends Application {
         // System.setProperty("https.nonProxyHosts", "localhost|127.0.0.1");
         // =================================================================
 
-        Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
+        // Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         launch();
     }
 }

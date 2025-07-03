@@ -1,0 +1,263 @@
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2025.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+/* =================================================================
+   Modernes, professionelles Theme für das FreeXMLToolkit
+   ================================================================= */
+
+/* :root - Hier werden alle zentralen Variablen definiert (Farben, Radien, etc.)
+ * Das Ändern einer Variable hier wirkt sich auf das gesamte Theme aus.
+ * -------------------------------------------------------------------------- */
+.root {
+    /* Farbpalette */
+    -fx-primary-accent: #0969da; /* Ein kräftiges Blau für Akzente und Auswahl */
+    -fx-primary-accent-hover: #0a5ccb;
+    -fx-primary-accent-text: white;
+
+    -fx-background-color: #f6f8fa; /* Sehr heller, fast weißer Hintergrund */
+    -fx-control-background: #ffffff; /* Hintergrund für die meisten Steuerelemente */
+    -fx-control-inner-background: #ffffff; /* Hintergrund für Eingabefelder */
+
+    -fx-text-color: #24292f; /* Dunkles Grau für primären Text */
+    -fx-text-color-secondary: #57606a; /* Helleres Grau für sekundären Text */
+    -fx-text-color-muted: #8c959f; /* Sehr helles Grau für Hinweise */
+
+    -fx-border-color: #d0d7de; /* Standard-Randfarbe */
+    -fx-border-color-focused: -fx-primary-accent; /* Randfarbe bei Fokus */
+    -fx-border-color-subtle: #e1e4e8; /* Feinere Trennlinien */
+
+    /* Schriftart und Größen */
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-size-small: 12px;
+
+    /* Abmessungen */
+    -fx-border-radius: 6px;
+    -fx-padding: 10px;
+}
+
+/* =================================================================
+   Allgemeine Steuerelemente
+   ================================================================= */
+
+.button {
+    -fx-background-color: #f6f8fa;
+    -fx-text-fill: -fx-text-color;
+    -fx-border-color: -fx-border-color;
+    -fx-border-radius: -fx-border-radius;
+    -fx-background-radius: -fx-border-radius;
+    -fx-padding: 5px 15px;
+    -fx-font-weight: bold;
+}
+
+.button:hover {
+    -fx-border-color: -fx-text-color-secondary;
+}
+
+.button:pressed {
+    -fx-background-color: #e9ecef;
+}
+
+/* Primärer Button-Stil */
+.button:default {
+    -fx-background-color: -fx-primary-accent;
+    -fx-text-fill: -fx-primary-accent-text;
+    -fx-border-color: transparent;
+}
+
+.button:default:hover {
+    -fx-background-color: -fx-primary-accent-hover;
+}
+
+.label {
+    -fx-text-fill: -fx-text-color;
+}
+
+.text-field, .text-area {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-border-color;
+    -fx-border-radius: -fx-border-radius;
+    -fx-background-insets: 0;
+    -fx-background-radius: -fx-border-radius;
+    -fx-prompt-text-fill: -fx-text-color-muted;
+}
+
+.text-field:focused, .text-area:focused {
+    -fx-border-color: -fx-border-color-focused;
+    -fx-effect: dropshadow(gaussian, rgba(9, 105, 218, 0.3), 5, 0, 0, 0);
+}
+
+/* Speziell für CodeArea (RichTextFX) */
+.code-area {
+    -fx-background-color: #ffffff;
+}
+
+.code-area .paragraph-box:has-caret {
+    -fx-background-color: #f6f8fa;
+}
+
+/* =================================================================
+   Tab-Pane (für den Editor)
+   ================================================================= */
+
+.tab-pane {
+    -fx-tab-min-height: 36px;
+    -fx-tab-max-height: 36px;
+}
+
+.tab-pane .tab-header-area {
+    -fx-background-color: -fx-background-color;
+    -fx-padding: 0 0 0 5px;
+}
+
+.tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2px 0;
+    -fx-padding: 8px 12px;
+    -fx-background-insets: 0;
+}
+
+.tab-pane .tab:hover {
+    -fx-background-color: #e9ecef;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: -fx-control-background;
+    -fx-border-color: -fx-primary-accent;
+    -fx-font-weight: bold;
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: -fx-text-color;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-fill: -fx-text-color-secondary;
+}
+
+.tab-pane > .tab-content-area {
+    -fx-background-color: -fx-control-background;
+    -fx-padding: 0;
+}
+
+/* =================================================================
+   Listen und Bäume (TreeView, ListView)
+   ================================================================= */
+
+.tree-view, .list-view {
+    -fx-background-color: -fx-control-background;
+    -fx-border-color: -fx-border-color;
+    -fx-border-radius: -fx-border-radius;
+    -fx-background-radius: -fx-border-radius;
+}
+
+.tree-cell, .list-cell {
+    -fx-padding: 8px 12px;
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-text-color;
+}
+
+.tree-cell:hover, .list-cell:hover {
+    -fx-background-color: #e9ecef;
+}
+
+.tree-cell:selected, .list-cell:selected {
+    -fx-background-color: -fx-primary-accent;
+    -fx-text-fill: -fx-primary-accent-text;
+}
+
+.tree-cell:selected:focused, .list-cell:selected:focused {
+    -fx-background-color: -fx-primary-accent;
+}
+
+/* Pfeil im TreeView */
+.tree-cell > .tree-disclosure-node > .arrow {
+    -fx-background-color: -fx-text-color-secondary;
+}
+.tree-cell:selected > .tree-disclosure-node > .arrow {
+    -fx-background-color: -fx-primary-accent-text;
+}
+
+/* =================================================================
+   Menüs (MenuBar, ContextMenu)
+   ================================================================= */
+
+.menu-bar {
+    -fx-background-color: -fx-background-color;
+}
+
+.menu-button:hover, .menu-button:focused, .menu-button:showing {
+    -fx-background-color: #e9ecef;
+}
+
+.context-menu {
+    -fx-background-color: -fx-control-background;
+    -fx-background-insets: 0;
+    -fx-padding: 5px;
+    -fx-border-color: -fx-border-color;
+    -fx-border-radius: -fx-border-radius;
+    -fx-background-radius: -fx-border-radius;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);
+}
+
+.menu-item {
+    -fx-padding: 8px 12px;
+}
+
+.menu-item:focused {
+    -fx-background-color: -fx-primary-accent;
+}
+
+.menu-item:focused .label {
+    -fx-text-fill: -fx-primary-accent-text;
+}
+
+/* =================================================================
+   Scroll- und Split-Panes
+   ================================================================= */
+
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical, .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: -fx-border-color;
+    -fx-background-insets: 2;
+    -fx-background-radius: 8px;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: -fx-text-color-secondary;
+}
+
+.split-pane:horizontal > .split-pane-divider {
+    -fx-border-color: transparent;
+    -fx-background-color: -fx-border-color-subtle;
+    -fx-padding: 0 1px;
+}
+
+.split-pane:vertical > .split-pane-divider {
+    -fx-border-color: transparent;
+    -fx-background-color: -fx-border-color-subtle;
+    -fx-padding: 1px 0;
+}
