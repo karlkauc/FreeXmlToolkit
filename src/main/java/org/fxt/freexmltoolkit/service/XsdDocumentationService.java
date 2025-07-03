@@ -679,7 +679,6 @@ public class XsdDocumentationService {
             case "boolean":
                 return "true";
 
-            // Modifizierter default-Block
             default:
                 if (restriction != null && restriction.getBase() != null) {
                     ExtendedXsdElement tempElement = new ExtendedXsdElement();

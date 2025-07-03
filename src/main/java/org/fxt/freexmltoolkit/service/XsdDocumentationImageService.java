@@ -156,61 +156,7 @@ public class XsdDocumentationImageService {
         var rootElement = extendedXsdElements.get(rootXpath);
         var rootElementName = rootElement.getElementName();
 
-        // Details-Box für Root-Element erstellen
-        Element detailsGroup = document.createElement("g");
-        detailsGroup.setAttribute("id", "details-" + rootElementName);
-
-        // Hintergrund für Details
-        Element detailsBackground = document.createElement("rect");
-        detailsBackground.setAttribute("fill", "#f8f9fa");
-        detailsBackground.setAttribute("x", "20");
-        detailsBackground.setAttribute("y", "80");
-        detailsBackground.setAttribute("width", "250");
-        detailsBackground.setAttribute("height", "100");
-        detailsBackground.setAttribute("rx", "5");
-        detailsBackground.setAttribute("ry", "5");
-        detailsGroup.appendChild(detailsBackground);
-
-        // Details-Texte hinzufügen
-        int yOffset = 100;
-        if (rootElement.getXsdElement() != null) {
-            addDetailText(document, detailsGroup, "Typ: " + rootElement.getXsdElement().getType(), 30, yOffset);
-            yOffset += 20;
-            addDetailText(document, detailsGroup, "Min Occurs: " + rootElement.getXsdElement().getMinOccurs(), 30, yOffset);
-            yOffset += 20;
-            addDetailText(document, detailsGroup, "Max Occurs: " + rootElement.getXsdElement().getMaxOccurs(), 30, yOffset);
-            yOffset += 20;
-            //addDetailText(document, detailsGroup, "Complex Type: " + rootElement.getXsdElement().isComplexType(), 30, yOffset);
-        }
-
-        // Dokumentation hinzufügen, falls vorhanden
-        if (rootElement.getXsdDocumentation() != null && !rootElement.getXsdDocumentation().isEmpty()) {
-            Element docGroup = document.createElement("g");
-            docGroup.setAttribute("id", "documentation");
-
-            Element docBackground = document.createElement("rect");
-            docBackground.setAttribute("fill", "#e9ecef");
-            docBackground.setAttribute("x", "20");
-            docBackground.setAttribute("y", String.valueOf(yOffset + 20));
-            docBackground.setAttribute("width", "250");
-            docBackground.setAttribute("height", "60");
-            docBackground.setAttribute("rx", "5");
-            docBackground.setAttribute("ry", "5");
-            docGroup.appendChild(docBackground);
-
-            String docContent = rootElement.getXsdDocumentation().get(0).getContent();
-            addDetailText(document, docGroup, "Dokumentation:", 30, yOffset + 40);
-            addDetailText(document, docGroup, docContent, 30, yOffset + 60);
-
-            svgRoot.appendChild(docGroup);
-        }
-
-        svgRoot.appendChild(detailsGroup);
-
-        // Ursprünglicher Code für die Diagramm-Generierung...
-
-
-        // Erweiterte Logging-Informationen über den Root-Element
+        // Erweiterte Logging-Informationen über dem Root-Element
         logger.debug("=== Root Element Details ===");
         logger.debug("Name: {}", rootElementName);
         logger.debug("XPath: {}", rootElement.getCurrentXpath());
@@ -318,73 +264,106 @@ public class XsdDocumentationImageService {
 
         double actualHeight = 20;
         for (ExtendedXsdElement childElement : childElements) {
-            String elementName = "";
+            // --- START: Ersetzen Sie den alten Block hiermit ---
             String css = OPTIONAL_FORMAT;
 
-            if (childElement != null) {
-                elementName = childElement.getElementName();
+            // 1. Hole Name und Typ des Elements und berechne die benötigte Höhe
+            String elementName = childElement != null ? childElement.getElementName() : "";
+            String elementType = childElement != null ? childElement.getElementType() : "";
+            if (elementType == null) elementType = ""; // Stelle sicher, dass der Typ nicht null ist
+
+            var nameBounds = font.getStringBounds(elementName, frc);
+            var nameHeight = nameBounds.getBounds2D().getHeight();
+
+            double typeHeight = 0;
+            double separatorHeight = 0;
+            // Wenn ein Typ vorhanden ist, berechne dessen Höhe und den Platz für die Trennlinie
+            if (!elementType.isBlank()) {
+                var typeBounds = font.getStringBounds(elementType, frc);
+                typeHeight = typeBounds.getBounds2D().getHeight();
+                separatorHeight = 8; // Platz für die Linie und etwas Abstand
             }
 
-            Element minMaxOccurs = document.createElement("text");
-            if (childElement != null && childElement.getXsdElement() != null) {
-                if (childElement.getXsdElement().getMinOccurs() > 0) {
-                    css = MANDATORY_FORMAT;
-                }
+            // Die Gesamthöhe des Inhalts in der Box
+            double totalContentHeight = nameHeight + separatorHeight + typeHeight;
 
-                final String minOccurs = childElement.getXsdElement().getMinOccurs().toString();
-                final String maxOccurs = childElement.getXsdElement().getMaxOccurs().equals("unbounded") ? "∞" : childElement.getXsdElement().getMaxOccurs();
-                logger.debug("Min/Max Occurs: {}/{}", minOccurs, maxOccurs);
-
-                minMaxOccurs.setAttribute("fill", "#096574");
-                minMaxOccurs.setAttribute("font-family", font.getFontName());
-                minMaxOccurs.setAttribute("font-size", font.getSize() - 2 + "");
-                minMaxOccurs.setAttribute("textLength", "0");
-                minMaxOccurs.setAttribute("x", rightStartX + margin - 35 + "");
-                minMaxOccurs.setAttribute("y", actualHeight + (margin / 2) + 10 + "");
-                minMaxOccurs.setTextContent(minOccurs + ":" + maxOccurs);
-                svgRoot.appendChild(minMaxOccurs);
-            }
-
-            logger.debug("Element Name = {}", elementName);
-
-            var z2 = font.getStringBounds(elementName, frc);
-            var height = z2.getBounds2D().getHeight();
-            var width = z2.getBounds2D().getWidth();
-
-            var rect2 = createSvgElement(document, elementName, height, rightBoxWidth, rightStartX + "", actualHeight + "", rootStartX, rootStartY);
+            // 2. Erstelle die äußere Box (rect2) mit der neu berechneten Höhe
+            var rect2 = createSvgElement(document, elementName, totalContentHeight, rightBoxWidth, rightStartX + "", actualHeight + "", rootStartX, rootStartY);
             rect2.setAttribute("style", css);
 
+            // 3. Erstelle eine Gruppe für alle Texte und die Linie, um sie gemeinsam zu behandeln
+            Element textGroup = document.createElement("g");
+
+            // 4. Erstelle und positioniere den Element-Namen (oberer Teil der Box)
+            double nameY = actualHeight + margin + nameHeight;
+            Element nameTextNode = document.createElement("text");
+            nameTextNode.setAttribute("fill", "#096574");
+            nameTextNode.setAttribute("font-family", font.getFontName());
+            nameTextNode.setAttribute("font-size", font.getSize() + "");
+            nameTextNode.setAttribute("x", rightStartX + margin + "");
+            nameTextNode.setAttribute("y", nameY + "");
+            nameTextNode.setTextContent(elementName);
+            textGroup.appendChild(nameTextNode);
+
+            // 5. Wenn ein Typ vorhanden ist, füge die Trennlinie und den Typ-Text hinzu
+            if (!elementType.isBlank()) {
+                // Horizontale Trennlinie
+                double lineY = nameY + (separatorHeight / 2);
+                Element line = document.createElement("line");
+                line.setAttribute("x1", String.valueOf(rightStartX + margin));
+                line.setAttribute("y1", String.valueOf(lineY));
+                line.setAttribute("x2", String.valueOf(rightStartX + margin + rightBoxWidth));
+                line.setAttribute("y2", String.valueOf(lineY));
+                line.setAttribute("stroke", "#8cb5c2"); // Etwas hellere Farbe für die Linie
+                line.setAttribute("stroke-width", "1");
+                textGroup.appendChild(line);
+
+                // Element-Typ (unterer Teil der Box, etwas kleiner)
+                double typeY = lineY + (separatorHeight / 2) + typeHeight;
+                Element typeTextNode = document.createElement("text");
+                typeTextNode.setAttribute("fill", "#54828d"); // Gedämpftere Farbe für den Typ
+                typeTextNode.setAttribute("font-family", font.getFontName());
+                typeTextNode.setAttribute("font-size", (font.getSize() - 2) + ""); // Kleinere Schriftgröße
+                typeTextNode.setAttribute("x", rightStartX + margin + "");
+                typeTextNode.setAttribute("y", typeY + "");
+                typeTextNode.setTextContent(elementType);
+                textGroup.appendChild(typeTextNode);
+            }
+
+            // 6. Erstelle das "Plus"-Icon, falls das Element Kinder hat
             Element image = null;
-            if (childElement != null && childElement.getChildren() != null
-                    && !childElement.getChildren().isEmpty()) {
+            if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
                 image = document.createElement("image");
                 image.setAttribute("href", "../assets/plus.png");
                 image.setAttribute("height", "20");
                 image.setAttribute("width", "20");
                 image.setAttribute("x", rightStartX + (margin + rightBoxWidth + margin) + 2 + "");
-                image.setAttribute("y", actualHeight + (height / 2) + "");
+                // Zentriere das Icon vertikal neben der neuen, höheren Box
+                double boxCenterY = actualHeight + (margin + totalContentHeight + margin) / 2;
+                image.setAttribute("y", (boxCenterY - 10) + ""); // 10 ist die halbe Icon-Höhe
             }
 
-            Element text2 = createSvgTextElement(document, rightStartX, actualHeight, elementName, height, margin);
-
+            // 7. Füge die Box und die Text-Gruppe (ggf. mit Link) zum SVG hinzu
             Element a2 = document.createElement("a");
             if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
-                // create link
                 a2.setAttribute("href", childElement.getPageName());
                 a2.appendChild(rect2);
-                a2.appendChild(text2);
-                a2.appendChild(image);
-
+                a2.appendChild(textGroup);
+                if (image != null) {
+                    a2.appendChild(image);
+                }
                 svgRoot.appendChild(a2);
             } else {
                 svgRoot.appendChild(rect2);
-                svgRoot.appendChild(text2);
+                svgRoot.appendChild(textGroup);
             }
 
+            // 8. Zeichne die Verbindungslinie und richte sie an der neuen Box-Mitte aus
+            double pathEndY = actualHeight + (margin + totalContentHeight + margin) / 2;
             Element path2 = document.createElement("path");
             path2.setAttribute("d", "M " + pathStartX + " " + pathStartY +
                     " h " + ((gapBetweenSides / 2) - margin) +
-                    " V " + (actualHeight + ((margin + height + margin) / 2)) +
+                    " V " + pathEndY +
                     " h " + ((gapBetweenSides / 2) - margin));
             path2.setAttribute("fill", "none");
             if (childElement != null && childElement.getXsdElement() != null && childElement.getXsdElement().getMinOccurs() > 0) {
@@ -394,10 +373,13 @@ public class XsdDocumentationImageService {
             }
             svgRoot.appendChild(path2);
 
-            actualHeight = actualHeight + margin + height + margin + 20; // 20 pixels spacing between boxes
+            // 9. Aktualisiere die Y-Position für das nächste Element in der Schleife
+            actualHeight = actualHeight + margin + totalContentHeight + margin + 20;
+
+            // --- ENDE: Bis hierhin den alten Block ersetzen ---
         }
 
-        var imageHeight = Math.max(docHeightTotal, rightBoxHeight);
+        var imageHeight = Math.max(docHeightTotal, actualHeight + margin + 20);
         // ToDo: automatically adjust size
         svgRoot.setAttributeNS(svgNS, "height", imageHeight + "");
         svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 for icon

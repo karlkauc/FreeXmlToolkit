@@ -203,7 +203,10 @@ public class XsdDocumentationHtmlService {
             context.setVariable("img", filePath);
         }
 
-        context.setVariable("xpath", getBreadCrumbs(currentElement));
+        var breadCrumbs = getBreadCrumbs(currentElement);
+        if (breadCrumbs != null && !breadCrumbs.isEmpty()) {
+            context.setVariable("xpath", getBreadCrumbs(currentElement));
+        }
         context.setVariable("code", currentElement.getSourceCode());
         context.setVariable("element", currentElement);
         if (currentElement.getSampleData() != null) {
@@ -367,6 +370,14 @@ public class XsdDocumentationHtmlService {
         /*
         this.getChildNodeFromXpath(child) ? this.getNodeTypeNameFromNodeType(this.getChildNodeFromXpath(child).getNodeType()) : this.getExtendedXsdElements().get(child).getElementType()
          */
+    }
+
+    public String getChildSampleData(String xpath) {
+        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        if (element != null && element.getSampleData() != null && !element.getSampleData().isEmpty()) {
+            return  element.getSampleData();
+        }
+        return null;
     }
 
     public String getPageName(String xpath) {
