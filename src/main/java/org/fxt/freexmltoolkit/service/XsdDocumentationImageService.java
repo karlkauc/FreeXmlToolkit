@@ -22,7 +22,7 @@ import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
-import org.apache.batik.transcoder.image.JPEGTranscoder;
+import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
@@ -35,7 +35,6 @@ import javax.xml.transform.stream.StreamResult;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.io.*;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -79,32 +78,43 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Generates an image from the SVG representation of the XSD element.
+     * Generates a PNG image from the SVG representation of the XSD element.
+     * This version uses the PNGTranscoder for lossless image quality.
      *
      * @param rootXpath the root XPath of the XSD element
-     * @param file      the file to save the generated image
-     * @return the file path of the generated image
+     * @param file      the file to save the generated image (should have a .png extension)
+     * @return the file path of the generated image, or null on failure
      */
     public String generateImage(String rootXpath, File file) {
         try {
-            var svgString = generateSvgString(rootXpath);
-            var transcoder = new JPEGTranscoder();
-            TranscoderInput input = new TranscoderInput(new ByteArrayInputStream(svgString.getBytes()));
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            TranscoderOutput output = new TranscoderOutput(outputStream);
+            // 1. SVG-Daten wie zuvor generieren
+            String svgString = generateSvgString(rootXpath);
 
-            transcoder.transcode(input, output);
-            Files.write(file.toPath(), outputStream.toByteArray());
+            // 2. PNG-Transcoder initialisieren (ersetzt JPEGTranscoder)
+            PNGTranscoder transcoder = new PNGTranscoder();
 
-            outputStream.flush();
-            outputStream.close();
+            // Hinweis: Die Qualitätseinstellung (KEY_QUALITY) wird für PNG nicht benötigt,
+            // da es ein verlustfreies Format ist.
 
-            logger.debug("File: {}", file.getAbsolutePath());
+            // 3. Input für den Transcoder vorbereiten
+            TranscoderInput input = new TranscoderInput(new StringReader(svgString));
+
+            // 4. Ressourcen sicher mit try-with-resources verwalten und direkt in die Datei schreiben
+            try (OutputStream outputStream = new FileOutputStream(file)) {
+                TranscoderOutput output = new TranscoderOutput(outputStream);
+
+                // 5. Konvertierung durchführen
+                transcoder.transcode(input, output);
+            } // outputStream wird hier automatisch geschlossen
+
+            logger.debug("Successfully created PNG image: {}", file.getAbsolutePath());
             logger.debug("File Size: {}", file.length());
 
             return file.getAbsolutePath();
-        } catch (IOException | TranscoderException ioException) {
-            logger.error(ioException.getMessage());
+
+        } catch (IOException | TranscoderException e) {
+            // 6. Verbessertes Fehler-Logging mit vollständigem Stack Trace
+            logger.error("Failed to generate image for file '{}'", file.getAbsolutePath(), e);
         }
 
         return null;

@@ -44,6 +44,8 @@
         <Logger name="org.eclipse.lemminx" level="DEBUG">
             <AppenderRef ref="Console"/>
         </Logger>
-
+        <Logger name="org.fxt.freexmltoolkit.service.XsdDocumentationImageService" level="INFO">
+            <AppenderRef ref="Console"/>
+        </Logger>
     </Loggers>
 </Configuration>

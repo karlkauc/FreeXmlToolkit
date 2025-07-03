@@ -56,6 +56,8 @@ public class XsdDocumentationHtmlService {
     XsdDocumentationData xsdDocumentationData;
     XsdDocumentationImageService xsdDocumentationImageService;
 
+    private XsdDocumentationService xsdDocService;
+
     private static final int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
 
     public XsdDocumentationHtmlService() {
@@ -75,6 +77,10 @@ public class XsdDocumentationHtmlService {
 
     public void setOutputDirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
+    }
+
+    public void setXsdDocumentationService(XsdDocumentationService xsdDocService) {
+        this.xsdDocService = xsdDocService;
     }
 
     public void setDocumentationData(XsdDocumentationData xsdDocumentationData) {
@@ -112,22 +118,32 @@ public class XsdDocumentationHtmlService {
         logger.debug("Complex Types");
 
         for (var complexType : xsdDocumentationData.getXsdComplexTypes()) {
-            var context = new Context();
-            context.setVariable("complexType", complexType);
-
-            if (complexType.getAnnotation() != null) {
-                context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
-            }
-
-            final var result = templateEngine.process("complexTypes/templateComplexType", context);
-            final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", complexType.getRawName() + ".html");
-            logger.debug("File: {}", outputFilePath.toFile().getAbsolutePath());
-
             try {
-                Files.write(outputFilePath, result.getBytes());
-                logger.debug("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                var context = new Context();
+                context.setVariable("complexType", complexType);
+
+                if (complexType.getAnnotation() != null) {
+                    context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
+                }
+
+                final var result = templateEngine.process("complexTypes/templateComplexType", context);
+                var fileName = complexType.getRawName();
+                if (fileName.isEmpty()) {
+                    fileName = complexType.getName();
+                }
+
+                final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", fileName + ".html");
+                logger.debug("Complex Type File: {}", outputFilePath.toFile().getAbsolutePath());
+
+                try {
+                    Files.write(outputFilePath, result.getBytes());
+                    logger.debug("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
+                } catch (IOException e) {
+                    logger.error("ERROR in writing complex Type File: {}", e.getMessage());
+                }
+            }
+            catch (Exception e) {
+                logger.error("ERROR in creating complex Type File: {}", e.getMessage());
             }
         }
     }
@@ -190,18 +206,39 @@ public class XsdDocumentationHtmlService {
                                  String currentXpath,
                                  XsdDocumentationImageService xsdDocumentationImageService) {
         var context = new Context();
+        context.setVariable("element", currentElement);
+        String diagramContent;
+        String diagramType;
 
-        // if (true == XsdDocumentationService.ImageOutputMethod.SVG) {
-        if (true) {
-            final String svgDiagram = xsdDocumentationImageService.generateSvgString(currentXpath);
-            context.setVariable("svg", svgDiagram);
+        if (xsdDocService.imageOutputMethod == XsdDocumentationService.ImageOutputMethod.SVG) {
+            // Fall 1: SVG direkt als String generieren
+            diagramContent = xsdDocumentationImageService.generateSvgString(currentXpath);
+            diagramType = "SVG";
+            logger.debug("Generating SVG diagram for {}", currentElement.getElementName());
+
         } else {
-            final String fileName = currentElement.getPageName().replace(".html", ".jpg");
-            final File pngFile = new File(String.valueOf(Paths.get(outputDirectory.getPath(), "details", fileName).toFile()));
-            final String filePath = xsdDocumentationImageService.generateImage(currentXpath, pngFile);
+            // Fall 2: JPG-Bild generieren und den Pfad speichern
+            // Sicherstellen, dass das "images"-Verzeichnis existiert
+            File imagesDir = new File(outputDirectory, "images");
+            if (!imagesDir.exists()) {
+                imagesDir.mkdirs();
+            }
 
-            context.setVariable("img", filePath);
+            // Zieldatei für das Bild definieren
+            File imageFile = new File(imagesDir, currentElement.getPageName() + ".jpg");
+
+            // Bild mit der Methode aus XsdDocumentationService generieren
+            xsdDocumentationImageService.generateImage(currentXpath, imageFile);
+
+            // Im Template benötigen wir den relativen Pfad zum Bild
+            diagramContent = "images/" + imageFile.getName();
+            diagramType = "JPG";
+            logger.debug("Generating JPG diagram for {}: {}", currentElement.getElementName(), diagramContent);
         }
+
+        // Die Ergebnisse an das Template übergeben
+        context.setVariable("diagramContent", diagramContent);
+        context.setVariable("diagramType", diagramType);
 
         var breadCrumbs = getBreadCrumbs(currentElement);
         if (breadCrumbs != null && !breadCrumbs.isEmpty()) {

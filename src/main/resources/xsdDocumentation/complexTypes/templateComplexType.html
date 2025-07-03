@@ -24,6 +24,22 @@
     <title th:text="'Complex Type: ' + ${complexType.getRawName()}">XSD Documentation</title>
 
     <link href="../assets/freeXmlToolkit.css" rel="stylesheet"/>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Optionale: Eigene Design-Anpassungen für Tailwind
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'], // Eine moderne, gut lesbare Schriftart
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
 <body>
 
@@ -81,7 +97,7 @@
                     th:if="${complexType != null and complexType.attributesMap != null and !#maps.isEmpty(complexType.attributesMap)}">
                 <!-- Inhalt -->
             </th:block>
-            <div th:if="${complexType != null and complexType?.attributesMap != null and not #maps.isEmpty(complexType?.attributesMap)}">
+            <div th:if="${complexType != null and complexType.attributesMap != null and not #maps.isEmpty(complexType.attributesMap)}">
                 <h4 class="card-title mt-4">Attribute</h4>
                 <table class="table table-bordered table-striped">
                     <thead class="thead-light">
@@ -101,7 +117,7 @@
                             <a th:href="${typeLinks[attr.getType()] ?: '#'}" th:text="${attr.getType()}"></a>
                         </td>
                         -->
-                        <td th:text="${attr.getValue()()}"></td>
+                        <td th:text="${attr.getValue()}"></td>
                         <!--<td th:text="${attr.getAnnotation()?.getDocumentations()?.get(0)?.getContent()}"></td> -->
                     </tr>
                     </tbody>

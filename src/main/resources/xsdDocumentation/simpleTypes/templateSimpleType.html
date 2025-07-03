@@ -3,100 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="'Simple Type: ' + ${simpleType.name}">Simple Type Details</title>
-    <!-- Verweis auf die zentrale CSS-Datei für ein konsistentes Design -->
+    <!-- Verweis auf die zentrale Tailwind CSS-Datei -->
     <link href="../assets/freeXmlToolkit.css" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Optionale: Eigene Design-Anpassungen für Tailwind
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'], // Eine moderne, gut lesbare Schriftart
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
-<body>
+<body class="bg-slate-50">
 
-<div class="container mt-4 mb-4">
-    <!-- Haupt-Karte für den Simple Type -->
-    <div class="card">
-        <div class="card-header">
-            <!-- Titel mit dem Namen des Typs -->
-            <h1>Simple Type: <span class="text-monospace" th:text="${simpleType.name}">TypeName</span></h1>
-        </div>
-        <div class="card-body">
-            <!-- 1. Dokumentation (falls vorhanden) -->
-            <div th:if="${documentations != null and not #lists.isEmpty(documentations)}">
-                <h4 class="card-title">Dokumentation</h4>
-                <div class="alert alert-secondary">
-                    <!-- Iteriert durch alle Dokumentations-Einträge -->
-                    <p th:each="doc : ${documentations}" th:text="${doc.content}" class="mb-1"></p>
-                </div>
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Haupt-Titel der Seite -->
+    <header class="mb-6">
+        <h1 class="text-3xl font-bold text-slate-900">
+            Simple Type: <span class="font-mono text-sky-700" th:text="${simpleType.name}">TypeName</span>
+        </h1>
+    </header>
+
+    <!-- Haupt-Inhaltsbereich -->
+    <main class="bg-white border border-slate-200 rounded-lg shadow-sm">
+
+        <!-- 1. Dokumentation (falls vorhanden) -->
+        <section th:if="${documentations != null and not #lists.isEmpty(documentations)}" class="p-6 border-b border-slate-200">
+            <h2 class="text-lg font-semibold text-slate-800 mb-3">Dokumentation</h2>
+            <div class="prose prose-slate max-w-none">
+                <!-- Iteriert durch alle Dokumentations-Einträge -->
+                <p th:each="doc : ${documentations}" th:text="${doc.content}"></p>
             </div>
+        </section>
 
-            <!-- 2. Einschränkungen (Restrictions) -->
-            <div th:if="${restriction != null}">
-                <h4 class="card-title mt-4">Einschränkungen (Restrictions)</h4>
-                <table class="table table-bordered table-striped">
-                    <thead class="thead-light">
+        <!-- 2. Einschränkungen (Restrictions) -->
+        <section th:if="${restriction != null}" class="p-6">
+            <h2 class="text-lg font-semibold text-slate-800 mb-3">Einschränkungen (Restrictions)</h2>
+            <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-sm">
                     <tr>
-                        <th style="width: 250px;">Eigenschaft</th>
-                        <th>Wert</th>
+                        <th scope="col" class="w-1/4 px-4 py-3 font-semibold text-slate-900">Eigenschaft</th>
+                        <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Wert</th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-200 text-sm">
                     <!-- Basis-Typ -->
                     <tr>
-                        <th>Basis-Typ</th>
-                        <td><code th:text="${restriction.base}">xs:string</code></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Basis-Typ</td>
+                        <td class="px-4 py-3"><code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md" th:text="${restriction.base}">xs:string</code></td>
                     </tr>
                     <!-- Längen-Einschränkungen -->
                     <tr th:if="${restriction.length != null}">
-                        <th>Feste Länge (length)</th>
-                        <td th:text="${restriction.length.value}"></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Feste Länge (length)</td>
+                        <td class="px-4 py-3" th:text="${restriction.length.value}"></td>
                     </tr>
                     <tr th:if="${restriction.minLength != null}">
-                        <th>Minimale Länge (minLength)</th>
-                        <td th:text="${restriction.minLength.value}"></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Minimale Länge (minLength)</td>
+                        <td class="px-4 py-3" th:text="${restriction.minLength.value}"></td>
                     </tr>
                     <tr th:if="${restriction.maxLength != null}">
-                        <th>Maximale Länge (maxLength)</th>
-                        <td th:text="${restriction.maxLength.value}"></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Maximale Länge (maxLength)</td>
+                        <td class="px-4 py-3" th:text="${restriction.maxLength.value}"></td>
                     </tr>
                     <!-- Pattern (Regulärer Ausdruck) -->
                     <tr th:if="${restriction.pattern != null}">
-                        <th>Pattern (Muster)</th>
-                        <td><code class="text-monospace" th:text="${restriction.pattern.value}"></code></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Pattern (Muster)</td>
+                        <td class="px-4 py-3"><code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md" th:text="${restriction.pattern.value}"></code></td>
                     </tr>
                     <!-- Wertebereich-Einschränkungen -->
                     <tr th:if="${restriction.minInclusive != null}">
-                        <th>Minimaler Wert (inklusiv)</th>
-                        <td th:text="${restriction.minInclusive.value}"></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Minimaler Wert (inklusiv)</td>
+                        <td class="px-4 py-3" th:text="${restriction.minInclusive.value}"></td>
                     </tr>
                     <tr th:if="${restriction.maxInclusive != null}">
-                        <th>Maximaler Wert (inklusiv)</th>
-                        <td th:text="${restriction.maxInclusive.value}"></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Maximaler Wert (inklusiv)</td>
+                        <td class="px-4 py-3" th:text="${restriction.maxInclusive.value}"></td>
                     </tr>
                     <tr th:if="${restriction.minExclusive != null}">
-                        <th>Minimaler Wert (exklusiv)</th>
-                        <td th:text="${restriction.minExclusive.value}"></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Minimaler Wert (exklusiv)</td>
+                        <td class="px-4 py-3" th:text="${restriction.minExclusive.value}"></td>
                     </tr>
                     <tr th:if="${restriction.maxExclusive != null}">
-                        <th>Maximaler Wert (exklusiv)</th>
-                        <td th:text="${restriction.maxExclusive.value}"></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Maximaler Wert (exklusiv)</td>
+                        <td class="px-4 py-3" th:text="${restriction.maxExclusive.value}"></td>
                     </tr>
                     <!-- Ziffern-Einschränkungen -->
                     <tr th:if="${restriction.totalDigits != null}">
-                        <th>Gesamtzahl Ziffern (totalDigits)</th>
-                        <td th:text="${restriction.totalDigits.value}"></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Gesamtzahl Ziffern (totalDigits)</td>
+                        <td class="px-4 py-3" th:text="${restriction.totalDigits.value}"></td>
                     </tr>
                     <tr th:if="${restriction.fractionDigits != null}">
-                        <th>Anzahl Nachkommastellen (fractionDigits)</th>
-                        <td th:text="${restriction.fractionDigits.value}"></td>
+                        <td class="px-4 py-3 font-medium text-slate-800">Anzahl Nachkommastellen (fractionDigits)</td>
+                        <td class="px-4 py-3" th:text="${restriction.fractionDigits.value}"></td>
                     </tr>
                     <!-- Enumeration (Aufzählung von Werten) -->
                     <tr th:if="${restriction.enumeration != null and not #lists.isEmpty(restriction.enumeration)}">
-                        <th>Erlaubte Werte (enumeration)</th>
-                        <td>
-                            <ul class="list-unstyled mb-0">
-                                <li th:each="enumValue : ${restriction.enumeration}" class="mb-1">
-                                    <!-- Der erlaubte Wert -->
-                                    <code th:text="${enumValue.value}"></code>
+                        <td class="px-4 py-3 font-medium text-slate-800 align-top">Erlaubte Werte (enumeration)</td>
+                        <td class="px-4 py-3">
+                            <ul class="space-y-2">
+                                <li th:each="enumValue : ${restriction.enumeration}">
+                                    <code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md" th:text="${enumValue.value}"></code>
                                     <!-- Dokumentation für den einzelnen Enum-Wert (falls vorhanden) -->
-                                    <div th:if="${enumValue.annotation != null and enumValue.annotation.documentations != null and not #lists.isEmpty(enumValue.annotation.documentations)}">
-                                        <small th:each="doc : ${enumValue.annotation.documentations}"
-                                               th:text="${doc.content}"></small>
+                                    <div th:if="${enumValue.annotation != null and enumValue.annotation.documentations != null and not #lists.isEmpty(enumValue.annotation.documentations)}"
+                                         class="mt-1 pl-2 text-slate-600">
+                                        <p th:each="doc : ${enumValue.annotation.documentations}" th:text="${doc.content}" class="text-xs"></p>
                                     </div>
                                 </li>
                             </ul>
@@ -105,17 +125,19 @@
                     </tbody>
                 </table>
             </div>
+        </section>
 
-            <!-- Fallback-Nachricht, falls keine Einschränkungen definiert sind -->
-            <div th:if="${restriction == null}">
-                <p class="text-muted">Für diesen Typ sind keine spezifischen Einschränkungen definiert.</p>
-            </div>
+        <!-- Fallback-Nachricht, falls keine Einschränkungen definiert sind -->
+        <div th:if="${restriction == null}" class="p-6">
+            <p class="text-slate-500">Für diesen Typ sind keine spezifischen Einschränkungen definiert.</p>
         </div>
-    </div>
+    </main>
 
     <!-- Navigations-Button zurück zur Übersicht -->
-    <div class="mt-3">
-        <a href="../index.html" class="btn btn-primary">Zurück zur Übersicht</a>
+    <div class="mt-6">
+        <a href="../index.html" class="inline-block bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm">
+            Zurück zur Übersicht
+        </a>
     </div>
 </div>
 

@@ -120,19 +120,13 @@ public class XsdDocumentationService {
 
         xsdDocumentationHtmlService.setOutputDirectory(outputDirectory);
         xsdDocumentationHtmlService.setDocumentationData(xsdDocumentationData);
+        xsdDocumentationHtmlService.setXsdDocumentationService(this);
 
         xsdDocumentationHtmlService.copyResources();
         xsdDocumentationHtmlService.generateRootPage();
-        try {
-            xsdDocumentationHtmlService.generateComplexTypePages();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-        try {
-            xsdDocumentationHtmlService.generateSimpleTypePages();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
+        xsdDocumentationHtmlService.generateComplexTypePages();
+        xsdDocumentationHtmlService.generateSimpleTypePages();
+
         if (parallelProcessing) {
             xsdDocumentationHtmlService.generateDetailsPagesInParallel();
         } else {

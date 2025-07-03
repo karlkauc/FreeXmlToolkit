@@ -117,8 +117,21 @@
             <!-- Sektion: Diagramm -->
             <section>
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">Diagramm</h2>
-                <div class="p-4 border border-slate-200 rounded-lg bg-slate-50/50 overflow-x-auto" th:utext="${svg}">
-                    <!-- SVG wird hier von Thymeleaf eingefügt -->
+                <div class="p-4 border border-slate-200 rounded-lg bg-slate-50 overflow-x-auto">
+
+                    <!-- Thymeleaf Switch, um zwischen SVG und JPG zu unterscheiden -->
+                    <div th:switch="${diagramType}">
+
+                        <!-- Fall 1: Wenn der Typ 'SVG' ist, füge den SVG-Code direkt ein -->
+                        <div th:case="'SVG'" th:utext="${diagramContent}">
+                            <!-- Der rohe SVG-String wird hier von Thymeleaf eingefügt -->
+                        </div>
+
+                        <!-- Fall 2: Wenn der Typ 'JPG' ist, erstelle ein normales Bild-Tag -->
+                        <div th:case="'JPG'">
+                            <img th:src="${diagramContent}" alt="Diagramm des Elements" class="mx-auto"/>
+                        </div>
+                    </div>
                 </div>
             </section>
 
