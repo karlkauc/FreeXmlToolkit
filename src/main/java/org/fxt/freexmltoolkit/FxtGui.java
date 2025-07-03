@@ -32,13 +32,14 @@ import javafx.stage.Stage;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.lemminx.XMLServerLauncher;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 import java.awt.*;
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -147,20 +148,42 @@ public class FxtGui extends Application {
     }
 
     public static void main(String[] args) {
-        Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
-        // startLemMinXServer();
-        launch();
-    }
 
-    private static void startLemMinXServer() {
-        logger.debug("Starting LemMinX Server");
-        System.setProperty("LEMMINX_DEBUG", "true");
-        new Thread(() -> {
-            try {
-                XMLServerLauncher.main(new String[]{});
-            } catch (Exception e) {
-                logger.debug("Error starting LemMinX Server: {}", e.getMessage());
+        final String proxyUser = "...";
+        final String proxyPassword = "...";
+
+        Authenticator.setDefault(new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                // Prüft, ob die Anfrage für einen Proxy ist
+                if (getRequestorType() == RequestorType.PROXY) {
+                    return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
+                }
+                return null;
             }
-        }).start();
+        });
+
+        // =================================================================
+        // HIER DIE PROXY-KONFIGURATION EINFÜGEN
+        // =================================================================
+        final String proxyHost = "..."; // Ändern Sie dies zu Ihrem Proxy-Host
+        final String proxyPort = "8080";                 // Ändern Sie dies zum Port Ihres Proxys
+
+        // Setzt den Proxy für HTTP-Verbindungen
+        System.setProperty("http.proxyHost", proxyHost);
+        System.setProperty("http.proxyPort", proxyPort);
+
+        // WICHTIG: Setzt den Proxy auch für HTTPS-Verbindungen,
+        // da Schemas oft über HTTPS geladen werden.
+        System.setProperty("https.proxyHost", proxyHost);
+        System.setProperty("https.proxyPort", proxyPort);
+
+        // Optional: Wenn Ihr Proxy bestimmte Hosts nicht verwenden soll (z.B. localhost)
+        // System.setProperty("http.nonProxyHosts", "localhost|127.0.0.1");
+        // System.setProperty("https.nonProxyHosts", "localhost|127.0.0.1");
+        // =================================================================
+
+        Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
+        launch();
     }
 }

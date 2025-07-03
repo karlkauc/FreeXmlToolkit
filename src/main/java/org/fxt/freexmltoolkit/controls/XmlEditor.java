@@ -151,7 +151,7 @@ public class XmlEditor extends Tab {
             var lineColumn = codeArea.offsetToPosition(newValue, TwoDimensional.Bias.Forward);
             int lineNumber = lineColumn.getMajor() + 1; // Line numbers are 0-based, so add 1
             int columnNumber = lineColumn.getMinor() + 1; // Column numbers are 0-based, so add 1
-            logger.debug("Line: {}, Column: {}", lineNumber, columnNumber);
+            // logger.debug("Line: {}, Column: {}", lineNumber, columnNumber);
         });
 
         codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {

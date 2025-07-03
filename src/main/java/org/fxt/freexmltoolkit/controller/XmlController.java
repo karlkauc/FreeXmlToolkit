@@ -43,14 +43,13 @@ import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 
 public class XmlController {
-    private MainController parentController;
-
     private final static Logger logger = LogManager.getLogger(XmlController.class);
 
     CodeArea codeAreaXpath = new CodeArea();
@@ -58,6 +57,8 @@ public class XmlController {
 
     VirtualizedScrollPane<CodeArea> virtualizedScrollPaneXpath;
     VirtualizedScrollPane<CodeArea> virtualizedScrollPaneXQuery;
+
+    private MainController mainController;
 
     @FXML
     Button openFile, saveFile, prettyPrint, newFile, validateSchema, runXpathQuery;
@@ -244,7 +245,61 @@ public class XmlController {
 
     public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
-        this.parentController = parentController;
+        this.mainController = parentController;
+    }
+
+    private void notifyLspServerFileOpened(File file, String content) {
+        if (mainController == null || mainController.serverProxy == null) {
+            logger.warn("LSP Server not available. Cannot send 'didOpen' notification.");
+            return;
+        }
+
+        try {
+            // 1. Erstelle ein TextDocumentItem mit allen notwendigen Informationen
+            TextDocumentItem textDocumentItem = new TextDocumentItem(
+                    file.toURI().toString(), // LSP verwendet URIs zur Identifikation
+                    "xml",                   // Die Sprach-ID
+                    1,                       // Version 1, da es das erste Öffnen ist
+                    content                  // Der vollständige Inhalt der Datei
+            );
+
+            // 2. Verpacke das Item in die 'didOpen'-Parameter
+            DidOpenTextDocumentParams params = new DidOpenTextDocumentParams(textDocumentItem);
+
+            // 3. Sende die Benachrichtigung an den Text-Service des Servers
+            // Dies ist eine asynchrone Benachrichtigung, wir warten nicht auf eine Antwort.
+            mainController.serverProxy.getTextDocumentService().didOpen(params);
+
+            logger.info("✅ Sent 'didOpen' notification for {} to LSP server.", file.getName());
+
+        } catch (Exception e) {
+            logger.error("Failed to send 'didOpen' notification to LSP server.", e);
+        }
+    }
+
+    public void displayFileContent(File file) {
+        if (file != null && file.exists()) {
+            try {
+                // Lese den Inhalt der Datei
+                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+
+                // Setze den Inhalt in die CodeArea
+                var area = getCurrentCodeArea();
+                if (area != null) {
+                    area.replaceText(content);
+                    logger.debug("File {} displayed.", file.getName());
+
+                    // --> HIER DIE NEUE FUNKTIONALITÄT AUFRUFEN <--
+                    // Benachrichtige den LSP-Server, dass die Datei geöffnet wurde.
+                    notifyLspServerFileOpened(file, content);
+                }
+
+                // ... restlicher Code der Methode (falls vorhanden) ...
+
+            } catch (IOException e) {
+                logger.error("Could not read file {}", file.getAbsolutePath(), e);
+            }
+        }
     }
 
     @FXML
@@ -259,7 +314,9 @@ public class XmlController {
 
                     logger.debug("TEXT DOCUMENT");
                     TextDocumentItem textDocument = new TextDocumentItem(xmlEditor.getXmlFile().toURI().toString(), "xml", 1, xmlEditor.getText());
-                    parentController.serverProxy.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(textDocument));
+                    mainController.serverProxy.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(textDocument));
+
+                    notifyLspServerFileOpened(xmlEditor.getXmlFile(), getCurrentCodeArea().getText());
                 }
             }
         } catch (Exception e) {
@@ -463,15 +520,6 @@ public class XmlController {
         }
     }
 
-    public void displayFileContent(File file) {
-        if (file.exists() && file.isFile()) {
-            try {
-                getCurrentCodeArea().replaceText(0, 0, Files.readString(Path.of(file.toURI())));
-            } catch (IOException exception) {
-                logger.error(exception.getMessage());
-            }
-        }
-    }
 
     @FXML
     private void print() {
@@ -499,5 +547,6 @@ public class XmlController {
         }
 
         validateSchema();
+        notifyLspServerFileOpened(getCurrentXmlEditor().getXmlFile(), getCurrentCodeArea().getText());
     }
 }
