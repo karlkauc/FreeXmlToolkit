@@ -24,6 +24,45 @@
 </head>
 <body class="bg-slate-50">
 
+<!-- Moderne Navigation mit Schatten und klaren Abständen -->
+<nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <!-- Linke Navigationsgruppe -->
+            <div class="flex items-center space-x-8">
+                <a href="#" class="flex items-center space-x-2 text-slate-700 font-bold">
+                    <img src="../assets/logo.png" alt="logo" class="h-8 w-8"/>
+                    <span>FreeXmlToolKit</span>
+                </a>
+                <div class="hidden md:flex items-baseline space-x-6">
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
+                       aria-current="page">Home</a>
+                    <a href="#"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Complex
+                        Types</a>
+                    <a href="#"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Simple
+                        Types</a>
+                </div>
+            </div>
+            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <div class="hidden md:block">
+                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
+                   class="inline-flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900">
+                    <span>GitHub</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                              d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
+                        <path fill-rule="evenodd"
+                              d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
     <!-- Haupt-Titel der Seite -->
@@ -37,7 +76,8 @@
     <main class="bg-white border border-slate-200 rounded-lg shadow-sm">
 
         <!-- 1. Dokumentation (falls vorhanden) -->
-        <section th:if="${documentations != null and not #lists.isEmpty(documentations)}" class="p-6 border-b border-slate-200">
+        <section th:if="${documentations != null and not #lists.isEmpty(documentations)}"
+                 class="p-6 border-b border-slate-200">
             <h2 class="text-lg font-semibold text-slate-800 mb-3">Dokumentation</h2>
             <div class="prose prose-slate max-w-none">
                 <!-- Iteriert durch alle Dokumentations-Einträge -->
@@ -60,7 +100,8 @@
                     <!-- Basis-Typ -->
                     <tr>
                         <td class="px-4 py-3 font-medium text-slate-800">Basis-Typ</td>
-                        <td class="px-4 py-3"><code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md" th:text="${restriction.base}">xs:string</code></td>
+                        <td class="px-4 py-3"><code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
+                                                    th:text="${restriction.base}">xs:string</code></td>
                     </tr>
                     <!-- Längen-Einschränkungen -->
                     <tr th:if="${restriction.length != null}">
@@ -78,7 +119,8 @@
                     <!-- Pattern (Regulärer Ausdruck) -->
                     <tr th:if="${restriction.pattern != null}">
                         <td class="px-4 py-3 font-medium text-slate-800">Pattern (Muster)</td>
-                        <td class="px-4 py-3"><code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md" th:text="${restriction.pattern.value}"></code></td>
+                        <td class="px-4 py-3"><code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
+                                                    th:text="${restriction.pattern.value}"></code></td>
                     </tr>
                     <!-- Wertebereich-Einschränkungen -->
                     <tr th:if="${restriction.minInclusive != null}">
@@ -112,11 +154,13 @@
                         <td class="px-4 py-3">
                             <ul class="space-y-2">
                                 <li th:each="enumValue : ${restriction.enumeration}">
-                                    <code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md" th:text="${enumValue.value}"></code>
+                                    <code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
+                                          th:text="${enumValue.value}"></code>
                                     <!-- Dokumentation für den einzelnen Enum-Wert (falls vorhanden) -->
                                     <div th:if="${enumValue.annotation != null and enumValue.annotation.documentations != null and not #lists.isEmpty(enumValue.annotation.documentations)}"
                                          class="mt-1 pl-2 text-slate-600">
-                                        <p th:each="doc : ${enumValue.annotation.documentations}" th:text="${doc.content}" class="text-xs"></p>
+                                        <p th:each="doc : ${enumValue.annotation.documentations}"
+                                           th:text="${doc.content}" class="text-xs"></p>
                                     </div>
                                 </li>
                             </ul>
@@ -135,7 +179,8 @@
 
     <!-- Navigations-Button zurück zur Übersicht -->
     <div class="mt-6">
-        <a href="../index.html" class="inline-block bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm">
+        <a href="../index.html"
+           class="inline-block bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm">
             Zurück zur Übersicht
         </a>
     </div>

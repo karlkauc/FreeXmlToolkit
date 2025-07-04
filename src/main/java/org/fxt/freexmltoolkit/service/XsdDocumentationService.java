@@ -222,6 +222,7 @@ public class XsdDocumentationService {
                     logger.debug("BUILD IN DATATYPE {}", xsdElement.getTypeAsBuiltInDataType().getRawName());
 
                     extendedXsdElement.setElementType(xsdElement.getType());
+                    extendedXsdElement.setSampleData(generateSampleData(extendedXsdElement, 0));
                     xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
                 }
                 if (xsdElement.getTypeAsComplexType() != null) {
@@ -646,31 +647,28 @@ public class XsdDocumentationService {
         String finalType = elementType.substring(elementType.lastIndexOf(":") + 1);
 
         switch (finalType.toLowerCase()) {
-            case "string":
-                return "Beispieltext";
-            case "token":
-            case "normalizedstring":
-            case "language":
-                return "DE";
-            case "name":
-            case "ncname":
+            case "string", "token", "normalizedstring", "language", "name", "ncname":
                 String sample = "Beispieltext";
+                if ("language".equalsIgnoreCase(finalType)) {
+                    sample = "DE"; // Spezifisches Beispiel für 'language'
+                }
                 if (restriction != null) {
-                    if (restriction.getMinLength() != null) {
-                        int min = restriction.getMinLength().getValue();
-                        while (sample.length() < min) {
-                            sample += " Text";
-                        }
-                    }
-                    if (restriction.getMaxLength() != null) {
-                        int max = restriction.getMaxLength().getValue();
-                        if (sample.length() > max) {
-                            sample = sample.substring(0, max);
-                        }
-                    }
                     if (restriction.getLength() != null) {
                         int len = restriction.getLength().getValue();
                         sample = "x".repeat(Math.max(0, len));
+                    } else {
+                        if (restriction.getMinLength() != null) {
+                            int min = restriction.getMinLength().getValue();
+                            while (sample.length() < min) {
+                                sample += " Text";
+                            }
+                        }
+                        if (restriction.getMaxLength() != null) {
+                            int max = restriction.getMaxLength().getValue();
+                            if (sample.length() > max) {
+                                sample = sample.substring(0, max);
+                            }
+                        }
                     }
                 }
                 return sample;
@@ -681,19 +679,7 @@ public class XsdDocumentationService {
                 }
                 return "123.45";
 
-            case "integer":
-            case "positiveinteger":
-            case "nonnegativeinteger":
-            case "negativeinteger":
-            case "nonpositiveinteger":
-            case "long":
-            case "int":
-            case "short":
-            case "byte":
-            case "unsignedlong":
-            case "unsignedint":
-            case "unsignedshort":
-            case "unsignedbyte":
+            case "integer", "positiveinteger", "nonnegativeinteger", "negativeinteger", "nonpositiveinteger", "long", "int", "short", "byte", "unsignedlong", "unsignedint", "unsignedshort", "unsignedbyte":
                 if (restriction != null && restriction.getMinInclusive() != null) {
                     return restriction.getMinInclusive().getValue();
                 }
