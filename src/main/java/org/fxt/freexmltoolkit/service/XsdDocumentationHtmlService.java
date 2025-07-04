@@ -202,6 +202,64 @@ public class XsdDocumentationHtmlService {
         }
     }
 
+    /**
+     * Generiert eine einzelne HTML-Seite, die alle gefundenen Complex Types auflistet.
+     * Jeder Eintrag verlinkt auf die jeweilige Detailseite des Typs.
+     */
+    void generateComplexTypesListPage() {
+        logger.debug("Generating Complex Types list page");
+
+        // 1. Thymeleaf-Kontext erstellen
+        final var context = new Context();
+
+        // 2. Die Liste aller Complex Types aus den gesammelten Daten holen
+        //    und dem Kontext hinzufügen, damit sie im Template verfügbar ist.
+        context.setVariable("xsdComplexTypes", xsdDocumentationData.getXsdComplexTypes());
+
+        // 3. Das Thymeleaf-Template "complexTypes.html" verarbeiten
+        final var result = templateEngine.process("complexTypes", context);
+
+        // 4. Den Ausgabepfad für die Datei definieren (z.B. output/complexTypes.html)
+        final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes.html");
+        logger.debug("Creating list page for complex types: {}", outputFilePath.toFile().getAbsolutePath());
+
+        // 5. Die generierte HTML-Datei schreiben
+        try {
+            Files.write(outputFilePath, result.getBytes());
+            logger.debug("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
+        } catch (IOException e) {
+            // Bei einem Fehler den Prozess abbrechen
+            throw new RuntimeException("Could not write complex types list page", e);
+        }
+    }
+
+    /**
+     * Generiert eine einzelne HTML-Seite, die alle gefundenen Simple Types auflistet.
+     */
+    void generateSimpleTypesListPage() {
+        logger.debug("Generating Simple Types list page");
+
+        final var context = new Context();
+
+        // Die Liste aller Simple Types aus den Daten holen und dem Kontext hinzufügen
+        context.setVariable("xsdSimpleTypes", xsdDocumentationData.getXsdSimpleTypes());
+
+        // Das Thymeleaf-Template "simpleTypes.html" verarbeiten
+        final var result = templateEngine.process("simpleTypes", context);
+
+        // Den Ausgabepfad für die Datei definieren (z.B. output/simpleTypes.html)
+        final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes.html");
+        logger.debug("Creating list page for simple types: {}", outputFilePath.toFile().getAbsolutePath());
+
+        // Die generierte HTML-Datei schreiben
+        try {
+            Files.write(outputFilePath, result.getBytes());
+            logger.debug("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
+        } catch (IOException e) {
+            throw new RuntimeException("Could not write simple types list page", e);
+        }
+    }
+
     void writeDetailsPageContent(ExtendedXsdElement currentElement,
                                  String currentXpath,
                                  XsdDocumentationImageService xsdDocumentationImageService) {

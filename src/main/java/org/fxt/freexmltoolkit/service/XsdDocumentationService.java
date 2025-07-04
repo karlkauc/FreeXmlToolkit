@@ -126,8 +126,13 @@ public class XsdDocumentationService {
 
         xsdDocumentationHtmlService.copyResources();
         xsdDocumentationHtmlService.generateRootPage();
+
+        xsdDocumentationHtmlService.generateComplexTypesListPage();
+        xsdDocumentationHtmlService.generateSimpleTypesListPage();
+
         xsdDocumentationHtmlService.generateComplexTypePages();
         xsdDocumentationHtmlService.generateSimpleTypePages();
+
 
         if (parallelProcessing) {
             xsdDocumentationHtmlService.generateDetailsPagesInParallel();

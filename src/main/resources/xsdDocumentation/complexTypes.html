@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Complex Types - XSD Documentation</title>
+    <!-- Tailwind CSS & Modern Font -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+<body class="font-sans text-slate-800">
+
+<!-- Navigation -->
+<nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center space-x-8">
+                <a href="index.html" class="flex items-center space-x-2 text-slate-700 font-bold">
+                    <img src="assets/logo.png" alt="logo" class="h-8 w-8"/>
+                    <span>FreeXmlToolKit</span>
+                </a>
+                <div class="hidden md:flex items-baseline space-x-6">
+                    <a href="index.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Home</a>
+                    <a href="complexTypes.html" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
+                       aria-current="page">Complex Types</a>
+                    <a href="simpleTypes.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Simple
+                        Types</a>
+                </div>
+            </div>
+            <div class="hidden md:block">
+                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
+                   class="inline-flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900">
+                    <span>GitHub</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                              d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
+                        <path fill-rule="evenodd"
+                              d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Hauptinhalt -->
+<main class="container mx-auto px-4 py-8 md:py-12">
+    <header class="mb-8">
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Alle Complex Types</h1>
+        <p class="mt-2 text-lg text-slate-600">Übersicht aller im Schema definierten komplexen Typen.</p>
+    </header>
+
+    <!-- Liste der Complex Types -->
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+        <ul role="list" class="divide-y divide-slate-200">
+            <!-- Thymeleaf-Schleife, um über alle Complex Types zu iterieren -->
+            <li th:each="complexType : ${xsdComplexTypes}" class="hover:bg-slate-50 transition-colors">
+                <a th:href="${'complexTypes/' + complexType.name + '.html'}" class="block p-6">
+                    <div class="flex items-center justify-between">
+                        <p class="text-lg font-semibold text-sky-600 font-mono" th:text="${complexType.name}">
+                            ComplexTypeName</p>
+                        <div class="flex-shrink-0 flex space-x-2">
+                            <span th:if="${complexType.isElementAbstract()}"
+                                  class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">Abstract</span>
+                            <span th:if="${complexType.isMixed()}"
+                                  class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">Mixed</span>
+                        </div>
+                    </div>
+                    <div class="mt-2"
+                         th:if="${complexType.getAnnotation() != null and complexType.getAnnotation().getDocumentations() != null and not #lists.isEmpty(complexType.getAnnotation().getDocumentations())}">
+                        <p class="text-sm text-slate-600"
+                           th:text="${complexType.getAnnotation().getDocumentations().get(0).getContent()}">
+                            Dokumentation des komplexen Typs...
+                        </p>
+                    </div>
+                </a>
+            </li>
+        </ul>
+    </div>
+</main>
+
+</body>
+</html>
