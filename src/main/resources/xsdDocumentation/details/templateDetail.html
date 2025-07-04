@@ -206,7 +206,20 @@
                                 <a th:href="${this.getPageName(child)}" th:text="${child}"
                                    class="text-sky-600 hover:text-sky-800 hover:underline">child-xpath</a>
                             </td>
-                            <td class="px-4 py-3 font-mono" th:text="${this.getChildType(child)}">child-type</td>
+
+                            <td class="px-4 py-3 font-mono">
+                                <!-- Wenn der Typ ein benutzerdefinierter Typ ist (kein xs:...), wird er verlinkt -->
+                                <a th:if="${this.isChildTypeLinkable(child)}"
+                                   th:href="${this.getChildTypePageName(child)}"
+                                   th:text="${this.getChildType(child)}"
+                                   class="text-sky-600 hover:text-sky-800 hover:underline">
+                                </a>
+                                <!-- Andernfalls (z.B. bei 'xs:string') wird er als normaler Text angezeigt -->
+                                <span th:unless="${this.isChildTypeLinkable(child)}"
+                                      th:text="${this.getChildType(child)}">
+    </span>
+                            </td>
+
                             <td class="px-4 py-3 text-slate-600" th:text="${this.getChildDocumentation(child)}">
                                 child-docs
                             </td>

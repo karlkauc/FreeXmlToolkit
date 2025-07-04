@@ -30,6 +30,7 @@ import org.xml.sax.InputSource;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
+import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdEnumeration;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -625,11 +626,13 @@ public class XsdDocumentationService {
             }
         }
 
-
         // Priorität 2: Enumerations (Auswahllisten)
         XsdRestriction restriction = element.getXsdRestriction();
         if (restriction != null && restriction.getEnumeration() != null && !restriction.getEnumeration().isEmpty()) {
-            return restriction.getEnumeration().get(0).getValue();
+            List<XsdEnumeration> enumerations = restriction.getEnumeration();
+            // Wähle einen zufälligen Index aus der Liste der möglichen Werte
+            int randomIndex = java.util.concurrent.ThreadLocalRandom.current().nextInt(enumerations.size());
+            return enumerations.get(randomIndex).getValue();
         }
 
         // Priorität 3: Datentyp-basierte Generierung
@@ -648,7 +651,7 @@ public class XsdDocumentationService {
 
         switch (finalType.toLowerCase()) {
             case "string", "token", "normalizedstring", "language", "name", "ncname":
-                String sample = "Beispieltext";
+                String sample = "Sample Data";
                 if ("language".equalsIgnoreCase(finalType)) {
                     sample = "DE"; // Spezifisches Beispiel für 'language'
                 }

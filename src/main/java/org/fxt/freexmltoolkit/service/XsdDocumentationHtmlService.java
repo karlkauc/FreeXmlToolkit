@@ -437,4 +437,55 @@ public class XsdDocumentationHtmlService {
         return "";
     }
 
+    /**
+     * Prüft, ob der Typ eines Kind-Elements ein verlinkbarer, benutzerdefinierter Typ ist.
+     *
+     * @param childXPath Der XPath des Kind-Elements.
+     * @return true, wenn der Typ kein eingebauter xs-Typ ist, sonst false.
+     */
+    public boolean isChildTypeLinkable(String childXPath) {
+        ExtendedXsdElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+        if (childElement != null && childElement.getElementType() != null) {
+            // Ein Typ ist verlinkbar, wenn er nicht mit dem Standard-Namespace-Präfix "xs:" beginnt.
+            return !childElement.getElementType().startsWith("xs:");
+        }
+        return false;
+    }
+
+    /**
+     * Gibt den relativen Pfad zur Detailseite des Typs eines Kind-Elements zurück.
+     *
+     * @param childXPath Der XPath des Kind-Elements.
+     * @return Der Dateiname für die Detailseite (z.B. "../simpletypes/MySimpleType.html").
+     */
+    public String getChildTypePageName(String childXPath) {
+        ExtendedXsdElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+        if (childElement == null || childElement.getElementType() == null) {
+            return "#";
+        }
+
+        String typeName = childElement.getElementType();
+        // Entferne ein mögliches Namespace-Präfix für den Dateinamen
+        String cleanTypeName = typeName.substring(typeName.lastIndexOf(":") + 1);
+
+        // KORREKTUR: Prüfe, ob der Typ in der Liste der globalen Simple- oder Complex-Types existiert.
+        // Wir verwenden einen Stream und anyMatch, da es sich um eine Liste handelt.
+        boolean isSimpleType = xsdDocumentationData.getXsdSimpleTypes().stream()
+                .anyMatch(st -> typeName.equals(st.getName()));
+
+        if (isSimpleType) {
+            return "../simpletypes/" + cleanTypeName + ".html";
+        }
+
+        boolean isComplexType = xsdDocumentationData.getXsdComplexTypes().stream()
+                .anyMatch(ct -> typeName.equals(ct.getName()));
+
+        if (isComplexType) {
+            return "../complexTypes/" + cleanTypeName + ".html";
+        }
+
+        // Fallback, sollte eigentlich nicht erreicht werden, wenn isChildTypeLinkable() korrekt funktioniert.
+        return "#";
+    }
+
 }
