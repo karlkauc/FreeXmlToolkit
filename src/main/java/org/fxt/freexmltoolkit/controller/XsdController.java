@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -111,8 +112,62 @@ public class XsdController {
         if (this.xmlService.getCurrentXsdFile() != null) {
             logger.debug("Loading XSD File: {}", this.xmlService.getCurrentXsdFile().getAbsolutePath());
             xsdStackPane.getChildren().clear();
+            File currentXsdFile = this.xmlService.getCurrentXsdFile();
 
-            //xsdStackPane.getChildren().add()
+            if (currentXsdFile != null && currentXsdFile.exists()) {
+                logger.debug("Lade XSD-Diagramm für: {}", currentXsdFile.getAbsolutePath());
+
+                try {
+                    // Annahme: Der XsdDocumentationService kann das Wurzelelement ermitteln.
+                    // Dafür ist eine neue, leichtgewichtige Methode im Service ideal.
+                    XsdDocumentationService docService = new XsdDocumentationService();
+                    docService.setXsdFilePath(currentXsdFile.getPath());
+
+                    // HINWEIS: Diese Methode muss im XsdDocumentationService erstellt werden (siehe Punkt 2).
+                    String rootElementName = docService.getRootElementName();
+
+                    if (rootElementName != null && !rootElementName.isEmpty()) {
+                        // Ein Label für den Namen des Wurzelelements erstellen
+                        Label rootElementLabel = new Label(rootElementName);
+
+                        // Das Label mit modernem CSS für eine ansprechende Umrandung stylen
+                        rootElementLabel.setStyle(
+                                "-fx-background-color: #eef4ff; " +      // Heller, freundlicher Hintergrund
+                                        "-fx-border-color: #adc8ff; " +         // Passende blaue Umrandung
+                                        "-fx-border-width: 1px; " +
+                                        "-fx-border-radius: 8px; " +             // Abgerundete Ecken
+                                        "-fx-background-radius: 8px; " +
+                                        "-fx-padding: 10px 15px; " +             // Innenabstand für bessere Lesbarkeit
+                                        "-fx-font-family: 'Segoe UI', sans-serif; " +
+                                        "-fx-font-size: 16px; " +
+                                        "-fx-font-weight: bold; " +
+                                        "-fx-text-fill: #0d47a1;"                // Dunkelblaue, kontrastreiche Schrift
+                        );
+
+                        // Das Label zum StackPane hinzufügen und links zentriert ausrichten
+                        xsdStackPane.getChildren().add(rootElementLabel);
+                        StackPane.setAlignment(rootElementLabel, Pos.CENTER_LEFT);
+
+                    } else {
+                        // Fallback, falls kein Wurzelelement gefunden wurde
+                        Label infoLabel = new Label("Kein Wurzelelement im Schema gefunden.");
+                        xsdStackPane.getChildren().add(infoLabel);
+                        StackPane.setAlignment(infoLabel, Pos.CENTER);
+                    }
+
+                } catch (Exception e) {
+                    logger.error("Fehler beim Ermitteln des Wurzelelements aus dem XSD.", e);
+                    Label errorLabel = new Label("Fehler beim Parsen des XSDs.");
+                    xsdStackPane.getChildren().add(errorLabel);
+                    StackPane.setAlignment(errorLabel, Pos.CENTER);
+                }
+
+            } else {
+                // Fallback, falls keine Datei geladen ist
+                Label infoLabel = new Label("Bitte eine XSD-Datei laden.");
+                xsdStackPane.getChildren().add(infoLabel);
+                StackPane.setAlignment(infoLabel, Pos.CENTER);
+            }
         }
 
     }
@@ -174,6 +229,7 @@ public class XsdController {
             logger.debug("open File: {}", xsdFile.getAbsolutePath());
             xmlService.setCurrentXsdFile(xsdFile);
             xsdFilePath.setText(xsdFile.getName());
+            setupXsdDiagram();
 
             codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
             virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
@@ -277,6 +333,7 @@ public class XsdController {
             if (f.isFile() && f.exists() && f.getAbsolutePath().toLowerCase().endsWith(".xsd")) {
                 this.xmlService.setCurrentXsdFile(f);
                 this.xsdFilePath.setText(f.getName());
+                setupXsdDiagram();
             }
         }
     }

@@ -556,6 +556,28 @@ public class XsdDocumentationService {
         return null;
     }
 
+    public String getRootElementName() {
+        try {
+            File xsdFile = new File(this.xsdFilePath);
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true); // Wichtig für XSDs
+            Document doc = factory.newDocumentBuilder().parse(xsdFile);
+
+            // Suche nach allen globalen <xs:element> Tags im XML Schema Namespace
+            NodeList elements = doc.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
+
+            if (elements.getLength() > 0) {
+                // Wir nehmen an, das erste gefundene globale Element ist das Wurzelelement.
+                // Eine robustere Implementierung könnte hier noch weiter prüfen,
+                // ob das Element ein direktes Kind von <xs:schema> ist.
+                return elements.item(0).getAttributes().getNamedItem("name").getNodeValue();
+            }
+        } catch (Exception e) {
+            // Hier sollte ein Logger verwendet werden, z.B. logger.error("...", e);
+            e.printStackTrace();
+        }
+        return null; // oder einen leeren String ""
+    }
 
     public String getSchemaPrefix() {
         try {
