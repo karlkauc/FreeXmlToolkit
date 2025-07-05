@@ -171,6 +171,31 @@
             </div>
         </section>
 
+        <!-- NEU: Sektion "Verwendet in" -->
+        <section th:if="${not #lists.isEmpty(usedInElements)}">
+            <h2 class="text-lg font-semibold text-slate-800 mb-3">Verwendet in</h2>
+            <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-sm">
+                    <tr>
+                        <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Element</th>
+                        <th scope="col" class="px-4 py-3 font-semibold text-slate-900">XPath</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 text-sm">
+                    <tr th:each="element : ${usedInElements}">
+                        <td class="px-4 py-3 font-mono">
+                            <!-- Link zur Detailseite des jeweiligen Elements -->
+                            <a th:href="${'../details/' + element.pageName}" th:text="${element.elementName}"
+                               class="text-sky-600 hover:text-sky-800 hover:underline"></a>
+                        </td>
+                        <td class="px-4 py-3 font-mono text-slate-600" th:text="${element.currentXpath}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <!-- Fallback-Nachricht, falls keine Einschränkungen definiert sind -->
         <div th:if="${restriction == null}" class="p-6">
             <p class="text-slate-500">Für diesen Typ sind keine spezifischen Einschränkungen definiert.</p>

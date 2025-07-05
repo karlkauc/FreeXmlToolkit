@@ -192,34 +192,45 @@ public class XsdDocumentationHtmlService {
 
         // Iteriere durch alle gefundenen SimpleTypes aus den XSD-Daten
         for (var simpleType : xsdDocumentationData.getXsdSimpleTypes()) {
-            // Erstelle einen neuen Kontext für das Thymeleaf-Template
-            var context = new Context();
-
-            // Füge die relevanten Daten zum Kontext hinzu, damit sie im Template verfügbar sind
-            context.setVariable("simpleType", simpleType);
-            context.setVariable("restriction", simpleType.getRestriction());
-
-            // Füge die Dokumentation hinzu, falls vorhanden
-            if (simpleType.getAnnotation() != null
-                    && simpleType.getAnnotation().getDocumentations() != null) {
-                context.setVariable("documentations", simpleType.getAnnotation().getDocumentations());
-            }
-
-            // Verarbeite das Template mit den gefüllten Daten
-            final var result = templateEngine.process("simpleTypes/templateSimpleType", context);
-
-            // Definiere den Ausgabepfad und den Dateinamen
-            final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", simpleType.getName() + ".html");
-            logger.debug("File: {}", outputFilePath.toFile().getAbsolutePath());
-
-            // Schreibe die generierte HTML-Datei in das Ausgabeverzeichnis
             try {
+                // Erstelle einen neuen Kontext für das Thymeleaf-Template
+                var context = new Context();
+
+                // Füge die relevanten Daten zum Kontext hinzu
+                context.setVariable("simpleType", simpleType);
+                context.setVariable("restriction", simpleType.getRestriction());
+
+                // Füge die Dokumentation hinzu, falls vorhanden
+                if (simpleType.getAnnotation() != null && simpleType.getAnnotation().getDocumentations() != null) {
+                    context.setVariable("documentations", simpleType.getAnnotation().getDocumentations());
+                }
+
+                // NEU: Finde alle Elemente, die diesen Simple Type verwenden.
+                final String typeName = simpleType.getName();
+                if (typeName != null && !typeName.isEmpty()) {
+                    var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                            .filter(element -> typeName.equals(element.getElementType()))
+                            .collect(Collectors.toList());
+
+                    // Füge die Liste der Verwendungen zum Kontext hinzu.
+                    context.setVariable("usedInElements", usedInElements);
+                    logger.debug("Found {} usage(s) for simple type '{}'", usedInElements.size(), typeName);
+                }
+
+                // Verarbeite das Template mit den gefüllten Daten
+                final var result = templateEngine.process("simpleTypes/templateSimpleType", context);
+
+                // Definiere den Ausgabepfad und den Dateinamen
+                final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", simpleType.getName() + ".html");
+                logger.debug("File: {}", outputFilePath.toFile().getAbsolutePath());
+
+                // Schreibe die generierte HTML-Datei in das Ausgabeverzeichnis
                 Files.write(outputFilePath, result.getBytes());
                 logger.debug("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
-            } catch (IOException e) {
-                // Wirf eine RuntimeException, um den Prozess bei einem Fehler abzubrechen
-                // throw new RuntimeException(e);
-                logger.error(e.getMessage());
+
+            } catch (Exception e) {
+                // Logge den Fehler, aber fahre mit dem nächsten Typ fort, um den gesamten Prozess nicht zu blockieren.
+                logger.error("ERROR in creating simple Type File for '{}': {}", simpleType.getName(), e.getMessage(), e);
             }
         }
     }
