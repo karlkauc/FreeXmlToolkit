@@ -126,6 +126,28 @@ public class XsdDocumentationHtmlService {
                     context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
                 }
 
+                // NEU: Finde alle Elemente, deren Name dem des Complex Type entspricht.
+                final String typeName = complexType.getName();
+                if (typeName != null && !typeName.isEmpty()) {
+                    // Filtere die Liste aller ExtendedXsdElement-Objekte.
+                    var currentExtendedElement = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                            .filter(element -> typeName.equals(element.getElementName()))
+                            .collect(Collectors.toList());
+
+                    // Füge die Liste der gefundenen Elemente zum Kontext hinzu.
+                    // Diese kann im Template z.B. unter "Verwendet in:" angezeigt werden.
+                    context.setVariable("typeUsages", currentExtendedElement);
+                    logger.debug("Found {} usage(s) for complex type '{}'", currentExtendedElement.size(), typeName);
+
+                    var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                            .filter(element -> typeName.equals(element.getElementType()))
+                            .collect(Collectors.toList());
+
+                    context.setVariable("usedInElements", usedInElements);
+                    logger.debug("Found {} usage(s) for complex type '{}'", usedInElements.size(), typeName);
+                }
+
+
                 final var result = templateEngine.process("complexTypes/templateComplexType", context);
                 var fileName = complexType.getRawName();
                 if (fileName.isEmpty()) {

@@ -17,22 +17,20 @@
   -->
 
 <!DOCTYPE html>
-<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="'Complex Type: ' + ${complexType.getRawName()}">XSD Documentation</title>
 
-    <link href="../assets/freeXmlToolkit.css" rel="stylesheet"/>
-
+    <!-- Tailwind CSS & Modern Font -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Optionale: Eigene Design-Anpassungen für Tailwind
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'], // Eine moderne, gut lesbare Schriftart
+                        sans: ['Inter', 'sans-serif'],
                     },
                 }
             }
@@ -40,24 +38,36 @@
     </script>
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link href="../assets/prism.css" rel="stylesheet"/>
 </head>
-<body>
+<body class="font-sans text-slate-800">
 
 <!-- Navigation -->
-<nav class="py-2 bg-body-tertiary border-bottom">
-    <div class="container d-flex flex-wrap">
-        <ul class="nav me-auto">
-            <li class="nav-item"><a href="../index.html" class="nav-link link-body-emphasis px-2">Home</a></li>
-            <li class="nav-item"><a href="../complexTypes.html" class="nav-link link-body-emphasis px-2 active"
-                                    aria-current="page">Complex Types</a></li>
-            <li class="nav-item"><a href="../simpleTypes.html" class="nav-link link-body-emphasis px-2">Simple Types</a>
-            </li>
-        </ul>
-        <ul class="nav">
-            <li class="nav-item">
+<nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <!-- Linke Navigationsgruppe -->
+            <div class="flex items-center space-x-8">
+                <a href="../index.html" class="flex items-center space-x-2 text-slate-700 font-bold">
+                    <img src="../assets/logo.png" alt="logo" class="h-8 w-8"/>
+                    <span>FreeXmlToolKit</span>
+                </a>
+                <div class="hidden md:flex items-baseline space-x-6">
+                    <a href="../index.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Home</a>
+                    <a href="../complexTypes.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100" aria-current="page">Complex
+                        Types</a>
+                    <a href="../simpleTypes.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Simple
+                        Types</a>
+                </div>
+            </div>
+            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <div class="hidden md:block">
                 <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
-                   class="nav-link link-body-emphasis px-2">
-                    <img src="../assets/logo.png" width="32" height="32" alt="logo"/>
+                   class="inline-flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900">
+                    <span>GitHub</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                          class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
                         <path fill-rule="evenodd"
@@ -65,75 +75,128 @@
                         <path fill-rule="evenodd"
                               d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
                     </svg>
-                    FreeXmlToolKit
                 </a>
-            </li>
-        </ul>
+            </div>
+        </div>
     </div>
 </nav>
 
 <!-- Hauptinhalt -->
-<div class="container mt-4 mb-4">
-    <div class="card">
-        <div class="card-header">
-            <!-- Titel und Badges -->
-            <h1>Complex Type: <span class="text-monospace" th:text="${complexType.getRawName()}">TypeName</span>
-                <span th:if="${complexType.isElementAbstract()}" class="badge bg-secondary align-middle">Abstract</span>
-                <span th:if="${complexType.isMixed()}" class="badge bg-info align-middle">Mixed Content</span>
-            </h1>
-        </div>
-
-        <div class="card-body">
-            <!-- Dokumentation -->
-            <div th:if="${documentations != null and not #lists.isEmpty(documentations)}">
-                <h4 class="card-title">Dokumentation</h4>
-                <div class="alert alert-secondary">
-                    <p th:each="doc : ${documentations}" th:text="${doc.getContent()}" class="mb-1"></p>
+<main class="container mx-auto px-4 py-8 md:py-12">
+    <!-- Zentrale Inhalts-Karte -->
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+        <!-- Karten-Header -->
+        <header class="p-6 border-b border-slate-200 bg-slate-50">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-slate-900">
+                    Complex Type: <span class="font-mono" th:text="${complexType.getRawName()}">TypeName</span>
+                </h1>
+                <div class="flex space-x-2">
+                    <span th:if="${complexType.isElementAbstract()}"
+                          class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">Abstract</span>
+                    <span th:if="${complexType.isMixed()}"
+                          class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">Mixed Content</span>
                 </div>
             </div>
+        </header>
 
-            <!-- Attribute -->
-            <th:block
-                    th:if="${complexType != null and complexType.attributesMap != null and !#maps.isEmpty(complexType.attributesMap)}">
-                <!-- Inhalt -->
-            </th:block>
-            <div th:if="${complexType != null and complexType.attributesMap != null and not #maps.isEmpty(complexType.attributesMap)}">
-                <h4 class="card-title mt-4">Attribute</h4>
-                <table class="table table-bordered table-striped">
-                    <thead class="thead-light">
-                    <tr>
-                        <th>Name</th>
-                        <th>Typ</th>
-                        <th>Verwendung</th>
-                        <th>Dokumentation</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="attr : ${complexType.getAttributesMap()}">
-                        <td class="text-monospace" th:text="${attr.getKey()}"></td>
-                        <!--
-                        <td>
-                            <!- Annahme: Es gibt eine Map 'typeLinks', die den Link zur Detailseite des Typs enthält ->
-                            <a th:href="${typeLinks[attr.getType()] ?: '#'}" th:text="${attr.getType()}"></a>
-                        </td>
-                        -->
-                        <td th:text="${attr.getValue()}"></td>
-                        <!--<td th:text="${attr.getAnnotation()?.getDocumentations()?.get(0)?.getContent()}"></td> -->
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+        <!-- Karten-Body -->
+        <div class="p-6 md:p-8 space-y-10">
+            <!-- Sektion: Dokumentation -->
+            <section th:if="${not #lists.isEmpty(documentations)}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Dokumentation</h2>
+                <div class="bg-slate-100/75 p-4 rounded-md space-y-2">
+                    <p th:each="doc : ${documentations}" th:text="${doc.getContent()}" class="text-slate-700"></p>
+                </div>
+            </section>
+
+            <!-- Sektion: Attribute -->
+            <section th:if="${not #maps.isEmpty(complexType.getAttributesMap())}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Attribute</h2>
+                <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-sm">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Name</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Typ</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm">
+                        <tr th:each="attrEntry : ${complexType.getAttributesMap()}">
+                            <td class="px-4 py-3 font-mono text-slate-800" th:text="${attrEntry.key}"></td>
+                            <td class="px-4 py-3 font-mono">
+                                <!--
+                                <a th:href="${typeLinks != null ? typeLinks[attrEntry.value] : '#'}"
+                                   th:text="${attrEntry.value}"
+                                   class="text-sky-600 hover:text-sky-800 hover:underline"></a>
+                                   -->
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- NEU: Sektion "Verwendet in" -->
+            <section th:if="${not #lists.isEmpty(usedInElements)}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Verwendet in</h2>
+                <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-sm">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Element</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">XPath</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm">
+                        <tr th:each="element : ${usedInElements}">
+                            <td class="px-4 py-3 font-mono">
+                                <a th:href="${'../details/' + element.pageName}" th:text="${element.elementName}"
+                                   class="text-sky-600 hover:text-sky-800 hover:underline"></a>
+                            </td>
+                            <td class="px-4 py-3 font-mono text-slate-600" th:text="${element.currentXpath}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- NEU: Sektion "Element-Deklarationen mit diesem Namen" -->
+            <section th:if="${not #lists.isEmpty(typeUsages)}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Element-Deklarationen mit diesem Namen</h2>
+                <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-sm">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Element</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">XPath</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm">
+                        <tr th:each="element : ${typeUsages}">
+                            <td class="px-4 py-3 font-mono">
+                                <a th:href="${'../details/' + element.pageName}" th:text="${element.elementName}"
+                                   class="text-sky-600 hover:text-sky-800 hover:underline"></a>
+                            </td>
+                            <td class="px-4 py-3 font-mono text-slate-600" th:text="${element.currentXpath}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
         </div>
     </div>
 
     <!-- Navigations-Button zurück zur Übersicht -->
-    <div class="mt-3">
-        <a href="../complexTypes.html" class="btn btn-primary">Zurück zur Übersicht</a>
+    <div class="mt-8 text-center">
+        <a href="../complexTypes.html"
+           class="inline-flex items-center gap-x-2 rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
+            Zurück zur Übersicht
+        </a>
     </div>
-</div>
+</main>
 
-<script src="../assets/bootstrap.bundle.min.js"></script>
 <script src="../assets/prism.js"></script>
 </body>
 </html>
