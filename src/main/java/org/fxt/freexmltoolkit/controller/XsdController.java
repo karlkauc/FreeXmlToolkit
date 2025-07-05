@@ -21,8 +21,8 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -31,10 +31,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -43,6 +41,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.controls.XsdDiagramView;
 import org.fxt.freexmltoolkit.domain.XsdRootInfo;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
@@ -126,75 +125,21 @@ public class XsdController {
         logger.debug("Lade XSD-Diagramm für: {}", currentXsdFile.getAbsolutePath());
 
         try {
+            // 1. Daten vom Service holen
             XsdDocumentationService docService = new XsdDocumentationService();
             docService.setXsdFilePath(currentXsdFile.getPath());
             XsdRootInfo rootInfo = docService.getRootElementInfo();
 
-            if (rootInfo.name() != null && !rootInfo.name().isEmpty()) {
-                // Hauptcontainer für alle Elemente
-                VBox mainContainer = new VBox(5); // 5px Abstand zwischen den Elementen
-                mainContainer.setPadding(new Insets(10, 10, 10, 10)); // Etwas Abstand zum Rand
+            if (rootInfo != null && rootInfo.name() != null && !rootInfo.name().isEmpty()) {
+                // 2. Die neue View-Klasse instanziieren
+                XsdDiagramView diagramView = new XsdDiagramView(rootInfo);
 
-                // Container für die Root-Zeile (Name + Plus-Symbol)
-                HBox rootElementContainer = new HBox(10); // 10px Abstand
-                rootElementContainer.setAlignment(Pos.CENTER_LEFT);
+                // 3. Die UI-Komponente bauen lassen
+                Node view = diagramView.build();
 
-                // Label für den Namen des Wurzelelements
-                Label rootElementLabel = new Label(rootInfo.name());
-                rootElementLabel.setStyle(
-                        "-fx-background-color: #eef4ff; " +
-                                "-fx-border-color: #adc8ff; " +
-                                "-fx-border-width: 1px; " +
-                                "-fx-border-radius: 8px; " +
-                                "-fx-background-radius: 8px; " +
-                                "-fx-padding: 10px 15px; " +
-                                "-fx-font-family: 'Segoe UI', sans-serif; " +
-                                "-fx-font-size: 16px; " +
-                                "-fx-font-weight: bold; " +
-                                "-fx-text-fill: #0d47a1;"
-                );
-                rootElementContainer.getChildren().add(rootElementLabel);
-
-                // Container für die Kind-Elemente (anfangs unsichtbar)
-                VBox childrenContainer = new VBox(5);
-                childrenContainer.setPadding(new Insets(0, 0, 0, 20)); // Einrücken für Hierarchie
-                childrenContainer.setVisible(false);
-                childrenContainer.setManaged(false); // Nimmt keinen Platz ein, wenn unsichtbar
-
-                // Nur wenn Kind-Elemente vorhanden sind, das Plus-Symbol hinzufügen
-                if (!rootInfo.childElementNames().isEmpty()) {
-                    Label plusLabel = new Label("+");
-                    plusLabel.setStyle(
-                            "-fx-font-size: 20px; " +
-                                    "-fx-font-weight: bold; " +
-                                    "-fx-text-fill: #0d47a1; " +
-                                    "-fx-padding: 0 10px; " +
-                                    "-fx-cursor: hand;" // Zeigt eine Hand als Mauszeiger
-                    );
-
-                    // Klick-Logik zum Auf- und Zuklappen
-                    final boolean[] isExpanded = {false}; // "final"-Wrapper für Lambda
-                    plusLabel.setOnMouseClicked(event -> {
-                        isExpanded[0] = !isExpanded[0];
-                        childrenContainer.setVisible(isExpanded[0]);
-                        childrenContainer.setManaged(isExpanded[0]);
-                        plusLabel.setText(isExpanded[0] ? "−" : "+"); // Minus-Zeichen U+2212
-                    });
-
-                    rootElementContainer.getChildren().add(plusLabel);
-
-                    // Die Kind-Elemente zum Container hinzufügen
-                    for (String childName : rootInfo.childElementNames()) {
-                        Label childLabel = new Label("• " + childName);
-                        childLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #333;");
-                        childrenContainer.getChildren().add(childLabel);
-                    }
-                }
-
-                // Alles zusammenbauen
-                mainContainer.getChildren().addAll(rootElementContainer, childrenContainer);
-                xsdStackPane.getChildren().add(mainContainer);
-                StackPane.setAlignment(mainContainer, Pos.TOP_LEFT);
+                // 4. Die fertige Komponente zur Szene hinzufügen
+                xsdStackPane.getChildren().add(view);
+                StackPane.setAlignment(view, Pos.TOP_LEFT);
 
             } else {
                 Label infoLabel = new Label("Kein Wurzelelement im Schema gefunden.");

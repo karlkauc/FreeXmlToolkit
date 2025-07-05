@@ -557,37 +557,69 @@ public class XsdDocumentationService {
         return null;
     }
 
+    /**
+     * Analysiert die geladene XSD-Datei und extrahiert die Informationen
+     * über das Wurzelelement, inklusive seiner Dokumentation und direkten Kind-Elemente.
+     *
+     * @return Ein XsdRootInfo-Objekt mit den gefundenen Daten.
+     * Gibt ein leeres Objekt zurück, wenn kein Wurzelelement gefunden wird oder ein Fehler auftritt.
+     */
     public XsdRootInfo getRootElementInfo() {
         try {
             File xsdFile = new File(this.xsdFilePath);
+            if (!xsdFile.exists()) {
+                // logger.warn("XSD file not found at: {}", this.xsdFilePath);
+                return new XsdRootInfo(null, "", List.of());
+            }
+
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
+            factory.setNamespaceAware(true); // Wichtig für XSDs
             Document doc = factory.newDocumentBuilder().parse(xsdFile);
 
-            // Finde das erste globale <xs:element>
-            NodeList elements = doc.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
+            // Annahme: Das erste globale <xs:element> ist das Wurzelelement.
+            // Eine robustere Implementierung könnte prüfen, ob es ein direktes Kind von <xs:schema> ist.
+            NodeList elements = doc.getDocumentElement().getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
+
             if (elements.getLength() > 0) {
                 Element rootElementNode = (Element) elements.item(0);
                 String rootName = rootElementNode.getAttribute("name");
+                String documentation = "";
                 List<String> childNames = new ArrayList<>();
 
-                // Finde die Kind-Elemente innerhalb von <xs:sequence> oder <xs:choice>
-                NodeList sequences = rootElementNode.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "sequence");
-                if (sequences.getLength() > 0) {
-                    NodeList childElements = ((Element) sequences.item(0)).getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
-                    for (int i = 0; i < childElements.getLength(); i++) {
-                        childNames.add(((Element) childElements.item(i)).getAttribute("name"));
+                // 1. Dokumentation aus <xs:annotation> extrahieren
+                NodeList annotations = rootElementNode.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "annotation");
+                if (annotations.getLength() > 0) {
+                    NodeList documentations = ((Element) annotations.item(0)).getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "documentation");
+                    if (documentations.getLength() > 0) {
+                        documentation = documentations.item(0).getTextContent().trim();
                     }
                 }
-                // (Hier könnte man die Logik für <xs:choice> etc. erweitern)
 
-                return new XsdRootInfo(rootName, childNames);
+                // 2. Kind-Elemente aus der ersten <xs:sequence> extrahieren
+                NodeList sequences = rootElementNode.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "sequence");
+                if (sequences.getLength() > 0) {
+                    // Nur direkte Kinder der Sequenz betrachten, um Verschachtelungen zu ignorieren
+                    NodeList childNodes = sequences.item(0).getChildNodes();
+                    for (int i = 0; i < childNodes.getLength(); i++) {
+                        Node child = childNodes.item(i);
+                        // Sicherstellen, dass es sich um ein <xs:element> handelt
+                        if (child.getNodeType() == Node.ELEMENT_NODE && "element".equals(child.getLocalName())) {
+                            childNames.add(((Element) child).getAttribute("name"));
+                        }
+                    }
+                }
+                // Hier könnte man die Logik für <xs:choice> etc. bei Bedarf erweitern
+
+                return new XsdRootInfo(rootName, documentation, childNames);
             }
         } catch (Exception e) {
+            // Im Fehlerfall sollte hier idealerweise geloggt werden.
             // logger.error("Fehler beim Parsen der XSD für Root-Info", e);
             e.printStackTrace();
         }
-        return new XsdRootInfo(null, List.of()); // Leeres Objekt bei Fehler
+
+        // Fallback, wenn kein Element gefunden wurde oder ein Fehler auftrat
+        return new XsdRootInfo(null, "", List.of());
     }
 
     public String getSchemaPrefix() {
