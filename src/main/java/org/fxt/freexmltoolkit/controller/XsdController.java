@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -30,8 +31,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -40,6 +43,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.domain.XsdRootInfo;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
@@ -109,67 +113,101 @@ public class XsdController {
     }
 
     private void setupXsdDiagram() {
-        if (this.xmlService.getCurrentXsdFile() != null) {
-            logger.debug("Loading XSD File: {}", this.xmlService.getCurrentXsdFile().getAbsolutePath());
-            xsdStackPane.getChildren().clear();
-            File currentXsdFile = this.xmlService.getCurrentXsdFile();
+        xsdStackPane.getChildren().clear();
+        File currentXsdFile = this.xmlService.getCurrentXsdFile();
 
-            if (currentXsdFile != null && currentXsdFile.exists()) {
-                logger.debug("Lade XSD-Diagramm für: {}", currentXsdFile.getAbsolutePath());
+        if (currentXsdFile == null || !currentXsdFile.exists()) {
+            Label infoLabel = new Label("Bitte eine XSD-Datei laden.");
+            xsdStackPane.getChildren().add(infoLabel);
+            StackPane.setAlignment(infoLabel, Pos.CENTER);
+            return;
+        }
 
-                try {
-                    // Annahme: Der XsdDocumentationService kann das Wurzelelement ermitteln.
-                    // Dafür ist eine neue, leichtgewichtige Methode im Service ideal.
-                    XsdDocumentationService docService = new XsdDocumentationService();
-                    docService.setXsdFilePath(currentXsdFile.getPath());
+        logger.debug("Lade XSD-Diagramm für: {}", currentXsdFile.getAbsolutePath());
 
-                    // HINWEIS: Diese Methode muss im XsdDocumentationService erstellt werden (siehe Punkt 2).
-                    String rootElementName = docService.getRootElementName();
+        try {
+            XsdDocumentationService docService = new XsdDocumentationService();
+            docService.setXsdFilePath(currentXsdFile.getPath());
+            XsdRootInfo rootInfo = docService.getRootElementInfo();
 
-                    if (rootElementName != null && !rootElementName.isEmpty()) {
-                        // Ein Label für den Namen des Wurzelelements erstellen
-                        Label rootElementLabel = new Label(rootElementName);
+            if (rootInfo.name() != null && !rootInfo.name().isEmpty()) {
+                // Hauptcontainer für alle Elemente
+                VBox mainContainer = new VBox(5); // 5px Abstand zwischen den Elementen
+                mainContainer.setPadding(new Insets(10, 10, 10, 10)); // Etwas Abstand zum Rand
 
-                        // Das Label mit modernem CSS für eine ansprechende Umrandung stylen
-                        rootElementLabel.setStyle(
-                                "-fx-background-color: #eef4ff; " +      // Heller, freundlicher Hintergrund
-                                        "-fx-border-color: #adc8ff; " +         // Passende blaue Umrandung
-                                        "-fx-border-width: 1px; " +
-                                        "-fx-border-radius: 8px; " +             // Abgerundete Ecken
-                                        "-fx-background-radius: 8px; " +
-                                        "-fx-padding: 10px 15px; " +             // Innenabstand für bessere Lesbarkeit
-                                        "-fx-font-family: 'Segoe UI', sans-serif; " +
-                                        "-fx-font-size: 16px; " +
-                                        "-fx-font-weight: bold; " +
-                                        "-fx-text-fill: #0d47a1;"                // Dunkelblaue, kontrastreiche Schrift
-                        );
+                // Container für die Root-Zeile (Name + Plus-Symbol)
+                HBox rootElementContainer = new HBox(10); // 10px Abstand
+                rootElementContainer.setAlignment(Pos.CENTER_LEFT);
 
-                        // Das Label zum StackPane hinzufügen und links zentriert ausrichten
-                        xsdStackPane.getChildren().add(rootElementLabel);
-                        StackPane.setAlignment(rootElementLabel, Pos.CENTER_LEFT);
+                // Label für den Namen des Wurzelelements
+                Label rootElementLabel = new Label(rootInfo.name());
+                rootElementLabel.setStyle(
+                        "-fx-background-color: #eef4ff; " +
+                                "-fx-border-color: #adc8ff; " +
+                                "-fx-border-width: 1px; " +
+                                "-fx-border-radius: 8px; " +
+                                "-fx-background-radius: 8px; " +
+                                "-fx-padding: 10px 15px; " +
+                                "-fx-font-family: 'Segoe UI', sans-serif; " +
+                                "-fx-font-size: 16px; " +
+                                "-fx-font-weight: bold; " +
+                                "-fx-text-fill: #0d47a1;"
+                );
+                rootElementContainer.getChildren().add(rootElementLabel);
 
-                    } else {
-                        // Fallback, falls kein Wurzelelement gefunden wurde
-                        Label infoLabel = new Label("Kein Wurzelelement im Schema gefunden.");
-                        xsdStackPane.getChildren().add(infoLabel);
-                        StackPane.setAlignment(infoLabel, Pos.CENTER);
+                // Container für die Kind-Elemente (anfangs unsichtbar)
+                VBox childrenContainer = new VBox(5);
+                childrenContainer.setPadding(new Insets(0, 0, 0, 20)); // Einrücken für Hierarchie
+                childrenContainer.setVisible(false);
+                childrenContainer.setManaged(false); // Nimmt keinen Platz ein, wenn unsichtbar
+
+                // Nur wenn Kind-Elemente vorhanden sind, das Plus-Symbol hinzufügen
+                if (!rootInfo.childElementNames().isEmpty()) {
+                    Label plusLabel = new Label("+");
+                    plusLabel.setStyle(
+                            "-fx-font-size: 20px; " +
+                                    "-fx-font-weight: bold; " +
+                                    "-fx-text-fill: #0d47a1; " +
+                                    "-fx-padding: 0 10px; " +
+                                    "-fx-cursor: hand;" // Zeigt eine Hand als Mauszeiger
+                    );
+
+                    // Klick-Logik zum Auf- und Zuklappen
+                    final boolean[] isExpanded = {false}; // "final"-Wrapper für Lambda
+                    plusLabel.setOnMouseClicked(event -> {
+                        isExpanded[0] = !isExpanded[0];
+                        childrenContainer.setVisible(isExpanded[0]);
+                        childrenContainer.setManaged(isExpanded[0]);
+                        plusLabel.setText(isExpanded[0] ? "−" : "+"); // Minus-Zeichen U+2212
+                    });
+
+                    rootElementContainer.getChildren().add(plusLabel);
+
+                    // Die Kind-Elemente zum Container hinzufügen
+                    for (String childName : rootInfo.childElementNames()) {
+                        Label childLabel = new Label("• " + childName);
+                        childLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #333;");
+                        childrenContainer.getChildren().add(childLabel);
                     }
-
-                } catch (Exception e) {
-                    logger.error("Fehler beim Ermitteln des Wurzelelements aus dem XSD.", e);
-                    Label errorLabel = new Label("Fehler beim Parsen des XSDs.");
-                    xsdStackPane.getChildren().add(errorLabel);
-                    StackPane.setAlignment(errorLabel, Pos.CENTER);
                 }
 
+                // Alles zusammenbauen
+                mainContainer.getChildren().addAll(rootElementContainer, childrenContainer);
+                xsdStackPane.getChildren().add(mainContainer);
+                StackPane.setAlignment(mainContainer, Pos.TOP_LEFT);
+
             } else {
-                // Fallback, falls keine Datei geladen ist
-                Label infoLabel = new Label("Bitte eine XSD-Datei laden.");
+                Label infoLabel = new Label("Kein Wurzelelement im Schema gefunden.");
                 xsdStackPane.getChildren().add(infoLabel);
                 StackPane.setAlignment(infoLabel, Pos.CENTER);
             }
-        }
 
+        } catch (Exception e) {
+            logger.error("Fehler beim Ermitteln des Wurzelelements aus dem XSD.", e);
+            Label errorLabel = new Label("Fehler beim Parsen des XSDs.");
+            xsdStackPane.getChildren().add(errorLabel);
+            StackPane.setAlignment(errorLabel, Pos.CENTER);
+        }
     }
 
     private void setupCodeArea() {
@@ -362,3 +400,5 @@ public class XsdController {
         }
     }
 }
+
+

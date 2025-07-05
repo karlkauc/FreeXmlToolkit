@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdRootInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -556,27 +557,37 @@ public class XsdDocumentationService {
         return null;
     }
 
-    public String getRootElementName() {
+    public XsdRootInfo getRootElementInfo() {
         try {
             File xsdFile = new File(this.xsdFilePath);
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true); // Wichtig für XSDs
+            factory.setNamespaceAware(true);
             Document doc = factory.newDocumentBuilder().parse(xsdFile);
 
-            // Suche nach allen globalen <xs:element> Tags im XML Schema Namespace
+            // Finde das erste globale <xs:element>
             NodeList elements = doc.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
-
             if (elements.getLength() > 0) {
-                // Wir nehmen an, das erste gefundene globale Element ist das Wurzelelement.
-                // Eine robustere Implementierung könnte hier noch weiter prüfen,
-                // ob das Element ein direktes Kind von <xs:schema> ist.
-                return elements.item(0).getAttributes().getNamedItem("name").getNodeValue();
+                Element rootElementNode = (Element) elements.item(0);
+                String rootName = rootElementNode.getAttribute("name");
+                List<String> childNames = new ArrayList<>();
+
+                // Finde die Kind-Elemente innerhalb von <xs:sequence> oder <xs:choice>
+                NodeList sequences = rootElementNode.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "sequence");
+                if (sequences.getLength() > 0) {
+                    NodeList childElements = ((Element) sequences.item(0)).getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
+                    for (int i = 0; i < childElements.getLength(); i++) {
+                        childNames.add(((Element) childElements.item(i)).getAttribute("name"));
+                    }
+                }
+                // (Hier könnte man die Logik für <xs:choice> etc. erweitern)
+
+                return new XsdRootInfo(rootName, childNames);
             }
         } catch (Exception e) {
-            // Hier sollte ein Logger verwendet werden, z.B. logger.error("...", e);
+            // logger.error("Fehler beim Parsen der XSD für Root-Info", e);
             e.printStackTrace();
         }
-        return null; // oder einen leeren String ""
+        return new XsdRootInfo(null, List.of()); // Leeres Objekt bei Fehler
     }
 
     public String getSchemaPrefix() {
