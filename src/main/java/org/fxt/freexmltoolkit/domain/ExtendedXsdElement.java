@@ -368,4 +368,8 @@ public class ExtendedXsdElement implements Serializable {
     public String getSampleData() {
         return sampleData;
     }
+
+    public boolean isMandatory() {
+        return this.getXsdElement() != null && this.getXsdElement().getMinOccurs() > 0;
+    }
 }

@@ -26,7 +26,10 @@ import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
-import org.w3c.dom.*;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 
 import javax.xml.transform.*;
@@ -49,11 +52,18 @@ public class XsdDocumentationImageService {
     final int margin = 10;
     final int gapBetweenSides = 100;
 
-    final static String BOX_COLOR = "#d5e3e8";
-    final static String OPTIONAL_FORMAT = "stroke: rgb(2,23,23); stroke-width: 1.5; stroke-dasharray: 7, 7; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
-    final static String OPTIONAL_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 1.5; stroke-dasharray: 7, 7;";
-    final static String MANDATORY_FORMAT = "stroke: rgb(2,23,23); stroke-width: 1.5; filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));";
-    final static String MANDATORY_FORMAT_NO_SHADOW = "stroke: rgb(2,23,23); stroke-width: 1.5;";
+    // NEU: Farbpalette, die auf die Tailwind-CSS-Klassen der HTML-Seiten abgestimmt ist.
+    private static final String COLOR_BG = "#f8fafc";                 // slate-50
+    private static final String COLOR_BOX_FILL = "#f1f5f9";           // slate-100
+    private static final String COLOR_STROKE = "#475569";             // slate-600
+    private static final String COLOR_STROKE_SEPARATOR = "#e2e8f0";   // slate-200
+    private static final String COLOR_TEXT_PRIMARY = "#0f172a";       // slate-900
+    private static final String COLOR_TEXT_SECONDARY = "#64748b";     // slate-500
+    private static final String COLOR_ICON = "#0284c7";               // sky-600
+
+    // Angepasste Style-Strings mit den neuen Farben
+    final static String OPTIONAL_FORMAT_NO_SHADOW = "stroke: " + COLOR_STROKE + "; stroke-width: 1.5; stroke-dasharray: 7, 7;";
+    final static String MANDATORY_FORMAT_NO_SHADOW = "stroke: " + COLOR_STROKE + "; stroke-width: 1.5;";
 
     Font font;
     FontRenderContext frc;
@@ -78,8 +88,9 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Generates a PNG image from the SVG representation of the XSD element.
-     * This version uses the PNGTranscoder for lossless image quality.
+     * Generates a PNG image directly from the DOM representation of the XSD element.
+     * This version is more efficient and avoids serialization warnings by passing the
+     * DOM document directly to the transcoder.
      *
      * @param rootXpath the root XPath of the XSD element
      * @param file      the file to save the generated image (should have a .png extension)
@@ -87,38 +98,37 @@ public class XsdDocumentationImageService {
      */
     public String generateImage(String rootXpath, File file) {
         try {
-            // 1. SVG-Daten wie zuvor generieren
-            String svgString = generateSvgString(rootXpath);
+            // 1. SVG-DOM-Dokument wie zuvor generieren
+            Document svgDocument = generateSvgDiagramms(rootXpath);
+            if (svgDocument.getDocumentElement() == null || !svgDocument.getDocumentElement().hasChildNodes()) {
+                logger.warn("Generated SVG for {} is empty, skipping image creation.", rootXpath);
+                return null;
+            }
 
-            // 2. PNG-Transcoder initialisieren (ersetzt JPEGTranscoder)
+            // 2. PNG-Transcoder initialisieren
             PNGTranscoder transcoder = new PNGTranscoder();
 
-            // Hinweis: Die Qualitätseinstellung (KEY_QUALITY) wird für PNG nicht benötigt,
-            // da es ein verlustfreies Format ist.
+            // 3. Input für den Transcoder direkt aus dem DOM-Dokument erstellen.
+            TranscoderInput input = new TranscoderInput(svgDocument);
 
-            // 3. Input für den Transcoder vorbereiten
-            TranscoderInput input = new TranscoderInput(new StringReader(svgString));
-
-            // 4. Ressourcen sicher mit try-with-resources verwalten und direkt in die Datei schreiben
+            // 4. Ressourcen sicher mit try-with-resources verwalten
             try (OutputStream outputStream = new FileOutputStream(file)) {
                 TranscoderOutput output = new TranscoderOutput(outputStream);
 
                 // 5. Konvertierung durchführen
                 transcoder.transcode(input, output);
-            } // outputStream wird hier automatisch geschlossen
+            }
 
             logger.debug("Successfully created PNG image: {}", file.getAbsolutePath());
-            logger.debug("File Size: {}", file.length());
-
             return file.getAbsolutePath();
 
         } catch (IOException | TranscoderException e) {
-            // 6. Verbessertes Fehler-Logging mit vollständigem Stack Trace
             logger.error("Failed to generate image for file '{}'", file.getAbsolutePath(), e);
         }
 
         return null;
     }
+
 
     /**
      * Generates an SVG string representation of the XSD element.
@@ -129,28 +139,6 @@ public class XsdDocumentationImageService {
     public String generateSvgString(String rootXpath) {
         var element = generateSvgDiagramms(rootXpath);
         return asString(element.getDocumentElement());
-    }
-
-    /**
-     * Generates an SVG diagram from the given XML element.
-     *
-     * @param element the XML element
-     * @return the SVG document
-     */
-    public Document generateSvgDiagram(Element element) {
-        Document svgDocument = domImpl.createDocument(svgNS, "svg", null);
-        var rootElementName = element.getLocalName();
-        logger.debug("Root Element Name: {}", rootElementName);
-
-        NodeList childNodes = element.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            var subNode = element.getChildNodes().item(i);
-            if (subNode.getNodeType() == Node.ELEMENT_NODE) {
-                logger.debug("Node: {} - {} - {}", subNode.getLocalName(), subNode.getNodeValue(), subNode.getNodeName());
-            }
-        }
-
-        return svgDocument;
     }
 
     /**
@@ -173,22 +161,21 @@ public class XsdDocumentationImageService {
         filter.setAttribute("y", "-20%");
         filter.setAttribute("width", "140%");
         filter.setAttribute("height", "140%");
-        // HINWEIS: setInnerHtml() oder setTextContent() mit XML-Tags ist nicht standardkonform.
-        // Wir bauen den Filter stattdessen korrekt mit DOM-Methoden auf.
+
         Element feGaussianBlur = document.createElementNS(svgNS, "feGaussianBlur");
         feGaussianBlur.setAttribute("in", "SourceAlpha");
         feGaussianBlur.setAttribute("stdDeviation", "2");
         filter.appendChild(feGaussianBlur);
 
         Element feOffset = document.createElementNS(svgNS, "feOffset");
-        feOffset.setAttribute("dx", "3");
-        feOffset.setAttribute("dy", "5");
+        feOffset.setAttribute("dx", "2");
+        feOffset.setAttribute("dy", "3");
         feOffset.setAttribute("result", "offsetblur");
         filter.appendChild(feOffset);
 
         Element feFlood = document.createElementNS(svgNS, "feFlood");
         feFlood.setAttribute("flood-color", "black");
-        feFlood.setAttribute("flood-opacity", "0.4");
+        feFlood.setAttribute("flood-opacity", "0.25"); // Dezenterer Schatten
         filter.appendChild(feFlood);
 
         Element feComposite = document.createElementNS(svgNS, "feComposite");
@@ -209,7 +196,8 @@ public class XsdDocumentationImageService {
         // 2. Natives, umrandetes Plus-Symbol
         Element plusIcon = document.createElementNS(svgNS, "g");
         plusIcon.setAttribute("id", "plus-icon");
-        plusIcon.setAttribute("style", "stroke: #096574; stroke-width: 1.5; stroke-linecap: round;");
+        // KORREKTUR: Farbe an Akzentfarbe der Webseite angepasst
+        plusIcon.setAttribute("style", "stroke: " + COLOR_ICON + "; stroke-width: 1.5; stroke-linecap: round;");
         Element circle = document.createElementNS(svgNS, "circle");
         circle.setAttribute("cx", "10");
         circle.setAttribute("cy", "10");
@@ -249,8 +237,6 @@ public class XsdDocumentationImageService {
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;
         for (ExtendedXsdElement childElement : childElements) {
-
-            // Schütze vor null-Werten, genau wie es schon beim Typ gemacht wird.
             String elementName = childElement.getElementName() != null ? childElement.getElementName() : "";
             String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
 
@@ -274,12 +260,10 @@ public class XsdDocumentationImageService {
 
         Element rect1 = createSvgRect(document, rootElement.getElementName(), rootElementHeight, rootElementWidth, String.valueOf(rootStartX), String.valueOf(rootStartY));
         rect1.setAttribute("filter", "url(#drop-shadow)");
-        // WIEDERHERGESTELLT: Style-Logik für Root-Element
-        rect1.setAttribute("style", rootElement.getXsdElement() != null &&
-                rootElement.getXsdElement().getMinOccurs() > 0 ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
+        rect1.setAttribute("style", rootElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
 
-
-        Element text1 = createSvgTextElement(document, rootElement.getElementName(), String.valueOf(rootStartX + margin), String.valueOf(rootStartY + margin + rootElementHeight), "#096574", font.getSize());
+        // KORREKTUR: Textfarbe an Primärfarbe der Webseite angepasst
+        Element text1 = createSvgTextElement(document, rootElement.getElementName(), String.valueOf(rootStartX + margin), String.valueOf(rootStartY + margin + rootElementHeight), COLOR_TEXT_PRIMARY, font.getSize());
 
         leftRootLink.appendChild(rect1);
         leftRootLink.appendChild(text1);
@@ -303,13 +287,12 @@ public class XsdDocumentationImageService {
 
             Element rightBox = createSvgRect(document, elementName, totalContentHeight, rightBoxWidth, String.valueOf(rightStartX), String.valueOf(actualHeight));
             rightBox.setAttribute("filter", "url(#drop-shadow)");
-            // WIEDERHERGESTELLT: Style-Logik für Child-Elemente
-            rightBox.setAttribute("style", childElement.getXsdElement() != null && childElement.getXsdElement().getMinOccurs() > 0 ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
+            rightBox.setAttribute("style", childElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
 
-            // WIEDERHERGESTELLT: Text-Logik für Child-Elemente
             Element textGroup = document.createElementNS(svgNS, "g");
             double nameY = actualHeight + margin + nameHeight;
-            Element nameTextNode = createSvgTextElement(document, elementName, String.valueOf(rightStartX + margin), String.valueOf(nameY), "#096574", font.getSize());
+            // KORREKTUR: Textfarbe an Primärfarbe der Webseite angepasst
+            Element nameTextNode = createSvgTextElement(document, elementName, String.valueOf(rightStartX + margin), String.valueOf(nameY), COLOR_TEXT_PRIMARY, font.getSize());
             textGroup.appendChild(nameTextNode);
 
             if (!elementType.isBlank()) {
@@ -319,12 +302,14 @@ public class XsdDocumentationImageService {
                 line.setAttribute("y1", String.valueOf(lineY));
                 line.setAttribute("x2", String.valueOf(rightStartX + margin + rightBoxWidth));
                 line.setAttribute("y2", String.valueOf(lineY));
-                line.setAttribute("stroke", "#8cb5c2");
+                // KORREKTUR: Farbe an Randfarbe der Webseite angepasst
+                line.setAttribute("stroke", COLOR_STROKE_SEPARATOR);
                 line.setAttribute("stroke-width", "1");
                 textGroup.appendChild(line);
 
                 double typeY = lineY + typeBounds.getBounds2D().getHeight() + 2;
-                Element typeTextNode = createSvgTextElement(document, elementType, String.valueOf(rightStartX + margin), String.valueOf(typeY), "#54828d", font.getSize() - 2);
+                // KORREKTUR: Textfarbe an Sekundärfarbe der Webseite angepasst
+                Element typeTextNode = createSvgTextElement(document, elementType, String.valueOf(rightStartX + margin), String.valueOf(typeY), COLOR_TEXT_SECONDARY, font.getSize() - 2);
                 textGroup.appendChild(typeTextNode);
             }
 
@@ -355,7 +340,7 @@ public class XsdDocumentationImageService {
             Element path = document.createElementNS(svgNS, "path");
             path.setAttribute("d", "M " + pathStartX + " " + pathStartY + " h " + (gapBetweenSides / 2) + " V " + pathEndY + " h " + (gapBetweenSides / 2));
             path.setAttribute("fill", "none");
-            path.setAttribute("style", childElement.getXsdElement() != null && childElement.getXsdElement().getMinOccurs() > 0 ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
+            path.setAttribute("style", childElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
             svgRoot.appendChild(path);
 
             actualHeight += margin + totalContentHeight + margin + 20;
@@ -364,27 +349,26 @@ public class XsdDocumentationImageService {
         var imageHeight = Math.max(docHeightTotal, actualHeight);
         svgRoot.setAttribute("height", String.valueOf(imageHeight));
         svgRoot.setAttribute("width", String.valueOf(rightStartX + margin + rightBoxWidth + margin + 20 + 10));
-        svgRoot.setAttribute("style", "background-color: rgb(235, 252, 241)");
+        // KORREKTUR: Hintergrundfarbe an Webseite angepasst
+        svgRoot.setAttribute("style", "background-color: " + COLOR_BG);
 
         return document;
     }
 
     /**
      * Creates an SVG rectangle element in the correct namespace.
-     * (Previously named createSvgElement)
      */
     private Element createSvgRect(Document document, String id, double contentHeight, double contentWidth, String x, String y) {
-        // KORREKTUR: Element im SVG-Namespace erstellen
         Element rect = document.createElementNS(svgNS, "rect");
-        rect.setAttribute("fill", BOX_COLOR);
+        // KORREKTUR: Füllfarbe an Webseite angepasst
+        rect.setAttribute("fill", COLOR_BOX_FILL);
         rect.setAttribute("id", id);
-        // Die Höhe und Breite basieren auf dem Inhalt plus Rändern
         rect.setAttribute("height", String.valueOf(margin + contentHeight + margin));
         rect.setAttribute("width", String.valueOf(margin + contentWidth + margin));
         rect.setAttribute("x", x);
         rect.setAttribute("y", y);
-        rect.setAttribute("rx", "2");
-        rect.setAttribute("ry", "2");
+        rect.setAttribute("rx", "4"); // Etwas rundere Ecken
+        rect.setAttribute("ry", "4");
         return rect;
     }
 
@@ -392,7 +376,6 @@ public class XsdDocumentationImageService {
      * Creates an SVG text element in the correct namespace.
      */
     private Element createSvgTextElement(Document document, String textContent, String x, String y, String fill, int fontSize) {
-        // KORREKTUR: Element im SVG-Namespace erstellen
         Element textElement = document.createElementNS(svgNS, "text");
         textElement.setAttribute("fill", fill);
         textElement.setAttribute("font-family", font.getFontName());
@@ -407,13 +390,14 @@ public class XsdDocumentationImageService {
      * Generates and appends the documentation block to the SVG.
      */
     private double generateDocumentationElement(Document document, List<XsdDocumentation> xsdDocumentation, double rootElementWidth, double rootElementHeight, int startX, int startY) {
-        // KORREKTUR: Alle Elemente im SVG-Namespace erstellen
         final var docTextGroup = document.createElementNS(svgNS, "g");
         docTextGroup.setAttribute("id", "comment");
 
         final var docText = document.createElementNS(svgNS, "text");
         docText.setAttribute("x", String.valueOf(startX + margin));
         docText.setAttribute("y", String.valueOf(startY + (margin * 3) + rootElementHeight + (margin / 2.0)));
+        // KORREKTUR: Textfarbe für Dokumentation
+        docText.setAttribute("fill", COLOR_TEXT_SECONDARY);
 
         double docHeightTotal = 0;
         for (XsdDocumentation documentation : xsdDocumentation) {
@@ -429,7 +413,7 @@ public class XsdDocumentationImageService {
                     final var tspan = document.createElementNS(svgNS, "tspan");
                     tspan.setAttribute("x", String.valueOf(margin + 15));
                     tspan.setAttribute("dy", "1.2em");
-                    tspan.setTextContent(writer.toString()); // writer + " " ist nicht nötig
+                    tspan.setTextContent(writer.toString());
                     docText.appendChild(tspan);
                     writer = new StringWriter();
                     length = 0;
@@ -474,7 +458,6 @@ public class XsdDocumentationImageService {
             }
             trans.transform(new DOMSource(node), new StreamResult(writer));
         } catch (final TransformerConfigurationException ex) {
-            // Verwende spezifischere Exceptions, wenn möglich
             logger.error("Transformer configuration error during serialization", ex);
             throw new IllegalStateException("Failed to configure XML Transformer", ex);
         } catch (final TransformerException ex) {

@@ -163,7 +163,7 @@ public class GenerateXsdHtmlDocumentationTest {
                     logger.debug("Local Name: {}", node.getLocalName());
                     logger.debug("Node Name: {}", node.getNodeName());
 
-                    var document = xsdDocumentationImageService.generateSvgDiagram((Element) node);
+                    // var document = xsdDocumentationImageService.generateSvgDiagram((Element) node);
                     NamedNodeMap atts = node.getAttributes();
                     logger.debug(atts.toString());
                     break;
