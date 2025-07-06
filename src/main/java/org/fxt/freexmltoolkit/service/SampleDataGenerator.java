@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.service;
 
+import com.mifmif.common.regex.Generex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
@@ -11,6 +12,7 @@ import org.xml.sax.InputSource;
 import org.xmlet.xsdparser.xsdelements.XsdAppInfo;
 import org.xmlet.xsdparser.xsdelements.XsdRestriction;
 import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdEnumeration;
+import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdPattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -63,15 +65,32 @@ public class SampleDataGenerator {
             }
         }
 
-        // Priorität 2: Enumerations (Auswahllisten)
         XsdRestriction restriction = element.getXsdRestriction();
+
+        // Priorität 2: Enumerations (Auswahllisten)
         if (restriction != null && restriction.getEnumeration() != null && !restriction.getEnumeration().isEmpty()) {
             List<XsdEnumeration> enumerations = restriction.getEnumeration();
             int randomIndex = java.util.concurrent.ThreadLocalRandom.current().nextInt(enumerations.size());
             return enumerations.get(randomIndex).getValue();
         }
 
-        // Priorität 3: Datentyp-basierte Generierung
+        // NEU: Priorität 3: Regex-Pattern
+        if (restriction != null && restriction.getPattern() != null) {
+            XsdPattern pattern = restriction.getPattern();
+
+            if (pattern != null && pattern.getValue() != null) {
+                try {
+                    Generex generex = new Generex(pattern.getValue());
+                    return generex.random();
+                } catch (Exception e) {
+                    logger.warn("Could not generate sample from pattern '{}' for element '{}'. Falling back. Error: {}",
+                            pattern.getValue(), element.getElementName(), e.getMessage());
+                    // Bei Fehler wird zum nächsten Mechanismus übergegangen (Fallback)
+                }
+            }
+        }
+
+        // Priorität 4: Datentyp-basierte Generierung
         String elementType = element.getElementType();
         if (elementType == null && restriction != null) {
             elementType = restriction.getBase();
@@ -151,6 +170,8 @@ public class SampleDataGenerator {
     private Document convertStringToDocument(String xmlStr) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            // VERBESSERUNG: Namespace-Awareness aktivieren, um mit Prefixen wie "altova:" korrekt umzugehen.
+            factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             return builder.parse(new InputSource(new StringReader(xmlStr)));
         } catch (Exception e) {

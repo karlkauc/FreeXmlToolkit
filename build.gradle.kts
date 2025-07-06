@@ -143,6 +143,9 @@ dependencies {
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.4")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.5")
 
+    // pattern for example data
+    implementation("com.github.mifmif:generex:1.0.2")
+
     testImplementation(platform("org.junit:junit-bom:5.13.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
