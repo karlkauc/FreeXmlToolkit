@@ -82,9 +82,12 @@
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 text-sm">
+                <!-- Iteration über alle Elemente -->
                 <tr th:each="element, iterStat : ${allElements}">
+                    <!-- Zähler-Zelle -->
                     <td class="px-6 py-4 text-right text-slate-500" th:text="${iterStat.count}"></td>
 
+                    <!-- XPath-Zelle mit intelligenter Kürzung -->
                     <td class="px-6 py-4 font-mono whitespace-nowrap">
                         <a th:href="${'details/' + element.pageName}"
                            th:title="${element.currentXpath}"
@@ -92,8 +95,23 @@
                            class="text-sky-600 hover:text-sky-800 hover:underline">
                         </a>
                     </td>
-                    <td class="px-6 py-4 text-slate-600" th:utext="${this.getChildDocumentation(element.currentXpath)}">
-                        <!-- Die Dokumentation wird hier eingefügt -->
+
+                    <td class="px-6 py-4">
+                        <!-- Block 1: Die Dokumentation des Elements selbst -->
+                        <span class="text-slate-700"
+                              th:utext="${this.getChildDocumentation(element.currentXpath)}"></span>
+
+                        <!-- Block 2: Die Dokumentation des zugrunde liegenden Typs -->
+                        <!-- th:with speichert das Ergebnis, um die Methode nicht mehrfach aufrufen zu müssen -->
+                        <div th:with="typeDoc=${this.getTypeDocumentation(element.currentXpath)}">
+                            <!-- Dieser Block wird nur angezeigt, wenn eine Typ-Dokumentation gefunden wurde -->
+                            <div th:if="${!#strings.isEmpty(typeDoc)}"
+                                 class="mt-2 pt-2 border-t border-slate-200/60">
+                                <span class="block text-xs font-semibold text-slate-500"
+                                      th:text="'Dokumentation für Typ: ' + ${element.elementType}"></span>
+                                <span class="block text-xs text-slate-500 italic" th:utext="${typeDoc}"></span>
+                            </div>
+                        </div>
                     </td>
                 </tr>
                 </tbody>

@@ -27,7 +27,10 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.w3c.dom.Node;
+import org.xmlet.xsdparser.xsdelements.XsdAnnotation;
 import org.xmlet.xsdparser.xsdelements.XsdAnnotationChildren;
+import org.xmlet.xsdparser.xsdelements.XsdComplexType;
+import org.xmlet.xsdparser.xsdelements.XsdSimpleType;
 
 import java.io.File;
 import java.io.IOException;
@@ -424,6 +427,46 @@ public class XsdDocumentationHtmlService {
         } catch (IOException e) {
             throw new RuntimeException("Could not write data dictionary page", e);
         }
+    }
+
+    /**
+     * Holt die Dokumentation für einen bestimmten Typ (Simple oder Complex).
+     *
+     * @param xpath Der XPath des Elements, dessen Typ-Dokumentation gesucht wird.
+     * @return Die gefundene Dokumentation als String, oder ein leerer String, wenn nichts gefunden wurde.
+     */
+    public String getTypeDocumentation(String xpath) {
+        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+
+        // Schritt 1: Prüfen, ob das Element und sein Typ existieren und ob es kein eingebauter Typ ist.
+        if (element == null || element.getElementType() == null || element.getElementType().startsWith("xs:")) {
+            return "";
+        }
+        final String typeName = element.getElementType();
+
+        // Schritt 2: Suche in den SimpleTypes.
+        var simpleTypeDoc = xsdDocumentationData.getXsdSimpleTypes().stream()
+                .filter(st -> typeName.equals(st.getName()))
+                .findFirst()
+                .map(XsdSimpleType::getAnnotation)
+                .map(XsdAnnotation::getDocumentations)
+                .map(docs -> docs.stream().map(XsdAnnotationChildren::getContent).collect(Collectors.joining(" ")))
+                .orElse(null);
+
+        if (simpleTypeDoc != null) {
+            return simpleTypeDoc;
+        }
+
+        // Schritt 3: Wenn nicht in SimpleTypes gefunden, suche in den ComplexTypes.
+        var complexTypeDoc = xsdDocumentationData.getXsdComplexTypes().stream()
+                .filter(ct -> typeName.equals(ct.getName()))
+                .findFirst()
+                .map(XsdComplexType::getAnnotation)
+                .map(XsdAnnotation::getDocumentations)
+                .map(docs -> docs.stream().map(XsdAnnotationChildren::getContent).collect(Collectors.joining(" ")))
+                .orElse(""); // Leeren String als Fallback
+
+        return complexTypeDoc;
     }
 
 
