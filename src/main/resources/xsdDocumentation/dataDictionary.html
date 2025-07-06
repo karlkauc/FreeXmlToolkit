@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Data Dictionary</title>
+
+    <!-- Tailwind CSS & Modern Font -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+<body class="font-sans text-slate-800">
+
+<!-- Navigation -->
+<nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center space-x-8">
+                <a href="index.html" class="flex items-center space-x-2 text-slate-700 font-bold">
+                    <img src="assets/logo.png" alt="logo" class="h-8 w-8"/>
+                    <span>FreeXmlToolKit</span>
+                </a>
+                <div class="hidden md:flex items-baseline space-x-6">
+                    <a href="index.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Home</a>
+                    <a href="complexTypes.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Complex
+                        Types</a>
+                    <a href="simpleTypes.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Simple
+                        Types</a>
+                    <a href="dataDictionary.html"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100" aria-current="page">Data
+                        Dictionary</a>
+                </div>
+            </div>
+            <div class="hidden md:block">
+                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
+                   class="inline-flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900">
+                    <span>GitHub</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                              d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
+                        <path fill-rule="evenodd"
+                              d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Hauptinhalt -->
+<main class="container mx-auto px-4 py-8 md:py-12">
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+        <header class="p-6 border-b border-slate-200 bg-slate-50">
+            <h1 class="text-2xl font-bold text-slate-900">Data Dictionary</h1>
+            <p class="mt-1 text-sm text-slate-600">Eine vollständige Liste aller Elemente und Attribute mit ihrer
+                Dokumentation.</p>
+        </header>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 border-b border-slate-200 text-sm">
+                <tr>
+                    <!-- NEU: Spalte für den Zähler -->
+                    <th scope="col" class="px-6 py-4 font-semibold text-slate-900 text-right">#</th>
+                    <th scope="col" class="px-6 py-4 font-semibold text-slate-900">XPath</th>
+                    <th scope="col" class="px-6 py-4 font-semibold text-slate-900">Dokumentation</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-sm">
+                <tr th:each="element, iterStat : ${allElements}">
+                    <td class="px-6 py-4 text-right text-slate-500" th:text="${iterStat.count}"></td>
+
+                    <td class="px-6 py-4 font-mono whitespace-nowrap">
+                        <a th:href="${'details/' + element.pageName}"
+                           th:title="${element.currentXpath}"
+                           th:text="${#strings.length(element.currentXpath) > 60 ? #strings.substring(element.currentXpath, 0, 10) + '...' + #strings.substring(element.currentXpath, #strings.length(element.currentXpath) - 30) : element.currentXpath}"
+                           class="text-sky-600 hover:text-sky-800 hover:underline">
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 text-slate-600" th:utext="${this.getChildDocumentation(element.currentXpath)}">
+                        <!-- Die Dokumentation wird hier eingefügt -->
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

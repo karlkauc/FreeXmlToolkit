@@ -131,6 +131,8 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.generateComplexTypesListPage();
         xsdDocumentationHtmlService.generateSimpleTypesListPage();
 
+        xsdDocumentationHtmlService.generateDataDictionaryPage();
+
         xsdDocumentationHtmlService.generateComplexTypePages();
         xsdDocumentationHtmlService.generateSimpleTypePages();
 

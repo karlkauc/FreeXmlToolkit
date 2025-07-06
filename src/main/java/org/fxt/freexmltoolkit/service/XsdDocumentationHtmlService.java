@@ -401,6 +401,31 @@ public class XsdDocumentationHtmlService {
         }
     }
 
+    void generateDataDictionaryPage() {
+        logger.debug("Generating Data Dictionary page");
+
+        final var context = new Context();
+
+        // Hole alle Elemente und sortiere sie nach ihrem XPath für eine konsistente Ausgabe.
+        List<ExtendedXsdElement> allElements = new ArrayList<>(xsdDocumentationData.getExtendedXsdElementMap().values());
+        allElements.sort(Comparator.comparing(ExtendedXsdElement::getCounter));
+
+        context.setVariable("allElements", allElements);
+        context.setVariable("this", this); // Damit wir getChildDocumentation im Template aufrufen können
+
+        final var result = templateEngine.process("dataDictionary", context);
+
+        final var outputFilePath = Paths.get(outputDirectory.getPath(), "dataDictionary.html");
+        logger.debug("Creating data dictionary page: {}", outputFilePath.toFile().getAbsolutePath());
+
+        try {
+            Files.write(outputFilePath, result.getBytes());
+            logger.debug("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
+        } catch (IOException e) {
+            throw new RuntimeException("Could not write data dictionary page", e);
+        }
+    }
+
 
     Map<String, String> getBreadCrumbs(ExtendedXsdElement currentElement) {
         var xpath = new StringBuilder();
