@@ -306,8 +306,6 @@ public class XsdDocumentationService {
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
-                    // NEU
-                    // extendedXsdElement.setSampleData(generateSampleData(extendedXsdElement));
                     extendedXsdElement.setElementType(xsdComplexType.getName());
 
                     xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
@@ -601,7 +599,7 @@ public class XsdDocumentationService {
         // --- REKURSIONSSPERRE ---
         // Wenn der Typ dieses Elements bereits auf dem aktuellen Pfad besucht wurde,
         // brechen wir ab, um einen StackOverflowError zu verhindern.
-        if (type != null && !type.isEmpty() && recursionGuard.contains(type)) {
+        if (!type.isEmpty() && recursionGuard.contains(type)) {
             // Wir erstellen einen speziellen Knoten, um die Rekursion im UI anzuzeigen.
             String recursiveDoc = "Rekursiver Verweis auf '" + type + "'";
             return new XsdNodeInfo(name, type, recursiveDoc, List.of()); // Leere Kinderliste
@@ -610,7 +608,7 @@ public class XsdDocumentationService {
         // Füge den aktuellen Typ zur Sperre für tiefere Aufrufe hinzu.
         // Wir erstellen eine Kopie, damit Geschwister-Knoten nicht beeinflusst werden.
         java.util.Set<String> nextRecursionGuard = new java.util.HashSet<>(recursionGuard);
-        if (type != null && !type.isEmpty()) {
+        if (!type.isEmpty()) {
             nextRecursionGuard.add(type);
         }
         // --- ENDE REKURSIONSSPERRE ---
@@ -618,7 +616,7 @@ public class XsdDocumentationService {
         Element complexTypeDefinition = null;
 
         // Fall 1: Inline <complexType>
-        if (type == null || type.isEmpty()) {
+        if (type.isEmpty()) {
             NodeList directChildren = elementNode.getChildNodes();
             for (int i = 0; i < directChildren.getLength(); i++) {
                 Node child = directChildren.item(i);
@@ -696,7 +694,7 @@ public class XsdDocumentationService {
             // Nur globale complexTypes (direkte Kinder des Schemas) berücksichtigen.
             if (typeElement.getParentNode().isSameNode(doc.getDocumentElement())) {
                 String name = typeElement.getAttribute("name");
-                if (name != null && !name.isEmpty()) {
+                if (!name.isEmpty()) {
                     map.put(name, typeElement);
                 }
             }

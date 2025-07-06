@@ -300,12 +300,6 @@ public class XsdController {
     }
 
     @FXML
-    void handleDragExitedEvent(DragEvent event) {
-        xsdPane.getStyleClass().clear();
-        xsdPane.getStyleClass().add("tab-pane");
-    }
-
-    @FXML
     void handleFileDroppedEvent(DragEvent event) {
         Dragboard db = event.getDragboard();
 

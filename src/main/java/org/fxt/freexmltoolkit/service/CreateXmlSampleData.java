@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.xerces.impl.xs.XSImplementationImpl;
 import org.apache.xerces.xs.*;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
@@ -34,9 +36,11 @@ import java.util.Random;
 
 public class CreateXmlSampleData {
 
+    // NEU: Logger hinzugefügt
+    private static final Logger logger = LogManager.getLogger(CreateXmlSampleData.class);
+
     private final XSModel schema;
     private final Random random = new Random();
-    private final XmlService xmlService = XmlServiceImpl.getInstance();
 
     /**
      * Lädt das XSD-Schema aus der angegebenen Datei.
@@ -49,12 +53,13 @@ public class CreateXmlSampleData {
         XSLoader schemaLoader = impl.createXSLoader(null);
         this.schema = schemaLoader.loadURI(xsdPath);
 
-        System.out.println("xsdPath = " + xsdPath);
+        logger.debug("xsdPath = {}", xsdPath);
         try {
             String targetNamespace = getNamespace(xsdPath);
-            System.out.println("targetNamespace = " + targetNamespace);
+            logger.debug("targetNamespace = {}", targetNamespace);
         } catch (XMLStreamException | FileNotFoundException e) {
-            System.out.println("e.getMessage() = " + e.getMessage());
+            // NEU: Fehler mit dem Logger behandeln
+            logger.error("Fehler beim Ermitteln des Namespace: {}", e.getMessage());
         }
     }
 
@@ -63,20 +68,22 @@ public class CreateXmlSampleData {
 
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         File f = new File(xsdPath);
-        System.out.println("f.getAbsolutePath() = " + f.getAbsolutePath());
+        logger.debug("f.getAbsolutePath() = {}", f.getAbsolutePath());
 
         XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(f.getName()));
         String targetNamespace = null;
         while (eventReader.hasNext()) {
             var event = eventReader.nextEvent();
-            System.out.println("event.toString() = " + event.toString());
+            logger.debug("event.toString() = {}", event.toString());
             if (event.isStartElement()) {
                 var startElement = event.asStartElement();
                 if ("schema".equals(startElement.getName().getLocalPart())) {
                     try {
                         targetNamespace = startElement.getAttributeByName(new javax.xml.namespace.QName("targetNamespace")).getValue();
+                    } catch (NullPointerException e) {
+                        // NEU: Fehler mit dem Logger behandeln
+                        logger.error("Fehler beim Auslesen des targetNamespace Attributs.", e);
                     }
-                    catch (NullPointerException e) {e.printStackTrace();}
                     return targetNamespace;
                 }
             }
@@ -115,9 +122,9 @@ public class CreateXmlSampleData {
         XSElementDeclaration rootElement = (XSElementDeclaration) components.item(0);
         String rootElementName = rootElement.getName();
 
-        System.out.println("Automatischer Start der Generierung:");
-        System.out.println("  -> Namespace: " + targetNamespace);
-        System.out.println("  -> Wurzelelement: " + rootElementName);
+        logger.debug("Automatischer Start der Generierung:");
+        logger.debug("  -> Namespace: {}", targetNamespace);
+        logger.debug("  -> Wurzelelement: {}", rootElementName);
 
         // 3. Die ursprüngliche generate-Methode mit den gefundenen Werten aufrufen
         this.generate(rootElementName, targetNamespace, outputFilePath);
@@ -149,7 +156,8 @@ public class CreateXmlSampleData {
 
             writer.flush();
             writer.close();
-            System.out.println("XML-Datei erfolgreich generiert: " + outputFilePath);
+            // NEU: Erfolgsmeldung als INFO
+            logger.info("XML-Datei erfolgreich generiert: {}", outputFilePath);
         }
     }
 
@@ -243,35 +251,24 @@ public class CreateXmlSampleData {
             typeName = simpleType.getBuiltInKind() + "";
         }
 
-        switch (Objects.requireNonNull(typeName)) {
-            case "string":
-            case "normalizedString":
-                return "Beispieltext";
-            case "integer":
-            case "int":
-                return String.valueOf(100 + random.nextInt(900));
-            case "positiveInteger":
-                return String.valueOf(1 + random.nextInt(100));
-            case "decimal":
-                return String.format("%.2f", 10.0 + 90.0 * random.nextDouble());
-            case "boolean":
-                return String.valueOf(random.nextBoolean());
-            case "date":
-                return LocalDate.now().minusDays(random.nextInt(365)).format(DateTimeFormatter.ISO_LOCAL_DATE);
-            case "dateTime":
-                return java.time.ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        return switch (Objects.requireNonNull(typeName)) {
+            case "string", "normalizedString" -> "Beispieltext";
+            case "integer", "int" -> String.valueOf(100 + random.nextInt(900));
+            case "positiveInteger" -> String.valueOf(1 + random.nextInt(100));
+            case "decimal" -> String.format("%.2f", 10.0 + 90.0 * random.nextDouble());
+            case "boolean" -> String.valueOf(random.nextBoolean());
+            case "date" -> LocalDate.now().minusDays(random.nextInt(365)).format(DateTimeFormatter.ISO_LOCAL_DATE);
+            case "dateTime" -> java.time.ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
             // ... weitere Typen hier hinzufügen
-            default:
+            default ->
                 // Prüfen, ob es sich um einen der eingebauten Typen handelt
-                switch (simpleType.getBuiltInKind()) {
-                    case XSConstants.STRING_DT:
-                        return "Beispieltext (built-in)";
-                    case XSConstants.INT_DT:
-                        return "123";
-                    // ...
-                }
-                return "UnbekannterTyp: " + typeName;
-        }
+                    switch (simpleType.getBuiltInKind()) {
+                        case XSConstants.STRING_DT -> "Beispieltext (built-in)";
+                        case XSConstants.INT_DT -> "123";
+                        // ...
+                        default -> "UnbekannterTyp: " + typeName;
+                    };
+        };
     }
 
     /**
