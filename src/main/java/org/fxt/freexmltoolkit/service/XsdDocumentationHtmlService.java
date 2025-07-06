@@ -35,12 +35,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationHtmlService {
@@ -122,7 +119,7 @@ public class XsdDocumentationHtmlService {
                 var context = new Context();
                 context.setVariable("complexType", complexType);
 
-                if (complexType.getAnnotation() != null) {
+                if (complexType.getAnnotation() != null && complexType.getAnnotation().getDocumentations() != null) {
                     context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
                 }
 
@@ -163,8 +160,7 @@ public class XsdDocumentationHtmlService {
                 } catch (IOException e) {
                     logger.error("ERROR in writing complex Type File: {}", e.getMessage());
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 logger.error("ERROR in creating complex Type File: {}", e.getMessage());
             }
         }
@@ -173,16 +169,17 @@ public class XsdDocumentationHtmlService {
     void generateDetailPages() {
         xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
 
-        for (String key : xsdDocumentationData.getExtendedXsdElementMap().keySet()) {
+        List<String> sortedKeys = new ArrayList<>(xsdDocumentationData.getExtendedXsdElementMap().keySet());
+        Collections.sort(sortedKeys);
+
+        for (String key : sortedKeys) {
             final var currentElement = xsdDocumentationData.getExtendedXsdElementMap().get(key);
             logger.debug("Generating single details page for {}", key);
 
-            if (!currentElement.getChildren().isEmpty()) {
-                try {
-                    writeDetailsPageContent(currentElement, key, xsdDocumentationImageService);
-                } catch (Exception e) {
-                    logger.warn(e.getMessage());
-                }
+            try {
+                writeDetailsPageContent(currentElement, key, xsdDocumentationImageService);
+            } catch (Exception e) {
+                logger.warn("Error in thread while writing details page for element '{}': {}", key, e.getMessage());
             }
         }
     }
@@ -361,10 +358,13 @@ public class XsdDocumentationHtmlService {
 
         currentElement.getChildren().forEach(child -> {
             try {
-                logger.debug("Child: {}, Page Name: {}", child, xsdDocumentationData.getExtendedXsdElementMap().get(child).getPageName());
-            }
-            catch (Exception e) {
-                logger.warn(e.getMessage());
+                if (xsdDocumentationData.getExtendedXsdElementMap().get(child) == null) {
+                    logger.debug("Child: {}, Page Name: {}", child, xsdDocumentationData.getExtendedXsdElementMap().get(child).getPageName());
+                } else {
+                    logger.debug("Child {}, no enty found.", child);
+                }
+            } catch (Exception e) {
+                logger.warn("Error in Children for child: {}. Message: {}", child, e.getMessage());
             }
         });
 
@@ -381,23 +381,23 @@ public class XsdDocumentationHtmlService {
     }
 
     void generateDetailsPagesInParallel() {
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+        try (ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE)) {
+            final XsdDocumentationImageService xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
 
-        final XsdDocumentationImageService xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
+            for (final String key : xsdDocumentationData.getExtendedXsdElementMap().keySet()) {
+                final var currentElement = xsdDocumentationData.getExtendedXsdElementMap().get(key);
+                logger.debug("Submitting details page generation for {}", key);
 
-        for (final String key : xsdDocumentationData.getExtendedXsdElementMap().keySet()) {
-            final var currentElement = xsdDocumentationData.getExtendedXsdElementMap().get(key);
-            logger.debug("Generating details page for {}", key);
-
-            if (!currentElement.getChildren().isEmpty()) {
-                executor.submit(() -> writeDetailsPageContent(currentElement, key, xsdDocumentationImageService));
+                // KORREKTUR: Die einschränkende if-Bedingung wurde auch hier entfernt.
+                executor.submit(() -> {
+                    try {
+                        writeDetailsPageContent(currentElement, key, xsdDocumentationImageService);
+                    } catch (Exception e) {
+                        // Es ist eine gute Praxis, auch innerhalb des Threads zu loggen.
+                        logger.warn("Error in thread while writing details page for element '{}': {}", key, e.getMessage());
+                    }
+                });
             }
-        }
-        executor.shutdown();
-        try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
         }
     }
 
@@ -504,7 +504,7 @@ public class XsdDocumentationHtmlService {
     public String getChildSampleData(String xpath) {
         ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
         if (element != null && element.getSampleData() != null && !element.getSampleData().isEmpty()) {
-            return  element.getSampleData();
+            return element.getSampleData();
         }
         return null;
     }

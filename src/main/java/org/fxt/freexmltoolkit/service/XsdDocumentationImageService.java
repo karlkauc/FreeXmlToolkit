@@ -163,354 +163,295 @@ public class XsdDocumentationImageService {
         final Document document = domImpl.createDocument(svgNS, "svg", null);
         var svgRoot = document.getDocumentElement();
 
+        // Definiere wiederverwendbare Elemente im <defs>-Block
+        Element defs = document.createElementNS(svgNS, "defs");
+
+        // 1. Drop-Shadow-Filter
+        Element filter = document.createElementNS(svgNS, "filter");
+        filter.setAttribute("id", "drop-shadow");
+        filter.setAttribute("x", "-20%");
+        filter.setAttribute("y", "-20%");
+        filter.setAttribute("width", "140%");
+        filter.setAttribute("height", "140%");
+        // HINWEIS: setInnerHtml() oder setTextContent() mit XML-Tags ist nicht standardkonform.
+        // Wir bauen den Filter stattdessen korrekt mit DOM-Methoden auf.
+        Element feGaussianBlur = document.createElementNS(svgNS, "feGaussianBlur");
+        feGaussianBlur.setAttribute("in", "SourceAlpha");
+        feGaussianBlur.setAttribute("stdDeviation", "2");
+        filter.appendChild(feGaussianBlur);
+
+        Element feOffset = document.createElementNS(svgNS, "feOffset");
+        feOffset.setAttribute("dx", "3");
+        feOffset.setAttribute("dy", "5");
+        feOffset.setAttribute("result", "offsetblur");
+        filter.appendChild(feOffset);
+
+        Element feFlood = document.createElementNS(svgNS, "feFlood");
+        feFlood.setAttribute("flood-color", "black");
+        feFlood.setAttribute("flood-opacity", "0.4");
+        filter.appendChild(feFlood);
+
+        Element feComposite = document.createElementNS(svgNS, "feComposite");
+        feComposite.setAttribute("in2", "offsetblur");
+        feComposite.setAttribute("operator", "in");
+        filter.appendChild(feComposite);
+
+        Element feMerge = document.createElementNS(svgNS, "feMerge");
+        Element feMergeNode1 = document.createElementNS(svgNS, "feMergeNode");
+        Element feMergeNode2 = document.createElementNS(svgNS, "feMergeNode");
+        feMergeNode2.setAttribute("in", "SourceGraphic");
+        feMerge.appendChild(feMergeNode1);
+        feMerge.appendChild(feMergeNode2);
+        filter.appendChild(feMerge);
+
+        defs.appendChild(filter);
+
+        // 2. Natives, umrandetes Plus-Symbol
+        Element plusIcon = document.createElementNS(svgNS, "g");
+        plusIcon.setAttribute("id", "plus-icon");
+        plusIcon.setAttribute("style", "stroke: #096574; stroke-width: 1.5; stroke-linecap: round;");
+        Element circle = document.createElementNS(svgNS, "circle");
+        circle.setAttribute("cx", "10");
+        circle.setAttribute("cy", "10");
+        circle.setAttribute("r", "9");
+        circle.setAttribute("fill", "none");
+        plusIcon.appendChild(circle);
+        Element line1 = document.createElementNS(svgNS, "line");
+        line1.setAttribute("x1", "10");
+        line1.setAttribute("y1", "5");
+        line1.setAttribute("x2", "10");
+        line1.setAttribute("y2", "15");
+        plusIcon.appendChild(line1);
+        Element line2 = document.createElementNS(svgNS, "line");
+        line2.setAttribute("x1", "5");
+        line2.setAttribute("y1", "10");
+        line2.setAttribute("x2", "15");
+        line2.setAttribute("y2", "10");
+        plusIcon.appendChild(line2);
+        defs.appendChild(plusIcon);
+
+        svgRoot.appendChild(defs);
+
         var rootElement = extendedXsdElements.get(rootXpath);
-        var rootElementName = rootElement.getElementName();
-
-        // Erweiterte Logging-Informationen über dem Root-Element
-        logger.debug("=== Root Element Details ===");
-        logger.debug("Name: {}", rootElementName);
-        logger.debug("XPath: {}", rootElement.getCurrentXpath());
-        logger.debug("Parent XPath: {}", rootElement.getParentXpath());
-        if (rootElement.getXsdElement() != null) {
-            logger.debug("Min Occurs: {}", rootElement.getXsdElement().getMinOccurs());
-            logger.debug("Max Occurs: {}", rootElement.getXsdElement().getMaxOccurs());
-            logger.debug("Type: {}", rootElement.getXsdElement().getType());
-            // logger.debug("Is Complex Type: {}", rootElement.getXsdElement().isComplexType());
+        if (rootElement == null) {
+            logger.warn("Could not find root element for XPath: {}. Cannot generate diagram.", rootXpath);
+            return document; // Leeres Dokument zurückgeben, um Fehler zu vermeiden
         }
-
-        // Logging der Dokumentation
-        if (rootElement.getXsdDocumentation() != null && !rootElement.getXsdDocumentation().isEmpty()) {
-            logger.debug("=== Documentation ===");
-            rootElement.getXsdDocumentation().forEach(doc ->
-                    logger.debug("Documentation: {}", doc.getContent())
-            );
-        }
-
-        // Logging der Kinder-Elemente
         List<ExtendedXsdElement> childElements = new ArrayList<>();
-        logger.debug("=== Child Elements ===");
-        for (String temp : rootElement.getChildren()) {
-            var childElement = extendedXsdElements.get(temp);
-            childElements.add(childElement);
-
-            if (childElement != null) {
-                logger.debug("Child Element: {}", childElement.getElementName());
-                logger.debug("  XPath: {}", childElement.getCurrentXpath());
-                if (childElement.getXsdElement() != null) {
-                    logger.debug("  Min Occurs: {}", childElement.getXsdElement().getMinOccurs());
-                    logger.debug("  Max Occurs: {}", childElement.getXsdElement().getMaxOccurs());
-                    logger.debug("  Has Children: {}", !childElement.getChildren().isEmpty());
+        if (rootElement.getChildren() != null) {
+            for (String temp : rootElement.getChildren()) {
+                if (extendedXsdElements.get(temp) != null) {
+                    childElements.add(extendedXsdElements.get(temp));
                 }
             }
         }
 
-        logger.debug("rootElementName = {}", rootElementName);
-        logger.debug("rootElement.getParentXpath() = {}", rootElement.getParentXpath());
-
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;
-
-        // Determine the size of the right box to center the left element
         for (ExtendedXsdElement childElement : childElements) {
-            String elementName = "";
 
-            if (childElement != null && childElement.getXsdElement() != null) {
-                elementName = childElement.getXsdElement().getName();
-            }
-            logger.debug("Element Name = {}", elementName);
+            // Schütze vor null-Werten, genau wie es schon beim Typ gemacht wird.
+            String elementName = childElement.getElementName() != null ? childElement.getElementName() : "";
+            String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
 
-            var z = font.getStringBounds(elementName, frc);
-            var height = z.getBounds2D().getHeight();
-            var width = z.getBounds2D().getWidth();
+            var nameBounds = font.getStringBounds(elementName, frc);
+            var typeBounds = font.getStringBounds(elementType, frc);
 
-            rightBoxHeight = rightBoxHeight + margin + height + margin + 20; // including 20 spacing between boxes
-            rightBoxWidth = Math.max(rightBoxWidth, width);
+            rightBoxHeight += margin + nameBounds.getBounds2D().getHeight() + typeBounds.getBounds2D().getHeight() + margin + 20;
+            rightBoxWidth = Math.max(rightBoxWidth, nameBounds.getBounds2D().getWidth());
+            rightBoxWidth = Math.max(rightBoxWidth, typeBounds.getBounds2D().getWidth());
         }
 
-        logger.debug("height = {}", rightBoxHeight);
-        logger.debug("width = {}", rightBoxWidth);
-
-        // Calculate the position of the first element
-        var z = font.getStringBounds(rootElementName, frc);
+        var z = font.getStringBounds(rootElement.getElementName(), frc);
         var rootElementHeight = z.getBounds2D().getHeight();
         var rootElementWidth = z.getBounds2D().getWidth();
-        // The root node should be exactly in the middle of the right boxes.
-        // So rightBoxHeight / 2 minus box size / 2
-
         int rootStartX = 20;
         int rootStartY = (int) ((rightBoxHeight / 2) - ((margin + rootElementHeight + margin) / 2));
 
-        Element leftRootElement = document.createElement("a");
-        String parentPageUrl = "#";
-        if (extendedXsdElements.get(rootElement.getParentXpath()) != null) {
-            parentPageUrl = extendedXsdElements.get(rootElement.getParentXpath()).getPageName();
-        }
-        leftRootElement.setAttribute("href", parentPageUrl);
+        // Linkes Wurzelelement
+        Element leftRootLink = document.createElementNS(svgNS, "a");
+        leftRootLink.setAttribute("href", "#"); // Platzhalter
 
-        Element rect1 = createSvgElement(document, rootElementName, rootElementHeight, rootElementWidth, rootStartX + "", rootStartY + "", rootStartX, rootStartY);
-        if (rootElement.getXsdElement() != null &&
-                rootElement.getXsdElement().getMinOccurs() > 0) {
-            rect1.setAttribute("style", MANDATORY_FORMAT);
-        } else {
-            rect1.setAttribute("style", OPTIONAL_FORMAT);
-        }
+        Element rect1 = createSvgRect(document, rootElement.getElementName(), rootElementHeight, rootElementWidth, String.valueOf(rootStartX), String.valueOf(rootStartY));
+        rect1.setAttribute("filter", "url(#drop-shadow)");
+        // WIEDERHERGESTELLT: Style-Logik für Root-Element
+        rect1.setAttribute("style", rootElement.getXsdElement() != null &&
+                rootElement.getXsdElement().getMinOccurs() > 0 ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
 
-        final var text = createSvgTextElement(document, margin, rootStartY - (int) (rootElementHeight / 2) + ((double) margin / 2), rootElementName, rootElementHeight, rootStartX);
-        leftRootElement.appendChild(rect1);
-        leftRootElement.appendChild(text);
-        svgRoot.appendChild(leftRootElement);
 
-        double docHeightTotal = 0;
-        if (rootElement.getCurrentXpath() != null) {
-            if (extendedXsdElements.get(rootElement.getCurrentXpath()).getXsdDocumentation() != null) {
-                docHeightTotal = generateDocumentationElement(document, extendedXsdElements.get(rootElement.getCurrentXpath()).getXsdDocumentation(), rootElementWidth, rootElementHeight, rootStartX, rootStartY);
-            }
-        }
+        Element text1 = createSvgTextElement(document, rootElement.getElementName(), String.valueOf(rootStartX + margin), String.valueOf(rootStartY + margin + rootElementHeight), "#096574", font.getSize());
 
-        final double rightStartX = margin + rootElementWidth + margin + gapBetweenSides;
+        leftRootLink.appendChild(rect1);
+        leftRootLink.appendChild(text1);
+        svgRoot.appendChild(leftRootLink);
 
-        final double pathStartX = rootStartX + margin + rootElementWidth + margin;
-        final double pathStartY = rootStartY + rootElementHeight;
+        double docHeightTotal = generateDocumentationElement(document, rootElement.getXsdDocumentation(), rootElementWidth, rootElementHeight, rootStartX, rootStartY);
+        final double rightStartX = rootStartX + margin + rootElementWidth + margin + gapBetweenSides;
+        final double pathStartX = rootStartX + margin + rootElementWidth;
+        final double pathStartY = rootStartY + (margin + rootElementHeight + margin) / 2;
 
         double actualHeight = 20;
         for (ExtendedXsdElement childElement : childElements) {
-            // --- START: Ersetzen Sie den alten Block hiermit ---
-            String css = OPTIONAL_FORMAT;
-
-            // 1. Hole Name und Typ des Elements und berechne die benötigte Höhe
-            String elementName = childElement != null ? childElement.getElementName() : "";
-            String elementType = childElement != null ? childElement.getElementType() : "";
-            if (elementType == null) elementType = ""; // Stelle sicher, dass der Typ nicht null ist
-
+            String elementName = childElement.getElementName();
+            String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
             var nameBounds = font.getStringBounds(elementName, frc);
-            var nameHeight = nameBounds.getBounds2D().getHeight();
+            var typeBounds = font.getStringBounds(elementType, frc);
 
-            double typeHeight = 0;
-            double separatorHeight = 0;
-            // Wenn ein Typ vorhanden ist, berechne dessen Höhe und den Platz für die Trennlinie
-            if (!elementType.isBlank()) {
-                var typeBounds = font.getStringBounds(elementType, frc);
-                typeHeight = typeBounds.getBounds2D().getHeight();
-                separatorHeight = 8; // Platz für die Linie und etwas Abstand
-            }
+            double nameHeight = nameBounds.getBounds2D().getHeight();
+            double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8; // +8 für Linie und Abstand
+            double totalContentHeight = nameHeight + typeHeight;
 
-            // Die Gesamthöhe des Inhalts in der Box
-            double totalContentHeight = nameHeight + separatorHeight + typeHeight;
+            Element rightBox = createSvgRect(document, elementName, totalContentHeight, rightBoxWidth, String.valueOf(rightStartX), String.valueOf(actualHeight));
+            rightBox.setAttribute("filter", "url(#drop-shadow)");
+            // WIEDERHERGESTELLT: Style-Logik für Child-Elemente
+            rightBox.setAttribute("style", childElement.getXsdElement() != null && childElement.getXsdElement().getMinOccurs() > 0 ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
 
-            // 2. Erstelle die äußere Box (rect2) mit der neu berechneten Höhe
-            var rect2 = createSvgElement(document, elementName, totalContentHeight, rightBoxWidth, rightStartX + "", actualHeight + "", rootStartX, rootStartY);
-            rect2.setAttribute("style", css);
-
-            // 3. Erstelle eine Gruppe für alle Texte und die Linie, um sie gemeinsam zu behandeln
-            Element textGroup = document.createElement("g");
-
-            // 4. Erstelle und positioniere den Element-Namen (oberer Teil der Box)
+            // WIEDERHERGESTELLT: Text-Logik für Child-Elemente
+            Element textGroup = document.createElementNS(svgNS, "g");
             double nameY = actualHeight + margin + nameHeight;
-            Element nameTextNode = document.createElement("text");
-            nameTextNode.setAttribute("fill", "#096574");
-            nameTextNode.setAttribute("font-family", font.getFontName());
-            nameTextNode.setAttribute("font-size", font.getSize() + "");
-            nameTextNode.setAttribute("x", rightStartX + margin + "");
-            nameTextNode.setAttribute("y", nameY + "");
-            nameTextNode.setTextContent(elementName);
+            Element nameTextNode = createSvgTextElement(document, elementName, String.valueOf(rightStartX + margin), String.valueOf(nameY), "#096574", font.getSize());
             textGroup.appendChild(nameTextNode);
 
-            // 5. Wenn ein Typ vorhanden ist, füge die Trennlinie und den Typ-Text hinzu
             if (!elementType.isBlank()) {
-                // Horizontale Trennlinie
-                double lineY = nameY + (separatorHeight / 2);
-                Element line = document.createElement("line");
+                double lineY = nameY + 4;
+                Element line = document.createElementNS(svgNS, "line");
                 line.setAttribute("x1", String.valueOf(rightStartX + margin));
                 line.setAttribute("y1", String.valueOf(lineY));
                 line.setAttribute("x2", String.valueOf(rightStartX + margin + rightBoxWidth));
                 line.setAttribute("y2", String.valueOf(lineY));
-                line.setAttribute("stroke", "#8cb5c2"); // Etwas hellere Farbe für die Linie
+                line.setAttribute("stroke", "#8cb5c2");
                 line.setAttribute("stroke-width", "1");
                 textGroup.appendChild(line);
 
-                // Element-Typ (unterer Teil der Box, etwas kleiner)
-                double typeY = lineY + (separatorHeight / 2) + typeHeight;
-                Element typeTextNode = document.createElement("text");
-                typeTextNode.setAttribute("fill", "#54828d"); // Gedämpftere Farbe für den Typ
-                typeTextNode.setAttribute("font-family", font.getFontName());
-                typeTextNode.setAttribute("font-size", (font.getSize() - 2) + ""); // Kleinere Schriftgröße
-                typeTextNode.setAttribute("x", rightStartX + margin + "");
-                typeTextNode.setAttribute("y", typeY + "");
-                typeTextNode.setTextContent(elementType);
+                double typeY = lineY + typeBounds.getBounds2D().getHeight() + 2;
+                Element typeTextNode = createSvgTextElement(document, elementType, String.valueOf(rightStartX + margin), String.valueOf(typeY), "#54828d", font.getSize() - 2);
                 textGroup.appendChild(typeTextNode);
             }
 
-            // 6. Erstelle das "Plus"-Icon, falls das Element Kinder hat
-            Element image = null;
-            if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
-                image = document.createElement("image");
-                image.setAttribute("href", "../assets/plus.png");
-                image.setAttribute("height", "20");
-                image.setAttribute("width", "20");
-                image.setAttribute("x", rightStartX + (margin + rightBoxWidth + margin) + 2 + "");
-                // Zentriere das Icon vertikal neben der neuen, höheren Box
+            Element useIcon = null;
+            if (childElement.hasChildren()) {
+                useIcon = document.createElementNS(svgNS, "use");
+                useIcon.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#plus-icon");
+                useIcon.setAttribute("x", String.valueOf(rightStartX + margin + rightBoxWidth + margin + 2));
                 double boxCenterY = actualHeight + (margin + totalContentHeight + margin) / 2;
-                image.setAttribute("y", (boxCenterY - 10) + ""); // 10 ist die halbe Icon-Höhe
+                useIcon.setAttribute("y", String.valueOf(boxCenterY - 10));
             }
 
-            // 7. Füge die Box und die Text-Gruppe (ggf. mit Link) zum SVG hinzu
-            Element a2 = document.createElement("a");
-            if (childElement != null && childElement.getChildren() != null && !childElement.getChildren().isEmpty()) {
-                a2.setAttribute("href", childElement.getPageName());
-                a2.appendChild(rect2);
-                a2.appendChild(textGroup);
-                if (image != null) {
-                    a2.appendChild(image);
+            Element rightLink = document.createElementNS(svgNS, "a");
+            if (childElement.hasChildren() && childElement.getPageName() != null) {
+                rightLink.setAttribute("href", childElement.getPageName());
+                rightLink.appendChild(rightBox);
+                rightLink.appendChild(textGroup);
+                if (useIcon != null) {
+                    rightLink.appendChild(useIcon);
                 }
-                svgRoot.appendChild(a2);
+                svgRoot.appendChild(rightLink);
             } else {
-                svgRoot.appendChild(rect2);
+                svgRoot.appendChild(rightBox);
                 svgRoot.appendChild(textGroup);
             }
 
-            // 8. Zeichne die Verbindungslinie und richte sie an der neuen Box-Mitte aus
             double pathEndY = actualHeight + (margin + totalContentHeight + margin) / 2;
-            Element path2 = document.createElement("path");
-            path2.setAttribute("d", "M " + pathStartX + " " + pathStartY +
-                    " h " + ((gapBetweenSides / 2) - margin) +
-                    " V " + pathEndY +
-                    " h " + ((gapBetweenSides / 2) - margin));
-            path2.setAttribute("fill", "none");
-            if (childElement != null && childElement.getXsdElement() != null && childElement.getXsdElement().getMinOccurs() > 0) {
-                path2.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
-            } else {
-                path2.setAttribute("style", OPTIONAL_FORMAT_NO_SHADOW);
-            }
-            svgRoot.appendChild(path2);
+            Element path = document.createElementNS(svgNS, "path");
+            path.setAttribute("d", "M " + pathStartX + " " + pathStartY + " h " + (gapBetweenSides / 2) + " V " + pathEndY + " h " + (gapBetweenSides / 2));
+            path.setAttribute("fill", "none");
+            path.setAttribute("style", childElement.getXsdElement() != null && childElement.getXsdElement().getMinOccurs() > 0 ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
+            svgRoot.appendChild(path);
 
-            // 9. Aktualisiere die Y-Position für das nächste Element in der Schleife
-            actualHeight = actualHeight + margin + totalContentHeight + margin + 20;
-
-            // --- ENDE: Bis hierhin den alten Block ersetzen ---
+            actualHeight += margin + totalContentHeight + margin + 20;
         }
 
-        var imageHeight = Math.max(docHeightTotal, actualHeight + margin + 20);
-        // ToDo: automatically adjust size
-        svgRoot.setAttributeNS(svgNS, "height", imageHeight + "");
-        svgRoot.setAttributeNS(svgNS, "width", rootElementWidth + rightBoxWidth + gapBetweenSides + (margin * 2) + (20 * 2) + 10 + ""); // 50 for icon
-        svgRoot.setAttributeNS(svgNS, "style", "background-color: rgb(235, 252, 241)");
+        var imageHeight = Math.max(docHeightTotal, actualHeight);
+        svgRoot.setAttribute("height", String.valueOf(imageHeight));
+        svgRoot.setAttribute("width", String.valueOf(rightStartX + margin + rightBoxWidth + margin + 20 + 10));
+        svgRoot.setAttribute("style", "background-color: rgb(235, 252, 241)");
 
         return document;
     }
 
-    private void addDetailText(Document document, Element parent, String text, int x, int y) {
-        Element textElement = document.createElement("text");
-        textElement.setAttribute("x", String.valueOf(x));
-        textElement.setAttribute("y", String.valueOf(y));
-        textElement.setAttribute("fill", "#212529");
-        textElement.setAttribute("font-family", "Arial");
-        textElement.setAttribute("font-size", "12");
-        textElement.setTextContent(text);
-        parent.appendChild(textElement);
+    /**
+     * Creates an SVG rectangle element in the correct namespace.
+     * (Previously named createSvgElement)
+     */
+    private Element createSvgRect(Document document, String id, double contentHeight, double contentWidth, String x, String y) {
+        // KORREKTUR: Element im SVG-Namespace erstellen
+        Element rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("fill", BOX_COLOR);
+        rect.setAttribute("id", id);
+        // Die Höhe und Breite basieren auf dem Inhalt plus Rändern
+        rect.setAttribute("height", String.valueOf(margin + contentHeight + margin));
+        rect.setAttribute("width", String.valueOf(margin + contentWidth + margin));
+        rect.setAttribute("x", x);
+        rect.setAttribute("y", y);
+        rect.setAttribute("rx", "2");
+        rect.setAttribute("ry", "2");
+        return rect;
     }
 
+    /**
+     * Creates an SVG text element in the correct namespace.
+     */
+    private Element createSvgTextElement(Document document, String textContent, String x, String y, String fill, int fontSize) {
+        // KORREKTUR: Element im SVG-Namespace erstellen
+        Element textElement = document.createElementNS(svgNS, "text");
+        textElement.setAttribute("fill", fill);
+        textElement.setAttribute("font-family", font.getFontName());
+        textElement.setAttribute("font-size", String.valueOf(fontSize));
+        textElement.setAttribute("x", x);
+        textElement.setAttribute("y", y);
+        textElement.setTextContent(textContent);
+        return textElement;
+    }
+
+    /**
+     * Generates and appends the documentation block to the SVG.
+     */
     private double generateDocumentationElement(Document document, List<XsdDocumentation> xsdDocumentation, double rootElementWidth, double rootElementHeight, int startX, int startY) {
-        /*
-        Hier probieren wir einmal die Dokumentation zu erweitern
-         */
-        final var docTextGroup = document.createElement("g");
+        // KORREKTUR: Alle Elemente im SVG-Namespace erstellen
+        final var docTextGroup = document.createElementNS(svgNS, "g");
         docTextGroup.setAttribute("id", "comment");
 
-        final var docText = document.createElement("text");
-        docText.setAttribute("x", startX + margin + "");
-        docText.setAttribute("y", startY + (margin * 3) + rootElementHeight + (margin / 2) + "");
+        final var docText = document.createElementNS(svgNS, "text");
+        docText.setAttribute("x", String.valueOf(startX + margin));
+        docText.setAttribute("y", String.valueOf(startY + (margin * 3) + rootElementHeight + (margin / 2.0)));
 
         double docHeightTotal = 0;
         for (XsdDocumentation documentation : xsdDocumentation) {
-            int length = 0;
             StringWriter writer = new StringWriter();
+            int length = 0;
 
             for (String word : documentation.getContent().split(" ")) {
                 var rectangle2D = font.getStringBounds(word + " ", frc);
                 var docHeight = rectangle2D.getBounds2D().getHeight();
                 var docWidth = rectangle2D.getBounds2D().getWidth();
 
-                var newSize = docWidth + length;
-                logger.debug("DocWidth: {} - Length: {} - NewSize: {}, rootElementWidth: {}", docWidth, length, newSize, rootElementWidth);
-                logger.debug("DocHeight: {} - docHeightTotal: {}", docHeight, docHeightTotal);
-
                 if ((docWidth + length) > (rootElementWidth + (margin * 2))) {
-                    final var tspan = document.createElement("tspan");
-                    tspan.setAttribute("x", (margin + 15) + "");
+                    final var tspan = document.createElementNS(svgNS, "tspan");
+                    tspan.setAttribute("x", String.valueOf(margin + 15));
                     tspan.setAttribute("dy", "1.2em");
-                    tspan.setTextContent(writer + " ");
+                    tspan.setTextContent(writer.toString()); // writer + " " ist nicht nötig
                     docText.appendChild(tspan);
+                    writer = new StringWriter();
                     length = 0;
                     docHeightTotal += docHeight;
-
-                    writer = new StringWriter();
-                } else {
-                    length += (int) docWidth;
                 }
+                length += (int) docWidth;
                 writer.append(word).append(" ");
             }
-            final var tspan = document.createElement("tspan");
-            tspan.setAttribute("x", (margin + 15) + "");
-            tspan.setAttribute("dy", "1.2em");
-            tspan.setTextContent(writer + " ");
-            docText.appendChild(tspan);
+            // Append remaining text
+            if (!writer.toString().isBlank()) {
+                final var tspan = document.createElementNS(svgNS, "tspan");
+                tspan.setAttribute("x", String.valueOf(margin + 15));
+                tspan.setAttribute("dy", "1.2em");
+                tspan.setTextContent(writer.toString());
+                docText.appendChild(tspan);
+            }
         }
 
         docTextGroup.appendChild(docText);
         document.getDocumentElement().appendChild(docTextGroup);
 
         return startY + margin + docHeightTotal + margin;
-    }
-
-    /**
-     * Creates an SVG text element.
-     *
-     * @param document     the SVG document
-     * @param rightStartX  the x-coordinate of the text element
-     * @param actualHeight the y-coordinate of the text element
-     * @param elementName  the name of the element
-     * @param height       the height of the text element
-     * @param margin       the margin around the text element
-     * @return the created SVG text element
-     */
-    private Element createSvgTextElement(Document document, double rightStartX, double actualHeight, String elementName, double height, int margin) {
-        Element text2 = document.createElement("text");
-        text2.setAttribute("fill", "#096574");
-        text2.setAttribute("font-family", font.getFontName());
-        text2.setAttribute("font-size", font.getSize() + "");
-        text2.setAttribute("textLength", "0");
-        text2.setAttribute("x", rightStartX + margin + "");
-        text2.setAttribute("y", actualHeight + height + (margin / 2) + "");
-        text2.setTextContent(elementName);
-
-        return text2;
-    }
-
-    /**
-     * Creates an SVG rectangle element.
-     *
-     * @param document          the SVG document
-     * @param rootElementName   the name of the root element
-     * @param rootElementHeight the height of the root element
-     * @param rootElementWidth  the width of the root element
-     * @param s                 the x-coordinate of the rectangle
-     * @param s2                the y-coordinate of the rectangle
-     * @param startX            the starting x-coordinate
-     * @param startY            the starting y-coordinate
-     * @return the created SVG rectangle element
-     */
-    private Element createSvgElement(Document document, String rootElementName, double rootElementHeight, double rootElementWidth, String s, String s2, int startX, int startY) {
-        Element rect1 = document.createElement("rect");
-        rect1.setAttribute("fill", BOX_COLOR);
-        rect1.setAttribute("id", rootElementName);
-        rect1.setAttribute("height", (margin + rootElementHeight + margin) + "");
-        rect1.setAttribute("width", (margin + rootElementWidth + margin) + "");
-        rect1.setAttribute("x", s);
-        rect1.setAttribute("y", s2);
-        rect1.setAttribute("rx", "2");
-        rect1.setAttribute("ry", "2");
-
-        return rect1;
     }
 
     /**
@@ -522,7 +463,10 @@ public class XsdDocumentationImageService {
     private static String asString(Node node) {
         StringWriter writer = new StringWriter();
         try {
-            Transformer trans = TransformerFactory.newInstance().newTransformer();
+            TransformerFactory factory = TransformerFactory.newInstance();
+            factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+
+            Transformer trans = factory.newTransformer();
             trans.setOutputProperty(OutputKeys.INDENT, "yes");
             trans.setOutputProperty(OutputKeys.VERSION, "1.0");
             if (!(node instanceof Document)) {
@@ -530,9 +474,12 @@ public class XsdDocumentationImageService {
             }
             trans.transform(new DOMSource(node), new StreamResult(writer));
         } catch (final TransformerConfigurationException ex) {
-            throw new IllegalStateException(ex);
+            // Verwende spezifischere Exceptions, wenn möglich
+            logger.error("Transformer configuration error during serialization", ex);
+            throw new IllegalStateException("Failed to configure XML Transformer", ex);
         } catch (final TransformerException ex) {
-            throw new IllegalArgumentException(ex);
+            logger.error("Failed to transform DOM node to string", ex);
+            throw new IllegalArgumentException("Failed to transform node", ex);
         }
         return writer.toString();
     }

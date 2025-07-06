@@ -279,7 +279,7 @@ public class XsdDocumentationService {
 
                 if (prevElementTypes.stream().anyMatch(str -> str.trim().equals(currentType))) {
                     // System.out.println("ELEMENT SCHON BEARBEITET: " + currentType);
-                    logger.warn("Element {} schon bearbeitet.", currentType);
+                    logger.info("Element {} schon bearbeitet.", currentType);
                     return;
                 } else {
                     logger.debug("noch nicht bearbeitet: {}", currentType);
@@ -293,7 +293,7 @@ public class XsdDocumentationService {
                 // complex oder simple type
                 if (xsdElement.getXsdComplexType() != null) {
                     XsdComplexType xsdComplexType = xsdElement.getXsdComplexType();
-                    System.out.println("xsdComplexType.getName() = " + xsdComplexType.getName());
+                    // System.out.println("xsdComplexType.getName() = " + xsdComplexType.getName());
 
                     var currentNode = xmlService.getNodeFromXpath("//" + this.schemaPrefix + ":complexType[@name='" + xsdComplexType.getRawName() + "']", parentNode);
                     var s = xmlService.getXmlFromXpath("//" + this.schemaPrefix + ":complexType[@name='" + xsdComplexType.getRawName() + "']");
