@@ -43,7 +43,7 @@ public class ExtendedXsdElement implements Serializable {
     private XsdElement xsdElement;
     private XsdRestriction xsdRestriction;
     private int level;
-    private List<XsdDocumentation> xsdDocumentation;
+    private List<XsdDocumentation> xsdDocumentation = new ArrayList<>();
     private List<String> children = new ArrayList<>();
     private String currentXpath;
     private String parentXpath;
