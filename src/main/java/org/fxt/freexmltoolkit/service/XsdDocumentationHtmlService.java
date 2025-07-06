@@ -308,7 +308,7 @@ public class XsdDocumentationHtmlService {
             logger.debug("Generating SVG diagram for {}", currentElement.getElementName());
 
         } else {
-            // Fall 2: JPG-Bild generieren und den Pfad speichern
+            // Fall 2: PNG-Bild generieren und den Pfad speichern
             // Sicherstellen, dass das "images"-Verzeichnis existiert
             File imagesDir = new File(outputDirectory, "images");
             if (!imagesDir.exists()) {
@@ -316,15 +316,15 @@ public class XsdDocumentationHtmlService {
             }
 
             // Zieldatei für das Bild definieren
-            File imageFile = new File(imagesDir, currentElement.getPageName() + ".jpg");
+            File imageFile = new File(imagesDir, currentElement.getPageName().replace(".html", ".png"));
 
             // Bild mit der Methode aus XsdDocumentationService generieren
             xsdDocumentationImageService.generateImage(currentXpath, imageFile);
 
             // Im Template benötigen wir den relativen Pfad zum Bild
             diagramContent = "images/" + imageFile.getName();
-            diagramType = "JPG";
-            logger.debug("Generating JPG diagram for {}: {}", currentElement.getElementName(), diagramContent);
+            diagramType = "PNG";
+            logger.debug("Generating PNG diagram for {}: {}", currentElement.getElementName(), diagramContent);
         }
 
         // Die Ergebnisse an das Template übergeben

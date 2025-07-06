@@ -63,22 +63,22 @@
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
             </div>
-            </div>
-            <!-- Rechte Navigationsgruppe (GitHub Link) -->
-            <div class="hidden md:block">
-                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
-                   class="inline-flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900">
-                    <span>GitHub</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                         class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd"
-                              d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
-                        <path fill-rule="evenodd"
-                              d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
-                    </svg>
-                </a>
-            </div>
         </div>
+        <!-- Rechte Navigationsgruppe (GitHub Link) -->
+        <div class="hidden md:block">
+            <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
+               class="inline-flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900">
+                <span>GitHub</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                     class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                          d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
+                    <path fill-rule="evenodd"
+                          d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
+                </svg>
+            </a>
+        </div>
+    </div>
     </div>
 </nav>
 
@@ -118,7 +118,7 @@
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">Diagramm</h2>
                 <div class="p-4 border border-slate-200 rounded-lg bg-slate-50 overflow-x-auto">
 
-                    <!-- Thymeleaf Switch, um zwischen SVG und JPG zu unterscheiden -->
+                    <!-- Thymeleaf Switch, um zwischen SVG und PNG zu unterscheiden -->
                     <div th:switch="${diagramType}">
 
                         <!-- Fall 1: Wenn der Typ 'SVG' ist, füge den SVG-Code direkt ein -->
@@ -126,9 +126,9 @@
                             <!-- Der rohe SVG-String wird hier von Thymeleaf eingefügt -->
                         </div>
 
-                        <!-- Fall 2: Wenn der Typ 'JPG' ist, erstelle ein normales Bild-Tag -->
-                        <div th:case="'JPG'">
-                            <img th:src="${diagramContent}" alt="Diagramm des Elements" class="mx-auto"/>
+                        <!-- Fall 2: Wenn der Typ 'PNG' ist, erstelle ein normales Bild-Tag -->
+                        <div th:case="'PNG'" style="float:left;">
+                            <img th:src="${'../' + diagramContent}" alt="Diagramm des Elements" class="mx-auto"/>
                         </div>
                     </div>
                 </div>

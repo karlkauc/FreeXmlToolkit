@@ -271,7 +271,7 @@ public class XsdDocumentationImageService {
 
         double docHeightTotal = generateDocumentationElement(document, rootElement.getXsdDocumentation(), rootElementWidth, rootElementHeight, rootStartX, rootStartY);
         final double rightStartX = rootStartX + margin + rootElementWidth + margin + gapBetweenSides;
-        final double pathStartX = rootStartX + margin + rootElementWidth;
+        final double pathStartX = rootStartX + margin + rootElementWidth + margin;
         final double pathStartY = rootStartY + (margin + rootElementHeight + margin) / 2;
 
         double actualHeight = 20;
