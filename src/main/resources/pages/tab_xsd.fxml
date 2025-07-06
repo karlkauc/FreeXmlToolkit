@@ -32,16 +32,13 @@
             <graphic>
                 <FontIcon iconLiteral="bi-card-text"/>
             </graphic>
-            <StackPane fx:id="stackPane" style="-fx-background-color: white;" AnchorPane.bottomAnchor="0"
-                       AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+            <StackPane fx:id="stackPane" style="-fx-background-color: white;"/>
         </Tab>
         <Tab closable="false" text="Graphic">
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-2"/>
             </graphic>
-            <StackPane fx:id="xsdStackPane" style="-fx-background-color: #fab;" AnchorPane.bottomAnchor="0"
-                       AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
-
+            <StackPane fx:id="xsdStackPane" alignment="CENTER_LEFT" style="-fx-background-color: #f8f9fa;"/>
         </Tab>
         <Tab fx:id="documentation" closable="false" text="Documentation">
             <graphic>

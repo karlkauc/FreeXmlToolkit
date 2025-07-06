@@ -118,7 +118,8 @@ public class XsdController {
         if (currentXsdFile == null || !currentXsdFile.exists()) {
             Label infoLabel = new Label("Bitte eine XSD-Datei laden.");
             xsdStackPane.getChildren().add(infoLabel);
-            StackPane.setAlignment(infoLabel, Pos.CENTER);
+            StackPane.setAlignment(infoLabel, Pos.CENTER_LEFT);
+            xsdStackPane.setAlignment(Pos.CENTER_LEFT);
             return;
         }
 
@@ -139,7 +140,7 @@ public class XsdController {
 
                 // 4. Die fertige Komponente zur Szene hinzufügen
                 xsdStackPane.getChildren().add(view);
-                StackPane.setAlignment(view, Pos.TOP_LEFT);
+                StackPane.setAlignment(view, Pos.CENTER_LEFT);
 
             } else {
                 Label infoLabel = new Label("Kein Wurzelelement im Schema gefunden.");
@@ -212,14 +213,9 @@ public class XsdController {
             logger.debug("open File: {}", xsdFile.getAbsolutePath());
             xmlService.setCurrentXsdFile(xsdFile);
             xsdFilePath.setText(xsdFile.getName());
+
+            reloadXmlText();
             setupXsdDiagram();
-
-            codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-            virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
-            stackPane.getChildren().add(virtualizedScrollPane);
-            codeArea.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeArea.setStyleSpans(0, XmlEditor.computeHighlighting(newText))));
-
-            codeArea.replaceText(0, 0, xmlService.getCurrentXsdString());
         }
     }
 
@@ -316,30 +312,27 @@ public class XsdController {
             if (f.isFile() && f.exists() && f.getAbsolutePath().toLowerCase().endsWith(".xsd")) {
                 this.xmlService.setCurrentXsdFile(f);
                 this.xsdFilePath.setText(f.getName());
+
                 setupXsdDiagram();
+                reloadXmlText();
             }
         }
     }
 
     @FXML
     private void test() {
-        final var testFilePath = Paths.get("release/examples/xsd/purchageOrder.xsd");
+        final var testFilePath = Paths.get("release/examples/xsd/FundsXML4.xsd");
         final var outputFilePath = Paths.get("output/test");
 
         if (Files.exists(testFilePath)) {
             this.xmlService.setCurrentXsdFile(testFilePath.toFile());
             this.xsdFilePath.setText(testFilePath.toFile().getName());
 
+            setupXsdDiagram();
+            reloadXmlText();
+
             this.selectedDocumentationOutputDirectory = outputFilePath.toFile();
             this.documentationOutputDirPath.setText(outputFilePath.toFile().getAbsolutePath());
-
-            generateDocumentation();
-
-            try {
-                this.codeArea.replaceText(0, 0, this.xmlService.getCurrentXsdString());
-            } catch (IOException ioException) {
-                logger.error(ioException.getMessage());
-            }
         } else {
             logger.debug("test file not found: {}", testFilePath.toFile().getAbsolutePath());
         }

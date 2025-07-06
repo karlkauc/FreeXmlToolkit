@@ -67,7 +67,7 @@ public class XsdDiagramView {
         // Hauptcontainer ist jetzt eine HBox für eine horizontale Anordnung
         HBox diagramContainer = new HBox(10);
         diagramContainer.setPadding(new Insets(10));
-        diagramContainer.setAlignment(Pos.CENTER_LEFT); // Zentriert die Kinder vertikal
+        diagramContainer.setAlignment(Pos.CENTER_LEFT);
 
         // 1. Root-Element-Komponente (Name + Doku) erstellen und hinzufügen
         Node rootNodeComponent = createRootNodeComponent();
@@ -95,6 +95,7 @@ public class XsdDiagramView {
         Label rootElementLabel = new Label(rootInfo.name());
         rootElementLabel.setStyle(ROOT_LABEL_STYLE);
         rootDisplay.getChildren().add(rootElementLabel);
+        rootDisplay.setAlignment(Pos.CENTER_LEFT);
 
         // Prüfen, ob Dokumentation vorhanden ist und sie hinzufügen
         if (rootInfo.documentation() != null && !rootInfo.documentation().isBlank()) {
