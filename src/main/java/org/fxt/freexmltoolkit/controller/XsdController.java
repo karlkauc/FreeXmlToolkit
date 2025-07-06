@@ -42,7 +42,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.controls.XsdDiagramView;
-import org.fxt.freexmltoolkit.domain.XsdRootInfo;
+import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
@@ -126,21 +126,23 @@ public class XsdController {
         logger.debug("Lade XSD-Diagramm für: {}", currentXsdFile.getAbsolutePath());
 
         try {
-            // 1. Daten vom Service holen
+            // 1. Service instanziieren und Pfad setzen
             XsdDocumentationService docService = new XsdDocumentationService();
             docService.setXsdFilePath(currentXsdFile.getPath());
-            XsdRootInfo rootInfo = docService.getRootElementInfo();
 
-            if (rootInfo != null && rootInfo.name() != null && !rootInfo.name().isEmpty()) {
-                // 2. Die neue View-Klasse instanziieren
-                XsdDiagramView diagramView = new XsdDiagramView(rootInfo);
+            // 2. Den gesamten rekursiven Baum vom Service holen
+            XsdNodeInfo rootNode = docService.getRootNodeInfo();
 
-                // 3. Die UI-Komponente bauen lassen
+            if (rootNode != null) {
+                // 3. Die neue View mit dem Baum-Objekt instanziieren
+                XsdDiagramView diagramView = new XsdDiagramView(rootNode);
+
+                // 4. Die UI-Komponente bauen lassen
                 Node view = diagramView.build();
 
-                // 4. Die fertige Komponente zur Szene hinzufügen
+                // 5. Die fertige Komponente zur Szene hinzufügen
                 xsdStackPane.getChildren().add(view);
-                StackPane.setAlignment(view, Pos.CENTER_LEFT);
+                // Die Ausrichtung ist weiterhin CENTER_LEFT, wie im FXML definiert
 
             } else {
                 Label infoLabel = new Label("Kein Wurzelelement im Schema gefunden.");

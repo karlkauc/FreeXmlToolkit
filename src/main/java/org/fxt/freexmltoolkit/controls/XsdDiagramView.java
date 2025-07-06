@@ -6,143 +6,104 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import org.fxt.freexmltoolkit.domain.XsdRootInfo;
+import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 
-/**
- * Erstellt die grafische Ansicht für das XSD-Wurzelelement und seine Kinder.
- * Diese Klasse entkoppelt die UI-Logik vom Controller.
- */
 public class XsdDiagramView {
 
-    private final XsdRootInfo rootInfo;
+    private final XsdNodeInfo rootNode;
 
-    // Stile als Konstanten für bessere Lesbarkeit und Wartbarkeit
-    private static final String ROOT_LABEL_STYLE =
-            "-fx-background-color: #eef4ff; " +
-                    "-fx-border-color: #adc8ff; " +
-                    "-fx-border-width: 1px; " +
-                    "-fx-border-radius: 8px; " +
-                    "-fx-background-radius: 8px; " +
-                    "-fx-padding: 10px 15px; " +
-                    "-fx-font-family: 'Segoe UI', sans-serif; " +
-                    "-fx-font-size: 16px; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-text-fill: #0d47a1;";
+    // Stile (unverändert)
+    // Kopiere hier deine Stil-Konstanten hinein
+    private static final String NODE_LABEL_STYLE =
+            "-fx-background-color: #eef4ff; -fx-border-color: #adc8ff; -fx-border-width: 1px; " +
+                    "-fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 5px 10px; " +
+                    "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0d47a1;";
 
     private static final String TOGGLE_BUTTON_STYLE =
-            "-fx-font-size: 20px; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-text-fill: #0d47a1; " +
-                    "-fx-padding: 0 10px; " +
-                    "-fx-cursor: hand;";
+            "-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #0d47a1; -fx-padding: 0 5px; -fx-cursor: hand;";
 
-    private static final String CHILD_LABEL_STYLE =
-            "-fx-font-size: 14px; -fx-text-fill: #333;";
-
-    private static final String CHILDREN_CONTAINER_STYLE =
-            "-fx-background-color: #f8f9fa; " +
-                    "-fx-border-color: #dee2e6; " +
-                    "-fx-border-width: 1px; " +
-                    "-fx-border-radius: 5px; " +
-                    "-fx-background-radius: 5px;";
-
-    // NEU: Stil für die Dokumentation
     private static final String DOC_LABEL_STYLE =
-            "-fx-font-size: 12px; " +
-                    "-fx-text-fill: #6c757d; " + // Ein dezentes Grau
-                    "-fx-font-style: italic; " +
-                    "-fx-padding: 5px 0 0 5px;"; // Etwas Abstand nach oben und links
+            "-fx-font-size: 11px; -fx-text-fill: #6c757d; -fx-font-style: italic; -fx-padding: 2px 0 0 5px;";
 
-
-    public XsdDiagramView(XsdRootInfo rootInfo) {
-        this.rootInfo = rootInfo;
+    public XsdDiagramView(XsdNodeInfo rootNode) {
+        this.rootNode = rootNode;
     }
 
     /**
-     * Baut die vollständige UI-Komponente und gibt sie als Node zurück.
-     *
-     * @return Ein HBox-Node, der das Diagramm enthält.
+     * Startpunkt: Baut die Ansicht für den Wurzelknoten.
      */
     public Node build() {
-        // Hauptcontainer ist jetzt eine HBox für eine horizontale Anordnung
-        HBox diagramContainer = new HBox(10);
-        diagramContainer.setPadding(new Insets(10));
-        diagramContainer.setAlignment(Pos.CENTER_LEFT);
-
-        // 1. Root-Element-Komponente (Name + Doku) erstellen und hinzufügen
-        Node rootNodeComponent = createRootNodeComponent();
-        diagramContainer.getChildren().add(rootNodeComponent);
-
-        // 2. Button und Kind-Container nur erstellen, wenn Kinder vorhanden sind
-        if (rootInfo != null && !rootInfo.childElementNames().isEmpty()) {
-            VBox childrenContainer = createChildrenContainer();
-            Label toggleButton = createToggleButton(childrenContainer);
-            diagramContainer.getChildren().addAll(toggleButton, childrenContainer);
+        if (rootNode == null) {
+            return new Label("Keine Element-Informationen gefunden.");
         }
+        // Der Hauptcontainer, der das gesamte Diagramm aufnimmt.
+        VBox diagramContainer = new VBox();
+        diagramContainer.setPadding(new Insets(10));
+
+        // Starte den rekursiven Aufbau
+        Node rootNodeView = createNodeView(rootNode, 0);
+        diagramContainer.getChildren().add(rootNodeView);
 
         return diagramContainer;
     }
 
     /**
-     * NEUE METHODE: Erstellt die Komponente für den Root-Knoten,
-     * die den Namen und die Dokumentation enthält.
+     * Rekursive Methode zum Erstellen der Ansicht für einen einzelnen Knoten.
+     * @param node Der Datenknoten, der visualisiert werden soll.
+     * @param depth Die aktuelle Tiefe im Baum (für die Einrückung).
+     * @return Ein JavaFX-Node, der diesen Baum-Teil repräsentiert.
      */
-    private Node createRootNodeComponent() {
-        // Dieser VBox hält den Namen und die darunterliegende Dokumentation
-        VBox rootDisplay = new VBox(2); // Kleiner Abstand zwischen Name und Doku
+    private Node createNodeView(XsdNodeInfo node, int depth) {
+        // Container für diesen Knoten: Label-Zeile + Container für Kinder
+        VBox nodeContainer = new VBox(5);
+        nodeContainer.setPadding(new Insets(0, 0, 0, depth * 20)); // Einrückung pro Ebene
 
-        // Das Label für den Namen des Wurzelelements
-        Label rootElementLabel = new Label(rootInfo.name());
-        rootElementLabel.setStyle(ROOT_LABEL_STYLE);
-        rootDisplay.getChildren().add(rootElementLabel);
-        rootDisplay.setAlignment(Pos.CENTER_LEFT);
+        // HBox für die eigentliche Anzeige: Toggle-Button + Label + Doku
+        HBox nodeDisplayRow = new HBox(5);
+        nodeDisplayRow.setAlignment(Pos.CENTER_LEFT);
 
-        // Prüfen, ob Dokumentation vorhanden ist und sie hinzufügen
-        if (rootInfo.documentation() != null && !rootInfo.documentation().isBlank()) {
-            Label docLabel = new Label(rootInfo.documentation());
-            docLabel.setStyle(DOC_LABEL_STYLE);
-            docLabel.setWrapText(true); // Wichtig für längere Texte
-            docLabel.setMaxWidth(350);  // Verhindert, dass das Label zu breit wird
-            rootDisplay.getChildren().add(docLabel);
-        }
-
-        return rootDisplay;
-    }
-
-    /**
-     * Erstellt den Button zum Auf- und Zuklappen der Kind-Elemente.
-     */
-    private Label createToggleButton(VBox childrenContainer) {
-        Label toggleButton = new Label("+");
-        toggleButton.setStyle(TOGGLE_BUTTON_STYLE);
-
-        // Klick-Logik zum Auf- und Zuklappen
-        final boolean[] isExpanded = {false};
-        toggleButton.setOnMouseClicked(event -> {
-            isExpanded[0] = !isExpanded[0];
-            childrenContainer.setVisible(isExpanded[0]);
-            childrenContainer.setManaged(isExpanded[0]);
-            toggleButton.setText(isExpanded[0] ? "−" : "+"); // U+2212 ist das echte Minus-Zeichen
-        });
-
-        return toggleButton;
-    }
-
-    /**
-     * Erstellt den (anfangs unsichtbaren) Container für die Kind-Elemente.
-     */
-    private VBox createChildrenContainer() {
+        // Container für die Kinder dieses Knotens (anfangs unsichtbar)
         VBox childrenContainer = new VBox(5);
-        childrenContainer.setPadding(new Insets(8)); // Innenabstand
         childrenContainer.setVisible(false);
-        childrenContainer.setManaged(false); // Nimmt keinen Platz ein, wenn unsichtbar
-        childrenContainer.setStyle(CHILDREN_CONTAINER_STYLE);
+        childrenContainer.setManaged(false);
 
-        for (String childName : rootInfo.childElementNames()) {
-            Label childLabel = new Label("• " + childName);
-            childLabel.setStyle(CHILD_LABEL_STYLE);
-            childrenContainer.getChildren().add(childLabel);
+        // Toggle-Button (+/-) nur hinzufügen, wenn Kinder vorhanden sind
+        if (!node.children().isEmpty()) {
+            Label toggleButton = new Label("+");
+            toggleButton.setStyle(TOGGLE_BUTTON_STYLE);
+
+            final boolean[] isExpanded = {false};
+            toggleButton.setOnMouseClicked(event -> {
+                isExpanded[0] = !isExpanded[0];
+                childrenContainer.setVisible(isExpanded[0]);
+                childrenContainer.setManaged(isExpanded[0]);
+                toggleButton.setText(isExpanded[0] ? "−" : "+");
+            });
+            nodeDisplayRow.getChildren().add(toggleButton);
         }
-        return childrenContainer;
+
+        // Label für den Namen und die Dokumentation
+        VBox nameAndDocBox = new VBox(2);
+        Label nameLabel = new Label(node.name());
+        nameLabel.setStyle(NODE_LABEL_STYLE);
+        nameAndDocBox.getChildren().add(nameLabel);
+
+        if (node.documentation() != null && !node.documentation().isBlank()) {
+            Label docLabel = new Label(node.documentation());
+            docLabel.setStyle(DOC_LABEL_STYLE);
+            docLabel.setWrapText(true);
+            docLabel.setMaxWidth(350);
+            nameAndDocBox.getChildren().add(docLabel);
+        }
+        nodeDisplayRow.getChildren().add(nameAndDocBox);
+
+        // Rekursiver Aufruf für alle Kinder
+        for (XsdNodeInfo childNode : node.children()) {
+            childrenContainer.getChildren().add(createNodeView(childNode, depth + 1));
+        }
+
+        // Alles zusammenbauen
+        nodeContainer.getChildren().addAll(nodeDisplayRow, childrenContainer);
+        return nodeContainer;
     }
 }

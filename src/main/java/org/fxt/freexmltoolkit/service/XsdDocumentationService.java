@@ -22,7 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
-import org.fxt.freexmltoolkit.domain.XsdRootInfo;
+import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -31,7 +31,6 @@ import org.xml.sax.InputSource;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
-import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdEnumeration;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,12 +42,10 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
@@ -78,6 +75,9 @@ public class XsdDocumentationService {
     String schemaPrefix;
 
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
+    private final SampleDataGenerator sampleDataGenerator = new SampleDataGenerator();
+
+    private static final String XSD_NS = "http://www.w3.org/2001/XMLSchema";
 
     public XsdDocumentationService() {
         imageOutputMethod = ImageOutputMethod.SVG;
@@ -229,8 +229,7 @@ public class XsdDocumentationService {
                     logger.debug("BUILD IN DATATYPE {}", xsdElement.getTypeAsBuiltInDataType().getRawName());
 
                     extendedXsdElement.setElementType(xsdElement.getType());
-                    extendedXsdElement.setSampleData(generateSampleData(extendedXsdElement, 0));
-                    xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
+                    extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
                 }
                 if (xsdElement.getTypeAsComplexType() != null) {
                     logger.debug("Complex DATATYPE {}", xsdElement.getTypeAsComplexType().getRawName());
@@ -347,7 +346,7 @@ public class XsdDocumentationService {
                     extendedXsdElement.setCurrentNode(currentNode);
                     extendedXsdElement.setLevel(level);
                     extendedXsdElement.setXsdElement(xsdElement);
-                    extendedXsdElement.setSampleData(generateSampleData(extendedXsdElement, 0));
+                    extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
 
                     xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
                 }
@@ -558,68 +557,151 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Analysiert die geladene XSD-Datei und extrahiert die Informationen
-     * über das Wurzelelement, inklusive seiner Dokumentation und direkten Kind-Elemente.
-     *
-     * @return Ein XsdRootInfo-Objekt mit den gefundenen Daten.
-     * Gibt ein leeres Objekt zurück, wenn kein Wurzelelement gefunden wird oder ein Fehler auftritt.
+     * Hauptmethode, die den rekursiven Baum des Wurzelelements für die grafische Ansicht zurückgibt.
      */
-    public XsdRootInfo getRootElementInfo() {
+    public XsdNodeInfo getRootNodeInfo() {
         try {
             File xsdFile = new File(this.xsdFilePath);
-            if (!xsdFile.exists()) {
-                // logger.warn("XSD file not found at: {}", this.xsdFilePath);
-                return new XsdRootInfo(null, "", List.of());
-            }
-
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true); // Wichtig für XSDs
             Document doc = factory.newDocumentBuilder().parse(xsdFile);
+            doc.getDocumentElement().normalize();
 
-            // Annahme: Das erste globale <xs:element> ist das Wurzelelement.
-            // Eine robustere Implementierung könnte prüfen, ob es ein direktes Kind von <xs:schema> ist.
-            NodeList elements = doc.getDocumentElement().getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
+            Map<String, Element> complexTypeMap = getComplexTypeMap(doc);
+            NodeList schemaChildren = doc.getDocumentElement().getChildNodes();
 
-            if (elements.getLength() > 0) {
-                Element rootElementNode = (Element) elements.item(0);
-                String rootName = rootElementNode.getAttribute("name");
-                String documentation = "";
-                List<String> childNames = new ArrayList<>();
-
-                // 1. Dokumentation aus <xs:annotation> extrahieren
-                NodeList annotations = rootElementNode.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "annotation");
-                if (annotations.getLength() > 0) {
-                    NodeList documentations = ((Element) annotations.item(0)).getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "documentation");
-                    if (documentations.getLength() > 0) {
-                        documentation = documentations.item(0).getTextContent().trim();
-                    }
+            for (int i = 0; i < schemaChildren.getLength(); i++) {
+                Node node = schemaChildren.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE && "element".equals(node.getLocalName())) {
+                    // Starte den rekursiven Aufbau mit einer neuen, leeren Rekursionssperre
+                    return buildNodeTree((Element) node, complexTypeMap, new java.util.HashSet<>());
                 }
-
-                // 2. Kind-Elemente aus der ersten <xs:sequence> extrahieren
-                NodeList sequences = rootElementNode.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "sequence");
-                if (sequences.getLength() > 0) {
-                    // Nur direkte Kinder der Sequenz betrachten, um Verschachtelungen zu ignorieren
-                    NodeList childNodes = sequences.item(0).getChildNodes();
-                    for (int i = 0; i < childNodes.getLength(); i++) {
-                        Node child = childNodes.item(i);
-                        // Sicherstellen, dass es sich um ein <xs:element> handelt
-                        if (child.getNodeType() == Node.ELEMENT_NODE && "element".equals(child.getLocalName())) {
-                            childNames.add(((Element) child).getAttribute("name"));
-                        }
-                    }
-                }
-                // Hier könnte man die Logik für <xs:choice> etc. bei Bedarf erweitern
-
-                return new XsdRootInfo(rootName, documentation, childNames);
             }
+
         } catch (Exception e) {
-            // Im Fehlerfall sollte hier idealerweise geloggt werden.
-            // logger.error("Fehler beim Parsen der XSD für Root-Info", e);
-            e.printStackTrace();
+            logger.error("Fehler beim Parsen des XSD für die Diagrammansicht.", e);
+        }
+        return null;
+    }
+
+    /**
+     * Baut den Baum für ein gegebenes Element rekursiv auf und verhindert Endlosschleifen.
+     *
+     * @param elementNode    Das aktuelle DOM-Element.
+     * @param complexTypeMap Eine Map aller globalen complexTypes.
+     * @param recursionGuard Ein Set der auf dem aktuellen Pfad besuchten Typ-Namen, um Zyklen zu erkennen.
+     * @return Ein XsdNodeInfo-Objekt, das diesen Knoten und seine Kinder repräsentiert.
+     */
+    private XsdNodeInfo buildNodeTree(Element elementNode, Map<String, Element> complexTypeMap, java.util.Set<String> recursionGuard) {
+        String name = elementNode.getAttribute("name");
+        String type = elementNode.getAttribute("type");
+        String documentation = getDocumentation(elementNode);
+        List<XsdNodeInfo> children = new ArrayList<>();
+
+        // --- REKURSIONSSPERRE ---
+        // Wenn der Typ dieses Elements bereits auf dem aktuellen Pfad besucht wurde,
+        // brechen wir ab, um einen StackOverflowError zu verhindern.
+        if (type != null && !type.isEmpty() && recursionGuard.contains(type)) {
+            // Wir erstellen einen speziellen Knoten, um die Rekursion im UI anzuzeigen.
+            String recursiveDoc = "Rekursiver Verweis auf '" + type + "'";
+            return new XsdNodeInfo(name, type, recursiveDoc, List.of()); // Leere Kinderliste
         }
 
-        // Fallback, wenn kein Element gefunden wurde oder ein Fehler auftrat
-        return new XsdRootInfo(null, "", List.of());
+        // Füge den aktuellen Typ zur Sperre für tiefere Aufrufe hinzu.
+        // Wir erstellen eine Kopie, damit Geschwister-Knoten nicht beeinflusst werden.
+        java.util.Set<String> nextRecursionGuard = new java.util.HashSet<>(recursionGuard);
+        if (type != null && !type.isEmpty()) {
+            nextRecursionGuard.add(type);
+        }
+        // --- ENDE REKURSIONSSPERRE ---
+
+        Element complexTypeDefinition = null;
+
+        // Fall 1: Inline <complexType>
+        if (type == null || type.isEmpty()) {
+            NodeList directChildren = elementNode.getChildNodes();
+            for (int i = 0; i < directChildren.getLength(); i++) {
+                Node child = directChildren.item(i);
+                if (child.getNodeType() == Node.ELEMENT_NODE && "complexType".equals(child.getLocalName())) {
+                    complexTypeDefinition = (Element) child;
+                    break;
+                }
+            }
+        }
+        // Fall 2: Referenzierter <complexType>
+        else {
+            complexTypeDefinition = complexTypeMap.get(type);
+        }
+
+        if (complexTypeDefinition != null) {
+            NodeList compositors = complexTypeDefinition.getChildNodes();
+            for (int i = 0; i < compositors.getLength(); i++) {
+                Node compositorNode = compositors.item(i);
+                if (compositorNode.getNodeType() == Node.ELEMENT_NODE) {
+                    String localName = compositorNode.getLocalName();
+                    if ("sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName)) {
+                        NodeList elementNodes = compositorNode.getChildNodes();
+                        for (int j = 0; j < elementNodes.getLength(); j++) {
+                            Node element = elementNodes.item(j);
+                            if (element.getNodeType() == Node.ELEMENT_NODE && "element".equals(element.getLocalName())) {
+                                // WICHTIG: Gib die aktualisierte Rekursionssperre weiter
+                                children.add(buildNodeTree((Element) element, complexTypeMap, nextRecursionGuard));
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        return new XsdNodeInfo(name, type, documentation, children);
+    }
+
+    /**
+     * Extrahiert die Dokumentation aus einem Element-Knoten auf effiziente Weise.
+     */
+    private String getDocumentation(Element element) {
+        // Wir suchen nur nach direkten <xs:annotation> Kindern des Elements.
+        NodeList childNodes = element.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node node = childNodes.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE && "annotation".equals(node.getLocalName())) {
+                // Annotation gefunden. Jetzt das direkte <documentation> Kind davon suchen.
+                // Dies vermeidet eine tiefe und teure Rekursion durch getElementsByTagNameNS.
+                NodeList annotationChildren = node.getChildNodes();
+                for (int j = 0; j < annotationChildren.getLength(); j++) {
+                    Node docNode = annotationChildren.item(j);
+                    if (docNode.getNodeType() == Node.ELEMENT_NODE && "documentation".equals(docNode.getLocalName())) {
+                        // Dokumentation gefunden, Inhalt zurückgeben.
+                        return docNode.getTextContent().trim();
+                    }
+                }
+                // Annotation wurde gefunden, aber sie enthielt kein <documentation>-Tag.
+                return "";
+            }
+        }
+        // Keine Annotation für dieses Element gefunden.
+        return "";
+    }
+
+
+    /**
+     * Erstellt eine Map aller globalen complexTypes mit ihrem Namen als Schlüssel.
+     */
+    private Map<String, Element> getComplexTypeMap(Document doc) {
+        Map<String, Element> map = new HashMap<>();
+        NodeList typeNodes = doc.getElementsByTagNameNS(XSD_NS, "complexType");
+        for (int i = 0; i < typeNodes.getLength(); i++) {
+            Element typeElement = (Element) typeNodes.item(i);
+            // Nur globale complexTypes (direkte Kinder des Schemas) berücksichtigen.
+            if (typeElement.getParentNode().isSameNode(doc.getDocumentElement())) {
+                String name = typeElement.getAttribute("name");
+                if (name != null && !name.isEmpty()) {
+                    map.put(name, typeElement);
+                }
+            }
+        }
+        return map;
     }
 
     public String getSchemaPrefix() {
@@ -648,136 +730,5 @@ public class XsdDocumentationService {
         }
 
         return null; // Falls etwas schiefgeht oder es kein Schema ist
-    }
-
-    /**
-     * Generiert Beispieldaten für ein gegebenes XSD-Element unter Berücksichtigung
-     * von Datentypen und Einschränkungen.
-     *
-     * @param element Das ExtendedXsdElement, für das Daten generiert werden sollen.
-     * @return Ein String mit den passenden Beispieldaten.
-     */
-    private String generateSampleData(ExtendedXsdElement element, int recursionDepth) {
-        if (element == null || recursionDepth > 10) { // Maximale Rekursionstiefe
-            return "";
-        }
-
-        // Priorität 1: AppInfo mit Altova-Beispieldaten
-        if (element.getXsdElement() != null && element.getXsdElement().getAnnotation() != null) {
-            List<XsdAppInfo> appInfoList = element.getXsdElement().getAnnotation().getAppInfoList();
-            if (appInfoList != null) {
-                for (XsdAppInfo appInfo : appInfoList) {
-                    if (appInfo.getContent() != null) {
-                        Document appInfoDoc = convertStringToDocument(appInfo.getContent());
-                        if (appInfoDoc != null) {
-                            // Das Wurzelelement sollte <...:exampleValues> sein
-                            Element root = appInfoDoc.getDocumentElement();
-                            // Wir prüfen nur den lokalen Namen, um Namespace-Präfixe zu ignorieren
-                            if (root != null && "altova:exampleValues".equals(root.getNodeName())) {
-                                // Finde das <...:example> Kind-Element
-                                NodeList children = root.getChildNodes();
-                                for (int i = 0; i < children.getLength(); i++) {
-                                    Node child = children.item(i);
-                                    if (child.getNodeType() == Node.ELEMENT_NODE && "altova:example".equals(child.getNodeName())) {
-                                        Element exampleElement = (Element) child;
-                                        if (exampleElement.hasAttribute("value")) {
-                                            String exampleValue = exampleElement.getAttribute("value");
-                                            if (!exampleValue.isBlank()) {
-                                                logger.debug("Found sample data in appinfo for {}: {}", element.getElementName(), exampleValue);
-                                                return exampleValue; // Wert gefunden, sofort zurückgeben
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Priorität 2: Enumerations (Auswahllisten)
-        XsdRestriction restriction = element.getXsdRestriction();
-        if (restriction != null && restriction.getEnumeration() != null && !restriction.getEnumeration().isEmpty()) {
-            List<XsdEnumeration> enumerations = restriction.getEnumeration();
-            // Wähle einen zufälligen Index aus der Liste der möglichen Werte
-            int randomIndex = java.util.concurrent.ThreadLocalRandom.current().nextInt(enumerations.size());
-            return enumerations.get(randomIndex).getValue();
-        }
-
-        // Priorität 3: Datentyp-basierte Generierung
-        String elementType = element.getElementType();
-        if (elementType == null && restriction != null) {
-            elementType = restriction.getBase();
-        }
-
-        // Für komplexe Typen ohne einfachen Inhalt gibt es keine direkten Beispieldaten
-        if (elementType == null || element.getXsdElement() != null && element.getXsdElement().getXsdComplexType() != null) {
-            return "...";
-        }
-
-        // Normalisiere den Typnamen (z.B. "xs:string" -> "string")
-        String finalType = elementType.substring(elementType.lastIndexOf(":") + 1);
-
-        switch (finalType.toLowerCase()) {
-            case "string", "token", "normalizedstring", "language", "name", "ncname":
-                String sample = "Sample Data";
-                if ("language".equalsIgnoreCase(finalType)) {
-                    sample = "DE"; // Spezifisches Beispiel für 'language'
-                }
-                if (restriction != null) {
-                    if (restriction.getLength() != null) {
-                        int len = restriction.getLength().getValue();
-                        sample = "x".repeat(Math.max(0, len));
-                    } else {
-                        if (restriction.getMinLength() != null) {
-                            int min = restriction.getMinLength().getValue();
-                            while (sample.length() < min) {
-                                sample += " Text";
-                            }
-                        }
-                        if (restriction.getMaxLength() != null) {
-                            int max = restriction.getMaxLength().getValue();
-                            if (sample.length() > max) {
-                                sample = sample.substring(0, max);
-                            }
-                        }
-                    }
-                }
-                return sample;
-
-            case "decimal":
-                if (restriction != null && restriction.getMinInclusive() != null) {
-                    return restriction.getMinInclusive().getValue();
-                }
-                return "123.45";
-
-            case "integer", "positiveinteger", "nonnegativeinteger", "negativeinteger", "nonpositiveinteger", "long", "int", "short", "byte", "unsignedlong", "unsignedint", "unsignedshort", "unsignedbyte":
-                if (restriction != null && restriction.getMinInclusive() != null) {
-                    return restriction.getMinInclusive().getValue();
-                }
-                return "100";
-
-            case "date":
-                return LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE); // z.B. "2024-10-26"
-            case "datetime":
-                return LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME); // z.B. "2024-10-26T10:00:00"
-            case "time":
-                return LocalTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME); // z.B. "10:00:00"
-            case "gyear":
-                return String.valueOf(LocalDate.now().getYear()); // z.B. "2024"
-
-            case "boolean":
-                return "true";
-
-            default:
-                if (restriction != null && restriction.getBase() != null) {
-                    ExtendedXsdElement tempElement = new ExtendedXsdElement();
-                    tempElement.setElementType(restriction.getBase());
-                    tempElement.setXsdRestriction(restriction);
-                    return generateSampleData(tempElement, recursionDepth + 1);
-                }
-                return "";
-        }
     }
 }
