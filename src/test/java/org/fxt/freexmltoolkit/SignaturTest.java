@@ -79,7 +79,7 @@ public class SignaturTest {
         final String password = "123";
         final String alias = "karl";
 
-        var isOk = signatureService.isSignatureValid(fileToCheck, keyFile, alias, password);
+        var isOk = signatureService.isSignatureValid(fileToCheck);
         logger.debug("Is File signed correct: {}", isOk);
 
         Assertions.assertTrue(isOk);

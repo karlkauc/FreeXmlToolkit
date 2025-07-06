@@ -10,7 +10,7 @@
     <TabPane tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0"
              AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
              styleClass="signature-main">
-        <Tab text="create Certificate">
+        <Tab text="Create Certificate">
             <graphic>
                 <ImageView fitHeight="16" preserveRatio="true">
                     <Image url="@../img/key.png"/>
@@ -19,34 +19,41 @@
 
             <GridPane hgap="10" style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5" vgap="10">
                 <Label GridPane.columnIndex="0" GridPane.rowIndex="0">CommonName (CN):</Label>
-                <TextField fx:id="commonName" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                <TextField fx:id="commonName" promptText="e.g., Karl Kauc" GridPane.columnIndex="1"
+                           GridPane.rowIndex="0"/>
                 <Label GridPane.columnIndex="0" GridPane.rowIndex="1">OrganizationalUnit (OU):</Label>
-                <TextField fx:id="organizationUnit" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <TextField fx:id="organizationUnit" promptText="e.g., IT Department" GridPane.columnIndex="1"
+                           GridPane.rowIndex="1"/>
                 <Label GridPane.columnIndex="0" GridPane.rowIndex="2">Organization (O):</Label>
-                <TextField fx:id="organizationName" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                <TextField fx:id="organizationName" promptText="e.g., FreeXmlToolkit" GridPane.columnIndex="1"
+                           GridPane.rowIndex="2"/>
                 <Label GridPane.columnIndex="0" GridPane.rowIndex="3">Locality (L):</Label>
-                <TextField fx:id="localityName" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                <TextField fx:id="localityName" promptText="e.g., Vienna" GridPane.columnIndex="1"
+                           GridPane.rowIndex="3"/>
                 <Label GridPane.columnIndex="0" GridPane.rowIndex="4">StateOrProvinceName (ST):</Label>
-                <TextField fx:id="streetName" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+                <TextField fx:id="streetName" promptText="e.g., Vienna" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
                 <Label GridPane.columnIndex="0" GridPane.rowIndex="5">CountryName (C):</Label>
-                <TextField fx:id="country" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+                <TextField fx:id="country" promptText="e.g., AT" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
                 <Label GridPane.columnIndex="0" GridPane.rowIndex="6">Email (E):</Label>
-                <TextField fx:id="email" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                <TextField fx:id="email" promptText="e.g., your.email@example.com" GridPane.columnIndex="1"
+                           GridPane.rowIndex="6"/>
 
-                <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
-                <PasswordField fx:id="createCertificateKeystorePassword" promptText="Keystore Password"
-                               GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+                <Label text="Keystore Alias*" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+                <TextField fx:id="createCertificateAlias" promptText="A unique name for your key"
+                           GridPane.columnIndex="1"
+                           GridPane.rowIndex="7"/>
 
-                <Label text="Keystore Alias*" GridPane.columnIndex="0" GridPane.rowIndex="8">Alias*:</Label>
-                <TextField fx:id="createCertificateAlias" promptText="Keystore Alias" GridPane.columnIndex="1"
-                           GridPane.rowIndex="8"/>
+                <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+                <PasswordField fx:id="createCertificateKeystorePassword" promptText="Password for the .jks file"
+                               GridPane.columnIndex="1" GridPane.rowIndex="8"/>
 
-                <Label text="Alias Password*" GridPane.columnIndex="0" GridPane.rowIndex="9">Alias Password*:</Label>
-                <PasswordField fx:id="createCertificateAliasPassword" promptText="Alias Password"
+                <Label text="Alias Password*" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
+                <PasswordField fx:id="createCertificateAliasPassword"
+                               promptText="Password for the key inside the keystore"
                                GridPane.columnIndex="1" GridPane.rowIndex="9"/>
 
-                <Button onAction="#createNewSignatureFile" text="Create Certificate" GridPane.columnIndex="0"
-                        GridPane.rowIndex="10">
+                <Button onAction="#createNewSignatureFile" text="Create Certificate" GridPane.columnIndex="1"
+                        GridPane.rowIndex="10" HBox.hgrow="ALWAYS" maxWidth="Infinity">
                     <graphic>
                         <ImageView fitHeight="16" preserveRatio="true">
                             <Image url="@../img/key.png"/>
@@ -54,8 +61,8 @@
                     </graphic>
                 </Button>
                 <columnConstraints>
-                    <ColumnConstraints/>
-                    <ColumnConstraints/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="300.0"/>
                 </columnConstraints>
                 <rowConstraints>
                     <RowConstraints/>
@@ -81,15 +88,14 @@
             </graphic>
             <GridPane hgap="10" style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5" vgap="10">
 
-                <Button fx:id="signLoadXmlFileButton" text="XML File" GridPane.columnIndex="0" GridPane.rowIndex="0">XML
-                    File
+                <Button fx:id="signLoadXmlFileButton" text="XML File*" GridPane.columnIndex="0" GridPane.rowIndex="0">
                     <graphic>
                         <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
                     </graphic>
                 </Button>
                 <Label GridPane.columnIndex="1" GridPane.rowIndex="0" fx:id="xmlFileInfo"/>
 
-                <Button fx:id="signLoadKeystoreButton" text="Keystore File" GridPane.columnIndex="0"
+                <Button fx:id="signLoadKeystoreButton" text="Keystore File*" GridPane.columnIndex="0"
                         GridPane.rowIndex="1">
                     <graphic>
                         <ImageView fitHeight="16" preserveRatio="true">
@@ -99,32 +105,34 @@
                 </Button>
                 <Label fx:id="certFileInfo" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-                <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                <PasswordField fx:id="signKeystorePassword" promptText="Keystore Password" GridPane.columnIndex="1"
-                               GridPane.rowIndex="2"/>
+                <Label text="Keystore Alias*" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <TextField fx:id="signKeystoreAlias" promptText="The alias used during creation"
+                           GridPane.columnIndex="1"
+                           GridPane.rowIndex="2"/>
 
-                <Label text="Keystore Alias*" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-                <TextField fx:id="signKeystoreAlias" promptText="Keystore Alias" GridPane.columnIndex="1"
-                           GridPane.rowIndex="3"/>
+                <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                <PasswordField fx:id="signKeystorePassword" promptText="Password for the .jks file"
+                               GridPane.columnIndex="1"
+                               GridPane.rowIndex="3"/>
 
                 <Label text="Alias Password*" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-                <PasswordField fx:id="signAliasPassword" promptText="Alias Password" GridPane.columnIndex="1"
+                <PasswordField fx:id="signAliasPassword" promptText="Password for the key" GridPane.columnIndex="1"
                                GridPane.rowIndex="4"/>
 
-                <Label text="new Filename postfix" GridPane.rowIndex="5"/>
+                <Label text="New Filename Postfix" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
                 <TextField fx:id="newFileName" text="_signed" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
 
-                <Button onAction="#signDocument" text="Sign Document" GridPane.rowIndex="6">
+                <Button onAction="#signDocument" text="Sign Document" GridPane.columnIndex="1" GridPane.rowIndex="6"
+                        maxWidth="Infinity">
                     <graphic>
                         <ImageView fitHeight="16" preserveRatio="true">
                             <Image url="@../img/certificate.png"/>
                         </ImageView>
                     </graphic>
                 </Button>
-                <Label text="Keystore Alias*" GridPane.rowIndex="3"/>
                 <columnConstraints>
-                    <ColumnConstraints/>
-                    <ColumnConstraints/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="300.0"/>
                 </columnConstraints>
                 <rowConstraints>
                     <RowConstraints/>
@@ -143,35 +151,19 @@
                     <Image url="@../img/validate-cert.png"/>
                 </ImageView>
             </graphic>
+            <!-- KORREKTUR: Das GridPane wurde stark vereinfacht -->
             <GridPane hgap="10" style="-fx-padding: 10; -fx-hgap: 10; -fx-vgap: 10; -fx-background-insets: 5" vgap="10">
 
-                <Button fx:id="validateLoadXmlFileButton" text="XML File" GridPane.columnIndex="0"
-                        GridPane.rowIndex="0">XML File
+                <Button fx:id="validateLoadXmlFileButton" text="Signed XML File*" GridPane.columnIndex="0"
+                        GridPane.rowIndex="0">
                     <graphic>
                         <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
                     </graphic>
                 </Button>
                 <Label fx:id="validateXmlFileInfo" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-                <Button fx:id="validateLoadKeystoreButton" text="Keystore File" GridPane.columnIndex="0"
-                        GridPane.rowIndex="1">Keystore File
-                    <graphic>
-                        <ImageView fitHeight="16" preserveRatio="true">
-                            <Image url="@../img/keystore.png"/>
-                        </ImageView>
-                    </graphic>
-                </Button>
-                <Label fx:id="validateKeystoreInfo" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-
-                <Label text="Keystore Password*" GridPane.columnIndex="0" GridPane.rowIndex="2">Password</Label>
-                <PasswordField fx:id="validatePasswordField" promptText="Keystore Password" GridPane.columnIndex="1"
-                               GridPane.rowIndex="2"/>
-
-                <Label text="Keystore Alias*" GridPane.columnIndex="0" GridPane.rowIndex="3">Alias</Label>
-                <TextField fx:id="validateKeystoreAlias" promptText="Keystore Alias" GridPane.columnIndex="1"
-                           GridPane.rowIndex="3"/>
-
-                <Button onAction="#validateSignedDocument" text="Validate Document" GridPane.rowIndex="4">
+                <Button onAction="#validateSignedDocument" text="Validate Document" GridPane.columnIndex="1"
+                        GridPane.rowIndex="2" maxWidth="Infinity">
                     <graphic>
                         <ImageView fitHeight="16" preserveRatio="true">
                             <Image url="@../img/validate-cert.png"/>
@@ -179,12 +171,10 @@
                     </graphic>
                 </Button>
                 <columnConstraints>
-                    <ColumnConstraints/>
-                    <ColumnConstraints/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="300.0"/>
                 </columnConstraints>
                 <rowConstraints>
-                    <RowConstraints/>
-                    <RowConstraints/>
                     <RowConstraints/>
                     <RowConstraints/>
                     <RowConstraints/>

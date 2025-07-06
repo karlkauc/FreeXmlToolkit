@@ -31,6 +31,7 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.fxt.freexmltoolkit.service.SignatureService;
+import org.fxt.freexmltoolkit.service.SignatureService.SignatureServiceException;
 
 import java.io.File;
 
@@ -39,24 +40,24 @@ public class SignatureController {
     private final SignatureService signatureService = new SignatureService();
 
     @FXML
-    TextField commonName, organizationUnit, organizationName, localityName, streetName, country, email,
-            createCertificateAlias, validateKeystoreAlias, signKeystoreAlias;
+    private TextField commonName, organizationUnit, organizationName, localityName, streetName, country, email,
+            createCertificateAlias, signKeystoreAlias;
 
     @FXML
-    TextField newFileName;
+    private TextField newFileName;
 
     @FXML
-    Button signLoadKeystoreButton, signLoadXmlFileButton, validateLoadKeystoreButton, validateLoadXmlFileButton;
+    private Button signLoadKeystoreButton, signLoadXmlFileButton, validateLoadXmlFileButton;
 
-    File certificateFile, xmlFile;
-    FileChooser fileChooserCertificate = new FileChooser();
-    FileChooser fileChooserXMl = new FileChooser();
-
-    @FXML
-    Label certFileInfo, xmlFileInfo, validateKeystoreInfo, validateXmlFileInfo;
+    private File certificateFile, xmlFile;
+    private final FileChooser fileChooserCertificate = new FileChooser();
+    private final FileChooser fileChooserXMl = new FileChooser();
 
     @FXML
-    PasswordField createCertificateKeystorePassword, createCertificateAliasPassword, signKeystorePassword, signAliasPassword, validatePasswordField;
+    private Label certFileInfo, xmlFileInfo, validateXmlFileInfo;
+
+    @FXML
+    private PasswordField createCertificateKeystorePassword, createCertificateAliasPassword, signKeystorePassword, signAliasPassword;
     private MainController parentController;
 
     public void setParentController(MainController parentController) {
@@ -81,54 +82,40 @@ public class SignatureController {
         signLoadXmlFileButton.setOnDragOver(SignatureController::handleOnDragOver);
         signLoadXmlFileButton.setOnDragDropped(this::handleXmlLoad);
 
-        // validate xml file
-        validateLoadKeystoreButton.setOnAction(this::handleKeystoreOnAction);
-        validateLoadKeystoreButton.setOnDragOver(SignatureController::handleOnDragOver);
-        validateLoadKeystoreButton.setOnDragDropped(this::handleLoadKeystore);
-
+        // KORREKTUR: Event-Handler für die Validierungs-Buttons werden hier ebenfalls gesetzt
         validateLoadXmlFileButton.setOnAction(this::handleXmlOnAction);
         validateLoadXmlFileButton.setOnDragOver(SignatureController::handleOnDragOver);
         validateLoadXmlFileButton.setOnDragDropped(this::handleXmlLoad);
-
-        if (System.getenv("debug") != null) {
-            logger.debug("set Debug to True");
-            this.xmlFile = new File("/release/examples/xml/FundsXML_sign.xml");
-            this.certificateFile = new File("/release/examples/certs/karl/karl.pem");
-        }
     }
 
     @FXML
     public void createNewSignatureFile() {
+        final var aliasText = createCertificateAlias.getText();
+        final var keystorePasswordText = createCertificateKeystorePassword.getText();
+        final var aliasPasswordText = createCertificateAliasPassword.getText();
+
+        if (aliasText.isBlank() || keystorePasswordText.isBlank() || aliasPasswordText.isBlank()) {
+            showErrorAlert("Input Required", "All fields are mandatory.", "Please provide Alias, Keystore Password, and Alias Password.");
+            return;
+        }
+
         try {
-            final var aliasText = createCertificateAlias.getText();
-            final var keystorePasswordText = createCertificateKeystorePassword.getText();
-            final var aliasPasswordText = createCertificateAliasPassword.getText();
+            final X500NameBuilder nameBuilder = new X500NameBuilder(X500Name.getDefaultStyle());
+            if (!commonName.getText().isBlank()) nameBuilder.addRDN(BCStyle.CN, commonName.getText());
+            if (!organizationUnit.getText().isBlank()) nameBuilder.addRDN(BCStyle.OU, organizationUnit.getText());
+            if (!organizationName.getText().isBlank()) nameBuilder.addRDN(BCStyle.O, organizationName.getText());
+            if (!localityName.getText().isBlank()) nameBuilder.addRDN(BCStyle.L, localityName.getText());
+            if (!streetName.getText().isBlank()) nameBuilder.addRDN(BCStyle.ST, streetName.getText());
+            if (!country.getText().isBlank()) nameBuilder.addRDN(BCStyle.C, country.getText());
+            if (!email.getText().isBlank()) nameBuilder.addRDN(BCStyle.EmailAddress, email.getText());
 
-            if (aliasText.isEmpty() || keystorePasswordText.isEmpty()) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setContentText("Alias and Keystore Password need to be provided!");
-                alert.showAndWait();
-            } else {
-                // X.500 Name für das Zertifikat
-                final X500NameBuilder nameBuilder = new X500NameBuilder(X500Name.getDefaultStyle());
-                if (!commonName.getText().isEmpty()) nameBuilder.addRDN(BCStyle.CN, commonName.getText());
-                if (!organizationUnit.getText().isEmpty()) nameBuilder.addRDN(BCStyle.OU, organizationUnit.getText());
-                if (!organizationName.getText().isEmpty()) nameBuilder.addRDN(BCStyle.O, organizationName.getText());
-                if (!localityName.getText().isEmpty()) nameBuilder.addRDN(BCStyle.L, localityName.getText());
-                if (!streetName.getText().isEmpty()) nameBuilder.addRDN(BCStyle.ST, streetName.getText());
-                if (!country.getText().isEmpty()) nameBuilder.addRDN(BCStyle.C, country.getText());
-                if (!email.getText().isEmpty()) nameBuilder.addRDN(BCStyle.EmailAddress, email.getText());
+            var outFile = signatureService.createNewKeystoreFile(nameBuilder, aliasText, keystorePasswordText, aliasPasswordText);
 
-                var outFile = signatureService.createNewKeystoreFile(nameBuilder, aliasText, keystorePasswordText, aliasPasswordText);
+            showInfoAlert("Success", "Certificate created successfully.", "Your certificate was created successfully. \nIt can be found under: " + outFile.getParent());
 
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText("Certificate created successfully.");
-                alert.setContentText("Your certificate was created successfully. \n It can be found under: " + outFile.getAbsolutePath());
-                alert.showAndWait();
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage());
+        } catch (SignatureServiceException e) {
+            logger.error("Certificate creation failed.", e);
+            showErrorAlert("Certificate Creation Failed", "Could not create the certificate.", e.getMessage());
         }
     }
 
@@ -137,55 +124,46 @@ public class SignatureController {
         final var keystoreAlias = signKeystoreAlias.getText();
         final var keystorePassword = signKeystorePassword.getText();
         final var aliasPassword = signAliasPassword.getText();
+
+        if (certificateFile == null || xmlFile == null || keystoreAlias.isBlank() || keystorePassword.isBlank() || aliasPassword.isBlank()) {
+            showErrorAlert("Input Required", "All fields and files are mandatory.", "Please provide an XML File, a Keystore File, and all password/alias fields.");
+            return;
+        }
+
         final var outputFileName = this.xmlFile.getName().toLowerCase().replace(".xml", newFileName.getText() + ".xml");
 
-        if (certificateFile != null && xmlFile != null && !keystoreAlias.isEmpty() && !keystorePassword.isEmpty()) {
-            try {
-                var signedDocument = signatureService.signDocument(xmlFile, certificateFile, keystorePassword, keystoreAlias, aliasPassword, outputFileName);
-                if (signedDocument != null) {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setHeaderText("File signed successfully.");
-                    alert.setContentText("File '" + signedDocument.getName() + "' signed successfully!");
-                    alert.showAndWait();
+        try {
+            var signedDocument = signatureService.signDocument(xmlFile, certificateFile, keystorePassword, keystoreAlias, aliasPassword, outputFileName);
+            showInfoAlert("Success", "File signed successfully.", "File '" + signedDocument.getName() + "' was created.");
 
-                    this.xmlFile = signedDocument;
-                    this.validateXmlFileInfo.setText(this.xmlFile.getName());
-                }
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
-        } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("Certificate signing failed!");
-            alert.setContentText("Certificate File, XML File, Keystore Password and Keystore Alias must be provided!");
-            alert.showAndWait();
+            // Das neu signierte Dokument für die Validierung bereitstellen
+            this.xmlFile = signedDocument;
+            this.validateXmlFileInfo.setText(this.xmlFile.getName());
+
+        } catch (SignatureServiceException e) {
+            logger.error("Document signing failed.", e);
+            showErrorAlert("Signing Failed", "Could not sign the document.", e.getMessage());
         }
     }
 
     @FXML
     public void validateSignedDocument() {
-        final var validateAlias = validateKeystoreAlias.getText();
-        final var validateKeystorePassword = validatePasswordField.getText();
+        if (this.xmlFile == null) {
+            showErrorAlert("Validation Failed", "No XML file loaded.", "Please load a signed XML file to validate.");
+            return;
+        }
 
-        if (this.certificateFile != null && this.xmlFile != null && !validateAlias.isEmpty() && !validateKeystorePassword.isEmpty()) {
-            var isValid = signatureService.isSignatureValid(this.xmlFile, this.certificateFile, validateAlias, validateKeystorePassword);
+        try {
+            boolean isValid = signatureService.isSignatureValid(this.xmlFile);
 
-            Alert alert;
             if (isValid) {
-                alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText("Certificate validated successfully.");
-                alert.setContentText("File '" + this.xmlFile.getName() + "' is valid!");
+                showInfoAlert("Validation Successful", "The signature is valid.", "The signature in '" + this.xmlFile.getName() + "' has been successfully validated.");
             } else {
-                alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText("Certificate not validated successfully.");
-                alert.setContentText("File '" + this.xmlFile.getName() + "' is not valid!");
+                showErrorAlert("Validation Failed", "The signature is invalid.", "The signature in '" + this.xmlFile.getName() + "' could not be validated.");
             }
-            alert.showAndWait();
-        } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("Certificate file or XML file are empty!");
-            alert.setContentText("Certificate File, XML File and Keystore Alias must be provided!");
-            alert.showAndWait();
+        } catch (SignatureServiceException e) {
+            logger.error("An error occurred during validation.", e);
+            showErrorAlert("Validation Error", "A technical error occurred during validation.", e.getMessage());
         }
     }
 
@@ -200,48 +178,66 @@ public class SignatureController {
 
     private void handleXmlLoad(DragEvent event) {
         Dragboard db = event.getDragboard();
-        boolean success = false;
-        if (db.hasFiles()) {
-            success = true;
-            for (File file : db.getFiles()) {
-                this.xmlFile = file;
-                this.xmlFileInfo.setText(this.xmlFile.getName());
-                this.validateXmlFileInfo.setText(this.xmlFile.getName());
-                logger.debug("Setting XML File from DragEvent: {}", this.xmlFile.getAbsoluteFile().getName());
-            }
+        if (db.hasFiles() && !db.getFiles().isEmpty()) {
+            File file = db.getFiles().get(0);
+            updateXmlFile(file);
+            event.setDropCompleted(true);
         }
-        event.setDropCompleted(success);
         event.consume();
     }
 
     private void handleLoadKeystore(DragEvent event) {
         Dragboard db = event.getDragboard();
-        boolean success = false;
-        if (db.hasFiles()) {
-            success = true;
-            for (File file : db.getFiles()) {
-                this.certificateFile = file;
-                this.certFileInfo.setText(this.certificateFile.getName());
-                this.validateKeystoreInfo.setText(this.certificateFile.getName());
-                logger.debug("Setting Keystore File from dragEvent: {}", this.certificateFile.getAbsoluteFile().getName());
-            }
+        if (db.hasFiles() && !db.getFiles().isEmpty()) {
+            File file = db.getFiles().get(0);
+            updateKeystoreFile(file);
+            event.setDropCompleted(true);
         }
-        event.setDropCompleted(success);
         event.consume();
     }
 
     private void handleXmlOnAction(ActionEvent e) {
-        this.xmlFile = fileChooserXMl.showOpenDialog(null);
-        this.validateXmlFileInfo.setText(this.xmlFile.getName());
-        this.xmlFileInfo.setText(this.xmlFile.getName());
-        this.validateXmlFileInfo.setText(this.xmlFile.getName());
-        logger.debug("Setting XML File from onAction: {}", this.xmlFile.getAbsoluteFile().getName());
+        File file = fileChooserXMl.showOpenDialog(null);
+        if (file != null) {
+            updateXmlFile(file);
+        }
     }
 
     private void handleKeystoreOnAction(ActionEvent e) {
-        this.certificateFile = fileChooserCertificate.showOpenDialog(null);
-        this.validateKeystoreInfo.setText(this.certificateFile.getName());
-        this.certFileInfo.setText(this.certificateFile.getName());
-        logger.debug("Setting Keystore File from OnAction: {}", this.certificateFile.getAbsoluteFile().getName());
+        File file = fileChooserCertificate.showOpenDialog(null);
+        if (file != null) {
+            updateKeystoreFile(file);
+        }
+    }
+
+    private void updateXmlFile(File file) {
+        this.xmlFile = file;
+        String fileName = file.getName();
+        this.xmlFileInfo.setText(fileName);
+        this.validateXmlFileInfo.setText(fileName);
+        logger.debug("Set XML File to: {}", file.getAbsolutePath());
+    }
+
+    private void updateKeystoreFile(File file) {
+        this.certificateFile = file;
+        String fileName = file.getName();
+        this.certFileInfo.setText(fileName);
+        logger.debug("Set Keystore File to: {}", file.getAbsolutePath());
+    }
+
+    private void showInfoAlert(String title, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    private void showErrorAlert(String title, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }
