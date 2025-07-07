@@ -1,110 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
-<AnchorPane prefHeight="768.0" prefWidth="1024.0" style="-fx-background-color: #fff;" stylesheets="@../css/app.css"
-            AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"
-            xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.fxt.freexmltoolkit.controller.FopController">
+<?import org.kordamp.ikonli.javafx.*?>
+<AnchorPane xmlns="http://javafx.com/javafx/11.0.14-internal"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.fxt.freexmltoolkit.controller.FopController"
+            AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
-    <VBox styleClass="my_container">
-        <Label styleClass="h2" text="Formatting Objects Processor"/>
+    <ScrollPane fitToWidth="true" style="-fx-background-color: -fx-background-color;">
+        <VBox spacing="20" style="-fx-padding: 20;">
 
-        <GridPane fx:id="settings" hgap="10" vgap="10">
-            <padding>
-                <Insets bottom="25" left="25" right="25" top="25"/>
-            </padding>
+            <!-- Karte 1: Ein- & Ausgabedateien -->
+            <VBox styleClass="card">
+                <Label styleClass="card-title" text="Input &amp; Output Files"/>
+                <Separator/>
+                <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                    <!-- XML File -->
+                    <Label text="XML Source File*:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <TextField fx:id="xmlFileName" editable="false" promptText="Select the source XML file" HBox.hgrow="ALWAYS"/>
+                        <Button onAction="#openXmlFile">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
 
-            <Label GridPane.columnIndex="0" GridPane.rowIndex="0" text="XML File"/>
-            <HBox GridPane.columnIndex="1" GridPane.rowIndex="0">
-                <TextField text="XML File" fx:id="xmlFileName"/>
-                <Button onAction="#openXmlFile">
+                    <!-- XSL File -->
+                    <Label text="XSL-FO Stylesheet*:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <TextField fx:id="xslFileName" editable="false" promptText="Select the XSL-FO stylesheet" HBox.hgrow="ALWAYS"/>
+                        <Button onAction="#openXslFile">
+                            <graphic>
+                                <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- PDF File -->
+                    <Label text="Output PDF File*:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <TextField fx:id="pdfFileName" editable="false" promptText="Define the output PDF file path" HBox.hgrow="ALWAYS"/>
+                        <Button onAction="#openPdfFile">
+                            <graphic>
+                                <FontIcon iconColor="INDIANRED" iconLiteral="win10-pdf" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+                </GridPane>
+            </VBox>
+
+            <!-- Karte 2: PDF Metadaten -->
+            <VBox styleClass="card">
+                <Label styleClass="card-title" text="PDF Metadata (Optional)"/>
+                <Separator/>
+                <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                    <Label text="Author:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <TextField fx:id="author" promptText="e.g., Karl Kauc" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                    <Label text="Title:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <TextField fx:id="title" promptText="e.g., Annual Report" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                    <Label text="Keywords:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <TextField fx:id="keywords" promptText="e.g., report, finance, xml" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                    <Label text="Producer:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                    <TextField fx:id="producer" promptText="e.g., FreeXMLToolkit" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                    <Label text="Creation Date:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                    <TextField fx:id="creationDate" disable="true" promptText="Automatically set" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+                </GridPane>
+            </VBox>
+
+            <!-- Karte 3: Optionen -->
+            <VBox styleClass="card">
+                <Label styleClass="card-title" text="Options"/>
+                <Separator/>
+                <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
+                    <Label text="Open PDF after creation:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <CheckBox fx:id="openPdfAfterCreation" selected="true" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                    <Label text="FOP Config File:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <TextField editable="false" promptText="Optional FOP configuration file" HBox.hgrow="ALWAYS"/>
+                        <Button>
+                            <graphic>
+                                <FontIcon iconLiteral="bi-gear" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+                </GridPane>
+            </VBox>
+
+            <!-- Action Button & Progress -->
+            <VBox spacing="10" alignment="CENTER">
+                <Button fx:id="startConversion" onAction="#buttonConversion" text="Create PDF" maxWidth="Infinity" styleClass="button, :default">
                     <graphic>
-                        <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                        <FontIcon iconLiteral="fth-play" iconSize="16"/>
                     </graphic>
                 </Button>
-            </HBox>
+                <ProgressIndicator fx:id="progressIndicator" maxWidth="Infinity" progress="0.0" visible="false"/>
+            </VBox>
 
-            <Label GridPane.columnIndex="0" GridPane.rowIndex="1" text="XSL File"/>
-            <HBox GridPane.columnIndex="1" GridPane.rowIndex="1">
-                <TextField text="XSL File" fx:id="xslFileName"/>
-                <Button onAction="#openXslFile">
-                    <graphic>
-                        <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>
-                    </graphic>
-                </Button>
-            </HBox>
-
-            <Label GridPane.columnIndex="0" GridPane.rowIndex="2" text="PDF File"/>
-            <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
-                <TextField fx:id="pdfFileName" text="PDF File"/>
-                <Button onAction="#openPdfFile">
-                    <graphic>
-                        <ImageView fitHeight="16" preserveRatio="true">
-                            <Image url="@../img/icons8-pdf-16.png"/>
-                        </ImageView>
-                    </graphic>
-                </Button>
-            </HBox>
-            <Label GridPane.rowIndex="3" text="Options">
-                <font>
-                    <Font name="System Bold" size="12.0"/>
-                </font>
-            </Label>
-
-            <Label GridPane.rowIndex="4" text="Producer"/>
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="4" fx:id="producer" promptText="producer"/>
-
-            <Label GridPane.rowIndex="5" text="Author"/>
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="5" fx:id="author" promptText="author"/>
-
-            <Label GridPane.rowIndex="6" text="CreationDate"/>
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="6" fx:id="creationDate" disable="true"/>
-
-            <Label GridPane.columnIndex="0" GridPane.rowIndex="7" text="Title"/>
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="7" fx:id="title" promptText="title"/>
-
-            <Label GridPane.rowIndex="8" text="Keywords"/>
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="8" fx:id="keywords" promptText="keywords"/>
-
-            <Label text="Config File" GridPane.rowIndex="9"/>
-
-            <Label GridPane.columnIndex="0" GridPane.rowIndex="10" text="Open File after creation:"/>
-            <CheckBox GridPane.columnIndex="1" GridPane.rowIndex="10" GridPane.halignment="CENTER" selected="true"
-                      fx:id="openPdfAfterCreation" textAlignment="CENTER"/>
-
-            <Button GridPane.rowIndex="11" GridPane.columnIndex="0" fx:id="startConversion" onAction="#buttonConversion"
-                    text="create PDF">
-                <graphic>
-                    <FontIcon iconColor="#e2c352" iconLiteral="fth-play" iconSize="16"/>
-                </graphic>
-            </Button>
-            <ProgressIndicator GridPane.rowIndex="11" GridPane.columnIndex="1" fx:id="progressIndicator" progress="0.0"
-                               GridPane.halignment="CENTER"/>
-
-            <columnConstraints>
-                <ColumnConstraints/>
-                <ColumnConstraints/>
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-                <RowConstraints/>
-            </rowConstraints>
-        </GridPane>
-    </VBox>
+        </VBox>
+    </ScrollPane>
 </AnchorPane>

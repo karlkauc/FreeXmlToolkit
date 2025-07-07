@@ -56,13 +56,25 @@
    ================================================================= */
 
 .button {
-    -fx-background-color: #f6f8fa;
+    /* Weißer Hintergrund für besseren Kontrast zum hellgrauen App-Hintergrund */
+    -fx-background-color: -fx-control-background;
     -fx-text-fill: -fx-text-color;
     -fx-border-color: -fx-border-color;
     -fx-border-radius: -fx-border-radius;
     -fx-background-radius: -fx-border-radius;
     -fx-padding: 5px 15px;
     -fx-font-weight: bold;
+    -fx-cursor: hand; /* Zeigt einen Hand-Cursor beim Überfahren für bessere Usability */
+}
+
+/* Fügt einen Hover-Effekt hinzu, damit der Button auf die Maus reagiert */
+.button:hover {
+    -fx-background-color: #f0f2f5; /* Ein sehr heller Grauton beim Hover */
+}
+
+/* Fügt einen Pressed-Effekt für visuelles Feedback beim Klicken hinzu */
+.button:pressed {
+    -fx-background-color: #e9ecef; /* Ein etwas dunklerer Ton beim Drücken */
 }
 
 .menu_button {
@@ -139,8 +151,8 @@
    ================================================================= */
 
 .tab-pane {
-    -fx-tab-min-height: 36px;
-    -fx-tab-max-height: 36px;
+    -fx-tab-min-height: 20px;
+    -fx-tab-max-height: 20px;
 }
 
 .tab-pane .tab-header-area {
@@ -291,4 +303,25 @@
     -fx-border-color: transparent;
     -fx-background-color: -fx-border-color-subtle;
     -fx-padding: 1px 0;
+}
+
+/* =================================================================
+   Karten-Layout (für Formulare und gruppierte Inhalte)
+   ================================================================= */
+
+.card {
+    -fx-background-color: -fx-control-background;
+    -fx-border-color: -fx-border-color-subtle;
+    -fx-border-width: 1px;
+    -fx-border-radius: -fx-border-radius;
+    -fx-background-radius: -fx-border-radius;
+    -fx-padding: 20px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);
+}
+
+.card-title {
+    -fx-font-size: 1.2em; /* 1.2 * 14px = 16.8px */
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-color;
+    -fx-padding: 0 0 10px 0;
 }
