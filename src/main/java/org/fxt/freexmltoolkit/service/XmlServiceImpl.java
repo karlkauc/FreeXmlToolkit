@@ -257,8 +257,7 @@ public class XmlServiceImpl implements XmlService {
 
             this.rootElement = document.getDocumentElement();
             this.targetNamespace = rootElement.getAttribute("targetNamespace").toString();
-        }
-        catch (SAXException | IOException | ParserConfigurationException e) {
+        } catch (SAXException | IOException | ParserConfigurationException e) {
             logger.error("Could not set current XSD File: {}", xsdFile.getAbsolutePath());
             logger.error(e.getMessage());
         }
@@ -463,7 +462,7 @@ public class XmlServiceImpl implements XmlService {
             xPathPath = xPathFactory.newXPath();
             return (Node) xPathPath.compile(xPath).evaluate(currentNode, XPathConstants.NODE);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Error in getNodeFromXpath for XPath: {}, Msg: {}", xPathPath, e.getMessage());
         }
         return null;
     }

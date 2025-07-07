@@ -111,6 +111,7 @@ public class GenerateXsdHtmlDocumentationTest {
         final var outputFilePath = Paths.get("output/test");
         this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());
         this.xsdDocumentationService.setXmlService(xmlService);
+        this.xsdDocumentationService.setUseMarkdownRenderer(true);
         this.xsdDocumentationService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
         this.xsdDocumentationService.setParallelProcessing(false);
         this.xsdDocumentationService.generateXsdDocumentation(outputFilePath.toFile());

@@ -154,35 +154,30 @@ public class XsdDocumentationImageService {
         // Definiere wiederverwendbare Elemente im <defs>-Block
         Element defs = document.createElementNS(svgNS, "defs");
 
-        // 1. Drop-Shadow-Filter
+        // 1. Drop-Shadow-Filter (unverändert)
         Element filter = document.createElementNS(svgNS, "filter");
         filter.setAttribute("id", "drop-shadow");
         filter.setAttribute("x", "-20%");
         filter.setAttribute("y", "-20%");
         filter.setAttribute("width", "140%");
         filter.setAttribute("height", "140%");
-
         Element feGaussianBlur = document.createElementNS(svgNS, "feGaussianBlur");
         feGaussianBlur.setAttribute("in", "SourceAlpha");
         feGaussianBlur.setAttribute("stdDeviation", "2");
         filter.appendChild(feGaussianBlur);
-
         Element feOffset = document.createElementNS(svgNS, "feOffset");
         feOffset.setAttribute("dx", "2");
         feOffset.setAttribute("dy", "3");
         feOffset.setAttribute("result", "offsetblur");
         filter.appendChild(feOffset);
-
         Element feFlood = document.createElementNS(svgNS, "feFlood");
         feFlood.setAttribute("flood-color", "black");
-        feFlood.setAttribute("flood-opacity", "0.25"); // Dezenterer Schatten
+        feFlood.setAttribute("flood-opacity", "0.25");
         filter.appendChild(feFlood);
-
         Element feComposite = document.createElementNS(svgNS, "feComposite");
         feComposite.setAttribute("in2", "offsetblur");
         feComposite.setAttribute("operator", "in");
         filter.appendChild(feComposite);
-
         Element feMerge = document.createElementNS(svgNS, "feMerge");
         Element feMergeNode1 = document.createElementNS(svgNS, "feMergeNode");
         Element feMergeNode2 = document.createElementNS(svgNS, "feMergeNode");
@@ -190,13 +185,11 @@ public class XsdDocumentationImageService {
         feMerge.appendChild(feMergeNode1);
         feMerge.appendChild(feMergeNode2);
         filter.appendChild(feMerge);
-
         defs.appendChild(filter);
 
-        // 2. Natives, umrandetes Plus-Symbol
+        // 2. Natives, umrandetes Plus-Symbol (unverändert)
         Element plusIcon = document.createElementNS(svgNS, "g");
         plusIcon.setAttribute("id", "plus-icon");
-        // KORREKTUR: Farbe an Akzentfarbe der Webseite angepasst
         plusIcon.setAttribute("style", "stroke: " + COLOR_ICON + "; stroke-width: 1.5; stroke-linecap: round;");
         Element circle = document.createElementNS(svgNS, "circle");
         circle.setAttribute("cx", "10");
@@ -223,7 +216,7 @@ public class XsdDocumentationImageService {
         var rootElement = extendedXsdElements.get(rootXpath);
         if (rootElement == null) {
             logger.warn("Could not find root element for XPath: {}. Cannot generate diagram.", rootXpath);
-            return document; // Leeres Dokument zurückgeben, um Fehler zu vermeiden
+            return document;
         }
         List<ExtendedXsdElement> childElements = new ArrayList<>();
         if (rootElement.getChildren() != null) {
@@ -234,17 +227,14 @@ public class XsdDocumentationImageService {
             }
         }
 
-        // calculate svg size for all children
-        // root element should be placed centered
+        // Berechnungen für die Größe (unverändert)
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;
         for (ExtendedXsdElement childElement : childElements) {
             String elementName = childElement.getElementName() != null ? childElement.getElementName() : "";
             String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
-
             var nameBounds = font.getStringBounds(elementName, frc);
             var typeBounds = font.getStringBounds(elementType, frc);
-
             rightBoxHeight += margin + nameBounds.getBounds2D().getHeight() + typeBounds.getBounds2D().getHeight() + margin + 20;
             rightBoxWidth = Math.max(rightBoxWidth, nameBounds.getBounds2D().getWidth());
             rightBoxWidth = Math.max(rightBoxWidth, typeBounds.getBounds2D().getWidth());
@@ -256,26 +246,89 @@ public class XsdDocumentationImageService {
         int rootStartX = 20;
         int rootStartY = (int) ((rightBoxHeight / 2) - ((margin + rootElementHeight + margin) / 2));
 
-        // Linkes Wurzelelement
+        // Linkes Wurzelelement zeichnen (unverändert)
         Element leftRootLink = document.createElementNS(svgNS, "a");
-        leftRootLink.setAttribute("href", "#"); // Platzhalter
-
+        leftRootLink.setAttribute("href", "#");
         Element rect1 = createSvgRect(document, rootElement.getElementName(), rootElementHeight, rootElementWidth, String.valueOf(rootStartX), String.valueOf(rootStartY));
         rect1.setAttribute("filter", "url(#drop-shadow)");
         rect1.setAttribute("style", rootElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
-
-        // KORREKTUR: Textfarbe an Primärfarbe der Webseite angepasst
         Element text1 = createSvgTextElement(document, rootElement.getElementName(), String.valueOf(rootStartX + margin), String.valueOf(rootStartY + margin + rootElementHeight), COLOR_TEXT_PRIMARY, font.getSize());
-
         leftRootLink.appendChild(rect1);
         leftRootLink.appendChild(text1);
         svgRoot.appendChild(leftRootLink);
 
         double docHeightTotal = generateDocumentationElement(document, rootElement.getXsdDocumentation(), rootElementWidth, rootElementHeight, rootStartX, rootStartY);
-        final double rightStartX = rootStartX + margin + rootElementWidth + margin + gapBetweenSides;
-        final double pathStartX = rootStartX + margin + rootElementWidth + margin;
-        final double pathStartY = rootStartY + (margin + rootElementHeight + margin) / 2;
 
+        // =================================================================================
+        // NEU: Logik zum Zeichnen von Sequenz- oder Choice-Symbolen
+        // =================================================================================
+        final double rightStartX = rootStartX + margin + rootElementWidth + margin + gapBetweenSides;
+        final double rootPathEndX = rootStartX + margin + rootElementWidth + margin;
+        final double rootPathCenterY = rootStartY + (margin + rootElementHeight + margin) / 2;
+
+        boolean isSequence = false;
+        boolean isChoice = false;
+        if (!childElements.isEmpty()) {
+            ExtendedXsdElement firstChild = childElements.get(0);
+            if (firstChild.getXsdElement() != null && firstChild.getXsdElement().getParent() != null) {
+                var parentOfChildren = firstChild.getXsdElement().getParent();
+                if (parentOfChildren instanceof org.xmlet.xsdparser.xsdelements.XsdSequence) {
+                    isSequence = true;
+                } else if (parentOfChildren instanceof org.xmlet.xsdparser.xsdelements.XsdChoice) {
+                    isChoice = true;
+                }
+            }
+        }
+
+        double childPathStartX = rootPathEndX + gapBetweenSides; // Standard-Startpunkt für Kinder
+        double childPathStartY = rootPathCenterY;
+
+        if (isSequence || isChoice) {
+            final double symbolWidth = 20;
+            final double symbolHeight = 20;
+            final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2);
+            final double symbolCenterY = rootPathCenterY;
+
+            // Linie vom Root-Element zum Symbol
+            Element pathToSymbol = document.createElementNS(svgNS, "path");
+            pathToSymbol.setAttribute("d", "M " + rootPathEndX + " " + rootPathCenterY + " H " + (symbolCenterX - symbolWidth / 2));
+            pathToSymbol.setAttribute("fill", "none");
+            pathToSymbol.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
+            svgRoot.appendChild(pathToSymbol);
+
+            if (isSequence) {
+                // Zeichne ein Rechteck für <sequence>
+                Element seqRect = document.createElementNS(svgNS, "rect");
+                seqRect.setAttribute("x", String.valueOf(symbolCenterX - symbolWidth / 2));
+                seqRect.setAttribute("y", String.valueOf(symbolCenterY - symbolHeight / 2));
+                seqRect.setAttribute("width", String.valueOf(symbolWidth));
+                seqRect.setAttribute("height", String.valueOf(symbolHeight));
+                seqRect.setAttribute("fill", COLOR_BOX_FILL);
+                seqRect.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
+                seqRect.setAttribute("rx", "4");
+                seqRect.setAttribute("id", "seq-rect_" + rootElement.getElementName());
+                svgRoot.appendChild(seqRect);
+            } else { // isChoice
+                // Zeichne eine Raute (Diamond) für <choice>
+                Element choiceDiamond = document.createElementNS(svgNS, "polygon");
+                String points =
+                        (symbolCenterX) + "," + (symbolCenterY - symbolHeight / 2) + " " + // Top
+                                (symbolCenterX + symbolWidth / 2) + "," + (symbolCenterY) + " " + // Right
+                                (symbolCenterX) + "," + (symbolCenterY + symbolHeight / 2) + " " + // Bottom
+                                (symbolCenterX - symbolWidth / 2) + "," + (symbolCenterY);      // Left
+                choiceDiamond.setAttribute("points", points);
+                choiceDiamond.setAttribute("fill", COLOR_BOX_FILL);
+                choiceDiamond.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
+                svgRoot.appendChild(choiceDiamond);
+            }
+            // Der Startpunkt für die Linien zu den Kindern ist nun die rechte Kante des Symbols
+            childPathStartX = symbolCenterX + symbolWidth / 2;
+        }
+
+
+        // =================================================================================
+        // Kind-Elemente zeichnen (angepasste Pfadlogik)
+        // =================================================================================
         double actualHeight = 20;
         for (ExtendedXsdElement childElement : childElements) {
             String elementName = childElement.getElementName();
@@ -284,13 +337,15 @@ public class XsdDocumentationImageService {
             var typeBounds = font.getStringBounds(elementType, frc);
 
             double nameHeight = nameBounds.getBounds2D().getHeight();
-            double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8; // +8 für Linie und Abstand
+            double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
             double totalContentHeight = nameHeight + typeHeight;
 
+            // Box für Kind-Element zeichnen
             Element rightBox = createSvgRect(document, elementName, totalContentHeight, rightBoxWidth, String.valueOf(rightStartX), String.valueOf(actualHeight));
             rightBox.setAttribute("filter", "url(#drop-shadow)");
             rightBox.setAttribute("style", childElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
 
+            // Text in der Box (unverändert)
             Element textGroup = document.createElementNS(svgNS, "g");
             double nameY = actualHeight + margin + nameHeight;
             Element nameTextNode = createSvgTextElement(document, elementName, String.valueOf(rightStartX + margin), String.valueOf(nameY), COLOR_TEXT_PRIMARY, font.getSize());
@@ -312,6 +367,7 @@ public class XsdDocumentationImageService {
                 textGroup.appendChild(typeTextNode);
             }
 
+            // Plus-Icon (unverändert)
             Element useIcon = null;
             if (childElement.hasChildren()) {
                 useIcon = document.createElementNS(svgNS, "use");
@@ -321,6 +377,7 @@ public class XsdDocumentationImageService {
                 useIcon.setAttribute("y", String.valueOf(boxCenterY - 10));
             }
 
+            // Link um die Box (unverändert)
             Element rightLink = document.createElementNS(svgNS, "a");
             if (childElement.hasChildren() && childElement.getPageName() != null) {
                 rightLink.setAttribute("href", childElement.getPageName());
@@ -335,14 +392,17 @@ public class XsdDocumentationImageService {
                 svgRoot.appendChild(textGroup);
             }
 
+            // ANGEPASST: Pfad vom Symbol (oder Root) zum Kind-Element
             double pathEndY = actualHeight + (margin + totalContentHeight + margin) / 2;
             Element path = document.createElementNS(svgNS, "path");
-            path.setAttribute("d", "M " + pathStartX + " " + pathStartY + " h " + (gapBetweenSides / 2) + " V " + pathEndY + " h " + (gapBetweenSides / 2));
+            // Der Pfad startet jetzt am Symbol (childPathStartX) oder am Root, falls kein Symbol da ist.
+            path.setAttribute("d", "M " + childPathStartX + " " + childPathStartY + " V " + pathEndY + " H " + rightStartX);
             path.setAttribute("fill", "none");
             path.setAttribute("style", childElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
             svgRoot.appendChild(path);
 
-            String cardinality = ""; // Standardmäßig leer
+            // Kardinalität auf der Linie (unverändert)
+            String cardinality = "";
             if (childElement.getXsdElement() != null) {
                 cardinality = formatCardinality(
                         childElement.getXsdElement().getMinOccurs().toString(),
@@ -353,22 +413,19 @@ public class XsdDocumentationImageService {
             if (!cardinality.isBlank()) {
                 int cardinalityFontSize = font.getSize() - 4;
                 var cardinalityBounds = font.getStringBounds(cardinality, frc);
-
-                // Position über dem Ende der Verbindungslinie, kurz vor der Box
-                double cardinalityX = rightStartX - cardinalityBounds.getWidth() - 5; // 5px Abstand zur Box
-                double cardinalityY = pathEndY - 5; // 5px über der Linie
-
+                double cardinalityX = rightStartX - cardinalityBounds.getWidth() - 5;
+                double cardinalityY = pathEndY - 5;
                 Element cardinalityTextNode = createSvgTextElement(document, cardinality, String.valueOf(cardinalityX), String.valueOf(cardinalityY), COLOR_TEXT_SECONDARY, cardinalityFontSize);
-                svgRoot.appendChild(cardinalityTextNode); // Direkt zum SVG-Root hinzufügen
+                svgRoot.appendChild(cardinalityTextNode);
             }
 
             actualHeight += margin + totalContentHeight + margin + 20;
         }
 
+        // SVG-Größe finalisieren (unverändert)
         var imageHeight = Math.max(docHeightTotal, actualHeight);
         svgRoot.setAttribute("height", String.valueOf(imageHeight));
         svgRoot.setAttribute("width", String.valueOf(rightStartX + margin + rightBoxWidth + margin + 20 + 10));
-        // KORREKTUR: Hintergrundfarbe an Webseite angepasst
         svgRoot.setAttribute("style", "background-color: " + COLOR_BG);
 
         return document;
