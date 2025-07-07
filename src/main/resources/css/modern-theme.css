@@ -48,7 +48,7 @@
 
     /* Abmessungen */
     -fx-border-radius: 6px;
-    -fx-padding: 10px;
+    -fx-padding: 0px;
 }
 
 /* =================================================================
@@ -65,11 +65,34 @@
     -fx-font-weight: bold;
 }
 
-.button:hover {
-    -fx-border-color: -fx-text-color-secondary;
+.menu_button {
+    -fx-pref-height: 50;
+    -fx-min-width: 200;
+    -fx-pref-width: 200;
+    -fx-max-width: 200;
+    -fx-alignment: baseline-left;
+    -fx-background-color: #f6f8fa;
+    -fx-text-fill: -fx-text-color;
+    -fx-border-color: -fx-border-color;
+    -fx-border-radius: -fx-border-radius;
+    -fx-background-radius: -fx-border-radius;
+    -fx-padding: 5px 15px;
+    -fx-font-weight: bold;
 }
 
-.button:pressed {
+.menu_button:first-child {
+    /* Setzt einen 10px "Abstand" oben und einen 5px Rand links. */
+    -fx-border-width: 10 0 0 5px;
+    /* Der Rahmen wird transparent gemacht, um nur als Abstand zu dienen. */
+    -fx-border-color: transparent transparent transparent -fx-border-color;
+}
+
+
+.menu_button:hover {
+    -fx-background-color: #e9ecef;
+}
+
+.menu_button:pressed {
     -fx-background-color: #e9ecef;
 }
 
@@ -199,7 +222,15 @@
    ================================================================= */
 
 .menu-bar {
-    -fx-background-color: -fx-background-color;
+    /* Setzt einen sauberen, weißen Hintergrund, um sich vom Rest abzuheben */
+    -fx-background-color: -fx-control-background; /* -> #ffffff */
+
+    /* Fügt eine feine Trennlinie am unteren Rand hinzu, um die Abgrenzung zu verdeutlichen */
+    -fx-border-width: 0 0 1px 0;
+    -fx-border-color: -fx-border-color-subtle; /* -> #e1e4e8 */
+
+    /* Optional: Ein leichter Padding für mehr Luftigkeit */
+    -fx-padding: 2px 5px;
 }
 
 .menu-button:hover, .menu-button:focused, .menu-button:showing {

@@ -44,41 +44,32 @@
 </head>
 <body class="font-sans text-slate-800">
 
-<!-- Moderne Navigation (identisch zur Startseite) -->
+<!-- Moderne Navigation mit Schatten und klaren Abständen -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
             <!-- Linke Navigationsgruppe -->
             <div class="hidden md:flex items-baseline space-x-6">
-                <a href="../index.html"
-                   class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Home</a>
+                <a href="../index.html" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
+                   aria-current="page">Home</a>
                 <a href="../complexTypes.html"
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Complex
                     Types</a>
                 <a href="../simpleTypes.html"
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Simple
                     Types</a>
-                <!-- NEUER LINK -->
                 <a href="../dataDictionary.html"
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
             </div>
+            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <div class="hidden md:block">
+                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank" class="flex items-center space-x-2 text-slate-700 font-bold">
+                    <img src="../assets/logo.png" alt="logo" class="h-8 w-8"/>
+                    <span>FreeXmlToolKit</span>
+                </a>
+            </div>
         </div>
-        <!-- Rechte Navigationsgruppe (GitHub Link) -->
-        <div class="hidden md:block">
-            <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
-               class="inline-flex items-center space-x-2 text-sm text-slate-600 hover:text-slate-900">
-                <span>GitHub</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                     class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd"
-                          d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5"/>
-                    <path fill-rule="evenodd"
-                          d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0z"/>
-                </svg>
-            </a>
-        </div>
-    </div>
     </div>
 </nav>
 
@@ -157,7 +148,7 @@
                     <div class="flex flex-col">
                         <dt class="text-sm font-medium text-slate-500">Kardinalität (min/max)</dt>
                         <dd class="mt-1 text-slate-900 font-mono"
-                            th:text="${element.getXsdElement().getMinOccurs()} + ' / ' + ${element.getXsdElement().getMaxOccurs()}">
+                            th:text="${element.getXsdElement() != null ? element.getXsdElement().getMinOccurs() + ' / ' + element.getXsdElement().getMaxOccurs() : 'n/a'}">
                             1 / 1
                         </dd>
                     </div>

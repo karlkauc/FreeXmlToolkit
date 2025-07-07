@@ -370,6 +370,6 @@ public class ExtendedXsdElement implements Serializable {
     }
 
     public boolean isMandatory() {
-        return this.getXsdElement() != null && this.getXsdElement().getMinOccurs() > 0;
+        return this.getXsdElement() != null && this.getXsdElement().getMinOccurs() != null && this.getXsdElement().getMinOccurs() > 0;
     }
 }

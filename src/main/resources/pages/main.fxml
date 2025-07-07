@@ -36,9 +36,16 @@
         <top>
             <MenuBar>
                 <Menu text="File">
-                    <MenuItem text="New"/>
-                    <MenuItem text="Open"/>
-                    <SeparatorMenuItem/>
+                    <MenuItem text="New">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/>
+                        </graphic>
+                    </MenuItem>
+                    <MenuItem text="Open">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                        </graphic>
+                    </MenuItem>
                     <SeparatorMenuItem/>
                     <MenuItem fx:id="menuItemExit" text="Exit">
                         <graphic>
@@ -60,8 +67,16 @@
                     <MenuItem text="Test 2"/>
                 </Menu>
                 <Menu text="Help &amp; About">
-                    <MenuItem text="Open Online Help"/>
-                    <MenuItem text="About"/>
+                    <MenuItem text="Open Online Help">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
+                        </graphic>
+                    </MenuItem>
+                    <MenuItem text="About">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-info-circle" iconSize="16"/>
+                        </graphic>
+                    </MenuItem>
                 </Menu>
             </MenuBar>
         </top>
