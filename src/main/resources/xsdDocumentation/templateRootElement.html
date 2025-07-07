@@ -89,7 +89,11 @@
             </div>
             <div class="flex flex-col">
                 <dt class="text-sm font-medium text-slate-500">Wurzelelement</dt>
-                <dd class="mt-1 font-mono text-slate-900" th:utext="${rootElementName}">RootElementName</dd>
+                <dd class="mt-1">
+                    <a th:href="${rootElementLink}"
+                       th:text="${rootElementName}"
+                       class="font-mono text-sky-600 hover:text-sky-800 hover:underline">RootElementName</a>
+                </dd>
             </div>
             <div class="flex flex-col">
                 <dt class="text-sm font-medium text-slate-500">Target Namespace</dt>
@@ -106,6 +110,10 @@
                 <dd class="mt-1 font-mono text-sm text-slate-900" th:utext="${rootElement.getElementFormDefault()}">
                     UNQUALIFIED
                 </dd>
+            </div>
+            <div th:if="${version}" class="flex flex-col">
+                <dt class="text-sm font-medium text-slate-500">Version</dt>
+                <dd class="mt-1 font-mono text-slate-900" th:text="${version}">1.0.0</dd>
             </div>
             <div class="flex flex-col md:col-span-2">
                 <dt class="text-sm font-medium text-slate-500">Namespaces</dt>

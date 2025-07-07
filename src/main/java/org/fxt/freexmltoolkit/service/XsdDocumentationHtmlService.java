@@ -92,8 +92,9 @@ public class XsdDocumentationHtmlService {
 
         var context = new Context();
         context.setVariable("date", LocalDate.now());
-        context.setVariable("filename", xsdDocumentationData.getXsdFilePath());
+        context.setVariable("filename", Paths.get(xsdDocumentationData.getXsdFilePath()).getFileName().toString());
         context.setVariable("rootElementName", rootElementName);
+        context.setVariable("version", xsdDocumentationData.getVersion());
         context.setVariable("rootElement", xsdDocumentationData.getXmlSchema().getFirst());
         context.setVariable("xsdElements", xsdDocumentationData.getElements().getFirst());
         context.setVariable("xsdComplexTypes", xsdDocumentationData.getXsdComplexTypes());
@@ -361,7 +362,7 @@ public class XsdDocumentationHtmlService {
 
         currentElement.getChildren().forEach(child -> {
             try {
-                if (xsdDocumentationData.getExtendedXsdElementMap().get(child) == null) {
+                if (xsdDocumentationData.getExtendedXsdElementMap().get(child) != null) {
                     logger.debug("Child: {}, Page Name: {}", child, xsdDocumentationData.getExtendedXsdElementMap().get(child).getPageName());
                 } else {
                     logger.debug("Child {}, no enty found.", child);

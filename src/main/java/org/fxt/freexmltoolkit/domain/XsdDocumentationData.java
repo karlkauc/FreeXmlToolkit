@@ -33,12 +33,12 @@ public class XsdDocumentationData {
 
     Map<String, ExtendedXsdElement> extendedXsdElementMap = new HashMap<>();
 
-
     List<XsdSchema> xmlSchema;
     private List<XsdComplexType> xsdComplexTypes;
     private List<XsdSimpleType> xsdSimpleTypes;
     private List<XsdElement> elements;
     Map<String, NamespaceInfo> namespaces = new HashMap<>();
+    String version;
 
     String xsdFilePath;
 
@@ -100,6 +100,14 @@ public class XsdDocumentationData {
 
     public void setXsdFilePath(String xsdFilePath) {
         this.xsdFilePath = xsdFilePath;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     public String getNameSpacesAsString() {

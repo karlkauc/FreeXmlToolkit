@@ -153,6 +153,13 @@ public class XsdDocumentationService {
         xsdDocumentationData.setXmlSchema(parser.getResultXsdSchemas().toList());
         parser.getResultXsdSchemas().forEach(n -> xsdDocumentationData.getNamespaces().putAll(n.getNamespaces()));
 
+        if (!xsdDocumentationData.getXmlSchema().isEmpty()) {
+            XsdSchema rootSchema = xsdDocumentationData.getXmlSchema().getFirst();
+            if (rootSchema.getVersion() != null) {
+                xsdDocumentationData.setVersion(rootSchema.getVersion());
+            }
+        }
+
         counter = 0;
 
         for (XsdElement xsdElement : xsdDocumentationData.getElements()) {
