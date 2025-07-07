@@ -56,6 +56,7 @@ import java.util.Map;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GenerateXsdHtmlDocumentationTest {
     final static String XML_420_XSD = "src/test/resources/FundsXML_420.xsd";
+    final static String XML_429_XSD = "src/test/resources/FundsXML_429.xsd";
     final static String XML_306_XSD = "src/test/resources/FundsXML_306.xsd";
     final static String SIMPLE_XSD_FILE = "src/test/resources/testSchema.xsd";
 
@@ -105,7 +106,7 @@ public class GenerateXsdHtmlDocumentationTest {
 
     @Test
     void generateHtmlDoc() throws IOException {
-        final var testFilePath = Paths.get(XML_420_XSD);
+        final var testFilePath = Paths.get(XML_429_XSD);
         // final var testFilePath = Paths.get(SIMPLE_XSD_FILE);
         final var outputFilePath = Paths.get("output/test");
         this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());

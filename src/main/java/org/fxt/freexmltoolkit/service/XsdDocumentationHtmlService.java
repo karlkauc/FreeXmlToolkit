@@ -109,7 +109,7 @@ public class XsdDocumentationHtmlService {
 
         try {
             Files.write(Paths.get(outputFileName), result.getBytes());
-            logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
+            logger.info("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -160,7 +160,7 @@ public class XsdDocumentationHtmlService {
 
                 try {
                     Files.write(outputFilePath, result.getBytes());
-                    logger.debug("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
+                    logger.info("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
                 } catch (IOException e) {
                     logger.error("ERROR in writing complex Type File: {}", e.getMessage());
                 }
@@ -227,7 +227,7 @@ public class XsdDocumentationHtmlService {
 
                 // Schreibe die generierte HTML-Datei in das Ausgabeverzeichnis
                 Files.write(outputFilePath, result.getBytes());
-                logger.debug("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
+                logger.info("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
 
             } catch (Exception e) {
                 // Logge den Fehler, aber fahre mit dem nächsten Typ fort, um den gesamten Prozess nicht zu blockieren.
@@ -260,7 +260,7 @@ public class XsdDocumentationHtmlService {
         // 5. Die generierte HTML-Datei schreiben
         try {
             Files.write(outputFilePath, result.getBytes());
-            logger.debug("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
+            logger.info("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
         } catch (IOException e) {
             // Bei einem Fehler den Prozess abbrechen
             throw new RuntimeException("Could not write complex types list page", e);
@@ -288,7 +288,7 @@ public class XsdDocumentationHtmlService {
         // Die generierte HTML-Datei schreiben
         try {
             Files.write(outputFilePath, result.getBytes());
-            logger.debug("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
+            logger.info("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
         } catch (IOException e) {
             throw new RuntimeException("Could not write simple types list page", e);
         }
@@ -378,7 +378,7 @@ public class XsdDocumentationHtmlService {
 
         try {
             Files.write(Paths.get(outputFileName), result.getBytes());
-            logger.debug("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
+            logger.info("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -423,7 +423,7 @@ public class XsdDocumentationHtmlService {
 
         try {
             Files.write(outputFilePath, result.getBytes());
-            logger.debug("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
+            logger.info("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
         } catch (IOException e) {
             throw new RuntimeException("Could not write data dictionary page", e);
         }
