@@ -234,6 +234,8 @@ public class XsdDocumentationImageService {
             }
         }
 
+        // calculate svg size for all children
+        // root element should be placed centered
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;
         for (ExtendedXsdElement childElement : childElements) {
@@ -291,7 +293,6 @@ public class XsdDocumentationImageService {
 
             Element textGroup = document.createElementNS(svgNS, "g");
             double nameY = actualHeight + margin + nameHeight;
-            // KORREKTUR: Textfarbe an Primärfarbe der Webseite angepasst
             Element nameTextNode = createSvgTextElement(document, elementName, String.valueOf(rightStartX + margin), String.valueOf(nameY), COLOR_TEXT_PRIMARY, font.getSize());
             textGroup.appendChild(nameTextNode);
 
@@ -302,13 +303,11 @@ public class XsdDocumentationImageService {
                 line.setAttribute("y1", String.valueOf(lineY));
                 line.setAttribute("x2", String.valueOf(rightStartX + margin + rightBoxWidth));
                 line.setAttribute("y2", String.valueOf(lineY));
-                // KORREKTUR: Farbe an Randfarbe der Webseite angepasst
                 line.setAttribute("stroke", COLOR_STROKE_SEPARATOR);
                 line.setAttribute("stroke-width", "1");
                 textGroup.appendChild(line);
 
                 double typeY = lineY + typeBounds.getBounds2D().getHeight() + 2;
-                // KORREKTUR: Textfarbe an Sekundärfarbe der Webseite angepasst
                 Element typeTextNode = createSvgTextElement(document, elementType, String.valueOf(rightStartX + margin), String.valueOf(typeY), COLOR_TEXT_SECONDARY, font.getSize() - 2);
                 textGroup.appendChild(typeTextNode);
             }
@@ -343,6 +342,26 @@ public class XsdDocumentationImageService {
             path.setAttribute("style", childElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
             svgRoot.appendChild(path);
 
+            String cardinality = ""; // Standardmäßig leer
+            if (childElement.getXsdElement() != null) {
+                cardinality = formatCardinality(
+                        childElement.getXsdElement().getMinOccurs().toString(),
+                        childElement.getXsdElement().getMaxOccurs()
+                );
+            }
+
+            if (!cardinality.isBlank()) {
+                int cardinalityFontSize = font.getSize() - 4;
+                var cardinalityBounds = font.getStringBounds(cardinality, frc);
+
+                // Position über dem Ende der Verbindungslinie, kurz vor der Box
+                double cardinalityX = rightStartX - cardinalityBounds.getWidth() - 5; // 5px Abstand zur Box
+                double cardinalityY = pathEndY - 5; // 5px über der Linie
+
+                Element cardinalityTextNode = createSvgTextElement(document, cardinality, String.valueOf(cardinalityX), String.valueOf(cardinalityY), COLOR_TEXT_SECONDARY, cardinalityFontSize);
+                svgRoot.appendChild(cardinalityTextNode); // Direkt zum SVG-Root hinzufügen
+            }
+
             actualHeight += margin + totalContentHeight + margin + 20;
         }
 
@@ -353,6 +372,33 @@ public class XsdDocumentationImageService {
         svgRoot.setAttribute("style", "background-color: " + COLOR_BG);
 
         return document;
+    }
+
+    /**
+     * Formats minOccurs and maxOccurs into a human-readable cardinality string.
+     * e.g., (1, 1) -> "1", (0, 1) -> "0..1", (1, unbounded) -> "1..*"
+     *
+     * @param minOccurs The minOccurs value from the XSD.
+     * @param maxOccurs The maxOccurs value from the XSD.
+     * @return A formatted string representing the cardinality.
+     */
+    private String formatCardinality(String minOccurs, String maxOccurs) {
+        if (minOccurs == null || maxOccurs == null) {
+            return ""; // Default to empty if data is missing
+        }
+
+        // Replace "unbounded" with a more common diagram symbol
+        final String max = "unbounded".equalsIgnoreCase(maxOccurs) ? "*" : maxOccurs;
+
+        // If it's a simple 1:1 or 0:0 occurrence, just show the number.
+        /*
+        if (minOccurs.equals(max)) {
+            return minOccurs;
+        }
+         */
+
+        // Otherwise, format as a range.
+        return minOccurs + ".." + max;
     }
 
     /**

@@ -18,11 +18,10 @@
 
 <!DOCTYPE html>
 <html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
-<!-- Setzt eine leichte Hintergrundfarbe für die ganze Seite -->
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>XSD Documentation</title>
+    <title th:text="'XSD Documentation for \'' + ${rootElementName} + '\''">XSD Documentation</title>
     <!-- Einbindung von Tailwind CSS über CDN für eine einfache Integration -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

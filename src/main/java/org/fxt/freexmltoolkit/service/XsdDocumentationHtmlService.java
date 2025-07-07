@@ -392,7 +392,6 @@ public class XsdDocumentationHtmlService {
                 final var currentElement = xsdDocumentationData.getExtendedXsdElementMap().get(key);
                 logger.debug("Submitting details page generation for {}", key);
 
-                // KORREKTUR: Die einschränkende if-Bedingung wurde auch hier entfernt.
                 executor.submit(() -> {
                     try {
                         writeDetailsPageContent(currentElement, key, xsdDocumentationImageService);
