@@ -130,16 +130,15 @@ public class XsdDocumentationService {
 
         xsdDocumentationHtmlService.generateComplexTypesListPage();
         xsdDocumentationHtmlService.generateSimpleTypesListPage();
-
         xsdDocumentationHtmlService.generateDataDictionaryPage();
 
-        xsdDocumentationHtmlService.generateComplexTypePages();
-        xsdDocumentationHtmlService.generateSimpleTypePages();
-
-
         if (parallelProcessing) {
+            xsdDocumentationHtmlService.generateComplexTypePagesInParallel();
+            xsdDocumentationHtmlService.generateSimpleTypePagesInParallel();
             xsdDocumentationHtmlService.generateDetailsPagesInParallel();
         } else {
+            xsdDocumentationHtmlService.generateComplexTypePages();
+            xsdDocumentationHtmlService.generateSimpleTypePages();
             xsdDocumentationHtmlService.generateDetailPages();
         }
     }

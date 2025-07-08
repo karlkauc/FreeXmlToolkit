@@ -260,7 +260,7 @@ public class XsdDocumentationImageService {
         double docHeightTotal = generateDocumentationElement(document, rootElement.getXsdDocumentation(), rootElementWidth, rootElementHeight, rootStartX, rootStartY);
 
         // =================================================================================
-        // NEU: Logik zum Zeichnen von Sequenz- oder Choice-Symbolen
+        // Logik zum Zeichnen von Sequenz- oder Choice-Symbolen
         // =================================================================================
         final double rightStartX = rootStartX + margin + rootElementWidth + margin + gapBetweenSides;
         final double rootPathEndX = rootStartX + margin + rootElementWidth + margin;
@@ -295,6 +295,29 @@ public class XsdDocumentationImageService {
             pathToSymbol.setAttribute("fill", "none");
             pathToSymbol.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
             svgRoot.appendChild(pathToSymbol);
+
+            // NEU: Kardinalität für die Gruppe (Sequence/Choice) abrufen und anzeigen
+            String groupCardinality = "";
+            var parentOfChildren = childElements.get(0).getXsdElement().getParent();
+            if (parentOfChildren instanceof org.xmlet.xsdparser.xsdelements.XsdSequence) {
+                var seq = (org.xmlet.xsdparser.xsdelements.XsdSequence) parentOfChildren;
+                groupCardinality = formatCardinality(String.valueOf(seq.getMinOccurs()), seq.getMaxOccurs());
+            } else if (parentOfChildren instanceof org.xmlet.xsdparser.xsdelements.XsdChoice) {
+                var choice = (org.xmlet.xsdparser.xsdelements.XsdChoice) parentOfChildren;
+                groupCardinality = formatCardinality(String.valueOf(choice.getMinOccurs()), choice.getMaxOccurs());
+            }
+
+            // Zeige Kardinalität nur an, wenn sie nicht dem Standard "1..1" entspricht
+            if (!groupCardinality.isBlank() && !"1..1".equals(groupCardinality)) {
+                int cardinalityFontSize = font.getSize() - 4;
+                var cardinalityBounds = font.getStringBounds(groupCardinality, frc);
+                // Text horizontal über dem Symbol zentrieren
+                double cardinalityX = symbolCenterX - (cardinalityBounds.getWidth() / 2);
+                // Text über dem Symbol positionieren
+                double cardinalityY = symbolCenterY - (symbolHeight / 2) - 5;
+                Element cardinalityTextNode = createSvgTextElement(document, groupCardinality, String.valueOf(cardinalityX), String.valueOf(cardinalityY), COLOR_TEXT_SECONDARY, cardinalityFontSize);
+                svgRoot.appendChild(cardinalityTextNode);
+            }
 
             if (isSequence) {
                 // Zeichne ein Rechteck für <sequence>
@@ -405,7 +428,7 @@ public class XsdDocumentationImageService {
             String cardinality = "";
             if (childElement.getXsdElement() != null) {
                 cardinality = formatCardinality(
-                        childElement.getXsdElement().getMinOccurs().toString(),
+                        String.valueOf(childElement.getXsdElement().getMinOccurs()),
                         childElement.getXsdElement().getMaxOccurs()
                 );
             }

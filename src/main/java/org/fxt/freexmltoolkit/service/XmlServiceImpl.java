@@ -458,11 +458,20 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public Node getNodeFromXpath(String xPath, Node currentNode) {
+        if (xPath == null || xPath.trim().isEmpty()) {
+            logger.warn("XPath expression is null or empty. Cannot proceed.");
+            return null;
+        }
+        if (currentNode == null) {
+            logger.warn("Current node is null. Cannot evaluate XPath on a null node.");
+            return null;
+        }
+
         try {
-            xPathPath = xPathFactory.newXPath();
-            return (Node) xPathPath.compile(xPath).evaluate(currentNode, XPathConstants.NODE);
-        } catch (Exception e) {
-            logger.error("Error in getNodeFromXpath for XPath: {}, Msg: {}", xPathPath, e.getMessage());
+            final XPath localXPath = xPathFactory.newXPath();
+            return (Node) localXPath.compile(xPath).evaluate(currentNode, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            logger.error("Error evaluating XPath expression '{}' on the current node. Msg: {}", xPath, e.getMessage(), e);
         }
         return null;
     }

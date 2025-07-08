@@ -58,8 +58,6 @@ public class XsdDocumentationHtmlService {
 
     private XsdDocumentationService xsdDocService;
 
-    private static final int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
-
     public XsdDocumentationHtmlService() {
         resolver = new ClassLoaderTemplateResolver();
         resolver.setTemplateMode(TemplateMode.HTML);
@@ -69,10 +67,6 @@ public class XsdDocumentationHtmlService {
 
         templateEngine = new TemplateEngine();
         templateEngine.setTemplateResolver(resolver);
-    }
-
-    public XsdDocumentationData getXsdDocumentationData() {
-        return xsdDocumentationData;
     }
 
     public void setOutputDirectory(File outputDirectory) {
@@ -170,6 +164,47 @@ public class XsdDocumentationHtmlService {
         }
     }
 
+    void generateComplexTypePagesInParallel() {
+        logger.debug("Generating Complex Type Pages in parallel...");
+
+        // Verwende für jede Seite einen eigenen virtuellen Thread
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            for (final var complexType : xsdDocumentationData.getXsdComplexTypes()) {
+                executor.submit(() -> {
+                    try {
+                        var context = new Context();
+                        context.setVariable("complexType", complexType);
+
+                        if (complexType.getAnnotation() != null && complexType.getAnnotation().getDocumentations() != null) {
+                            context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
+                        }
+
+                        final String typeName = complexType.getName();
+                        if (typeName != null && !typeName.isEmpty()) {
+                            var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                                    .filter(element -> typeName.equals(element.getElementType()))
+                                    .collect(Collectors.toList());
+                            context.setVariable("usedInElements", usedInElements);
+                        }
+
+                        final var result = templateEngine.process("complexTypes/templateComplexType", context);
+                        var fileName = complexType.getRawName();
+                        if (fileName == null || fileName.isEmpty()) {
+                            fileName = complexType.getName();
+                        }
+
+                        final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", fileName + ".html");
+                        Files.write(outputFilePath, result.getBytes());
+                        logger.info("Written Complex Type Page: {}", outputFilePath.getFileName());
+
+                    } catch (Exception e) {
+                        logger.error("ERROR in creating complex Type File for '{}': {}", complexType.getName(), e.getMessage(), e);
+                    }
+                });
+            }
+        } // Der Executor wird hier automatisch geschlossen und wartet auf die Fertigstellung der Tasks.
+    }
+
     void generateDetailPages() {
         xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
 
@@ -232,6 +267,43 @@ public class XsdDocumentationHtmlService {
             } catch (Exception e) {
                 // Logge den Fehler, aber fahre mit dem nächsten Typ fort, um den gesamten Prozess nicht zu blockieren.
                 logger.error("ERROR in creating simple Type File for '{}': {}", simpleType.getName(), e.getMessage(), e);
+            }
+        }
+    }
+
+    void generateSimpleTypePagesInParallel() {
+        logger.debug("Generating Simple Type Pages in parallel...");
+
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            for (final var simpleType : xsdDocumentationData.getXsdSimpleTypes()) {
+                executor.submit(() -> {
+                    try {
+                        var context = new Context();
+                        context.setVariable("simpleType", simpleType);
+                        context.setVariable("restriction", simpleType.getRestriction());
+
+                        if (simpleType.getAnnotation() != null && simpleType.getAnnotation().getDocumentations() != null) {
+                            context.setVariable("documentations", simpleType.getAnnotation().getDocumentations());
+                        }
+
+                        final String typeName = simpleType.getName();
+                        if (typeName != null && !typeName.isEmpty()) {
+                            var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                                    .filter(element -> typeName.equals(element.getElementType()))
+                                    .collect(Collectors.toList());
+                            context.setVariable("usedInElements", usedInElements);
+                        }
+
+                        final var result = templateEngine.process("simpleTypes/templateSimpleType", context);
+                        final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", simpleType.getName() + ".html");
+
+                        Files.write(outputFilePath, result.getBytes());
+                        logger.info("Written Simple Type Page: {}", outputFilePath.getFileName());
+
+                    } catch (Exception e) {
+                        logger.error("ERROR in creating simple Type File for '{}': {}", simpleType.getName(), e.getMessage(), e);
+                    }
+                });
             }
         }
     }
@@ -385,7 +457,7 @@ public class XsdDocumentationHtmlService {
     }
 
     void generateDetailsPagesInParallel() {
-        try (ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE)) {
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             final XsdDocumentationImageService xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
 
             for (final String key : xsdDocumentationData.getExtendedXsdElementMap().keySet()) {
@@ -403,6 +475,7 @@ public class XsdDocumentationHtmlService {
             }
         }
     }
+
 
     void generateDataDictionaryPage() {
         logger.debug("Generating Data Dictionary page");
