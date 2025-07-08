@@ -181,19 +181,32 @@ public class MainController {
 
 
     public void shutdownLSPServer() {
+        logger.debug("🔌 Fahre Server herunter...");
         try {
-            // 10. Server und Client sauber herunterfahren
-            logger.debug("🔌 Fahre Server herunter...");
-            serverProxy.shutdown().get();
+            // Versuche ein ordnungsgemäßes Herunterfahren mit einem Timeout von 3 Sekunden
+            serverProxy.shutdown().get(3, TimeUnit.SECONDS);
             serverProxy.exit();
-            logger.debug("...Server heruntergefahren.");
+            logger.debug("...Server wurde ordnungsgemäß heruntergefahren.");
 
-            // 11. Threads und Ressourcen freigeben
-            clientListening.cancel(true);
-        } catch (InterruptedException | ExecutionException e) {
-            logger.error("Error shutting down LSP Server: {}", e.getMessage());
+        } catch (Exception e) {
+            // Dieser Block fängt alle Fehler ab, inkl. TimeoutException
+            if (e instanceof TimeoutException) {
+                logger.warn("Herunterfahren des Servers hat zu lange gedauert. Erzwinge Beendigung...");
+            } else {
+                logger.error("Fehler beim Herunterfahren des LSP Servers, erzwinge Beendigung: {}", e.getMessage(), e);
+            }
+
+            // Erzwinge das Herunterfahren des Executor-Service, der die Server-Threads verwaltet
+            if (lspExecutor != null && !lspExecutor.isTerminated()) {
+                lspExecutor.shutdownNow();
+            }
+        } finally {
+            // Dieser Block wird immer ausgeführt, um den Client-Listener-Thread zu bereinigen
+            if (clientListening != null && !clientListening.isDone()) {
+                clientListening.cancel(true);
+            }
+            logger.debug("✅ LSP Server Beendigungsprozess abgeschlossen.");
         }
-        logger.debug("✅ LSP Server beendet.");
     }
 
 

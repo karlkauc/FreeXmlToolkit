@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /*!
  * FreeXMLToolkit - Universal Toolkit for XML
  * Copyright (c) Karl Kauc 2024.
@@ -335,6 +336,22 @@
 .signature-main {
   -fx-background-color: white;
   -fx-padding: 5px;
+}
+
+/* Fügen Sie dies zu Ihrer bestehenden CSS-Datei hinzu */
+.feature-box {
+  -fx-padding: 15px;
+  -fx-background-color: -fx-control-inner-background; /* Heller Hintergrund, passt sich an Theme an */
+  -fx-border-color: -fx-border-color-subtle;
+  -fx-border-width: 1px;
+  -fx-border-radius: 8px;
+  -fx-background-radius: 8px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 6, 0, 0, 2);
+}
+
+.feature-box:hover {
+  -fx-border-color: -fx-focus-color;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 8, 0, 0, 3);
 }
 
 /*# sourceMappingURL=app.css.map */

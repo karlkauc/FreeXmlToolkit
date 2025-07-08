@@ -45,7 +45,7 @@ public class WelcomeController {
     @FXML
     private CheckBox sendUsageStatistics;
     @FXML
-    private Label duration;
+    private Label durationLabel, versionLabel;
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
@@ -59,7 +59,7 @@ public class WelcomeController {
         versionUpdate.setVisible("20221008".equals(properties.getProperty("version")));
 
         int oldSeconds = Integer.parseInt(properties.getProperty("usageDuration", "0"));
-        duration.setText(oldSeconds > 0 ? formatSecondsHumanReadable(oldSeconds) : "You are here the first time!");
+        durationLabel.setText(oldSeconds > 0 ? formatSecondsHumanReadable(oldSeconds) : "You are here the first time!");
     }
 
     @FXML

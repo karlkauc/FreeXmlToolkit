@@ -131,11 +131,13 @@ public class XmlEditor extends Tab {
                         logger.debug("refresh Graphic view");
 
                         try {
-                            document = db.parse(new ByteArrayInputStream(codeArea.getText().getBytes(StandardCharsets.UTF_8)));
+                            if (!codeArea.getText().isEmpty()) {
+                                document = db.parse(new ByteArrayInputStream(codeArea.getText().getBytes(StandardCharsets.UTF_8)));
+                                refreshGraphicView();
+                            }
                         } catch (SAXException | IOException ex) {
-                            throw new RuntimeException(ex);
+                            logger.info("could not create graphic view.");
                         }
-                        refreshGraphicView();
                     }
                 }
         );
@@ -228,6 +230,7 @@ public class XmlEditor extends Tab {
         try {
             codeArea.clear();
             codeArea.replaceText(0, 0, getDocumentAsString());
+            Platform.runLater(() -> codeArea.setStyleSpans(0, XmlEditor.computeHighlighting(getDocumentAsString())));
         } catch (Exception e) {
             logger.error(e.getMessage());
         }

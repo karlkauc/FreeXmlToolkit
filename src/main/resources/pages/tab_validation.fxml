@@ -28,7 +28,9 @@
             fx:id="anchorPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
             AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
-    <ScrollPane fitToWidth="true" style="-fx-background-color: -fx-background-color;">
+    <ScrollPane fitToWidth="true" style="-fx-background-color: -fx-background-color;" AnchorPane.bottomAnchor="0"
+                AnchorPane.leftAnchor="0"
+                AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <VBox spacing="20" style="-fx-padding: 20;" VBox.vgrow="ALWAYS">
 
             <!-- Karte 1: Validation Setup -->
