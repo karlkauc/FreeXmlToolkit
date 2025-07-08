@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.service;
 
 import com.mifmif.common.regex.Generex;
+import jakarta.xml.bind.DatatypeConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
@@ -17,6 +18,9 @@ import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdPattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -103,16 +107,62 @@ public class SampleDataGenerator {
         String finalType = elementType.substring(elementType.lastIndexOf(":") + 1);
 
         return switch (finalType.toLowerCase()) {
-            case "string", "token", "normalizedstring", "language", "name", "ncname" ->
+            // Spezifischere String-Typen für bessere Beispiele
+            case "string", "token", "normalizedstring", "name" ->
                     generateStringSample(restriction);
-            case "decimal" -> "123.45";
-            case "integer", "positiveinteger", "nonnegativeinteger", "negativeinteger", "nonpositiveinteger", "long",
-                 "int", "short", "byte", "unsignedlong", "unsignedint", "unsignedshort", "unsignedbyte" -> "100";
-            case "date" -> LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-            case "datetime" -> LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            case "time" -> LocalTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME);
-            case "gyear" -> String.valueOf(LocalDate.now().getYear());
-            case "boolean" -> "true";
+            case "language" -> "en-US";
+            case "ncname" -> "exampleName1";
+
+            // Numerische Typen mit zufälligen Werten, formatiert nach XML-Standard
+            case "decimal" -> {
+                double randomDouble = java.util.concurrent.ThreadLocalRandom.current().nextDouble(1.0, 1000.0);
+                // BigDecimal verwenden für präzise Dezimaldarstellung
+                BigDecimal bd = BigDecimal.valueOf(randomDouble).setScale(2, RoundingMode.HALF_UP);
+                yield DatatypeConverter.printDecimal(bd);
+            }
+            case "integer", "positiveinteger", "nonnegativeinteger" -> {
+                int randomInt = java.util.concurrent.ThreadLocalRandom.current().nextInt(1, 10000);
+                yield DatatypeConverter.printInteger(BigInteger.valueOf(randomInt));
+            }
+            case "negativeinteger", "nonpositiveinteger" -> {
+                int randomInt = java.util.concurrent.ThreadLocalRandom.current().nextInt(-10000, -1);
+                yield DatatypeConverter.printInteger(BigInteger.valueOf(randomInt));
+            }
+            // Aufgetrennt für präzisere Generierung und korrekte Konvertierung
+            case "long", "unsignedlong" -> // unsignedLong kann größer sein, aber für Beispiele ist long ok
+                    DatatypeConverter.printLong(java.util.concurrent.ThreadLocalRandom.current().nextLong(10000, 50000));
+            case "int", "unsignedint" ->
+                    DatatypeConverter.printInt(java.util.concurrent.ThreadLocalRandom.current().nextInt(100, 5000));
+            case "short", "unsignedshort" ->
+                    DatatypeConverter.printShort((short) java.util.concurrent.ThreadLocalRandom.current().nextInt(1, 100));
+            case "byte", "unsignedbyte" ->
+                    DatatypeConverter.printByte((byte) java.util.concurrent.ThreadLocalRandom.current().nextInt(0, 127));
+
+
+            // Datums-/Zeit-Typen mit zufälligen Werten
+            case "date" -> {
+                long minDay = LocalDate.of(2020, 1, 1).toEpochDay();
+                long maxDay = LocalDate.now().toEpochDay();
+                long randomDay = java.util.concurrent.ThreadLocalRandom.current().nextLong(minDay, maxDay);
+                yield LocalDate.ofEpochDay(randomDay).format(DateTimeFormatter.ISO_LOCAL_DATE);
+            }
+            case "datetime" -> {
+                LocalDateTime start = LocalDateTime.now().minusYears(1);
+                long startSeconds = start.toEpochSecond(java.time.ZoneOffset.UTC);
+                long endSeconds = LocalDateTime.now().toEpochSecond(java.time.ZoneOffset.UTC);
+                long randomSeconds = java.util.concurrent.ThreadLocalRandom.current().nextLong(startSeconds, endSeconds);
+                yield LocalDateTime.ofEpochSecond(randomSeconds, 0, java.time.ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME);
+            }
+            case "time" -> LocalTime.of(
+                    java.util.concurrent.ThreadLocalRandom.current().nextInt(0, 24),
+                    java.util.concurrent.ThreadLocalRandom.current().nextInt(0, 60),
+                    java.util.concurrent.ThreadLocalRandom.current().nextInt(0, 60)
+            ).format(DateTimeFormatter.ISO_LOCAL_TIME);
+            case "gyear" -> String.valueOf(java.util.concurrent.ThreadLocalRandom.current().nextInt(1990, LocalDate.now().getYear() + 1));
+
+            // Boolean mit zufälligem Wert
+            case "boolean" -> String.valueOf(java.util.concurrent.ThreadLocalRandom.current().nextBoolean());
+
             default -> {
                 // Rekursiver Versuch für abgeleitete Typen
                 if (restriction != null && restriction.getBase() != null) {
@@ -121,24 +171,44 @@ public class SampleDataGenerator {
                     tempElement.setXsdRestriction(restriction);
                     yield generateRecursive(tempElement, recursionDepth + 1);
                 }
-                yield "";
+                yield ""; // Fallback für unbekannte einfache Typen
             }
         };
     }
 
     private String generateStringSample(XsdRestriction restriction) {
-        String sample = "Sample Data";
+        // Ein allgemeinerer Basis-String
+        String sample = "ExampleText";
+
         if (restriction != null) {
+            // Genaue Länge hat höchste Priorität
             if (restriction.getLength() != null) {
-                return "x".repeat(Math.max(0, restriction.getLength().getValue()));
+                int length = restriction.getLength().getValue();
+                return "a".repeat(Math.max(0, length));
             }
-            if (restriction.getMinLength() != null) {
-                int min = restriction.getMinLength().getValue();
-                while (sample.length() < min) sample += " Text";
+
+            Integer min = (restriction.getMinLength() != null) ? restriction.getMinLength().getValue() : null;
+            Integer max = (restriction.getMaxLength() != null) ? restriction.getMaxLength().getValue() : null;
+
+            // Wenn nur minLength definiert ist, erstelle einen String dieser Länge
+            if (min != null && max == null) {
+                return "a".repeat(min);
             }
-            if (restriction.getMaxLength() != null) {
-                int max = restriction.getMaxLength().getValue();
-                if (sample.length() > max) sample = sample.substring(0, max);
+
+            // Wenn nur maxLength definiert ist, kürze den Beispiel-String bei Bedarf
+            if (min == null && max != null) {
+                return sample.length() > max ? sample.substring(0, max) : sample;
+            }
+
+            // Wenn beide definiert sind, erstelle einen String mit einer zufälligen Länge im erlaubten Bereich
+            if (min != null && max != null) {
+                // Stelle sicher, dass min nicht größer als max ist
+                if (min > max) {
+                    logger.warn("minLenth ({}) is greater than maxLength ({}) for a string restriction. Using minLength.", min, max);
+                    return "a".repeat(min);
+                }
+                int targetLength = (min.equals(max)) ? min : java.util.concurrent.ThreadLocalRandom.current().nextInt(min, max + 1);
+                return "a".repeat(targetLength);
             }
         }
         return sample;
