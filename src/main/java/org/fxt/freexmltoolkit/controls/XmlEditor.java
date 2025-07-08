@@ -18,7 +18,6 @@
 
 package org.fxt.freexmltoolkit.controls;
 
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.control.ScrollPane;
@@ -143,9 +142,11 @@ public class XmlEditor extends Tab {
         );
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             if (newText.length() < MAX_SIZE_FOR_FORMATTING) {
-                Platform.runLater(() -> codeArea.setStyleSpans(0, computeHighlighting(newText)));
+                logger.debug("Starte Formatierung...");
+                codeArea.setStyleSpans(0, computeHighlighting(newText));
             }
         });
 
@@ -217,7 +218,7 @@ public class XmlEditor extends Tab {
     }
 
     public void refresh() {
-        if (this.xmlFile.exists()) {
+        if (this.xmlFile != null && this.xmlFile.exists()) {
             xmlService.setCurrentXmlFile(this.xmlFile);
             document = xmlService.getXmlDocument();
 
@@ -226,13 +227,17 @@ public class XmlEditor extends Tab {
         }
     }
 
+
     void refreshTextView() {
         try {
-            codeArea.clear();
-            codeArea.replaceText(0, 0, getDocumentAsString());
-            Platform.runLater(() -> codeArea.setStyleSpans(0, XmlEditor.computeHighlighting(getDocumentAsString())));
+            final String content = getDocumentAsString();
+            if (content != null) {
+                codeArea.replaceText(content);
+            } else {
+                codeArea.clear();
+            }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Konnte die Textansicht nicht aktualisieren: {}", e.getMessage(), e);
         }
     }
 
@@ -241,13 +246,16 @@ public class XmlEditor extends Tab {
     }
 
     private String getDocumentAsString() {
+        if (document == null) {
+            return null;
+        }
         try {
             Transformer transformer = transformerFactory.newTransformer();
             StringWriter stringWriter = new StringWriter();
             transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
             return stringWriter.toString();
         } catch (Exception e) {
-            // System.out.println(e.getMessage());
+            logger.error("Fehler bei der Konvertierung des Dokuments in einen String: {}", e.getMessage());
             return null;
         }
     }

@@ -51,6 +51,23 @@
     -fx-padding: 0px;
 }
 
+.h1 {
+    -fx-font-family: Roboto;
+    -fx-font-size: 4em;
+}
+
+.h2 {
+    -fx-font-family: Roboto;
+    -fx-font-weight: bold;
+    -fx-font-size: 1.5em;
+    -fx-padding: 0 0 5px 0;
+}
+
+.h3 {
+    -fx-font-family: Roboto;
+    -fx-font-weight: bold;
+    -fx-font-size: 1.1em;
+}
 .bottom_line {
     -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2A9D8F 0%, #264653 100%);
     -fx-pref-height: 20;
@@ -454,4 +471,43 @@
 .tree-toggle-button:hover {
     -fx-background-color: #e9ecef;
     -fx-background-radius: -fx-border-radius; /* Verwendet den globalen Radius für Konsistenz */
+}
+
+/*
+ * Stylesheet for the XML Editor Highlighting in FreeXmlToolkit
+ */
+
+.tagmark {
+    -fx-fill: rgb(0, 0, 255);
+}
+
+.anytag {
+    -fx-fill: rgb(128, 0, 0);
+}
+
+.paren {
+    -fx-fill: firebrick;
+    -fx-font-weight: bold;
+}
+
+.attribute {
+    -fx-fill: darkviolet;
+}
+
+.avalue {
+    -fx-fill: black;
+}
+
+.comment {
+    -fx-fill: teal;
+}
+
+/* line Number */
+.lineno {
+    -fx-background-color: #e3e3e3;
+}
+
+/* defaults */
+.code-area {
+    -fx-font-family: monospace;
 }

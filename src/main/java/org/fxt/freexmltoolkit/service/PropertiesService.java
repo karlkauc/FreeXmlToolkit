@@ -30,4 +30,6 @@ public interface PropertiesService {
     void createDefaultProperties();
 
     List<File> getLastOpenFiles();
+
+    void addLastOpenFile(File file);
 }

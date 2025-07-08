@@ -314,13 +314,16 @@ public class XmlController {
                 // Lese den Inhalt der Datei
                 String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
 
+                if (mainController != null) {
+                    mainController.addFileToRecentFiles(file);
+                }
+
                 // Setze den Inhalt in die CodeArea
                 var area = getCurrentCodeArea();
                 if (area != null) {
                     area.replaceText(content);
                     logger.debug("File {} displayed.", file.getName());
 
-                    // --> HIER DIE NEUE FUNKTIONALITÄT AUFRUFEN <--
                     // Benachrichtige den LSP-Server, dass die Datei geöffnet wurde.
                     notifyLspServerFileOpened(file, content);
                 }
@@ -546,6 +549,7 @@ public class XmlController {
             }
 
             validateSchema();
+            mainController.addFileToRecentFiles(selectedFile);
         } else {
             logger.debug("No file selected");
         }

@@ -44,7 +44,10 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.*;
 
 /**
@@ -55,8 +58,6 @@ public class MainController {
     private final static Logger logger = LogManager.getLogger(MainController.class);
 
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
-    Properties properties = propertiesService.loadProperties();
-
     XmlController xmlController;
 
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
@@ -211,18 +212,25 @@ public class MainController {
 
 
     /**
-     * Lädt die zuletzt geöffneten Dateien.
+     * Lädt die zuletzt geöffneten Dateien und aktualisiert das Menü.
      */
     private void loadLastOpenFiles() {
+        lastOpenFilesMenu.getItems().clear();
         lastOpenFiles.clear();
 
         lastOpenFiles = propertiesService.getLastOpenFiles();
         logger.debug("Last open Files: {}", lastOpenFiles.toString());
 
+        if (lastOpenFiles.isEmpty()) {
+            lastOpenFilesMenu.setDisable(true);
+            return;
+        }
+
+        lastOpenFilesMenu.setDisable(false);
         for (File f : lastOpenFiles) {
             MenuItem m = new MenuItem(f.getName());
             m.setOnAction(event -> {
-                logger.debug("File {} selected.", f.getAbsoluteFile().getName());
+                logger.debug("File {} selected from recent files.", f.getAbsolutePath());
                 if (xmlController != null) {
                     xmlController.displayFileContent(f);
                 }
@@ -230,6 +238,18 @@ public class MainController {
             lastOpenFilesMenu.getItems().add(m);
         }
     }
+
+    /**
+     * NEU: Öffentliche Methode, die von anderen Controllern aufgerufen werden kann,
+     * um eine Datei zur Liste der zuletzt geöffneten Dateien hinzuzufügen.
+     *
+     * @param file die geöffnete Datei
+     */
+    public void addFileToRecentFiles(File file) {
+        propertiesService.addLastOpenFile(file);
+        loadLastOpenFiles();
+    }
+
 
     /**
      * Lädt eine Seite basierend auf dem ActionEvent.
@@ -280,6 +300,7 @@ public class MainController {
 
     private void setParentController(Object controller) {
         if (controller instanceof XmlController) {
+            this.xmlController = (XmlController) controller;
             ((XmlController) controller).setParentController(this);
         } else if (controller instanceof XsdValidationController) {
             ((XsdValidationController) controller).setParentController(this);

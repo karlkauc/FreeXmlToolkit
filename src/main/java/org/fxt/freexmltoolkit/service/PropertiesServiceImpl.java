@@ -113,7 +113,8 @@ public class PropertiesServiceImpl implements PropertiesService {
     public List<File> getLastOpenFiles() {
         Properties p = loadProperties();
         List<File> files = new LinkedList<>();
-        for (int i = 0; i < 99; i++) {
+        // KORREKTUR: Nur die letzten 5 Einträge laden
+        for (int i = 0; i < 5; i++) {
             String filePath = p.getProperty("LastOpenFile." + i);
             if (filePath != null) {
                 File f = new File(filePath);
@@ -125,5 +126,43 @@ public class PropertiesServiceImpl implements PropertiesService {
             }
         }
         return files;
+    }
+
+    /**
+     * NEU: Fügt eine Datei zur Liste der zuletzt geöffneten Dateien hinzu.
+     * Die Liste wird auf 5 Einträge begrenzt und das neueste Element steht an erster Stelle.
+     *
+     * @param file die hinzuzufügende Datei
+     */
+    @Override
+    public void addLastOpenFile(File file) {
+        List<File> recentFiles = getLastOpenFiles();
+
+        // Entferne die Datei, falls sie bereits in der Liste ist, um Duplikate zu vermeiden
+        // und sie an die Spitze zu verschieben.
+        recentFiles.removeIf(f -> f.getAbsolutePath().equals(file.getAbsolutePath()));
+
+        // Füge die neue Datei am Anfang der Liste hinzu
+        recentFiles.addFirst(file);
+
+        // Kürze die Liste auf die maximale Größe von 5
+        if (recentFiles.size() > 5) {
+            recentFiles = new LinkedList<>(recentFiles.subList(0, 5));
+        }
+
+        // Entferne alle alten "LastOpenFile"-Einträge aus den Properties
+        List<Object> keysToRemove = properties.keySet().stream()
+                .filter(key -> ((String) key).startsWith("LastOpenFile."))
+                .toList();
+        keysToRemove.forEach(properties::remove);
+
+        // Schreibe die neue, sortierte Liste in die Properties
+        for (int i = 0; i < recentFiles.size(); i++) {
+            properties.setProperty("LastOpenFile." + i, recentFiles.get(i).getAbsolutePath());
+        }
+
+        // Speichere die aktualisierten Properties
+        saveProperties(properties);
+        logger.debug("Updated last open files list: {}", recentFiles);
     }
 }

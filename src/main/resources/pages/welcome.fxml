@@ -30,7 +30,9 @@
                 <VBox spacing="20.0" styleClass="my_container">
                     <children>
                         <!-- Header Area -->
-                        <Label styleClass="h1" text="Welcome to FreeXmlToolkit!" />
+                        <HBox VBox.vgrow="ALWAYS" alignment="CENTER">
+                            <Label styleClass="h1" text="Welcome to FreeXmlToolkit!"/>
+                        </HBox>
                         <VBox spacing="5.0">
                             <children>
                                 <Label fx:id="versionLabel" text="Version: loading..." />
