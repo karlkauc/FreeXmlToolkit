@@ -19,7 +19,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -113,33 +112,37 @@ public class SampleDataGenerator {
             case "language" -> "en-US";
             case "ncname" -> "exampleName1";
 
-            // Numerische Typen mit zufälligen Werten, formatiert nach XML-Standard
+            // Numerische Typen, die jetzt die neue Hilfsmethode verwenden
             case "decimal" -> {
-                double randomDouble = java.util.concurrent.ThreadLocalRandom.current().nextDouble(1.0, 1000.0);
-                // BigDecimal verwenden für präzise Dezimaldarstellung
-                BigDecimal bd = BigDecimal.valueOf(randomDouble).setScale(2, RoundingMode.HALF_UP);
-                yield DatatypeConverter.printDecimal(bd);
+                BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("1.00"), new BigDecimal("1000.00"));
+                yield DatatypeConverter.printDecimal(randomDecimal.setScale(2, RoundingMode.HALF_UP));
             }
             case "integer", "positiveinteger", "nonnegativeinteger" -> {
-                int randomInt = java.util.concurrent.ThreadLocalRandom.current().nextInt(1, 10000);
-                yield DatatypeConverter.printInteger(BigInteger.valueOf(randomInt));
+                BigDecimal randomDecimal = generateNumberInRange(restriction, BigDecimal.ONE, new BigDecimal("10000"));
+                yield DatatypeConverter.printInteger(randomDecimal.toBigInteger());
             }
             case "negativeinteger", "nonpositiveinteger" -> {
-                int randomInt = java.util.concurrent.ThreadLocalRandom.current().nextInt(-10000, -1);
-                yield DatatypeConverter.printInteger(BigInteger.valueOf(randomInt));
+                BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("-10000"), BigDecimal.valueOf(-1));
+                yield DatatypeConverter.printInteger(randomDecimal.toBigInteger());
             }
-            // Aufgetrennt für präzisere Generierung und korrekte Konvertierung
-            case "long", "unsignedlong" -> // unsignedLong kann größer sein, aber für Beispiele ist long ok
-                    DatatypeConverter.printLong(java.util.concurrent.ThreadLocalRandom.current().nextLong(10000, 50000));
-            case "int", "unsignedint" ->
-                    DatatypeConverter.printInt(java.util.concurrent.ThreadLocalRandom.current().nextInt(100, 5000));
-            case "short", "unsignedshort" ->
-                    DatatypeConverter.printShort((short) java.util.concurrent.ThreadLocalRandom.current().nextInt(1, 100));
-            case "byte", "unsignedbyte" ->
-                    DatatypeConverter.printByte((byte) java.util.concurrent.ThreadLocalRandom.current().nextInt(0, 127));
+            case "long", "unsignedlong" -> {
+                BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("10000"), new BigDecimal("50000"));
+                yield DatatypeConverter.printLong(randomDecimal.longValue());
+            }
+            case "int", "unsignedint" -> {
+                BigDecimal randomDecimal = generateNumberInRange(restriction, new BigDecimal("100"), new BigDecimal("5000"));
+                yield DatatypeConverter.printInt(randomDecimal.intValue());
+            }
+            case "short", "unsignedshort" -> {
+                BigDecimal randomDecimal = generateNumberInRange(restriction, BigDecimal.ONE, new BigDecimal("100"));
+                yield DatatypeConverter.printShort(randomDecimal.shortValue());
+            }
+            case "byte", "unsignedbyte" -> {
+                BigDecimal randomDecimal = generateNumberInRange(restriction, BigDecimal.ZERO, new BigDecimal("127"));
+                yield DatatypeConverter.printByte(randomDecimal.byteValue());
+            }
 
-
-            // Datums-/Zeit-Typen mit zufälligen Werten
+            // ... (der Rest der Methode für Datum, Boolean etc. bleibt unverändert) ...
             case "date" -> {
                 long minDay = LocalDate.of(2020, 1, 1).toEpochDay();
                 long maxDay = LocalDate.now().toEpochDay();
@@ -212,6 +215,71 @@ public class SampleDataGenerator {
             }
         }
         return sample;
+    }
+
+    /**
+     * Generiert eine Zufallszahl (als BigDecimal) unter Berücksichtigung von
+     * min/max-Einschränkungen aus dem XSD.
+     *
+     * @param restriction Das Restriction-Objekt, das die Einschränkungen enthält.
+     * @param defaultMin  Der Standard-Minimalwert, falls keine Einschränkung vorhanden ist.
+     * @param defaultMax  Der Standard-Maximalwert, falls keine Einschränkung vorhanden ist.
+     * @return Eine zufällige BigDecimal-Zahl im gültigen Bereich.
+     */
+    private BigDecimal generateNumberInRange(XsdRestriction restriction, BigDecimal defaultMin, BigDecimal defaultMax) {
+        BigDecimal min = defaultMin;
+        BigDecimal max = defaultMax;
+
+        if (restriction != null) {
+            // Min-Einschränkungen auslesen
+            if (restriction.getMinInclusive() != null) {
+                try {
+                    min = new BigDecimal(restriction.getMinInclusive().getValue());
+                } catch (NumberFormatException e) {
+                    logger.warn("Could not parse minInclusive value: {}", restriction.getMinInclusive().getValue());
+                }
+            } else if (restriction.getMinExclusive() != null) {
+                try {
+                    // Bei Ganzzahlen bedeutet minExclusive 'v', dass der kleinste Wert 'v+1' ist.
+                    // Für Dezimalzahlen ist es komplexer, aber für Beispieldaten ist dies ein guter Kompromiss.
+                    min = new BigDecimal(restriction.getMinExclusive().getValue()).add(BigDecimal.ONE);
+                } catch (NumberFormatException e) {
+                    logger.warn("Could not parse minExclusive value: {}", restriction.getMinExclusive().getValue());
+                }
+            }
+
+            // Max-Einschränkungen auslesen
+            if (restriction.getMaxInclusive() != null) {
+                try {
+                    max = new BigDecimal(restriction.getMaxInclusive().getValue());
+                } catch (NumberFormatException e) {
+                    logger.warn("Could not parse maxInclusive value: {}", restriction.getMaxInclusive().getValue());
+                }
+            } else if (restriction.getMaxExclusive() != null) {
+                try {
+                    // Bei Ganzzahlen bedeutet maxExclusive 'v', dass der größte Wert 'v-1' ist.
+                    max = new BigDecimal(restriction.getMaxExclusive().getValue()).subtract(BigDecimal.ONE);
+                } catch (NumberFormatException e) {
+                    logger.warn("Could not parse maxExclusive value: {}", restriction.getMaxExclusive().getValue());
+                }
+            }
+        }
+
+        // Sicherstellen, dass min nicht größer als max ist
+        if (min.compareTo(max) > 0) {
+            logger.warn("Min value {} is greater than max value {}. Using max value for generation.", min, max);
+            return max;
+        }
+
+        if (min.compareTo(max) == 0) {
+            return min;
+        }
+
+        // Eine zufällige Zahl im Bereich [min, max] generieren
+        BigDecimal range = max.subtract(min);
+        BigDecimal randomValue = min.add(range.multiply(BigDecimal.valueOf(Math.random())));
+
+        return randomValue;
     }
 
     private String extractAltovaSample(XsdAppInfo appInfo) {

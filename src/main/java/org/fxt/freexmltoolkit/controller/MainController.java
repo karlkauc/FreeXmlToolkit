@@ -298,6 +298,36 @@ public class MainController {
         }
     }
 
+    /**
+     * NEU: Wechselt programmatisch zum XML-Tab und lädt eine Datei.
+     *
+     * @param fileToLoad Die zu ladende Datei.
+     */
+    public void switchToXmlViewAndLoadFile(File fileToLoad) {
+        if (xml == null) {
+            logger.error("XML-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
+            return;
+        }
+        // Visuellen Stil des Menü-Buttons anpassen, um den aktiven Tab zu zeigen
+        xml.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        xml.getStyleClass().add("active");
+
+        // Die XML-Seite laden
+        loadPageFromPath("/pages/tab_xml.fxml");
+
+        // Sicherstellen, dass der XmlController initialisiert ist und die Datei laden.
+        // Platform.runLater wird verwendet, um sicherzustellen, dass die UI-Updates
+        // nach dem Laden und Anzeigen der neuen Szene ausgeführt werden.
+        if (this.xmlController != null && fileToLoad != null && fileToLoad.exists()) {
+            Platform.runLater(() -> {
+                xmlController.displayFileContent(fileToLoad);
+                addFileToRecentFiles(fileToLoad); // Optional: Datei zur Liste der zuletzt geöffneten hinzufügen
+            });
+        } else {
+            logger.warn("XmlController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
+        }
+    }
+
     private void setParentController(Object controller) {
         if (controller instanceof XmlController) {
             this.xmlController = (XmlController) controller;

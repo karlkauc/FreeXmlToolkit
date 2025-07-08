@@ -377,6 +377,14 @@ public class XsdController {
                 try (FileWriter writer = new FileWriter(selectedOutputXmlFile)) {
                     writer.write(generatedXml);
                     logger.info("Sample XML saved to: {}", selectedOutputXmlFile.getAbsolutePath());
+
+                    // NEU: Nach dem Speichern zum XML-Tab wechseln und die Datei laden
+                    if (parentController != null) {
+                        // UI-Operationen müssen auf dem JavaFX Application Thread ausgeführt werden.
+                        Platform.runLater(() -> {
+                            parentController.switchToXmlViewAndLoadFile(selectedOutputXmlFile);
+                        });
+                    }
                 } catch (IOException e) {
                     logger.error("Could not save sample XML to file", e);
                     new Alert(Alert.AlertType.ERROR, "Could not save file: " + e.getMessage()).showAndWait();
