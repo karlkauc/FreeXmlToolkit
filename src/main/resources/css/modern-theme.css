@@ -51,6 +51,20 @@
     -fx-padding: 0px;
 }
 
+.bottom_line {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2A9D8F 0%, #264653 100%);
+    -fx-pref-height: 20;
+    -fx-max-height: 20;
+    -fx-min-height: 20;
+}
+
+.menu_box {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #fdeec5 0%, #fc9040 100%);
+    -fx-pref-width: 150;
+    -fx-font-weight: bold;
+}
+
+
 /* =================================================================
    Allgemeine Steuerelemente
    ================================================================= */
@@ -83,13 +97,14 @@
     -fx-pref-width: 200;
     -fx-max-width: 200;
     -fx-alignment: baseline-left;
-    -fx-background-color: #f6f8fa;
+    __-fx-background-color: #f6f8fa;
     -fx-text-fill: -fx-text-color;
     -fx-border-color: -fx-border-color;
     -fx-border-radius: -fx-border-radius;
     -fx-background-radius: -fx-border-radius;
     -fx-padding: 5px 15px;
     -fx-font-weight: bold;
+    -fx-background-color: transparent;
 }
 
 .menu_button:first-child {
