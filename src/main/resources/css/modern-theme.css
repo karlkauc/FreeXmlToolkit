@@ -325,3 +325,118 @@
     -fx-text-fill: -fx-text-color;
     -fx-padding: 0 0 10px 0;
 }
+
+/* =============================================================
+   Layout für Xml Grid
+   ============================================================= */
+
+/* Container für ein komplettes Node-Element. */
+.simple-node-element {
+    -fx-background-color: -fx-control-background;
+    -fx-border-color: -fx-border-color-subtle;
+    -fx-border-width: 1px;
+    -fx-border-radius: -fx-border-radius;
+    -fx-background-radius: -fx-border-radius;
+    -fx-padding: 5px;
+    -fx-spacing: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 5, 0, 0, 1);
+}
+
+/* Style für das Gitter-Layout innerhalb eines Knotens */
+.tree-grid {
+    -fx-hgap: 2px;
+    -fx-vgap: 2px;
+}
+
+/* Style für Kommentar-Knoten */
+.xml-tree-comment {
+    -fx-text-fill: -fx-text-color-secondary;
+    -fx-font-style: italic;
+    -fx-padding: 2px 5px;
+}
+
+/* Box für den Elementnamen (links) */
+.node-name-box {
+    -fx-padding: 2px 4px;
+    -fx-alignment: center-left; /* KORREKTUR: Korrekter Wert für linksbündig, vertikal zentriert */
+}
+
+/* Box für den Elementwert (rechts) */
+.node-value-box {
+    -fx-padding: 2px 4px;
+    -fx-background-color: #eefbf2;
+    -fx-background-radius: -fx-border-radius;
+    -fx-alignment: center-left; /* KORREKTUR: Korrekter Wert */
+}
+
+/* Box für einen Attributnamen, z.B. @id */
+.attribute-box {
+    -fx-background-color: #eef2ff;
+    -fx-text-fill: #3730a3;
+    -fx-padding: 2px 4px;
+    -fx-border-radius: -fx-border-radius;
+    -fx-background-radius: -fx-border-radius;
+    -fx-alignment: center-left; /* KORREKTUR: Korrekter Wert */
+}
+
+/* Box für einen Attributwert */
+.attribute-value-box {
+    -fx-background-color: #fefce8;
+    -fx-padding: 2px 4px;
+    -fx-background-radius: -fx-border-radius;
+    -fx-alignment: center-left; /* KORREKTUR: Korrekter Wert */
+}
+
+/* Box für ein komplexes Element, das erweitert/zugeklappt werden kann */
+.element-box {
+    -fx-background-color: #fff7ed;
+    -fx-padding: 2px 4px;
+    -fx-border-radius: -fx-border-radius;
+    -fx-background-radius: -fx-border-radius;
+    -fx-alignment: top-left; /* KORREKTUR: Korrekter Wert */
+}
+
+/* Style für das TextField bei der Bearbeitung eines Wertes (unverändert) */
+.simple-node-element .text-field {
+    -fx-border-radius: 2px;
+    -fx-background-color: #fee2e2;
+    -fx-border-color: #fca5a5;
+}
+
+/* Style für Tabellen-Header in der Gitteransicht. */
+.table-header {
+    -fx-background-color: -fx-background-color;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-color;
+    -fx-padding: 4px 8px;
+    -fx-border-color: -fx-border-color-subtle;
+    -fx-border-width: 0 0 2px 0;
+}
+
+/* Basis-Stil für eine Zelle in der Tabellenansicht */
+.table-cell {
+    -fx-background-color: -fx-control-background;
+    -fx-border-color: -fx-border-color-subtle;
+    -fx-border-width: 0 1px 1px 0;
+    -fx-padding: 4px 8px;
+}
+
+/* Hover-Effekt für Tabellenzellen */
+.table-cell:hover {
+    -fx-background-color: #f0f2f5;
+}
+
+/* ... nach dem .table-cell:hover Block ... */
+
+/* Spezieller Stil für die Plus/Minus-Buttons im XML-Baum */
+.tree-toggle-button {
+    -fx-background-color: transparent; /* Macht den Button-Hintergrund unsichtbar */
+    -fx-padding: 0; /* Entfernt den Innenabstand um das Icon */
+    -fx-border-width: 0; /* Entfernt den Rand */
+}
+
+/* Fügt einen dezenten Hover-Effekt für besseres User-Feedback hinzu */
+.tree-toggle-button:hover {
+    -fx-background-color: #e9ecef;
+    -fx-background-radius: -fx-border-radius; /* Verwendet den globalen Radius für Konsistenz */
+}
