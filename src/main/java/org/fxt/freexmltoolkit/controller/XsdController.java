@@ -49,6 +49,7 @@ import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 
 import java.awt.*;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -78,9 +79,6 @@ public class XsdController {
     StackPane stackPane, xsdStackPane;
 
     @FXML
-    TextArea sampleData;
-
-    @FXML
     CheckBox openFileAfterCreation, useMarkdownRenderer, createExampleData;
 
     @FXML
@@ -93,6 +91,22 @@ public class XsdController {
     TabPane tabPane;
     @FXML
     Tab documentation;
+
+    // FXML-Felder für den "Generate Example Data" Tab
+    @FXML
+    private TextField xsdForSampleDataPath;
+    @FXML
+    private TextField outputXmlPath;
+    @FXML
+    private CheckBox mandatoryOnlyCheckBox;
+    @FXML
+    private Spinner<Integer> maxOccurrencesSpinner;
+    @FXML
+    private TextArea sampleDataTextArea;
+    @FXML
+    private ProgressIndicator progressSampleData;
+
+    private File selectedOutputXmlFile;
 
     private MainController parentController;
 
@@ -109,6 +123,9 @@ public class XsdController {
         setupDragAndDrop();
         reloadXmlText();
         setupXsdDiagram();
+
+        SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 1);
+        maxOccurrencesSpinner.setValueFactory(valueFactory);
     }
 
     private void setupXsdDiagram() {
@@ -214,7 +231,8 @@ public class XsdController {
         if (xsdFile != null && xsdFile.exists()) {
             logger.debug("open File: {}", xsdFile.getAbsolutePath());
             xmlService.setCurrentXsdFile(xsdFile);
-            xsdFilePath.setText(xsdFile.getName());
+            xsdFilePath.setText(xsdFile.getAbsolutePath());
+            xsdForSampleDataPath.setText(xsdFile.getAbsolutePath());
 
             reloadXmlText();
             setupXsdDiagram();
@@ -279,14 +297,6 @@ public class XsdController {
         };
     }
 
-    private void executeTask(Task<Void> task) {
-        if (parentController != null) {
-            parentController.service.execute(task);
-        } else {
-            logger.warn("Parent controller is null");
-        }
-    }
-
     @FXML
     void handleFileOverEvent(DragEvent event) {
         if (event.getDragboard().hasFiles()) {
@@ -307,11 +317,89 @@ public class XsdController {
             logger.debug("FILE: {}", f.getAbsoluteFile());
             if (f.isFile() && f.exists() && f.getAbsolutePath().toLowerCase().endsWith(".xsd")) {
                 this.xmlService.setCurrentXsdFile(f);
-                this.xsdFilePath.setText(f.getName());
+                this.xsdFilePath.setText(f.getAbsolutePath());
+                this.xsdForSampleDataPath.setText(f.getAbsolutePath());
 
                 setupXsdDiagram();
                 reloadXmlText();
             }
+        }
+    }
+
+    // ======================================================================
+    // Methoden für den "Generate Example Data" Tab
+    // ======================================================================
+    @FXML
+    private void selectOutputXmlFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Sample XML to...");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Files", "*.xml"));
+        fileChooser.setInitialFileName("sample.xml");
+        selectedOutputXmlFile = fileChooser.showSaveDialog(null);
+
+        if (selectedOutputXmlFile != null) {
+            outputXmlPath.setText(selectedOutputXmlFile.getAbsolutePath());
+        }
+    }
+
+    @FXML
+    private void generateSampleDataAction() {
+        File currentXsd = xmlService.getCurrentXsdFile();
+        if (currentXsd == null || !currentXsd.exists()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Please load a valid XSD file first.", ButtonType.OK);
+            alert.showAndWait();
+            return;
+        }
+
+        boolean mandatoryOnly = mandatoryOnlyCheckBox.isSelected();
+        int maxOccurrences = maxOccurrencesSpinner.getValue();
+
+        Task<String> generationTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                updateMessage("Generating sample XML...");
+                XsdDocumentationService docService = new XsdDocumentationService();
+                docService.setXsdFilePath(currentXsd.getPath());
+                return docService.generateSampleXml(mandatoryOnly, maxOccurrences);
+            }
+        };
+
+        // Binden der Sichtbarkeit des ProgressIndicators an den laufenden Task
+        progressSampleData.visibleProperty().bind(generationTask.runningProperty());
+        sampleDataTextArea.visibleProperty().bind(generationTask.runningProperty().not());
+
+
+        generationTask.setOnSucceeded(event -> {
+            String generatedXml = generationTask.getValue();
+            sampleDataTextArea.setText(generatedXml);
+
+            if (selectedOutputXmlFile != null) {
+                try (FileWriter writer = new FileWriter(selectedOutputXmlFile)) {
+                    writer.write(generatedXml);
+                    logger.info("Sample XML saved to: {}", selectedOutputXmlFile.getAbsolutePath());
+                } catch (IOException e) {
+                    logger.error("Could not save sample XML to file", e);
+                    new Alert(Alert.AlertType.ERROR, "Could not save file: " + e.getMessage()).showAndWait();
+                }
+            }
+        });
+
+        generationTask.setOnFailed(event -> {
+            logger.error("Sample XML generation failed", generationTask.getException());
+            sampleDataTextArea.setText("Error during generation:\n" + generationTask.getException().getMessage());
+        });
+
+        executeTask(generationTask);
+    }
+
+    // Generische executeTask Methode anpassen, um auch mit Task<String> zu arbeiten
+    private void executeTask(Task<?> task) {
+        if (parentController != null) {
+            parentController.service.execute(task);
+        } else {
+            logger.warn("Parent controller is null, cannot execute task.");
+            // Fallback, wenn kein Parent-Controller da ist
+            new Thread(task).start();
         }
     }
 
@@ -322,7 +410,8 @@ public class XsdController {
 
         if (Files.exists(testFilePath)) {
             this.xmlService.setCurrentXsdFile(testFilePath.toFile());
-            this.xsdFilePath.setText(testFilePath.toFile().getName());
+            this.xsdFilePath.setText(testFilePath.toFile().getAbsolutePath());
+            this.xsdForSampleDataPath.setText(testFilePath.toFile().getAbsolutePath());
 
             setupXsdDiagram();
             reloadXmlText();
@@ -334,5 +423,3 @@ public class XsdController {
         }
     }
 }
-
-

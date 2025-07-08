@@ -555,6 +555,79 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Generiert eine Beispiel-XML-Zeichenfolge basierend auf dem geladenen XSD.
+     *
+     * @param mandatoryOnly  Wenn true, werden nur Elemente mit minOccurs > 0 erstellt.
+     * @param maxOccurrences Die maximale Anzahl für sich wiederholende Elemente.
+     * @return Eine formatierte XML-Zeichenfolge.
+     */
+    public String generateSampleXml(boolean mandatoryOnly, int maxOccurrences) {
+        // Sicherstellen, dass das XSD verarbeitet wurde
+        if (xsdDocumentationData.getExtendedXsdElementMap().isEmpty()) {
+            processXsd(false);
+        }
+
+        // Wurzelelement(e) finden (Elemente ohne Eltern-XPath)
+        List<ExtendedXsdElement> rootElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> e.getParentXpath().isEmpty() || e.getParentXpath().equals("/"))
+                .toList();
+
+        if (rootElements.isEmpty()) {
+            return "<!-- No root element found in XSD -->";
+        }
+
+        StringBuilder xmlBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+
+        // Für dieses Beispiel nehmen wir das erste gefundene Wurzelelement an.
+        ExtendedXsdElement root = rootElements.getFirst();
+        buildXmlElement(xmlBuilder, root, mandatoryOnly, maxOccurrences, 0);
+
+        return xmlBuilder.toString();
+    }
+
+    /**
+     * Rekursive Hilfsmethode zum Erstellen des XML-Baums.
+     */
+    private void buildXmlElement(StringBuilder sb, ExtendedXsdElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
+        if (mandatoryOnly && !element.isMandatory()) {
+            return; // Überspringe optionale Elemente im "mandatoryOnly"-Modus
+        }
+
+        // Bestimme, wie oft das Element wiederholt werden soll
+        int repeatCount = 1;
+        if (element.getXsdElement() != null && element.getXsdElement().getMaxOccurs() != null) {
+            String max = element.getXsdElement().getMaxOccurs();
+            if (max.equals("unbounded") || Integer.parseInt(max) > 1) {
+                repeatCount = maxOccurrences;
+            }
+        }
+
+        for (int i = 0; i < repeatCount; i++) {
+            String indent = "\t".repeat(indentLevel);
+            sb.append(indent).append("<").append(element.getElementName());
+
+            // Attribute hinzufügen (falls vorhanden)
+            // Diese Logik müsste noch verfeinert werden, um Attribute von ComplexTypes zu finden
+            sb.append(">");
+
+            if (element.hasChildren()) {
+                sb.append("\n");
+                for (String childXPath : element.getChildren()) {
+                    ExtendedXsdElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+                    if (childElement != null) {
+                        buildXmlElement(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel + 1);
+                    }
+                }
+                sb.append(indent).append("</").append(element.getElementName()).append(">\n");
+            } else {
+                // Element hat keine Kinder, also füge Beispieldaten ein
+                sb.append(element.getSampleData() != null ? element.getSampleData() : "");
+                sb.append("</").append(element.getElementName()).append(">\n");
+            }
+        }
+    }
+
+    /**
      * Extrahiert die Dokumentation aus einem Element-Knoten auf effiziente Weise.
      */
     private String getDocumentation(Element element) {

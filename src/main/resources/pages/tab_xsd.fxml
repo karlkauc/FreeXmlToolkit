@@ -92,7 +92,7 @@
                 <GridPane hgap="10" vgap="10">
                     <Label text="XSD File: " GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                     <HBox GridPane.columnIndex="1" GridPane.rowIndex="0">
-                        <TextField text="XSD File" fx:id="xsdFilePath"/>
+                        <TextField fx:id="xsdFilePath" promptText="Load an XSD file..."/>
                         <Button onAction="#loadXsdFile">
                             <graphic>
                                 <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
@@ -102,7 +102,7 @@
 
                     <Label text="Output Folder" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
                     <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
-                        <TextField fx:id="documentationOutputDirPath" accessibleText="Output Directory"/>
+                        <TextField fx:id="documentationOutputDirPath" promptText="Select an output directory..."/>
                         <Button onAction="#openOutputFolderDialog">
                             <graphic>
                                 <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
@@ -187,11 +187,60 @@
             </VBox>
 
         </Tab>
-        <Tab closable="false" text="generate Example data">
+        <Tab closable="false" text="Generate Example Data">
             <graphic>
                 <FontIcon iconLiteral="bi-keyboard" iconSize="16"/>
             </graphic>
-            <TextArea fx:id="sampleData" HBox.hgrow="ALWAYS"/>
+            <BorderPane>
+                <top>
+                    <VBox spacing="10" style="-fx-padding: 15px; -fx-border-width: 0 0 1 0; -fx-border-color: #e0e0e0;">
+                        <GridPane hgap="10" vgap="10">
+                            <Label text="XSD Source File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
+                                <TextField fx:id="xsdForSampleDataPath" promptText="Load an XSD file..."
+                                           HBox.hgrow="ALWAYS"/>
+                                <Button onAction="#loadXsdFile" text="Load XSD"/>
+                            </HBox>
+
+                            <Label text="Output XML File (optional):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
+                                <TextField fx:id="outputXmlPath" promptText="Select where to save the XML file..."
+                                           HBox.hgrow="ALWAYS"/>
+                                <Button onAction="#selectOutputXmlFile" text="Save to..."/>
+                            </HBox>
+
+                            <Label text="Settings:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                            <HBox spacing="20" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                <CheckBox fx:id="mandatoryOnlyCheckBox" text="Create mandatory elements only"/>
+                                <Label text="Max occurrences for repeating elements:"/>
+                                <Spinner fx:id="maxOccurrencesSpinner" editable="true" initialValue="1" prefWidth="70"/>
+                            </HBox>
+
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="180.0"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                            </rowConstraints>
+                        </GridPane>
+                        <Button onAction="#generateSampleDataAction" text="Generate Sample XML" maxWidth="Infinity">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </VBox>
+                </top>
+                <center>
+                    <StackPane>
+                        <TextArea fx:id="sampleDataTextArea" style="-fx-font-family: 'monospaced'; -fx-font-size: 13px;"
+                        />
+                        <ProgressIndicator fx:id="progressSampleData" maxWidth="80" maxHeight="80" visible="false"/>
+                    </StackPane>
+                </center>
+            </BorderPane>
         </Tab>
     </TabPane>
 </VBox>
