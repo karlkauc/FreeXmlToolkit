@@ -487,10 +487,11 @@ public class XsdDocumentationImageService {
             actualHeight += margin + totalContentHeight + margin + 20;
         }
 
-        // SVG-Größe finalisieren (unverändert)
+        // SVG-Größe finalisieren
         var imageHeight = Math.max(docHeightTotal, actualHeight);
         svgRoot.setAttribute("height", String.valueOf(imageHeight));
-        svgRoot.setAttribute("width", String.valueOf(rightStartX + margin + rightBoxWidth + margin + 20 + 10));
+        // KORREKTUR: Verwende finalRightStartX für die Breitenberechnung, um den Versatz zu berücksichtigen.
+        svgRoot.setAttribute("width", String.valueOf(finalRightStartX + margin + rightBoxWidth + margin + 20 + 10));
         svgRoot.setAttribute("style", "background-color: " + COLOR_BG);
 
         return document;
