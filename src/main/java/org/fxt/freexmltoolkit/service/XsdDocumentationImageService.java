@@ -284,7 +284,8 @@ public class XsdDocumentationImageService {
         double childPathStartY = rootPathCenterY;
 
         if (isSequence || isChoice) {
-            final double symbolWidth = 20;
+            // Breite für das Sequenz-Symbol angepasst, um es länglicher zu machen
+            final double symbolWidth = isSequence ? 40 : 20;
             final double symbolHeight = 20;
             final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2);
             final double symbolCenterY = rootPathCenterY;
@@ -296,7 +297,7 @@ public class XsdDocumentationImageService {
             pathToSymbol.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
             svgRoot.appendChild(pathToSymbol);
 
-            // NEU: Kardinalität für die Gruppe (Sequence/Choice) abrufen und anzeigen
+            // Kardinalität für die Gruppe (Sequence/Choice) abrufen und anzeigen
             String groupCardinality = "";
             var parentOfChildren = childElements.get(0).getXsdElement().getParent();
             if (parentOfChildren instanceof org.xmlet.xsdparser.xsdelements.XsdSequence) {
@@ -311,16 +312,18 @@ public class XsdDocumentationImageService {
             if (!groupCardinality.isBlank() && !"1..1".equals(groupCardinality)) {
                 int cardinalityFontSize = font.getSize() - 4;
                 var cardinalityBounds = font.getStringBounds(groupCardinality, frc);
-                // Text horizontal über dem Symbol zentrieren
                 double cardinalityX = symbolCenterX - (cardinalityBounds.getWidth() / 2);
-                // Text über dem Symbol positionieren
                 double cardinalityY = symbolCenterY - (symbolHeight / 2) - 5;
                 Element cardinalityTextNode = createSvgTextElement(document, groupCardinality, String.valueOf(cardinalityX), String.valueOf(cardinalityY), COLOR_TEXT_SECONDARY, cardinalityFontSize);
                 svgRoot.appendChild(cardinalityTextNode);
             }
 
             if (isSequence) {
-                // Zeichne ein Rechteck für <sequence>
+                // Zeichne ein komplexes Symbol für <sequence>
+                Element seqGroup = document.createElementNS(svgNS, "g");
+                seqGroup.setAttribute("id", "seq-group_" + rootElement.getElementName());
+
+                // 1. Die äußere, längliche Box
                 Element seqRect = document.createElementNS(svgNS, "rect");
                 seqRect.setAttribute("x", String.valueOf(symbolCenterX - symbolWidth / 2));
                 seqRect.setAttribute("y", String.valueOf(symbolCenterY - symbolHeight / 2));
@@ -329,10 +332,27 @@ public class XsdDocumentationImageService {
                 seqRect.setAttribute("fill", COLOR_BOX_FILL);
                 seqRect.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
                 seqRect.setAttribute("rx", "4");
-                seqRect.setAttribute("id", "seq-rect_" + rootElement.getElementName());
-                svgRoot.appendChild(seqRect);
+                seqGroup.appendChild(seqRect);
+
+                // 2. Die horizontale Linie in der Mitte
+                Element line = document.createElementNS(svgNS, "line");
+                line.setAttribute("x1", String.valueOf(symbolCenterX - symbolWidth / 2 + 5));
+                line.setAttribute("y1", String.valueOf(symbolCenterY));
+                line.setAttribute("x2", String.valueOf(symbolCenterX + symbolWidth / 2 - 5));
+                line.setAttribute("y2", String.valueOf(symbolCenterY));
+                line.setAttribute("style", "stroke: " + COLOR_TEXT_SECONDARY + "; stroke-width: 1;");
+                seqGroup.appendChild(line);
+
+                // 3. Die drei Punkte auf der Linie
+                double dotSpacing = 8;
+                seqGroup.appendChild(createDot(document, symbolCenterX - dotSpacing, symbolCenterY));
+                seqGroup.appendChild(createDot(document, symbolCenterX, symbolCenterY));
+                seqGroup.appendChild(createDot(document, symbolCenterX + dotSpacing, symbolCenterY));
+
+                svgRoot.appendChild(seqGroup);
+
             } else { // isChoice
-                // Zeichne eine Raute (Diamond) für <choice>
+                // Zeichne eine Raute (Diamond) für <choice> (unverändert)
                 Element choiceDiamond = document.createElementNS(svgNS, "polygon");
                 String points =
                         (symbolCenterX) + "," + (symbolCenterY - symbolHeight / 2) + " " + // Top
@@ -344,8 +364,22 @@ public class XsdDocumentationImageService {
                 choiceDiamond.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
                 svgRoot.appendChild(choiceDiamond);
             }
+
             // Der Startpunkt für die Linien zu den Kindern ist nun die rechte Kante des Symbols
             childPathStartX = symbolCenterX + symbolWidth / 2;
+
+            // =================================================================================
+            // NEU: Füge einen horizontalen Strich nach dem Symbol für eine bessere Trennung hinzu
+            // =================================================================================
+            final double postSymbolLineLength = 20;
+            Element postSymbolLine = document.createElementNS(svgNS, "path");
+            postSymbolLine.setAttribute("d", "M " + childPathStartX + " " + childPathStartY + " h " + postSymbolLineLength);
+            postSymbolLine.setAttribute("fill", "none");
+            postSymbolLine.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
+            svgRoot.appendChild(postSymbolLine);
+
+            // Aktualisiere den Startpunkt für die Kinderpfade, damit sie am Ende des neuen Strichs beginnen
+            childPathStartX += postSymbolLineLength;
         }
 
 
@@ -353,6 +387,8 @@ public class XsdDocumentationImageService {
         // Kind-Elemente zeichnen (angepasste Pfadlogik)
         // =================================================================================
         double actualHeight = 20;
+        final double finalRightStartX = rightStartX + (isSequence || isChoice ? 20.0 : 0.0);
+
         for (ExtendedXsdElement childElement : childElements) {
             String elementName = childElement.getElementName();
             String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
@@ -363,39 +399,40 @@ public class XsdDocumentationImageService {
             double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
             double totalContentHeight = nameHeight + typeHeight;
 
-            // Box für Kind-Element zeichnen
-            Element rightBox = createSvgRect(document, elementName, totalContentHeight, rightBoxWidth, String.valueOf(rightStartX), String.valueOf(actualHeight));
+            // Box für Kind-Element zeichnen (verwendet jetzt finalRightStartX)
+            Element rightBox = createSvgRect(document,
+                    elementName, totalContentHeight, rightBoxWidth, String.valueOf(finalRightStartX), String.valueOf(actualHeight));
             rightBox.setAttribute("filter", "url(#drop-shadow)");
             rightBox.setAttribute("style", childElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
 
-            // Text in der Box (unverändert)
+            // Text in der Box (verwendet jetzt finalRightStartX)
             Element textGroup = document.createElementNS(svgNS, "g");
             double nameY = actualHeight + margin + nameHeight;
-            Element nameTextNode = createSvgTextElement(document, elementName, String.valueOf(rightStartX + margin), String.valueOf(nameY), COLOR_TEXT_PRIMARY, font.getSize());
+            Element nameTextNode = createSvgTextElement(document, elementName, String.valueOf(finalRightStartX + margin), String.valueOf(nameY), COLOR_TEXT_PRIMARY, font.getSize());
             textGroup.appendChild(nameTextNode);
 
             if (!elementType.isBlank()) {
                 double lineY = nameY + 4;
                 Element line = document.createElementNS(svgNS, "line");
-                line.setAttribute("x1", String.valueOf(rightStartX + margin));
+                line.setAttribute("x1", String.valueOf(finalRightStartX + margin));
                 line.setAttribute("y1", String.valueOf(lineY));
-                line.setAttribute("x2", String.valueOf(rightStartX + margin + rightBoxWidth));
+                line.setAttribute("x2", String.valueOf(finalRightStartX + margin + rightBoxWidth));
                 line.setAttribute("y2", String.valueOf(lineY));
                 line.setAttribute("stroke", COLOR_STROKE_SEPARATOR);
                 line.setAttribute("stroke-width", "1");
                 textGroup.appendChild(line);
 
                 double typeY = lineY + typeBounds.getBounds2D().getHeight() + 2;
-                Element typeTextNode = createSvgTextElement(document, elementType, String.valueOf(rightStartX + margin), String.valueOf(typeY), COLOR_TEXT_SECONDARY, font.getSize() - 2);
+                Element typeTextNode = createSvgTextElement(document, elementType, String.valueOf(finalRightStartX + margin), String.valueOf(typeY), COLOR_TEXT_SECONDARY, font.getSize() - 2);
                 textGroup.appendChild(typeTextNode);
             }
 
-            // Plus-Icon (unverändert)
+            // Plus-Icon (verwendet jetzt finalRightStartX)
             Element useIcon = null;
             if (childElement.hasChildren()) {
                 useIcon = document.createElementNS(svgNS, "use");
                 useIcon.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#plus-icon");
-                useIcon.setAttribute("x", String.valueOf(rightStartX + margin + rightBoxWidth + margin + 2));
+                useIcon.setAttribute("x", String.valueOf(finalRightStartX + margin + rightBoxWidth + margin + 2));
                 double boxCenterY = actualHeight + (margin + totalContentHeight + margin) / 2;
                 useIcon.setAttribute("y", String.valueOf(boxCenterY - 10));
             }
@@ -419,12 +456,13 @@ public class XsdDocumentationImageService {
             double pathEndY = actualHeight + (margin + totalContentHeight + margin) / 2;
             Element path = document.createElementNS(svgNS, "path");
             // Der Pfad startet jetzt am Symbol (childPathStartX) oder am Root, falls kein Symbol da ist.
-            path.setAttribute("d", "M " + childPathStartX + " " + childPathStartY + " V " + pathEndY + " H " + rightStartX);
+            // Der Pfad endet am Anfang der Box (finalRightStartX)
+            path.setAttribute("d", "M " + childPathStartX + " " + childPathStartY + " V " + pathEndY + " H " + finalRightStartX);
             path.setAttribute("fill", "none");
             path.setAttribute("style", childElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
             svgRoot.appendChild(path);
 
-            // Kardinalität auf der Linie (unverändert)
+            // Kardinalität auf der Linie
             String cardinality = "";
             if (childElement.getXsdElement() != null) {
                 cardinality = formatCardinality(
@@ -436,8 +474,12 @@ public class XsdDocumentationImageService {
             if (!cardinality.isBlank()) {
                 int cardinalityFontSize = font.getSize() - 4;
                 var cardinalityBounds = font.getStringBounds(cardinality, frc);
-                double cardinalityX = rightStartX - cardinalityBounds.getWidth() - 5;
-                double cardinalityY = pathEndY - 5;
+
+                // KORREKTUR: Positioniere die Kardinalität mittig auf der horizontalen Verbindungslinie
+                double horizontalLineCenter = childPathStartX + (finalRightStartX - childPathStartX) / 2;
+                double cardinalityX = horizontalLineCenter - (cardinalityBounds.getWidth() / 2);
+                double cardinalityY = pathEndY - 5; // Leicht über der Linie
+
                 Element cardinalityTextNode = createSvgTextElement(document, cardinality, String.valueOf(cardinalityX), String.valueOf(cardinalityY), COLOR_TEXT_SECONDARY, cardinalityFontSize);
                 svgRoot.appendChild(cardinalityTextNode);
             }
@@ -452,6 +494,18 @@ public class XsdDocumentationImageService {
         svgRoot.setAttribute("style", "background-color: " + COLOR_BG);
 
         return document;
+    }
+
+    /**
+     * Creates a small SVG circle element, used as a dot in diagrams.
+     */
+    private Element createDot(Document document, double cx, double cy) {
+        Element circle = document.createElementNS(svgNS, "circle");
+        circle.setAttribute("cx", String.valueOf(cx));
+        circle.setAttribute("cy", String.valueOf(cy));
+        circle.setAttribute("r", "1.5");
+        circle.setAttribute("fill", COLOR_TEXT_SECONDARY);
+        return circle;
     }
 
     /**
