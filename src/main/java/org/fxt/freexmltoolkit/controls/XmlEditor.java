@@ -274,6 +274,41 @@ public class XmlEditor extends Tab {
         }
     }
 
+    /**
+     * Searches for the given text in the CodeArea and highlights the first occurrence
+     * by selecting it.
+     *
+     * @param text The text to search for. If null or empty, the highlight is cleared.
+     */
+    public void searchAndHighlight(String text) {
+        // If search text is empty, just clear any existing selection/highlight
+        if (text == null || text.isEmpty()) {
+            codeArea.deselect();
+            return;
+        }
+
+        String content = codeArea.getText();
+        // Search for the first occurrence from the beginning of the document
+        int index = content.indexOf(text);
+
+        if (index != -1) {
+            // Found the text, select it to highlight it
+            codeArea.selectRange(index, index + text.length());
+            // Scroll the view to the found text
+            codeArea.requestFollowCaret();
+        } else {
+            // Text not found, clear any existing selection
+            codeArea.deselect();
+        }
+    }
+
+    /**
+     * Clears the current search highlight by deselecting any selected text.
+     */
+    public void clearHighlight() {
+        codeArea.deselect();
+    }
+
     public static StyleSpans<Collection<String>> computeHighlighting(String text) {
         Matcher matcher = XML_TAG.matcher(text);
         int lastKwEnd = 0;
