@@ -91,6 +91,9 @@ public class XmlController {
     XmlEditor emptyXmlEditor;
 
     @FXML
+    TextField searchField;
+
+    @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
         schemaValidText.setText("");

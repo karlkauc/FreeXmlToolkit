@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.fxt.freexmltoolkit.controls.XmlEditor?>
@@ -57,7 +57,21 @@
                 <Button onAction="#decreaseFontSize" text="-" />
             </VBox>
             <Separator orientation="VERTICAL" />
-            <TextField prefHeight="16.0" prefWidth="200.0" promptText="search..." />
+            <StackPane prefWidth="200.0" alignment="CENTER_LEFT">
+                <TextField fx:id="searchField" promptText="search...">
+                    <padding>
+                        <Insets left="5" right="25" top="5" bottom="5" />
+                    </padding>
+                </TextField>
+                <Label StackPane.alignment="CENTER_RIGHT">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-search" iconColor="#6c757d" />
+                    </graphic>
+                    <padding>
+                        <Insets right="5" />
+                    </padding>
+                </Label>
+            </StackPane>
         </HBox>
         <HBox styleClass="xml">
             <Separator orientation="VERTICAL" />
@@ -98,34 +112,42 @@
                      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" fx:id="xmlFilesPane">
                 <XmlEditor fx:id="emptyXmlEditor"/>
             </TabPane>
-            <HBox prefHeight="100">
-                <VBox spacing="5.0">
-                    <Button fx:id="runXpathQuery" mnemonicParsing="false" onAction="#runXpathQueryPressed" text="Run" VBox.vgrow="ALWAYS">
-                        <graphic>
-                            <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill" />
-                        </graphic>
-                    </Button>
-                    <Button mnemonicParsing="false" onAction="#reloadXmlText" text="Reset" HBox.hgrow="ALWAYS">
-                        <graphic>
-                            <FontIcon iconColor="#fb2500" iconLiteral="bi-x-circle" />
-                        </graphic>
-                    </Button>
-                    <opaqueInsets>
-                        <Insets />
-                    </opaqueInsets>
-                    <padding>
-                        <Insets right="10.0" />
-                    </padding>
-                </VBox>
-                <TabPane tabClosingPolicy="UNAVAILABLE" HBox.hgrow="ALWAYS" fx:id="xPathQueryPane">
-                    <Tab text="XPath" fx:id="xPathTab">
-                        <StackPane fx:id="stackPaneXPath" stylesheets="/scss/xml-highlighting.css" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
-                    </Tab>
-                    <Tab text="XQuery" fx:id="xQueryTab">
-                        <StackPane fx:id="stackPaneXQuery" stylesheets="/scss/xml-highlighting.css" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
-                    </Tab>
-                </TabPane>
-            </HBox>
+
+            <TitledPane expanded="false" text="XPath / XQuery">
+                <HBox prefHeight="300">
+                    <VBox spacing="5.0">
+                        <Button fx:id="runXpathQuery" mnemonicParsing="false" onAction="#runXpathQueryPressed"
+                                text="Run" VBox.vgrow="ALWAYS">
+                            <graphic>
+                                <FontIcon iconColor="#45d81f" iconLiteral="bi-caret-right-fill"/>
+                            </graphic>
+                        </Button>
+                        <Button mnemonicParsing="false" onAction="#reloadXmlText" text="Reset" HBox.hgrow="ALWAYS">
+                            <graphic>
+                                <FontIcon iconColor="#fb2500" iconLiteral="bi-x-circle"/>
+                            </graphic>
+                        </Button>
+                        <opaqueInsets>
+                            <Insets/>
+                        </opaqueInsets>
+                        <padding>
+                            <Insets right="10.0"/>
+                        </padding>
+                    </VBox>
+                    <TabPane tabClosingPolicy="UNAVAILABLE" HBox.hgrow="ALWAYS" fx:id="xPathQueryPane">
+                        <Tab text="XPath" fx:id="xPathTab">
+                            <StackPane fx:id="stackPaneXPath" stylesheets="/scss/xml-highlighting.css"
+                                       AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+                                       AnchorPane.topAnchor="0"/>
+                        </Tab>
+                        <Tab text="XQuery" fx:id="xQueryTab">
+                            <StackPane fx:id="stackPaneXQuery" stylesheets="/scss/xml-highlighting.css"
+                                       AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+                                       AnchorPane.topAnchor="0"/>
+                        </Tab>
+                    </TabPane>
+                </HBox>
+            </TitledPane>
         </SplitPane>
         <!-- <TextArea fx:id="textAreaTemp" text="asfd"/> -->
     </SplitPane>
