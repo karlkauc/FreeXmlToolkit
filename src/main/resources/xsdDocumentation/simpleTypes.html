@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -22,11 +22,11 @@
 </head>
 <body class="font-sans text-slate-800">
 
-<!-- Moderne Navigation mit Schatten und klaren Abständen -->
+<!-- Modern navigation with shadow and clear spacing -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
-            <!-- Linke Navigationsgruppe -->
+            <!-- Left navigation group -->
             <div class="hidden md:flex items-baseline space-x-6">
                 <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
                    aria-current="page">Home</a>
@@ -40,7 +40,7 @@
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
             </div>
-            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <!-- Right navigation group (GitHub Link) -->
             <div class="hidden md:block">
                 <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank" class="flex items-center space-x-2 text-slate-700 font-bold">
                     <img src="assets/logo.png" alt="logo" class="h-8 w-8"/>
@@ -51,33 +51,33 @@
     </div>
 </nav>
 
-<!-- Hauptinhalt -->
+<!-- Main content -->
 <main class="container mx-auto px-4 py-8 md:py-12">
     <header class="mb-8">
-        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Alle Simple Types</h1>
-        <p class="mt-2 text-lg text-slate-600">Übersicht aller im Schema definierten einfachen Typen.</p>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">All Simple Types</h1>
+        <p class="mt-2 text-lg text-slate-600">An overview of all simple types defined in the schema.</p>
     </header>
 
-    <!-- Liste der Simple Types -->
+    <!-- List of Simple Types -->
     <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
         <ul role="list" class="divide-y divide-slate-200">
-            <!-- Thymeleaf-Schleife, um über alle Simple Types zu iterieren -->
+            <!-- Thymeleaf loop to iterate over all simple types -->
             <li th:each="simpleType : ${xsdSimpleTypes}" class="hover:bg-slate-50 transition-colors">
                 <a th:href="${'simpleTypes/' + simpleType.name + '.html'}" class="block p-6">
                     <div class="flex items-center justify-between">
                         <p class="text-lg font-semibold text-sky-600 font-mono" th:text="${simpleType.name}">
                             SimpleTypeName</p>
-                        <!-- Zeige den Basis-Typ an, falls vorhanden (mit explizitem Null-Check) -->
+                        <!-- Display the base type if it exists (with an explicit null check) -->
                         <span th:if="${simpleType.getRestriction() != null and simpleType.getRestriction().getBase() != null}"
                               class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700"
-                              th:text="${'Basis: ' + simpleType.getRestriction().getBase()}">Basis: xs:string</span>
+                              th:text="${'Base: ' + simpleType.getRestriction().getBase()}">Base: xs:string</span>
                     </div>
-                    <!-- Dokumentation (falls vorhanden, mit explizitem Null-Check) -->
+                    <!-- Documentation (if present, with an explicit null check) -->
                     <div class="mt-2"
                          th:if="${simpleType.getAnnotation() != null and not #lists.isEmpty(simpleType.getAnnotation().getDocumentations())}">
                         <p class="text-sm text-slate-600"
                            th:text="${simpleType.getAnnotation().getDocumentations().get(0).getContent()}">
-                            Dokumentation des einfachen Typs...
+                            Documentation of the simple type...
                         </p>
                     </div>
                 </a>

@@ -18,15 +18,6 @@
 
 package org.fxt.freexmltoolkit;
 
-import org.apache.hc.client5.http.auth.AuthScope;
-import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.NTCredentials;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,9 +27,12 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class NetTest {
@@ -92,44 +86,67 @@ public class NetTest {
     }
 
     @Test
-    public void testNew() {
+    public void testNewWithJdkHttpClient() {
         var properties = PropertiesServiceImpl.getInstance().loadProperties();
+        // Stellt sicher, dass die Authentifizierungsschemata für den Proxy aktiviert sind
         System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
         System.setProperty("jdk.http.auth.proxying.disabledSchemes", "");
-        // System.setProperty("javax.net.debug", "all");
 
-        final var httpProxyHost = properties.get("http.proxy.host").toString();
-        final var httpProxyPort = properties.get("http.proxy.port").toString();
-        final var httpProxyUser = properties.get("http.proxy.user").toString();
-        final var httpProxyPassword = properties.get("http.proxy.password").toString();
+        // Lädt die Proxy-Konfiguration aus den Properties
+        final String httpProxyHost = properties.get("http.proxy.host").toString();
+        final int httpProxyPort = Integer.parseInt(properties.get("http.proxy.port").toString());
+        final String httpProxyUser = properties.get("http.proxy.user").toString();
+        final String httpProxyPassword = properties.get("http.proxy.password").toString();
 
-        Credentials ntlmCredentials = new NTCredentials(httpProxyUser, httpProxyPassword.toCharArray(), null, null);
-        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), ntlmCredentials);
-
-        HttpHost proxy = new HttpHost(httpProxyHost, Integer.parseInt(httpProxyPort));
-        var connManager = new BasicHttpClientConnectionManager();
-
-        try (CloseableHttpClient httpClient = HttpClients.custom()
-                .setDefaultCredentialsProvider(credsProvider)
-                .setProxy(proxy)
-                .setConnectionManager(connManager)
-                .build()) {
-
-            HttpGet httpGet = new HttpGet("https://www.github.com");
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-            httpClient.execute(httpGet, response -> {
-                System.out.println("response.getCode() = " + response.getCode());
-                if (response.getCode() == HttpStatus.SC_OK) {
-                    response.getEntity().writeTo(byteArrayOutputStream);
+        // 1. Setzt einen standardmäßigen Authenticator für die Proxy-Anmeldeinformationen.
+        //    Dieser wird für die Dauer des Tests für die gesamte JVM gesetzt.
+        Authenticator.setDefault(new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                // Prüft, ob die Authentifizierungsanfrage für einen Proxy-Server ist
+                if (getRequestorType() == RequestorType.PROXY) {
+                    return new PasswordAuthentication(httpProxyUser, httpProxyPassword.toCharArray());
                 }
-                return response;
-            });
+                return null;
+            }
+        });
 
-            logger.debug("Content: {}", byteArrayOutputStream);
-        } catch (IOException e) {
-            logger.error(e.getMessage());
+        try {
+            // 2. Erstellt den HttpClient und konfiguriert ihn für die Verwendung des angegebenen Proxys
+            HttpClient httpClient = HttpClient.newBuilder()
+                    .proxy(ProxySelector.of(new InetSocketAddress(httpProxyHost, httpProxyPort)))
+                    .build();
+
+            // 3. Erstellt die HTTP-Anfrage
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI("https://www.github.com"))
+                    .GET()
+                    .build();
+
+            // 4. Sendet die Anfrage und empfängt die Antwort als Byte-Array
+            HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+            System.out.println("response.statusCode() = " + response.statusCode());
+
+            // 5. Verarbeitet die Antwort
+            if (response.statusCode() == HttpStatus.SC_OK) { // 200 OK
+                // Loggt den Antwort-Body als String zur besseren Lesbarkeit
+                String responseBody = new String(response.body(), StandardCharsets.UTF_8);
+                logger.debug("Content received, length: {}", responseBody.length());
+            } else {
+                logger.warn("Request failed with status code: {}", response.statusCode());
+            }
+
+        } catch (IOException | InterruptedException | URISyntaxException e) {
+            logger.error("Error during HTTP request: {}", e.getMessage(), e);
+            // Stellt den Interrupted-Status wieder her, falls eine InterruptedException gefangen wurde
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+        } finally {
+            // In einer Testumgebung ist es eine gute Praxis, den globalen Authenticator zurückzusetzen,
+            // um Seiteneffekte in anderen Tests zu vermeiden.
+            Authenticator.setDefault(null);
         }
     }
 }

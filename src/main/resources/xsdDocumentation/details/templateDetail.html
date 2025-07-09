@@ -17,7 +17,7 @@
   -->
 
 <!DOCTYPE html>
-<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -44,11 +44,11 @@
 </head>
 <body class="font-sans text-slate-800">
 
-<!-- Moderne Navigation mit Schatten und klaren Abständen -->
+<!-- Modern navigation with shadow and clear spacing -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
-            <!-- Linke Navigationsgruppe -->
+            <!-- Left navigation group -->
             <div class="hidden md:flex items-baseline space-x-6">
                 <a href="../index.html" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
                    aria-current="page">Home</a>
@@ -62,9 +62,10 @@
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
             </div>
-            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <!-- Right navigation group (GitHub Link) -->
             <div class="hidden md:block">
-                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank" class="flex items-center space-x-2 text-slate-700 font-bold">
+                <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank"
+                   class="flex items-center space-x-2 text-slate-700 font-bold">
                     <img src="../assets/logo.png" alt="logo" class="h-8 w-8"/>
                     <span>FreeXmlToolKit</span>
                 </a>
@@ -73,16 +74,16 @@
     </div>
 </nav>
 
-<!-- Hauptinhalt -->
+<!-- Main content -->
 <main class="container mx-auto px-4 py-8 md:py-12">
 
-    <!-- Breadcrumb-Navigation: Wird nur angezeigt, wenn der XPath-Pfad vorhanden ist. -->
+    <!-- Breadcrumb navigation: Only shown if the XPath path exists. -->
     <nav aria-label="breadcrumb" class="mb-6" th:if="${xpath != null}">
         <ol class="flex items-center space-x-1 text-sm text-slate-500">
-            <!-- Iteriert über jeden Teil des Pfades und erstellt einen Breadcrumb-Eintrag -->
+            <!-- Iterates over each part of the path and creates a breadcrumb entry -->
             <li th:each="path, state : ${xpath}" class="flex items-center">
                 <a th:href="${path.value}" th:text="${path.key}" class="hover:text-sky-600 hover:underline"></a>
-                <!-- Fügt ein Trenn-Icon hinzu, außer beim letzten Element -->
+                <!-- Adds a separator icon, except for the last element -->
                 <svg th:if="${!state.last}" class="h-5 w-5 flex-shrink-0 text-slate-400" viewBox="0 0 20 20"
                      fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd"
@@ -93,23 +94,25 @@
         </ol>
     </nav>
 
-    <!-- Zentrale Detail-Karte -->
+    <!-- Central detail card -->
     <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
-        <!-- Karten-Header mit Elementname und XPath -->
+        <!-- Card header with element name and XPath -->
         <header class="p-6 border-b border-slate-200 bg-slate-50">
             <h1 class="text-2xl font-bold text-slate-900" th:text="${element.elementName}">ElementName</h1>
-            <!-- KORREKTUR: Der p-Tag wurde durch einen flex-Container ersetzt, der den Text und einen Kopier-Button enthält -->
+            <!-- The p-tag was replaced by a flex container holding the text and a copy button -->
             <div class="flex items-center space-x-2 mt-1">
                 <p class="text-sm text-slate-600 font-mono" th:text="${element.currentXpath}">/path/to/element</p>
-                <!-- Button zum Kopieren des XPath in die Zwischenablage -->
+                <!-- Button to copy the XPath to the clipboard -->
                 <button th:attr="data-xpath=${element.currentXpath}"
                         onclick="copyToClipboard(this)"
                         class="relative group p-1 rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
-                    <!-- Das Kopier-Icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    <!-- The copy icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                     </svg>
-                    <!-- Tooltip, der beim Hovern erscheint und nach dem Klick den Status anzeigt -->
+                    <!-- Tooltip that appears on hover and shows status after click -->
                     <span id="tooltip-text"
                           class="absolute -top-8 left-1/2 -translate-x-1/2 w-max px-2 py-1 bg-slate-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
                         Copy XPath
@@ -118,33 +121,33 @@
             </div>
         </header>
 
-        <!-- Karten-Body mit allen Detail-Sektionen -->
+        <!-- Card body with all detail sections -->
         <div class="p-6 md:p-8 space-y-10">
 
-            <!-- Sektion: Diagramm -->
+            <!-- Section: Diagram -->
             <section>
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Diagramm</h2>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Diagram</h2>
                 <div class="p-4 border border-slate-200 rounded-lg bg-slate-50 overflow-x-auto">
 
-                    <!-- Thymeleaf Switch, um zwischen SVG und PNG zu unterscheiden -->
+                    <!-- Thymeleaf switch to differentiate between SVG and PNG -->
                     <div th:switch="${diagramType}">
 
-                        <!-- Fall 1: Wenn der Typ 'SVG' ist, füge den SVG-Code direkt ein -->
+                        <!-- Case 1: If the type is 'SVG', insert the SVG code directly -->
                         <div th:case="'SVG'" th:utext="${diagramContent}">
-                            <!-- Der rohe SVG-String wird hier von Thymeleaf eingefügt -->
+                            <!-- The raw SVG string is inserted here by Thymeleaf -->
                         </div>
 
-                        <!-- Fall 2: Wenn der Typ 'PNG' ist, erstelle ein normales Bild-Tag -->
+                        <!-- Case 2: If the type is 'PNG', create a normal image tag -->
                         <div th:case="'PNG'" style="float:left;">
-                            <img th:src="${'../' + diagramContent}" alt="Diagramm des Elements" class="mx-auto"/>
+                            <img th:src="${'../' + diagramContent}" alt="Diagram of the element" class="mx-auto"/>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Sektion: Dokumentation -->
+            <!-- Section: Documentation -->
             <section th:if="${documentation != null and not #maps.isEmpty(documentation)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Dokumentation</h2>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Documentation</h2>
                 <div class="bg-slate-100/75 p-4 rounded-md space-y-2">
                     <div th:each="doc: ${documentation}">
                         <strong th:if="${doc.key != 'default'}" class="text-slate-700 block"
@@ -154,16 +157,16 @@
                 </div>
             </section>
 
-            <!-- Sektion: Eigenschaften -->
+            <!-- Section: Properties -->
             <section>
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Eigenschaften</h2>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Properties</h2>
                 <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
                     <div class="flex flex-col">
-                        <dt class="text-sm font-medium text-slate-500">Typ</dt>
+                        <dt class="text-sm font-medium text-slate-500">Type</dt>
                         <dd class="mt-1 text-slate-900 font-mono" th:text="${element.elementType}">element-type</dd>
                     </div>
                     <div class="flex flex-col">
-                        <dt class="text-sm font-medium text-slate-500">Kardinalität (min/max)</dt>
+                        <dt class="text-sm font-medium text-slate-500">Cardinality (min/max)</dt>
                         <dd class="mt-1 text-slate-900 font-mono"
                             th:text="${element.getXsdElement() != null && element.getXsdElement().getMinOccurs() != null ? element.getXsdElement().getMinOccurs() + ' / ' + element.getXsdElement().getMaxOccurs() : 'n/a'}">
                             1 / 1
@@ -178,33 +181,32 @@
                         <dd class="mt-1 text-slate-900" th:text="${element.level}">1</dd>
                     </div>
                     <div class="flex flex-col md:col-span-2" th:if="${sampleData != null and sampleData != '...'}">
-                        <dt class="text-sm font-medium text-slate-500">Beispieldaten</dt>
+                        <dt class="text-sm font-medium text-slate-500">Sample Data</dt>
                         <dd class="mt-1 text-slate-900 bg-slate-100 p-2 rounded-md font-mono text-sm"
                             th:text="${sampleData}">Sample Data
                         </dd>
                     </div>
                     <div class="flex flex-col md:col-span-full"
                          th:if="${element.xsdRestrictionString != null and not #strings.isEmpty(element.xsdRestrictionString)}">
-                        <dt class="text-sm font-medium text-slate-500">Einschränkungen</dt>
+                        <dt class="text-sm font-medium text-slate-500">Restrictions</dt>
                         <dd class="mt-1 text-slate-900 bg-slate-100 p-2 rounded-md font-mono text-sm"
-                            th:text="${element.xsdRestrictionString}">RESTRICTIONS
+                            th:utext="${element.xsdRestrictionString}">RESTRICTIONS
                         </dd>
                     </div>
                 </dl>
             </section>
 
-            <!-- Sektion: Kind-Elemente & Attribute -->
+            <!-- Section: Child Elements & Attributes -->
             <section th:if="${element.children != null and not #lists.isEmpty(element.children)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Kind-Elemente &amp; Attribute</h2>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Child Elements &amp; Attributes</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 border-b border-slate-200 text-sm">
                         <tr>
                             <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Name (XPath)</th>
-                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Typ</th>
-                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Dokumentation</th>
-                            <!-- NEU: Spalte für Beispieldaten -->
-                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Beispieldaten</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Type</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Documentation</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Sample Data</th>
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 text-sm">
@@ -215,19 +217,20 @@
                             </td>
 
                             <td class="px-4 py-3 font-mono">
-                                <!-- Wenn der Typ ein benutzerdefinierter Typ ist (kein xs:...), wird er verlinkt -->
+                                <!-- If the type is a custom type (not xs:...), it will be linked -->
                                 <a th:if="${this.isChildTypeLinkable(child)}"
                                    th:href="${this.getChildTypePageName(child)}"
                                    th:text="${this.getChildType(child)}"
                                    class="text-sky-600 hover:text-sky-800 hover:underline">
                                 </a>
-                                <!-- Andernfalls (z.B. bei 'xs:string') wird er als normaler Text angezeigt -->
+                                <!-- Otherwise (e.g., for 'xs:string'), it is displayed as normal text -->
                                 <span th:unless="${this.isChildTypeLinkable(child)}"
                                       th:text="${this.getChildType(child)}">
-    </span>
+                                </span>
                             </td>
 
-                            <td class="px-4 py-3 text-slate-600" th:text="${this.getChildDocumentation(child)}">
+                            <td class="px-4 py-3 text-slate-600 prose prose-sm max-w-md"
+                                th:utext="${this.getChildDocumentation(child)}">
                                 child-docs
                             </td>
                             <td class="px-4 py-3 font-mono text-slate-600" th:text="${this.getChildSampleData(child)}">
@@ -239,7 +242,7 @@
                 </div>
             </section>
 
-            <!-- Sektion: App Info -->
+            <!-- Section: App Info -->
             <section th:if="${appInfos != null and not #lists.isEmpty(appInfos)}">
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">App Info</h2>
                 <div class="space-y-2">
@@ -249,9 +252,9 @@
                 </div>
             </section>
 
-            <!-- Sektion: XML-Ausschnitt -->
+            <!-- Section: XML Snippet -->
             <section th:if="${code != null}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">XML-Ausschnitt</h2>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">XML Snippet</h2>
                 <div class="rounded-lg overflow-hidden border border-slate-200">
                     <pre class="language-xml !m-0"><code th:text="${code}">... code ...</code></pre>
                 </div>
@@ -261,25 +264,25 @@
     </div>
 </main>
 
-<!-- Skripte am Ende laden -->
+<!-- Load scripts at the end -->
 <script src="../assets/prism.js"></script>
 
-<!-- NEU: JavaScript für die Kopier-Funktionalität -->
+<!-- JavaScript for the copy functionality -->
 <script>
     function copyToClipboard(buttonElement) {
         const textToCopy = buttonElement.getAttribute('data-xpath');
         const tooltip = buttonElement.querySelector('#tooltip-text');
 
-        // Moderne Methode zum Kopieren in die Zwischenablage
+        // Modern method for copying to the clipboard
         navigator.clipboard.writeText(textToCopy).then(() => {
-            // Erfolg: Zeige eine Bestätigung im Tooltip an
+            // Success: Show a confirmation in the tooltip
             tooltip.textContent = 'Copied!';
-            // Setze den Tooltip-Text nach 2 Sekunden zurück
+            // Reset the tooltip text after 2 seconds
             setTimeout(() => {
                 tooltip.textContent = 'Copy XPath';
             }, 2000);
         }).catch(err => {
-            // Fehlerfall: Gib eine Fehlermeldung aus
+            // Error case: Log an error message
             tooltip.textContent = 'Failed to copy!';
             console.error('Could not copy text: ', err);
             setTimeout(() => {
@@ -288,10 +291,6 @@
         });
     }
 </script>
-
-</body>
-</html>
-
 
 </body>
 </html>

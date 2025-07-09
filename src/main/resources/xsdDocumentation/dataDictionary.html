@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -23,11 +23,11 @@
 </head>
 <body class="font-sans text-slate-800">
 
-<!-- Moderne Navigation mit Schatten und klaren Abständen -->
+<!-- Modern navigation with shadow and clear spacing -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
-            <!-- Linke Navigationsgruppe -->
+            <!-- Left navigation group -->
             <div class="hidden md:flex items-baseline space-x-6">
                 <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
                    aria-current="page">Home</a>
@@ -41,7 +41,7 @@
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
             </div>
-            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <!-- Right navigation group (GitHub Link) -->
             <div class="hidden md:block">
                 <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank" class="flex items-center space-x-2 text-slate-700 font-bold">
                     <img src="assets/logo.png" alt="logo" class="h-8 w-8"/>
@@ -52,31 +52,31 @@
     </div>
 </nav>
 
-<!-- Hauptinhalt -->
+<!-- Main content -->
 <main class="container mx-auto px-4 py-8 md:py-12">
     <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
         <header class="p-6 border-b border-slate-200 bg-slate-50">
             <h1 class="text-2xl font-bold text-slate-900">Data Dictionary</h1>
-            <p class="mt-1 text-sm text-slate-600">Eine vollständige Liste aller Elemente und Attribute mit ihrer
-                Dokumentation.</p>
+            <p class="mt-1 text-sm text-slate-600">A complete list of all elements and attributes with their
+                documentation.</p>
         </header>
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead class="bg-slate-50 border-b border-slate-200 text-sm">
                 <tr>
-                    <!-- NEU: Spalte für den Zähler -->
+                    <!-- Column for the counter -->
                     <th scope="col" class="px-6 py-4 font-semibold text-slate-900 text-right">#</th>
                     <th scope="col" class="px-6 py-4 font-semibold text-slate-900">XPath</th>
-                    <th scope="col" class="px-6 py-4 font-semibold text-slate-900">Dokumentation</th>
+                    <th scope="col" class="px-6 py-4 font-semibold text-slate-900">Documentation</th>
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 text-sm">
-                <!-- Iteration über alle Elemente -->
+                <!-- Iteration over all elements -->
                 <tr th:each="element, iterStat : ${allElements}">
-                    <!-- Zähler-Zelle -->
+                    <!-- Counter cell -->
                     <td class="px-6 py-4 text-right text-slate-500" th:text="${iterStat.count}"></td>
 
-                    <!-- XPath-Zelle mit intelligenter Kürzung -->
+                    <!-- XPath cell with intelligent truncation -->
                     <td class="px-6 py-4 font-mono whitespace-nowrap">
                         <a th:href="${'details/' + element.pageName}"
                            th:title="${element.currentXpath}"
@@ -86,18 +86,18 @@
                     </td>
 
                     <td class="px-6 py-4">
-                        <!-- Block 1: Die Dokumentation des Elements selbst -->
+                        <!-- Block 1: The documentation of the element itself -->
                         <span class="text-slate-700"
                               th:utext="${this.getChildDocumentation(element.currentXpath)}"></span>
 
-                        <!-- Block 2: Die Dokumentation des zugrunde liegenden Typs -->
-                        <!-- th:with speichert das Ergebnis, um die Methode nicht mehrfach aufrufen zu müssen -->
+                        <!-- Block 2: The documentation of the underlying type -->
+                        <!-- th:with stores the result to avoid calling the method multiple times -->
                         <div th:with="typeDoc=${this.getTypeDocumentation(element.currentXpath)}">
-                            <!-- Dieser Block wird nur angezeigt, wenn eine Typ-Dokumentation gefunden wurde -->
+                            <!-- This block is only displayed if type documentation was found -->
                             <div th:if="${!#strings.isEmpty(typeDoc)}"
                                  class="mt-2 pt-2 border-t border-slate-200/60">
                                 <span class="block text-xs font-semibold text-slate-500"
-                                      th:text="'Dokumentation für Typ: ' + ${element.elementType}"></span>
+                                      th:text="'Documentation for type: ' + ${element.elementType}"></span>
                                 <span class="block text-xs text-slate-500 italic" th:utext="${typeDoc}"></span>
                             </div>
                         </div>
@@ -109,8 +109,8 @@
     </div>
 </main>
 
-<!-- NEU: Scroll-to-Top Button und zugehöriges Skript -->
-<button id="scrollToTopBtn" title="Nach oben scrollen"
+<!-- Scroll-to-Top Button and its script -->
+<button id="scrollToTopBtn" title="Scroll to top"
         class="hidden fixed bottom-8 right-8 bg-sky-600 hover:bg-sky-700 text-white p-3 rounded-full shadow-lg transition-opacity duration-300">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-up-short"
          viewBox="0 0 16 16">
@@ -120,12 +120,12 @@
 </button>
 
 <script>
-    // Logik für den Scroll-to-Top Button
+    // Logic for the Scroll-to-Top Button
     const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
-    // Zeige oder verstecke den Button basierend auf der Scroll-Position
+    // Show or hide the button based on the scroll position
     window.onscroll = function () {
-        // Zeige den Button, wenn mehr als 100px nach unten gescrollt wurde
+        // Show the button when scrolled down more than 100px
         if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
             scrollToTopBtn.classList.remove('hidden');
         } else {
@@ -133,7 +133,7 @@
         }
     };
 
-    // Scrolle sanft nach oben, wenn der Button geklickt wird
+    // Scroll smoothly to the top when the button is clicked
     scrollToTopBtn.onclick = function () {
         window.scrollTo({top: 0, behavior: 'smooth'});
     };

@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.control.ScrollPane;
@@ -68,6 +70,8 @@ public class XmlEditor extends Tab {
     private final Tab xml = new Tab("XML");
     private final Tab graphic = new Tab("Graphic");
 
+    private final ObjectProperty<Runnable> onSearchRequested = new SimpleObjectProperty<>();
+
     StackPane stackPane = new StackPane();
 
     CodeArea codeArea = new CodeArea();
@@ -104,6 +108,18 @@ public class XmlEditor extends Tab {
 
     public XmlEditor() {
         init();
+    }
+
+    public final ObjectProperty<Runnable> onSearchRequestedProperty() {
+        return onSearchRequested;
+    }
+
+    public final void setOnSearchRequested(Runnable value) {
+        onSearchRequested.set(value);
+    }
+
+    public final Runnable getOnSearchRequested() {
+        return onSearchRequested.get();
     }
 
     private void init() {
@@ -168,11 +184,23 @@ public class XmlEditor extends Tab {
         });
 
         codeArea.addEventFilter(KeyEvent.ANY, event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.NUMPAD0
-                    || event.isControlDown() && event.getCode() == KeyCode.DIGIT0) {
-                resetFontSize();
+            // Nur auf gedrückte Tasten reagieren, um doppelte Ausführung zu vermeiden
+            if (event.getEventType() == KeyEvent.KEY_PRESSED) {
+                // Strg+F für die Suche abfangen
+                if (event.isControlDown() && event.getCode() == KeyCode.F) {
+                    if (getOnSearchRequested() != null) {
+                        getOnSearchRequested().run();
+                        event.consume(); // Verhindert, dass das Event weiterverarbeitet wird
+                    }
+                }
+                // Strg+0 für das Zurücksetzen des Zooms
+                else if (event.isControlDown() && (event.getCode() == KeyCode.NUMPAD0 || event.getCode() == KeyCode.DIGIT0)) {
+                    resetFontSize();
+                    event.consume();
+                }
             }
         });
+
 
         stackPane.getChildren().add(virtualizedScrollPane);
         codeArea.setLineHighlighterOn(true);

@@ -198,6 +198,12 @@ public class XmlController {
             xmlEditor.setXmlFile(f);
             xmlEditor.refresh();
 
+            // NEU: Setzt die Aktion für die Suchanfrage
+            xmlEditor.setOnSearchRequested(() -> {
+                searchField.requestFocus();
+                searchField.selectAll();
+            });
+
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
         }
@@ -209,6 +215,11 @@ public class XmlController {
         XmlEditor xmlEditor = new XmlEditor(f);
         xmlEditor.refresh();
 
+        xmlEditor.setOnSearchRequested(() -> {
+            searchField.requestFocus();
+            searchField.selectAll();
+        });
+
         xmlFilesPane.getTabs().add(xmlEditor);
         xmlFilesPane.getSelectionModel().select(xmlEditor);
     }
@@ -218,6 +229,12 @@ public class XmlController {
         logger.debug("New File Pressed");
 
         XmlEditor x = new XmlEditor();
+
+        x.setOnSearchRequested(() -> {
+            searchField.requestFocus();
+            searchField.selectAll();
+        });
+
         xmlFilesPane.getTabs().add(x);
         xmlFilesPane.getSelectionModel().select(x);
     }

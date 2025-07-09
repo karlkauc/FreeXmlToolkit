@@ -108,12 +108,12 @@ public class GenerateXsdHtmlDocumentationTest {
     void generateHtmlDoc() throws IOException {
         final var testFilePath = Paths.get(XML_429_XSD);
         // final var testFilePath = Paths.get(SIMPLE_XSD_FILE);
-        final var outputFilePath = Paths.get("output/test");
+        final var outputFilePath = Paths.get("../FundsXML_Documentation");
         this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());
         this.xsdDocumentationService.setXmlService(xmlService);
         this.xsdDocumentationService.setUseMarkdownRenderer(true);
         this.xsdDocumentationService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
-        this.xsdDocumentationService.setParallelProcessing(false);
+        this.xsdDocumentationService.setParallelProcessing(true);
         this.xsdDocumentationService.generateXsdDocumentation(outputFilePath.toFile());
         Desktop.getDesktop().open(new File(outputFilePath.toFile().getAbsolutePath() + "/index.html"));
     }

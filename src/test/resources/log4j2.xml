@@ -47,7 +47,7 @@
         <Logger name="org.fxt.freexmltoolkit.service.XsdDocumentationImageService" level="INFO">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.fxt.freexmltoolkit.service" level="INFO">
+        <Logger name="org.fxt.freexmltoolkit.service" level="DEBUG">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>

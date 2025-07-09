@@ -94,6 +94,33 @@ public class ExtendedXsdElement implements Serializable {
     }
 
     /**
+     * Retrieves all documentation content as a single string, rendered as HTML if the markdown renderer is enabled.
+     * This is useful for displaying a summary of documentation in tables.
+     *
+     * @return The documentation string, potentially as HTML.
+     */
+    public String getDocumentationAsHtml() {
+        if (xsdDocumentation == null || xsdDocumentation.isEmpty()) {
+            return "";
+        }
+
+        // Join all documentation parts. If there are multiple, they will be concatenated,
+        // separated by newlines which markdown treats as paragraphs.
+        String rawContent = xsdDocumentation.stream()
+                .map(XsdDocumentation::getContent)
+                .collect(Collectors.joining("\n\n"));
+
+        if (useMarkdownRenderer) {
+            var document = parser.parse(rawContent);
+            return renderer.render(document);
+        } else {
+            // For non-markdown, just return the raw content.
+            // The template can handle basic formatting if needed.
+            return rawContent;
+        }
+    }
+
+    /**
      * Retrieves example values from the XSD element's annotations.
      *
      * @return a list of example values
@@ -178,11 +205,14 @@ public class ExtendedXsdElement implements Serializable {
         }
 
         StringWriter stringWriter = new StringWriter();
+        // KORREKTUR: Wir verwenden einen HTML-Zeilenumbruch für die Darstellung im Web.
+        final String lineBreak = "<br />";
 
         if (xsdRestriction.getEnumeration() != null) {
             stringWriter
                     .append("Enumeration: ")
                     .append(xsdRestriction.getEnumeration().stream().map(XsdStringRestrictions::getValue).collect(Collectors.joining(", ")))
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 
@@ -190,13 +220,15 @@ public class ExtendedXsdElement implements Serializable {
             stringWriter
                     .append("Pattern: ")
                     .append(xsdRestriction.getPattern().getValue())
-                    .append(System.lineSeparator());
+                    .append(lineBreak).
+                    append(System.lineSeparator());
         }
 
         if (xsdRestriction.getMinInclusive() != null) {
             stringWriter
                     .append("Min inclusive: ")
                     .append(xsdRestriction.getMinInclusive().getValue())
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 
@@ -204,6 +236,7 @@ public class ExtendedXsdElement implements Serializable {
             stringWriter
                     .append("Max inclusive: ")
                     .append(xsdRestriction.getMaxInclusive().getValue())
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 
@@ -211,6 +244,7 @@ public class ExtendedXsdElement implements Serializable {
             stringWriter
                     .append("Min exclusive: ")
                     .append(xsdRestriction.getMinExclusive().getValue())
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 
@@ -218,13 +252,15 @@ public class ExtendedXsdElement implements Serializable {
             stringWriter
                     .append("Max exclusive: ")
                     .append(xsdRestriction.getMaxExclusive().getValue())
-                    .append(System.lineSeparator());
+                    .append(lineBreak).
+                    append(System.lineSeparator());
         }
 
         if (xsdRestriction.getFractionDigits() != null) {
             stringWriter
                     .append("Fraction digits: ")
                     .append(String.valueOf(xsdRestriction.getFractionDigits().getValue()))
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 
@@ -232,6 +268,7 @@ public class ExtendedXsdElement implements Serializable {
             stringWriter
                     .append("Total digits: ")
                     .append(String.valueOf(xsdRestriction.getTotalDigits().getValue()))
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 
@@ -239,6 +276,7 @@ public class ExtendedXsdElement implements Serializable {
             stringWriter
                     .append("Length: ")
                     .append(String.valueOf(xsdRestriction.getLength().getValue()))
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 
@@ -246,6 +284,7 @@ public class ExtendedXsdElement implements Serializable {
             stringWriter
                     .append("Min length: ")
                     .append(String.valueOf(xsdRestriction.getMinLength().getValue()))
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 
@@ -253,6 +292,7 @@ public class ExtendedXsdElement implements Serializable {
             stringWriter
                     .append("Max length: ")
                     .append(String.valueOf(xsdRestriction.getMaxLength().getValue()))
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 
@@ -260,6 +300,7 @@ public class ExtendedXsdElement implements Serializable {
             stringWriter
                     .append("White space: ")
                     .append(xsdRestriction.getWhiteSpace().getValue().getValue())
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 
@@ -267,6 +308,7 @@ public class ExtendedXsdElement implements Serializable {
             stringWriter
                     .append("Base: ")
                     .append(xsdRestriction.getBase())
+                    .append(lineBreak)
                     .append(System.lineSeparator());
         }
 

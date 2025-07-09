@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema
-        xmlns:xs="http://www.w3.org/2001/XMLSchema"
-        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-        xmlns:altova="http://www.altova.com/xml-schema-extensions"
-        version="4.2.9"
-        elementFormDefault="qualified"
-        attributeFormDefault="unqualified">
+<!-- Mit XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) von XMLSpy2013 (s IT Solutions AT Spardat GmbH z.B. Buchhaltung) bearbeitet -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:altova="http://www.altova.com/xml-schema-extensions" elementFormDefault="qualified" attributeFormDefault="unqualified" version="4.2.9">
 	<xs:import namespace="http://www.w3.org/2000/09/xmldsig#" schemaLocation="xmldsig-core-schema.xsd"/>
 	<xs:element name="FundsXML4">
 		<xs:annotation>
@@ -3941,9 +3936,9 @@ Onlyl MktEqGlobal or MktEqOther will be non zero.</xs:documentation>
 			<xs:element name="DataOperation" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>
-INITIAL: This refers to the first time data is delivered. It includes all the necessary information to set up or populate a system or database. 
-AMEND: This term is used when there are updates or changes to the existing data. An amendment might include corrections, additions, or modifications to the previously delivered data. It ensures that the data remains accurate and up-to-date.
-DELETE: This involves the removal of specific data from the system. It could be due to data being outdated, incorrect, or no longer needed. Deleting data helps in maintaining the relevance and efficiency of the database. DELETE requires a RelatedDocumentIDs that referes to the data delivery that should be deleted. 
+**INITIAL**: This refers to the first time data is delivered. It includes all the necessary information to set up or populate a system or database. 
+**AMEND**: This term is used when there are updates or changes to the existing data. An amendment might include corrections, additions, or modifications to the previously delivered data. It ensures that the data remains accurate and up-to-date.
+**DELETE**: This involves the removal of specific data from the system. It could be due to data being outdated, incorrect, or no longer needed. Deleting data helps in maintaining the relevance and efficiency of the database. DELETE requires a RelatedDocumentIDs that referes to the data delivery that should be deleted. 
 					</xs:documentation>
 				</xs:annotation>
 				<xs:simpleType>

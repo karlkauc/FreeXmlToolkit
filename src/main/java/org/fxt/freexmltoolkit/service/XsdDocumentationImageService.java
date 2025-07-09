@@ -154,6 +154,14 @@ public class XsdDocumentationImageService {
         // Definiere wiederverwendbare Elemente im <defs>-Block
         Element defs = document.createElementNS(svgNS, "defs");
 
+        // Füge einen <style>-Block für den Hover-Effekt hinzu
+        Element styleElement = document.createElementNS(svgNS, "style");
+        // Definiert eine CSS-Regel: Wenn die Maus über ein Element der Klasse 'hoverable-rect' fährt,
+        // ändert sich die Füllfarbe sanft.
+        String css = ".hoverable-rect:hover { fill: #cad5e3; transition: fill 0.2s ease-in-out; }";
+        styleElement.appendChild(document.createTextNode(css));
+        defs.appendChild(styleElement);
+
         // 1. Drop-Shadow-Filter (unverändert)
         Element filter = document.createElementNS(svgNS, "filter");
         filter.setAttribute("id", "drop-shadow");
@@ -252,6 +260,7 @@ public class XsdDocumentationImageService {
         Element rect1 = createSvgRect(document, rootElement.getElementName(), rootElementHeight, rootElementWidth, String.valueOf(rootStartX), String.valueOf(rootStartY));
         rect1.setAttribute("filter", "url(#drop-shadow)");
         rect1.setAttribute("style", rootElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
+        rect1.setAttribute("class", "hoverable-rect");
         Element text1 = createSvgTextElement(document, rootElement.getElementName(), String.valueOf(rootStartX + margin), String.valueOf(rootStartY + margin + rootElementHeight), COLOR_TEXT_PRIMARY, font.getSize());
         leftRootLink.appendChild(rect1);
         leftRootLink.appendChild(text1);
@@ -269,7 +278,7 @@ public class XsdDocumentationImageService {
         boolean isSequence = false;
         boolean isChoice = false;
         if (!childElements.isEmpty()) {
-            ExtendedXsdElement firstChild = childElements.get(0);
+            ExtendedXsdElement firstChild = childElements.getFirst();
             if (firstChild.getXsdElement() != null && firstChild.getXsdElement().getParent() != null) {
                 var parentOfChildren = firstChild.getXsdElement().getParent();
                 if (parentOfChildren instanceof org.xmlet.xsdparser.xsdelements.XsdSequence) {
@@ -404,6 +413,8 @@ public class XsdDocumentationImageService {
                     elementName, totalContentHeight, rightBoxWidth, String.valueOf(finalRightStartX), String.valueOf(actualHeight));
             rightBox.setAttribute("filter", "url(#drop-shadow)");
             rightBox.setAttribute("style", childElement.isMandatory() ? MANDATORY_FORMAT_NO_SHADOW : OPTIONAL_FORMAT_NO_SHADOW);
+            // Füge die CSS-Klasse für den Hover-Effekt hinzu
+            rightBox.setAttribute("class", "hoverable-rect");
 
             // Text in der Box (verwendet jetzt finalRightStartX)
             Element textGroup = document.createElementNS(svgNS, "g");

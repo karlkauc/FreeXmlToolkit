@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -22,11 +22,11 @@
 </head>
 <body class="font-sans text-slate-800">
 
-<!-- Moderne Navigation mit Schatten und klaren Abständen -->
+<!-- Modern navigation with shadow and clear spacing -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
-            <!-- Linke Navigationsgruppe -->
+            <!-- Left navigation group -->
             <div class="hidden md:flex items-baseline space-x-6">
                 <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
                    aria-current="page">Home</a>
@@ -40,7 +40,7 @@
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
             </div>
-            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <!-- Right navigation group (GitHub Link) -->
             <div class="hidden md:block">
                 <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank" class="flex items-center space-x-2 text-slate-700 font-bold">
                     <img src="assets/logo.png" alt="logo" class="h-8 w-8"/>
@@ -51,17 +51,17 @@
     </div>
 </nav>
 
-<!-- Hauptinhalt -->
+<!-- Main content -->
 <main class="container mx-auto px-4 py-8 md:py-12">
     <header class="mb-8">
-        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Alle Complex Types</h1>
-        <p class="mt-2 text-lg text-slate-600">Übersicht aller im Schema definierten komplexen Typen.</p>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">All Complex Types</h1>
+        <p class="mt-2 text-lg text-slate-600">An overview of all complex types defined in the schema.</p>
     </header>
 
-    <!-- Liste der Complex Types -->
+    <!-- List of Complex Types -->
     <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
         <ul role="list" class="divide-y divide-slate-200">
-            <!-- Thymeleaf-Schleife, um über alle Complex Types zu iterieren -->
+            <!-- Thymeleaf loop to iterate over all complex types -->
             <li th:each="complexType : ${xsdComplexTypes}" class="hover:bg-slate-50 transition-colors">
                 <a th:href="${'complexTypes/' + complexType.name + '.html'}" class="block p-6">
                     <div class="flex items-center justify-between">
@@ -78,7 +78,7 @@
                          th:if="${complexType.getAnnotation() != null and complexType.getAnnotation().getDocumentations() != null and not #lists.isEmpty(complexType.getAnnotation().getDocumentations())}">
                         <p class="text-sm text-slate-600"
                            th:text="${complexType.getAnnotation().getDocumentations().get(0).getContent()}">
-                            Dokumentation des komplexen Typs...
+                            Documentation of the complex type...
                         </p>
                     </div>
                 </a>

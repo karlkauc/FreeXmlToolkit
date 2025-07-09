@@ -136,6 +136,7 @@ public class XsdDocumentationHtmlService {
 
                     var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                             .filter(element -> typeName.equals(element.getElementType()))
+                            .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
                             .collect(Collectors.toList());
 
                     context.setVariable("usedInElements", usedInElements);
@@ -183,6 +184,7 @@ public class XsdDocumentationHtmlService {
                         if (typeName != null && !typeName.isEmpty()) {
                             var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                                     .filter(element -> typeName.equals(element.getElementType()))
+                                    .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
                                     .collect(Collectors.toList());
                             context.setVariable("usedInElements", usedInElements);
                         }
@@ -246,6 +248,7 @@ public class XsdDocumentationHtmlService {
                 if (typeName != null && !typeName.isEmpty()) {
                     var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                             .filter(element -> typeName.equals(element.getElementType()))
+                            .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
                             .collect(Collectors.toList());
 
                     // Füge die Liste der Verwendungen zum Kontext hinzu.
@@ -290,6 +293,7 @@ public class XsdDocumentationHtmlService {
                         if (typeName != null && !typeName.isEmpty()) {
                             var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                                     .filter(element -> typeName.equals(element.getElementType()))
+                                    .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
                                     .collect(Collectors.toList());
                             context.setVariable("usedInElements", usedInElements);
                         }
@@ -531,15 +535,15 @@ public class XsdDocumentationHtmlService {
         }
 
         // Schritt 3: Wenn nicht in SimpleTypes gefunden, suche in den ComplexTypes.
-        var complexTypeDoc = xsdDocumentationData.getXsdComplexTypes().stream()
+        // Leeren String als Fallback
+
+        return xsdDocumentationData.getXsdComplexTypes().stream()
                 .filter(ct -> typeName.equals(ct.getName()))
                 .findFirst()
                 .map(XsdComplexType::getAnnotation)
                 .map(XsdAnnotation::getDocumentations)
                 .map(docs -> docs.stream().map(XsdAnnotationChildren::getContent).collect(Collectors.joining(" ")))
-                .orElse(""); // Leeren String als Fallback
-
-        return complexTypeDoc;
+                .orElse("");
     }
 
 
@@ -659,12 +663,9 @@ public class XsdDocumentationHtmlService {
     }
 
     public String getChildDocumentation(String xpath) {
-        if (xsdDocumentationData.getExtendedXsdElementMap().get(xpath) != null &&
-                xsdDocumentationData.getExtendedXsdElementMap().get(xpath).getXsdDocumentation() != null) {
-            return xsdDocumentationData.getExtendedXsdElementMap().get(xpath).getXsdDocumentation()
-                    .stream()
-                    .map(XsdAnnotationChildren::getContent)
-                    .collect(Collectors.joining());
+        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        if (element != null) {
+            return element.getDocumentationAsHtml();
         }
         return "";
     }

@@ -17,20 +17,20 @@
   -->
 
 <!DOCTYPE html>
-<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="'XSD Documentation for \'' + ${rootElementName} + '\''">XSD Documentation</title>
-    <!-- Einbindung von Tailwind CSS über CDN für eine einfache Integration -->
+    <!-- Include Tailwind CSS via CDN for easy integration -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Optionale: Eigene Design-Anpassungen für Tailwind
+        // Optional: Custom design adjustments for Tailwind
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'], // Eine moderne, gut lesbare Schriftart
+                        sans: ['Inter', 'sans-serif'], // A modern, easily readable font
                     },
                 }
             }
@@ -41,11 +41,11 @@
 </head>
 <body class="font-sans text-slate-800">
 
-<!-- Moderne Navigation mit Schatten und klaren Abständen -->
+<!-- Modern navigation with shadow and clear spacing -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
-            <!-- Linke Navigationsgruppe -->
+            <!-- Left navigation group -->
             <div class="hidden md:flex items-baseline space-x-6">
                 <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
                    aria-current="page">Home</a>
@@ -59,7 +59,7 @@
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
             </div>
-            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <!-- Right navigation group (GitHub Link) -->
             <div class="hidden md:block">
                 <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank" class="flex items-center space-x-2 text-slate-700 font-bold">
                     <img src="assets/logo.png" alt="logo" class="h-8 w-8"/>
@@ -70,24 +70,24 @@
     </div>
 </nav>
 
-<!-- Hauptinhalt mit großzügigem Padding -->
+<!-- Main content with generous padding -->
 <main class="container mx-auto px-4 py-8 md:py-12">
 
-    <!-- Informations-Grid als "Card" für Metadaten -->
+    <!-- Information grid as a "card" for metadata -->
     <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 mb-12">
-        <h2 class="text-xl font-semibold text-slate-900 mb-4">Schema-Informationen</h2>
-        <!-- Semantische Definitionsliste für bessere Struktur und Zugänglichkeit -->
+        <h2 class="text-xl font-semibold text-slate-900 mb-4">Schema Information</h2>
+        <!-- Semantic definition list for better structure and accessibility -->
         <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
             <div class="flex flex-col">
-                <dt class="text-sm font-medium text-slate-500">Erstellt am</dt>
+                <dt class="text-sm font-medium text-slate-500">Created on</dt>
                 <dd class="mt-1 text-slate-900" th:text="${date}">2022-12-30</dd>
             </div>
             <div class="flex flex-col">
-                <dt class="text-sm font-medium text-slate-500">Dateiname</dt>
+                <dt class="text-sm font-medium text-slate-500">Filename</dt>
                 <dd class="mt-1 text-slate-900" th:utext="${filename}">filename.xsd</dd>
             </div>
             <div class="flex flex-col">
-                <dt class="text-sm font-medium text-slate-500">Wurzelelement</dt>
+                <dt class="text-sm font-medium text-slate-500">Root Element</dt>
                 <dd class="mt-1">
                     <a th:href="${rootElementLink}"
                        th:text="${rootElementName}"
@@ -123,7 +123,7 @@
         </dl>
     </div>
 
-    <!-- Tabelle in einer "Card" für eine saubere Abgrenzung -->
+    <!-- Table in a "card" for a clean separation -->
     <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
         <table class="w-full text-left">
             <thead class="bg-slate-50 border-b border-slate-200">
@@ -136,7 +136,7 @@
             <tbody class="divide-y divide-slate-200">
             <tr>
                 <td class="px-6 py-4 align-top">
-                    <!-- Vertikales Layout für die Links -->
+                    <!-- Vertical layout for the links -->
                     <div class="flex flex-col space-y-2">
                         <a href="#"
                            th:each="xsdElement : ${xsdElements}"
