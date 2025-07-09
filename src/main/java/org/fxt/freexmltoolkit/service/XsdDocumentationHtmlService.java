@@ -426,8 +426,10 @@ public class XsdDocumentationHtmlService {
             context.setVariable("type", "NULL");
         }
 
-        if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getAnnotation() != null) {
-            context.setVariable("appInfos", currentElement.getXsdElement().getAnnotation().getAppInfoList());
+        // Wir verwenden jetzt die vorverarbeiteten generischen App-Infos.
+        // Das JavadocInfo-Objekt ist bereits über das "element"-Objekt verfügbar.
+        if (currentElement.getGenericAppInfos() != null && !currentElement.getGenericAppInfos().isEmpty()) {
+            context.setVariable("appInfos", currentElement.getGenericAppInfos());
         }
 
         Map<String, String> docTemp = new LinkedHashMap<>();
@@ -641,9 +643,6 @@ public class XsdDocumentationHtmlService {
             return element.getElementType();
         }
         return null;
-        /*
-        this.getChildNodeFromXpath(child) ? this.getNodeTypeNameFromNodeType(this.getChildNodeFromXpath(child).getNodeType()) : this.getExtendedXsdElements().get(child).getElementType()
-         */
     }
 
     public String getChildSampleData(String xpath) {

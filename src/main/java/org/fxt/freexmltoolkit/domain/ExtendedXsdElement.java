@@ -58,6 +58,10 @@ public class ExtendedXsdElement implements Serializable {
     private Boolean useMarkdownRenderer = true;
     private String sampleData;
 
+    // Felder für geparste Annotationen
+    private JavadocInfo javadocInfo;
+    private List<String> genericAppInfos;
+
     @Serial
     private static final long serialVersionUID = 1234567L;
 
@@ -70,6 +74,22 @@ public class ExtendedXsdElement implements Serializable {
         options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
         parser = Parser.builder(options).build();
         renderer = HtmlRenderer.builder(options).build();
+    }
+
+    public JavadocInfo getJavadocInfo() {
+        return javadocInfo;
+    }
+
+    public void setJavadocInfo(JavadocInfo javadocInfo) {
+        this.javadocInfo = javadocInfo;
+    }
+
+    public List<String> getGenericAppInfos() {
+        return genericAppInfos;
+    }
+
+    public void setGenericAppInfos(List<String> genericAppInfos) {
+        this.genericAppInfos = genericAppInfos;
     }
 
     /**
@@ -205,7 +225,7 @@ public class ExtendedXsdElement implements Serializable {
         }
 
         StringWriter stringWriter = new StringWriter();
-        // KORREKTUR: Wir verwenden einen HTML-Zeilenumbruch für die Darstellung im Web.
+        // Wir verwenden einen HTML-Zeilenumbruch für die Darstellung im Web.
         final String lineBreak = "<br />";
 
         if (xsdRestriction.getEnumeration() != null) {

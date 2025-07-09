@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.service;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
+import org.fxt.freexmltoolkit.domain.JavadocInfo;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.w3c.dom.Document;
@@ -46,6 +47,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
@@ -241,6 +244,8 @@ public class XsdDocumentationService {
                     xsdDocumentationData.getExtendedXsdElementMap().get(parentXpath).getChildren().add(currentXpath);
                 }
 
+                processAnnotations(xsdElement.getAnnotation(), extendedXsdElement);
+
                 extendedXsdElement.setParentXpath(parentXpath);
                 extendedXsdElement.setCurrentXpath(currentXpath);
                 extendedXsdElement.setLevel(level);
@@ -329,6 +334,8 @@ public class XsdDocumentationService {
                 extendedXsdElement.setCurrentXpath(currentXpath);
                 extendedXsdElement.setLevel(level);
                 extendedXsdElement.setElementName("@" + xsdAttribute.getName());
+
+                processAnnotations(xsdAttribute.getAnnotation(), extendedXsdElement);
 
                 if (!prevElementPath.isEmpty()) {
                     xsdDocumentationData.getExtendedXsdElementMap().get(parentXpath).getChildren().add(currentXpath);
@@ -700,5 +707,97 @@ public class XsdDocumentationService {
         }
 
         return null; // Falls etwas schiefgeht oder es kein Schema ist
+    }
+
+    /**
+     * Parses Javadoc-style content and resolves {@link ...} tags into HTML links.
+     *
+     * @param content The raw string content from a Javadoc-style tag.
+     * @param xsdData The documentation data object to look up XPath links.
+     * @return An HTML string with resolved links.
+     */
+    private String parseJavadocLinks(String content, XsdDocumentationData xsdData) {
+        Pattern linkPattern = Pattern.compile("\\{@link\\s+([^}]+)\\}");
+        Matcher matcher = linkPattern.matcher(content);
+        StringBuilder sb = new StringBuilder();
+
+        while (matcher.find()) {
+            String xpath = matcher.group(1).trim();
+            ExtendedXsdElement linkedElement = xsdData.getExtendedXsdElementMap().get(xpath);
+
+            String linkHtml;
+            if (linkedElement != null) {
+                // Element found, create a valid link to its detail page.
+                String url = linkedElement.getPageName();
+                linkHtml = String.format("<a href=\"%s\" class=\"font-mono text-sky-600 hover:underline\">%s</a>", url, xpath);
+            } else {
+                // Element not found, display as text with a warning.
+                linkHtml = String.format("<span class=\"font-mono text-red-500\" title=\"Link target not found\">%s</span>", xpath);
+            }
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(linkHtml));
+        }
+        matcher.appendTail(sb);
+
+        return sb.toString();
+    }
+
+    /**
+     * Processes all annotations for an element, separating documentation,
+     * Javadoc-style appinfo, and generic appinfo.
+     *
+     * @param annotation         The XSD annotation object.
+     * @param extendedXsdElement The element to which the parsed info will be attached.
+     */
+    private void processAnnotations(XsdAnnotation annotation, ExtendedXsdElement extendedXsdElement) {
+        if (annotation == null) {
+            return;
+        }
+
+        // 1. Standard Documentation
+        if (annotation.getDocumentations() != null) {
+            extendedXsdElement.setXsdDocumentation(annotation.getDocumentations());
+        }
+
+        // 2. AppInfo Processing
+        List<XsdAppInfo> appInfos = annotation.getAppInfoList();
+        if (appInfos == null || appInfos.isEmpty()) {
+            return;
+        }
+
+        JavadocInfo javadocInfo = new JavadocInfo();
+        List<String> genericAppInfos = new ArrayList<>();
+
+        for (XsdAppInfo appInfo : appInfos) {
+            String source = appInfo.getSource();
+            if (source == null || source.trim().isEmpty()) {
+                // Fallback for appinfo without a 'source' attribute
+                String content = appInfo.getContent();
+                if (content != null && !content.trim().isEmpty()) {
+                    genericAppInfos.add(content.trim());
+                }
+                continue;
+            }
+
+            source = source.trim();
+            if (source.startsWith("@since")) {
+                javadocInfo.setSince(source.substring("@since".length()).trim());
+            } else if (source.startsWith("@see")) {
+                String content = source.substring("@see".length()).trim();
+                javadocInfo.getSee().add(parseJavadocLinks(content, xsdDocumentationData));
+            } else if (source.startsWith("@deprecated")) {
+                String content = source.substring("@deprecated".length()).trim();
+                javadocInfo.setDeprecated(parseJavadocLinks(content, xsdDocumentationData));
+            } else {
+                // Not a special tag, treat as generic appinfo
+                genericAppInfos.add(source);
+            }
+        }
+
+        if (javadocInfo.hasData()) {
+            extendedXsdElement.setJavadocInfo(javadocInfo);
+        }
+        if (!genericAppInfos.isEmpty()) {
+            extendedXsdElement.setGenericAppInfos(genericAppInfos);
+        }
     }
 }
