@@ -43,10 +43,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
@@ -165,16 +162,37 @@ public class XsdDocumentationService {
         for (XsdElement xsdElement : xsdDocumentationData.getElements()) {
             var elementName = xsdElement.getRawName();
             final Node startNode = xmlService.getNodeFromXpath("//" + this.schemaPrefix + ":element[@name='" + elementName + "']");
-            getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode);
+            // Übergebe null für die Javadoc-Info des Wurzelelements
+            getXsdAbstractElementInfo(0, xsdElement, List.of(), List.of(), startNode, null);
         }
+
+        // ==================================================================
+        // Index für Typ-Verwendungen einmalig aufbauen und vorsortieren
+        // ==================================================================
+        logger.debug("Building type usage index for faster lookups...");
+        Map<String, List<ExtendedXsdElement>> typeUsageMap = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(element -> element.getElementType() != null && !element.getElementType().isEmpty())
+                .collect(Collectors.groupingBy(ExtendedXsdElement::getElementType));
+
+        // Die Listen in der Map vorsortieren. Dies geschieht parallel, um die CPU auszunutzen.
+        typeUsageMap.values().parallelStream()
+                .forEach(list -> list.sort(Comparator.comparing(ExtendedXsdElement::getCurrentXpath)));
+
+        xsdDocumentationData.setTypeUsageMap(typeUsageMap);
+        logger.debug("Type usage index built with {} types.", typeUsageMap.size());
     }
 
     public void getXsdAbstractElementInfo(int level,
                                           XsdAbstractElement xsdAbstractElement,
                                           List<String> prevElementTypes,
                                           List<String> prevElementPath,
-                                          Node parentNode) {
+                                          Node parentNode,
+                                          JavadocInfo parentJavadocInfo) {
         logger.debug("prevElementTypes = {}", prevElementTypes);
+        // logger.debug("prevElementPath = {}", prevElementPath);
+        // logger.debug("level = {}", level);
+        logger.debug("parentJavadocInfo = {}", parentJavadocInfo);
+
         if (level > MAX_ALLOWED_DEPTH) {
             logger.error("Too many elements");
             System.err.println("Too many elements");
@@ -186,7 +204,7 @@ public class XsdDocumentationService {
         extendedXsdElement.setUseMarkdownRenderer(useMarkdownRenderer);
 
         // =================================================================================
-        // NEU: Zentrale Logik zum Finden des DOM-Knotens und des Quellcodes
+        // Zentrale Logik zum Finden des DOM-Knotens und des Quellcodes
         // Dies wird für die meisten Elementtypen benötigt und vermeidet Code-Duplizierung.
         // =================================================================================
         Node currentNode = null;
@@ -244,6 +262,34 @@ public class XsdDocumentationService {
 
                 processAnnotations(xsdElement.getAnnotation(), extendedXsdElement);
 
+                // ==================================================================
+                // Javadoc-Vererbungslogik
+                // ==================================================================
+                if (parentJavadocInfo != null && parentJavadocInfo.hasData()) {
+                    JavadocInfo currentJavadoc = extendedXsdElement.getJavadocInfo();
+                    if (currentJavadoc == null) {
+                        currentJavadoc = new JavadocInfo();
+                        extendedXsdElement.setJavadocInfo(currentJavadoc);
+                    }
+
+                    // Vererbe @since, wenn das Kind keins hat (oder es leer ist)
+                    if ((currentJavadoc.getSince() == null || currentJavadoc.getSince().trim().isEmpty())
+                            && parentJavadocInfo.getSince() != null && !parentJavadocInfo.getSince().trim().isEmpty()) {
+                        currentJavadoc.setSince(parentJavadocInfo.getSince());
+                    }
+
+                    // Vererbe @deprecated, wenn das Kind keins hat (oder es leer ist)
+                    if ((currentJavadoc.getDeprecated() == null || currentJavadoc.getDeprecated().trim().isEmpty())
+                            && parentJavadocInfo.getDeprecated() != null && !parentJavadocInfo.getDeprecated().trim().isEmpty()) {
+                        currentJavadoc.setDeprecated(parentJavadocInfo.getDeprecated());
+                    }
+
+                    // Vererbe @see, wenn das Kind keine eigenen @see-Tags hat
+                    if (currentJavadoc.getSee().isEmpty() && !parentJavadocInfo.getSee().isEmpty()) {
+                        currentJavadoc.getSee().addAll(parentJavadocInfo.getSee());
+                    }
+                }
+
                 extendedXsdElement.setParentXpath(parentXpath);
                 extendedXsdElement.setCurrentXpath(currentXpath);
                 extendedXsdElement.setLevel(level);
@@ -290,13 +336,13 @@ public class XsdDocumentationService {
                     if (xsdComplexType.getElements() != null) {
                         for (ReferenceBase referenceBase : xsdComplexType.getElements()) {
                             // WICHTIG: Der 'currentNode' wird als neuer 'parentNode' für die Kinder übergeben
-                            getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, currentNode);
+                            getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, currentNode, parentJavadocInfo);
                         }
                     }
                     if (xsdComplexType.getAllXsdAttributes() != null) {
                         Node finalCurrentNode = currentNode;
                         xsdComplexType.getAllXsdAttributes().forEach(xsdAttribute -> {
-                            getXsdAbstractElementInfo(level + 1, xsdAttribute, prevTemp, prevPathTemp, finalCurrentNode);
+                            getXsdAbstractElementInfo(level + 1, xsdAttribute, prevTemp, prevPathTemp, finalCurrentNode, extendedXsdElement.getJavadocInfo());
                         });
                     }
                 } else if (xsdElement.getXsdSimpleType() != null) {
@@ -314,13 +360,13 @@ public class XsdDocumentationService {
             case XsdChoice xsdChoice -> {
                 logger.debug("xsdChoice = {}", xsdChoice);
                 for (ReferenceBase x : xsdChoice.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
             }
             case XsdSequence xsdSequence -> {
                 logger.debug("xsdSequence = {}", xsdSequence);
                 for (ReferenceBase x : xsdSequence.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
             }
             case XsdAttribute xsdAttribute -> {
@@ -334,6 +380,34 @@ public class XsdDocumentationService {
                 extendedXsdElement.setElementName("@" + xsdAttribute.getName());
 
                 processAnnotations(xsdAttribute.getAnnotation(), extendedXsdElement);
+
+                // ==================================================================
+                // Javadoc-Vererbungslogik
+                // ==================================================================
+                if (parentJavadocInfo != null) {
+                    JavadocInfo currentJavadoc = extendedXsdElement.getJavadocInfo();
+                    if (currentJavadoc == null) {
+                        currentJavadoc = new JavadocInfo();
+                        extendedXsdElement.setJavadocInfo(currentJavadoc);
+                    }
+
+                    // Vererbe @since, wenn das Kind keins hat (oder es leer ist)
+                    if ((currentJavadoc.getSince() == null || currentJavadoc.getSince().trim().isEmpty())
+                            && parentJavadocInfo.getSince() != null && !parentJavadocInfo.getSince().trim().isEmpty()) {
+                        currentJavadoc.setSince(parentJavadocInfo.getSince());
+                    }
+
+                    // Vererbe @deprecated, wenn das Kind keins hat (oder es leer ist)
+                    if ((currentJavadoc.getDeprecated() == null || currentJavadoc.getDeprecated().trim().isEmpty())
+                            && parentJavadocInfo.getDeprecated() != null && !parentJavadocInfo.getDeprecated().trim().isEmpty()) {
+                        currentJavadoc.setDeprecated(parentJavadocInfo.getDeprecated());
+                    }
+
+                    // Vererbe @see, wenn das Kind keine eigenen @see-Tags hat
+                    if (currentJavadoc.getSee().isEmpty() && !parentJavadocInfo.getSee().isEmpty()) {
+                        currentJavadoc.getSee().addAll(parentJavadocInfo.getSee());
+                    }
+                }
 
                 if (!prevElementPath.isEmpty()) {
                     xsdDocumentationData.getExtendedXsdElementMap().get(parentXpath).getChildren().add(currentXpath);
@@ -360,48 +434,48 @@ public class XsdDocumentationService {
             // Fallback für Container-Elemente, die nur die Rekursion weiterleiten
             case XsdAll xsdAll -> {
                 for (ReferenceBase x : xsdAll.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
             }
             case XsdGroup xsdGroup -> {
                 for (ReferenceBase x : xsdGroup.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
             }
             case XsdAttributeGroup xsdAttributeGroup -> {
                 for (ReferenceBase x : xsdAttributeGroup.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
             }
             case XsdExtension xsdExtension -> {
                 for (ReferenceBase x : xsdExtension.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
             }
             case XsdComplexContent xsdComplexContent -> {
                 if (xsdComplexContent.getXsdExtension() != null) {
-                    getXsdAbstractElementInfo(level, xsdComplexContent.getXsdExtension(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level, xsdComplexContent.getXsdExtension(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
                 if (xsdComplexContent.getXsdRestriction() != null) {
-                    getXsdAbstractElementInfo(level, xsdComplexContent.getXsdRestriction(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level, xsdComplexContent.getXsdRestriction(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
             }
             case XsdSimpleContent xsdSimpleContent -> {
                 if (xsdSimpleContent.getXsdExtension() != null) {
-                    getXsdAbstractElementInfo(level, xsdSimpleContent.getXsdExtension(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level, xsdSimpleContent.getXsdExtension(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
                 if (xsdSimpleContent.getXsdRestriction() != null) {
-                    getXsdAbstractElementInfo(level, xsdSimpleContent.getXsdRestriction(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level, xsdSimpleContent.getXsdRestriction(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
             }
             case XsdRestriction xsdRestriction -> {
                 if (xsdRestriction.getXsdAttributes() != null) {
                     xsdRestriction.getXsdAttributes().forEach(xsdAttribute -> {
-                        getXsdAbstractElementInfo(level + 1, xsdAttribute, prevElementTypes, prevElementPath, parentNode);
+                        getXsdAbstractElementInfo(level + 1, xsdAttribute, prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                     });
                 }
                 for (ReferenceBase x : xsdRestriction.getElements()) {
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode);
+                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
                 }
             }
             case XsdAny xsdAny -> {

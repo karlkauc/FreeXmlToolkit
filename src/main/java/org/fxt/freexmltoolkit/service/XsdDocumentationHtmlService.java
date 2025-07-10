@@ -184,11 +184,7 @@ public class XsdDocumentationHtmlService {
 
                         final String typeName = complexType.getName();
                         if (typeName != null && !typeName.isEmpty()) {
-                            var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
-                                    .filter(element -> typeName.equals(element.getElementType()))
-                                    .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
-                                    .collect(Collectors.toList());
-                            context.setVariable("usedInElements", usedInElements);
+                            var usedInElements = xsdDocumentationData.getTypeUsageMap().getOrDefault(typeName, Collections.emptyList());                            context.setVariable("usedInElements", usedInElements);
                         }
 
                         final var result = templateEngine.process("complexTypes/templateComplexType", context);
@@ -690,7 +686,7 @@ public class XsdDocumentationHtmlService {
      * Gibt den relativen Pfad zur Detailseite des Typs eines Kind-Elements zurück.
      *
      * @param childXPath Der XPath des Kind-Elements.
-     * @return Der Dateiname für die Detailseite (z.B. "../simpletypes/MySimpleType.html").
+     * @return Der Dateiname für die Detailseite (z.B. "../simpleTypes/MySimpleType.html").
      */
     public String getChildTypePageName(String childXPath) {
         ExtendedXsdElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);

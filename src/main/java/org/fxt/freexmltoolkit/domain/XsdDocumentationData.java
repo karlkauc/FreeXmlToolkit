@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 public class XsdDocumentationData {
 
     Map<String, ExtendedXsdElement> extendedXsdElementMap = new HashMap<>();
+    private Map<String, List<ExtendedXsdElement>> typeUsageMap = new HashMap<>();
 
     List<XsdSchema> xmlSchema;
     private List<XsdComplexType> xsdComplexTypes;
@@ -42,6 +43,13 @@ public class XsdDocumentationData {
 
     String xsdFilePath;
 
+    public Map<String, List<ExtendedXsdElement>> getTypeUsageMap() {
+        return typeUsageMap;
+    }
+
+    public void setTypeUsageMap(Map<String, List<ExtendedXsdElement>> typeUsageMap) {
+        this.typeUsageMap = typeUsageMap;
+    }
 
     public List<XsdSchema> getXmlSchema() {
         return xmlSchema;
