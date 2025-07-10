@@ -41,6 +41,8 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationHtmlService {
@@ -706,7 +708,7 @@ public class XsdDocumentationHtmlService {
                 .anyMatch(st -> typeName.equals(st.getName()));
 
         if (isSimpleType) {
-            return "../simpletypes/" + cleanTypeName + ".html";
+            return "../simpleTypes/" + cleanTypeName + ".html";
         }
 
         boolean isComplexType = xsdDocumentationData.getXsdComplexTypes().stream()
@@ -718,6 +720,46 @@ public class XsdDocumentationHtmlService {
 
         // Fallback, sollte eigentlich nicht erreicht werden, wenn isChildTypeLinkable() korrekt funktioniert.
         return "#";
+    }
+
+    /**
+     * Parses Javadoc-style content and resolves {@link ...} tags into HTML links.
+     * This method is called from the Thymeleaf template at render time.
+     *
+     * @param content The raw string content from a Javadoc-style tag (e.g., from @see or @deprecated).
+     * @return An HTML string with resolved links.
+     */
+    public String parseJavadocLinks(String content) {
+        if (content == null || content.isEmpty()) {
+            return "";
+        }
+
+        // Pattern to find {@link XPATH}
+        Pattern linkPattern = Pattern.compile("\\{@link\\s+([^}]+)\\}");
+        Matcher matcher = linkPattern.matcher(content);
+        StringBuilder sb = new StringBuilder();
+
+        while (matcher.find()) {
+            String xpath = matcher.group(1).trim();
+            ExtendedXsdElement linkedElement = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+
+            String linkHtml;
+            if (linkedElement != null) {
+                // Element was found, create a valid link to its detail page.
+                // The path must be relative from the 'details' directory.
+                String url = linkedElement.getPageName();
+                linkHtml = String.format("<a href=\"%s\" class=\"font-mono text-sky-600 hover:underline\">%s</a>", url, xpath);
+            } else {
+                // Element was not found, display as text with a visual warning.
+                linkHtml = String.format("<span class=\"font-mono text-red-500\" title=\"Link target not found: %s\">%s</span>", xpath, xpath);
+            }
+            // Replace the matched {@link...} tag with the generated HTML.
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(linkHtml));
+        }
+        // Append the rest of the string that did not contain a link tag.
+        matcher.appendTail(sb);
+
+        return sb.toString();
     }
 
 }

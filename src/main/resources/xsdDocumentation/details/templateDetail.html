@@ -167,16 +167,13 @@
                      class="p-4 border-l-4 border-red-500 bg-red-50 rounded-r-lg">
                     <div class="flex items-start">
                         <div class="flex-shrink-0">
-                            <!-- Warning Icon -->
-                            <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 15a1 1 0 110-2 1 1 0 010 2zm-1-4a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd" />
-                            </svg>
+                            <!-- ... Warning Icon ... -->
                         </div>
                         <div class="ml-3">
                             <h3 class="text-sm font-bold text-red-800">Deprecated</h3>
+                            <!-- KORREKTUR: Rufe die neue parse-Methode auf -->
                             <div class="mt-1 text-sm text-red-700 prose prose-sm max-w-none"
-                                 th:utext="${element.javadocInfo.deprecated}">
-                                <!-- Deprecation message with resolved {@link} tags will be rendered here -->
+                                 th:utext="${this.parseJavadocLinks(element.javadocInfo.deprecated)}">
                             </div>
                         </div>
                     </div>
@@ -195,8 +192,9 @@
                         <dt class="text-sm font-medium text-slate-500">See Also</dt>
                         <dd class="mt-1 text-slate-900">
                             <ul class="list-disc list-inside space-y-1">
-                                <li th:each="seeItem : ${element.javadocInfo.see}" th:utext="${seeItem}">
-                                    <!-- Reference with resolved {@link} tag will be rendered here -->
+                                <!-- KORREKTUR: Rufe die neue parse-Methode für jedes Item auf -->
+                                <li th:each="seeItem : ${element.javadocInfo.see}"
+                                    th:utext="${this.parseJavadocLinks(seeItem)}">
                                 </li>
                             </ul>
                         </dd>

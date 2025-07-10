@@ -3936,9 +3936,9 @@ Onlyl MktEqGlobal or MktEqOther will be non zero.</xs:documentation>
 			<xs:element name="DataOperation" minOccurs="0">
 				<xs:annotation>
 					<xs:appinfo source="@since 4.0.0"/>
-					<xs:appinfo source="@see {@link /FundsXML4/Assetmasterdata}"/>
+					<xs:appinfo source="@see {@link /FundsXML4/ControlData/RelatedDocumentIDs/RelatedDocumentID}"/>
 					<xs:appinfo source="@see Attention. See also other values."/>
-					<xs:appinfo source="@deprecated do not use any more. use {@link /FundsXML4/Assetmasterdata} and {@link /FundsXML4/Assetmasterdata/AssetDetails} instead."/>
+					<xs:appinfo source="@deprecated do not use any more. use {@link /FundsXML4/AssetMasterData} and {@link /FundsXML4/AssetMasterData/AssetDetails} instead."/>
 					<xs:documentation>**INITIAL**: This refers to the first time data is delivered. It includes all the necessary information to set up or populate a system or database. 
 **AMEND**: This term is used when there are updates or changes to the existing data. An amendment might include corrections, additions, or modifications to the previously delivered data. It ensures that the data remains accurate and up-to-date.
 **DELETE**: This involves the removal of specific data from the system. It could be due to data being outdated, incorrect, or no longer needed. Deleting data helps in maintaining the relevance and efficiency of the database. DELETE requires a RelatedDocumentIDs that referes to the data delivery that should be deleted.
