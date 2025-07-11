@@ -253,60 +253,78 @@ public class XsdDocumentationService {
                     extendedXsdElement.setXsdDocumentation(xsdElement.getAnnotation().getDocumentations());
                 }
 
-                if (xsdElement.getType() != null) {
-                    extendedXsdElement.setElementType(xsdElement.getType());
-                } else if (xsdElement.getXsdSimpleType() != null && xsdElement.getXsdSimpleType().getRestriction() != null) {
-                    extendedXsdElement.setElementType(xsdElement.getXsdSimpleType().getRestriction().getBase());
-                } else {
-                    extendedXsdElement.setElementType("(Complex Content)");
-                }
+                // Element in die Map legen, damit Kind-Elemente es finden können
+                xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
 
+                // Rekursionsschutz
                 var currentType = xsdElement.getType();
                 if (currentType != null && prevElementTypes.contains(currentType.trim())) {
                     logger.info("Recursion detected for type {}. Stopping traversal.", currentType);
-                    xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
+                    // Trotzdem Beispieldaten für das Element selbst generieren
+                    extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
                     return;
                 }
 
+                // Vorbereitung für rekursive Aufrufe
                 ArrayList<String> prevTemp = new ArrayList<>(prevElementTypes);
                 if (currentType != null) prevTemp.add(currentType.trim());
-
                 ArrayList<String> prevPathTemp = new ArrayList<>(prevElementPath);
                 prevPathTemp.add(xsdElement.getName());
 
-                xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
-
-                // KORREKTUR: Hier wird die Rekursion für verschachtelte Typen sichergestellt.
+                // Detaillierte Typ- und Inhaltsverarbeitung
                 if (xsdElement.getXsdComplexType() != null) {
                     XsdComplexType complexType = xsdElement.getXsdComplexType();
 
-                    // KORREKTUR: Wir müssen explizit auf die möglichen Kind-Elemente prüfen.
-                    XsdAbstractElement child = null;
-                    if (complexType.getComplexContent() != null) child = complexType.getComplexContent();
-                    else if (complexType.getSimpleContent() != null) child = complexType.getSimpleContent();
-                    else if (complexType.getChildAsSequence() != null) child = complexType.getChildAsSequence();
-                    else if (complexType.getChildAsChoice() != null) child = complexType.getChildAsChoice();
-                    else if (complexType.getChildAsAll() != null) child = complexType.getChildAsAll();
+                    // Fall 1: Element hat Textinhalt und Attribute (<simpleContent>)
+                    if (complexType.getSimpleContent() != null) {
+                        XsdSimpleContent simpleContent = complexType.getSimpleContent();
+                        if (simpleContent.getXsdExtension() != null) {
+                            XsdExtension extension = simpleContent.getXsdExtension();
+                            extendedXsdElement.setElementType(String.valueOf(extension.getBase()));
+                        }
+                        if (simpleContent.getXsdRestriction() != null) {
+                            XsdRestriction restriction = simpleContent.getXsdRestriction();
+                            extendedXsdElement.setElementType(restriction.getBase());
+                            extendedXsdElement.setXsdRestriction(restriction);
+                        }
+                        // Rekursiver Aufruf für die Inhalte von simpleContent (z.B. Attribute in der Extension)
+                        getXsdAbstractElementInfo(level, complexType.getSimpleContent(), prevTemp, prevPathTemp, currentNode, extendedXsdElement.getJavadocInfo());
 
-                    if (child != null) {
-                        // Dieser Aufruf verarbeitet dann z.B. XsdComplexContent, was wiederum XsdExtension aufruft.
-                        getXsdAbstractElementInfo(level, child, prevTemp, prevPathTemp, currentNode, extendedXsdElement.getJavadocInfo());
+                    } else {
+                        // Fall 2: Element hat Kind-Elemente (complexContent oder sequence, choice, etc.)
+                        extendedXsdElement.setElementType("(Complex Content)");
+                        XsdAbstractElement child = null;
+                        if (complexType.getComplexContent() != null) child = complexType.getComplexContent();
+                        else if (complexType.getChildAsSequence() != null) child = complexType.getChildAsSequence();
+                        else if (complexType.getChildAsChoice() != null) child = complexType.getChildAsChoice();
+                        else if (complexType.getChildAsAll() != null) child = complexType.getChildAsAll();
+
+                        if (child != null) {
+                            getXsdAbstractElementInfo(level, child, prevTemp, prevPathTemp, currentNode, extendedXsdElement.getJavadocInfo());
+                        }
                     }
 
-                    // Verarbeite auch direkt definierte Attribute
+                    // Verarbeite Attribute, die direkt im complexType definiert sind
                     if (complexType.getAllXsdAttributes() != null) {
                         complexType.getAllXsdAttributes().forEach(attr ->
                                 getXsdAbstractElementInfo(level + 1, attr, prevTemp, prevPathTemp, finalCurrentNode, extendedXsdElement.getJavadocInfo())
                         );
                     }
                 } else if (xsdElement.getXsdSimpleType() != null) {
-                    if (xsdElement.getXsdSimpleType().getRestriction() != null) {
-                        extendedXsdElement.setXsdRestriction(xsdElement.getXsdSimpleType().getRestriction());
+                    // Fall 3: Element hat einen inline definierten simpleType
+                    XsdSimpleType simpleType = xsdElement.getXsdSimpleType();
+                    if (simpleType.getRestriction() != null) {
+                        extendedXsdElement.setXsdRestriction(simpleType.getRestriction());
+                        extendedXsdElement.setElementType(simpleType.getRestriction().getBase());
                     }
-                    extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
                 } else if (xsdElement.getType() != null) {
-                    extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
+                    // Fall 4: Element verweist auf einen benannten Typ
+                    extendedXsdElement.setElementType(xsdElement.getType());
                 }
+
+                // FINALER SCHRITT: Generiere Beispieldaten für das Element selbst.
+                // Dies geschieht am Ende, nachdem alle Typ- und Restriction-Informationen gesammelt wurden.
+                extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
             }
             case XsdAttribute xsdAttribute -> {
                 final String parentXpath = "/" + String.join("/", prevElementPath);
@@ -353,6 +371,8 @@ public class XsdDocumentationService {
                         extendedXsdElement.setElementType(xsdAttribute.getXsdSimpleType().getRestriction().getBase());
                     }
                 }
+                // Beispieldaten für das Attribut generieren
+                extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
                 xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
             }
             case XsdChoice xsdChoice -> xsdChoice.getElements().forEach(x ->
@@ -481,34 +501,85 @@ public class XsdDocumentationService {
     }
 
     private void buildXmlElement(StringBuilder sb, ExtendedXsdElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
-        if (mandatoryOnly && !element.isMandatory()) {
+        if (element == null || (mandatoryOnly && !element.isMandatory())) {
+            return;
+        }
+
+        // Attribute werden innerhalb ihres Elternelements behandelt, daher überspringen wir sie hier.
+        if (element.getElementName().startsWith("@")) {
             return;
         }
 
         int repeatCount = 1;
         if (element.getXsdElement() != null && element.getXsdElement().getMaxOccurs() != null) {
             String max = element.getXsdElement().getMaxOccurs();
-            if (max.equals("unbounded") || Integer.parseInt(max) > 1) {
+            if ("unbounded".equals(max)) {
                 repeatCount = maxOccurrences;
+            } else {
+                try {
+                    int maxVal = Integer.parseInt(max);
+                    if (maxVal > 1) {
+                        // Nutze den kleineren Wert zwischen dem Schema-Maximum und der Benutzereingabe
+                        repeatCount = Math.min(maxVal, maxOccurrences);
+                    }
+                } catch (NumberFormatException e) {
+                    // Ignorieren, falls maxOccurs keine Zahl ist
+                }
             }
         }
+
 
         for (int i = 0; i < repeatCount; i++) {
             String indent = "\t".repeat(indentLevel);
             sb.append(indent).append("<").append(element.getElementName());
-            sb.append(">");
+
+            // Trenne die Kinder in Attribute und Kind-Elemente auf
+            List<ExtendedXsdElement> attributes = new ArrayList<>();
+            List<ExtendedXsdElement> childElements = new ArrayList<>();
 
             if (element.hasChildren()) {
-                sb.append("\n");
                 for (String childXPath : element.getChildren()) {
-                    ExtendedXsdElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
-                    if (childElement != null) {
-                        buildXmlElement(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel + 1);
+                    ExtendedXsdElement child = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+                    if (child != null) {
+                        if (child.getElementName().startsWith("@")) {
+                            attributes.add(child);
+                        } else {
+                            childElements.add(child);
+                        }
                     }
                 }
-                sb.append(indent).append("</").append(element.getElementName()).append(">\n");
+            }
+
+            // Rendere die Attribute im öffnenden Tag
+            for (ExtendedXsdElement attr : attributes) {
+                if (mandatoryOnly && !attr.isMandatory()) {
+                    continue;
+                }
+                String attrName = attr.getElementName().substring(1); // Entferne das '@'
+                String attrValue = attr.getSampleData() != null ? attr.getSampleData() : "";
+                sb.append(" ").append(attrName).append("=\"").append(attrValue).append("\"");
+            }
+
+            // Entscheide, wie das Tag geschlossen wird (basierend auf Inhalt)
+            String sampleData = element.getSampleData() != null ? element.getSampleData() : "";
+            if (childElements.isEmpty() && sampleData.isEmpty()) {
+                sb.append("/>\n"); // Selbstschließendes Tag, wenn keine Kinder und kein Inhalt
             } else {
-                sb.append(element.getSampleData() != null ? element.getSampleData() : "");
+                sb.append(">"); // Schließe das öffnende Tag
+
+                // KORREKTUR: Füge den Textinhalt des Elements hinzu, falls vorhanden.
+                // Dies geschieht VOR dem Rendern der Kind-Elemente für "mixed content".
+                sb.append(sampleData);
+
+                if (!childElements.isEmpty()) {
+                    sb.append("\n");
+                    for (ExtendedXsdElement childElement : childElements) {
+                        // Rekursiver Aufruf NUR für Kind-Elemente
+                        buildXmlElement(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel + 1);
+                    }
+                    sb.append(indent);
+                }
+
                 sb.append("</").append(element.getElementName()).append(">\n");
             }
         }
