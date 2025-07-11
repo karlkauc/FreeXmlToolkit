@@ -57,9 +57,9 @@ public class XsdDocumentationData {
 
     public void setXmlSchema(List<XsdSchema> xmlSchema) {
         this.xmlSchema = xmlSchema;
-        this.xsdComplexTypes = this.xmlSchema.getFirst().getChildrenComplexTypes().collect(Collectors.toList());
-        this.xsdSimpleTypes = xmlSchema.getFirst().getChildrenSimpleTypes().collect(Collectors.toList());
-        this.namespaces = xmlSchema.getFirst().getNamespaces();
+        if (xmlSchema != null && !xmlSchema.isEmpty()) {
+            this.namespaces = xmlSchema.getFirst().getNamespaces();
+        }
     }
 
     public List<XsdComplexType> getXsdComplexTypes() {

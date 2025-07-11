@@ -29,7 +29,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
-import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -122,6 +121,20 @@ public class XsdDocumentationService {
 
         xsdDocumentationData.setElements(parser.getResultXsdElements().collect(Collectors.toList()));
         xsdDocumentationData.setXmlSchema(parser.getResultXsdSchemas().toList());
+
+        // Sammle die Typen aus ALLEN geparsten Schema-Dateien.
+        // Wir verwenden flatMap, um die Streams von jedem Schema zu einem einzigen zu verbinden.
+        List<XsdComplexType> allComplexTypes = parser.getResultXsdSchemas()
+                .flatMap(XsdSchema::getChildrenComplexTypes)
+                .collect(Collectors.toList());
+        xsdDocumentationData.setXsdComplexTypes(allComplexTypes);
+
+        List<XsdSimpleType> allSimpleTypes = parser.getResultXsdSchemas()
+                .flatMap(XsdSchema::getChildrenSimpleTypes)
+                .collect(Collectors.toList());
+        xsdDocumentationData.setXsdSimpleTypes(allSimpleTypes);
+
+        // Sammle alle Namespaces aus allen Schema-Dateien
         parser.getResultXsdSchemas().forEach(n -> xsdDocumentationData.getNamespaces().putAll(n.getNamespaces()));
 
         if (!xsdDocumentationData.getXmlSchema().isEmpty()) {
@@ -150,6 +163,7 @@ public class XsdDocumentationService {
         xsdDocumentationData.setTypeUsageMap(typeUsageMap);
         logger.debug("Type usage index built with {} types.", typeUsageMap.size());
     }
+
 
     public void getXsdAbstractElementInfo(int level,
                                           XsdAbstractElement xsdAbstractElement,
@@ -195,6 +209,7 @@ public class XsdDocumentationService {
             extendedXsdElement.setSourceCode(xmlService.getNodeAsString(currentNode));
         }
 
+        Node finalCurrentNode = currentNode;
         switch (xsdAbstractElement) {
             case XsdElement xsdElement -> {
                 final String parentXpath = "/" + String.join("/", prevElementPath);
@@ -208,6 +223,7 @@ public class XsdDocumentationService {
 
                 processAnnotations(xsdElement.getAnnotation(), extendedXsdElement);
 
+                // Javadoc-Vererbung
                 if (parentJavadocInfo != null && parentJavadocInfo.hasData()) {
                     JavadocInfo currentJavadoc = extendedXsdElement.getJavadocInfo();
                     if (currentJavadoc == null) {
@@ -260,17 +276,27 @@ public class XsdDocumentationService {
 
                 xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
 
+                // KORREKTUR: Hier wird die Rekursion für verschachtelte Typen sichergestellt.
                 if (xsdElement.getXsdComplexType() != null) {
-                    XsdComplexType xsdComplexType = xsdElement.getXsdComplexType();
-                    if (xsdComplexType.getElements() != null) {
-                        for (ReferenceBase referenceBase : xsdComplexType.getElements()) {
-                            getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, currentNode, extendedXsdElement.getJavadocInfo());
-                        }
+                    XsdComplexType complexType = xsdElement.getXsdComplexType();
+
+                    // KORREKTUR: Wir müssen explizit auf die möglichen Kind-Elemente prüfen.
+                    XsdAbstractElement child = null;
+                    if (complexType.getComplexContent() != null) child = complexType.getComplexContent();
+                    else if (complexType.getSimpleContent() != null) child = complexType.getSimpleContent();
+                    else if (complexType.getChildAsSequence() != null) child = complexType.getChildAsSequence();
+                    else if (complexType.getChildAsChoice() != null) child = complexType.getChildAsChoice();
+                    else if (complexType.getChildAsAll() != null) child = complexType.getChildAsAll();
+
+                    if (child != null) {
+                        // Dieser Aufruf verarbeitet dann z.B. XsdComplexContent, was wiederum XsdExtension aufruft.
+                        getXsdAbstractElementInfo(level, child, prevTemp, prevPathTemp, currentNode, extendedXsdElement.getJavadocInfo());
                     }
-                    if (xsdComplexType.getAllXsdAttributes() != null) {
-                        Node finalCurrentNode = currentNode;
-                        xsdComplexType.getAllXsdAttributes().forEach(xsdAttribute ->
-                                getXsdAbstractElementInfo(level + 1, xsdAttribute, prevTemp, prevPathTemp, finalCurrentNode, extendedXsdElement.getJavadocInfo())
+
+                    // Verarbeite auch direkt definierte Attribute
+                    if (complexType.getAllXsdAttributes() != null) {
+                        complexType.getAllXsdAttributes().forEach(attr ->
+                                getXsdAbstractElementInfo(level + 1, attr, prevTemp, prevPathTemp, finalCurrentNode, extendedXsdElement.getJavadocInfo())
                         );
                     }
                 } else if (xsdElement.getXsdSimpleType() != null) {
@@ -344,9 +370,47 @@ public class XsdDocumentationService {
             case XsdAttributeGroup xsdAttributeGroup -> xsdAttributeGroup.getElements().forEach(x ->
                     getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo)
             );
-            case XsdExtension xsdExtension -> xsdExtension.getElements().forEach(x ->
-                    getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo)
-            );
+            case XsdExtension xsdExtension -> {
+                // 1. Verarbeite die Elemente und Attribute des Basistyps
+                String baseTypeName = String.valueOf(xsdExtension.getBase());
+                if (baseTypeName != null && !baseTypeName.isBlank()) {
+                    // Finde den ComplexType des Basistyps in der globalen Liste
+                    xsdDocumentationData.getXsdComplexTypes().stream()
+                            .filter(ct -> baseTypeName.equals(ct.getName()) || baseTypeName.equals(ct.getRawName()))
+                            .findFirst()
+                            .ifPresent(baseComplexType -> {
+                                // Verarbeite das Kind-Element des Basistyps korrekt
+                                XsdAbstractElement baseChild = null;
+                                if (baseComplexType.getComplexContent() != null) baseChild = baseComplexType.getComplexContent();
+                                else if (baseComplexType.getSimpleContent() != null) baseChild = baseComplexType.getSimpleContent();
+                                else if (baseComplexType.getChildAsSequence() != null) baseChild = baseComplexType.getChildAsSequence();
+                                else if (baseComplexType.getChildAsChoice() != null) baseChild = baseComplexType.getChildAsChoice();
+                                else if (baseComplexType.getChildAsAll() != null) baseChild = baseComplexType.getChildAsAll();
+
+                                if (baseChild != null) {
+                                    // Wir bleiben auf dem gleichen 'level', da es eine Vererbung ist
+                                    getXsdAbstractElementInfo(level, baseChild, prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);
+                                }
+                                // Verarbeite auch alle Attribute des Basistyps
+                                if (baseComplexType.getAllXsdAttributes() != null) {
+                                    baseComplexType.getAllXsdAttributes().forEach(attr ->
+                                            getXsdAbstractElementInfo(level + 1, attr, prevElementTypes, prevElementPath, parentNode, parentJavadocInfo)
+                                    );
+                                }
+                            });
+                }
+
+                // 2. Verarbeite die Elemente, die in der Erweiterung selbst definiert sind
+                xsdExtension.getElements().forEach(x ->
+                        getXsdAbstractElementInfo(level + 1, x.getElement(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo)
+                );
+                // Verarbeite auch die Attribute, die in der Erweiterung selbst definiert sind
+                if (xsdExtension.getXsdAttributes() != null) {
+                    xsdExtension.getXsdAttributes().forEach(attr ->
+                            getXsdAbstractElementInfo(level + 1, attr, prevElementTypes, prevElementPath, parentNode, parentJavadocInfo)
+                    );
+                }
+            }
             case XsdComplexContent xsdComplexContent -> {
                 if (xsdComplexContent.getXsdExtension() != null) {
                     getXsdAbstractElementInfo(level, xsdComplexContent.getXsdExtension(), prevElementTypes, prevElementPath, parentNode, parentJavadocInfo);

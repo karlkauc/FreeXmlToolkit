@@ -93,7 +93,7 @@ public class GenerateXsdHtmlDocumentationTest {
     @Test
     void testWithSeparateCalls() {
         final var testFilePath = new File("output/testSchema");
-        xsdDocumentationService.debug = true;
+        // xsdDocumentationService.debug = true;
         xsdDocumentationService.setXsdFilePath(SIMPLE_XSD_FILE);
         xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
         xsdDocumentationService.processXsd(true);
@@ -112,7 +112,7 @@ public class GenerateXsdHtmlDocumentationTest {
         // final var testFilePath = Paths.get(SIMPLE_XSD_FILE);
         final var outputFilePath = Paths.get("../FundsXML_Documentation");
         this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());
-        this.xsdDocumentationService.setXmlService(xmlService);
+        // this.xsdDocumentationService.setXmlService(xmlService);
         this.xsdDocumentationService.setUseMarkdownRenderer(true);
         this.xsdDocumentationService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
         this.xsdDocumentationService.setParallelProcessing(true);
