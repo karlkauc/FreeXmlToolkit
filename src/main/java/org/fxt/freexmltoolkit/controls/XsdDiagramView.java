@@ -56,10 +56,15 @@ public class XsdDiagramView {
         // Linke Seite: Der Diagramm-Baum in einem ScrollPane
         VBox diagramContainer = new VBox();
         diagramContainer.setPadding(new Insets(10));
+        // Richtet den gesamten Diagramm-Baum links-zentriert aus
+        diagramContainer.setAlignment(Pos.CENTER_LEFT);
         Node rootNodeView = createNodeView(rootNode, 0);
         diagramContainer.getChildren().add(rootNodeView);
         ScrollPane treeScrollPane = new ScrollPane(diagramContainer);
         treeScrollPane.setFitToWidth(true);
+        // Sagt dem ScrollPane, dass der Inhalt (unser VBox)
+        // die gesamte verfügbare Höhe ausfüllen soll.
+        treeScrollPane.setFitToHeight(true);
 
         // Rechte Seite: Der Detail-Bereich
         detailPane = new VBox(10);
@@ -74,8 +79,14 @@ public class XsdDiagramView {
     }
 
     private Node createNodeView(XsdNodeInfo node, int depth) {
-        VBox nodeContainer = new VBox(5);
-        nodeContainer.setPadding(new Insets(0, 0, 0, depth * 20));
+        // Der Abstand zwischen dem Parent-Block und dem Children-Block wird auf 15 gesetzt.
+        HBox nodeContainer = new HBox(15);
+        // Zentriert die Kindelemente vertikal neben dem Elternelement.
+        nodeContainer.setAlignment(Pos.CENTER_LEFT);
+
+        // EU: Ein eigener VBox für die Informationen des Elternelements (Name, Doku).
+        // Das erlaubt uns, diese als eine Einheit zu behandeln.
+        VBox parentInfoContainer = new VBox(5);
 
         HBox nameAndToggleRow = new HBox(5);
         nameAndToggleRow.setAlignment(Pos.CENTER_LEFT);
@@ -86,7 +97,6 @@ public class XsdDiagramView {
 
         Label nameLabel = new Label(node.name());
         nameLabel.setStyle(NODE_LABEL_STYLE);
-        // Klick-Ereignis hinzufügen, um Details zu laden
         nameLabel.setOnMouseClicked(event -> {
             ExtendedXsdElement selectedElement = elementMap.get(node.xpath());
             updateDetailPane(selectedElement);
@@ -106,20 +116,28 @@ public class XsdDiagramView {
             nameAndToggleRow.getChildren().add(toggleButton);
         }
 
-        nodeContainer.getChildren().add(nameAndToggleRow);
+        // Füge die Zeile mit Name und Toggle zum Parent-Container hinzu
+        parentInfoContainer.getChildren().add(nameAndToggleRow);
 
+        // Füge die Dokumentation (falls vorhanden) ebenfalls zum Parent-Container hinzu
         if (node.documentation() != null && !node.documentation().isBlank()) {
             Label docLabel = new Label(node.documentation());
             docLabel.setStyle(DOC_LABEL_STYLE);
             docLabel.setWrapText(true);
             docLabel.setMaxWidth(350);
-            nodeContainer.getChildren().add(docLabel);
+            parentInfoContainer.getChildren().add(docLabel);
         }
 
+        // Fülle den Container für die Kindelemente
         for (XsdNodeInfo childNode : node.children()) {
+            // Die Einrückung (depth) ist für die neue Struktur weniger relevant,
+            // aber wir behalten sie für die Rekursion bei.
             childrenContainer.getChildren().add(createNodeView(childNode, depth + 1));
         }
-        nodeContainer.getChildren().add(childrenContainer);
+
+        // Füge den Parent-Block und den Children-Block zum Haupt-HBox-Container hinzu
+        nodeContainer.getChildren().addAll(parentInfoContainer, childrenContainer);
+
         return nodeContainer;
     }
 
@@ -187,8 +205,8 @@ public class XsdDiagramView {
 
         Label label = new Label(labelText);
         label.setStyle(DETAIL_LABEL_STYLE);
-        // KORREKTUR: VPos.TOP ist besser für die Ausrichtung bei mehrzeiligen Werten
-        GridPane.setValignment(label, VPos.TOP);
+        // VPos.TOP ist besser für die Ausrichtung bei mehrzeiligen Werten
+        GridPane.setValignment(label, VPos.CENTER);
 
         Text value = new Text(valueText);
         value.setWrappingWidth(300); // Passt die Breite an

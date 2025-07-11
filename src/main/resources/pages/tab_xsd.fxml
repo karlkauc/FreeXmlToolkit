@@ -19,7 +19,6 @@
   -->
 
 <?import javafx.collections.FXCollections?>
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
@@ -34,43 +33,68 @@
                 <FontIcon iconLiteral="bi-info-circle"/>
             </graphic>
             <content>
-                <ScrollPane fitToWidth="true" style="-fx-background-color: white; -fx-padding: 20px;">
-                    <VBox spacing="15">
-                        <padding>
-                            <Insets right="10"/>
-                        </padding>
-                        <Label styleClass="h2" text="Welcome to the XSD Documentation Generator"/>
-                        <Label wrapText="true"
-                               text="This tool helps you to view, analyze, and generate comprehensive HTML documentation from your XML Schema Definition (XSD) files. Here is a guide to the available tabs:"/>
+                <ScrollPane fitToWidth="true" style="-fx-background-color: white;">
+                    <VBox spacing="25" style="-fx-padding: 25px;">
+
+                        <!-- Header -->
+                        <VBox spacing="10" alignment="CENTER_LEFT">
+                            <Label styleClass="h2" text="Welcome to the XSD Toolkit"/>
+                            <Label wrapText="true" style="-fx-font-size: 14px;"
+                                   text="This tool helps you to view, analyze, and generate comprehensive HTML documentation and sample data from your XML Schema Definition (XSD) files. Here is a guide to the available features:"/>
+                        </VBox>
 
                         <Separator/>
 
-                        <Label styleClass="h3" text="1. Text Tab"/>
-                        <Label wrapText="true"
-                               text="Displays the raw source code of the loaded XSD file. This is a read-only view for a quick reference of the original schema."/>
+                        <!-- Section: Text Tab -->
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <FontIcon iconLiteral="bi-card-text" iconSize="24" iconColor="#4a5568"/>
+                            <VBox>
+                                <Label styleClass="h3" text="Text View"/>
+                                <Label wrapText="true"
+                                       text="Displays the raw source code of the loaded XSD file. This is a read-only view for a quick reference of the original schema."/>
+                            </VBox>
+                        </HBox>
 
-                        <Label styleClass="h3" text="2. Graphic Tab"/>
-                        <Label wrapText="true"
-                               text="Shows an interactive, graphical representation of the XSD structure. You can explore the relationships between different elements visually."/>
+                        <!-- Section: Graphic Tab -->
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <FontIcon iconLiteral="bi-diagram-2" iconSize="24" iconColor="#4a5568"/>
+                            <VBox>
+                                <Label styleClass="h3" text="Graphic View"/>
+                                <Label wrapText="true"
+                                       text="Shows an interactive, graphical representation of the XSD structure. You can explore the relationships between different elements visually."/>
+                            </VBox>
+                        </HBox>
 
-                        <Label styleClass="h3" text="3. Documentation Tab"/>
-                        <Label wrapText="true"
-                               text="This is the main control panel for generating the documentation. Here you can:"/>
-                        <VBox style="-fx-padding: 0 0 0 20;" spacing="5">
-                            <Label text="- Select the XSD file and the output directory."/>
-                            <Label text="- Choose the format for the generated diagrams (SVG or PNG)."/>
-                            <Label text="- Configure other options for the output."/>
-                            <Label text="- Start the generation process."/>
-                        </VBox>
+                        <!-- Section: Documentation Tab -->
+                        <HBox spacing="15" alignment="TOP_LEFT">
+                            <FontIcon iconLiteral="win10-notebook" iconSize="24" iconColor="#4a5568"/>
+                            <VBox spacing="5">
+                                <Label styleClass="h3" text="Documentation Generator"/>
+                                <Label wrapText="true"
+                                       text="This is the main control panel for generating the documentation. Here you can:"/>
+                                <VBox style="-fx-padding: 5 0 0 20;" spacing="5">
+                                    <Label text="• Select the XSD file and the output directory."/>
+                                    <Label text="• Choose the format for the generated diagrams (SVG or PNG)."/>
+                                    <Label text="• Configure other options for the output."/>
+                                    <Label text="• Start the generation process."/>
+                                </VBox>
+                            </VBox>
+                        </HBox>
 
-                        <Label styleClass="h3" text="4. Generate Example Data Tab"/>
-                        <Label wrapText="true"
-                               text="This tab allows you to generate sample XML data that conforms to the loaded XSD schema."/>
+                        <!-- Section: Generate Example Data Tab -->
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <FontIcon iconLiteral="bi-keyboard" iconSize="24" iconColor="#4a5568"/>
+                            <VBox>
+                                <Label styleClass="h3" text="Sample Data Generator"/>
+                                <Label wrapText="true"
+                                       text="This tab allows you to generate sample XML data that conforms to the loaded XSD schema."/>
+                            </VBox>
+                        </HBox>
+
                     </VBox>
                 </ScrollPane>
             </content>
         </Tab>
-
         <Tab closable="false" text="Text">
             <graphic>
                 <FontIcon iconLiteral="bi-card-text"/>
