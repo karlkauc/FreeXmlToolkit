@@ -335,9 +335,8 @@ public class XsdDocumentationService {
                     // Rekursion für Kind-Elemente und Attribute
                     if (xsdComplexType.getElements() != null) {
                         for (ReferenceBase referenceBase : xsdComplexType.getElements()) {
-                            // WICHTIG: Der 'currentNode' wird als neuer 'parentNode' für die Kinder übergeben
-                            getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, currentNode, parentJavadocInfo);
-                        }
+                            // Der 'currentNode' wird als neuer 'parentNode' für die Kinder übergeben
+                            getXsdAbstractElementInfo(level + 1, referenceBase.getElement(), prevTemp, prevPathTemp, currentNode, extendedXsdElement.getJavadocInfo());                        }
                     }
                     if (xsdComplexType.getAllXsdAttributes() != null) {
                         Node finalCurrentNode = currentNode;
