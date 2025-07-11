@@ -582,14 +582,19 @@ public class XsdDocumentationImageService {
      * Generates and appends the documentation block to the SVG.
      */
     private double generateDocumentationElement(Document document, List<XsdDocumentation> xsdDocumentation, double rootElementWidth, double rootElementHeight, int startX, int startY) {
+        // Eine kleinere Schriftart speziell für die Dokumentation erstellen.
+        final Font docFont = font.deriveFont((float) font.getSize() - 2);
+
         final var docTextGroup = document.createElementNS(svgNS, "g");
         docTextGroup.setAttribute("id", "comment");
 
         final var docText = document.createElementNS(svgNS, "text");
         docText.setAttribute("x", String.valueOf(startX + margin));
         docText.setAttribute("y", String.valueOf(startY + (margin * 3) + rootElementHeight + (margin / 2.0)));
-        // KORREKTUR: Textfarbe für Dokumentation
         docText.setAttribute("fill", COLOR_TEXT_SECONDARY);
+        // Kleinere Schriftgröße für die Dokumentation setzen.
+        docText.setAttribute("font-size", String.valueOf(docFont.getSize()));
+        docText.setAttribute("font-family", docFont.getFontName());
 
         double docHeightTotal = 0;
         for (XsdDocumentation documentation : xsdDocumentation) {
@@ -597,7 +602,8 @@ public class XsdDocumentationImageService {
             int length = 0;
 
             for (String word : documentation.getContent().split(" ")) {
-                var rectangle2D = font.getStringBounds(word + " ", frc);
+                //  Kleinere Schriftart für die Breitenberechnung verwenden.
+                var rectangle2D = docFont.getStringBounds(word + " ", frc);
                 var docHeight = rectangle2D.getBounds2D().getHeight();
                 var docWidth = rectangle2D.getBounds2D().getWidth();
 
