@@ -135,31 +135,29 @@ public class XsdController {
         if (currentXsdFile == null || !currentXsdFile.exists()) {
             Label infoLabel = new Label("Bitte eine XSD-Datei laden.");
             xsdStackPane.getChildren().add(infoLabel);
-            StackPane.setAlignment(infoLabel, Pos.CENTER_LEFT);
-            xsdStackPane.setAlignment(Pos.CENTER_LEFT);
             return;
         }
 
         logger.debug("Lade XSD-Diagramm für: {}", currentXsdFile.getAbsolutePath());
 
         try {
-            // 1. Service instanziieren und Pfad setzen
+            // 1. Service instanziieren und XSD verarbeiten
             XsdDocumentationService docService = new XsdDocumentationService();
             docService.setXsdFilePath(currentXsdFile.getPath());
+            docService.processXsd(false); // Verarbeitet die Daten und füllt die Map
 
-            // 2. Den gesamten rekursiven Baum vom Service holen
-            XsdNodeInfo rootNode = docService.getRootNodeInfo();
+            // 2. Den Baum aus den verarbeiteten Daten erstellen
+            XsdNodeInfo rootNode = docService.buildTreeFromProcessedData();
 
             if (rootNode != null) {
-                // 3. Die neue View mit dem Baum-Objekt instanziieren
-                XsdDiagramView diagramView = new XsdDiagramView(rootNode);
+                // 3. Die neue View mit dem Baum und den kompletten Daten instanziieren
+                XsdDiagramView diagramView = new XsdDiagramView(rootNode, docService.xsdDocumentationData);
 
-                // 4. Die UI-Komponente bauen lassen
+                // 4. Die UI-Komponente (jetzt ein SplitPane) bauen lassen
                 Node view = diagramView.build();
 
                 // 5. Die fertige Komponente zur Szene hinzufügen
                 xsdStackPane.getChildren().add(view);
-                // Die Ausrichtung ist weiterhin CENTER_LEFT, wie im FXML definiert
 
             } else {
                 Label infoLabel = new Label("Kein Wurzelelement im Schema gefunden.");
@@ -168,7 +166,7 @@ public class XsdController {
             }
 
         } catch (Exception e) {
-            logger.error("Fehler beim Ermitteln des Wurzelelements aus dem XSD.", e);
+            logger.error("Fehler beim Erstellen der Diagramm-Ansicht.", e);
             Label errorLabel = new Label("Fehler beim Parsen des XSDs.");
             xsdStackPane.getChildren().add(errorLabel);
             StackPane.setAlignment(errorLabel, Pos.CENTER);

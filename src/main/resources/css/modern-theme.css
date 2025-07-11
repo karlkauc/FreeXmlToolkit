@@ -30,7 +30,7 @@
     -fx-primary-accent-text: white;
 
     -fx-background-color: #f6f8fa; /* Sehr heller, fast weißer Hintergrund */
-    -fx-control-background: #ffffff; /* Hintergrund für die meisten Steuerelemente */
+    -fx-control-background: #f5f5f5; /* Hintergrund für die meisten Steuerelemente */
     -fx-control-inner-background: #ffffff; /* Hintergrund für Eingabefelder */
 
     -fx-text-color: #24292f; /* Dunkles Grau für primären Text */

@@ -81,13 +81,7 @@
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-2"/>
             </graphic>
-            <!-- Der StackPane wird in einen ScrollPane eingebettet -->
-            <ScrollPane style="-fx-background-color: #f8f9fa;">
-                <content>
-                    <!-- Der StackPane behält seine ID und Ausrichtung, damit der Controller weiterhin funktioniert -->
-                    <StackPane fx:id="xsdStackPane" alignment="CENTER_LEFT"/>
-                </content>
-            </ScrollPane>
+            <StackPane fx:id="xsdStackPane" style="-fx-background-color: #f8f9fa;"/>
         </Tab>
         <Tab fx:id="documentation" closable="false" text="Documentation">
             <graphic>
