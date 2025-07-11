@@ -158,7 +158,7 @@
             </section>
 
             <!-- ================================================================== -->
-            <!-- NEU: Section for Javadoc-style annotations                       -->
+            <!-- Section for Javadoc-style annotations                       -->
             <!-- ================================================================== -->
             <section th:if="${element.javadocInfo != null and element.javadocInfo.hasData()}" class="space-y-6">
 
@@ -201,8 +201,6 @@
                     </div>
                 </dl>
             </section>
-
-            <!-- Section: Properties -->
 
             <!-- Section: Properties -->
             <section>
@@ -259,8 +257,33 @@
                         <tbody class="divide-y divide-slate-200 text-sm">
                         <tr th:each="child: ${element.children}">
                             <td class="px-4 py-3 font-mono">
-                                <a th:href="${this.getPageName(child)}" th:text="${child}"
-                                   class="text-sky-600 hover:text-sky-800 hover:underline">child-xpath</a>
+                                <!--
+                                    Der Link hat nun ein 'title'-Attribut, um den vollen Pfad beim Hovern anzuzeigen.
+                                    Der Text wird gekürzt, wenn er länger als 60 Zeichen ist.
+                                -->
+                                <a th:href="${this.getPageName(child)}"
+                                   th:with="fullPath=${child.toString()}"
+                                   th:title="${fullPath}"
+                                   class="text-sky-600 hover:text-sky-800 hover:underline">
+
+                                    <!-- Wenn der Pfad kurz ist, zeige ihn normal an. -->
+                                    <span th:if="${#strings.length(fullPath) <= 60}" th:text="${fullPath}"></span>
+
+                                    <!-- Wenn der Pfad lang ist, kürze ihn intelligent. -->
+                                    <span th:unless="${#strings.length(fullPath) <= 60}"
+                                          th:with="pathParts=${#strings.arraySplit(fullPath, '/')}"
+                                          th:text="${(#arrays.length(pathParts) > 2) ?
+                                                     ('/' + pathParts[0] + '/.../' + pathParts[#arrays.length(pathParts) - 1]) :
+                                                     #strings.abbreviate(fullPath, 60)}">
+                                        <!--
+                                            Robustere Logik:
+                                            - Teilt den Pfad bei jedem '/' in Segmente auf.
+                                            - Wenn es mehr als 2 Segmente gibt (z.B. /root/middle/element),
+                                              wird der Pfad zu /root/.../element gekürzt.
+                                            - Ansonsten wird die Standard-Kürzung als Fallback verwendet.
+                                        -->
+                                    </span>
+                                </a>
                             </td>
 
                             <td class="px-4 py-3 font-mono">

@@ -204,7 +204,7 @@ public class SampleDataGenerator {
             }
 
             // Wenn beide definiert sind, erstelle einen String mit einer zufälligen Länge im erlaubten Bereich
-            if (min != null && max != null) {
+            if (min != null) {
                 // Stelle sicher, dass min nicht größer als max ist
                 if (min > max) {
                     logger.warn("minLenth ({}) is greater than maxLength ({}) for a string restriction. Using minLength.", min, max);
