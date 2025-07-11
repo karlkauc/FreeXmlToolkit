@@ -54,20 +54,25 @@ public class XsdDiagramView {
      * @return Ein JavaFX-Node, der diesen Baum-Teil repräsentiert.
      */
     private Node createNodeView(XsdNodeInfo node, int depth) {
-        // Container für diesen Knoten: Label-Zeile + Container für Kinder
+        // Container für diesen Knoten: Label-Zeile + Doku + Container für Kinder
         VBox nodeContainer = new VBox(5);
         nodeContainer.setPadding(new Insets(0, 0, 0, depth * 20)); // Einrückung pro Ebene
 
-        // HBox für die eigentliche Anzeige: Toggle-Button + Label + Doku
-        HBox nodeDisplayRow = new HBox(5);
-        nodeDisplayRow.setAlignment(Pos.CENTER_LEFT);
+        // HBox für die Zeile mit dem Namen und dem Toggle-Button
+        HBox nameAndToggleRow = new HBox(5);
+        nameAndToggleRow.setAlignment(Pos.CENTER_LEFT);
 
         // Container für die Kinder dieses Knotens (anfangs unsichtbar)
         VBox childrenContainer = new VBox(5);
         childrenContainer.setVisible(false);
         childrenContainer.setManaged(false);
 
-        // Toggle-Button (+/-) nur hinzufügen, wenn Kinder vorhanden sind
+        // Zuerst den Namen hinzufügen
+        Label nameLabel = new Label(node.name());
+        nameLabel.setStyle(NODE_LABEL_STYLE);
+        nameAndToggleRow.getChildren().add(nameLabel);
+
+        // Den Toggle-Button (+/-) direkt danach hinzufügen, falls Kinder vorhanden sind
         if (!node.children().isEmpty()) {
             Label toggleButton = new Label("+");
             toggleButton.setStyle(TOGGLE_BUTTON_STYLE);
@@ -79,31 +84,29 @@ public class XsdDiagramView {
                 childrenContainer.setManaged(isExpanded[0]);
                 toggleButton.setText(isExpanded[0] ? "−" : "+");
             });
-            nodeDisplayRow.getChildren().add(toggleButton);
+            nameAndToggleRow.getChildren().add(toggleButton);
         }
 
-        // Label für den Namen und die Dokumentation
-        VBox nameAndDocBox = new VBox(2);
-        Label nameLabel = new Label(node.name());
-        nameLabel.setStyle(NODE_LABEL_STYLE);
-        nameAndDocBox.getChildren().add(nameLabel);
+        // Die Zeile mit Name/Toggle zum Hauptcontainer hinzufügen
+        nodeContainer.getChildren().add(nameAndToggleRow);
 
+        // Die Dokumentation als separates Element darunter hinzufügen, falls vorhanden
         if (node.documentation() != null && !node.documentation().isBlank()) {
             Label docLabel = new Label(node.documentation());
             docLabel.setStyle(DOC_LABEL_STYLE);
             docLabel.setWrapText(true);
             docLabel.setMaxWidth(350);
-            nameAndDocBox.getChildren().add(docLabel);
+            nodeContainer.getChildren().add(docLabel);
         }
-        nodeDisplayRow.getChildren().add(nameAndDocBox);
 
         // Rekursiver Aufruf für alle Kinder
         for (XsdNodeInfo childNode : node.children()) {
             childrenContainer.getChildren().add(createNodeView(childNode, depth + 1));
         }
 
-        // Alles zusammenbauen
-        nodeContainer.getChildren().addAll(nodeDisplayRow, childrenContainer);
+        // Den Kinder-Container zum Schluss hinzufügen
+        nodeContainer.getChildren().add(childrenContainer);
+
         return nodeContainer;
     }
 }
