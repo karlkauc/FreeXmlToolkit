@@ -24,6 +24,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Objects;
 
 public class XsltController {
@@ -82,6 +84,9 @@ public class XsltController {
 
     @FXML
     private void initialize() {
+        xmlFileExplorer.setAllowedFileExtensions(List.of("xml"));
+        xsltFileExplorer.setAllowedFileExtensions(List.of("xslt", "xsl"));
+
         if (System.getenv("debug") != null) {
             debugButton.setVisible(true);
         }
@@ -149,7 +154,24 @@ public class XsltController {
                     default -> outputMethodSwitch.getSelectionModel().select(tabText);
                 }
             } catch (Exception exception) {
-                logger.error("Exception: {}", exception.getMessage());
+                // Logge den Fehler für die Entwickler-Analyse (mit vollem Stacktrace)
+                logger.error("XSLT Transformation failed: {}", exception.getMessage(), exception);
+
+                // NEU: Zeige einen Alert-Dialog für den Benutzer an
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Transformation Error");
+                alert.setHeaderText("An error occurred during the XSLT transformation.");
+                // Zeige eine verständliche Fehlermeldung an
+                alert.setContentText(exception.getMessage());
+
+                // Optional: Füge den kompletten Stacktrace in einem erweiterbaren Bereich hinzu
+                // Dies ist sehr nützlich für technisch versierte Benutzer.
+                TextArea textArea = new TextArea(exception.toString());
+                textArea.setEditable(false);
+                textArea.setWrapText(true);
+                alert.getDialogPane().setExpandableContent(textArea);
+
+                alert.showAndWait();
             }
             progressBar.setVisible(false);
         }

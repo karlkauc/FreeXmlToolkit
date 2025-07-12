@@ -1,0 +1,46 @@
+/*
+ * Style für den TreeTableView im FileExplorer, um Plus/Minus-Symbole anzuzeigen.
+ */
+
+/*
+ * Richtet die Spaltenüberschriften linksbündig aus.
+ */
+.tree-table-view .column-header .label {
+    -fx-alignment: center-left;
+}
+
+/*
+ * Schritt 1: Standardmäßig ist der Pfeil unsichtbar.
+ * Er wird für alle aufklappbaren Knoten gerendert, aber wir verstecken ihn.
+ */
+.tree-table-view .tree-disclosure-node .arrow {
+    -fx-background-color: transparent;
+    -fx-shape: " "; /* Leere Form, um sicherzugehen, dass nichts gezeichnet wird */
+}
+
+/*
+ * Schritt 2: NUR für Zellen mit unserer speziellen Klasse .has-subdirectories
+ * machen wir das Symbol sichtbar und stylen es.
+ */
+.tree-table-view .tree-table-row-cell.has-subdirectories .tree-disclosure-node .arrow {
+    -fx-background-color: -fx-text-base-color; /* Farbe wiederherstellen */
+    -fx-padding: 4px; /* Abstand wiederherstellen */
+}
+
+/*
+ * Schritt 3: Wir definieren das Minus-Symbol für aufgeklappte Zeilen,
+ * die unsere Klasse haben.
+ */
+.tree-table-view .tree-table-row-cell.has-subdirectories:expanded .tree-disclosure-node .arrow {
+    /* Wir zeichnen eine einfache horizontale Linie. */
+    -fx-shape: "M 0 3.5 L 8 3.5 L 8 4.5 L 0 4.5 Z";
+}
+
+/*
+ * Schritt 4: Wir definieren das Plus-Symbol für geschlossene Zeilen,
+ * die unsere Klasse haben.
+ */
+.tree-table-view .tree-table-row-cell.has-subdirectories:not(:expanded) .tree-disclosure-node .arrow {
+    /* Wir zeichnen ein Kreuz. */
+    -fx-shape: "M 0 3.5 L 8 3.5 L 8 4.5 L 0 4.5 Z M 3.5 0 L 4.5 0 L 4.5 8 L 3.5 8 Z";
+}

@@ -226,9 +226,11 @@ public class XmlServiceImpl implements XmlService {
             final String expression = "/stylesheet/output/@method";
             final XPath xPath = XPathFactory.newInstance().newXPath();
             final var nodeList = (NodeList) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODESET);
-            logger.debug("Output Method: {}", nodeList.item(0).getNodeValue());
 
-            this.xsltOutputMethod = nodeList.item(0).getNodeValue();
+            if (nodeList != null && nodeList.getLength() != 0) {
+                logger.debug("Output Method: {}", nodeList.item(0).getNodeValue());
+                this.xsltOutputMethod = nodeList.item(0).getNodeValue();
+            }
         } catch (XPathExpressionException e) {
             logger.error("Could not detect output Method.");
             logger.error(e.getMessage());
@@ -256,7 +258,7 @@ public class XmlServiceImpl implements XmlService {
             Document document = builder.parse(xsdFile);
 
             this.rootElement = document.getDocumentElement();
-            this.targetNamespace = rootElement.getAttribute("targetNamespace").toString();
+            this.targetNamespace = rootElement.getAttribute("targetNamespace");
         } catch (SAXException | IOException | ParserConfigurationException e) {
             logger.error("Could not set current XSD File: {}", xsdFile.getAbsolutePath());
             logger.error(e.getMessage());

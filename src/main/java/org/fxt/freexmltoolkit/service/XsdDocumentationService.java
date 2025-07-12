@@ -294,16 +294,35 @@ public class XsdDocumentationService {
                     // Verarbeite auch die Annotation des inline definierten Typs
                     processAnnotations(complexType.getAnnotation(), extendedXsdElement);
 
+                    // Explizite und gezielte Behandlung von simpleContent
                     if (complexType.getSimpleContent() != null) {
                         XsdSimpleContent simpleContent = complexType.getSimpleContent();
+
+                        // Fall 1: simpleContent mit einer Extension
                         if (simpleContent.getXsdExtension() != null) {
-                            extendedXsdElement.setElementType(String.valueOf(simpleContent.getXsdExtension().getBase()));
+                            XsdExtension extension = simpleContent.getXsdExtension();
+                            extendedXsdElement.setElementType(String.valueOf(extension.getBase()));
+
+                            // Verarbeite die Attribute, die in der Erweiterung definiert sind
+                            if (extension.getXsdAttributes() != null) {
+                                extension.getXsdAttributes().forEach(attr ->
+                                        getXsdAbstractElementInfo(level + 1, attr, prevTemp, prevPathTemp, finalCurrentNode, extendedXsdElement.getJavadocInfo())
+                                );
+                            }
                         }
-                        if (simpleContent.getXsdRestriction() != null) {
-                            extendedXsdElement.setElementType(simpleContent.getXsdRestriction().getBase());
-                            extendedXsdElement.setXsdRestriction(simpleContent.getXsdRestriction());
+                        // Fall 2: simpleContent mit einer Restriction
+                        else if (simpleContent.getXsdRestriction() != null) {
+                            XsdRestriction restriction = simpleContent.getXsdRestriction();
+                            extendedXsdElement.setElementType(restriction.getBase());
+                            extendedXsdElement.setXsdRestriction(restriction);
+
+                            // Verarbeite die Attribute, die in der Beschränkung definiert sind
+                            if (restriction.getXsdAttributes() != null) {
+                                restriction.getXsdAttributes().forEach(attr ->
+                                        getXsdAbstractElementInfo(level + 1, attr, prevTemp, prevPathTemp, finalCurrentNode, extendedXsdElement.getJavadocInfo())
+                                );
+                            }
                         }
-                        getXsdAbstractElementInfo(level, complexType.getSimpleContent(), prevTemp, prevPathTemp, currentNode, extendedXsdElement.getJavadocInfo());
                     } else {
                         if (xsdElement.getType() != null) {
                             extendedXsdElement.setElementType(xsdElement.getType());

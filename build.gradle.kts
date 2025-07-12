@@ -81,6 +81,7 @@ dependencies {
     implementation("org.kordamp.ikonli:ikonli-win10-pack:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-feather-pack:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-coreui-pack:12.4.0")
+    implementation("org.kordamp.ikonli:ikonli-fontawesome-pack:12.4.0")
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Style
