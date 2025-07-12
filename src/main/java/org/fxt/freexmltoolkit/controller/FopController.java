@@ -22,16 +22,11 @@ import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -42,7 +37,6 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.FOPService;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -62,13 +56,7 @@ public class FopController {
     private MainController parentController;
 
     @FXML
-    private GridPane settings;
-    @FXML
-    private Button startConversion;
-    @FXML
     private TextField xmlFileName, xslFileName, pdfFileName, producer, author, creationDate, title, keywords, subject;
-    @FXML
-    private CheckBox openPdfAfterCreation;
     @FXML
     private ProgressIndicator progressIndicator;
     @FXML
@@ -140,7 +128,6 @@ public class FopController {
         } else event.setDropCompleted(false);
         event.consume();
     }
-
 
     /**
      * Opens a file chooser dialog to select an XML file.
@@ -274,20 +261,6 @@ public class FopController {
 
                 if (createdPdf != null && createdPdf.exists()) {
                     logger.debug("Written {} bytes in File {}", createdPdf.length(), createdPdf.getAbsoluteFile());
-
-                    // PDF-Vorschau und Öffnen auf dem UI-Thread starten
-                    Platform.runLater(() -> {
-                        renderPdf(createdPdf);
-                        progressIndicator.setProgress(1.0);
-                        if (openPdfAfterCreation.isSelected() && createdPdf.length() > 0) {
-                            try {
-                                Desktop.getDesktop().open(createdPdf);
-                            } catch (IOException e) {
-                                logger.error("Could not open PDF file automatically.", e);
-                            }
-                        }
-                        progressIndicator.setVisible(false);
-                    });
                 } else {
                     logger.warn("PDF File does not exist after creation attempt.");
                     Platform.runLater(() -> progressIndicator.setVisible(false));

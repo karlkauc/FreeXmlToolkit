@@ -30,6 +30,8 @@
 
     <xsl:variable name="renderXMLContent" select="true()"/>
 
+    <xsl:key name="asset-by-id" match="AssetMasterData/Asset" use="UniqueID"/>
+
     <xsl:template match="/">
         <html lang="en">
             <head>
@@ -660,26 +662,24 @@
                                                 <xsl:value-of select="UniqueID"/>
                                             </a>
                                             <br/>
-                                            <xsl:variable name="uniqueId" select="UniqueID"/>
+                                            <!-- KORREKTUR: Schnellerer Zugriff auf Asset-Daten via Key -->
+                                            <xsl:variable name="asset" select="key('asset-by-id', UniqueID)"/>
                                             <span class="fs-small text-break">Name:
                                                 <xsl:choose>
-                                                    <xsl:when
-                                                            test="string-length(/FundsXML4/AssetMasterData/Asset[UniqueID=$uniqueId]/Name) gt 15">
-                                                        <abbr title="{/FundsXML4/AssetMasterData/Asset[UniqueID=$uniqueId]/Name}">
-                                                            {substring(/FundsXML4/AssetMasterData/Asset[UniqueID=$uniqueId]/Name,
-                                                            1,
-                                                            15)}...
+                                                    <xsl:when test="string-length($asset/Name) > 15">
+                                                        <abbr title="{$asset/Name}">
+                                                            {substring($asset/Name, 1, 15)}...
                                                         </abbr>
                                                     </xsl:when>
                                                     <xsl:otherwise>
-                                                        {/FundsXML4/AssetMasterData/Asset[UniqueID=$uniqueId]/Name}
+                                                        {$asset/Name}
                                                     </xsl:otherwise>
                                                 </xsl:choose>
                                             </span>
                                             <br/>
-                                            <xsl:if test="/FundsXML4/AssetMasterData/Asset[UniqueID=$uniqueId]/Identifiers/ISIN">
+                                            <xsl:if test="$asset/Identifiers/ISIN">
                                                 <p class="fs-small">ISIN:
-                                                    {/FundsXML4/AssetMasterData/Asset[UniqueID=$uniqueId]/Identifiers/ISIN}
+                                                    {$asset/Identifiers/ISIN}
                                                 </p>
                                             </xsl:if>
                                         </td>

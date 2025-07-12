@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- KORREKTUR: Das Root-Element ist jetzt ein AnchorPane -->
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -110,14 +109,8 @@
                         <Label styleClass="card-title" text="Options"/>
                         <Separator/>
                         <GridPane hgap="10" vgap="10" style="-fx-padding: 15 0 0 0;">
-                            <!--
-                            <Label text="Open PDF after creation:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                            <CheckBox fx:id="openPdfAfterCreation" selected="true" GridPane.columnIndex="1"
-                                      GridPane.rowIndex="0"/>
-                            -->
-
-                            <Label text="FOP Config File:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                            <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <Label text="FOP Config File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                 <TextField editable="false" promptText="Optional FOP configuration file"
                                            HBox.hgrow="ALWAYS"/>
                                 <Button>
@@ -136,7 +129,7 @@
 
                     <!-- Action Button & Progress -->
                     <VBox spacing="10" alignment="CENTER">
-                        <Button fx:id="startConversion" onAction="#buttonConversion" text="Create PDF"
+                        <Button onAction="#buttonConversion" text="Create PDF"
                                 maxWidth="Infinity"
                                 styleClass="button, :default">
                             <graphic>
