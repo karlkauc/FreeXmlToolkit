@@ -47,7 +47,6 @@ public class ExtendedXsdElement implements Serializable {
     private List<String> children = new ArrayList<>();
     private String currentXpath;
     private String parentXpath;
-    private String currentHash;
     private String sourceCode;
     private Node currentNode;
     private int counter;

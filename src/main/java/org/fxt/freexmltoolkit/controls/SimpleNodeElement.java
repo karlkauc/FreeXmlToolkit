@@ -39,7 +39,7 @@ public class SimpleNodeElement extends VBox {
     public SimpleNodeElement(Node node, XmlEditor caller) {
         this.node = node;
         this.xmlEditor = caller;
-        // NEU: Dem Wurzelelement wird eine CSS-Klasse für gezieltes Styling zugewiesen.
+        // Dem Wurzelelement wird eine CSS-Klasse für gezieltes Styling zugewiesen.
         this.getStyleClass().add("simple-node-element");
         createByNode(node);
     }

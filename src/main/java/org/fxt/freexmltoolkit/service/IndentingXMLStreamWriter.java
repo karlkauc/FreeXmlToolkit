@@ -8,7 +8,7 @@ import javax.xml.stream.XMLStreamWriter;
  */
 public class IndentingXMLStreamWriter extends DelegatingXMLStreamWriter {
     private int indentLevel = 0;
-    private final String indentChar = "    "; // 4 Leerzeichen
+    private final String indentChar = "  "; // 2 Leerzeichen
 
     public IndentingXMLStreamWriter(XMLStreamWriter delegate) {
         super(delegate);

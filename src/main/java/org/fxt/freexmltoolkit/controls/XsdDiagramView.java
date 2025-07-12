@@ -22,9 +22,9 @@ public class XsdDiagramView {
     private final XsdNodeInfo rootNode;
     private final Map<String, ExtendedXsdElement> elementMap;
 
-    private VBox detailPane; // Der Container für die Detail-Informationen
+    private VBox detailPane; // The container for the detail information
 
-    // Stile
+    // Styles
     private static final String NODE_LABEL_STYLE =
             "-fx-background-color: #eef4ff; -fx-border-color: #adc8ff; -fx-border-width: 1px; " +
                     "-fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 5px 10px; " +
@@ -46,30 +46,30 @@ public class XsdDiagramView {
 
     public Node build() {
         if (rootNode == null) {
-            return new Label("Keine Element-Informationen gefunden.");
+            return new Label("No element information found.");
         }
 
-        // Haupt-Layout ist ein SplitPane
+        // Main layout is a SplitPane
         SplitPane splitPane = new SplitPane();
-        splitPane.setDividerPositions(0.6); // 60% für den Baum, 40% für Details
+        splitPane.setDividerPositions(0.6); // 60% for the tree, 40% for details
 
-        // Linke Seite: Der Diagramm-Baum in einem ScrollPane
+        // Left side: The diagram tree in a ScrollPane
         VBox diagramContainer = new VBox();
         diagramContainer.setPadding(new Insets(10));
-        // Richtet den gesamten Diagramm-Baum links-zentriert aus
+        // Aligns the entire diagram tree to the left-center
         diagramContainer.setAlignment(Pos.CENTER_LEFT);
         Node rootNodeView = createNodeView(rootNode, 0);
         diagramContainer.getChildren().add(rootNodeView);
         ScrollPane treeScrollPane = new ScrollPane(diagramContainer);
         treeScrollPane.setFitToWidth(true);
-        // Sagt dem ScrollPane, dass der Inhalt (unser VBox)
-        // die gesamte verfügbare Höhe ausfüllen soll.
+        // Tells the ScrollPane that the content (our VBox)
+        // should fill the entire available height.
         treeScrollPane.setFitToHeight(true);
 
-        // Rechte Seite: Der Detail-Bereich
+        // Right side: The detail area
         detailPane = new VBox(10);
         detailPane.setStyle(DETAIL_PANE_STYLE);
-        Label placeholder = new Label("Klicken Sie auf einen Knoten, um Details anzuzeigen.");
+        Label placeholder = new Label("Click on a node to view details.");
         detailPane.getChildren().add(placeholder);
         ScrollPane detailScrollPane = new ScrollPane(detailPane);
         detailScrollPane.setFitToWidth(true);
@@ -79,13 +79,13 @@ public class XsdDiagramView {
     }
 
     private Node createNodeView(XsdNodeInfo node, int depth) {
-        // Der Abstand zwischen dem Parent-Block und dem Children-Block wird auf 15 gesetzt.
+        // The spacing between the parent block and the children block is set to 15.
         HBox nodeContainer = new HBox(15);
-        // Zentriert die Kindelemente vertikal neben dem Elternelement.
+        // Vertically centers the child elements next to the parent element.
         nodeContainer.setAlignment(Pos.CENTER_LEFT);
 
-        // EU: Ein eigener VBox für die Informationen des Elternelements (Name, Doku).
-        // Das erlaubt uns, diese als eine Einheit zu behandeln.
+        // A dedicated VBox for the parent element's information (name, doc).
+        // This allows us to treat them as a single unit.
         VBox parentInfoContainer = new VBox(5);
 
         HBox nameAndToggleRow = new HBox(5);
@@ -116,10 +116,10 @@ public class XsdDiagramView {
             nameAndToggleRow.getChildren().add(toggleButton);
         }
 
-        // Füge die Zeile mit Name und Toggle zum Parent-Container hinzu
+        // Add the row with name and toggle to the parent container
         parentInfoContainer.getChildren().add(nameAndToggleRow);
 
-        // Füge die Dokumentation (falls vorhanden) ebenfalls zum Parent-Container hinzu
+        // Also add the documentation (if available) to the parent container
         if (node.documentation() != null && !node.documentation().isBlank()) {
             Label docLabel = new Label(node.documentation());
             docLabel.setStyle(DOC_LABEL_STYLE);
@@ -128,27 +128,27 @@ public class XsdDiagramView {
             parentInfoContainer.getChildren().add(docLabel);
         }
 
-        // Fülle den Container für die Kindelemente
+        // Fill the container for the child elements
         for (XsdNodeInfo childNode : node.children()) {
-            // Die Einrückung (depth) ist für die neue Struktur weniger relevant,
-            // aber wir behalten sie für die Rekursion bei.
+            // The indentation (depth) is less relevant for the new structure,
+            // but we keep it for the recursion.
             childrenContainer.getChildren().add(createNodeView(childNode, depth + 1));
         }
 
-        // Füge den Parent-Block und den Children-Block zum Haupt-HBox-Container hinzu
+        // Add the parent block and the children block to the main HBox container
         nodeContainer.getChildren().addAll(parentInfoContainer, childrenContainer);
 
         return nodeContainer;
     }
 
     /**
-     * Füllt den Detailbereich mit Informationen aus dem ausgewählten Element.
-     * Diese Methode ist nun robust gegen fehlende Daten.
+     * Fills the detail area with information from the selected element.
+     * This method is now robust against missing data.
      */
     private void updateDetailPane(ExtendedXsdElement element) {
         detailPane.getChildren().clear();
         if (element == null) {
-            detailPane.getChildren().add(new Label("Bitte einen Knoten auswählen."));
+            detailPane.getChildren().add(new Label("Please select a node."));
             return;
         }
 
@@ -157,28 +157,28 @@ public class XsdDiagramView {
         grid.setVgap(12);
         int rowIndex = 0;
 
-        // getDisplayName() verwenden, um '@' bei Attributen zu sehen
+        // Use getDisplayName() to see '@' for attributes
         addDetailRow(grid, rowIndex++, "Name:", element.getElementName());
         addDetailRow(grid, rowIndex++, "XPath:", element.getCurrentXpath());
-        addDetailRow(grid, rowIndex++, "Datentyp:", element.getElementType());
+        addDetailRow(grid, rowIndex++, "Data Type:", element.getElementType());
 
         if (element.getGenericAppInfos() != null && !element.getGenericAppInfos().isEmpty()) {
-            addDetailRow(grid, rowIndex++, "Kardinalität:", element.getGenericAppInfos().toString());
+            addDetailRow(grid, rowIndex++, "Cardinality:", element.getGenericAppInfos().toString());
         }
 
         if (element.getXsdDocumentation() != null && !element.getXsdDocumentation().isEmpty()) {
             String docText = element.getXsdDocumentation().getFirst().getContent();
-            addDetailRow(grid, rowIndex++, "Dokumentation:", docText);
+            addDetailRow(grid, rowIndex++, "Documentation:", docText);
         }
 
-        // KORREKTUR: Die Methode sicher aufrufen, um Abstürze zu vermeiden.
+        // Call the method safely to avoid crashes.
         String restrictions = element.getXsdRestrictionString();
         if (restrictions != null && !restrictions.isEmpty()) {
-            addDetailRow(grid, rowIndex++, "Einschränkungen:", restrictions);
+            addDetailRow(grid, rowIndex++, "Restrictions:", restrictions);
         }
 
         if (element.getSampleData() != null) {
-            addDetailRow(grid, rowIndex++, "Beispieldaten:", element.getSampleData());
+            addDetailRow(grid, rowIndex++, "Sample Data:", element.getSampleData());
         }
 
         if (element.getJavadocInfo() != null && element.getJavadocInfo().hasData()) {
@@ -194,22 +194,22 @@ public class XsdDiagramView {
     }
 
     /**
-     * Fügt eine Zeile zum Detail-Grid hinzu.
-     * Diese Methode ist nun null-sicher und hat ein verbessertes Layout.
+     * Adds a row to the detail grid.
+     * This method is now null-safe and has an improved layout.
      */
     private void addDetailRow(GridPane grid, int rowIndex, String labelText, String valueText) {
-        // Null-Werte abfangen, um Abstürze zu verhindern
+        // Handle null values to prevent crashes
         if (valueText == null) {
-            valueText = ""; // Leeren String verwenden statt null
+            valueText = ""; // Use an empty string instead of null
         }
 
         Label label = new Label(labelText);
         label.setStyle(DETAIL_LABEL_STYLE);
-        // VPos.TOP ist besser für die Ausrichtung bei mehrzeiligen Werten
+        // VPos.CENTER is better for alignment with multi-line values
         GridPane.setValignment(label, VPos.CENTER);
 
         Text value = new Text(valueText);
-        value.setWrappingWidth(300); // Passt die Breite an
+        value.setWrappingWidth(300); // Adjusts the width
 
         grid.add(label, 0, rowIndex);
         grid.add(value, 1, rowIndex);

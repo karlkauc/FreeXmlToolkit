@@ -375,7 +375,7 @@ public class SignatureService {
             return (sigAlg.equalsIgnoreCase(SignatureMethod.RSA_SHA256) ||
                     sigAlg.equalsIgnoreCase(SignatureMethod.RSA_SHA512)) &&
                     keyAlg.equalsIgnoreCase("RSA");
-            // KORREKTUR: Die Unterstützung für den unsicheren RSA-SHA1-Algorithmus wurde entfernt.
+            // Die Unterstützung für den unsicheren RSA-SHA1-Algorithmus wurde entfernt.
             // Add other algorithm compatibility checks if needed
         }
     }
