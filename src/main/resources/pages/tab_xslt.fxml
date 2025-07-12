@@ -54,7 +54,7 @@
                                 </graphic>
                             </Button>
 
-                            <Button fx:id="reload" onAction="#checkFiles" text="Reload" style="-fx-padding: 5px;">
+                            <Button onAction="#checkFiles" text="Reload" style="-fx-padding: 5px;">
                                 <graphic>
                                     <ImageView fitHeight="20" fitWidth="20">
                                         <Image url="@../img/icons8-aktualisieren-48.png"/>
