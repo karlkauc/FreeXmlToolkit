@@ -127,7 +127,60 @@
                 </div>
             </section>
 
-            <!-- NEU: Sektion "Verwendet in" -->
+            <!-- ================================================================== -->
+            <!-- Sektion für Kind-Elemente -->
+            <!-- ================================================================== -->
+            <section th:if="${not #lists.isEmpty(childElements)}">fd
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Child Elements &amp; Attributes</h2>
+                <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-sm">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Name</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Type</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Documentation</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Sample Data</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm">
+                        <!-- Die Schleife iteriert jetzt über die Liste der Kind-Objekte -->
+                        <tr th:each="child: ${childElements}">
+                            <!-- Spalte: Name -->
+                            <td class="px-4 py-3 font-mono">
+                                <a th:href="${'../details/' + child.pageName}"
+                                   th:title="${child.currentXpath}"
+                                   class="text-sky-600 hover:text-sky-800 hover:underline"
+                                   th:text="${child.elementName}">
+                                </a>
+                            </td>
+
+                            <!-- Spalte: Typ -->
+                            <td class="px-4 py-3 font-mono">
+                                <a th:if="${this.isChildTypeLinkable(child.currentXpath)}"
+                                   th:href="${this.getChildTypePageName(child.currentXpath)}"
+                                   th:text="${child.elementType}"
+                                   class="text-sky-600 hover:text-sky-800 hover:underline">
+                                </a>
+                                <span th:unless="${this.isChildTypeLinkable(child.currentXpath)}"
+                                      th:text="${child.elementType}">
+                                </span>
+                            </td>
+
+                            <!-- Spalte: Dokumentation -->
+                            <td class="px-4 py-3 text-slate-600 prose prose-sm max-w-md"
+                                th:utext="${this.getChildDocumentation(child.currentXpath)}">
+                            </td>
+
+                            <!-- Spalte: Beispieldaten -->
+                            <td class="px-4 py-3 font-mono text-slate-600" th:text="${child.sampleData}">
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Sektion "Verwendet in" -->
             <section th:if="${not #lists.isEmpty(usedInElements)}">
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">Verwendet in</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">

@@ -116,6 +116,15 @@ public class XsdDocumentationHtmlService {
 
         for (var complexType : xsdDocumentationData.getXsdComplexTypes()) {
             try {
+                String complexTypeName = complexType.getName();
+                if (complexTypeName == null || complexTypeName.isEmpty()) {
+                    logger.warn("Skipping complex type page for a type without a name.");
+                    continue;
+                }
+
+                // KORREKTUR: Bereinige den Namen des ComplexType für einen robusten Vergleich.
+                final String cleanComplexTypeName = complexTypeName.substring(complexTypeName.lastIndexOf(":") + 1);
+
                 var context = new Context();
                 context.setVariable("complexType", complexType);
 
@@ -123,36 +132,39 @@ public class XsdDocumentationHtmlService {
                     context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
                 }
 
-                // NEU: Finde alle Elemente, deren Name dem des Complex Type entspricht.
-                final String typeName = complexType.getName();
-                if (typeName != null && !typeName.isEmpty()) {
-                    // Filtere die Liste aller ExtendedXsdElement-Objekte.
-                    var currentExtendedElement = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
-                            .filter(element -> typeName.equals(element.getElementName()))
-                            .collect(Collectors.toList());
+                // KORREKTUR: Finde alle Elemente, die diesen Typ verwenden, indem die bereinigten Namen verglichen werden.
+                var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                        .filter(element -> {
+                            String elementType = element.getElementType();
+                            if (elementType == null) {
+                                return false;
+                            }
+                            String cleanElementType = elementType.substring(elementType.lastIndexOf(":") + 1);
+                            return cleanComplexTypeName.equals(cleanElementType);
+                        })
+                        .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
+                        .collect(Collectors.toList());
+                context.setVariable("usedInElements", usedInElements);
 
-                    // Füge die Liste der gefundenen Elemente zum Kontext hinzu.
-                    // Diese kann im Template z.B. unter "Verwendet in:" angezeigt werden.
-                    context.setVariable("typeUsages", currentExtendedElement);
-                    logger.debug("Found {} usage(s) for complex type '{}'", currentExtendedElement.size(), typeName);
+                context.setVariable("this", this);
 
-                    var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
-                            .filter(element -> typeName.equals(element.getElementType()))
-                            .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
-                            .collect(Collectors.toList());
-
-                    context.setVariable("usedInElements", usedInElements);
-                    logger.debug("Found {} usage(s) for complex type '{}'", usedInElements.size(), typeName);
+                // Ermittle repräsentative Kind-Elemente als Objekte
+                List<ExtendedXsdElement> childElements = new ArrayList<>();
+                if (!usedInElements.isEmpty()) {
+                    ExtendedXsdElement representativeElement = usedInElements.getFirst();
+                    if (representativeElement != null && representativeElement.hasChildren()) {
+                        // Lade die vollständigen Kind-Objekte aus der Map
+                        representativeElement.getChildren().stream()
+                                .map(xpath -> xsdDocumentationData.getExtendedXsdElementMap().get(xpath))
+                                .filter(java.util.Objects::nonNull)
+                                .forEach(childElements::add);
+                    }
                 }
-
+                context.setVariable("childElements", childElements);
 
                 final var result = templateEngine.process("complexTypes/templateComplexType", context);
-                var fileName = complexType.getRawName();
-                if (fileName.isEmpty()) {
-                    fileName = complexType.getName();
-                }
-
-                final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", fileName + ".html");
+                // Der Dateiname wird ebenfalls bereinigt, um ":"-Zeichen zu entfernen.
+                final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", cleanComplexTypeName + ".html");
                 logger.debug("Complex Type File: {}", outputFilePath.toFile().getAbsolutePath());
 
                 try {
@@ -162,7 +174,7 @@ public class XsdDocumentationHtmlService {
                     logger.error("ERROR in writing complex Type File: {}", e.getMessage());
                 }
             } catch (Exception e) {
-                logger.error("ERROR in creating complex Type File: {}", e.getMessage());
+                logger.error("ERROR in creating complex Type File for '{}': {}", complexType.getName(), e.getMessage(), e);
             }
         }
     }
@@ -170,30 +182,58 @@ public class XsdDocumentationHtmlService {
     void generateComplexTypePagesInParallel() {
         logger.debug("Generating Complex Type Pages in parallel...");
 
-        // Verwende für jede Seite einen eigenen virtuellen Thread
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             for (final var complexType : xsdDocumentationData.getXsdComplexTypes()) {
                 executor.submit(() -> {
                     try {
+                        String complexTypeName = complexType.getName();
+                        if (complexTypeName == null || complexTypeName.isEmpty()) {
+                            logger.warn("Skipping complex type page for a type without a name.");
+                            return;
+                        }
+
+                        // Bereinige den Namen des ComplexType und den Dateinamen.
+                        final String cleanComplexTypeName = complexTypeName.substring(complexTypeName.lastIndexOf(":") + 1);
+
                         var context = new Context();
                         context.setVariable("complexType", complexType);
+
+                        context.setVariable("this", this);
 
                         if (complexType.getAnnotation() != null && complexType.getAnnotation().getDocumentations() != null) {
                             context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
                         }
 
-                        final String typeName = complexType.getName();
-                        if (typeName != null && !typeName.isEmpty()) {
-                            var usedInElements = xsdDocumentationData.getTypeUsageMap().getOrDefault(typeName, Collections.emptyList());                            context.setVariable("usedInElements", usedInElements);
+                        // Verwende die robuste Filterlogik anstelle der typeUsageMap.
+                        var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                                .filter(element -> {
+                                    String elementType = element.getElementType();
+                                    if (elementType == null) {
+                                        return false;
+                                    }
+                                    String cleanElementType = elementType.substring(elementType.lastIndexOf(":") + 1);
+                                    return cleanComplexTypeName.equals(cleanElementType);
+                                })
+                                .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
+                                .collect(Collectors.toList());
+                        context.setVariable("usedInElements", usedInElements);
+
+                        List<ExtendedXsdElement> childElements = new ArrayList<>();
+                        if (!usedInElements.isEmpty()) {
+                            ExtendedXsdElement representativeElement = usedInElements.getFirst();
+                            if (representativeElement != null && representativeElement.hasChildren()) {
+                                // Lade die vollständigen Kind-Objekte aus der Map
+                                representativeElement.getChildren().stream()
+                                        .map(xpath -> xsdDocumentationData.getExtendedXsdElementMap().get(xpath))
+                                        .filter(java.util.Objects::nonNull)
+                                        .forEach(childElements::add);
+                            }
                         }
+                        context.setVariable("childElements", childElements);
 
                         final var result = templateEngine.process("complexTypes/templateComplexType", context);
-                        var fileName = complexType.getRawName();
-                        if (fileName == null || fileName.isEmpty()) {
-                            fileName = complexType.getName();
-                        }
-
-                        final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", fileName + ".html");
+                        // Der Dateiname wird ebenfalls bereinigt, um ":" Zeichen zu entfernen.
+                        final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", cleanComplexTypeName + ".html");
                         Files.write(outputFilePath, result.getBytes());
                         logger.info("Written Complex Type Page: {}", outputFilePath.getFileName());
 
@@ -202,7 +242,7 @@ public class XsdDocumentationHtmlService {
                     }
                 });
             }
-        } // Der Executor wird hier automatisch geschlossen und wartet auf die Fertigstellung der Tasks.
+        }
     }
 
     void generateDetailPages() {
@@ -223,55 +263,53 @@ public class XsdDocumentationHtmlService {
         }
     }
 
+    // Ersetze die bestehende Methode
     void generateSimpleTypePages() {
         logger.debug("Generating Simple Type Pages");
 
-        // Iteriere durch alle gefundenen SimpleTypes aus den XSD-Daten
         for (var simpleType : xsdDocumentationData.getXsdSimpleTypes()) {
             try {
-                // Erstelle einen neuen Kontext für das Thymeleaf-Template
                 var context = new Context();
-
-                // Füge die relevanten Daten zum Kontext hinzu
                 context.setVariable("simpleType", simpleType);
                 context.setVariable("restriction", simpleType.getRestriction());
 
-                // Füge die Dokumentation hinzu, falls vorhanden
                 if (simpleType.getAnnotation() != null && simpleType.getAnnotation().getDocumentations() != null) {
                     context.setVariable("documentations", simpleType.getAnnotation().getDocumentations());
                 }
 
-                // NEU: Finde alle Elemente, die diesen Simple Type verwenden.
                 final String typeName = simpleType.getName();
                 if (typeName != null && !typeName.isEmpty()) {
+                    // KORREKTUR: Vergleiche die bereinigten Namen
+                    final String cleanTypeName = typeName.substring(typeName.lastIndexOf(":") + 1);
                     var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
-                            .filter(element -> typeName.equals(element.getElementType()))
+                            .filter(element -> {
+                                String elementType = element.getElementType();
+                                if (elementType == null) return false;
+                                String cleanElementType = elementType.substring(elementType.lastIndexOf(":") + 1);
+                                return cleanTypeName.equals(cleanElementType);
+                            })
                             .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
                             .collect(Collectors.toList());
 
-                    // Füge die Liste der Verwendungen zum Kontext hinzu.
                     context.setVariable("usedInElements", usedInElements);
                     logger.debug("Found {} usage(s) for simple type '{}'", usedInElements.size(), typeName);
                 }
 
-                // Verarbeite das Template mit den gefüllten Daten
                 final var result = templateEngine.process("simpleTypes/templateSimpleType", context);
-
-                // Definiere den Ausgabepfad und den Dateinamen
-                final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", simpleType.getName() + ".html");
+                final String cleanFileName = simpleType.getName().substring(simpleType.getName().lastIndexOf(":") + 1);
+                final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", cleanFileName + ".html");
                 logger.debug("File: {}", outputFilePath.toFile().getAbsolutePath());
 
-                // Schreibe die generierte HTML-Datei in das Ausgabeverzeichnis
                 Files.write(outputFilePath, result.getBytes());
                 logger.info("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
 
             } catch (Exception e) {
-                // Logge den Fehler, aber fahre mit dem nächsten Typ fort, um den gesamten Prozess nicht zu blockieren.
                 logger.error("ERROR in creating simple Type File for '{}': {}", simpleType.getName(), e.getMessage(), e);
             }
         }
     }
 
+    // Ersetze auch die parallele Version
     void generateSimpleTypePagesInParallel() {
         logger.debug("Generating Simple Type Pages in parallel...");
 
@@ -289,15 +327,23 @@ public class XsdDocumentationHtmlService {
 
                         final String typeName = simpleType.getName();
                         if (typeName != null && !typeName.isEmpty()) {
+                            // KORREKTUR: Vergleiche die bereinigten Namen
+                            final String cleanTypeName = typeName.substring(typeName.lastIndexOf(":") + 1);
                             var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
-                                    .filter(element -> typeName.equals(element.getElementType()))
+                                    .filter(element -> {
+                                        String elementType = element.getElementType();
+                                        if (elementType == null) return false;
+                                        String cleanElementType = elementType.substring(elementType.lastIndexOf(":") + 1);
+                                        return cleanTypeName.equals(cleanElementType);
+                                    })
                                     .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
                                     .collect(Collectors.toList());
                             context.setVariable("usedInElements", usedInElements);
                         }
 
                         final var result = templateEngine.process("simpleTypes/templateSimpleType", context);
-                        final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", simpleType.getName() + ".html");
+                        final String cleanFileName = simpleType.getName().substring(simpleType.getName().lastIndexOf(":") + 1);
+                        final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", cleanFileName + ".html");
 
                         Files.write(outputFilePath, result.getBytes());
                         logger.info("Written Simple Type Page: {}", outputFilePath.getFileName());
@@ -512,18 +558,23 @@ public class XsdDocumentationHtmlService {
      * @param xpath Der XPath des Elements, dessen Typ-Dokumentation gesucht wird.
      * @return Die gefundene Dokumentation als String, oder ein leerer String, wenn nichts gefunden wurde.
      */
+    // Ersetze die bestehende Methode
     public String getTypeDocumentation(String xpath) {
         ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
 
-        // Schritt 1: Prüfen, ob das Element und sein Typ existieren und ob es kein eingebauter Typ ist.
         if (element == null || element.getElementType() == null || element.getElementType().startsWith("xs:")) {
             return "";
         }
         final String typeName = element.getElementType();
+        // KORREKTUR: Bereinige den Namen für den Vergleich
+        final String cleanTypeName = typeName.substring(typeName.lastIndexOf(":") + 1);
 
-        // Schritt 2: Suche in den SimpleTypes.
+        // Suche in den SimpleTypes
         var simpleTypeDoc = xsdDocumentationData.getXsdSimpleTypes().stream()
-                .filter(st -> typeName.equals(st.getName()))
+                .filter(st -> {
+                    String cleanStName = st.getName().substring(st.getName().lastIndexOf(":") + 1);
+                    return cleanTypeName.equals(cleanStName);
+                })
                 .findFirst()
                 .map(XsdSimpleType::getAnnotation)
                 .map(XsdAnnotation::getDocumentations)
@@ -534,11 +585,12 @@ public class XsdDocumentationHtmlService {
             return simpleTypeDoc;
         }
 
-        // Schritt 3: Wenn nicht in SimpleTypes gefunden, suche in den ComplexTypes.
-        // Leeren String als Fallback
-
+        // Suche in den ComplexTypes
         return xsdDocumentationData.getXsdComplexTypes().stream()
-                .filter(ct -> typeName.equals(ct.getName()))
+                .filter(ct -> {
+                    String cleanCtName = ct.getName().substring(ct.getName().lastIndexOf(":") + 1);
+                    return cleanTypeName.equals(cleanCtName);
+                })
                 .findFirst()
                 .map(XsdComplexType::getAnnotation)
                 .map(XsdAnnotation::getDocumentations)
@@ -695,26 +747,29 @@ public class XsdDocumentationHtmlService {
         }
 
         String typeName = childElement.getElementType();
-        // Entferne ein mögliches Namespace-Präfix für den Dateinamen
         String cleanTypeName = typeName.substring(typeName.lastIndexOf(":") + 1);
 
-        // KORREKTUR: Prüfe, ob der Typ in der Liste der globalen Simple- oder Complex-Types existiert.
-        // Wir verwenden einen Stream und anyMatch, da es sich um eine Liste handelt.
+        // Vergleiche die bereinigten Namen, um den Typ korrekt zu finden
         boolean isSimpleType = xsdDocumentationData.getXsdSimpleTypes().stream()
-                .anyMatch(st -> typeName.equals(st.getName()));
+                .anyMatch(st -> {
+                    String cleanStName = st.getName().substring(st.getName().lastIndexOf(":") + 1);
+                    return cleanTypeName.equals(cleanStName);
+                });
 
         if (isSimpleType) {
             return "../simpleTypes/" + cleanTypeName + ".html";
         }
 
         boolean isComplexType = xsdDocumentationData.getXsdComplexTypes().stream()
-                .anyMatch(ct -> typeName.equals(ct.getName()));
+                .anyMatch(ct -> {
+                    String cleanCtName = ct.getName().substring(ct.getName().lastIndexOf(":") + 1);
+                    return cleanTypeName.equals(cleanCtName);
+                });
 
         if (isComplexType) {
             return "../complexTypes/" + cleanTypeName + ".html";
         }
 
-        // Fallback, sollte eigentlich nicht erreicht werden, wenn isChildTypeLinkable() korrekt funktioniert.
         return "#";
     }
 

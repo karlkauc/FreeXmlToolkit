@@ -103,6 +103,7 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.generateSimpleTypesListPage();
         xsdDocumentationHtmlService.generateDataDictionaryPage();
 
+
         if (parallelProcessing) {
             xsdDocumentationHtmlService.generateComplexTypePagesInParallel();
             xsdDocumentationHtmlService.generateSimpleTypePagesInParallel();
@@ -112,6 +113,7 @@ public class XsdDocumentationService {
             xsdDocumentationHtmlService.generateSimpleTypePages();
             xsdDocumentationHtmlService.generateDetailPages();
         }
+
     }
 
     public void processXsd(Boolean useMarkdownRenderer) {
@@ -221,6 +223,7 @@ public class XsdDocumentationService {
                     xsdDocumentationData.getExtendedXsdElementMap().get(parentXpath).getChildren().add(currentXpath);
                 }
 
+                // Schritt 1: Verarbeite Annotationen direkt am Element-Tag
                 processAnnotations(xsdElement.getAnnotation(), extendedXsdElement);
 
                 // Javadoc-Vererbung
@@ -249,18 +252,32 @@ public class XsdDocumentationService {
                 extendedXsdElement.setElementName(xsdElement.getRawName());
                 extendedXsdElement.setXsdElement(xsdElement);
 
-                if (xsdElement.getAnnotation() != null && xsdElement.getAnnotation().getDocumentations() != null) {
-                    extendedXsdElement.setXsdDocumentation(xsdElement.getAnnotation().getDocumentations());
-                }
-
                 // Element in die Map legen, damit Kind-Elemente es finden können
                 xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
+
+                // KORREKTUR: Suche nach global definierten, referenzierten Typen und übernehme deren Dokumentation.
+                // Dies ist entscheidend für Elemente, die einen Typ über das 'type'-Attribut referenzieren (z.B. type="tns:MyType").
+                if (xsdElement.getType() != null && !xsdElement.getType().isBlank()) {
+                    String typeName = xsdElement.getType();
+
+                    // Suche in den globalen ComplexTypes
+                    xsdDocumentationData.getXsdComplexTypes().stream()
+                            .filter(ct -> typeName.equals(ct.getName()))
+                            .findFirst()
+                            .ifPresent(complexType -> processAnnotations(complexType.getAnnotation(), extendedXsdElement));
+
+                    // Suche in den globalen SimpleTypes
+                    xsdDocumentationData.getXsdSimpleTypes().stream()
+                            .filter(st -> typeName.equals(st.getName()))
+                            .findFirst()
+                            .ifPresent(simpleType -> processAnnotations(simpleType.getAnnotation(), extendedXsdElement));
+                }
 
                 // Rekursionsschutz
                 var currentType = xsdElement.getType();
                 if (currentType != null && prevElementTypes.contains(currentType.trim())) {
                     logger.info("Recursion detected for type {}. Stopping traversal.", currentType);
-                    // Trotzdem Beispieldaten für das Element selbst generieren
+                    extendedXsdElement.setElementType(currentType); // Wichtig: Typ trotzdem setzen
                     extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
                     return;
                 }
@@ -271,28 +288,31 @@ public class XsdDocumentationService {
                 ArrayList<String> prevPathTemp = new ArrayList<>(prevElementPath);
                 prevPathTemp.add(xsdElement.getName());
 
-                // Detaillierte Typ- und Inhaltsverarbeitung
+                // Detaillierte Typ- und Inhaltsverarbeitung für inline-Definitionen und Kinder
                 if (xsdElement.getXsdComplexType() != null) {
                     XsdComplexType complexType = xsdElement.getXsdComplexType();
+                    // Verarbeite auch die Annotation des inline definierten Typs
+                    processAnnotations(complexType.getAnnotation(), extendedXsdElement);
 
-                    // Fall 1: Element hat Textinhalt und Attribute (<simpleContent>)
                     if (complexType.getSimpleContent() != null) {
                         XsdSimpleContent simpleContent = complexType.getSimpleContent();
                         if (simpleContent.getXsdExtension() != null) {
-                            XsdExtension extension = simpleContent.getXsdExtension();
-                            extendedXsdElement.setElementType(String.valueOf(extension.getBase()));
+                            extendedXsdElement.setElementType(String.valueOf(simpleContent.getXsdExtension().getBase()));
                         }
                         if (simpleContent.getXsdRestriction() != null) {
-                            XsdRestriction restriction = simpleContent.getXsdRestriction();
-                            extendedXsdElement.setElementType(restriction.getBase());
-                            extendedXsdElement.setXsdRestriction(restriction);
+                            extendedXsdElement.setElementType(simpleContent.getXsdRestriction().getBase());
+                            extendedXsdElement.setXsdRestriction(simpleContent.getXsdRestriction());
                         }
-                        // Rekursiver Aufruf für die Inhalte von simpleContent (z.B. Attribute in der Extension)
                         getXsdAbstractElementInfo(level, complexType.getSimpleContent(), prevTemp, prevPathTemp, currentNode, extendedXsdElement.getJavadocInfo());
-
                     } else {
-                        // Fall 2: Element hat Kind-Elemente (complexContent oder sequence, choice, etc.)
-                        extendedXsdElement.setElementType("(Complex Content)");
+                        if (xsdElement.getType() != null) {
+                            extendedXsdElement.setElementType(xsdElement.getType());
+                        } else if (complexType.getName() != null && !complexType.getName().isEmpty()) {
+                            extendedXsdElement.setElementType(complexType.getName());
+                        } else {
+                            extendedXsdElement.setElementType("(Complex Content)");
+                        }
+
                         XsdAbstractElement child = null;
                         if (complexType.getComplexContent() != null) child = complexType.getComplexContent();
                         else if (complexType.getChildAsSequence() != null) child = complexType.getChildAsSequence();
@@ -304,26 +324,23 @@ public class XsdDocumentationService {
                         }
                     }
 
-                    // Verarbeite Attribute, die direkt im complexType definiert sind
                     if (complexType.getAllXsdAttributes() != null) {
                         complexType.getAllXsdAttributes().forEach(attr ->
                                 getXsdAbstractElementInfo(level + 1, attr, prevTemp, prevPathTemp, finalCurrentNode, extendedXsdElement.getJavadocInfo())
                         );
                     }
                 } else if (xsdElement.getXsdSimpleType() != null) {
-                    // Fall 3: Element hat einen inline definierten simpleType
                     XsdSimpleType simpleType = xsdElement.getXsdSimpleType();
+                    processAnnotations(simpleType.getAnnotation(), extendedXsdElement); // Annotation für inline simpleType
                     if (simpleType.getRestriction() != null) {
                         extendedXsdElement.setXsdRestriction(simpleType.getRestriction());
                         extendedXsdElement.setElementType(simpleType.getRestriction().getBase());
                     }
                 } else if (xsdElement.getType() != null) {
-                    // Fall 4: Element verweist auf einen benannten Typ
                     extendedXsdElement.setElementType(xsdElement.getType());
                 }
 
                 // FINALER SCHRITT: Generiere Beispieldaten für das Element selbst.
-                // Dies geschieht am Ende, nachdem alle Typ- und Restriction-Informationen gesammelt wurden.
                 extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
             }
             case XsdAttribute xsdAttribute -> {
@@ -606,8 +623,12 @@ public class XsdDocumentationService {
             return;
         }
 
-        if (annotation.getDocumentations() != null) {
-            extendedXsdElement.setXsdDocumentation(annotation.getDocumentations());
+        // Dokumentationen werden jetzt hinzugefügt, nicht mehr überschrieben.
+        if (annotation.getDocumentations() != null && !annotation.getDocumentations().isEmpty()) {
+            if (extendedXsdElement.getXsdDocumentation() == null) {
+                extendedXsdElement.setXsdDocumentation(new ArrayList<>());
+            }
+            extendedXsdElement.getXsdDocumentation().addAll(annotation.getDocumentations());
         }
 
         List<XsdAppInfo> appInfos = annotation.getAppInfoList();
@@ -615,8 +636,15 @@ public class XsdDocumentationService {
             return;
         }
 
-        JavadocInfo javadocInfo = new JavadocInfo();
-        List<String> genericAppInfos = new ArrayList<>();
+        // Stelle sicher, dass JavadocInfo und genericAppInfos zum Hinzufügen bereit sind.
+        JavadocInfo javadocInfo = extendedXsdElement.getJavadocInfo();
+        if (javadocInfo == null) {
+            javadocInfo = new JavadocInfo();
+        }
+        List<String> genericAppInfos = extendedXsdElement.getGenericAppInfos();
+        if (genericAppInfos == null) {
+            genericAppInfos = new ArrayList<>();
+        }
 
         for (XsdAppInfo appInfo : appInfos) {
             String source = appInfo.getSource();

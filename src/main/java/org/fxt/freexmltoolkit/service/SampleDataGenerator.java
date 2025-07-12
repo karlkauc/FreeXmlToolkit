@@ -100,7 +100,7 @@ public class SampleDataGenerator {
         }
 
         if (elementType == null || (element.getXsdElement() != null && element.getXsdElement().getXsdComplexType() != null)) {
-            return "..."; // Für komplexe Typen ohne einfachen Inhalt
+            return ""; // Für komplexe Typen ohne einfachen Inhalt
         }
 
         String finalType = elementType.substring(elementType.lastIndexOf(":") + 1);
@@ -308,7 +308,7 @@ public class SampleDataGenerator {
     private Document convertStringToDocument(String xmlStr) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            // VERBESSERUNG: Namespace-Awareness aktivieren, um mit Prefixen wie "altova:" korrekt umzugehen.
+            // Namespace-Awareness aktivieren, um mit Prefixen wie "altova:" korrekt umzugehen.
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             return builder.parse(new InputSource(new StringReader(xmlStr)));
