@@ -18,22 +18,32 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.fxt.freexmltoolkit.domain.PDFSettings;
 import org.fxt.freexmltoolkit.service.FOPService;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -61,6 +71,10 @@ public class FopController {
     private CheckBox openPdfAfterCreation;
     @FXML
     private ProgressIndicator progressIndicator;
+    @FXML
+    private ScrollPane pdfScrollPane;
+    @FXML
+    private VBox pdfViewContainer;
 
     /**
      * Sets the parent controller.
@@ -204,12 +218,45 @@ public class FopController {
 
     /**
      * Starts the conversion process from XML and XSL to PDF.
-     *
-     * @throws IOException if an I/O error occurs
      */
     @FXML
-    private void buttonConversion() throws IOException {
+    private void buttonConversion() {
         logger.debug("Start Conversion!");
+
+        // =====================================================================
+        // Validierungs-Block
+        // =====================================================================
+        StringBuilder validationErrors = new StringBuilder();
+
+        if (xmlFile == null) {
+            validationErrors.append("- No XML source file has been selected.\n");
+        } else if (!xmlFile.exists()) {
+            validationErrors.append("- The selected XML file does not exist: ").append(xmlFile.getAbsolutePath()).append("\n");
+        }
+
+        if (xslFile == null) {
+            validationErrors.append("- No XSL-FO stylesheet has been selected.\n");
+        } else if (!xslFile.exists()) {
+            validationErrors.append("- The selected XSL-FO stylesheet does not exist: ").append(xslFile.getAbsolutePath()).append("\n");
+        }
+
+        if (pdfFile == null) {
+            validationErrors.append("- No output path for the PDF file has been defined.\n");
+        }
+
+        // Wenn es Validierungsfehler gab, zeige einen Alert und brich ab.
+        if (!validationErrors.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Validation Error");
+            alert.setHeaderText("Please correct the following issues before creating the PDF:");
+            alert.setContentText(validationErrors.toString());
+            alert.showAndWait();
+            return; // Wichtig: Die Methode hier beenden!
+        }
+        // =====================================================================
+        // Ende des Validierungs-Blocks
+        // =====================================================================
+
         progressIndicator.setVisible(true);
         progressIndicator.setProgress(0);
 
@@ -219,16 +266,97 @@ public class FopController {
                 creationDate.getText(), title.getText(), keywords.getText()
         );
 
-        fopService.createPdfFile(xmlFile, xslFile, pdfFile, pdfSettings);
+        // Die PDF-Erstellung und Anzeige in einen Hintergrund-Thread verlagern
+        new Thread(() -> {
+            try {
+                File createdPdf = fopService.createPdfFile(xmlFile, xslFile, pdfFile, pdfSettings);
+                Platform.runLater(() -> progressIndicator.setProgress(0.5));
 
-        if (pdfFile != null && pdfFile.exists()) {
-            logger.debug("Written {} bytes in File {}", pdfFile.length(), pdfFile.getAbsoluteFile());
-            progressIndicator.setProgress(1.0);
-            if (openPdfAfterCreation.isSelected() && pdfFile.length() > 0) {
-                Desktop.getDesktop().open(pdfFile);
+                if (createdPdf != null && createdPdf.exists()) {
+                    logger.debug("Written {} bytes in File {}", createdPdf.length(), createdPdf.getAbsoluteFile());
+
+                    // PDF-Vorschau und Öffnen auf dem UI-Thread starten
+                    Platform.runLater(() -> {
+                        renderPdf(createdPdf);
+                        progressIndicator.setProgress(1.0);
+                        if (openPdfAfterCreation.isSelected() && createdPdf.length() > 0) {
+                            try {
+                                Desktop.getDesktop().open(createdPdf);
+                            } catch (IOException e) {
+                                logger.error("Could not open PDF file automatically.", e);
+                            }
+                        }
+                        progressIndicator.setVisible(false);
+                    });
+                } else {
+                    logger.warn("PDF File does not exist after creation attempt.");
+                    Platform.runLater(() -> progressIndicator.setVisible(false));
+                }
+            } catch (Exception e) {
+                logger.error("PDF conversion failed.", e);
+                // Zeige einen Fehler-Alert an
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "PDF creation failed: " + e.getMessage());
+                    alert.showAndWait();
+                    progressIndicator.setVisible(false);
+                });
             }
-        } else {
-            logger.warn("PDF File does not exist");
+        }).start();
+    }
+
+    /**
+     * Rendert eine gegebene PDF-Datei Seite für Seite in den pdfViewContainer.
+     * Die Arbeit wird auf einem Hintergrund-Thread ausgeführt, um die UI nicht zu blockieren.
+     *
+     * @param pdfFile Die anzuzeigende PDF-Datei.
+     */
+    private void renderPdf(File pdfFile) {
+        if (pdfFile == null || !pdfFile.exists()) {
+            pdfViewContainer.getChildren().clear();
+            pdfViewContainer.getChildren().add(new Label("Please create a PDF first."));
+            return;
         }
+
+        // UI für den Ladevorgang vorbereiten
+        pdfViewContainer.getChildren().clear();
+        ProgressIndicator viewerProgress = new ProgressIndicator();
+        pdfViewContainer.getChildren().add(viewerProgress);
+
+        // PDF-Rendering ist langsam, daher in einem neuen Thread ausführen
+        new Thread(() -> {
+            try (PDDocument document = Loader.loadPDF((pdfFile))) {
+                PDFRenderer renderer = new PDFRenderer(document);
+
+                // UI-Updates müssen auf dem JavaFX Application Thread ausgeführt werden
+                Platform.runLater(pdfViewContainer.getChildren()::clear);
+
+                for (int i = 0; i < document.getNumberOfPages(); i++) {
+                    // Seite als Bild rendern
+                    BufferedImage bufferedImage = renderer.renderImageWithDPI(i, 150); // 150 DPI ist ein guter Kompromiss
+                    Image image = SwingFXUtils.toFXImage(bufferedImage, null);
+
+                    ImageView imageView = new ImageView(image);
+                    imageView.setPreserveRatio(true);
+                    // Bild an die Breite des Scroll-Bereichs anpassen
+                    imageView.fitWidthProperty().bind(pdfScrollPane.widthProperty().subtract(25));
+
+                    // Bild zur VBox hinzufügen (wieder auf dem UI-Thread)
+                    final int pageNum = i + 1;
+                    Platform.runLater(() -> {
+                        Label pageLabel = new Label("Seite " + pageNum);
+                        pageLabel.setStyle("-fx-text-fill: white;"); // Bessere Sichtbarkeit auf dunklem Hintergrund
+                        pdfViewContainer.getChildren().addAll(pageLabel, imageView);
+                    });
+                }
+            } catch (IOException e) {
+                logger.error("Fehler beim Laden oder Rendern des PDFs", e);
+                Platform.runLater(() -> {
+                    pdfViewContainer.getChildren().clear();
+                    Label errorLabel = new Label("Fehler beim Anzeigen des PDFs: " + e.getMessage());
+                    errorLabel.setStyle("-fx-text-fill: red;");
+                    pdfViewContainer.getChildren().add(errorLabel);
+                });
+            }
+        }).start();
     }
 }

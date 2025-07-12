@@ -58,7 +58,7 @@ repositories {
 
 javafx {
     version = "24.0.1"
-    modules("javafx.controls", "javafx.fxml", "javafx.web")
+    modules("javafx.controls", "javafx.fxml", "javafx.web", "javafx.swing")
 }
 
 dependencies {
@@ -107,8 +107,9 @@ dependencies {
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.31.0")
     implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.40.0.M0")
 
-    // FOP
+    // FOP & PDF Anzeige
     implementation("org.apache.xmlgraphics:fop:2.11")
+    implementation("org.apache.pdfbox:pdfbox:3.0.5")
 
     // SVG Graphic
     implementation("org.apache.xmlgraphics:batik-svggen:1.19")

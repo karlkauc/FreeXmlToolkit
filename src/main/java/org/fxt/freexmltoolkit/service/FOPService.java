@@ -56,8 +56,9 @@ public class FOPService {
      * @param xslFile     the XSL file to use for transformation
      * @param pdfOutput   the output PDF file
      * @param pdfSettings the settings for the PDF file
+     * @return
      */
-    public void createPdfFile(File xmlFile, File xslFile, File pdfOutput, PDFSettings pdfSettings) {
+    public File createPdfFile(File xmlFile, File xslFile, File pdfOutput, PDFSettings pdfSettings) {
 
         assert xmlFile.exists();
         assert xslFile.exists();
@@ -104,6 +105,7 @@ public class FOPService {
             logger.error(e.getStackTrace());
             logger.error(e);
         }
+        return pdfOutput;
     }
 
     /**
