@@ -23,6 +23,7 @@ plugins {
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.github.ben-manes.versions") version "0.52.0"
     id("edu.sc.seis.launch4j") version "3.0.6"
+    id("org.beryx.jlink") version "3.0.1"
 }
 
 application {
@@ -32,7 +33,6 @@ application {
 }
 
 configurations.all {
-    // resolutionStrategy.failOnVersionConflict()
     resolutionStrategy {
         cacheChangingModulesFor(15, "MINUTES")
         cacheDynamicVersionsFor(15, "MINUTES")
@@ -166,12 +166,6 @@ tasks.jar {
     exclude("**/*.txt")
 }
 
-/*
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-    maxHeapSize = "16G"
-}
- */
 
 tasks.test {
     useJUnitPlatform()
@@ -231,5 +225,41 @@ idea {
     module {
         isDownloadJavadoc = true
         isDownloadSources = true
+    }
+}
+
+jlink {
+    options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
+    launcher {
+        name = "FreeXmlToolkit"
+    }
+    jarExclude("*", "**/LICENSE*")
+
+    jpackage {
+        // Allgemeine Optionen für alle Betriebssysteme
+        vendor = "Ihr Name/Ihre Firma"
+        appVersion = "1.0.0"
+
+        mergedModule {
+            jarExclude("*", "**/LICENSE*")
+        }
+
+        // Betriebssystem-spezifische Konfiguration
+        if (org.gradle.internal.os.OperatingSystem.current().isWindows) {
+            installerType = "exe"
+            installerOptions
+            installerOptions = listOf("--win-menu", "--win-shortcut")
+            // Installiert standardmäßig in das Benutzerverzeichnis %LOCALAPPDATA%\<Anwendungsname>
+        } else if (org.gradle.internal.os.OperatingSystem.current().isMacOsX) {
+            installerType = "dmg"
+            // Installiert in /Applications, was auf macOS oft ohne Admin-Rechte möglich ist
+            // Für eine rein benutzerbezogene Installation:
+            // installDir = '~/Applications'
+        } else if (org.gradle.internal.os.OperatingSystem.current().isLinux) {
+            installerType = "deb" // oder 'rpm'
+            // Installiert standardmäßig in /opt, was Admin-Rechte erfordert.
+            // Daher setzen wir das Installationsverzeichnis auf ein Benutzerverzeichnis:
+            // installDir = "home/${System.getProperty('user.name')}/.local/share/IhreAnwendung"
+        }
     }
 }
