@@ -12,6 +12,54 @@
              AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
         <!-- ===================================================================== -->
+        <!-- NEU: TAB 0: ANLEITUNG                                                 -->
+        <!-- ===================================================================== -->
+        <Tab text="Instructions">
+            <graphic>
+                <FontIcon iconLiteral="bi-info-circle" iconSize="16"/>
+            </graphic>
+            <content>
+                <ScrollPane fitToWidth="true" style="-fx-background-color: -fx-background-color;">
+                    <VBox spacing="20" style="-fx-padding: 20;">
+                        <Label styleClass="h2" text="How to Use the Signature Tool"/>
+                        <Label wrapText="true"
+                               text="This tool provides a complete workflow for creating digital certificates, signing XML documents, and validating those signatures."/>
+
+                        <!-- Anleitung 1: Zertifikat erstellen -->
+                        <VBox styleClass="card">
+                            <Label styleClass="card-title" text="1. Create a Certificate and Keystore"/>
+                            <Separator/>
+                            <VBox style="-fx-padding: 15 0 0 0;">
+                                <Label wrapText="true"
+                                       text="This tab allows you to generate a new self-signed digital certificate and a secure keystore (.jks file) to hold it. Fill in the 'Distinguished Name (DN)' details to identify the certificate owner. Provide a unique alias and strong passwords for the keystore and the key itself. Upon creation, the tool will generate a .jks file, a _publicKey.pem, an encrypted _privateKey.pem, and a summary.txt in the certs/[alias] directory."/>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Anleitung 2: XML signieren -->
+                        <VBox styleClass="card">
+                            <Label styleClass="card-title" text="2. Sign an XML Document"/>
+                            <Separator/>
+                            <VBox style="-fx-padding: 15 0 0 0;">
+                                <Label wrapText="true"
+                                       text="Use this tab to apply a digital signature to an XML file. First, load the XML document you want to sign and the .jks keystore file you created in the previous step. Then, enter the alias and passwords that match the keystore. The tool will create a new, signed XML file with a _signed postfix, embedding the signature directly into the document."/>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Anleitung 3: Signatur validieren -->
+                        <VBox styleClass="card">
+                            <Label styleClass="card-title" text="3. Validate a Signed Document"/>
+                            <Separator/>
+                            <VBox style="-fx-padding: 15 0 0 0;">
+                                <Label wrapText="true"
+                                       text="This tab verifies the integrity of a signed XML document. Load a signed XML file (e.g., one created in step 2). The application will check if the signature is cryptographically valid and has not been tampered with. You will receive a confirmation message indicating whether the validation was successful or not."/>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+                </ScrollPane>
+            </content>
+        </Tab>
+
+        <!-- ===================================================================== -->
         <!-- TAB 1: ZERTIFIKAT ERSTELLEN                                           -->
         <!-- ===================================================================== -->
         <Tab text="Create Certificate">
