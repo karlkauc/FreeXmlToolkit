@@ -37,8 +37,6 @@ import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 import java.awt.*;
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -113,9 +111,6 @@ public class FxtGui extends Application {
         shutdownExecutor(mainController.scheduler);
         shutdownExecutor(mainController.service);
 
-        mainController.shutdownLSPServer();
-        shutdownExecutor(mainController.lspExecutor);
-
         startWatch.stop();
         var currentDuration = startWatch.getDuration(); // / 1000;
 
@@ -125,13 +120,18 @@ public class FxtGui extends Application {
             prop = propertiesService.loadProperties();
         }
 
-        var oldSeconds = Integer.parseInt(prop.getProperty("usageDuration"));
+        // 1. Lesen Sie den Wert sicher aus. Wenn "usageDuration" nicht existiert,
+        //    wird der Standardwert "0" verwendet. Das verhindert 'null'.
+        String usageDurationStr = prop.getProperty("usageDuration", "0");
+
+        // 2. Jetzt ist die Umwandlung in eine Zahl sicher.
+        var oldSeconds = Integer.parseInt(usageDurationStr);
         var newSeconds = oldSeconds + currentDuration.getSeconds();
+
         prop.setProperty("usageDuration", String.valueOf(newSeconds));
         propertiesService.saveProperties(prop);
         logger.debug("Duration: {}", currentDuration);
         logger.debug("Duration overall: {}", newSeconds);
-
     }
 
     private void shutdownExecutor(ExecutorService executor) {
@@ -147,41 +147,6 @@ public class FxtGui extends Application {
     }
 
     public static void main(String[] args) {
-
-        final String proxyUser = "...";
-        final String proxyPassword = "...";
-
-        Authenticator.setDefault(new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                // Prüft, ob die Anfrage für einen Proxy ist
-                if (getRequestorType() == RequestorType.PROXY) {
-                    return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
-                }
-                return null;
-            }
-        });
-
-        // =================================================================
-        // HIER DIE PROXY-KONFIGURATION EINFÜGEN
-        // =================================================================
-        final String proxyHost = "..."; // Ändern Sie dies zu Ihrem Proxy-Host
-        final String proxyPort = "8080";                 // Ändern Sie dies zum Port Ihres Proxys
-
-        // Setzt den Proxy für HTTP-Verbindungen
-        System.setProperty("http.proxyHost", proxyHost);
-        System.setProperty("http.proxyPort", proxyPort);
-
-        // WICHTIG: Setzt den Proxy auch für HTTPS-Verbindungen,
-        // da Schemas oft über HTTPS geladen werden.
-        System.setProperty("https.proxyHost", proxyHost);
-        System.setProperty("https.proxyPort", proxyPort);
-
-        // Optional: Wenn Ihr Proxy bestimmte Hosts nicht verwenden soll (z.B. localhost)
-        // System.setProperty("http.nonProxyHosts", "localhost|127.0.0.1");
-        // System.setProperty("https.nonProxyHosts", "localhost|127.0.0.1");
-        // =================================================================
-
         // Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         launch();
     }

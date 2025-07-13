@@ -33,22 +33,17 @@ import javafx.scene.layout.VBox;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.lemminx.XMLServerLauncher;
-import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.eclipse.lsp4j.services.LanguageServer;
-import org.fxt.freexmltoolkit.service.MyLspClient;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
-import java.io.*;
-import java.nio.file.Paths;
-import java.util.Collections;
+import java.io.File;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Hauptcontroller für die Anwendung.
@@ -93,16 +88,6 @@ public class MainController {
 
     FXMLLoader loader;
 
-    // Leminx Server Setup
-    MyLspClient client = new MyLspClient();
-    PipedInputStream clientInputStream;
-    OutputStream serverOutputStream;
-    PipedInputStream serverInputStream;
-    OutputStream clientOutputStream;
-    public ExecutorService lspExecutor = Executors.newSingleThreadExecutor();
-    LanguageServer serverProxy;
-    Future<?> clientListening;
-
     /**
      * Initialisiert den Controller.
      */
@@ -112,57 +97,7 @@ public class MainController {
         exit.setOnAction(e -> System.exit(0));
         menuItemExit.setOnAction(e -> System.exit(0));
         loadLastOpenFiles();
-        try {
-            setupLSPServer();
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
         loadPageFromPath("/pages/welcome.fxml");
-    }
-
-    private void setupLSPServer() throws IOException, ExecutionException, InterruptedException {
-        // 2. In-Memory-Streams für die bidirektionale Kommunikation erstellen
-        clientInputStream = new PipedInputStream();
-        serverOutputStream = new PipedOutputStream(clientInputStream);
-        serverInputStream = new PipedInputStream();
-        clientOutputStream = new PipedOutputStream(serverInputStream);
-
-        // 3. Launcher für den Client mit dem Builder erstellen
-        Launcher<LanguageServer> launcher = new LSPLauncher.Builder<LanguageServer>()
-                .setLocalService(client)
-                .setRemoteInterface(LanguageServer.class)
-                .setInput(clientInputStream)
-                .setOutput(clientOutputStream)
-                .setExecutorService(lspExecutor)
-                .create();
-
-        // 4. Server-Proxy holen und mit dem Client verbinden
-        serverProxy = launcher.getRemoteProxy();
-        client.connect(serverProxy);
-
-        // 5. Client-Listener-Thread starten
-        clientListening = launcher.startListening();
-
-        // 6. Server starten und mit den Streams verbinden
-        XMLServerLauncher.launch(serverInputStream, serverOutputStream);
-        logger.debug("🚀 Server und Client gestartet und verbunden.");
-
-        // 7. Initialisierungsparameter vorbereiten (moderner Stil)
-        InitializeParams initParams = new InitializeParams();
-        initParams.setProcessId((int) ProcessHandle.current().pid());
-
-        // Workspace Folder definieren
-        WorkspaceFolder workspaceFolder = new WorkspaceFolder(Paths.get(".").toUri().toString(), "lemminx-project");
-        initParams.setWorkspaceFolders(Collections.singletonList(workspaceFolder));
-
-        // Client-Fähigkeiten setzen, um Workspace-Folder-Support zu signalisieren
-        ClientCapabilities capabilities = new ClientCapabilities();
-
-        // 8. LSP-Handshake durchführen
-        logger.debug("🤝 Sende 'initialize' Anfrage...");
-        InitializeResult initResult = serverProxy.initialize(initParams).get();
-        serverProxy.initialized(new InitializedParams());
-        logger.debug("...Initialisierung abgeschlossen.");
     }
 
     private void updateMemoryUsage() {
@@ -179,37 +114,6 @@ public class MainController {
         String percent = Math.round((float) used / available * 100) + "%";
         Platform.runLater(() -> version.setText(date + " " + size + " " + percent));
     }
-
-
-    public void shutdownLSPServer() {
-        logger.debug("🔌 Fahre Server herunter...");
-        try {
-            // Versuche ein ordnungsgemäßes Herunterfahren mit einem Timeout von 3 Sekunden
-            serverProxy.shutdown().get(3, TimeUnit.SECONDS);
-            serverProxy.exit();
-            logger.debug("...Server wurde ordnungsgemäß heruntergefahren.");
-
-        } catch (Exception e) {
-            // Dieser Block fängt alle Fehler ab, inkl. TimeoutException
-            if (e instanceof TimeoutException) {
-                logger.warn("Herunterfahren des Servers hat zu lange gedauert. Erzwinge Beendigung...");
-            } else {
-                logger.error("Fehler beim Herunterfahren des LSP Servers, erzwinge Beendigung: {}", e.getMessage(), e);
-            }
-
-            // Erzwinge das Herunterfahren des Executor-Service, der die Server-Threads verwaltet
-            if (lspExecutor != null && !lspExecutor.isTerminated()) {
-                lspExecutor.shutdownNow();
-            }
-        } finally {
-            // Dieser Block wird immer ausgeführt, um den Client-Listener-Thread zu bereinigen
-            if (clientListening != null && !clientListening.isDone()) {
-                clientListening.cancel(true);
-            }
-            logger.debug("✅ LSP Server Beendigungsprozess abgeschlossen.");
-        }
-    }
-
 
     /**
      * Lädt die zuletzt geöffneten Dateien und aktualisiert das Menü.

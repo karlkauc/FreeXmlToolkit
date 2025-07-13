@@ -1,27 +1,13 @@
-/*
- * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2024.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- */
-
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Side;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -30,14 +16,20 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.controlsfx.control.PopOver;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.services.LanguageServer;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.TwoDimensional;
+import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -56,10 +48,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class XmlEditor extends Tab {
 
@@ -74,8 +67,10 @@ public class XmlEditor extends Tab {
 
     StackPane stackPane = new StackPane();
 
-    CodeArea codeArea = new CodeArea();
+    public CodeArea codeArea = new CodeArea();
     VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
+
+    private List<Diagnostic> currentDiagnostics = new ArrayList<>();
 
     private final static Logger logger = LogManager.getLogger(XmlEditor.class);
 
@@ -100,15 +95,36 @@ public class XmlEditor extends Tab {
     Document document;
     XmlService xmlService = new XmlServiceImpl();
 
-    public XmlEditor(File f) {
-        init();
-        this.setXmlFile(f);
-        this.refresh();
-    }
+    // NEU: Referenz zum MainController für die LSP-Kommunikation
+    private MainController mainController;
+    private LanguageServer serverProxy;
+
+    // NEU: UI-Elemente für die Hover-Informationen
+    private PopOver hoverPopOver;
+    private final Label popOverLabel = new Label();
+    // NEU: Timer, um Anfragen zu verzögern (Debouncing)
+    private final PauseTransition hoverDelay = new PauseTransition(Duration.millis(500));
 
     public XmlEditor() {
         init();
     }
+
+    public XmlEditor(File file) {
+        this.setXmlFile(file);
+        this.refresh();
+    }
+
+    public void setMainController(MainController mainController) {
+        this.mainController = mainController;
+    }
+
+    /**
+     * NEU: Setter, um den Server-Proxy direkt zu übergeben.
+     */
+    public void setLanguageServer(LanguageServer serverProxy) {
+        this.serverProxy = serverProxy;
+    }
+
 
     public final ObjectProperty<Runnable> onSearchRequestedProperty() {
         return onSearchRequested;
@@ -139,39 +155,36 @@ public class XmlEditor extends Tab {
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         xml.setOnSelectionChanged(e -> {
-                    if (xml.isSelected()) {
-                        logger.debug("refresh Text view");
-                        refreshTextView();
-                    } else {
-                        logger.debug("refresh Graphic view");
-
-                        try {
-                            if (!codeArea.getText().isEmpty()) {
-                                document = db.parse(new ByteArrayInputStream(codeArea.getText().getBytes(StandardCharsets.UTF_8)));
-                                refreshGraphicView();
-                            }
-                        } catch (SAXException | IOException ex) {
-                            logger.info("could not create graphic view.");
-                        }
+            if (xml.isSelected()) {
+                logger.debug("refresh Text view");
+                refreshTextView();
+            } else {
+                logger.debug("refresh Graphic view");
+                try {
+                    if (!codeArea.getText().isEmpty()) {
+                        document = db.parse(new ByteArrayInputStream(codeArea.getText().getBytes(StandardCharsets.UTF_8)));
+                        refreshGraphicView();
                     }
+                } catch (SAXException | IOException ex) {
+                    logger.info("could not create graphic view.");
                 }
-        );
+            }
+        });
 
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
 
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText.length() < MAX_SIZE_FOR_FORMATTING) {
-                logger.debug("Starte Formatierung...");
-                codeArea.setStyleSpans(0, computeHighlighting(newText));
-            }
+            applyStyles();
         });
 
-        codeArea.caretPositionProperty().addListener((observable, oldValue, newValue) -> {
-            var lineColumn = codeArea.offsetToPosition(newValue, TwoDimensional.Bias.Forward);
-            int lineNumber = lineColumn.getMajor() + 1; // Line numbers are 0-based, so add 1
-            int columnNumber = lineColumn.getMinor() + 1; // Column numbers are 0-based, so add 1
-            // logger.debug("Line: {}, Column: {}", lineNumber, columnNumber);
-        });
+        // NEU: Initialisierung des PopOver und des Timers
+        popOverLabel.setWrapText(true);
+        popOverLabel.setStyle("-fx-padding: 8px; -fx-font-family: 'monospaced';");
+        hoverPopOver = new PopOver(popOverLabel);
+        hoverPopOver.setDetachable(false);
+        hoverPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
+        hoverDelay.setOnFinished(e -> triggerLspHover());
+
 
         codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
             if (event.isControlDown()) {
@@ -180,30 +193,25 @@ public class XmlEditor extends Tab {
                 } else {
                     decreaseFontSize();
                 }
+                event.consume();
             }
         });
 
         codeArea.addEventFilter(KeyEvent.ANY, event -> {
-            // Nur auf gedrückte Tasten reagieren, um doppelte Ausführung zu vermeiden
             if (event.getEventType() == KeyEvent.KEY_PRESSED) {
-                // Strg+F für die Suche abfangen
                 if (event.isControlDown() && event.getCode() == KeyCode.F) {
                     if (getOnSearchRequested() != null) {
                         getOnSearchRequested().run();
-                        event.consume(); // Verhindert, dass das Event weiterverarbeitet wird
+                        event.consume();
                     }
-                }
-                // Strg+0 für das Zurücksetzen des Zooms
-                else if (event.isControlDown() && (event.getCode() == KeyCode.NUMPAD0 || event.getCode() == KeyCode.DIGIT0)) {
+                } else if (event.isControlDown() && (event.getCode() == KeyCode.NUMPAD0 || event.getCode() == KeyCode.DIGIT0)) {
                     resetFontSize();
                     event.consume();
                 }
             }
         });
 
-
         stackPane.getChildren().add(virtualizedScrollPane);
-        codeArea.setLineHighlighterOn(true);
         setFontSize(DEFAULT_FONT_SIZE);
 
         xml.setContent(stackPane);
@@ -213,6 +221,202 @@ public class XmlEditor extends Tab {
         this.setOnCloseRequest(eh -> logger.debug("Close Event"));
 
         this.setContent(tabPane);
+    }
+
+    /**
+     * NEU: Wird vom MainController aufgerufen, um diesen Editor über neue Diagnosen zu informieren.
+     */
+    public void updateDiagnostics(List<Diagnostic> diagnostics) {
+        this.currentDiagnostics = new ArrayList<>(diagnostics);
+        applyStyles(); // Wende die neuen Stile (Unterstreichungen) an.
+    }
+
+    /**
+     * NEU: Kombiniert Syntax-Highlighting und Diagnose-Highlighting.
+     * Diese Methode wird jetzt immer aufgerufen, wenn sich der Text oder die Diagnosen ändern.
+     */
+    private void applyStyles() {
+        if (codeArea.getText().length() >= MAX_SIZE_FOR_FORMATTING) {
+            return;
+        }
+        // RichTextFX erlaubt das Überlagern von Style-Ebenen.
+        // Zuerst das Syntax-Highlighting, dann die Diagnose-Unterstreichungen darüber.
+        codeArea.setStyleSpans(0, computeHighlighting(codeArea.getText())
+                .overlay(computeDiagnosticStyles(), (syntaxStyles, diagnosticStyles) -> {
+                    // Wenn es einen Diagnose-Stil gibt, hat er Vorrang.
+                    return diagnosticStyles.isEmpty() ? syntaxStyles : diagnosticStyles;
+                }));
+    }
+
+    /**
+     * NEU: Erstellt die StyleSpans für die Diagnose-Unterstreichungen.
+     */
+    private StyleSpans<Collection<String>> computeDiagnosticStyles() {
+        if (currentDiagnostics.isEmpty()) {
+            return StyleSpans.singleton(Collections.emptyList(), codeArea.getLength());
+        }
+
+        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+        int lastKwEnd = 0;
+
+        for (Diagnostic diagnostic : currentDiagnostics) {
+            Range range = diagnostic.getRange();
+            // Konvertiere LSP-Position (Zeile/Spalte) in einen flachen Index im Text.
+            int start = codeArea.position(range.getStart().getLine(), range.getStart().getCharacter()).toOffset();
+            int end = codeArea.position(range.getEnd().getLine(), range.getEnd().getCharacter()).toOffset();
+
+            if (start < end) {
+                spansBuilder.add(Collections.emptyList(), start - lastKwEnd);
+                String styleClass = getStyleClassFor(diagnostic.getSeverity());
+                spansBuilder.add(Collections.singleton(styleClass), end - start);
+                lastKwEnd = end;
+            }
+        }
+        spansBuilder.add(Collections.emptyList(), codeArea.getLength() - lastKwEnd);
+        return spansBuilder.create();
+    }
+
+    /**
+     * NEU: Hilfsmethode, um die richtige CSS-Klasse für den Schweregrad zu finden.
+     */
+    private String getStyleClassFor(DiagnosticSeverity severity) {
+        if (severity == null) return "diagnostic-warning"; // Fallback
+        switch (severity) {
+            case Error:
+                return "diagnostic-error";
+            case Warning:
+                return "diagnostic-warning";
+            // Weitere Fälle wie Information oder Hint können hier hinzugefügt werden.
+            default:
+                return "diagnostic-warning";
+        }
+    }
+
+    /**
+     * NEU: Findet eine Diagnose an einer bestimmten Textposition.
+     */
+    private Optional<Diagnostic> findDiagnosticAt(int position) {
+        return currentDiagnostics.stream().filter(d -> {
+            int start = codeArea.position(d.getRange().getStart().getLine(), d.getRange().getStart().getCharacter()).toOffset();
+            int end = codeArea.position(d.getRange().getEnd().getLine(), d.getRange().getEnd().getCharacter()).toOffset();
+            return position >= start && position <= end;
+        }).findFirst();
+    }
+
+    /**
+     * NEU: Hilfsmethode, um das PopOver anzuzeigen.
+     */
+    private void showPopOver() {
+        Point2D screenPos = codeArea.localToScreen(codeArea.getCaretBounds().get().getMaxX(), codeArea.getCaretBounds().get().getMaxY());
+        hoverPopOver.show(codeArea.getScene().getWindow(), screenPos.getX(), screenPos.getY() + 5);
+    }
+
+    /**
+     * Löst die LSP-Anfrage für Hover-Informationen aus.
+     * Diese Version verarbeitet die Antwort direkt und modern.
+     */
+    private void triggerLspHover() {
+        if (this.serverProxy == null || xmlFile == null) {
+            logger.trace("LSP Hover: Server or file not available.");
+            return;
+        }
+
+        int caretPosition = codeArea.getCaretPosition();
+        var lineColumn = codeArea.offsetToPosition(caretPosition, TwoDimensional.Bias.Forward);
+
+        TextDocumentIdentifier textDocumentIdentifier = new TextDocumentIdentifier(xmlFile.toURI().toString());
+        Position position = new Position(lineColumn.getMajor(), lineColumn.getMinor());
+        HoverParams hoverParams = new HoverParams(textDocumentIdentifier, position);
+
+        logger.debug("Requesting hover info for {} at [{},{}]", xmlFile.getName(), position.getLine(), position.getCharacter());
+
+        CompletableFuture<Hover> hoverFuture = this.serverProxy.getTextDocumentService().hover(hoverParams);
+        hoverFuture.thenAcceptAsync(hover -> {
+            if (hover == null || hover.getContents() == null) {
+                return;
+            }
+
+            // Fall 1 (bevorzugt): Die Antwort ist moderner MarkupContent.
+            if (hover.getContents().isRight()) {
+                String hoverText = hover.getContents().getRight().getValue();
+                if (!hoverText.isBlank()) {
+                    Platform.runLater(() -> {
+                        popOverLabel.setText(hoverText);
+                        showPopOver();
+                    });
+                }
+            }
+
+            // Fall 2 (veraltet): Die Antwort ist eine Liste von MarkedString.
+            if (hover.getContents().isLeft()) {
+                List<Either<String, org.eclipse.lsp4j.MarkedString>> legacyItems = hover.getContents().getLeft();
+                String hoverText = legacyItems.stream()
+                        .map(this::formatLegacyHoverItem)
+                        .collect(Collectors.joining("\n\n---\n\n"));
+
+                if (!hoverText.isBlank()) {
+                    Platform.runLater(() -> {
+                        popOverLabel.setText(hoverText);
+                        showPopOver();
+                    });
+                }
+            }
+
+
+        }).exceptionally(ex -> {
+            logger.error("LSP hover request failed.", ex);
+            return null;
+        });
+    }
+
+    private String extractHoverContent(Either<List<Either<String, org.eclipse.lsp4j.MarkedString>>, org.eclipse.lsp4j.MarkupContent> contents) {
+        if (contents == null) {
+            return "";
+        }
+
+        // Moderner Ansatz (bevorzugt): Der Server sendet direkt MarkupContent.
+        if (contents.isRight()) {
+            org.eclipse.lsp4j.MarkupContent markupContent = contents.getRight();
+            return (markupContent != null) ? markupContent.getValue() : "";
+        }
+
+        // Veralteter Ansatz: Der Server sendet eine Liste. Wir wandeln sie in einen String um.
+        if (contents.isLeft()) {
+            return contents.getLeft().stream()
+                    .map(this::formatLegacyHoverItem) // Jedes Element an eine Hilfsmethode übergeben
+                    .collect(Collectors.joining("\n\n---\n\n")); // Ergebnisse mit einem sichtbaren Trenner verbinden
+        }
+
+        return "";
+    }
+
+    /**
+     * Hilfsmethode, um ein einzelnes Element aus der veralteten Hover-Liste zu formatieren.
+     *
+     * @param item Ein Either, das entweder einen String oder ein MarkedString enthält.
+     * @return Der formatierte String-Inhalt.
+     */
+    private String formatLegacyHoverItem(Either<String, org.eclipse.lsp4j.MarkedString> item) {
+        // Fall 1: Das Element ist ein einfacher String.
+        if (item.isLeft()) {
+            return item.getLeft();
+        }
+
+        // Fall 2: Das Element ist ein (veraltetes) MarkedString.
+        if (item.isRight()) {
+            org.eclipse.lsp4j.MarkedString markedString = item.getRight();
+            String language = markedString.getLanguage();
+            String value = markedString.getValue();
+
+            if (language != null && !language.isEmpty()) {
+                return "TEST";
+            }
+
+            // Wenn eine Sprache angegeben ist, formatieren wir es als Markdown-Code-Block.
+            return language + "\n" + value + "\n";
+        }
+
+        return ""; // Should not be reached
     }
 
     public File getXmlFile() {
@@ -261,6 +465,9 @@ public class XmlEditor extends Tab {
             final String content = getDocumentAsString();
             if (content != null) {
                 codeArea.replaceText(content);
+                if (content.length() < MAX_SIZE_FOR_FORMATTING) {
+                    codeArea.setStyleSpans(0, computeHighlighting(content));
+                }
             } else {
                 codeArea.clear();
             }

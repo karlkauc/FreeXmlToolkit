@@ -90,9 +90,6 @@
     /* Weißer Hintergrund für besseren Kontrast zum hellgrauen App-Hintergrund */
     -fx-background-color: -fx-control-background;
     -fx-text-fill: -fx-text-color;
-    -fx-border-color: -fx-border-color;
-    -fx-border-radius: -fx-border-radius;
-    -fx-background-radius: -fx-border-radius;
     -fx-padding: 5px 15px;
     -fx-font-weight: bold;
     -fx-cursor: hand; /* Zeigt einen Hand-Cursor beim Überfahren für bessere Usability */
@@ -114,23 +111,11 @@
     -fx-pref-width: 200;
     -fx-max-width: 200;
     -fx-alignment: baseline-left;
-    __-fx-background-color: #f6f8fa;
     -fx-text-fill: -fx-text-color;
-    -fx-border-color: -fx-border-color;
-    -fx-border-radius: -fx-border-radius;
-    -fx-background-radius: -fx-border-radius;
     -fx-padding: 5px 15px;
     -fx-font-weight: bold;
     -fx-background-color: transparent;
 }
-
-.menu_button:first-child {
-    /* Setzt einen 10px "Abstand" oben und einen 5px Rand links. */
-    -fx-border-width: 10 0 0 5px;
-    /* Der Rahmen wird transparent gemacht, um nur als Abstand zu dienen. */
-    -fx-border-color: transparent transparent transparent -fx-border-color;
-}
-
 
 .menu_button:hover {
     -fx-background-color: #e9ecef;
@@ -157,8 +142,6 @@
 
 .text-field, .text-area {
     -fx-background-color: -fx-control-inner-background;
-    -fx-border-color: -fx-border-color;
-    -fx-border-radius: -fx-border-radius;
     -fx-background-insets: 0;
     -fx-background-radius: -fx-border-radius;
     -fx-prompt-text-fill: -fx-text-color-muted;
@@ -316,8 +299,7 @@
 }
 
 .scroll-bar .thumb {
-    -fx-background-color: -fx-border-color;
-    -fx-background-insets: 2;
+    -fx-background-insets: 2px;
     -fx-background-radius: 8px;
 }
 
@@ -510,4 +492,22 @@
 /* defaults */
 .code-area {
     -fx-font-family: monospace;
+}
+
+/* Stile für LSP-Diagnosen */
+.diagnostic-error {
+    -fx-underline: true;
+    /* Für einen Wellen-Effekt (komplexer, aber schöner) */
+    -fx-stroke: red;
+    -fx-stroke-type: outside;
+    -fx-stroke-width: 1;
+    -fx-stroke-dash-array: 1 2;
+}
+
+.diagnostic-warning {
+    -fx-underline: true;
+    -fx-stroke: orange;
+    -fx-stroke-type: outside;
+    -fx-stroke-width: 1;
+    -fx-stroke-dash-array: 1 2;
 }

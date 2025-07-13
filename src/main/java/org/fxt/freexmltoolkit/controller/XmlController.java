@@ -31,24 +31,35 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-import org.eclipse.lsp4j.TextDocumentItem;
+import org.eclipse.lemminx.XMLServerLauncher;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageServer;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.service.MyLspClient;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.*;
 
 public class XmlController {
     private final static Logger logger = LogManager.getLogger(XmlController.class);
@@ -93,6 +104,15 @@ public class XmlController {
 
     @FXML
     TextField searchField;
+
+    // --- LSP Server Felder ---
+    private LanguageServer serverProxy;
+    private MyLspClient lspClient;
+    private final ExecutorService lspExecutor = Executors.newSingleThreadExecutor();
+    private Future<?> clientListening;
+    // NEU: Map zur Speicherung von Diagnosen, hierher verschoben.
+    private final Map<String, List<Diagnostic>> diagnosticsMap = new ConcurrentHashMap<>();
+
 
     @FXML
     private void initialize() {
@@ -167,6 +187,28 @@ public class XmlController {
         xmlFilesPane.setOnDragOver(this::handleFileOverEvent);
         xmlFilesPane.setOnDragExited(this::handleDragExitedEvent);
         xmlFilesPane.setOnDragDropped(this::handleFileDroppedEvent);
+    }
+
+    private void createAndAddXmlTab(File file) {
+        // Die Konstruktoren von XmlEditor müssen angepasst werden, um den MainController zu akzeptieren
+        XmlEditor xmlEditor = new XmlEditor(file); // Behalten Sie Ihren Konstruktor bei
+        xmlEditor.setMainController(this.mainController); // NEU: Übergeben Sie den Controller
+
+        xmlEditor.setLanguageServer(this.serverProxy);
+        xmlEditor.refresh();
+
+        xmlEditor.setOnSearchRequested(() -> {
+            searchField.requestFocus();
+            searchField.selectAll();
+        });
+
+        xmlFilesPane.getTabs().add(xmlEditor);
+        xmlFilesPane.getSelectionModel().select(xmlEditor);
+
+        if (file != null) {
+            mainController.addFileToRecentFiles(file);
+            notifyLspServerFileOpened(file, xmlEditor.codeArea.getText());
+        }
     }
 
     @FXML
@@ -294,10 +336,80 @@ public class XmlController {
     public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.mainController = parentController;
+        try {
+            setupLSPServer();
+        } catch (Exception e) {
+            logger.error("Failed to start LSP Server from XmlController", e);
+        }
+    }
+
+    private void setupLSPServer() throws IOException, ExecutionException, InterruptedException {
+        var clientInputStream = new PipedInputStream();
+        var serverOutputStream = new PipedOutputStream(clientInputStream);
+        var serverInputStream = new PipedInputStream();
+        var clientOutputStream = new PipedOutputStream(serverInputStream);
+
+        // GEÄNDERT: Übergibt 'this' (den XmlController) an den Client.
+        this.lspClient = new MyLspClient(this);
+
+        Launcher<LanguageServer> launcher = new LSPLauncher.Builder<LanguageServer>()
+                .setLocalService(lspClient)
+                .setRemoteInterface(LanguageServer.class)
+                .setInput(clientInputStream)
+                .setOutput(clientOutputStream)
+                .setExecutorService(lspExecutor)
+                .create();
+
+        this.serverProxy = launcher.getRemoteProxy();
+        lspClient.connect(serverProxy);
+        this.clientListening = launcher.startListening();
+
+        XMLServerLauncher.launch(serverInputStream, serverOutputStream);
+        logger.debug("🚀 Server und Client gestartet und verbunden (Owner: XmlController).");
+
+        InitializeParams initParams = new InitializeParams();
+        initParams.setProcessId((int) ProcessHandle.current().pid());
+        WorkspaceFolder workspaceFolder = new WorkspaceFolder(Paths.get(".").toUri().toString(), "lemminx-project");
+        initParams.setWorkspaceFolders(Collections.singletonList(workspaceFolder));
+
+        logger.debug("🤝 Sende 'initialize' Anfrage...");
+        serverProxy.initialize(initParams).get();
+        serverProxy.initialized(new InitializedParams());
+        logger.debug("...Initialisierung abgeschlossen.");
+    }
+
+    /**
+     * NEU: Wird vom MyLspClient aufgerufen. Speichert die Diagnosen
+     * und stößt die UI-Aktualisierung an.
+     */
+    public void publishDiagnostics(PublishDiagnosticsParams diagnostics) {
+        logger.debug("bin im publishDiagnostics");
+        String uri = diagnostics.getUri();
+        diagnosticsMap.put(uri, diagnostics.getDiagnostics());
+
+        Platform.runLater(() -> {
+            findEditorByUri(uri).ifPresent(editor ->
+                    editor.updateDiagnostics(diagnostics.getDiagnostics())
+            );
+        });
+    }
+
+    /**
+     * NEU: Hilfsmethode, um den geöffneten XmlEditor für einen URI zu finden.
+     */
+    private Optional<XmlEditor> findEditorByUri(String uri) {
+        for (Tab tab : xmlFilesPane.getTabs()) {
+            if (tab instanceof XmlEditor editor) {
+                if (editor.getXmlFile() != null && editor.getXmlFile().toURI().toString().equals(uri)) {
+                    return Optional.of(editor);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     private void notifyLspServerFileOpened(File file, String content) {
-        if (mainController == null || mainController.serverProxy == null) {
+        if (this.serverProxy == null) {
             logger.warn("LSP Server not available. Cannot send 'didOpen' notification.");
             return;
         }
@@ -316,7 +428,7 @@ public class XmlController {
 
             // 3. Sende die Benachrichtigung an den Text-Service des Servers
             // Dies ist eine asynchrone Benachrichtigung, wir warten nicht auf eine Antwort.
-            mainController.serverProxy.getTextDocumentService().didOpen(params);
+            this.serverProxy.getTextDocumentService().didOpen(params);
 
             logger.info("✅ Sent 'didOpen' notification for {} to LSP server.", file.getName());
 
@@ -365,7 +477,7 @@ public class XmlController {
 
                     logger.debug("TEXT DOCUMENT");
                     TextDocumentItem textDocument = new TextDocumentItem(xmlEditor.getXmlFile().toURI().toString(), "xml", 1, xmlEditor.getText());
-                    mainController.serverProxy.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(textDocument));
+                    this.serverProxy.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(textDocument));
 
                     notifyLspServerFileOpened(xmlEditor.getXmlFile(), getCurrentCodeArea().getText());
                 }

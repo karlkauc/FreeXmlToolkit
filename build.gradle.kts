@@ -106,6 +106,7 @@ dependencies {
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.31.0")
     implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.40.0.M0")
+    implementation("org.controlsfx:controlsfx:11.2.2")
 
     // FOP & PDF Anzeige
     implementation("org.apache.xmlgraphics:fop:2.11")
