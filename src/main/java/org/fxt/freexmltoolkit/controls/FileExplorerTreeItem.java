@@ -29,18 +29,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-// In der Klasse FileExplorerTreeItem.java
-
 public class FileExplorerTreeItem<T> extends TreeItem<T> {
 
     private static final Logger logger = LogManager.getLogger(FileExplorerTreeItem.class);
     private boolean isLeaf;
     private boolean isFirstTimeChildren = true;
     private boolean isFirstTimeLeaf = true;
-
-    // NEU: Felder für die Prüfung auf Unterverzeichnisse
-    private boolean hasSubdirectories;
-    private final boolean isFirstTimeCheckForSubdirectories = true;
 
     // Feld für das Caching der Anzahl der Unterverzeichnisse.
     // -1 bedeutet "noch nicht berechnet".
@@ -58,7 +52,6 @@ public class FileExplorerTreeItem<T> extends TreeItem<T> {
         this.allowedExtensions = allowedExtensions;
     }
 
-
     public long getSubdirectoryCount() {
         if (this.subdirectoryCount == -1) { // Nur beim ersten Mal berechnen
             Path path = (Path) getValue();
@@ -67,7 +60,7 @@ public class FileExplorerTreeItem<T> extends TreeItem<T> {
                     // Zähle nur die Elemente im Stream, die Verzeichnisse sind.
                     this.subdirectoryCount = stream.filter(Files::isDirectory).count();
                 } catch (IOException e) {
-                    logger.error("Could not count subdirectories in: " + path, e);
+                    logger.info("Could not count subdirectories in: {}", path, e);
                     this.subdirectoryCount = 0; // Im Fehlerfall ist die Anzahl 0.
                 }
             } else {
@@ -75,11 +68,6 @@ public class FileExplorerTreeItem<T> extends TreeItem<T> {
             }
         }
         return this.subdirectoryCount;
-    }
-
-    // Wir passen hasSubdirectories an, damit es konsistent mit der Zählung ist.
-    public boolean hasSubdirectories() {
-        return getSubdirectoryCount() > 0;
     }
 
     @Override
@@ -100,7 +88,7 @@ public class FileExplorerTreeItem<T> extends TreeItem<T> {
             if (Files.isRegularFile(path)) {
                 isLeaf = true;
             } else if (Files.isDirectory(path)) {
-                // KORREKTUR: Ein Verzeichnis ist ein "Blatt", wenn es KEINE Kinder enthält, die angezeigt würden.
+                // Ein Verzeichnis ist ein "Blatt", wenn es KEINE Kinder enthält, die angezeigt würden.
                 // Ein Kind wird angezeigt, wenn es ein Verzeichnis ist ODER eine Datei, die dem Filter entspricht.
                 try (var stream = Files.list(path)) {
                     isLeaf = stream.noneMatch(p -> {
@@ -115,7 +103,7 @@ public class FileExplorerTreeItem<T> extends TreeItem<T> {
                         return allowedExtensions.contains(extension); // Datei entspricht Filter -> kein Blatt.
                     });
                 } catch (IOException e) {
-                    logger.error("Could not check directory content for: " + path, e);
+                    logger.info("Could not check directory content for: {}", path, e);
                     isLeaf = true; // Im Fehlerfall als Blatt behandeln.
                 }
             } else {

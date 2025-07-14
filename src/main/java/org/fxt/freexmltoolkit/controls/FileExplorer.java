@@ -40,9 +40,6 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -55,11 +52,13 @@ public class FileExplorer extends VBox {
     private static final Logger logger = LogManager.getLogger(FileExplorer.class);
     private final TreeTableView<Path> fileTreeView = new TreeTableView<>();
     private final Label fileNameLabel = new Label();
+    private final TextField pathTextField = new TextField();
     private final StringProperty stringProperty = new SimpleStringProperty();
     private final StringProperty displayText = new SimpleStringProperty();
     private Path selectedFile;
     private List<String> allowedFileExtensions;
     private FileExplorerTreeItem<Path> root;
+
     /**
      * Constructs a FileExplorer instance and initializes the UI components.
      */
@@ -77,8 +76,6 @@ public class FileExplorer extends VBox {
         } else {
             this.allowedFileExtensions = null;
         }
-        // HINWEIS: Um einen bereits geladenen Baum zu aktualisieren, müsste man ihn hier neu aufbauen.
-        // Für Ihren Anwendungsfall, bei dem der Filter beim Initialisieren gesetzt wird, ist das aber nicht nötig.
 
         if (this.root != null) {
             this.root.getChildren().clear();
@@ -111,20 +108,17 @@ public class FileExplorer extends VBox {
             protected void updateItem(Path item, boolean empty) {
                 super.updateItem(item, empty);
 
-                // 1. Zustand der Zelle vollständig zurücksetzen
                 getStyleClass().remove("has-subdirectories");
                 setText(null);
                 setGraphic(null);
 
-                // 2. Leere Zellen behandeln
                 if (empty || item == null) {
                     return;
                 }
 
-                // 3. Basis-Rendering (wird immer ausgeführt)
                 FontIcon icon;
                 if (Files.isDirectory(item)) {
-                    icon = new FontIcon("fa-folder-o"); // Standard: geschlossener Ordner
+                    icon = new FontIcon("fa-folder-o");
                     icon.setIconColor(javafx.scene.paint.Color.ORANGE);
                 } else {
                     icon = new FontIcon("fa-file-o");
@@ -138,26 +132,18 @@ public class FileExplorer extends VBox {
                 setContentDisplay(ContentDisplay.LEFT);
                 setGraphicTextGap(5);
 
-                // 4. Ansicht verbessern, wenn TreeItem-Informationen verfügbar sind
                 TreeTableRow<Path> row = getTableRow();
                 if (row != null) {
                     TreeItem<Path> genericTreeItem = row.getTreeItem();
                     if (genericTreeItem != null) {
-
-                        // Ordner-Icon bei aufgeklapptem Zustand ändern
                         if (Files.isDirectory(item) && genericTreeItem.isExpanded()) {
                             ((FontIcon) getGraphic()).setIconLiteral("fa-folder-open-o");
                         }
 
-                        // CSS-Klasse und Text für Unterverzeichnisse anpassen
                         if (genericTreeItem instanceof FileExplorerTreeItem<Path> customTreeItem) {
-                            // Hole die Anzahl der Unterverzeichnisse
                             long count = customTreeItem.getSubdirectoryCount();
-
-                            // Füge die CSS-Klasse für das '+' Symbol hinzu und passe den Text an
                             if (count > 0) {
                                 getStyleClass().add("has-subdirectories");
-                                // Hänge die Anzahl an den bestehenden Text an
                                 setText(getText() + " {" + count + "}");
                             }
                         }
@@ -166,15 +152,10 @@ public class FileExplorer extends VBox {
             }
         });
 
-        // Füge die neue Spalte und die alten Spalten hinzu
         fileTreeView.getColumns().addAll(fileNameColumn,
                 createColumn("File Extension", this::getFileExtension),
                 createColumn("File Size", this::getFileSize));
 
-        // ,
-        //                createColumn("File Date", this::getFileDate)
-
-        // Logischer Aufbau des Root-Knotens
         String hostName = getHostName();
         this.root = new FileExplorerTreeItem<>(Paths.get(hostName)) {
             @Override
@@ -191,44 +172,46 @@ public class FileExplorer extends VBox {
         fileTreeView.setRoot(this.root);
         fileTreeView.setShowRoot(true);
 
-        // Vereinfachter Selection-Listener, der den Baum nicht mehr manipuliert
         fileTreeView.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldVal, newVal) -> {
                     if (newVal != null && newVal.getValue() != null) {
                         Path path = newVal.getValue();
                         this.selectedFile = path;
                         stringProperty.set(path.getFileName() != null ? path.getFileName().toString() : path.toString());
+                        // Aktualisiere das Textfeld mit dem vollen Pfad und entferne Fehler-Styling.
+                        pathTextField.setText(path.toString());
+                        pathTextField.setStyle("");
                     } else {
                         this.selectedFile = null;
                         stringProperty.set("");
+                        // Leere das Textfeld und entferne Fehler-Styling.
+                        pathTextField.clear();
+                        pathTextField.setStyle("");
                     }
                 });
 
         Button homeButton = new Button();
-        FontIcon homeIcon = new FontIcon("fa-home"); // Ein passendes Icon
+        FontIcon homeIcon = new FontIcon("fa-home");
         homeIcon.setIconSize(16);
         homeButton.setGraphic(homeIcon);
-        homeButton.setTooltip(new Tooltip("Go to User Home Directory")); // Guter Stil für Icon-Buttons
+        homeButton.setTooltip(new Tooltip("Go to User Home Directory"));
 
-        // Die Aktion, die beim Klick ausgeführt wird
         homeButton.setOnAction(event -> {
-            // Hole den Pfad zum Benutzerverzeichnis vom System
             Path userHome = Paths.get(System.getProperty("user.home"));
-            // Nutze deine vorhandene, mächtige Methode, um dorthin zu springen
             selectPath(userHome);
         });
 
-        // Header neu aufbauen, um den Home-Button zu integrieren.
-        // Wir erstellen das Label für den displayText explizit, um den Code lesbarer zu machen.
         Label displayLabel = new Label();
         displayLabel.textProperty().bind(displayText);
 
         HBox header = new HBox(10, homeButton, displayLabel, fileNameLabel);
 
-        getChildren().addAll(header, fileTreeView);
+        pathTextField.setPromptText("Enter or paste a path and press Enter...");
+        pathTextField.setOnAction(event -> handlePathInput());
+
+        getChildren().addAll(header, pathTextField, fileTreeView);
         VBox.setVgrow(fileTreeView, Priority.ALWAYS);
 
-        // Saubere Drag-and-Drop-Implementierung
         this.setOnDragOver(this::handleDragOver);
         this.setOnDragDropped(event -> {
             if (event.getDragboard().hasFiles()) {
@@ -245,6 +228,21 @@ public class FileExplorer extends VBox {
     }
 
     /**
+     * Handles the input from the path text field.
+     */
+    private void handlePathInput() {
+        Path path = Paths.get(pathTextField.getText());
+        if (Files.exists(path)) {
+            // Path is valid, remove error styling and navigate.
+            pathTextField.setStyle("");
+            selectPath(path);
+        } else {
+            // Path is invalid, show visual feedback.
+            pathTextField.setStyle("-fx-border-color: red; -fx-border-width: 1px;");
+        }
+    }
+
+    /**
      * Finds and selects the given path in the tree, expanding nodes as necessary.
      *
      * @param path The path to select.
@@ -253,13 +251,24 @@ public class FileExplorer extends VBox {
         if (path == null || fileTreeView.getRoot() == null) {
             return;
         }
-        TreeItem<Path> item = findItemByPath(fileTreeView.getRoot(), path);
+        // If it's a file, navigate to the parent directory
+        // so the file becomes visible in the tree before being selected.
+        Path pathToExpand = Files.isDirectory(path) ? path : path.getParent();
+        if (pathToExpand == null) return;
+
+        TreeItem<Path> item = findItemByPath(fileTreeView.getRoot(), pathToExpand);
         if (item != null) {
-            fileTreeView.getSelectionModel().select(item);
+            // We need to ensure the target node (or its parent) is loaded.
+            item.setExpanded(true);
             Platform.runLater(() -> {
-                int rowIndex = fileTreeView.getRow(item);
-                if (rowIndex >= 0) {
-                    fileTreeView.scrollTo(rowIndex);
+                // Now find the actual target (file or folder)
+                TreeItem<Path> targetItem = findItemByPath(fileTreeView.getRoot(), path);
+                if (targetItem != null) {
+                    fileTreeView.getSelectionModel().select(targetItem);
+                    int rowIndex = fileTreeView.getRow(targetItem);
+                    if (rowIndex >= 0) {
+                        fileTreeView.scrollTo(rowIndex);
+                    }
                 }
             });
         }
@@ -328,17 +337,6 @@ public class FileExplorer extends VBox {
             return new SimpleStringProperty(FileUtils.byteCountToDisplaySize(path.toFile().length()));
         }
         return new SimpleStringProperty("");
-    }
-
-    private StringProperty getFileDate(TreeTableColumn.CellDataFeatures<Path, String> p) {
-        Path path = p.getValue().getValue();
-        try {
-            BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
-            Date lastModified = new Date(attr.lastModifiedTime().toMillis());
-            return new SimpleStringProperty(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(lastModified));
-        } catch (IOException e) {
-            return new SimpleStringProperty("");
-        }
     }
 
     private String getHostName() {
