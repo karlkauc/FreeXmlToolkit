@@ -111,6 +111,8 @@ public class FxtGui extends Application {
         shutdownExecutor(mainController.scheduler);
         shutdownExecutor(mainController.service);
 
+        mainController.shutdown();
+
         startWatch.stop();
         var currentDuration = startWatch.getDuration(); // / 1000;
 

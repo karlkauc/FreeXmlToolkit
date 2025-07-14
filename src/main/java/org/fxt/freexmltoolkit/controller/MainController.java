@@ -115,6 +115,17 @@ public class MainController {
         Platform.runLater(() -> version.setText(date + " " + size + " " + percent));
     }
 
+    @FXML
+    public void shutdown() {
+        logger.info("Applikation wird beendet. Starte Aufräumarbeiten...");
+
+        // Rufen Sie die Shutdown-Methode für jeden relevanten Controller auf.
+        if (xmlController != null) {
+            xmlController.shutdown();
+        }
+        logger.info("Aufräumarbeiten abgeschlossen. Anwendung wird geschlossen.");
+    }
+
     /**
      * Lädt die zuletzt geöffneten Dateien und aktualisiert das Menü.
      */
