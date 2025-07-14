@@ -63,6 +63,8 @@ A complete workflow for securing your XML documents:
 - Automatically create user-friendly HTML documentation from your XSD schema files.
 - (Future Feature) Includes graphical diagrams of the schema structure for better visualization.
 
+Details: see [XSD-Dokumentation](00_xsd_documentation.md)
+
 ## Technology Stack
 
 - **Platform:** Java 17+ & JavaFX

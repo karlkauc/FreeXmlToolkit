@@ -30,6 +30,7 @@ application {
     mainClass.set("org.fxt.freexmltoolkit.FxtGui")
     // mainClass.set("org.fxt.freexmltoolkit.GuiTest")
     applicationName = "FreeXmlToolkit"
+    applicationDefaultJvmArgs = listOf("-Djavafx.css.dump.lookup.errors=true")
 }
 
 configurations.all {
@@ -37,6 +38,7 @@ configurations.all {
         cacheChangingModulesFor(15, "MINUTES")
         cacheDynamicVersionsFor(15, "MINUTES")
     }
+    exclude(group = "xml-apis", module = "xml-apis")
 }
 
 group = "org.fxt"
@@ -233,16 +235,12 @@ jlink {
     launcher {
         name = "FreeXmlToolkit"
     }
-    jarExclude("*", "**/LICENSE*")
+    jarExclude("", "**/LICENSE*", "**/NOTICE*", "**/README*")
 
     jpackage {
         // Allgemeine Optionen für alle Betriebssysteme
-        vendor = "Ihr Name/Ihre Firma"
+        vendor = "Karl Kauc"
         appVersion = "1.0.0"
-
-        mergedModule {
-            jarExclude("*", "**/LICENSE*")
-        }
 
         // Betriebssystem-spezifische Konfiguration
         if (org.gradle.internal.os.OperatingSystem.current().isWindows) {
