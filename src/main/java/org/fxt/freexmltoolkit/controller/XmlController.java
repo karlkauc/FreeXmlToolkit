@@ -684,6 +684,43 @@ public class XmlController {
         }
     }
 
+    /**
+     * Fährt den Language Server und die zugehörigen Dienste sauber herunter.
+     * Diese Methode sollte beim Schließen der Anwendung aufgerufen werden.
+     */
+    public void shutdown() {
+        if (serverProxy == null) {
+            logger.info("LSP Server wurde nie gestartet, kein Shutdown notwendig.");
+            return;
+        }
+
+        logger.info("Beginne mit dem Herunterfahren des LSP-Servers...");
+        try {
+            // Schritt 1: Sende die 'shutdown'-Anfrage und warte auf die Antwort.
+            // Dies signalisiert dem Server, sich vorzubereiten, aber noch nicht zu beenden.
+            serverProxy.shutdown().get(5, TimeUnit.SECONDS);
+            logger.debug("LSP-Server 'shutdown'-Anfrage erfolgreich gesendet und bestätigt.");
+
+            // Schritt 2: Sende die 'exit'-Benachrichtigung.
+            // Dies weist den Server an, sich jetzt zu beenden. Dies ist eine Benachrichtigung, keine Anfrage.
+            serverProxy.exit();
+            logger.debug("LSP-Server 'exit'-Benachrichtigung gesendet.");
+
+        } catch (Exception e) {
+            logger.error("Fehler beim ordnungsgemäßen Herunterfahren des LSP-Servers.", e);
+        } finally {
+            // Schritt 3: Beende die clientseitigen Ressourcen, unabhängig vom Server-Status.
+            if (clientListening != null && !clientListening.isDone()) {
+                clientListening.cancel(true); // Stoppt den Listener-Thread.
+                logger.debug("LSP-Client-Listener gestoppt.");
+            }
+            if (!lspExecutor.isShutdown()) {
+                lspExecutor.shutdownNow(); // Beendet den Executor-Service.
+                logger.debug("LSP-Executor-Service heruntergefahren.");
+            }
+            logger.info("LSP-Server-Shutdown-Prozess abgeschlossen.");
+        }
+    }
 
     @FXML
     private void print() {

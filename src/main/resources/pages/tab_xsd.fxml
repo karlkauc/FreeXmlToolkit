@@ -112,7 +112,13 @@
                 <FontIcon iconLiteral="win10-notebook" iconSize="16"/>
             </graphic>
 
-            <VBox style="-fx-padding: 20px; -fx-background-color: white;" VBox.vgrow="ALWAYS">
+            <VBox spacing="15" style="-fx-padding: 20px; -fx-background-color: white;" VBox.vgrow="ALWAYS">
+                <!-- ADDED: Descriptive text for the Documentation tab -->
+                <Label styleClass="h3" text="Documentation Generator"/>
+                <Label wrapText="true"
+                       text="This is the main control panel for generating the documentation. Select your XSD file, choose an output directory, and configure the options below. The tool will create a comprehensive HTML documentation set."/>
+                <Separator/>
+
                 <GridPane hgap="10" vgap="10">
                     <Label text="XSD File: " GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                     <HBox GridPane.columnIndex="1" GridPane.rowIndex="0">
@@ -215,56 +221,61 @@
             <graphic>
                 <FontIcon iconLiteral="bi-keyboard" iconSize="16"/>
             </graphic>
-            <BorderPane>
-                <top>
-                    <VBox spacing="10" style="-fx-padding: 15px; -fx-border-width: 0 0 1 0; -fx-border-color: #e0e0e0;">
-                        <GridPane hgap="10" vgap="10">
-                            <Label text="XSD Source File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                            <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
-                                <TextField fx:id="xsdForSampleDataPath" promptText="Load an XSD file..."
-                                           HBox.hgrow="ALWAYS"/>
-                                <Button onAction="#loadXsdFile" text="Load XSD"/>
-                            </HBox>
+            <!-- UPDATED: Changed BorderPane to a VBox for consistent layout -->
+            <VBox spacing="15" style="-fx-padding: 20px; -fx-background-color: white;">
+                <VBox spacing="10">
+                    <!-- ADDED: Descriptive text for the Sample Data tab -->
+                    <Label styleClass="h3" text="Sample Data Generator"/>
+                    <Label wrapText="true"
+                           text="This tab allows you to generate sample XML data that conforms to the loaded XSD schema. You can specify whether to include only mandatory elements and set a limit for repeating elements."/>
+                    <Separator style="-fx-padding: 5 0 5 0;"/>
 
-                            <Label text="Output XML File (optional):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                            <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
-                                <TextField fx:id="outputXmlPath" promptText="Select where to save the XML file..."
-                                           HBox.hgrow="ALWAYS"/>
-                                <Button onAction="#selectOutputXmlFile" text="Save to..."/>
-                            </HBox>
+                    <GridPane hgap="10" vgap="10">
+                        <Label text="XSD Source File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
+                            <TextField fx:id="xsdForSampleDataPath" promptText="Load an XSD file..."
+                                       HBox.hgrow="ALWAYS"/>
+                            <Button onAction="#loadXsdFile" text="Load XSD"/>
+                        </HBox>
 
-                            <Label text="Settings:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                            <HBox spacing="20" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                                <CheckBox fx:id="mandatoryOnlyCheckBox" text="Create mandatory elements only"/>
-                                <Label text="Max occurrences for repeating elements:"/>
-                                <Spinner fx:id="maxOccurrencesSpinner" editable="true" initialValue="1" prefWidth="70"/>
-                            </HBox>
+                        <Label text="Output XML File (optional):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
+                            <TextField fx:id="outputXmlPath" promptText="Select where to save the XML file..."
+                                       HBox.hgrow="ALWAYS"/>
+                            <Button onAction="#selectOutputXmlFile" text="Save to..."/>
+                        </HBox>
 
-                            <columnConstraints>
-                                <ColumnConstraints hgrow="NEVER" minWidth="180.0"/>
-                                <ColumnConstraints hgrow="ALWAYS"/>
-                            </columnConstraints>
-                            <rowConstraints>
-                                <RowConstraints/>
-                                <RowConstraints/>
-                                <RowConstraints/>
-                            </rowConstraints>
-                        </GridPane>
-                        <Button onAction="#generateSampleDataAction" text="Generate Sample XML" maxWidth="Infinity">
-                            <graphic>
-                                <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
-                            </graphic>
-                        </Button>
-                    </VBox>
-                </top>
-                <center>
-                    <StackPane>
-                        <TextArea fx:id="sampleDataTextArea" style="-fx-font-family: 'monospaced'; -fx-font-size: 13px;"
-                        />
-                        <ProgressIndicator fx:id="progressSampleData" maxWidth="80" maxHeight="80" visible="false"/>
-                    </StackPane>
-                </center>
-            </BorderPane>
+                        <Label text="Settings:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <HBox spacing="20" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <CheckBox fx:id="mandatoryOnlyCheckBox" text="Create mandatory elements only"/>
+                            <Label text="Max occurrences for repeating elements:"/>
+                            <Spinner fx:id="maxOccurrencesSpinner" editable="true" initialValue="1" prefWidth="70"/>
+                        </HBox>
+
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER" minWidth="180.0"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+                        <rowConstraints>
+                            <RowConstraints/>
+                            <RowConstraints/>
+                            <RowConstraints/>
+                        </rowConstraints>
+                    </GridPane>
+                    <Button onAction="#generateSampleDataAction" text="Generate Sample XML" maxWidth="Infinity">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
+                        </graphic>
+                    </Button>
+                </VBox>
+
+                <!-- UPDATED: Added VBox.vgrow to make the text area fill the remaining space -->
+                <StackPane VBox.vgrow="ALWAYS">
+                    <TextArea fx:id="sampleDataTextArea" style="-fx-font-family: 'monospaced'; -fx-font-size: 13px;"
+                    />
+                    <ProgressIndicator fx:id="progressSampleData" maxWidth="80" maxHeight="80" visible="false"/>
+                </StackPane>
+            </VBox>
         </Tab>
     </TabPane>
 </VBox>

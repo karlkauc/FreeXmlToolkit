@@ -20,17 +20,18 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -39,6 +40,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.kordamp.ikonli.javafx.FontIcon;
 import org.xml.sax.SAXParseException;
 
 import java.awt.*;
@@ -64,10 +66,11 @@ public class XsdValidationController {
     private List<SAXParseException> validationErrors;
     private MainController parentController;
 
+    // KORREKTUR: Enum für einen sauberen Status-Wechsel
+    private enum ValidationStatus {SUCCESS, ERROR, READY}
+
     @FXML
     private AnchorPane anchorPane;
-    @FXML
-    private GridPane auswertung;
     @FXML
     private Button xmlLoadButton, xsdLoadButton, test, excelExport, clearResults;
     @FXML
@@ -77,9 +80,15 @@ public class XsdValidationController {
     @FXML
     private CheckBox autodetect;
     @FXML
+    private ProgressIndicator progressIndicator;
+
+    // KORREKTUR: FXML-Felder für die neue Statusleiste
+    @FXML
+    private HBox statusPane;
+    @FXML
     private ImageView statusImage;
     @FXML
-    private ProgressIndicator progressIndicator;
+    private Label statusLabel;
 
     /**
      * Sets the parent controller.
@@ -112,7 +121,7 @@ public class XsdValidationController {
         xsdFileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD File", "*.xsd"));
 
         xmlLoadButton.setOnAction(ae -> loadFile(xmlFileChooser, this::processXmlFile));
-        xmlLoadButton.setOnDragOver(event -> handleDragOver(event));
+        xmlLoadButton.setOnDragOver(this::handleDragOver);
         xmlLoadButton.setOnDragDropped(event -> handleDragDropped(event, this::processXmlFile));
 
         xsdLoadButton.setOnAction(ae -> loadFile(xsdFileChooser, file -> {
@@ -122,6 +131,9 @@ public class XsdValidationController {
         }));
 
         if (System.getenv("debug") != null) test.setVisible(true);
+
+        // Setze den initialen Status der UI
+        resetUI();
     }
 
     /**
@@ -151,7 +163,7 @@ public class XsdValidationController {
     /**
      * Handles the drag dropped event for file loading.
      *
-     * @param event the drag event
+     * @param event         the drag event
      * @param fileProcessor the file processor
      */
     private void handleDragDropped(javafx.scene.input.DragEvent event, java.util.function.Consumer<File> fileProcessor) {
@@ -177,6 +189,11 @@ public class XsdValidationController {
      * @param file the XML file
      */
     private void processXmlFile(File file) {
+        if (file == null) {
+            updateStatus(ValidationStatus.ERROR, "No XML file selected.");
+            return;
+        }
+
         progressIndicator.setVisible(true);
         progressIndicator.setProgress(0.1);
         resetUI();
@@ -215,11 +232,11 @@ public class XsdValidationController {
                 displayValidationResults();
             } else {
                 logger.debug("Schema not found!");
-                errorListBox.getChildren().add(new Label("Schema not found!"));
-                setStatusImage("/img/icons8-stornieren-48.png");
+                updateStatus(ValidationStatus.ERROR, "Schema not found. Please select a schema manually or ensure autodetect can find it.");
             }
 
             progressIndicator.setProgress(1.0);
+            progressIndicator.setVisible(false);
         });
     }
 
@@ -228,8 +245,8 @@ public class XsdValidationController {
      */
     private void resetUI() {
         remoteXsdLocation.setText("");
-        statusImage.setImage(null);
         errorListBox.getChildren().clear();
+        updateStatus(ValidationStatus.READY, "Ready for validation.");
     }
 
     /**
@@ -238,15 +255,62 @@ public class XsdValidationController {
     private void displayValidationResults() {
         if (validationErrors != null && !validationErrors.isEmpty()) {
             logger.warn(validationErrors.toString());
+            updateStatus(ValidationStatus.ERROR, "Validation failed. " + validationErrors.size() + " error(s) found.");
             for (int i = 0; i < validationErrors.size(); i++) {
                 SAXParseException ex = validationErrors.get(i);
                 TextFlow textFlow = createTextFlow(i, ex);
                 errorListBox.getChildren().addAll(textFlow, createGoToErrorButton(), new Separator());
             }
-            setStatusImage("/img/icons8-stornieren-48.png");
         } else {
+            // KORREKTUR: Deutliche Erfolgsmeldung anzeigen
             logger.debug("No errors in validation");
-            setStatusImage("/img/icons8-ok-48.png");
+            updateStatus(ValidationStatus.SUCCESS, "Validation successful. No errors found.");
+
+            Label successLabel = new Label("The XML file is valid according to the provided schema.");
+            successLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: green; -fx-font-size: 14px;");
+            FontIcon icon = new FontIcon("bi-check-circle-fill");
+            icon.setIconColor(Color.GREEN);
+            icon.setIconSize(18);
+            successLabel.setGraphic(icon);
+            successLabel.setGraphicTextGap(10);
+
+            errorListBox.getChildren().add(successLabel);
+        }
+    }
+
+    /**
+     * KORREKTUR: Neue zentrale Methode zur Steuerung der Statusanzeige.
+     *
+     * @param status  Der Validierungsstatus (SUCCESS, ERROR, READY).
+     * @param message Die anzuzeigende Nachricht.
+     */
+    private void updateStatus(ValidationStatus status, String message) {
+        if (statusPane == null || statusLabel == null || statusImage == null) return;
+
+        statusLabel.setText(message);
+        String style = "-fx-background-radius: 5; -fx-padding: 10;";
+        String imagePath = null;
+
+        switch (status) {
+            case SUCCESS -> {
+                style += "-fx-background-color: #e0f8e0;"; // Hellgrün
+                imagePath = "/img/icons8-ok-48.png";
+            }
+            case ERROR -> {
+                style += "-fx-background-color: #f8e0e0;"; // Hellrot
+                imagePath = "/img/icons8-stornieren-48.png";
+            }
+            case READY -> {
+                style += "-fx-background-color: -fx-background-color-subtle;"; // Standard-Hintergrund
+                imagePath = null;
+            }
+        }
+
+        statusPane.setStyle(style);
+        if (imagePath != null) {
+            statusImage.setImage(new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toString()));
+        } else {
+            statusImage.setImage(null);
         }
     }
 
@@ -254,15 +318,15 @@ public class XsdValidationController {
      * Creates a TextFlow element for displaying a validation error.
      *
      * @param index the index of the error
-     * @param ex the SAXParseException representing the error
+     * @param ex    the SAXParseException representing the error
      * @return the created TextFlow element
      */
     private TextFlow createTextFlow(int index, SAXParseException ex) {
         TextFlow textFlow = new TextFlow();
         textFlow.setLineSpacing(5.0);
         textFlow.getChildren().addAll(
-                createText("#" + index + ": " + ex.getLocalizedMessage(), 20),
-                createText("Line#: " + ex.getLineNumber() + " Col#: " + ex.getColumnNumber()),
+                createText("#" + (index + 1) + ": " + ex.getLocalizedMessage(), 14),
+                createText("Line: " + ex.getLineNumber() + " Column: " + ex.getColumnNumber()),
                 createText(getFileLine(ex.getLineNumber() - 1)),
                 createText(getFileLine(ex.getLineNumber())),
                 createText(getFileLine(ex.getLineNumber() + 1))
@@ -270,49 +334,26 @@ public class XsdValidationController {
         return textFlow;
     }
 
-    /**
-     * Creates a Text element with the specified content and font size.
-     *
-     * @param content the content of the text
-     * @param fontSize the font size of the text
-     * @return the created Text element
-     */
     private Text createText(String content, int fontSize) {
         Text text = new Text(content + System.lineSeparator());
         text.setFont(Font.font("Verdana", fontSize));
         return text;
     }
 
-    /**
-     * Creates a Text element with the specified content.
-     *
-     * @param content the content of the text
-     * @return the created Text element
-     */
     private Text createText(String content) {
         return new Text(content + System.lineSeparator());
     }
 
-    /**
-     * Retrieves the specified line from the current XML file.
-     *
-     * @param lineNumber the line number to retrieve
-     * @return the content of the specified line
-     */
     private String getFileLine(int lineNumber) {
+        if (lineNumber <= 0) return "";
         try {
-            return Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(lineNumber).trim();
-        } catch (IOException e) {
-            logger.error("Exception: {}", e.getMessage());
+            return Files.readAllLines(xmlService.getCurrentXmlFile().toPath()).get(lineNumber - 1).trim();
+        } catch (Exception e) {
+            // IOException or IndexOutOfBoundsException
             return "";
         }
     }
 
-    /**
-     * Creates a button for navigating to the error in the XML file.
-     *
-     * @return the created button
-     */
     private Button createGoToErrorButton() {
         Button goToError = new Button("Go to error");
         goToError.setOnAction(ae -> {
@@ -330,20 +371,18 @@ public class XsdValidationController {
     }
 
     /**
-     * Sets the status image to the specified image path.
-     *
-     * @param imagePath the path to the image
-     */
-    private void setStatusImage(String imagePath) {
-        statusImage.setImage(new Image(Objects.requireNonNull(getClass().getResource(imagePath)).toString()));
-    }
-
-    /**
      * Clears the validation results from the UI.
      */
     @FXML
     private void clearResultAction() {
         logger.debug("clear results");
+        resetUI();
+        xmlFileName.clear();
+        xsdFileName.clear();
+        remoteXsdLocation.clear();
+        xmlService.setCurrentXmlFile(null);
+        xmlService.setCurrentXsdFile(null);
+        validationErrors = null;
     }
 
     /**
@@ -364,11 +403,6 @@ public class XsdValidationController {
         }
     }
 
-    /**
-     * Opens the specified file using the default desktop application.
-     *
-     * @param file the file to open
-     */
     private void openFile(File file) {
         if (file.exists() && file.length() > 0) {
             try {
@@ -379,12 +413,6 @@ public class XsdValidationController {
         }
     }
 
-    /**
-     * Shows an alert with the specified header and content.
-     *
-     * @param header the header text
-     * @param content the content text
-     */
     private void showAlert(String header, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setHeaderText(header);
