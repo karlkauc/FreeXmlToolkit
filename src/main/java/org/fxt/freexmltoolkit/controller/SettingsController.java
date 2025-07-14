@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.DirectoryChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
@@ -29,6 +30,7 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.Properties;
@@ -115,19 +117,40 @@ public class SettingsController {
 
     @FXML
     private void performSave() {
-        props.setProperty("customTempFolder", customTempFolder.getText());
-        props.setProperty("useCustomTempFolder", String.valueOf(useCustomTempFolder.isSelected()));
-        props.setProperty("useSystemTempFolder", String.valueOf(useSystemTempFolder.isSelected()));
+        try {
+            props.setProperty("customTempFolder", customTempFolder.getText());
+            props.setProperty("useCustomTempFolder", String.valueOf(useCustomTempFolder.isSelected()));
+            props.setProperty("useSystemTempFolder", String.valueOf(useSystemTempFolder.isSelected()));
 
-        props.setProperty("useSystemProxy", String.valueOf(systemProxy.isSelected()));
-        props.setProperty("manualProxy", String.valueOf(manualProxy.isSelected()));
-        props.setProperty("noProxyHost", noProxyHost.getText());
-        props.setProperty("http.proxy.host", httpProxyHost.getText());
-        props.setProperty("http.proxy.port", portSpinner.getValue().toString());
-        props.setProperty("http.proxy.user", httpProxyUser.getText());
-        props.setProperty("http.proxy.password", httpProxyPass.getText());
+            props.setProperty("useSystemProxy", String.valueOf(systemProxy.isSelected()));
+            props.setProperty("manualProxy", String.valueOf(manualProxy.isSelected()));
+            props.setProperty("noProxyHost", noProxyHost.getText());
+            props.setProperty("http.proxy.host", httpProxyHost.getText());
+            props.setProperty("http.proxy.port", portSpinner.getValue().toString());
+            props.setProperty("http.proxy.user", httpProxyUser.getText());
+            props.setProperty("http.proxy.password", httpProxyPass.getText());
 
-        propertiesService.saveProperties(props);
+            propertiesService.saveProperties(props);
+
+            // Erfolgsmeldung anzeigen
+            showAlert(Alert.AlertType.INFORMATION, "Settings Saved", "Your settings have been saved successfully.");
+
+        } catch (Exception e) {
+            logger.error("Failed to save settings", e);
+            // Fehlermeldung anzeigen
+            showAlert(Alert.AlertType.ERROR, "Save Error", "Could not save settings. Please check the logs for details.\n" + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void selectCustomTempFolder() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Custom Temporary Folder");
+        File selectedDirectory = directoryChooser.showDialog(null);
+
+        if (selectedDirectory != null) {
+            customTempFolder.setText(selectedDirectory.getAbsolutePath());
+        }
     }
 
     @FXML
@@ -145,12 +168,28 @@ public class SettingsController {
             enableProxyFields(false);
         }
 
-        if (props.get("customTempFolder") != null) {
+        if (props.get("customTempFolder") != null && !props.getProperty("customTempFolder").isBlank()) {
             useCustomTempFolder.setSelected(true);
             customTempFolder.setText(props.get("customTempFolder").toString());
+            enableTempFolderFields(true);
         } else {
             useSystemTempFolder.setSelected(true);
             enableTempFolderFields(false);
         }
+    }
+
+    /**
+     * Eine Hilfsmethode, um Benachrichtigungen anzuzeigen.
+     *
+     * @param alertType Der Typ des Alerts (z.B. INFORMATION oder ERROR).
+     * @param title     Der Titel des Fensters.
+     * @param content   Die anzuzeigende Nachricht.
+     */
+    private void showAlert(Alert.AlertType alertType, String title, String content) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }
