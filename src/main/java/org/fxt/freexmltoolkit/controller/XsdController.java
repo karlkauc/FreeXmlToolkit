@@ -22,7 +22,6 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -33,6 +32,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -41,7 +41,6 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
-import org.fxt.freexmltoolkit.controls.XsdDiagramView;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
@@ -104,6 +103,13 @@ public class XsdController {
     @FXML
     private TextArea sampleDataTextArea;
     @FXML
+    private VBox noFileLoadedPane;
+    @FXML
+    private VBox xsdInfoPane;
+    @FXML
+    private Label xsdInfoPathLabel, xsdInfoNamespaceLabel, xsdInfoVersionLabel;
+
+    @FXML
     private ProgressIndicator progressSampleData;
 
     private File selectedOutputXmlFile;
@@ -129,45 +135,55 @@ public class XsdController {
     }
 
     private void setupXsdDiagram() {
-        xsdStackPane.getChildren().clear();
+        // Lösche nur die vorherige Diagramm-Ansicht, aber behalte den Platzhalter
+        xsdStackPane.getChildren().removeIf(node -> node != noFileLoadedPane);
+
         File currentXsdFile = this.xmlService.getCurrentXsdFile();
 
         if (currentXsdFile == null || !currentXsdFile.exists()) {
-            Label infoLabel = new Label("Bitte eine XSD-Datei laden.");
-            xsdStackPane.getChildren().add(infoLabel);
+            noFileLoadedPane.setVisible(true);
+            noFileLoadedPane.setManaged(true);
+            xsdInfoPane.setVisible(false);
+            xsdInfoPane.setManaged(false);
             return;
         }
+
+        // Datei ist geladen: Zeige Info-Bereich an und verstecke Platzhalter
+        noFileLoadedPane.setVisible(false);
+        noFileLoadedPane.setManaged(false);
+        xsdInfoPane.setVisible(true);
+        xsdInfoPane.setManaged(true);
 
         logger.debug("Lade XSD-Diagramm für: {}", currentXsdFile.getAbsolutePath());
 
         try {
-            // 1. Service instanziieren und XSD verarbeiten
-            XsdDocumentationService docService = new XsdDocumentationService();
-            docService.setXsdFilePath(currentXsdFile.getPath());
-            docService.processXsd(false); // Verarbeitet die Daten und füllt die Map
+            // Schritt 1: Parse die XSD-Datei einmal, um effizient zu sein.
+            org.xmlet.xsdparser.core.XsdParser parser = new org.xmlet.xsdparser.core.XsdParser(currentXsdFile.getAbsolutePath());
 
-            // 2. Den Baum aus den verarbeiteten Daten erstellen
-            XsdNodeInfo rootNode = docService.buildTreeFromProcessedData();
+            // Schritt 2: Fülle den Info-Bereich mit den Metadaten.
+            org.xmlet.xsdparser.xsdelements.XsdSchema rootSchema = parser.getResultXsdSchemas().findFirst().orElse(null);
+            if (rootSchema != null) {
+                xsdInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
+                xsdInfoNamespaceLabel.setText(rootSchema.getTargetNamespace() != null ? rootSchema.getTargetNamespace() : "Not defined");
+                xsdInfoVersionLabel.setText(rootSchema.getVersion() != null ? rootSchema.getVersion() : "Not specified");
+            }
+
+            // Schritt 3: Erstelle den Diagramm-Baum mit dem bereits vorhandenen Parser.
+            XsdDocumentationService docService = new XsdDocumentationService();
+            XsdNodeInfo rootNode = docService.buildLightweightTree(parser);
 
             if (rootNode != null) {
-                // 3. Die neue View mit dem Baum und den kompletten Daten instanziieren
-                XsdDiagramView diagramView = new XsdDiagramView(rootNode, docService.xsdDocumentationData);
-
-                // 4. Die UI-Komponente (jetzt ein SplitPane) bauen lassen
-                Node view = diagramView.build();
-
-                // 5. Die fertige Komponente zur Szene hinzufügen
-                xsdStackPane.getChildren().add(view);
-
+                // Die View wird jetzt mit dem leichtgewichtigen Baum erstellt.
+                org.fxt.freexmltoolkit.controls.XsdDiagramView diagramView = new org.fxt.freexmltoolkit.controls.XsdDiagramView(rootNode);
+                xsdStackPane.getChildren().add(diagramView.build()); // Füge die Diagramm-Ansicht hinzu
             } else {
                 Label infoLabel = new Label("Kein Wurzelelement im Schema gefunden.");
                 xsdStackPane.getChildren().add(infoLabel);
                 StackPane.setAlignment(infoLabel, Pos.CENTER);
             }
-
         } catch (Exception e) {
             logger.error("Fehler beim Erstellen der Diagramm-Ansicht.", e);
-            Label errorLabel = new Label("Fehler beim Parsen des XSDs.");
+            Label errorLabel = new Label("Fehler beim Parsen der XSD-Datei.");
             xsdStackPane.getChildren().add(errorLabel);
             StackPane.setAlignment(errorLabel, Pos.CENTER);
         }
@@ -277,6 +293,8 @@ public class XsdController {
             @Override
             protected Void call() {
                 try {
+                    // HINWEIS: Der Service wird hier neu instanziiert, um den kompletten,
+                    // aufwändigen Prozess zu starten.
                     XsdDocumentationService xsdDocService = new XsdDocumentationService();
                     xsdDocService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
                     xsdDocService.setMethod(grafikFormat.getValue().equals("SVG") ?

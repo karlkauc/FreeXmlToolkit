@@ -362,7 +362,6 @@ public class XmlEditor extends Tab {
                 }
             }
 
-
         }).exceptionally(ex -> {
             logger.error("LSP hover request failed.", ex);
             return null;

@@ -105,7 +105,54 @@
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-2"/>
             </graphic>
-            <StackPane fx:id="xsdStackPane" style="-fx-background-color: #f8f9fa;"/>
+            <BorderPane>
+                <top>
+                    <VBox fx:id="xsdInfoPane" alignment="CENTER_LEFT" managed="false" spacing="5.0"
+                          style="-fx-padding: 10; -fx-background-color: #f1f3f5; -fx-border-width: 0 0 1 0; -fx-border-color: #dee2e6;"
+                          visible="false">
+                        <children>
+                            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                <children>
+                                    <Label style="-fx-font-weight: bold;" text="File Path:"/>
+                                    <Label fx:id="xsdInfoPathLabel"/>
+                                </children>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                <children>
+                                    <Label style="-fx-font-weight: bold;" text="Target Namespace:"/>
+                                    <Label fx:id="xsdInfoNamespaceLabel"/>
+                                </children>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                <children>
+                                    <Label style="-fx-font-weight: bold;" text="Version:"/>
+                                    <Label fx:id="xsdInfoVersionLabel"/>
+                                </children>
+                            </HBox>
+                        </children>
+                    </VBox>
+                </top>
+                <center>
+                    <StackPane fx:id="xsdStackPane" style="-fx-background-color: #f8f9fa;">
+                        <children>
+                            <VBox fx:id="noFileLoadedPane" alignment="CENTER" spacing="20.0">
+                                <children>
+                                    <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x" iconSize="64"/>
+                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                           text="No XSD file loaded"/>
+                                    <Label style="-fx-text-fill: #6c757d;"
+                                           text="Please load an XSD file to see the graphical representation."/>
+                                    <Button onAction="#loadXsdFile" styleClass="button, :default" text="Load XSD File">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-folder2-open"/>
+                                        </graphic>
+                                    </Button>
+                                </children>
+                            </VBox>
+                        </children>
+                    </StackPane>
+                </center>
+            </BorderPane>
         </Tab>
         <Tab fx:id="documentation" closable="false" text="Documentation">
             <graphic>

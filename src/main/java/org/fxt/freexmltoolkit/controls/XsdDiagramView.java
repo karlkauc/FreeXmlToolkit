@@ -10,17 +10,12 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
-import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import javafx.scene.web.WebView;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
-
-import java.util.Map;
 
 public class XsdDiagramView {
 
     private final XsdNodeInfo rootNode;
-    private final Map<String, ExtendedXsdElement> elementMap;
 
     private VBox detailPane; // The container for the detail information
 
@@ -39,9 +34,8 @@ public class XsdDiagramView {
     private static final String DETAIL_LABEL_STYLE = "-fx-font-weight: bold; -fx-text-fill: #333;";
     private static final String DETAIL_PANE_STYLE = "-fx-padding: 15px; -fx-background-color: #ffffff; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 0 1px;";
 
-    public XsdDiagramView(XsdNodeInfo rootNode, XsdDocumentationData documentationData) {
+    public XsdDiagramView(XsdNodeInfo rootNode) {
         this.rootNode = rootNode;
-        this.elementMap = documentationData.getExtendedXsdElementMap();
     }
 
     public Node build() {
@@ -98,8 +92,7 @@ public class XsdDiagramView {
         Label nameLabel = new Label(node.name());
         nameLabel.setStyle(NODE_LABEL_STYLE);
         nameLabel.setOnMouseClicked(event -> {
-            ExtendedXsdElement selectedElement = elementMap.get(node.xpath());
-            updateDetailPane(selectedElement);
+            updateDetailPane(node);
         });
         nameAndToggleRow.getChildren().add(nameLabel);
 
@@ -143,11 +136,11 @@ public class XsdDiagramView {
 
     /**
      * Fills the detail area with information from the selected element.
-     * This method is now robust against missing data.
+     * This version uses only the lightweight XsdNodeInfo.
      */
-    private void updateDetailPane(ExtendedXsdElement element) {
+    private void updateDetailPane(XsdNodeInfo node) {
         detailPane.getChildren().clear();
-        if (element == null) {
+        if (node == null) {
             detailPane.getChildren().add(new Label("Please select a node."));
             return;
         }
@@ -157,40 +150,23 @@ public class XsdDiagramView {
         grid.setVgap(12);
         int rowIndex = 0;
 
-        // Use getDisplayName() to see '@' for attributes
-        addDetailRow(grid, rowIndex++, "Name:", element.getElementName());
-        addDetailRow(grid, rowIndex++, "XPath:", element.getCurrentXpath());
-        addDetailRow(grid, rowIndex++, "Data Type:", element.getElementType());
-
-        if (element.getGenericAppInfos() != null && !element.getGenericAppInfos().isEmpty()) {
-            addDetailRow(grid, rowIndex++, "Cardinality:", element.getGenericAppInfos().toString());
-        }
-
-        if (element.getXsdDocumentation() != null && !element.getXsdDocumentation().isEmpty()) {
-            String docText = element.getXsdDocumentation().getFirst().getContent();
-            addDetailRow(grid, rowIndex++, "Documentation:", docText);
-        }
-
-        // Call the method safely to avoid crashes.
-        String restrictions = element.getXsdRestrictionString();
-        if (restrictions != null && !restrictions.isEmpty()) {
-            addDetailRow(grid, rowIndex++, "Restrictions:", restrictions);
-        }
-
-        if (element.getSampleData() != null) {
-            addDetailRow(grid, rowIndex++, "Sample Data:", element.getSampleData());
-        }
-
-        if (element.getJavadocInfo() != null && element.getJavadocInfo().hasData()) {
-            if (element.getJavadocInfo().getSince() != null) {
-                addDetailRow(grid, rowIndex++, "@since:", element.getJavadocInfo().getSince());
-            }
-            if (element.getJavadocInfo().getDeprecated() != null) {
-                addDetailRow(grid, rowIndex++, "@deprecated:", element.getJavadocInfo().getDeprecated());
-            }
-        }
+        addDetailRow(grid, rowIndex++, "Name:", node.name());
+        addDetailRow(grid, rowIndex++, "XPath:", node.xpath());
+        addDetailRow(grid, rowIndex++, "Data Type:", node.type());
 
         detailPane.getChildren().add(grid);
+
+        if (node.documentation() != null && !node.documentation().isBlank()) {
+            Label docHeader = new Label("Documentation:");
+            docHeader.setStyle(DETAIL_LABEL_STYLE);
+            detailPane.getChildren().add(docHeader);
+
+            // Use a WebView to render potentially HTML-formatted documentation
+            WebView docView = new WebView();
+            docView.getEngine().loadContent("<html><body style='font-family: sans-serif; font-size: 13px;'>" + node.documentation() + "</body></html>");
+            docView.setPrefHeight(200); // Give it some initial size
+            detailPane.getChildren().add(docView);
+        }
     }
 
     /**
@@ -205,11 +181,11 @@ public class XsdDiagramView {
 
         Label label = new Label(labelText);
         label.setStyle(DETAIL_LABEL_STYLE);
-        // VPos.CENTER is better for alignment with multi-line values
-        GridPane.setValignment(label, VPos.CENTER);
+        GridPane.setValignment(label, VPos.TOP);
 
-        Text value = new Text(valueText);
-        value.setWrappingWidth(300); // Adjusts the width
+        Label value = new Label(valueText);
+        value.setWrapText(true);
+        value.setMaxWidth(300); // Adjusts the width
 
         grid.add(label, 0, rowIndex);
         grid.add(value, 1, rowIndex);

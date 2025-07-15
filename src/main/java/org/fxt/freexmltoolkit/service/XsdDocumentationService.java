@@ -29,14 +29,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
+import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
@@ -764,5 +762,176 @@ public class XsdDocumentationService {
                 children,
                 element.getCurrentXpath()
         );
+    }
+
+    /**
+     * Erstellt einen leichtgewichtigen Baum für die Diagrammansicht direkt aus der XSD-Datei,
+     * ohne die aufwändige Dokumentationsverarbeitung durchzuführen.
+     *
+     * @param xsdPath Der Pfad zur XSD-Datei.
+     * @return Der Wurzelknoten des Baumes (XsdNodeInfo) oder null bei einem Fehler.
+     */
+    public XsdNodeInfo buildLightweightTree(String xsdPath) {
+        try {
+            // Delegiere an die Methode, die eine Parser-Instanz entgegennimmt.
+            return buildLightweightTree(new XsdParser(xsdPath));
+        } catch (Exception e) {
+            logger.error("Fehler beim Parsen der XSD-Datei: " + xsdPath, e);
+            return null;
+        }
+    }
+
+    /**
+     * Erstellt einen leichtgewichtigen Baum für die Diagrammansicht aus einer bereits
+     * bestehenden Parser-Instanz.
+     *
+     * @param parser Die bereits initialisierte XsdParser-Instanz.
+     * @return Der Wurzelknoten des Baumes (XsdNodeInfo) oder null bei einem Fehler.
+     */
+    public XsdNodeInfo buildLightweightTree(XsdParser parser) {
+        XsdElement rootElement = parser.getResultXsdElements().findFirst().orElse(null);
+
+        if (rootElement == null) {
+            logger.error("Kein Wurzelelement im Schema gefunden.");
+            return null;
+        }
+        return buildLightweightNodeRecursive(parser, rootElement, "/" + rootElement.getName());
+    }
+
+    /**
+     * Rekursive Hilfsmethode, um den XsdNodeInfo-Baum aus den nativen Parser-Objekten aufzubauen.
+     *
+     * @param parser       Die Parser-Instanz, um globale Typen aufzulösen.
+     * @param element      Das aktuelle XSD-Element (oder Attribut) vom Parser.
+     * @param currentXPath Der aktuelle XPath zu diesem Element.
+     * @return Ein XsdNodeInfo-Objekt, das dieses Element und seine Kinder repräsentiert.
+     */
+    private XsdNodeInfo buildLightweightNodeRecursive(XsdParser parser, XsdAbstractElement element, String currentXPath) {
+        if (element == null) {
+            return null;
+        }
+
+        String name = "";
+        String type = "";
+        String documentation = "";
+        List<XsdNodeInfo> children = new ArrayList<>();
+
+        if (element instanceof XsdElement xsdElement) {
+            name = xsdElement.getName();
+            type = xsdElement.getType();
+
+            // Extrahiere Dokumentation direkt vom Element oder seinem Typ
+            if (xsdElement.getAnnotation() != null) {
+                documentation = xsdElement.getAnnotation().getDocumentations().stream()
+                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
+            }
+
+            // Sammle Kinder (Elemente und Attribute)
+            // KORREKTUR: Die Logik wurde robuster gemacht, um Abstürze zu vermeiden
+            // und auch referenzierte globale Typen korrekt aufzulösen.
+            XsdComplexType complexType = xsdElement.getXsdComplexType();
+            if (complexType == null && xsdElement.getType() != null) {
+                // Wenn der Typ referenziert ist, suche ihn in den globalen Definitionen.
+                String typeName = xsdElement.getType();
+                complexType = parser.getResultXsdSchemas()
+                        .flatMap(XsdSchema::getChildrenComplexTypes)
+                        .filter(ct -> typeName.equals(ct.getRawName()))
+                        .findFirst().orElse(null);
+            }
+
+            if (complexType != null) {
+                // Behandle die verschachtelte Struktur sicher.
+                XsdMultipleElements particle = null;
+                if (complexType.getComplexContent() != null) {
+                    // Fall 1: Inhalt ist in <complexContent> (typisch für Vererbung)
+                    var content = complexType.getComplexContent();
+                    XsdAbstractElement contentChild = null;
+                    if (content.getXsdExtension() != null) {
+                        contentChild = content.getXsdExtension();
+                    } else if (content.getXsdRestriction() != null) {
+                        contentChild = content.getXsdRestriction();
+                    }
+
+                    // KORREKTUR: Prüfen, ob die Extension/Restriction Kind-Elemente enthalten kann.
+                    // In manchen Fällen (z.B. nur Hinzufügen von Attributen) ist dies nicht der Fall,
+                    // was zu einem ClassCastException führen würde.
+                    if (contentChild instanceof XsdMultipleElements) {
+                        particle = (XsdMultipleElements) contentChild;
+                    }
+                } else if (complexType.getSimpleContent() != null) {
+                    // KORREKTUR: Fall 1b: Inhalt ist simpleContent.
+                    // Ein complexType mit simpleContent hat keine Kind-Elemente, nur Attribute.
+                    // Das explizite Abfangen verhindert den Absturz in der Parser-Bibliothek.
+                    // Die Attribute werden weiter unten separat verarbeitet.
+                } else {
+                    // Fall 2: Direkte Partikel wie <sequence>, <choice>
+                    if (complexType.getChildAsSequence() != null) particle = complexType.getChildAsSequence();
+                    else if (complexType.getChildAsChoice() != null) particle = complexType.getChildAsChoice();
+                    else if (complexType.getChildAsAll() != null) particle = complexType.getChildAsAll();
+                }
+
+                if (particle != null) {
+                    addParticleChildren(parser, children, particle, currentXPath);
+                }
+
+                // Attribute hinzufügen
+                complexType.getAllXsdAttributes().forEach(attribute ->
+                        children.add(buildLightweightNodeRecursive(parser, attribute, currentXPath + "/@" + attribute.getName()))
+                );
+            }
+
+        } else if (element instanceof XsdAttribute xsdAttribute) {
+            name = "@" + xsdAttribute.getName();
+            type = xsdAttribute.getType();
+            if (xsdAttribute.getAnnotation() != null) {
+                documentation = xsdAttribute.getAnnotation().getDocumentations().stream()
+                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
+            }
+        } else if (element instanceof XsdAny xsdAny) {
+            name = "any";
+            String namespaceInfo = xsdAny.getNamespace() != null ? xsdAny.getNamespace() : "##any";
+            String processContentsInfo = xsdAny.getProcessContents() != null ? xsdAny.getProcessContents() : "strict";
+            type = String.format("Wildcard (namespace: %s, process: %s)", namespaceInfo, processContentsInfo);
+            if (xsdAny.getAnnotation() != null) {
+                documentation = xsdAny.getAnnotation().getDocumentations().stream()
+                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
+            }
+        }
+
+        return new XsdNodeInfo(
+                name,
+                type != null ? type : "",
+                documentation,
+                children,
+                currentXPath
+        );
+    }
+
+    /**
+     * Rekursive Hilfsmethode, die die Kinder eines Partikels (sequence, choice, group) verarbeitet
+     * und zur Kinderliste des Elternknotens hinzufügt.
+     *
+     * @param parser      Die Parser-Instanz für weitere rekursive Aufrufe.
+     * @param children    Die Liste der Kinder des Elternknotens.
+     * @param particle    Das Partikel-Element (sequence, choice, etc.).
+     * @param parentXpath Der XPath des Elternknotens.
+     */
+    private void addParticleChildren(XsdParser parser, List<XsdNodeInfo> children, XsdMultipleElements particle, String parentXpath) {
+        particle.getElements().stream()
+                .map(ReferenceBase::getElement)
+                .filter(Objects::nonNull)
+                .forEach(child -> {
+                    if (child instanceof XsdElement xsdElement) {
+                        // Für ein Element, erstelle einen neuen Knoten mit einem neuen XPath.
+                        children.add(buildLightweightNodeRecursive(parser, xsdElement, parentXpath + "/" + xsdElement.getName()));
+                    } else if (child instanceof XsdMultipleElements xsdMultipleElements) {
+                        // Für Container (choice, sequence, group), verarbeite deren Kinder rekursiv,
+                        // ohne den XPath zu ändern.
+                        addParticleChildren(parser, children, xsdMultipleElements, parentXpath);
+                    } else if (child instanceof XsdAny xsdAny) {
+                        // Erstelle einen Knoten für <xs:any>.
+                        children.add(buildLightweightNodeRecursive(parser, xsdAny, parentXpath + "/any"));
+                    }
+                });
     }
 }
