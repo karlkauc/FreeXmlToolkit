@@ -100,7 +100,7 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.generateComplexTypesListPage();
         xsdDocumentationHtmlService.generateSimpleTypesListPage();
         xsdDocumentationHtmlService.generateDataDictionaryPage();
-
+        xsdDocumentationHtmlService.generateSearchIndex();
 
         if (parallelProcessing) {
             xsdDocumentationHtmlService.generateComplexTypePagesInParallel();

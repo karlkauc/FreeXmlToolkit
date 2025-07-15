@@ -84,6 +84,9 @@ public class XsdDocumentationHtmlService {
     }
 
     void generateRootPage() {
+        // Generate and cache the search index at the very beginning.
+        generateSearchIndex();
+
         final var rootElementName = xsdDocumentationData.getElements().getFirst().getName();
 
         var context = new Context();
@@ -259,7 +262,6 @@ public class XsdDocumentationHtmlService {
                 if (simpleType.getAnnotation() != null && simpleType.getAnnotation().getDocumentations() != null) {
                     context.setVariable("documentations", simpleType.getAnnotation().getDocumentations());
                 }
-
                 final String typeName = simpleType.getName();
                 if (typeName != null && !typeName.isEmpty()) {
                     List<ExtendedXsdElement> usedInElements = xsdDocumentationData.getTypeUsageMap()
@@ -517,6 +519,74 @@ public class XsdDocumentationHtmlService {
     }
 
     /**
+     * Generiert eine JSON-Datei, die als clientseitiger Suchindex dient.
+     * Diese Datei enthält alle relevanten Informationen zu den Schema-Elementen.
+     */
+    void generateSearchIndex() {
+        logger.debug("Generating search index file (search_index.json)");
+
+        List<Map<String, String>> searchData = new ArrayList<>();
+        for (ExtendedXsdElement element : xsdDocumentationData.getExtendedXsdElementMap().values()) {
+            Map<String, String> item = new LinkedHashMap<>(); // Use LinkedHashMap for consistent key order
+
+            item.put("name", element.getElementName());
+            item.put("url", "details/" + element.getPageName());
+            item.put("xpath", element.getCurrentXpath());
+
+            String docText = "";
+            if (element.getLanguageDocumentation() != null && !element.getLanguageDocumentation().isEmpty()) {
+                docText = element.getLanguageDocumentation().values().stream()
+                        .collect(Collectors.joining(" "));
+            }
+            item.put("doc", docText);
+
+            searchData.add(item);
+        }
+
+        // Manually build the JSON string to avoid external dependencies
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append("[\n");
+
+        for (int i = 0; i < searchData.size(); i++) {
+            Map<String, String> item = searchData.get(i);
+            jsonBuilder.append("  {\n");
+            jsonBuilder.append("    \"name\": \"").append(escapeJson(item.get("name"))).append("\",\n");
+            jsonBuilder.append("    \"url\": \"").append(escapeJson(item.get("url"))).append("\",\n");
+            jsonBuilder.append("    \"xpath\": \"").append(escapeJson(item.get("xpath"))).append("\",\n");
+            jsonBuilder.append("    \"doc\": \"").append(escapeJson(item.get("doc"))).append("\"\n");
+            jsonBuilder.append("  }");
+            if (i < searchData.size() - 1) {
+                jsonBuilder.append(",\n");
+            } else {
+                jsonBuilder.append("\n");
+            }
+        }
+
+        jsonBuilder.append("]");
+
+        final var outputFilePath = Paths.get(outputDirectory.getPath(), "search_index.json");
+        try {
+            Files.writeString(outputFilePath, jsonBuilder.toString());
+            logger.info("Written search index file to '{}'", outputFilePath.toAbsolutePath());
+        } catch (IOException e) {
+            throw new RuntimeException("Could not write search index file", e);
+        }
+    }
+
+    private String escapeJson(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        return raw.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\b", "\\b")
+                .replace("\f", "\\f")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    /**
      * Holt die Dokumentation für einen bestimmten Typ (Simple oder Complex).
      *
      * @param xpath Der XPath des Elements, dessen Typ-Dokumentation gesucht wird.
@@ -601,6 +671,7 @@ public class XsdDocumentationHtmlService {
             copyAssets("/xsdDocumentation/assets/prism.js", outputDirectory);
             copyAssets("/xsdDocumentation/assets/prism.css", outputDirectory);
             copyAssets("/xsdDocumentation/assets/freeXmlToolkit.css", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/search.js", outputDirectory);
             copyAssets("/xsdDocumentation/assets/plus.png", outputDirectory);
             copyAssets("/xsdDocumentation/assets/logo.png", outputDirectory);
             copyAssets("/xsdDocumentation/assets/Roboto-Regular.ttf", outputDirectory);
