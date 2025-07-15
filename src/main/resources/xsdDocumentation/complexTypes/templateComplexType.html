@@ -17,7 +17,7 @@
   -->
 
 <!DOCTYPE html>
-<html lang="de" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -42,11 +42,11 @@
 </head>
 <body class="font-sans text-slate-800">
 
-<!-- Moderne Navigation mit Schatten und klaren Abständen -->
+<!-- Modern navigation with shadow and clear spacing -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center h-16">
-            <!-- Linke Navigationsgruppe -->
+            <!-- Left navigation group -->
             <div class="hidden md:flex items-baseline space-x-6">
                 <a href="../index.html" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
                    aria-current="page">Home</a>
@@ -60,7 +60,7 @@
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
             </div>
-            <!-- Rechte Navigationsgruppe (GitHub Link) -->
+            <!-- Right navigation group (GitHub Link) -->
             <div class="hidden md:block">
                 <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank" class="flex items-center space-x-2 text-slate-700 font-bold">
                     <img src="../assets/logo.png" alt="logo" class="h-8 w-8"/>
@@ -71,11 +71,11 @@
     </div>
 </nav>
 
-<!-- Hauptinhalt -->
+<!-- Main content -->
 <main class="container mx-auto px-4 py-8 md:py-12">
-    <!-- Zentrale Inhalts-Karte -->
+    <!-- Central content card -->
     <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
-        <!-- Karten-Header -->
+        <!-- Card header -->
         <header class="p-6 border-b border-slate-200 bg-slate-50">
             <div class="flex justify-between items-center">
                 <h1 class="text-2xl font-bold text-slate-900">
@@ -90,25 +90,25 @@
             </div>
         </header>
 
-        <!-- Karten-Body -->
+        <!-- Card body -->
         <div class="p-6 md:p-8 space-y-10">
-            <!-- Sektion: Dokumentation -->
+            <!-- Section: Documentation -->
             <section th:if="${not #lists.isEmpty(documentations)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Dokumentation</h2>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Documentation</h2>
                 <div class="bg-slate-100/75 p-4 rounded-md space-y-2">
                     <p th:each="doc : ${documentations}" th:text="${doc.getContent()}" class="text-slate-700"></p>
                 </div>
             </section>
 
-            <!-- Sektion: Attribute -->
+            <!-- Section: Attributes -->
             <section th:if="${not #maps.isEmpty(complexType.getAttributesMap())}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Attribute</h2>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Attributes</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 border-b border-slate-200 text-sm">
                         <tr>
                             <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Name</th>
-                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Typ</th>
+                            <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Type</th>
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 text-sm">
@@ -128,9 +128,9 @@
             </section>
 
             <!-- ================================================================== -->
-            <!-- Sektion für Kind-Elemente -->
+            <!-- Section for Child Elements -->
             <!-- ================================================================== -->
-            <section th:if="${not #lists.isEmpty(childElements)}">fd
+            <section th:if="${not #lists.isEmpty(childElements)}">
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">Child Elements &amp; Attributes</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
@@ -143,9 +143,9 @@
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 text-sm">
-                        <!-- Die Schleife iteriert jetzt über die Liste der Kind-Objekte -->
+                        <!-- The loop now iterates over the list of child objects -->
                         <tr th:each="child: ${childElements}">
-                            <!-- Spalte: Name -->
+                            <!-- Column: Name -->
                             <td class="px-4 py-3 font-mono">
                                 <a th:href="${'../details/' + child.pageName}"
                                    th:title="${child.currentXpath}"
@@ -154,7 +154,7 @@
                                 </a>
                             </td>
 
-                            <!-- Spalte: Typ -->
+                            <!-- Column: Type -->
                             <td class="px-4 py-3 font-mono">
                                 <a th:if="${this.isChildTypeLinkable(child.currentXpath)}"
                                    th:href="${this.getChildTypePageName(child.currentXpath)}"
@@ -166,12 +166,12 @@
                                 </span>
                             </td>
 
-                            <!-- Spalte: Dokumentation -->
+                            <!-- Column: Documentation -->
                             <td class="px-4 py-3 text-slate-600 prose prose-sm max-w-md"
                                 th:utext="${this.getChildDocumentation(child.currentXpath)}">
                             </td>
 
-                            <!-- Spalte: Beispieldaten -->
+                            <!-- Column: Sample Data -->
                             <td class="px-4 py-3 font-mono text-slate-600" th:text="${child.sampleData}">
                             </td>
                         </tr>
@@ -180,9 +180,9 @@
                 </div>
             </section>
 
-            <!-- Sektion "Verwendet in" -->
+            <!-- Section "Used In" -->
             <section th:if="${not #lists.isEmpty(usedInElements)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Verwendet in</h2>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Used In</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 border-b border-slate-200 text-sm">
@@ -204,9 +204,9 @@
                 </div>
             </section>
 
-            <!-- NEU: Sektion "Element-Deklarationen mit diesem Namen" -->
+            <!-- Section "Element Declarations with this Name" -->
             <section th:if="${not #lists.isEmpty(typeUsages)}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">Element-Deklarationen mit diesem Namen</h2>
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Element Declarations with this Name</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 border-b border-slate-200 text-sm">
@@ -231,11 +231,11 @@
         </div>
     </div>
 
-    <!-- Navigations-Button zurück zur Übersicht -->
+    <!-- Navigation button back to overview -->
     <div class="mt-8 text-center">
         <a href="../complexTypes.html"
            class="inline-flex items-center gap-x-2 rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
-            Zurück zur Übersicht
+            Back to Overview
         </a>
     </div>
 </main>

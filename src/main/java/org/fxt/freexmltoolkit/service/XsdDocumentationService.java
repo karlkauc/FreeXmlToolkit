@@ -223,6 +223,12 @@ public class XsdDocumentationService {
                     xsdDocumentationData.getExtendedXsdElementMap().get(parentXpath).getChildren().add(currentXpath);
                 }
 
+                // Setze den Typ von Anfang an. Dieser Wert wird nur überschrieben,
+                // wenn es absolut notwendig ist (z.B. bei anonymen inline-Typen).
+                if (xsdElement.getType() != null) {
+                    extendedXsdElement.setElementType(xsdElement.getType());
+                }
+
                 // Schritt 1: Verarbeite Annotationen direkt am Element-Tag
                 processAnnotations(xsdElement.getAnnotation(), extendedXsdElement);
 
@@ -255,7 +261,7 @@ public class XsdDocumentationService {
                 // Element in die Map legen, damit Kind-Elemente es finden können
                 xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
 
-                // KORREKTUR: Suche nach global definierten, referenzierten Typen und übernehme deren Dokumentation.
+                // Suche nach global definierten, referenzierten Typen und übernehme deren Dokumentation.
                 // Dies ist entscheidend für Elemente, die einen Typ über das 'type'-Attribut referenzieren (z.B. type="tns:MyType").
                 if (xsdElement.getType() != null && !xsdElement.getType().isBlank()) {
                     String typeName = xsdElement.getType();
@@ -277,7 +283,7 @@ public class XsdDocumentationService {
                 var currentType = xsdElement.getType();
                 if (currentType != null && prevElementTypes.contains(currentType.trim())) {
                     logger.info("Recursion detected for type {}. Stopping traversal.", currentType);
-                    extendedXsdElement.setElementType(currentType); // Wichtig: Typ trotzdem setzen
+                    // Wichtig: Typ ist hier bereits korrekt gesetzt.
                     extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
                     return;
                 }
@@ -301,7 +307,10 @@ public class XsdDocumentationService {
                         // Fall 1: simpleContent mit einer Extension
                         if (simpleContent.getXsdExtension() != null) {
                             XsdExtension extension = simpleContent.getXsdExtension();
-                            extendedXsdElement.setElementType(String.valueOf(extension.getBase()));
+                            // KORREKTUR: Nur den Typ setzen, wenn noch keiner explizit definiert wurde.
+                            if (extendedXsdElement.getElementType() == null) {
+                                extendedXsdElement.setElementType(String.valueOf(extension.getBase()));
+                            }
 
                             // Verarbeite die Attribute, die in der Erweiterung definiert sind
                             if (extension.getXsdAttributes() != null) {
@@ -313,8 +322,11 @@ public class XsdDocumentationService {
                         // Fall 2: simpleContent mit einer Restriction
                         else if (simpleContent.getXsdRestriction() != null) {
                             XsdRestriction restriction = simpleContent.getXsdRestriction();
-                            extendedXsdElement.setElementType(restriction.getBase());
                             extendedXsdElement.setXsdRestriction(restriction);
+                            // KORREKTUR: Nur den Typ setzen, wenn noch keiner explizit definiert wurde.
+                            if (extendedXsdElement.getElementType() == null) {
+                                extendedXsdElement.setElementType(restriction.getBase());
+                            }
 
                             // Verarbeite die Attribute, die in der Beschränkung definiert sind
                             if (restriction.getXsdAttributes() != null) {
@@ -324,12 +336,13 @@ public class XsdDocumentationService {
                             }
                         }
                     } else {
-                        if (xsdElement.getType() != null) {
-                            extendedXsdElement.setElementType(xsdElement.getType());
-                        } else if (complexType.getName() != null && !complexType.getName().isEmpty()) {
-                            extendedXsdElement.setElementType(complexType.getName());
-                        } else {
-                            extendedXsdElement.setElementType("(Complex Content)");
+                        // KORREKTUR: Nur einen Fallback-Typ setzen, wenn noch kein Typ vorhanden ist.
+                        if (extendedXsdElement.getElementType() == null) {
+                            if (complexType.getName() != null && !complexType.getName().isEmpty()) {
+                                extendedXsdElement.setElementType(complexType.getName());
+                            } else {
+                                extendedXsdElement.setElementType("(Complex Content)");
+                            }
                         }
 
                         XsdAbstractElement child = null;
@@ -353,15 +366,19 @@ public class XsdDocumentationService {
                     processAnnotations(simpleType.getAnnotation(), extendedXsdElement); // Annotation für inline simpleType
                     if (simpleType.getRestriction() != null) {
                         extendedXsdElement.setXsdRestriction(simpleType.getRestriction());
-                        extendedXsdElement.setElementType(simpleType.getRestriction().getBase());
+                        // KORREKTUR: Nur den Typ setzen, wenn noch keiner explizit definiert wurde.
+                        if (extendedXsdElement.getElementType() == null) {
+                            extendedXsdElement.setElementType(simpleType.getRestriction().getBase());
+                        }
                     }
-                } else if (xsdElement.getType() != null) {
-                    extendedXsdElement.setElementType(xsdElement.getType());
                 }
+                // Der Fall "else if (xsdElement.getType() != null)" ist nicht mehr nötig,
+                // da dies bereits am Anfang der Methode behandelt wurde.
 
                 // FINALER SCHRITT: Generiere Beispieldaten für das Element selbst.
                 extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
             }
+            // ... Der Rest der Methode bleibt unverändert
             case XsdAttribute xsdAttribute -> {
                 final String parentXpath = "/" + String.join("/", prevElementPath);
                 String currentXpath = parentXpath + "/@" + xsdAttribute.getName();
