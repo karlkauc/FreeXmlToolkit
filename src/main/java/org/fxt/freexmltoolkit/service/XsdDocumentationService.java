@@ -21,6 +21,8 @@ package org.fxt.freexmltoolkit.service;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
+import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
+import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
 import org.fxt.freexmltoolkit.domain.JavadocInfo;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
@@ -59,10 +61,16 @@ public class XsdDocumentationService {
     XsdParser parser;
     XmlService xmlService = XmlServiceImpl.getInstance();
 
+    private TaskProgressListener progressListener;
+
     String schemaPrefix;
 
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
     private final SampleDataGenerator sampleDataGenerator = new SampleDataGenerator();
+
+    public void setProgressListener(TaskProgressListener progressListener) {
+        this.progressListener = progressListener;
+    }
 
     public XsdDocumentationService() {
         imageOutputMethod = ImageOutputMethod.SVG;
@@ -94,22 +102,21 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.setDocumentationData(xsdDocumentationData);
         xsdDocumentationHtmlService.setXsdDocumentationService(this);
 
-        xsdDocumentationHtmlService.copyResources();
-        xsdDocumentationHtmlService.generateRootPage();
-
-        xsdDocumentationHtmlService.generateComplexTypesListPage();
-        xsdDocumentationHtmlService.generateSimpleTypesListPage();
-        xsdDocumentationHtmlService.generateDataDictionaryPage();
-        xsdDocumentationHtmlService.generateSearchIndex();
+        executeAndTrack("Ressourcen kopieren", xsdDocumentationHtmlService::copyResources);
+        executeAndTrack("Startseite generieren", xsdDocumentationHtmlService::generateRootPage);
+        executeAndTrack("Liste der komplexen Typen generieren", xsdDocumentationHtmlService::generateComplexTypesListPage);
+        executeAndTrack("Liste der einfachen Typen generieren", xsdDocumentationHtmlService::generateSimpleTypesListPage);
+        executeAndTrack("Datenwörterbuch generieren", xsdDocumentationHtmlService::generateDataDictionaryPage);
+        executeAndTrack("Suchindex generieren", xsdDocumentationHtmlService::generateSearchIndex);
 
         if (parallelProcessing) {
-            xsdDocumentationHtmlService.generateComplexTypePagesInParallel();
-            xsdDocumentationHtmlService.generateSimpleTypePagesInParallel();
-            xsdDocumentationHtmlService.generateDetailsPagesInParallel();
+            executeAndTrack("Detailseiten für komplexe Typen generieren (parallel)", xsdDocumentationHtmlService::generateComplexTypePagesInParallel);
+            executeAndTrack("Detailseiten für einfache Typen generieren (parallel)", xsdDocumentationHtmlService::generateSimpleTypePagesInParallel);
+            executeAndTrack("Detailseiten für Elemente generieren (parallel)", xsdDocumentationHtmlService::generateDetailsPagesInParallel);
         } else {
-            xsdDocumentationHtmlService.generateComplexTypePages();
-            xsdDocumentationHtmlService.generateSimpleTypePages();
-            xsdDocumentationHtmlService.generateDetailPages();
+            executeAndTrack("Detailseiten für komplexe Typen generieren", xsdDocumentationHtmlService::generateComplexTypePages);
+            executeAndTrack("Detailseiten für einfache Typen generieren", xsdDocumentationHtmlService::generateSimpleTypePages);
+            executeAndTrack("Detailseiten für Elemente generieren", xsdDocumentationHtmlService::generateDetailPages);
         }
 
     }
@@ -933,5 +940,21 @@ public class XsdDocumentationService {
                         children.add(buildLightweightNodeRecursive(parser, xsdAny, parentXpath + "/any"));
                     }
                 });
+    }
+
+    private void executeAndTrack(String taskName, Runnable task) {
+        if (progressListener != null) {
+            // Melde den Start des Tasks
+            progressListener.onProgressUpdate(new ProgressUpdate(taskName, Status.STARTED, 0));
+        }
+
+        long startTime = System.nanoTime();
+        task.run();
+        long durationNanos = System.nanoTime() - startTime;
+
+        if (progressListener != null) {
+            // Melde das Ende des Tasks mit der benötigten Zeit
+            progressListener.onProgressUpdate(new ProgressUpdate(taskName, Status.FINISHED, durationNanos / 1_000_000));
+        }
     }
 }

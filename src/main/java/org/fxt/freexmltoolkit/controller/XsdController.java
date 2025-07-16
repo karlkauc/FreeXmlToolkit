@@ -25,11 +25,13 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -42,6 +44,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
+import org.fxt.freexmltoolkit.service.TaskProgressListener;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsdDocumentationService;
@@ -53,6 +56,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class XsdController {
     XmlService xmlService = XmlServiceImpl.getInstance();
@@ -82,7 +87,11 @@ public class XsdController {
     CheckBox openFileAfterCreation, useMarkdownRenderer, createExampleData;
 
     @FXML
-    ProgressIndicator progressDocumentation = new ProgressIndicator(0);
+    private ScrollPane progressScrollPane;
+
+    @FXML
+    private VBox progressContainer;
+
 
     @FXML
     ChoiceBox<String> grafikFormat;
@@ -122,6 +131,9 @@ public class XsdController {
 
     private record DiagramData(XsdNodeInfo rootNode, String targetNamespace, String version) {
     }
+
+    // Eine Map, um die UI-Zeile für jeden Task zu speichern
+    private final Map<String, HBox> progressRows = new ConcurrentHashMap<>();
 
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
@@ -307,10 +319,28 @@ public class XsdController {
     @FXML
     private void generateDocumentation() {
         if (isValidDocumentationSetup()) {
-            progressDocumentation.setVisible(true);
+            // UI für den Start vorbereiten
+            progressScrollPane.setVisible(true);
+            openDocFolder.setDisable(true);
+            progressContainer.getChildren().clear();
+            progressRows.clear();
+            statusText.setText("Generiere Dokumentation...");
+
+            // Task erstellen, der die Generierung durchführt
             Task<Void> task = createDocumentationTask();
-            progressDocumentation.progressProperty().bind(task.progressProperty());
-            statusText.textProperty().bind(task.messageProperty());
+
+            // UI nach Abschluss des Tasks aktualisieren
+            task.setOnSucceeded(e -> {
+                statusText.setText("Dokumentation erfolgreich erstellt.");
+                openDocFolder.setDisable(false);
+            });
+            task.setOnFailed(e -> {
+                statusText.setText("Fehler bei der Generierung der Dokumentation.");
+                logger.error("Documentation generation failed", task.getException());
+                // Optional: Zeige einen Alert, um den Fehler deutlicher zu machen
+                new Alert(Alert.AlertType.ERROR, "Ein Fehler ist aufgetreten: " + e.getSource().getException().getMessage()).showAndWait();
+            });
+
             executeTask(task);
         } else {
             logger.debug("Invalid setup for documentation generation");
@@ -326,22 +356,62 @@ public class XsdController {
     private Task<Void> createDocumentationTask() {
         return new Task<>() {
             @Override
-            protected Void call() {
-                try {
-                    // HINWEIS: Der Service wird hier neu instanziiert, um den kompletten,
-                    // aufwändigen Prozess zu starten.
-                    XsdDocumentationService xsdDocService = new XsdDocumentationService();
-                    xsdDocService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
-                    xsdDocService.setMethod(grafikFormat.getValue().equals("SVG") ?
-                            XsdDocumentationService.ImageOutputMethod.SVG :
-                            XsdDocumentationService.ImageOutputMethod.PNG);
-                    xsdDocService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
+            protected Void call() throws Exception {
+                XsdDocumentationService xsdDocService = new XsdDocumentationService();
 
-                    if (openFileAfterCreation.isSelected()) {
-                        Desktop.getDesktop().open(new File(selectedDocumentationOutputDirectory, "index.html"));
-                    }
-                } catch (IOException e) {
-                    logger.error("Error generating documentation", e);
+                // 1. Erstellen Sie den Listener, der die UI aktualisiert
+                TaskProgressListener listener = (update) -> {
+                    // Wichtig: UI-Updates immer auf dem UI-Thread ausführen!
+                    Platform.runLater(() -> {
+                        String taskName = update.taskName();
+
+                        if (update.status() == TaskProgressListener.ProgressUpdate.Status.STARTED) {
+                            // Task gestartet: Neue Zeile mit Indicator und Labels erstellen
+                            ProgressBar progressBar = new ProgressBar(-1.0); // unbestimmt
+                            progressBar.setPrefWidth(120.0); // Feste Breite für eine saubere Optik
+                            Label nameLabel = new Label(taskName);
+                            nameLabel.setPrefWidth(350); // Feste Breite für eine saubere Ausrichtung
+                            Label timeLabel = new Label("läuft...");
+
+                            HBox row = new HBox(10, progressBar, nameLabel, timeLabel);
+                            row.setAlignment(Pos.CENTER_LEFT);
+
+                            progressContainer.getChildren().add(row);
+                            progressRows.put(taskName, row);
+
+                        } else if (update.status() == TaskProgressListener.ProgressUpdate.Status.FINISHED) {
+                            // Task beendet: Indicator auf "fertig" setzen und Zeit anzeigen
+                            HBox row = progressRows.get(taskName);
+                            if (row != null && !row.getChildren().isEmpty()) {
+                                // ProgressBar ist das erste Kind
+                                if (row.getChildren().getFirst() instanceof ProgressBar progressBar) {
+                                    progressBar.setProgress(1.0); // fertig
+                                }
+
+                                // Zeit-Label ist das dritte Kind
+                                if (row.getChildren().size() > 2 && row.getChildren().get(2) instanceof Label timeLabel) {
+                                    // Zeit in Sekunden formatieren
+                                    timeLabel.setText(String.format("%.3f s", update.durationMillis() / 1000.0));
+                                }
+                            }
+                        }
+                    });
+                };
+
+                // 2. Konfigurieren und Listener registrieren
+                xsdDocService.setProgressListener(listener);
+                xsdDocService.setXsdFilePath(xmlService.getCurrentXsdFile().getPath());
+                xsdDocService.setMethod(grafikFormat.getValue().equals("SVG") ?
+                        XsdDocumentationService.ImageOutputMethod.SVG :
+                        XsdDocumentationService.ImageOutputMethod.PNG);
+
+                // 3. Generierung starten (dieser Aufruf ist blockierend im Task-Thread)
+                xsdDocService.generateXsdDocumentation(selectedDocumentationOutputDirectory);
+
+                if (openFileAfterCreation.isSelected()) {
+                    // Desktop.open kann blockieren, also in einem neuen Thread starten oder
+                    // auf dem Application Thread, falls es sicher ist.
+                    Desktop.getDesktop().open(new File(selectedDocumentationOutputDirectory, "index.html"));
                 }
                 return null;
             }

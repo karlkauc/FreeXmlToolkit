@@ -170,7 +170,7 @@
                 <GridPane hgap="10" vgap="10">
                     <Label text="XSD File: " GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                     <HBox GridPane.columnIndex="1" GridPane.rowIndex="0">
-                        <TextField fx:id="xsdFilePath" promptText="Load an XSD file..."/>
+                        <TextField fx:id="xsdFilePath" minWidth="400" promptText="Load an XSD file..."/>
                         <Button onAction="#loadXsdFile">
                             <graphic>
                                 <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
@@ -180,7 +180,7 @@
 
                     <Label text="Output Folder" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
                     <HBox GridPane.columnIndex="1" GridPane.rowIndex="2">
-                        <TextField fx:id="documentationOutputDirPath" promptText="Select an output directory..."/>
+                        <TextField fx:id="documentationOutputDirPath" minWidth="400" promptText="Select an output directory..."/>
                         <Button onAction="#openOutputFolderDialog">
                             <graphic>
                                 <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
@@ -189,11 +189,11 @@
                     </HBox>
 
                     <Label text="Output Format" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-                    <HBox GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <VBox GridPane.columnIndex="1" GridPane.rowIndex="3" spacing="5">
                         <RadioButton selected="true" text="HTML"/>
                         <RadioButton disable="true" text="Word"/>
                         <RadioButton disable="true" text="PDF"/>
-                    </HBox>
+                    </VBox>
 
                     <Label text="use Markdown Renderer" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
                     <CheckBox fx:id="useMarkdownRenderer" selected="true" GridPane.columnIndex="1"
@@ -204,7 +204,7 @@
                               GridPane.rowIndex="5"/>
 
                     <Label text="create Example data if missing" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-                    <CheckBox fx:id="createExampleData" disable="true" selected="true" GridPane.columnIndex="1"
+                    <CheckBox fx:id="createExampleData" selected="true" GridPane.columnIndex="1"
                               GridPane.rowIndex="6"/>
 
                     <Label text="restrict to language" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
@@ -253,8 +253,9 @@
                     </rowConstraints>
                 </GridPane>
                 <Label fx:id="statusText" styleClass="h3" text="Status..."/>
-                <ProgressIndicator fx:id="progressDocumentation" minHeight="100" minWidth="100" visible="false"
-                                   VBox.vgrow="ALWAYS"/>
+                <ScrollPane fx:id="progressScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS" visible="false">
+                    <VBox fx:id="progressContainer" spacing="5" style="-fx-padding: 10;"/>
+                </ScrollPane>
                 <Button fx:id="openDocFolder" disable="true" text="Open Folder">
                     <graphic>
                         <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
