@@ -19,6 +19,7 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.DragEvent;
@@ -44,7 +45,6 @@ import org.fxt.freexmltoolkit.service.MyLspClient;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.xml.sax.SAXParseException;
 
-import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
 import java.io.PipedInputStream;
@@ -112,6 +112,12 @@ public class XmlController {
     private Future<?> clientListening;
     // NEU: Map zur Speicherung von Diagnosen, hierher verschoben.
     private final Map<String, List<Diagnostic>> diagnosticsMap = new ConcurrentHashMap<>();
+    // Executor für asynchrone UI-Tasks wie Formatierung
+    private final ExecutorService formattingExecutor = Executors.newCachedThreadPool(runnable -> {
+        Thread t = new Thread(runnable);
+        t.setDaemon(true); // Damit die Anwendung beendet werden kann, auch wenn Tasks laufen
+        return t;
+    });
 
 
     @FXML
@@ -255,6 +261,7 @@ public class XmlController {
         logger.debug("Loading file {}", f.getAbsolutePath());
 
         XmlEditor xmlEditor = new XmlEditor(f);
+        xmlEditor.setXmlFile(f);
         xmlEditor.refresh();
 
         xmlEditor.setOnSearchRequested(() -> {
@@ -287,13 +294,24 @@ public class XmlController {
     }
 
     private CodeArea getCurrentCodeArea() {
-        Tab active = xmlFilesPane.getSelectionModel().getSelectedItem();
-        TabPane tp = (TabPane) active.getContent();
-        Tab tabText = tp.getTabs().getFirst();
-        StackPane sp = (StackPane) tabText.getContent();
-        VirtualizedScrollPane<?> vsp = (VirtualizedScrollPane<?>) sp.getChildren().getFirst();
+        Tab activeTab = xmlFilesPane.getSelectionModel().getSelectedItem();
+        if (activeTab == null) {
+            return null; // No active tab
+        }
 
-        return (CodeArea) vsp.getContent();
+        // Safely traverse the UI structure to prevent NullPointer- and ClassCastExceptions.
+        if (activeTab.getContent() instanceof TabPane innerTabPane) {
+            if (!innerTabPane.getTabs().isEmpty() && innerTabPane.getTabs().getFirst().getContent() instanceof StackPane stackPane) {
+                if (!stackPane.getChildren().isEmpty() && stackPane.getChildren().getFirst() instanceof VirtualizedScrollPane<?> scrollPane) {
+                    if (scrollPane.getContent() instanceof CodeArea codeArea) {
+                        return codeArea; // Successfully found the CodeArea
+                    }
+                }
+            }
+        }
+
+        // If the structure does not match, return null.
+        return null;
     }
 
     @FXML
@@ -474,12 +492,12 @@ public class XmlController {
 
                 if (xmlEditor.getXmlFile() != null) {
                     textAreaTemp.setText(xmlEditor.getXmlFile().getName());
-
-                    logger.debug("TEXT DOCUMENT");
-                    TextDocumentItem textDocument = new TextDocumentItem(xmlEditor.getXmlFile().toURI().toString(), "xml", 1, xmlEditor.getText());
-                    this.serverProxy.getTextDocumentService().didOpen(new DidOpenTextDocumentParams(textDocument));
-
-                    notifyLspServerFileOpened(xmlEditor.getXmlFile(), getCurrentCodeArea().getText());
+                    // Hole die CodeArea sicher. Der direkte Aufruf von .getText() auf das Ergebnis von
+                    // getCurrentCodeArea() ist unsicher, da die Methode null zurückgeben kann.
+                    CodeArea currentCodeArea = getCurrentCodeArea();
+                    if (currentCodeArea != null) {
+                        notifyLspServerFileOpened(xmlEditor.getXmlFile(), currentCodeArea.getText());
+                    }
                 }
             }
         } catch (Exception e) {
@@ -559,45 +577,88 @@ public class XmlController {
 
     @FXML
     private void minifyXmlText() {
-        var currentCodeArea = getCurrentCodeArea();
-        String xml = currentCodeArea.getText();
+        final CodeArea currentCodeArea = getCurrentCodeArea();
+        if (currentCodeArea == null) return;
+        final String xml = currentCodeArea.getText();
+        if (xml == null || xml.isBlank()) return;
 
-        try {
-            final String minifiedString = XmlService.convertXmlToOneLine(xml);
-            if (!minifiedString.isEmpty()) {
+        // Die Operation wird in einen Hintergrund-Thread ausgelagert, um die UI nicht zu blockieren.
+        Task<String> minifyTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                // Ruft die neue, deutlich schnellere StAX-basierte Methode auf.
+                return XmlService.convertXmlToOneLineFast(xml);
+            }
+        };
+
+        minifyTask.setOnSucceeded(event -> {
+            String minifiedString = minifyTask.getValue();
+            if (minifiedString != null && !minifiedString.isEmpty()) {
                 currentCodeArea.clear();
                 currentCodeArea.replaceText(0, 0, minifiedString);
             }
-        } catch (TransformerException transformerException) {
-            logger.error(transformerException.getMessage());
-        }
+        });
+
+        minifyTask.setOnFailed(event -> {
+            logger.error("Failed to minify XML", minifyTask.getException());
+            new Alert(Alert.AlertType.ERROR, "Could not minify XML: " + minifyTask.getException().getMessage()).showAndWait();
+        });
+
+        formattingExecutor.submit(minifyTask);
     }
 
     @FXML
     private void prettifyingXmlText() {
-        var currentCodeArea = getCurrentCodeArea();
-        String text = currentCodeArea.getText();
-        currentCodeArea.clear();
+        final CodeArea currentCodeArea = getCurrentCodeArea();
+        if (currentCodeArea == null) return;
+        final String text = currentCodeArea.getText();
+        if (text == null || text.isBlank()) return;
 
-        final String prettyString = XmlService.prettyFormat(text, 4);
-        if (!prettyString.isEmpty()) {
-            currentCodeArea.replaceText(0, 0, prettyString);
-        }
+        prettyPrint.setDisable(true);
+
+        Task<String> formatTask = new Task<>() {
+            @Override
+            protected String call() {
+                return XmlService.prettyFormat(text, 4);
+            }
+        };
+
+        formatTask.setOnSucceeded(event -> {
+            String prettyString = formatTask.getValue();
+            if (prettyString != null && !prettyString.isEmpty()) {
+                currentCodeArea.clear();
+                currentCodeArea.replaceText(0, 0, prettyString);
+            }
+            prettyPrint.setDisable(false);
+        });
+
+        formatTask.setOnFailed(event -> {
+            logger.error("Failed to pretty-print XML", formatTask.getException());
+            new Alert(Alert.AlertType.ERROR, "Could not format XML: " + formatTask.getException().getMessage()).showAndWait();
+            prettyPrint.setDisable(false);
+        });
+
+        formattingExecutor.submit(formatTask);
     }
 
     @FXML
     private void validateSchema() {
         logger.debug("Validate Schema");
-        getCurrentXmlEditor().getXmlService().loadSchemaFromXMLFile(); // schaut, ob er schema selber finden kann
-        String xsdLocation = getCurrentXmlEditor().getXmlService().getRemoteXsdLocation();
+        XmlEditor currentEditor = getCurrentXmlEditor();
+        if (currentEditor == null) {
+            return; // No active editor, nothing to do.
+        }
+        currentEditor.getXmlService().loadSchemaFromXMLFile(); // schaut, ob er schema selber finden kann
+        String xsdLocation = currentEditor.getXmlService().getRemoteXsdLocation();
         logger.debug("XSD Location: {}", xsdLocation);
 
         if (xsdLocation != null) {
-            getCurrentXmlEditor().getXmlService().loadSchemaFromXMLFile();
+            currentEditor.getXmlService().loadSchemaFromXMLFile();
             logger.debug("Schema loaded: {}", xsdLocation);
 
-            if (getCurrentCodeArea().getText().length() > 1) {
-                var errors = getCurrentXmlEditor().getXmlService().validateText(getCurrentCodeArea().getText());
+            CodeArea currentCodeArea = getCurrentCodeArea();
+            if (currentCodeArea != null && currentCodeArea.getText().length() > 1) {
+                var errors = currentEditor.getXmlService().validateText(currentCodeArea.getText());
                 if (errors != null && !errors.isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
 
@@ -667,14 +728,16 @@ public class XmlController {
             this.lastOpenDir = selectedFile.getParent();
 
             XmlEditor xmlEditor = new XmlEditor(selectedFile);
-            xmlEditor.refresh();
+            xmlEditor.setXmlFile(selectedFile);
 
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
 
-            getCurrentXmlEditor().getXmlService().setCurrentXmlFile(selectedFile);
-            if (getCurrentXmlEditor().getXmlService().loadSchemaFromXMLFile()) {
-                schemaList.getItems().add(getCurrentXmlEditor().getXmlService().getCurrentXsdFile());
+            xmlEditor.refresh();
+
+            xmlEditor.getXmlService().setCurrentXmlFile(selectedFile);
+            if (xmlEditor.getXmlService().loadSchemaFromXMLFile()) {
+                schemaList.getItems().add(xmlEditor.getXmlService().getCurrentXsdFile());
             }
 
             validateSchema();
@@ -717,6 +780,10 @@ public class XmlController {
             if (!lspExecutor.isShutdown()) {
                 lspExecutor.shutdownNow(); // Beendet den Executor-Service.
                 logger.debug("LSP-Executor-Service heruntergefahren.");
+            }
+            if (!formattingExecutor.isShutdown()) {
+                formattingExecutor.shutdownNow();
+                logger.debug("Formatting-Executor-Service heruntergefahren.");
             }
             logger.info("LSP-Server-Shutdown-Prozess abgeschlossen.");
         }

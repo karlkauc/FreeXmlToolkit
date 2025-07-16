@@ -21,7 +21,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
 import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
@@ -48,11 +47,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class XmlEditor extends Tab {
 
@@ -110,8 +109,9 @@ public class XmlEditor extends Tab {
     }
 
     public XmlEditor(File file) {
+        init();
         this.setXmlFile(file);
-        this.refresh();
+        // refresh() wird nun vom Controller aufgerufen, nachdem der Tab zur Szene hinzugefügt wurde.
     }
 
     public void setMainController(MainController mainController) {
@@ -349,6 +349,7 @@ public class XmlEditor extends Tab {
 
             // Fall 2 (veraltet): Die Antwort ist eine Liste von MarkedString.
             if (hover.getContents().isLeft()) {
+                /*
                 List<Either<String, org.eclipse.lsp4j.MarkedString>> legacyItems = hover.getContents().getLeft();
                 String hoverText = legacyItems.stream()
                         .map(this::formatLegacyHoverItem)
@@ -360,6 +361,7 @@ public class XmlEditor extends Tab {
                         showPopOver();
                     });
                 }
+                 */
             }
 
         }).exceptionally(ex -> {
@@ -368,6 +370,7 @@ public class XmlEditor extends Tab {
         });
     }
 
+    /*
     private String extractHoverContent(Either<List<Either<String, org.eclipse.lsp4j.MarkedString>>, org.eclipse.lsp4j.MarkupContent> contents) {
         if (contents == null) {
             return "";
@@ -388,13 +391,15 @@ public class XmlEditor extends Tab {
 
         return "";
     }
+     */
 
-    /**
+    /*
      * Hilfsmethode, um ein einzelnes Element aus der veralteten Hover-Liste zu formatieren.
      *
      * @param item Ein Either, das entweder einen String oder ein MarkedString enthält.
      * @return Der formatierte String-Inhalt.
      */
+    /*
     private String formatLegacyHoverItem(Either<String, org.eclipse.lsp4j.MarkedString> item) {
         // Fall 1: Das Element ist ein einfacher String.
         if (item.isLeft()) {
@@ -417,6 +422,7 @@ public class XmlEditor extends Tab {
 
         return ""; // Should not be reached
     }
+     */
 
     public File getXmlFile() {
         return xmlFile;
@@ -450,28 +456,41 @@ public class XmlEditor extends Tab {
 
     public void refresh() {
         if (this.xmlFile != null && this.xmlFile.exists()) {
-            xmlService.setCurrentXmlFile(this.xmlFile);
-            document = xmlService.getXmlDocument();
-
+            // 1. Textansicht direkt aus der Datei laden. Dies ist die primäre und robusteste Aktion.
             refreshTextView();
-            refreshGraphicView();
+
+            // 2. Versuchen, das Dokument für die grafische Ansicht zu parsen.
+            //    Dies kann fehlschlagen, beeinträchtigt aber nicht die Textansicht.
+            //    Die grafische Ansicht wird bei Auswahl des Tabs ohnehin neu generiert,
+            //    aber wir können es hier schon mal versuchen.
+            try {
+                xmlService.setCurrentXmlFile(this.xmlFile);
+                this.document = xmlService.getXmlDocument();
+                // Die grafische Ansicht wird bei Bedarf beim Tab-Wechsel aktualisiert,
+                // daher ist ein direkter Aufruf von refreshGraphicView() hier nicht zwingend.
+            } catch (Exception e) {
+                logger.warn("XML-Dokument konnte für die grafische Ansicht nicht initial geparst werden: {}", e.getMessage());
+                this.document = null;
+            }
         }
     }
 
 
     void refreshTextView() {
+        if (xmlFile == null || !xmlFile.exists()) {
+            codeArea.clear();
+            return;
+        }
+
         try {
-            final String content = getDocumentAsString();
-            if (content != null) {
-                codeArea.replaceText(content);
-                if (content.length() < MAX_SIZE_FOR_FORMATTING) {
-                    codeArea.setStyleSpans(0, computeHighlighting(content));
-                }
-            } else {
-                codeArea.clear();
-            }
-        } catch (Exception e) {
-            logger.error("Konnte die Textansicht nicht aktualisieren: {}", e.getMessage(), e);
+            // Lese den Dateiinhalt direkt aus der Datei, anstatt vom geparsten Dokument.
+            // Das stellt sicher, dass der Inhalt auch bei ungültigem XML angezeigt wird.
+            final String content = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
+            codeArea.replaceText(content);
+            // Das Syntax-Highlighting wird automatisch über den Listener der textProperty ausgelöst.
+        } catch (IOException e) {
+            logger.error("Konnte Datei für Textansicht nicht lesen: {}", xmlFile.getAbsolutePath(), e);
+            codeArea.replaceText("Fehler: Konnte Datei nicht lesen.\n" + e.getMessage());
         }
     }
 
