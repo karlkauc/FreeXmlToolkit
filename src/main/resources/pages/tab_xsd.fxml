@@ -111,23 +111,36 @@
                           style="-fx-padding: 10; -fx-background-color: #f1f3f5; -fx-border-width: 0 0 1 0; -fx-border-color: #dee2e6;"
                           visible="false">
                         <children>
-                            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                <children>
-                                    <Label style="-fx-font-weight: bold;" text="File Path:"/>
-                                    <Label fx:id="xsdInfoPathLabel"/>
-                                </children>
-                            </HBox>
-                            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                <children>
-                                    <Label style="-fx-font-weight: bold;" text="Target Namespace:"/>
-                                    <Label fx:id="xsdInfoNamespaceLabel"/>
-                                </children>
-                            </HBox>
-                            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                <children>
-                                    <Label style="-fx-font-weight: bold;" text="Version:"/>
-                                    <Label fx:id="xsdInfoVersionLabel"/>
-                                </children>
+                            <HBox alignment="TOP_LEFT" spacing="10.0">
+                                <VBox spacing="5.0">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                            <children>
+                                                <Label style="-fx-font-weight: bold;" text="File Path:"/>
+                                                <Label fx:id="xsdInfoPathLabel"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                            <children>
+                                                <Label style="-fx-font-weight: bold;" text="Target Namespace:"/>
+                                                <Label fx:id="xsdInfoNamespaceLabel"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                            <children>
+                                                <Label style="-fx-font-weight: bold;" text="Version:"/>
+                                                <Label fx:id="xsdInfoVersionLabel"/>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button onAction="#loadXsdFile" style="-fx-font-size: 11px;"
+                                        text="Load another file...">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-arrow-repeat"/>
+                                    </graphic>
+                                </Button>
                             </HBox>
                         </children>
                     </VBox>
@@ -286,14 +299,22 @@
                         <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
                             <TextField fx:id="xsdForSampleDataPath" promptText="Load an XSD file..."
                                        HBox.hgrow="ALWAYS"/>
-                            <Button onAction="#loadXsdFile" text="Load XSD"/>
+                            <Button onAction="#loadXsdFile" text="Load XSD">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-folder2-open"/>
+                                </graphic>
+                            </Button>
                         </HBox>
 
                         <Label text="Output XML File (optional):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
                         <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
                             <TextField fx:id="outputXmlPath" promptText="Select where to save the XML file..."
                                        HBox.hgrow="ALWAYS"/>
-                            <Button onAction="#selectOutputXmlFile" text="Save to..."/>
+                            <Button onAction="#selectOutputXmlFile" text="Save to...">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-save"/>
+                                </graphic>
+                            </Button>
                         </HBox>
 
                         <Label text="Settings:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
