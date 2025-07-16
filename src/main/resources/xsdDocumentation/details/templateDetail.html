@@ -187,7 +187,7 @@
                         </div>
                         <div class="ml-3">
                             <h3 class="text-sm font-bold text-red-800">Deprecated</h3>
-                            <!-- KORREKTUR: Rufe die neue parse-Methode auf -->
+                            <!-- CORRECTION: Call the new parse method -->
                             <div class="mt-1 text-sm text-red-700 prose prose-sm max-w-none"
                                  th:utext="${this.parseJavadocLinks(element.javadocInfo.deprecated)}">
                             </div>
@@ -208,7 +208,7 @@
                         <dt class="text-sm font-medium text-slate-500">See Also</dt>
                         <dd class="mt-1 text-slate-900">
                             <ul class="list-disc list-inside space-y-1">
-                                <!-- KORREKTUR: Rufe die neue parse-Methode für jedes Item auf -->
+                                <!-- CORRECTION: Call the new parse method for each item -->
                                 <li th:each="seeItem : ${element.javadocInfo.see}"
                                     th:utext="${this.parseJavadocLinks(seeItem)}">
                                 </li>
@@ -274,29 +274,29 @@
                         <tr th:each="child: ${element.children}">
                             <td class="px-4 py-3 font-mono">
                                 <!--
-                                    Der Link hat nun ein 'title'-Attribut, um den vollen Pfad beim Hovern anzuzeigen.
-                                    Der Text wird gekürzt, wenn er länger als 60 Zeichen ist.
+                                    The link now has a 'title' attribute to show the full path on hover.
+                                    The text is shortened if it is longer than 60 characters.
                                 -->
                                 <a th:href="${this.getPageName(child)}"
                                    th:with="fullPath=${child.toString()}"
                                    th:title="${fullPath}"
                                    class="text-sky-600 hover:text-sky-800 hover:underline">
 
-                                    <!-- Wenn der Pfad kurz ist, zeige ihn normal an. -->
+                                    <!-- If the path is short, display it normally. -->
                                     <span th:if="${#strings.length(fullPath) <= 60}" th:text="${fullPath}"></span>
 
-                                    <!-- Wenn der Pfad lang ist, kürze ihn intelligent. -->
+                                    <!-- If the path is long, shorten it intelligently. -->
                                     <span th:unless="${#strings.length(fullPath) <= 60}"
                                           th:with="pathParts=${#strings.arraySplit(fullPath, '/')}"
                                           th:text="${(#arrays.length(pathParts) > 2) ?
                                                      ('/' + pathParts[0] + '/.../' + pathParts[#arrays.length(pathParts) - 1]) :
                                                      #strings.abbreviate(fullPath, 60)}">
                                         <!--
-                                            Robustere Logik:
-                                            - Teilt den Pfad bei jedem '/' in Segmente auf.
-                                            - Wenn es mehr als 2 Segmente gibt (z.B. /root/middle/element),
-                                              wird der Pfad zu /root/.../element gekürzt.
-                                            - Ansonsten wird die Standard-Kürzung als Fallback verwendet.
+                                            More robust logic:
+                                            - Splits the path into segments at each '/'.
+                                            - If there are more than 2 segments (e.g., /root/middle/element),
+                                              the path is shortened to /root/.../element.
+                                            - Otherwise, the standard abbreviation is used as a fallback.
                                         -->
                                     </span>
                                 </a>

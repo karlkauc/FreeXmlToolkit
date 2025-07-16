@@ -207,8 +207,10 @@
                     <CheckBox fx:id="createExampleData" selected="true" GridPane.columnIndex="1"
                               GridPane.rowIndex="6"/>
 
+                    <!--
                     <Label text="restrict to language" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
                     <TextField GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+                    -->
                     <!--  pattern: [a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})* -->
 
                     <Label text="Grafik format" GridPane.columnIndex="0" GridPane.rowIndex="8"/>

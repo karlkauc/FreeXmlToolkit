@@ -174,7 +174,7 @@ public class XsdController {
         Task<DiagramData> loadDiagramTask = new Task<>() {
             @Override
             protected DiagramData call() throws Exception {
-                logger.debug("Background-Task: Lade XSD-Diagramm für: {}", currentXsdFile.getAbsolutePath());
+                logger.debug("Background task: Loading XSD diagram for: {}", currentXsdFile.getAbsolutePath());
 
                 // Langwierige Operation: Parsen und Baum erstellen
                 org.xmlet.xsdparser.core.XsdParser parser = new org.xmlet.xsdparser.core.XsdParser(currentXsdFile.getAbsolutePath());
@@ -213,7 +213,7 @@ public class XsdController {
                 org.fxt.freexmltoolkit.controls.XsdDiagramView diagramView = new org.fxt.freexmltoolkit.controls.XsdDiagramView(result.rootNode());
                 xsdStackPane.getChildren().add(diagramView.build());
             } else {
-                Label infoLabel = new Label("Kein Wurzelelement im Schema gefunden.");
+                Label infoLabel = new Label("No root element found in schema.");
                 xsdStackPane.getChildren().add(infoLabel);
                 StackPane.setAlignment(infoLabel, Pos.CENTER);
             }
@@ -225,8 +225,8 @@ public class XsdController {
             xsdInfoPane.setVisible(false);
             xsdInfoPane.setManaged(false);
             Throwable ex = loadDiagramTask.getException();
-            logger.error("Fehler beim Erstellen der Diagramm-Ansicht im Hintergrund.", ex);
-            Label errorLabel = new Label("Fehler beim Parsen der XSD-Datei.");
+            logger.error("Error creating the diagram view in the background.", ex);
+            Label errorLabel = new Label("Error parsing the XSD file.");
             xsdStackPane.getChildren().add(errorLabel);
             StackPane.setAlignment(errorLabel, Pos.CENTER);
         });
@@ -324,26 +324,39 @@ public class XsdController {
             openDocFolder.setDisable(true);
             progressContainer.getChildren().clear();
             progressRows.clear();
-            statusText.setText("Generiere Dokumentation...");
+            statusText.setText("Generating documentation...");
 
             // Task erstellen, der die Generierung durchführt
             Task<Void> task = createDocumentationTask();
 
             // UI nach Abschluss des Tasks aktualisieren
             task.setOnSucceeded(e -> {
-                statusText.setText("Dokumentation erfolgreich erstellt.");
+                statusText.setText("Documentation created successfully.");
                 openDocFolder.setDisable(false);
             });
             task.setOnFailed(e -> {
-                statusText.setText("Fehler bei der Generierung der Dokumentation.");
+                statusText.setText("Error generating documentation.");
                 logger.error("Documentation generation failed", task.getException());
-                // Optional: Zeige einen Alert, um den Fehler deutlicher zu machen
-                new Alert(Alert.AlertType.ERROR, "Ein Fehler ist aufgetreten: " + e.getSource().getException().getMessage()).showAndWait();
+                // Optional: Show an alert to make the error clearer
+                new Alert(Alert.AlertType.ERROR, "An error occurred: " + e.getSource().getException().getMessage()).showAndWait();
             });
 
             executeTask(task);
         } else {
-            logger.debug("Invalid setup for documentation generation");
+            StringBuilder errorMessage = new StringBuilder("Documentation cannot be generated. Please check the following points:\n\n");
+
+            if (xmlService.getCurrentXsdFile() == null || !xmlService.getCurrentXsdFile().exists()) {
+                errorMessage.append("• No valid XSD file is loaded. Please select a file.\n");
+            }
+            if (selectedDocumentationOutputDirectory == null) {
+                errorMessage.append("• No output folder has been selected. Please select a folder.\n");
+            }
+
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Configuration Incomplete");
+            alert.setHeaderText("Prerequisites for generation not met");
+            alert.setContentText(errorMessage.toString());
+            alert.showAndWait();
         }
     }
 
@@ -371,7 +384,7 @@ public class XsdController {
                             progressBar.setPrefWidth(120.0); // Feste Breite für eine saubere Optik
                             Label nameLabel = new Label(taskName);
                             nameLabel.setPrefWidth(350); // Feste Breite für eine saubere Ausrichtung
-                            Label timeLabel = new Label("läuft...");
+                            Label timeLabel = new Label("running...");
 
                             HBox row = new HBox(10, progressBar, nameLabel, timeLabel);
                             row.setAlignment(Pos.CENTER_LEFT);
