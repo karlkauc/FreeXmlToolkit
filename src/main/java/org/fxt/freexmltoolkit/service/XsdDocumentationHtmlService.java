@@ -534,8 +534,12 @@ public class XsdDocumentationHtmlService {
             item.put("xpath", element.getCurrentXpath());
 
             String docText = "";
-            if (element.getLanguageDocumentation() != null && !element.getLanguageDocumentation().isEmpty()) {
-                docText = element.getLanguageDocumentation().values().stream()
+            // KORREKTUR: Greife direkt auf die rohen XsdDocumentation-Objekte zu,
+            // um sicherzustellen, dass wir reinen Text ohne Markdown-Rendering erhalten.
+            if (element.getXsdDocumentation() != null && !element.getXsdDocumentation().isEmpty()) {
+                docText = element.getXsdDocumentation().stream()
+                        .map(XsdAnnotationChildren::getContent) // Use parent class for safety
+                        .filter(Objects::nonNull)              // Filter out potential null values
                         .collect(Collectors.joining(" "));
             }
             item.put("doc", docText);
