@@ -802,21 +802,31 @@ public class XsdDocumentationService {
             logger.error("Kein Wurzelelement im Schema gefunden.");
             return null;
         }
-        return buildLightweightNodeRecursive(parser, rootElement, "/" + rootElement.getName());
+        // Starte die Rekursion mit einem leeren Set für den Pfad
+        return buildLightweightNodeRecursive(parser, rootElement, "/" + rootElement.getName(), new HashSet<>());
     }
 
     /**
      * Rekursive Hilfsmethode, um den XsdNodeInfo-Baum aus den nativen Parser-Objekten aufzubauen.
      *
-     * @param parser       Die Parser-Instanz, um globale Typen aufzulösen.
-     * @param element      Das aktuelle XSD-Element (oder Attribut) vom Parser.
-     * @param currentXPath Der aktuelle XPath zu diesem Element.
+     * @param parser        Die Parser-Instanz, um globale Typen aufzulösen.
+     * @param element       Das aktuelle XSD-Element (oder Attribut) vom Parser.
+     * @param currentXPath  Der aktuelle XPath zu diesem Element.
+     * @param visitedOnPath Ein Set der Elemente im aktuellen Rekursionspfad, um Zyklen zu erkennen.
      * @return Ein XsdNodeInfo-Objekt, das dieses Element und seine Kinder repräsentiert.
      */
-    private XsdNodeInfo buildLightweightNodeRecursive(XsdParser parser, XsdAbstractElement element, String currentXPath) {
+    private XsdNodeInfo buildLightweightNodeRecursive(XsdParser parser, XsdAbstractElement element, String currentXPath, Set<XsdAbstractElement> visitedOnPath) {
         if (element == null) {
             return null;
         }
+
+        // Rekursionsschutz: Prüfen, ob das Element bereits auf dem aktuellen Pfad besucht wurde.
+        if (visitedOnPath.contains(element)) {
+            logger.warn("Recursion detected on element {}, path {}. Stopping this branch.", element, currentXPath);
+            String elementName = (element instanceof XsdElement xsdEl) ? xsdEl.getName() + " (recursive)" : "Recursive...";
+            return new XsdNodeInfo(elementName, "", "Recursive definition, traversal stopped.", Collections.emptyList(), currentXPath);
+        }
+        visitedOnPath.add(element); // Element zum aktuellen Pfad hinzufügen
 
         String name = "";
         String type = "";
@@ -878,12 +888,12 @@ public class XsdDocumentationService {
                 }
 
                 if (particle != null) {
-                    addParticleChildren(parser, children, particle, currentXPath);
+                    addParticleChildren(parser, children, particle, currentXPath, visitedOnPath);
                 }
 
                 // Attribute hinzufügen
                 complexType.getAllXsdAttributes().forEach(attribute ->
-                        children.add(buildLightweightNodeRecursive(parser, attribute, currentXPath + "/@" + attribute.getName()))
+                        children.add(buildLightweightNodeRecursive(parser, attribute, currentXPath + "/@" + attribute.getName(), visitedOnPath))
                 );
             }
 
@@ -905,6 +915,8 @@ public class XsdDocumentationService {
             }
         }
 
+        visitedOnPath.remove(element); // Backtrack: Element vom Pfad entfernen, bevor die Methode verlassen wird
+
         return new XsdNodeInfo(
                 name,
                 type != null ? type : "",
@@ -918,26 +930,27 @@ public class XsdDocumentationService {
      * Rekursive Hilfsmethode, die die Kinder eines Partikels (sequence, choice, group) verarbeitet
      * und zur Kinderliste des Elternknotens hinzufügt.
      *
-     * @param parser      Die Parser-Instanz für weitere rekursive Aufrufe.
-     * @param children    Die Liste der Kinder des Elternknotens.
-     * @param particle    Das Partikel-Element (sequence, choice, etc.).
-     * @param parentXpath Der XPath des Elternknotens.
+     * @param parser        Die Parser-Instanz für weitere rekursive Aufrufe.
+     * @param children      Die Liste der Kinder des Elternknotens.
+     * @param particle      Das Partikel-Element (sequence, choice, etc.).
+     * @param parentXpath   Der XPath des Elternknotens.
+     * @param visitedOnPath Das Set der besuchten Elemente zur Rekursionserkennung.
      */
-    private void addParticleChildren(XsdParser parser, List<XsdNodeInfo> children, XsdMultipleElements particle, String parentXpath) {
+    private void addParticleChildren(XsdParser parser, List<XsdNodeInfo> children, XsdMultipleElements particle, String parentXpath, Set<XsdAbstractElement> visitedOnPath) {
         particle.getElements().stream()
                 .map(ReferenceBase::getElement)
                 .filter(Objects::nonNull)
                 .forEach(child -> {
                     if (child instanceof XsdElement xsdElement) {
                         // Für ein Element, erstelle einen neuen Knoten mit einem neuen XPath.
-                        children.add(buildLightweightNodeRecursive(parser, xsdElement, parentXpath + "/" + xsdElement.getName()));
+                        children.add(buildLightweightNodeRecursive(parser, xsdElement, parentXpath + "/" + xsdElement.getName(), visitedOnPath));
                     } else if (child instanceof XsdMultipleElements xsdMultipleElements) {
                         // Für Container (choice, sequence, group), verarbeite deren Kinder rekursiv,
                         // ohne den XPath zu ändern.
-                        addParticleChildren(parser, children, xsdMultipleElements, parentXpath);
+                        addParticleChildren(parser, children, xsdMultipleElements, parentXpath, visitedOnPath);
                     } else if (child instanceof XsdAny xsdAny) {
                         // Erstelle einen Knoten für <xs:any>.
-                        children.add(buildLightweightNodeRecursive(parser, xsdAny, parentXpath + "/any"));
+                        children.add(buildLightweightNodeRecursive(parser, xsdAny, parentXpath + "/any", visitedOnPath));
                     }
                 });
     }
