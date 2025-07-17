@@ -9,19 +9,22 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
-import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.fxt.freexmltoolkit.service.XsdDocumentationService;
+import org.fxt.freexmltoolkit.service.*;
+import org.reactfx.Subscription;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.XsdSchema;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static org.fxt.freexmltoolkit.controls.XmlEditor.computeHighlighting;
 
 public class XsdController {
 
@@ -71,7 +74,15 @@ public class XsdController {
     @FXML
     private ProgressIndicator progressSampleData;
     @FXML
-    private StackPane stackPane;
+    private HBox textInfoPane;
+    @FXML
+    private Label textInfoPathLabel;
+    @FXML
+    private VBox noFileLoadedPaneText;
+    @FXML
+    private CodeArea sourceCodeTextArea;
+    @FXML
+    private ProgressIndicator textProgress;
 
     // ======================================================================
     // Felder und Methoden für den "Documentation" Tab
@@ -120,7 +131,7 @@ public class XsdController {
     @FXML
     private final static Logger logger = LogManager.getLogger(XsdController.class);
 
-    private record DiagramData(XsdNodeInfo rootNode, String targetNamespace, String version, String documentation, String javadoc) {
+    private record DiagramData(XsdNodeInfo rootNode, String targetNamespace, String version, String documentation, String javadoc, String fileContent) {
     }
 
     // Eine Map, um die UI-Zeile für jeden Task zu speichern
@@ -138,6 +149,25 @@ public class XsdController {
                 }
             }
         });
+        textTab.setOnSelectionChanged(event -> {
+            if (textTab.isSelected()) {
+                if (xmlService.getCurrentXsdFile() == null) {
+                    noFileLoadedPaneText.setVisible(true);
+                    noFileLoadedPaneText.setManaged(true);
+                    textInfoPane.setVisible(false);
+                    textInfoPane.setManaged(false);
+                    sourceCodeTextArea.setVisible(false);
+                    sourceCodeTextArea.setManaged(false);
+                }
+            }
+        });
+
+        sourceCodeTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sourceCodeTextArea));
+        Subscription RTHLSubscription = sourceCodeTextArea.multiPlainChanges()
+                .successionEnds(Duration.ofMillis(200))
+                .subscribe(ignore -> {
+                    sourceCodeTextArea.setStyleSpans(0, computeHighlighting(sourceCodeTextArea.getText()));
+                });
     }
 
     @FXML
@@ -205,8 +235,11 @@ public class XsdController {
         }
         // Zeige den Lade-Indikator an und verstecke den Platzhalter
         xsdDiagramProgress.setVisible(true);
+        textProgress.setVisible(true);
         noFileLoadedPane.setVisible(false);
         noFileLoadedPane.setManaged(false);
+        noFileLoadedPaneText.setVisible(false);
+        noFileLoadedPaneText.setManaged(false);
         xsdStackPane.getChildren().clear(); // Alte Ansicht entfernen
 
         Task<DiagramData> task = new Task<>() {
@@ -214,6 +247,7 @@ public class XsdController {
             protected DiagramData call() throws Exception {
                 updateMessage("Parsing XSD and building diagram...");
 
+                String fileContent = Files.readString(currentXsdFile.toPath());
                 // Langwierige Operation: Parsen und Baum erstellen
                 XsdParser parser = new XsdParser(currentXsdFile.getAbsolutePath());
                 XsdDocumentationService docService = new XsdDocumentationService();
@@ -231,10 +265,10 @@ public class XsdController {
 
                     // Dokumentation und Javadoc auslesen
                     var docParts = docService.extractDocumentationParts(rootSchema);
-                    return new DiagramData(rootNode, targetNamespace, version, docParts.mainDocumentation(), docParts.javadocContent());
+                    return new DiagramData(rootNode, targetNamespace, version, docParts.mainDocumentation(), docParts.javadocContent(), fileContent);
                 }
 
-                return new DiagramData(rootNode, targetNamespace, version, "", "");
+                return new DiagramData(rootNode, targetNamespace, version, "", "", fileContent);
             }
         };
 
@@ -254,11 +288,22 @@ public class XsdController {
                 xsdStackPane.getChildren().add(infoLabel);
             }
             xsdDiagramProgress.setVisible(false);
+
+            // Text-Tab UI aktualisieren
+            textInfoPane.setVisible(true);
+            textInfoPane.setManaged(true);
+            textInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
+            sourceCodeTextArea.replaceText(result.fileContent());
+            sourceCodeTextArea.setVisible(true);
+            sourceCodeTextArea.setManaged(true);
+            textProgress.setVisible(false);
+
             statusText.setText("XSD loaded successfully.");
         });
 
         task.setOnFailed(event -> {
             xsdDiagramProgress.setVisible(false);
+            textProgress.setVisible(false);
             Throwable e = task.getException();
             logger.error("Error creating the diagram view in the background.", e);
             statusText.setText("Error: " + e.getMessage());
