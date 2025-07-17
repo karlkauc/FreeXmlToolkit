@@ -5,6 +5,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -53,41 +54,42 @@ public class XsdDiagramView {
             return new Label("No element information found.");
         }
 
-        // Main layout is a SplitPane
+        // Main content area is a SplitPane
         SplitPane splitPane = new SplitPane();
         splitPane.setDividerPositions(0.8); // 80% for the tree, 20% for details
 
         // Left side: The diagram tree in a ScrollPane
         VBox diagramContainer = new VBox();
         diagramContainer.setPadding(new Insets(10));
-        // Aligns the entire diagram tree to the left-center
         diagramContainer.setAlignment(Pos.CENTER_LEFT);
         Node rootNodeView = createNodeView(rootNode, 0);
         diagramContainer.getChildren().add(rootNodeView);
         ScrollPane treeScrollPane = new ScrollPane(diagramContainer);
         treeScrollPane.setFitToWidth(true);
-        // Tells the ScrollPane that the content (our VBox)
-        // should fill the entire available height.
         treeScrollPane.setFitToHeight(true);
 
-        // Right side: The detail area and the editor
-        VBox rightPaneContainer = new VBox();
-        rightPaneContainer.setStyle(DETAIL_PANE_STYLE);
+        // Right side: Use a BorderPane to pin the editor to the bottom.
+        BorderPane rightPaneLayout = new BorderPane();
+        rightPaneLayout.setStyle(DETAIL_PANE_STYLE);
 
+        // Center: Scrollable detail view.
         detailPane = new VBox(10); // Container for node-specific details
         Label placeholder = new Label("Click on a node to view details.");
         detailPane.getChildren().add(placeholder);
 
-        Node editorPane = createEditorPane(); // The new editor TitledPane
-
-        // Add both to the main right-side container
-        rightPaneContainer.getChildren().addAll(detailPane, editorPane);
-
-        ScrollPane detailScrollPane = new ScrollPane(rightPaneContainer);
+        ScrollPane detailScrollPane = new ScrollPane(detailPane);
         detailScrollPane.setFitToWidth(true);
         detailScrollPane.setFitToHeight(true);
+        // Make the scrollpane transparent, as the BorderPane provides the background and border
+        detailScrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
+        rightPaneLayout.setCenter(detailScrollPane);
 
-        splitPane.getItems().addAll(treeScrollPane, detailScrollPane);
+        // Bottom: The editor pane.
+        Node editorPane = createEditorPane(); // The TitledPane
+        BorderPane.setMargin(editorPane, new Insets(10, 0, 0, 0)); // Add some space above the editor
+        rightPaneLayout.setBottom(editorPane);
+
+        splitPane.getItems().addAll(treeScrollPane, rightPaneLayout);
         return splitPane;
     }
 
@@ -201,8 +203,6 @@ public class XsdDiagramView {
         TitledPane titledPane = new TitledPane("Edit Documentation & Javadoc", null);
         titledPane.setAnimated(true);
         titledPane.setExpanded(false);
-        // Ensures the TitledPane has some vertical padding from the content above it.
-        VBox.setMargin(titledPane, new Insets(20, 0, 0, 0));
 
         VBox editorContent = new VBox(10);
         editorContent.setPadding(new Insets(10, 5, 5, 5));
