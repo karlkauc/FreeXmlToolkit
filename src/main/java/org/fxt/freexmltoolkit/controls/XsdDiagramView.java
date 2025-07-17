@@ -4,7 +4,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -217,36 +216,42 @@ public class XsdDiagramView {
         titledPane.setAnimated(true);
         titledPane.setExpanded(false);
 
-        VBox editorContent = new VBox(10);
+        // The main container for all editor sections, with increased spacing
+        VBox editorContent = new VBox(15);
         editorContent.setPadding(new Insets(10, 5, 5, 5));
 
+        // --- Documentation Section ---
         Label docLabel = new Label("Documentation");
         docLabel.getStyleClass().add("h3");
         this.documentationTextArea = new TextArea(initialDoc);
         documentationTextArea.setPrefHeight(100.0);
         documentationTextArea.setWrapText(true);
         documentationTextArea.setPromptText("General documentation for the schema...");
+        VBox docSection = new VBox(5, docLabel, documentationTextArea);
+        docSection.setStyle("-fx-background-color: #f0f4f8; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #dfe6ee; -fx-border-radius: 8;");
 
+        // --- Javadoc Section ---
         Label javadocLabel = new Label("Javadoc");
         javadocLabel.getStyleClass().add("h3");
-        javadocLabel.setStyle("-fx-padding-top: 10;");
         this.javadocTextArea = new TextArea(initialJavadoc);
         javadocTextArea.setPrefHeight(100.0);
         javadocTextArea.setWrapText(true);
         javadocTextArea.setPromptText("Enter Javadoc tags here, e.g.:\n@version 1.2.3\n@see http://example.com/docs\n@deprecated This schema is outdated.");
+        VBox javadocSection = new VBox(5, javadocLabel, javadocTextArea);
+        javadocSection.setStyle("-fx-background-color: #f0f8f0; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #dff0df; -fx-border-radius: 8;");
 
         this.saveDocumentationButton = new Button("Save Documentation");
         saveDocumentationButton.setGraphic(new FontIcon("bi-save"));
         saveDocumentationButton.setDisable(true); // Start disabled, as content is not "dirty" yet
         saveDocumentationButton.setOnAction(event -> controller.saveDocumentation(documentationTextArea.getText(), javadocTextArea.getText()));
 
-        // --- NEW: Example Values Section ---
+        // --- Example Values Section ---
         this.exampleEditorPane = new VBox(10);
         exampleEditorPane.setDisable(true); // Disabled by default
+        exampleEditorPane.setStyle("-fx-background-color: #fffaf0; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #faebd7; -fx-border-radius: 8;");
 
         Label exampleValuesLabel = new Label("Example Values");
         exampleValuesLabel.getStyleClass().add("h3");
-        exampleValuesLabel.setStyle("-fx-padding-top: 15;");
 
         this.exampleListView = new ListView<>();
         exampleListView.setPrefHeight(80);
@@ -319,7 +324,7 @@ public class XsdDiagramView {
         HBox buttonBar = new HBox(10, saveDocumentationButton, saveExamplesButton, editSchemaDocButton);
         buttonBar.setStyle("-fx-margin-top: 10;");
 
-        editorContent.getChildren().addAll(docLabel, documentationTextArea, javadocLabel, javadocTextArea, exampleEditorPane, buttonBar);
+        editorContent.getChildren().addAll(docSection, javadocSection, exampleEditorPane, buttonBar);
 
         titledPane.setContent(editorContent);
         return titledPane;

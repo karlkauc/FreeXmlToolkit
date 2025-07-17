@@ -52,13 +52,13 @@ public class XsdController {
     private final XmlService xmlService = new XmlServiceImpl();
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
-    private Object parentController;
+    private MainController parentController;
 
     /**
      * Allows a parent controller to set itself for communication.
      * @param parentController The parent controller instance.
      */
-    public void setParentController(Object parentController) {
+    public void setParentController(MainController parentController) {
         this.parentController = parentController;
     }
 
@@ -126,7 +126,7 @@ public class XsdController {
     @FXML
     private Spinner<Integer> maxOccurrencesSpinner;
     @FXML
-    private TextArea sampleDataTextArea;
+    private CodeArea sampleDataTextArea;
 
     @FXML
     private VBox taskStatusBar;
@@ -172,6 +172,12 @@ public class XsdController {
                 .subscribe(ignore -> {
                     sourceCodeTextArea.setStyleSpans(0, computeHighlighting(sourceCodeTextArea.getText()));
                 });
+
+        // Setup for the sample data CodeArea
+        sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));
+        Subscription sampleHLSubscription = sampleDataTextArea.multiPlainChanges()
+                .successionEnds(Duration.ofMillis(500)) // slightly longer delay for potentially large generated files
+                .subscribe(ignore -> sampleDataTextArea.setStyleSpans(0, computeHighlighting(sampleDataTextArea.getText())));
     }
 
     @FXML
@@ -605,7 +611,7 @@ public class XsdController {
         generationTask.setOnSucceeded(event -> {
             progressSampleData.setVisible(false);
             String resultXml = generationTask.getValue();
-            sampleDataTextArea.setText(resultXml);
+            sampleDataTextArea.replaceText(resultXml);
             statusText.setText("Sample XML generated successfully.");
 
             // Optional: Save to file if a path is provided

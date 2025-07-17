@@ -388,8 +388,7 @@
 
                 <!-- UPDATED: Added VBox.vgrow to make the text area fill the remaining space -->
                 <StackPane VBox.vgrow="ALWAYS">
-                    <TextArea fx:id="sampleDataTextArea" style="-fx-font-family: 'monospaced'; -fx-font-size: 13px;"
-                    />
+                    <CodeArea fx:id="sampleDataTextArea"/>
                     <ProgressIndicator fx:id="progressSampleData" maxWidth="80" maxHeight="80" visible="false"/>
                 </StackPane>
             </VBox>
