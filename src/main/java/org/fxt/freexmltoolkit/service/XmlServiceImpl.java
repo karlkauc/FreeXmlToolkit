@@ -841,11 +841,36 @@ public class XmlServiceImpl implements XmlService {
         final String altovaPrefix = "altova";
 
         // 3. Find the target element using XPath
+        // The incoming 'elementXpath' is a simplified path like '/Cars/Car' and not a real,
+        // namespace-aware XPath. We need to convert it to a namespace-agnostic one that works on the XSD structure.
+        if (elementXpath == null || !elementXpath.startsWith("/")) {
+            throw new IllegalArgumentException("Invalid XPath provided (must start with '/'): " + elementXpath);
+        }
+
+        String[] parts = elementXpath.substring(1).split("/");
+        if (parts.length == 0 || parts[0].isEmpty()) {
+            throw new IllegalArgumentException("Invalid XPath provided (empty): " + elementXpath);
+        }
+
+        // Let's build the real XPath by chaining namespace-agnostic lookups.
+        StringBuilder realXpathBuilder = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+
+            if (part.startsWith("@")) {
+                realXpathBuilder.append("//*[local-name()='attribute' and @name='").append(part.substring(1)).append("']");
+            } else if ("any".equals(part)) {
+                realXpathBuilder.append("//*[local-name()='any']");
+            } else {
+                realXpathBuilder.append("//*[local-name()='element' and @name='").append(part).append("']");
+            }
+        }
+        String realXpath = realXpathBuilder.toString();
+
         XPath xpath = XPathFactory.newInstance().newXPath();
-        // Note: This XPath evaluation might require a NamespaceContext if the XPaths use prefixes (e.g., 'xs:element')
-        Node targetNode = (Node) xpath.compile(elementXpath).evaluate(doc, XPathConstants.NODE);
+        Node targetNode = (Node) xpath.compile(realXpath).evaluate(doc, XPathConstants.NODE);
         if (targetNode == null || targetNode.getNodeType() != Node.ELEMENT_NODE) {
-            throw new IllegalArgumentException("Could not find element for XPath: " + elementXpath);
+            throw new IllegalArgumentException("Could not find element for XPath: " + elementXpath + " (translated to: " + realXpath + ")");
         }
         Element targetElement = (Element) targetNode;
 
