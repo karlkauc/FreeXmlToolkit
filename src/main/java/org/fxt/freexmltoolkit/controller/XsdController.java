@@ -9,6 +9,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
@@ -41,6 +43,7 @@ public class XsdController {
 
     // Service-Klassen
     private final XmlService xmlService = new XmlServiceImpl();
+    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     private Object parentController;
 
@@ -142,8 +145,17 @@ public class XsdController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open XSD Schema");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Files", "*.xsd"));
-        File selectedFile = fileChooser.showOpenDialog(tabPane.getScene().getWindow());
 
+        // Set initial directory from properties
+        String lastDirString = propertiesService.getLastOpenDirectory();
+        if (lastDirString != null) {
+            File lastDir = new File(lastDirString);
+            if (lastDir.exists() && lastDir.isDirectory()) {
+                fileChooser.setInitialDirectory(lastDir);
+            }
+        }
+
+        File selectedFile = fileChooser.showOpenDialog(tabPane.getScene().getWindow());
         if (selectedFile != null) {
             xmlService.setCurrentXsdFile(selectedFile);
             openXsdFile(selectedFile);
@@ -168,6 +180,11 @@ public class XsdController {
     // ======================================================================
 
     private void openXsdFile(File file) {
+        // Update properties with the newly opened file and its directory
+        propertiesService.addLastOpenFile(file);
+        if (file.getParent() != null) {
+            propertiesService.setLastOpenDirectory(file.getParent());
+        }
         setupXsdDiagram();
     }
 

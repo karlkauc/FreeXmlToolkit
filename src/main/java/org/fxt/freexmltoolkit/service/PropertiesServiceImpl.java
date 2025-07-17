@@ -18,6 +18,7 @@ import java.util.Properties;
 public class PropertiesServiceImpl implements PropertiesService {
     private static final Logger logger = LogManager.getLogger(PropertiesServiceImpl.class);
     private static final String FREE_XML_TOOLKIT_PROPERTIES = "FreeXmlToolkit.properties";
+    private static final String LAST_OPEN_DIRECTORY_KEY = "last.open.directory";
     private static final File propertiesFile = new File(FREE_XML_TOOLKIT_PROPERTIES);
     private static final PropertiesService instance = new PropertiesServiceImpl();
     private Properties properties = new Properties();
@@ -91,6 +92,7 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("https.proxy.port", "");
         properties.setProperty("https.proxy.user", "");
         properties.setProperty("https.proxy.password", "");
+        properties.setProperty(LAST_OPEN_DIRECTORY_KEY, System.getProperty("user.home"));
         properties.setProperty("language", "");
         properties.setProperty("sendUsageStatistics", "false");
         properties.setProperty("usageDuration", "0");
@@ -164,5 +166,18 @@ public class PropertiesServiceImpl implements PropertiesService {
         // Speichere die aktualisierten Properties
         saveProperties(properties);
         logger.debug("Updated last open files list: {}", recentFiles);
+    }
+
+    @Override
+    public String getLastOpenDirectory() {
+        return properties.getProperty(LAST_OPEN_DIRECTORY_KEY, System.getProperty("user.home"));
+    }
+
+    @Override
+    public void setLastOpenDirectory(String path) {
+        if (path != null) {
+            properties.setProperty(LAST_OPEN_DIRECTORY_KEY, path);
+            saveProperties(properties);
+        }
     }
 }

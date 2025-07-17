@@ -32,4 +32,8 @@ public interface PropertiesService {
     List<File> getLastOpenFiles();
 
     void addLastOpenFile(File file);
+
+    String getLastOpenDirectory();
+
+    void setLastOpenDirectory(String path);
 }
