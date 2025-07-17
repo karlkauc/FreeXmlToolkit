@@ -73,7 +73,7 @@ public class XmlController {
     private MainController mainController;
 
     @FXML
-    Button openFile, saveFile, prettyPrint, newFile, validateSchema, runXpathQuery;
+    Button openFile, saveFile, prettyPrint, newFile, validateSchema, runXpathQuery, minifyButton;
 
     @FXML
     StackPane stackPaneXPath, stackPaneXQuery;
@@ -104,6 +104,9 @@ public class XmlController {
 
     @FXML
     TextField searchField;
+
+    @FXML
+    private ProgressIndicator operationProgressBar;
 
     // --- LSP Server Felder ---
     private LanguageServer serverProxy;
@@ -583,6 +586,9 @@ public class XmlController {
         if (xml == null || xml.isBlank()) return;
 
         // Die Operation wird in einen Hintergrund-Thread ausgelagert, um die UI nicht zu blockieren.
+        minifyButton.setDisable(true);
+        operationProgressBar.setVisible(true);
+
         Task<String> minifyTask = new Task<>() {
             @Override
             protected String call() throws Exception {
@@ -597,11 +603,15 @@ public class XmlController {
                 currentCodeArea.clear();
                 currentCodeArea.replaceText(0, 0, minifiedString);
             }
+            minifyButton.setDisable(false);
+            operationProgressBar.setVisible(false);
         });
 
         minifyTask.setOnFailed(event -> {
             logger.error("Failed to minify XML", minifyTask.getException());
             new Alert(Alert.AlertType.ERROR, "Could not minify XML: " + minifyTask.getException().getMessage()).showAndWait();
+            minifyButton.setDisable(false);
+            operationProgressBar.setVisible(false);
         });
 
         formattingExecutor.submit(minifyTask);
