@@ -781,4 +781,48 @@ public class XmlServiceImpl implements XmlService {
             return input;
         }
     }
+
+    @Override
+    public void updateRootDocumentation(File xsdFile, String documentationContent) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse(xsdFile);
+
+        Element root = doc.getDocumentElement();
+        final String xsdNs = "http://www.w3.org/2001/XMLSchema";
+
+        // Finde oder erstelle xsd:annotation
+        NodeList annotationList = root.getElementsByTagNameNS(xsdNs, "annotation");
+        Element annotation;
+        if (annotationList.getLength() > 0) {
+            annotation = (Element) annotationList.item(0);
+        } else {
+            annotation = doc.createElementNS(xsdNs, "xsd:annotation");
+            // Füge es als erstes Kind des Wurzelelements ein
+            root.insertBefore(annotation, root.getFirstChild());
+        }
+
+        // Finde oder erstelle xsd:documentation in xsd:annotation
+        NodeList docList = annotation.getElementsByTagNameNS(xsdNs, "documentation");
+        Element documentationElement;
+        if (docList.getLength() > 0) {
+            documentationElement = (Element) docList.item(0);
+        } else {
+            documentationElement = doc.createElementNS(xsdNs, "xsd:documentation");
+            annotation.appendChild(documentationElement);
+        }
+
+        // Setze den neuen Inhalt
+        documentationElement.setTextContent(documentationContent);
+
+        // Schreibe den Inhalt zurück in die Datei mit anständiger Formatierung
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(xsdFile);
+        transformer.transform(source, result);
+    }
 }

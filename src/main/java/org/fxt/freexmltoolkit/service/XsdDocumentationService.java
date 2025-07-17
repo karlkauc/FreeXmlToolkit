@@ -970,4 +970,47 @@ public class XsdDocumentationService {
             progressListener.onProgressUpdate(new ProgressUpdate(taskName, Status.FINISHED, durationNanos / 1_000_000));
         }
     }
+
+    // Fügen Sie dieses Record hinzu, um die Daten strukturiert zurückzugeben.
+    public record DocumentationParts(String mainDocumentation, String javadocContent) {}
+
+    /**
+     * Extrahiert den allgemeinen Dokumentationstext und die Javadoc-Tags
+     * aus der Annotation eines XSD-Schemas.
+     *
+     * @param schema Das zu analysierende Schema.
+     * @return Ein DocumentationParts-Objekt mit den getrennten Inhalten.
+     */
+    public DocumentationParts extractDocumentationParts(XsdSchema schema) {
+        if (schema == null || schema.getAnnotation() == null || schema.getAnnotation().getDocumentations().isEmpty()) {
+            return new DocumentationParts("", "");
+        }
+
+        // KORREKTUR: Alle Dokumentations-Tags zusammenführen, nicht nur das erste.
+        // Dies stellt sicher, dass der gesamte Dokumentationstext erfasst wird.
+        String fullDoc = schema.getAnnotation().getDocumentations().stream()
+                .map(XsdAnnotationChildren::getContent)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("\n\n"));
+
+        if (fullDoc.isBlank()) {
+            return new DocumentationParts("", "");
+        }
+
+        // Trennt die Javadoc-Tags (@...) vom Rest des Textes
+        String[] lines = fullDoc.split("\\r?\\n");
+        StringBuilder mainDocBuilder = new StringBuilder();
+        StringBuilder javadocBuilder = new StringBuilder();
+
+        for (String line : lines) {
+            if (line.trim().startsWith("@")) {
+                javadocBuilder.append(line).append("\n");
+            } else {
+                mainDocBuilder.append(line).append("\n");
+            }
+        }
+
+        // Entfernt überflüssige Leerzeilen am Ende
+        return new DocumentationParts(mainDocBuilder.toString().trim(), javadocBuilder.toString().trim());
+    }
 }

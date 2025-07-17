@@ -95,19 +95,19 @@
                 </ScrollPane>
             </content>
         </Tab>
-        <Tab closable="false" text="Text">
+        <Tab fx:id="textTab" closable="false" text="Text">
             <graphic>
                 <FontIcon iconLiteral="bi-card-text"/>
             </graphic>
             <StackPane fx:id="stackPane" style="-fx-background-color: white;"/>
         </Tab>
-        <Tab closable="false" text="Graphic">
+        <Tab fx:id="xsdTab" closable="false" text="Graphic">
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-2"/>
             </graphic>
             <BorderPane>
                 <top>
-                    <VBox fx:id="xsdInfoPane" alignment="CENTER_LEFT" managed="false" spacing="5.0"
+                    <HBox fx:id="xsdInfoPane" alignment="TOP_LEFT" managed="false" spacing="15.0"
                           style="-fx-padding: 10; -fx-background-color: #f1f3f5; -fx-border-width: 0 0 1 0; -fx-border-color: #dee2e6;"
                           visible="false">
                         <children>
@@ -135,7 +135,7 @@
                                     </children>
                                 </VBox>
                                 <Region HBox.hgrow="ALWAYS"/>
-                                <Button onAction="#loadXsdFile" style="-fx-font-size: 11px;"
+                                <Button onAction="#openXsdFileChooser" style="-fx-font-size: 11px;"
                                         text="Load another file...">
                                     <graphic>
                                         <FontIcon iconLiteral="bi-arrow-repeat"/>
@@ -143,7 +143,7 @@
                                 </Button>
                             </HBox>
                         </children>
-                    </VBox>
+                    </HBox>
                 </top>
                 <center>
                     <StackPane fx:id="xsdStackPane" style="-fx-background-color: #f8f9fa;">
@@ -155,7 +155,7 @@
                                            text="No XSD file loaded"/>
                                     <Label style="-fx-text-fill: #6c757d;"
                                            text="Please load an XSD file to see the graphical representation."/>
-                                    <Button onAction="#loadXsdFile" styleClass="button, :default" text="Load XSD File">
+                                    <Button onAction="#openXsdFileChooser" styleClass="button, :default" text="Load XSD File">
                                         <graphic>
                                             <FontIcon iconLiteral="bi-folder2-open"/>
                                         </graphic>
@@ -184,7 +184,7 @@
                     <Label text="XSD File: " GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                     <HBox GridPane.columnIndex="1" GridPane.rowIndex="0">
                         <TextField fx:id="xsdFilePath" minWidth="400" promptText="Load an XSD file..."/>
-                        <Button onAction="#loadXsdFile">
+                        <Button onAction="#openXsdFileChooser">
                             <graphic>
                                 <FontIcon iconColor="#c9c830" iconLiteral="bi-folder2-open"/>
                             </graphic>
@@ -299,7 +299,7 @@
                         <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
                             <TextField fx:id="xsdForSampleDataPath" promptText="Load an XSD file..."
                                        HBox.hgrow="ALWAYS"/>
-                            <Button onAction="#loadXsdFile" text="Load XSD">
+                            <Button onAction="#openXsdFileChooser" text="Load XSD">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-folder2-open"/>
                                 </graphic>
@@ -350,4 +350,18 @@
             </VBox>
         </Tab>
     </TabPane>
+
+    <!-- Task/Status Bar -->
+    <VBox fx:id="taskStatusBar" managed="false" spacing="5.0"
+          style="-fx-padding: 10; -fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0;" visible="false">
+        <children>
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <children>
+                    <Label style="-fx-font-weight: bold;" text="Background Tasks" />
+                    <Region HBox.hgrow="ALWAYS" />
+                </children>
+            </HBox>
+            <VBox fx:id="taskContainer" spacing="5.0"/>
+        </children>
+    </VBox>
 </VBox>
