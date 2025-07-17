@@ -70,7 +70,7 @@ public class XsdController {
     @FXML
     private VBox noFileLoadedPane;
     @FXML
-    private HBox xsdInfoPane;
+    private TitledPane xsdInfoPane;
     @FXML
     private ProgressIndicator xsdDiagramProgress;
     @FXML
