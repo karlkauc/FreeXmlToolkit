@@ -246,4 +246,6 @@ public interface XmlService {
     void removeBom(Path path);
 
     void updateRootDocumentation(File xsdFile, String documentationContent) throws Exception;
+
+    void updateExampleValues(File xsdFile, String elementXpath, List<String> exampleValues) throws Exception;
 }

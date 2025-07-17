@@ -825,4 +825,69 @@ public class XmlServiceImpl implements XmlService {
         StreamResult result = new StreamResult(xsdFile);
         transformer.transform(source, result);
     }
+
+    @Override
+    public void updateExampleValues(File xsdFile, String elementXpath, List<String> exampleValues) throws Exception {
+        // 1. Parse the document
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse(xsdFile);
+        Element root = doc.getDocumentElement();
+
+        // 2. Define namespaces
+        final String xsdNs = "http://www.w3.org/2001/XMLSchema";
+        final String altovaNs = "http://www.altova.com";
+        final String altovaPrefix = "altova";
+
+        // 3. Find the target element using XPath
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        // Note: This XPath evaluation might require a NamespaceContext if the XPaths use prefixes (e.g., 'xs:element')
+        Node targetNode = (Node) xpath.compile(elementXpath).evaluate(doc, XPathConstants.NODE);
+        if (targetNode == null || targetNode.getNodeType() != Node.ELEMENT_NODE) {
+            throw new IllegalArgumentException("Could not find element for XPath: " + elementXpath);
+        }
+        Element targetElement = (Element) targetNode;
+
+        // 4. Find or create xs:annotation
+        NodeList annotationList = targetElement.getElementsByTagNameNS(xsdNs, "annotation");
+        Element annotation = (annotationList.getLength() > 0)
+                ? (Element) annotationList.item(0)
+                : (Element) targetElement.insertBefore(doc.createElementNS(xsdNs, "xsd:annotation"), targetElement.getFirstChild());
+
+        // 5. Find or create xs:appinfo
+        NodeList appInfoList = annotation.getElementsByTagNameNS(xsdNs, "appinfo");
+        Element appinfo = (appInfoList.getLength() > 0)
+                ? (Element) appInfoList.item(0)
+                : (Element) annotation.appendChild(doc.createElementNS(xsdNs, "xsd:appinfo"));
+
+        // 6. Remove existing exampleValues
+        NodeList existingExamplesList = appinfo.getElementsByTagNameNS(altovaNs, "exampleValues");
+        for (int i = existingExamplesList.getLength() - 1; i >= 0; i--) {
+            appinfo.removeChild(existingExamplesList.item(i));
+        }
+
+        // 7. Add new exampleValues if the list is not empty
+        if (exampleValues != null && !exampleValues.isEmpty()) {
+            if (!root.hasAttribute("xmlns:" + altovaPrefix)) {
+                root.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:" + altovaPrefix, altovaNs);
+            }
+            Element exampleValuesContainer = doc.createElementNS(altovaNs, altovaPrefix + ":exampleValues");
+            for (String value : exampleValues) {
+                Element exampleElement = doc.createElementNS(altovaNs, altovaPrefix + ":example");
+                exampleElement.setAttribute("value", value);
+                exampleValuesContainer.appendChild(exampleElement);
+            }
+            appinfo.appendChild(exampleValuesContainer);
+        }
+
+        // 8. Write back to file
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+        DOMSource source = new DOMSource(doc);
+        StreamResult result = new StreamResult(xsdFile);
+        transformer.transform(source, result);
+    }
 }

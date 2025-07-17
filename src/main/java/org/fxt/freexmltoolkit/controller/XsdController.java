@@ -20,6 +20,7 @@ import org.xmlet.xsdparser.xsdelements.XsdSchema;
 import java.io.File;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -348,6 +349,42 @@ public class XsdController {
         });
 
         executeTask(saveTask);
+    }
+
+    public void saveExampleValues(String xpath, List<String> exampleValues) {
+        File currentXsdFile = xmlService.getCurrentXsdFile();
+        if (currentXsdFile == null || !currentXsdFile.exists()) {
+            new Alert(Alert.AlertType.WARNING, "No XSD file loaded to save to.").showAndWait();
+            return;
+        }
+        if (xpath == null || xpath.isBlank()) {
+            new Alert(Alert.AlertType.WARNING, "No element selected to save examples for.").showAndWait();
+            return;
+        }
+
+        Task<Void> saveExamplesTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                updateMessage("Saving example values...");
+                // This service method needs to be implemented as described in step 1c.
+                xmlService.updateExampleValues(currentXsdFile, xpath, exampleValues);
+                return null;
+            }
+        };
+
+        saveExamplesTask.setOnSucceeded(event -> {
+            statusText.setText("Example values saved successfully.");
+            // Reload the view to reflect the changes
+            setupXsdDiagram();
+        });
+
+        saveExamplesTask.setOnFailed(event -> {
+            logger.error("Failed to save example values for xpath: " + xpath, saveExamplesTask.getException());
+            new Alert(Alert.AlertType.ERROR, "Could not save example values: " + saveExamplesTask.getException().getMessage()).showAndWait();
+            statusText.setText("Failed to save example values.");
+        });
+
+        executeTask(saveExamplesTask);
     }
 
     // ======================================================================

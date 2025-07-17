@@ -29,13 +29,23 @@ import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
 import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -761,13 +771,18 @@ public class XsdDocumentationService {
         if (element.getXsdDocumentation() != null && !element.getXsdDocumentation().isEmpty()) {
             doc = element.getXsdDocumentation().getFirst().getContent();
         }
+        List<String> exampleValues = new ArrayList<>();
+        if (element.getXsdElement() != null && element.getXsdElement().getAnnotation() != null) {
+            exampleValues.addAll(extractExampleValues(element.getXsdElement().getAnnotation()));
+        }
 
         return new XsdNodeInfo(
                 element.getElementName(),
                 element.getElementType(),
+                element.getCurrentXpath(),
                 doc,
                 children,
-                element.getCurrentXpath()
+                exampleValues
         );
     }
 
@@ -824,7 +839,7 @@ public class XsdDocumentationService {
         if (visitedOnPath.contains(element)) {
             logger.warn("Recursion detected on element {}, path {}. Stopping this branch.", element, currentXPath);
             String elementName = (element instanceof XsdElement xsdEl) ? xsdEl.getName() + " (recursive)" : "Recursive...";
-            return new XsdNodeInfo(elementName, "", "Recursive definition, traversal stopped.", Collections.emptyList(), currentXPath);
+            return new XsdNodeInfo(elementName, "", currentXPath, "Recursive definition, traversal stopped.", Collections.emptyList(), Collections.emptyList());
         }
         visitedOnPath.add(element); // Element zum aktuellen Pfad hinzufügen
 
@@ -832,16 +847,20 @@ public class XsdDocumentationService {
         String type = "";
         String documentation = "";
         List<XsdNodeInfo> children = new ArrayList<>();
+        List<String> exampleValues = new ArrayList<>();
 
         if (element instanceof XsdElement xsdElement) {
             name = xsdElement.getName();
             type = xsdElement.getType();
+            XsdAnnotation annotation = xsdElement.getAnnotation();
 
             // Extrahiere Dokumentation direkt vom Element oder seinem Typ
             if (xsdElement.getAnnotation() != null) {
                 documentation = xsdElement.getAnnotation().getDocumentations().stream()
                         .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
             }
+            
+            exampleValues.addAll(extractExampleValues(annotation));
 
             // Sammle Kinder (Elemente und Attribute)
             // KORREKTUR: Die Logik wurde robuster gemacht, um Abstürze zu vermeiden
@@ -899,20 +918,25 @@ public class XsdDocumentationService {
 
         } else if (element instanceof XsdAttribute xsdAttribute) {
             name = "@" + xsdAttribute.getName();
-            type = xsdAttribute.getType();
+            type = xsdAttribute.getType();             
+            XsdAnnotation annotation = xsdAttribute.getAnnotation();
+            
             if (xsdAttribute.getAnnotation() != null) {
                 documentation = xsdAttribute.getAnnotation().getDocumentations().stream()
                         .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
             }
+            exampleValues.addAll(extractExampleValues(annotation));
         } else if (element instanceof XsdAny xsdAny) {
             name = "any";
             String namespaceInfo = xsdAny.getNamespace() != null ? xsdAny.getNamespace() : "##any";
             String processContentsInfo = xsdAny.getProcessContents() != null ? xsdAny.getProcessContents() : "strict";
             type = String.format("Wildcard (namespace: %s, process: %s)", namespaceInfo, processContentsInfo);
+            XsdAnnotation annotation = xsdAny.getAnnotation();
             if (xsdAny.getAnnotation() != null) {
                 documentation = xsdAny.getAnnotation().getDocumentations().stream()
                         .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
             }
+            exampleValues.addAll(extractExampleValues(annotation));
         }
 
         visitedOnPath.remove(element); // Backtrack: Element vom Pfad entfernen, bevor die Methode verlassen wird
@@ -920,9 +944,10 @@ public class XsdDocumentationService {
         return new XsdNodeInfo(
                 name,
                 type != null ? type : "",
+                currentXPath,
                 documentation,
                 children,
-                currentXPath
+                exampleValues
         );
     }
 
@@ -955,6 +980,45 @@ public class XsdDocumentationService {
                 });
     }
 
+    private List<String> extractExampleValues(XsdAnnotation annotation) {
+        if (annotation == null || annotation.getAppInfoList() == null) {
+            return Collections.emptyList();
+        }
+
+        List<String> values = new ArrayList<>();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+
+        try {
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            for (XsdAppInfo appInfo : annotation.getAppInfoList()) {
+                String content = appInfo.getContent();
+                if (content == null || content.isBlank() || !content.contains("exampleValues")) {
+                    continue;
+                }
+
+                // Parse the content string as an XML document
+                try {
+                    // Wrap content in a dummy root to ensure it's well-formed XML
+                    Document doc = builder.parse(new InputSource(new StringReader("<dummy>" + content + "</dummy>")));
+
+                    // Use XPath to find the example values. Using local-name() to be prefix-agnostic.
+                    XPath xpath = XPathFactory.newInstance().newXPath();
+                    NodeList exampleNodes = (NodeList) xpath.evaluate("//*[local-name()='example']/@value", doc, XPathConstants.NODESET);
+
+                    for (int i = 0; i < exampleNodes.getLength(); i++) {
+                        values.add(exampleNodes.item(i).getNodeValue());
+                    }
+                } catch (SAXException | IOException | XPathExpressionException e) {
+                    logger.warn("Could not parse appinfo content or evaluate XPath for example values. Content: '{}', Error: {}", content, e.getMessage());
+                }
+            }
+        } catch (ParserConfigurationException e) {
+            logger.error("Could not create DocumentBuilder for parsing appinfo.", e);
+        }
+        return values;
+    }
+    
     private void executeAndTrack(String taskName, Runnable task) {
         if (progressListener != null) {
             // Melde den Start des Tasks

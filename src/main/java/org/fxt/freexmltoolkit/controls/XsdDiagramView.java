@@ -4,6 +4,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -14,6 +15,8 @@ import org.fxt.freexmltoolkit.controller.XsdController;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import java.util.ArrayList;
+
 public class XsdDiagramView {
 
     private final XsdNodeInfo rootNode;
@@ -22,9 +25,14 @@ public class XsdDiagramView {
     private final String initialJavadoc;
 
     private VBox detailPane; // The container for the detail information
+    private XsdNodeInfo selectedNode;
+
+    // Editor components
     private TextArea documentationTextArea;
     private TextArea javadocTextArea;
     private Button saveDocumentationButton;
+    private ListView<String> exampleListView;
+    private VBox exampleEditorPane;
     private boolean isEditingSchemaDoc = true; // NEW: State flag to track if we are editing the main schema doc
 
     // Styles
@@ -190,6 +198,7 @@ public class XsdDiagramView {
         }
 
         // Update the editor pane with the documentation of the selected node
+        this.selectedNode = node;
         isEditingSchemaDoc = false; // Switch to "viewing" mode
         this.documentationTextArea.setText(node.documentation() != null ? node.documentation() : "");
         this.javadocTextArea.setText(""); // Sub-nodes don't have separate Javadoc
@@ -197,6 +206,10 @@ public class XsdDiagramView {
         this.documentationTextArea.setEditable(false);
         this.javadocTextArea.setEditable(false);
         this.saveDocumentationButton.setDisable(true);
+
+        // Populate and enable the example editor
+        this.exampleListView.getItems().setAll(node.exampleValues());
+        this.exampleEditorPane.setDisable(false);
     }
 
     private Node createEditorPane() {
@@ -227,6 +240,42 @@ public class XsdDiagramView {
         saveDocumentationButton.setDisable(true); // Start disabled, as content is not "dirty" yet
         saveDocumentationButton.setOnAction(event -> controller.saveDocumentation(documentationTextArea.getText(), javadocTextArea.getText()));
 
+        // --- NEW: Example Values Section ---
+        this.exampleEditorPane = new VBox(10);
+        exampleEditorPane.setDisable(true); // Disabled by default
+
+        Label exampleValuesLabel = new Label("Example Values");
+        exampleValuesLabel.getStyleClass().add("h3");
+        exampleValuesLabel.setStyle("-fx-padding-top: 15;");
+
+        this.exampleListView = new ListView<>();
+        exampleListView.setPrefHeight(80);
+        exampleListView.setPlaceholder(new Label("No example values defined for this element."));
+
+        HBox addExampleBox = new HBox(5);
+        TextField newExampleField = new TextField();
+        newExampleField.setPromptText("Enter a new example value and press Add");
+        HBox.setHgrow(newExampleField, javafx.scene.layout.Priority.ALWAYS);
+        Button addExampleButton = new Button("Add");
+        addExampleButton.setOnAction(e -> {
+            String newValue = newExampleField.getText();
+            if (newValue != null && !newValue.isBlank()) {
+                exampleListView.getItems().add(newValue);
+                newExampleField.clear();
+            }
+        });
+        addExampleBox.getChildren().addAll(newExampleField, addExampleButton);
+
+        Button removeExampleButton = new Button("Remove Selected");
+        removeExampleButton.setOnAction(e -> {
+            String selected = exampleListView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                exampleListView.getItems().remove(selected);
+            }
+        });
+
+        exampleEditorPane.getChildren().addAll(exampleValuesLabel, exampleListView, addExampleBox, removeExampleButton);
+
         // Add listeners to enable the save button on change, but only in schema-editing mode.
         Runnable updateSaveButtonState = () -> {
             if (isEditingSchemaDoc) {
@@ -246,19 +295,31 @@ public class XsdDiagramView {
         Button editSchemaDocButton = new Button("Edit Schema Doc");
         editSchemaDocButton.setTooltip(new Tooltip("Switches to editing the main schema documentation, keeping the current text."));
         editSchemaDocButton.setOnAction(e -> {
+            this.selectedNode = null;
             isEditingSchemaDoc = true; // Switch back to editing mode
             // Re-enable editing
             documentationTextArea.setEditable(true);
             javadocTextArea.setEditable(true);
+            // Disable and clear example editor
+            exampleEditorPane.setDisable(true);
+            exampleListView.getItems().clear();
             // Check immediately if the current content is different from the original schema doc
             // to enable the save button if necessary.
             updateSaveButtonState.run();
         });
 
-        HBox buttonBar = new HBox(10, saveDocumentationButton, editSchemaDocButton);
+        Button saveExamplesButton = new Button("Save Examples");
+        saveExamplesButton.setGraphic(new FontIcon("bi-save"));
+        saveExamplesButton.setOnAction(e -> {
+            if (selectedNode != null && controller != null) {
+                controller.saveExampleValues(selectedNode.xpath(), new ArrayList<>(exampleListView.getItems()));
+            }
+        });
+
+        HBox buttonBar = new HBox(10, saveDocumentationButton, saveExamplesButton, editSchemaDocButton);
         buttonBar.setStyle("-fx-margin-top: 10;");
 
-        editorContent.getChildren().addAll(docLabel, documentationTextArea, javadocLabel, javadocTextArea, buttonBar);
+        editorContent.getChildren().addAll(docLabel, documentationTextArea, javadocLabel, javadocTextArea, exampleEditorPane, buttonBar);
 
         titledPane.setContent(editorContent);
         return titledPane;

@@ -15,8 +15,8 @@ import java.util.List;
 public record XsdNodeInfo(
         String name,
         String type,
+        String xpath,
         String documentation,
         List<XsdNodeInfo> children,
-        String xpath
-) {
-}
+        List<String> exampleValues // <-- NEUES FELD HINZUFÜGEN
+) {}
