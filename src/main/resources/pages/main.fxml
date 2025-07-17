@@ -60,7 +60,7 @@
                     <MenuItem text="Copy"/>
                 </Menu>
                 <Menu text="Windows">
-                    <MenuItem onAction="#toggleMenuBar" text="Show Menue"/>
+                    <MenuItem onAction="#toggleMenuBar" text="Show Menu"/>
                 </Menu>
                 <Menu text="Settings">
                     <MenuItem text="Test 1"/>
@@ -72,7 +72,7 @@
                             <FontIcon iconLiteral="bi-question-circle" iconSize="16"/>
                         </graphic>
                     </MenuItem>
-                    <MenuItem text="About">
+                    <MenuItem onAction="#handleAboutAction" text="About">
                         <graphic>
                             <FontIcon iconLiteral="bi-info-circle" iconSize="16"/>
                         </graphic>

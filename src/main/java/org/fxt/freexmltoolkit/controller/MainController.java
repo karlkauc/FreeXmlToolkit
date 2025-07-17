@@ -22,14 +22,13 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -267,6 +266,43 @@ public class MainController {
             ((SignatureController) controller).setParentController(this);
         }
         logger.debug("Controller Class: {}", controller.getClass());
+    }
+
+    /**
+     * Zeigt den "Über"-Dialog an, wenn der entsprechende Menüpunkt geklickt wird.
+     */
+    @FXML
+    private void handleAboutAction() {
+        Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
+        aboutDialog.setTitle("About FreeXMLToolkit");
+        aboutDialog.setHeaderText("FreeXMLToolkit - Universal Toolkit for XML");
+
+        // Setzt das Icon für das Dialogfenster
+        try {
+            Stage stage = (Stage) aboutDialog.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/img/logo.png")));
+        } catch (Exception e) {
+            logger.warn("Could not load logo for about dialog window.", e);
+        }
+
+        // Setzt die Grafik (Logo) im Header-Panel
+        try {
+            ImageView logo = new ImageView(new Image(getClass().getResourceAsStream("/img/logo.png")));
+            logo.setFitHeight(60);
+            logo.setPreserveRatio(true);
+            aboutDialog.setGraphic(logo);
+        } catch (Exception e) {
+            logger.warn("Could not load logo for about dialog graphic.", e);
+        }
+
+        aboutDialog.setContentText(
+                "Version: 2024.1\n" +
+                        "Copyright (c) Karl Kauc 2024.\n\n" +
+                        "Dieses Produkt ist unter der Apache License, Version 2.0, lizenziert. " +
+                        "Eine Kopie der Lizenz erhalten Sie unter:\nhttp://www.apache.org/licenses/LICENSE-2.0"
+        );
+
+        aboutDialog.showAndWait();
     }
 
     @FXML
