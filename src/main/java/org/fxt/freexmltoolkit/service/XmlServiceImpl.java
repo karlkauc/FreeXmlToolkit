@@ -840,9 +840,7 @@ public class XmlServiceImpl implements XmlService {
         final String altovaNs = "http://www.altova.com";
         final String altovaPrefix = "altova";
 
-        // 3. Find the target element using XPath
-        // The incoming 'elementXpath' is a simplified path like '/Cars/Car' and not a real,
-        // namespace-aware XPath. We need to convert it to a namespace-agnostic one that works on the XSD structure.
+        // 3. Find the target element using a robust XPath resolution logic
         if (elementXpath == null || !elementXpath.startsWith("/")) {
             throw new IllegalArgumentException("Invalid XPath provided (must start with '/'): " + elementXpath);
         }
@@ -852,25 +850,56 @@ public class XmlServiceImpl implements XmlService {
             throw new IllegalArgumentException("Invalid XPath provided (empty): " + elementXpath);
         }
 
-        // Let's build the real XPath by chaining namespace-agnostic lookups.
-        StringBuilder realXpathBuilder = new StringBuilder();
+        // New, robust XPath resolution logic that can follow type references.
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        Node contextNode = doc; // Start from the document root
+
         for (String part : parts) {
             if (part.isEmpty()) continue;
 
-            if (part.startsWith("@")) {
-                realXpathBuilder.append("//*[local-name()='attribute' and @name='").append(part.substring(1)).append("']");
-            } else if ("any".equals(part)) {
-                realXpathBuilder.append("//*[local-name()='any']");
-            } else {
-                realXpathBuilder.append("//*[local-name()='element' and @name='").append(part).append("']");
-            }
-        }
-        String realXpath = realXpathBuilder.toString();
+            String elementName;
+            String nodeKind;
 
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        Node targetNode = (Node) xpath.compile(realXpath).evaluate(doc, XPathConstants.NODE);
-        if (targetNode == null || targetNode.getNodeType() != Node.ELEMENT_NODE) {
-            throw new IllegalArgumentException("Could not find element for XPath: " + elementXpath + " (translated to: " + realXpath + ")");
+            if (part.startsWith("@")) {
+                elementName = part.substring(1);
+                nodeKind = "attribute";
+            } else {
+                elementName = part;
+                nodeKind = "element";
+            }
+
+            // First, try to find the node as a descendant of the current context. This handles inline definitions.
+            String query = ".//*[local-name()='" + nodeKind + "' and @name='" + elementName + "']";
+            Node foundNode = (Node) xpath.compile(query).evaluate(contextNode, XPathConstants.NODE);
+
+            // If not found, it might be in a referenced type.
+            if (foundNode == null && contextNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element contextElement = (Element) contextNode;
+                String typeAttr = contextElement.getAttribute("type");
+                if (!typeAttr.isEmpty()) {
+                    // We have a type reference, e.g., "tns:PurchaseOrderType"
+                    String typeName = typeAttr.contains(":") ? typeAttr.split(":")[1] : typeAttr;
+
+                    // Find the type definition anywhere in the document.
+                    String typeQuery = "//*[local-name()='complexType' or local-name()='simpleType'][@name='" + typeName + "']";
+                    Node typeDefinitionNode = (Node) xpath.compile(typeQuery).evaluate(doc, XPathConstants.NODE);
+
+                    if (typeDefinitionNode != null) {
+                        // Search for our part inside this type definition.
+                        foundNode = (Node) xpath.compile(query).evaluate(typeDefinitionNode, XPathConstants.NODE);
+                    }
+                }
+            }
+
+            if (foundNode == null) {
+                throw new IllegalArgumentException("Could not resolve path segment: '" + part + "' in XPath: " + elementXpath);
+            }
+            contextNode = foundNode;
+        }
+
+        Node targetNode = contextNode;
+        if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
+            throw new IllegalArgumentException("Could not find element for XPath: " + elementXpath);
         }
         Element targetElement = (Element) targetNode;
 
