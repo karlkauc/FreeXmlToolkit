@@ -42,4 +42,14 @@ public interface ConnectionService {
      * @return a String containing the text content of the URL
      */
     String getTextContentFromURL(URI uri);
+
+    /**
+     * Executes an HTTP request using a transient set of properties, for testing purposes.
+     *
+     * @param url the URI of the target URL
+     * @param testProperties a Properties object containing the connection settings to test
+     * @return a ConnectionResult object containing the details of the HTTP response
+     */
+    ConnectionResult testHttpRequest(URI url, java.util.Properties testProperties);
+
 }

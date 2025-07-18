@@ -87,9 +87,17 @@ public class SettingsController {
     @FXML
     private void performCheck() {
         logger.debug("Perform Connection Check");
-        try {
-            var connectionResult = connectionService.executeHttpRequest(new URI("https://www.github.com"));
 
+        // Temporäre Properties mit den aktuellen UI-Werten erstellen
+        Properties testProps = new Properties();
+        testProps.setProperty("manualProxy", String.valueOf(manualProxy.isSelected()));
+        testProps.setProperty("http.proxy.host", httpProxyHost.getText());
+        testProps.setProperty("http.proxy.port", portSpinner.getValue().toString());
+        testProps.setProperty("http.proxy.user", httpProxyUser.getText());
+        testProps.setProperty("http.proxy.password", httpProxyPass.getText());
+
+        try {
+            var connectionResult = connectionService.testHttpRequest(new URI("https://www.github.com"), testProps);
             // Prüfen, ob ein Ergebnis zurückgegeben wurde.
             if (connectionResult == null) {
                 logger.error("Connection check failed. The connection service returned a null result.");

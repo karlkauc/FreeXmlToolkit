@@ -38,6 +38,7 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -82,8 +83,22 @@ public class ConnectionServiceImpl implements ConnectionService {
     @Override
     public ConnectionResult executeHttpRequest(URI url) {
         var props = propertiesService.loadProperties();
+        return buildConnectionWithProperties(url, props);
+    }
 
-        // Sicherer Zugriff auf Properties mit Standardwerten
+    @Override
+    public ConnectionResult testHttpRequest(URI url, Properties testProperties) {
+        return buildConnectionWithProperties(url, testProperties);
+    }
+
+    /**
+     * Builds and executes an HTTP request based on a given set of properties.
+     * @param url The target URL.
+     * @param props The properties to use for configuration (e.g., proxy settings).
+     * @return The result of the connection attempt.
+     */
+    private ConnectionResult buildConnectionWithProperties(URI url, Properties props) {
+        boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
         String proxyHost = props.getProperty("http.proxy.host", "");
         String proxyPortStr = props.getProperty("http.proxy.port", "");
         String proxyUser = props.getProperty("http.proxy.user", "");
@@ -92,8 +107,8 @@ public class ConnectionServiceImpl implements ConnectionService {
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         HttpHost proxy = null;
 
-        // Proxy nur konfigurieren, wenn Host und Port angegeben sind
-        if (!proxyHost.isBlank() && !proxyPortStr.isBlank()) {
+        // Proxy nur konfigurieren, wenn die manuelle Konfiguration aktiv ist und Host/Port angegeben sind
+        if (useManualProxy && !proxyHost.isBlank() && !proxyPortStr.isBlank()) {
             try {
                 int proxyPort = Integer.parseInt(proxyPortStr);
                 proxy = new HttpHost(proxyHost, proxyPort);
@@ -107,8 +122,6 @@ public class ConnectionServiceImpl implements ConnectionService {
                     Credentials ntlmCredentials = new NTCredentials(proxyUser, proxyPass.toCharArray(), null, null);
                     credentialsProvider.setCredentials(new AuthScope(proxy), ntlmCredentials);
                 }
-                // Der problematische 'else'-Block, der null setzt, wurde entfernt.
-
             } catch (NumberFormatException e) {
                 logger.error("Invalid proxy port number provided: '{}'", proxyPortStr, e);
                 return new ConnectionResult(url, 0, 0L, new String[0], "Invalid proxy port: " + proxyPortStr);
@@ -146,4 +159,5 @@ public class ConnectionServiceImpl implements ConnectionService {
             return new ConnectionResult(url, 0, 0L, new String[0], e.getMessage());
         }
     }
+
 }
