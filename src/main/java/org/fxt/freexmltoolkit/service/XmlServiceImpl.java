@@ -31,12 +31,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -46,8 +46,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -192,7 +190,7 @@ public class XmlServiceImpl implements XmlService {
         } catch (IOException ioException) {
             logger.error(ioException.getMessage());
         }
-        return prettyFormat(t, 20);
+        return XmlService.prettyFormat(t, 4);
     }
 
     @Override
@@ -200,7 +198,7 @@ public class XmlServiceImpl implements XmlService {
         logger.debug("pretty format file");
         try {
             var temp = String.join(System.lineSeparator(), Files.readAllLines(this.currentXmlFile.toPath()));
-            temp = prettyFormat(temp, 20);
+            temp = XmlService.prettyFormat(temp, 4);
             Files.write(this.currentXmlFile.toPath(), temp.getBytes());
             logger.debug("done: {}", temp.getBytes().length);
         } catch (IOException ioException) {
@@ -396,6 +394,11 @@ public class XmlServiceImpl implements XmlService {
 
             header.setRowStyle(headerStyle);
             sheet.createFreezePane(0, 1);
+
+            // Spaltenbreite für bessere Lesbarkeit anpassen
+            // Die Einheit ist 1/256 eines Zeichens
+            sheet.setColumnWidth(1, 20_000); // Spalte "Error Message" (ca. 78 Zeichen)
+            sheet.setColumnWidth(4, 25_000); // Spalte "XML Content" (ca. 97 Zeichen)
 
             for (int i = 0; i < errorList.size(); i++) {
                 Row row = sheet.createRow(i + 1);
@@ -765,23 +768,6 @@ public class XmlServiceImpl implements XmlService {
         }
     }
 
-    public String prettyFormat(String input, int indent) {
-        try {
-            Transformer transformer = SAXTransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            //transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
-
-            Source xmlSource = new SAXSource(new InputSource(new ByteArrayInputStream(input.getBytes())));
-            StreamResult res = new StreamResult(new ByteArrayOutputStream());
-            transformer.transform(xmlSource, res);
-            return res.getOutputStream().toString();
-        } catch (Exception e) {
-            // System.out.println(e.getMessage());
-            return input;
-        }
-    }
-
     @Override
     public void updateRootDocumentation(File xsdFile, String documentationContent) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -817,13 +803,7 @@ public class XmlServiceImpl implements XmlService {
         documentationElement.setTextContent(documentationContent);
 
         // Schreibe den Inhalt zurück in die Datei mit anständiger Formatierung
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-        DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(xsdFile);
-        transformer.transform(source, result);
+        writeDocumentToFile(doc, xsdFile);
     }
 
     @Override
@@ -857,19 +837,7 @@ public class XmlServiceImpl implements XmlService {
         for (String part : parts) {
             if (part.isEmpty()) continue;
 
-            String elementName;
-            String nodeKind;
-
-            if (part.startsWith("@")) {
-                elementName = part.substring(1);
-                nodeKind = "attribute";
-            } else {
-                elementName = part;
-                nodeKind = "element";
-            }
-
-            // First, try to find the node as a descendant of the current context. This handles inline definitions.
-            String query = ".//*[local-name()='" + nodeKind + "' and @name='" + elementName + "']";
+            String query = getQuery(part);
             Node foundNode = (Node) xpath.compile(query).evaluate(contextNode, XPathConstants.NODE);
 
             // If not found, it might be in a referenced type.
@@ -936,12 +904,32 @@ public class XmlServiceImpl implements XmlService {
         }
 
         // 8. Write back to file
+        writeDocumentToFile(doc, xsdFile);
+    }
+
+    private static @NotNull String getQuery(String part) {
+        String elementName;
+        String nodeKind;
+
+        if (part.startsWith("@")) {
+            elementName = part.substring(1);
+            nodeKind = "attribute";
+        } else {
+            elementName = part;
+            nodeKind = "element";
+        }
+
+        // First, try to find the node as a descendant of the current context. This handles inline definitions.
+        return ".//*[local-name()='" + nodeKind + "' and @name='" + elementName + "']";
+    }
+
+    private void writeDocumentToFile(Document doc, File file) throws TransformerException {
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
         DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(xsdFile);
+        StreamResult result = new StreamResult(file);
         transformer.transform(source, result);
     }
 }

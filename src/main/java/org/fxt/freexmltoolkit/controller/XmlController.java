@@ -64,6 +64,8 @@ import java.util.concurrent.*;
 public class XmlController {
     private final static Logger logger = LogManager.getLogger(XmlController.class);
 
+    private final static int XML_INDENT = 4;
+
     CodeArea codeAreaXpath = new CodeArea();
     CodeArea codeAreaXQuery = new CodeArea();
 
@@ -629,7 +631,7 @@ public class XmlController {
         Task<String> formatTask = new Task<>() {
             @Override
             protected String call() {
-                return XmlService.prettyFormat(text, 4);
+                return XmlService.prettyFormat(text, XML_INDENT);
             }
         };
 
@@ -672,7 +674,6 @@ public class XmlController {
                 if (errors != null && !errors.isEmpty()) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
 
-                    // alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
                     alert.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
 
                     alert.setTitle(errors.size() + " validation Errors");
