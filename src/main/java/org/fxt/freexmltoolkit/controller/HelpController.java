@@ -37,6 +37,40 @@ public class HelpController {
 
     @FXML
     public void initialize() {
+        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
+        System.setProperty("jdk.https.auth.tunneling.disabledSchemes", "");
+
+        // System.setProperty("java.net.useSystemProxies", "true");
+        final String proxyUser = "j13hkpb";
+        final String proxyPass = "MarleneLeopold47";
+        final String host = "proxy.p1at.s-group.cc";
+        final Integer port = 8080;
+
+        // http
+        System.setProperty("http.proxyHost", host);
+        System.setProperty("http.proxyPort", String.valueOf(port));
+        System.setProperty("http.proxyUser", proxyUser);
+        System.setProperty("http.proxyPassword", proxyPass);
+
+        // https
+        /*
+        System.setProperty("https.proxyHost", host);
+        System.setProperty("https.proxyPort", String.valueOf(port));
+        System.setProperty("https.proxyUser", proxyUser);
+        System.setProperty("https.proxyPassword", proxyPass);
+         */
+
+        /*
+        Authenticator.setDefault(new Authenticator() {
+                                     @Override
+                                     public PasswordAuthentication getPasswordAuthentication() {
+                                         return new PasswordAuthentication(proxyUser, proxyPass.toCharArray());
+                                     }
+                                 }
+        );
+         */
+
+
         WebEngine viewFXTDocEngine = viewFXTDoc.getEngine();
         viewFXTDocEngine.load("https://karlkauc.github.io/FreeXmlToolkit");
 

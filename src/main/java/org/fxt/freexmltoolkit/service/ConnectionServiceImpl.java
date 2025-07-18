@@ -37,10 +37,12 @@ import org.fxt.freexmltoolkit.domain.ConnectionResult;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -115,6 +117,14 @@ public class ConnectionServiceImpl implements ConnectionService {
         String proxyPortStr = props.getProperty("http.proxy.port", "");
         String proxyUser = props.getProperty("http.proxy.user", "");
         String proxyPass = props.getProperty("http.proxy.password", "");
+        String noProxyHosts = props.getProperty("noProxyHost", "");
+
+        // KORREKTUR: Explizites Deaktivieren von SOCKS-Proxy-Einstellungen.
+        // Dies verhindert, dass externe Konfigurationen (z.B. von der IDE) den Test stören
+        // und den "Malformed reply from SOCKS server"-Fehler verursachen.
+        logger.debug("Clearing any lingering SOCKS proxy system properties to prevent protocol conflicts.");
+        System.clearProperty("socksProxyHost");
+        System.clearProperty("socksProxyPort");
 
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         HttpClientBuilder clientBuilder = HttpClients.custom()
@@ -122,23 +132,44 @@ public class ConnectionServiceImpl implements ConnectionService {
                 .setConnectionManager(new BasicHttpClientConnectionManager());
 
         if (useSystemProxy) {
-            logger.debug("Using system default proxy settings.");
-            // KORREKTUR: Verwendet setRoutePlanner mit der korrekten Klasse
-            clientBuilder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
+            logger.debug("Using system default proxy settings. Make sure the JVM was started with -Djava.net.useSystemProxies=true");
+            ProxySelector proxySelector = ProxySelector.getDefault();
+
+            try {
+                List<Proxy> proxies = proxySelector.select(url);
+                if (proxies != null && !proxies.isEmpty()) {
+                    proxies.forEach(p -> logger.info("System proxy found by Java: {}", p));
+                } else {
+                    logger.warn("No system proxy found by Java for the given URL.");
+                }
+            } catch (Exception e) {
+                logger.warn("Could not determine system proxy.", e);
+            }
+
+            clientBuilder.setRoutePlanner(new SystemDefaultRoutePlanner(proxySelector));
         } else if (useManualProxy && !proxyHost.isBlank() && !proxyPortStr.isBlank()) {
             logger.debug("Using manual proxy settings: {}:{}", proxyHost, proxyPortStr);
-            // Configures the manual proxy
+
+            if (!noProxyHosts.isBlank()) {
+                logger.debug("Setting non-proxy hosts: {}", noProxyHosts);
+                System.setProperty("http.nonProxyHosts", noProxyHosts.replace(',', '|').replace(";", "|"));
+            } else {
+                System.clearProperty("http.nonProxyHosts");
+            }
+
             try {
                 int proxyPort = Integer.parseInt(proxyPortStr);
                 HttpHost proxy = new HttpHost(proxyHost, proxyPort);
                 clientBuilder.setProxy(proxy);
 
-                // Set credentials only if a username is provided
                 if (!proxyUser.isBlank()) {
-                    logger.debug("... with user credentials.");
-                    Credentials credentials = new UsernamePasswordCredentials(proxyUser, proxyPass.toCharArray());
-                    credentialsProvider.setCredentials(new AuthScope(proxy), credentials);
+                    logger.debug("... providing user credentials for Basic, NTLM, and Negotiate schemes.");
 
+                    // For Basic authentication
+                    Credentials basicCredentials = new UsernamePasswordCredentials(proxyUser, proxyPass.toCharArray());
+                    credentialsProvider.setCredentials(new AuthScope(proxy), basicCredentials);
+
+                    // For NTLM/Negotiate authentication
                     Credentials ntlmCredentials = new NTCredentials(proxyUser, proxyPass.toCharArray(), null, null);
                     credentialsProvider.setCredentials(new AuthScope(proxy), ntlmCredentials);
                 }
@@ -173,8 +204,10 @@ public class ConnectionServiceImpl implements ConnectionService {
                         text);
             });
         } catch (IOException e) {
-            logger.error("HTTP request failed: {}", e.getMessage());
+            logger.error("HTTP request failed: {}", e.getMessage(), e);
             return new ConnectionResult(url, 0, 0L, new String[0], e.getMessage());
+        } finally {
+            System.clearProperty("http.nonProxyHosts");
         }
     }
 }

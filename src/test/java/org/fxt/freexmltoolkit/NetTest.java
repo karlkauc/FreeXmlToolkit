@@ -149,4 +149,55 @@ public class NetTest {
             Authenticator.setDefault(null);
         }
     }
+
+    /**
+     * This is the most reliable test for corporate environments.
+     * It uses the application's own ConnectionService, which is based on the
+     * robust Apache HttpClient 5, to test the proxy connection and authentication.
+     */
+    @Test
+    public void testConnectionWithApacheHttpClientThroughConnectionService() {
+        logger.info("--- Starting Connection Test via ConnectionService (Apache HttpClient 5) ---");
+
+        // 1. Ensure the JVM is set to find the system proxy
+        System.setProperty("java.net.useSystemProxies", "true");
+
+        // NEU: Explizites Deaktivieren von SOCKS-Proxy-Einstellungen.
+        // Dies verhindert, dass externe Konfigurationen (z.B. von der IDE) den Test stören.
+        logger.debug("Clearing any lingering SOCKS proxy system properties to prevent protocol conflicts.");
+        System.clearProperty("socksProxyHost");
+        System.clearProperty("socksProxyPort");
+
+        // 2. Create a temporary properties object to simulate the "Use System Proxy" setting
+        var testProperties = new java.util.Properties();
+        testProperties.setProperty("useSystemProxy", "true");
+
+        // Load real credentials from the saved properties file
+        var savedProps = PropertiesServiceImpl.getInstance().loadProperties();
+        testProperties.setProperty("http.proxy.user", savedProps.getProperty("http.proxy.user", ""));
+        testProperties.setProperty("http.proxy.password", savedProps.getProperty("http.proxy.password", ""));
+
+        logger.info("Testing with user: {}", testProperties.getProperty("http.proxy.user"));
+
+        // 3. Use the application's ConnectionService to perform the test
+        // This service is already configured to handle Basic and NTLM authentication.
+        ConnectionService service = ConnectionServiceImpl.getInstance();
+        org.fxt.freexmltoolkit.domain.ConnectionResult result = null;
+        try {
+            result = service.testHttpRequest(new URI("https://www.github.com"), testProperties);
+        } catch (URISyntaxException e) {
+            Assertions.fail("Failed to create URI", e);
+        }
+
+        // 4. Assert the final result
+        Assertions.assertNotNull(result, "Connection result should not be null.");
+        logger.info("Final status code received from ConnectionService: {}", result.httpStatus());
+
+        Assertions.assertEquals(HttpStatus.SC_OK, result.httpStatus(),
+                "Expected HTTP Status 200 OK, but received " + result.httpStatus() +
+                        ". Check credentials and proxy logs. Body: " + result.resultBody());
+
+        logger.info("SUCCESS: Connection and authentication through proxy was successful!");
+        logger.info("--- Test Finished ---");
+    }
 }
