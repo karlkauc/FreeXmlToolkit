@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
@@ -80,42 +81,45 @@ public class ConnectionServiceImpl implements ConnectionService {
      */
     @Override
     public ConnectionResult executeHttpRequest(URI url) {
-        var properties = propertiesService.loadProperties();
+        var props = propertiesService.loadProperties();
 
-        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
-        System.setProperty("jdk.http.auth.proxying.disabledSchemes", "");
-        // System.setProperty("javax.net.debug", "all");
-
-        final var httpProxyHost = properties.get("http.proxy.host").toString();
-        final var httpProxyPort = properties.get("http.proxy.port").toString();
-        final var httpProxyUser = properties.get("http.proxy.user").toString();
-        final var httpProxyPassword = properties.get("http.proxy.password").toString();
+        // Sicherer Zugriff auf Properties mit Standardwerten
+        String proxyHost = props.getProperty("http.proxy.host", "");
+        String proxyPortStr = props.getProperty("http.proxy.port", "");
+        String proxyUser = props.getProperty("http.proxy.user", "");
+        String proxyPass = props.getProperty("http.proxy.password", "");
 
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         HttpHost proxy = null;
 
-        if (httpProxyHost != null && !httpProxyHost.isEmpty() &&
-                httpProxyPort != null && !httpProxyPort.isEmpty()) {
-            proxy = new HttpHost(httpProxyHost, Integer.parseInt(httpProxyPort));
+        // Proxy nur konfigurieren, wenn Host und Port angegeben sind
+        if (!proxyHost.isBlank() && !proxyPortStr.isBlank()) {
+            try {
+                int proxyPort = Integer.parseInt(proxyPortStr);
+                proxy = new HttpHost(proxyHost, proxyPort);
 
-            if (httpProxyUser != null && !httpProxyUser.isEmpty() &&
-                    httpProxyPassword != null && !httpProxyPassword.isEmpty()) {
+                // Anmeldeinformationen nur setzen, wenn auch ein Benutzername vorhanden ist
+                if (!proxyUser.isBlank()) {
+                    // Setzt sowohl Standard- als auch NTLM-Credentials für den Proxy
+                    Credentials credentials = new UsernamePasswordCredentials(proxyUser, proxyPass.toCharArray());
+                    credentialsProvider.setCredentials(new AuthScope(proxy), credentials);
 
-                Credentials credentials = new UsernamePasswordCredentials(httpProxyUser, httpProxyPassword.toCharArray());
-                credentialsProvider.setCredentials(new AuthScope(null, -1), credentials);
+                    Credentials ntlmCredentials = new NTCredentials(proxyUser, proxyPass.toCharArray(), null, null);
+                    credentialsProvider.setCredentials(new AuthScope(proxy), ntlmCredentials);
+                }
+                // Der problematische 'else'-Block, der null setzt, wurde entfernt.
 
-                // Credentials ntlmCredentials = new NTCredentials(httpProxyUser, httpProxyPassword.toCharArray(), null, null);
-                // credentialsProvider.setCredentials(new AuthScope(null, -1), ntlmCredentials);
-                // credentialsProvider.setCredentials(new AuthScope(httpProxyHost, Integer.parseInt(httpProxyPort)), ntlmCredentials);
-            } else {
-                credentialsProvider.setCredentials(new AuthScope(null, -1), null);
+            } catch (NumberFormatException e) {
+                logger.error("Invalid proxy port number provided: '{}'", proxyPortStr, e);
+                return new ConnectionResult(url, 0, 0L, new String[0], "Invalid proxy port: " + proxyPortStr);
             }
         }
+
         long start = System.currentTimeMillis();
 
         try (CloseableHttpClient httpClient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credentialsProvider)
-                .setProxy(proxy)
+                .setProxy(proxy) // Ist null, wenn kein Proxy konfiguriert ist, was korrekt ist
                 .setConnectionManager(new BasicHttpClientConnectionManager())
                 .build()) {
             HttpGet httpGet = new HttpGet(url);
@@ -138,7 +142,7 @@ public class ConnectionServiceImpl implements ConnectionService {
                         text);
             });
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            logger.error("HTTP request failed: {}", e.getMessage());
             return new ConnectionResult(url, 0, 0L, new String[0], e.getMessage());
         }
     }

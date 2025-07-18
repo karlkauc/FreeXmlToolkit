@@ -89,19 +89,35 @@ public class SettingsController {
         logger.debug("Perform Connection Check");
         try {
             var connectionResult = connectionService.executeHttpRequest(new URI("https://www.github.com"));
+
+            // Prüfen, ob ein Ergebnis zurückgegeben wurde.
+            if (connectionResult == null) {
+                logger.error("Connection check failed. The connection service returned a null result.");
+                showAlert(Alert.AlertType.ERROR, "Connection Error", "The connection check failed. The connection service did not return a result. Please check proxy settings and application logs.");
+                return;
+            }
+
             logger.debug("HTTP Status: {}", connectionResult.httpStatus());
 
-            Alert alert = new Alert(connectionResult.httpStatus() == 200 ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
-            alert.setHeaderText(connectionResult.httpStatus() == 200 ? "Connection Check successful." : "Connection Check failed.");
+            // HTTP-Statuscodes im 2xx-Bereich als Erfolg werten
+            boolean isSuccess = connectionResult.httpStatus() >= 200 && connectionResult.httpStatus() < 300;
+
+            Alert alert = new Alert(isSuccess ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+            alert.setHeaderText(isSuccess ? "Connection Check successful." : "Connection Check failed.");
             alert.setTitle("Connection Check");
 
             StringBuilder headerString = new StringBuilder();
-            List.of(connectionResult.resultHeader()).forEach(h -> headerString.append(h).append(System.lineSeparator()));
+            if (connectionResult.resultHeader() != null) {
+                List.of(connectionResult.resultHeader()).forEach(h -> headerString.append(h).append(System.lineSeparator()));
+            }
             alert.setContentText(getString(headerString, connectionResult));
+            alert.setResizable(true); // Macht das Fenster in der Größe veränderbar
             alert.showAndWait();
 
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            // Logge die vollständige Exception für eine bessere Fehleranalyse
+            logger.error("An unexpected error occurred during the connection check.", e);
+            showAlert(Alert.AlertType.ERROR, "Connection Error", "An unexpected error occurred: " + e.getClass().getSimpleName() + ". See logs for details.");
         }
     }
 
