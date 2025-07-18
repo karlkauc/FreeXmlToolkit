@@ -25,8 +25,10 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +37,7 @@ import org.fxt.freexmltoolkit.domain.ConnectionResult;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -75,7 +78,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     /**
-     * Executes an HTTP request to the specified URL.
+     * Executes an HTTP request to the specified URL using saved properties.
      *
      * @param url the URI of the target URL
      * @return a ConnectionResult object containing the details of the HTTP response
@@ -86,6 +89,13 @@ public class ConnectionServiceImpl implements ConnectionService {
         return buildConnectionWithProperties(url, props);
     }
 
+    /**
+     * Executes an HTTP request using a transient set of properties, for testing purposes.
+     *
+     * @param url            the URI of the target URL
+     * @param testProperties a Properties object containing the connection settings to test
+     * @return a ConnectionResult object containing the details of the HTTP response
+     */
     @Override
     public ConnectionResult testHttpRequest(URI url, Properties testProperties) {
         return buildConnectionWithProperties(url, testProperties);
@@ -93,29 +103,39 @@ public class ConnectionServiceImpl implements ConnectionService {
 
     /**
      * Builds and executes an HTTP request based on a given set of properties.
-     * @param url The target URL.
+     *
+     * @param url   The target URL.
      * @param props The properties to use for configuration (e.g., proxy settings).
      * @return The result of the connection attempt.
      */
     private ConnectionResult buildConnectionWithProperties(URI url, Properties props) {
         boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
+        boolean useSystemProxy = Boolean.parseBoolean(props.getProperty("useSystemProxy", "false"));
         String proxyHost = props.getProperty("http.proxy.host", "");
         String proxyPortStr = props.getProperty("http.proxy.port", "");
         String proxyUser = props.getProperty("http.proxy.user", "");
         String proxyPass = props.getProperty("http.proxy.password", "");
 
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        HttpHost proxy = null;
+        HttpClientBuilder clientBuilder = HttpClients.custom()
+                .setDefaultCredentialsProvider(credentialsProvider)
+                .setConnectionManager(new BasicHttpClientConnectionManager());
 
-        // Proxy nur konfigurieren, wenn die manuelle Konfiguration aktiv ist und Host/Port angegeben sind
-        if (useManualProxy && !proxyHost.isBlank() && !proxyPortStr.isBlank()) {
+        if (useSystemProxy) {
+            logger.debug("Using system default proxy settings.");
+            // KORREKTUR: Verwendet setRoutePlanner mit der korrekten Klasse
+            clientBuilder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
+        } else if (useManualProxy && !proxyHost.isBlank() && !proxyPortStr.isBlank()) {
+            logger.debug("Using manual proxy settings: {}:{}", proxyHost, proxyPortStr);
+            // Configures the manual proxy
             try {
                 int proxyPort = Integer.parseInt(proxyPortStr);
-                proxy = new HttpHost(proxyHost, proxyPort);
+                HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+                clientBuilder.setProxy(proxy);
 
-                // Anmeldeinformationen nur setzen, wenn auch ein Benutzername vorhanden ist
+                // Set credentials only if a username is provided
                 if (!proxyUser.isBlank()) {
-                    // Setzt sowohl Standard- als auch NTLM-Credentials für den Proxy
+                    logger.debug("... with user credentials.");
                     Credentials credentials = new UsernamePasswordCredentials(proxyUser, proxyPass.toCharArray());
                     credentialsProvider.setCredentials(new AuthScope(proxy), credentials);
 
@@ -126,15 +146,13 @@ public class ConnectionServiceImpl implements ConnectionService {
                 logger.error("Invalid proxy port number provided: '{}'", proxyPortStr, e);
                 return new ConnectionResult(url, 0, 0L, new String[0], "Invalid proxy port: " + proxyPortStr);
             }
+        } else {
+            logger.debug("No proxy will be used.");
         }
 
         long start = System.currentTimeMillis();
 
-        try (CloseableHttpClient httpClient = HttpClients.custom()
-                .setDefaultCredentialsProvider(credentialsProvider)
-                .setProxy(proxy) // Ist null, wenn kein Proxy konfiguriert ist, was korrekt ist
-                .setConnectionManager(new BasicHttpClientConnectionManager())
-                .build()) {
+        try (CloseableHttpClient httpClient = clientBuilder.build()) {
             HttpGet httpGet = new HttpGet(url);
 
             return httpClient.execute(httpGet, response -> {
@@ -159,5 +177,4 @@ public class ConnectionServiceImpl implements ConnectionService {
             return new ConnectionResult(url, 0, 0L, new String[0], e.getMessage());
         }
     }
-
 }

@@ -46,7 +46,10 @@ public class SettingsController {
     RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder;
 
     @FXML
-    TextField customTempFolder, httpProxyHost, httpProxyUser, httpProxyPass, noProxyHost;
+    TextField customTempFolder, httpProxyHost, httpProxyUser, noProxyHost;
+
+    @FXML
+    PasswordField httpProxyPass;
 
     @FXML
     Spinner<Integer> portSpinner;
@@ -65,9 +68,10 @@ public class SettingsController {
 
     @FXML
     public void initialize() {
-        portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, 8080));
+        portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 65535, 8080));
         loadCurrentSettings();
 
+        // Listener, um die Eingabefelder zu (de)aktivieren
         manualProxy.selectedProperty().addListener((observable, oldValue, newValue) -> enableProxyFields(newValue));
         useCustomTempFolder.selectedProperty().addListener((observable, oldValue, newValue) -> enableTempFolderFields(newValue));
     }
@@ -90,6 +94,7 @@ public class SettingsController {
 
         // Temporäre Properties mit den aktuellen UI-Werten erstellen
         Properties testProps = new Properties();
+        testProps.setProperty("useSystemProxy", String.valueOf(systemProxy.isSelected()));
         testProps.setProperty("manualProxy", String.valueOf(manualProxy.isSelected()));
         testProps.setProperty("http.proxy.host", httpProxyHost.getText());
         testProps.setProperty("http.proxy.port", portSpinner.getValue().toString());
@@ -131,12 +136,13 @@ public class SettingsController {
 
     private static @NotNull String getString(StringBuilder headerString, ConnectionResult connectionResult) {
         final String temp = headerString.toString().trim();
+        final String body = connectionResult.resultBody() != null ? connectionResult.resultBody().trim() : "";
 
         return "URL: " + connectionResult.url() + "\n\n" +
                 "Http Status: " + connectionResult.httpStatus() + "\n\n" +
                 "Duration: " + connectionResult.duration() + " ms\n\n" +
                 "Result Header: \n" + temp.substring(0, Math.min(temp.length(), 100)) + "\n\n" +
-                "Result Body: \n" + connectionResult.resultBody().trim().substring(0, Math.min(connectionResult.resultBody().trim().length(), 100)) + "...";
+                "Result Body: \n" + body.substring(0, Math.min(body.length(), 100)) + "...";
     }
 
     @FXML
@@ -181,17 +187,33 @@ public class SettingsController {
     private void loadCurrentSettings() {
         props = propertiesService.loadProperties();
 
-        if (props.get("http.proxy.host") != null && !props.get("http.proxy.host").toString().isEmpty()) {
+        // Proxy-Einstellungen laden
+        boolean useSystem = Boolean.parseBoolean(props.getProperty("useSystemProxy", "true"));
+        boolean useManual = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
+
+        if (useManual) {
             manualProxy.setSelected(true);
-            httpProxyHost.setText(props.get("http.proxy.host").toString());
-            portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 9999, Integer.parseInt(props.get("http.proxy.port").toString())));
-            httpProxyUser.setText(props.get("http.proxy.user").toString());
-            httpProxyPass.setText(props.get("http.proxy.password").toString());
+            enableProxyFields(true);
+            httpProxyHost.setText(props.getProperty("http.proxy.host", ""));
+            int port = 8080;
+            try {
+                port = Integer.parseInt(props.getProperty("http.proxy.port", "8080"));
+            } catch (NumberFormatException e) {
+                logger.warn("Invalid port in settings, defaulting to 8080.");
+            }
+            portSpinner.getValueFactory().setValue(port);
+            httpProxyUser.setText(props.getProperty("http.proxy.user", ""));
+            httpProxyPass.setText(props.getProperty("http.proxy.password", ""));
+            noProxyHost.setText(props.getProperty("noProxyHost", ""));
+        } else if (useSystem) {
+            systemProxy.setSelected(true);
+            enableProxyFields(false);
         } else {
             noProxy.setSelected(true);
             enableProxyFields(false);
         }
 
+        // Temp-Ordner-Einstellungen laden
         if (props.get("customTempFolder") != null && !props.getProperty("customTempFolder").isBlank()) {
             useCustomTempFolder.setSelected(true);
             customTempFolder.setText(props.get("customTempFolder").toString());
