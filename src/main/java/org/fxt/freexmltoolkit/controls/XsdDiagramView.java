@@ -12,6 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import org.fxt.freexmltoolkit.controller.XsdController;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
+import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class XsdDiagramView {
     private Button saveDocumentationButton;
     private ListView<String> exampleListView;
     private VBox exampleEditorPane;
-    private boolean isEditingSchemaDoc = true; // NEW: State flag to track if we are editing the main schema doc
+    private boolean isEditingSchemaDoc = true;
 
     // Styles
     private static final String NODE_LABEL_STYLE =
@@ -125,7 +126,7 @@ public class XsdDiagramView {
         nameLabel.setOnMouseClicked(event -> {
             updateDetailPane(node);
         });
-        // HINZUGEFÜGT: Label für Kardinalität erstellen und hinzufügen
+        // Label für Kardinalität erstellen und hinzufügen
         Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
         cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
 
@@ -325,21 +326,7 @@ public class XsdDiagramView {
         documentationTextArea.textProperty().addListener((obs, ov, nv) -> updateSaveButtonState.run());
         javadocTextArea.textProperty().addListener((obs, ov, nv) -> updateSaveButtonState.run());
 
-        Button editSchemaDocButton = new Button("Edit Schema Doc");
-        editSchemaDocButton.setTooltip(new Tooltip("Switches to editing the main schema documentation, keeping the current text."));
-        editSchemaDocButton.setOnAction(e -> {
-            this.selectedNode = null;
-            isEditingSchemaDoc = true; // Switch back to editing mode
-            // Re-enable editing
-            documentationTextArea.setEditable(true);
-            javadocTextArea.setEditable(true);
-            // Disable and clear example editor
-            exampleEditorPane.setDisable(true);
-            exampleListView.getItems().clear();
-            // Check immediately if the current content is different from the original schema doc
-            // to enable the save button if necessary.
-            updateSaveButtonState.run();
-        });
+        Button editSchemaDocButton = getButton(updateSaveButtonState);
 
         Button saveExamplesButton = new Button("Save Examples");
         saveExamplesButton.setGraphic(new FontIcon("bi-save"));
@@ -356,6 +343,25 @@ public class XsdDiagramView {
 
         titledPane.setContent(editorContent);
         return titledPane;
+    }
+
+    private @NotNull Button getButton(Runnable updateSaveButtonState) {
+        Button editSchemaDocButton = new Button("Edit Schema Doc");
+        editSchemaDocButton.setTooltip(new Tooltip("Switches to editing the main schema documentation, keeping the current text."));
+        editSchemaDocButton.setOnAction(e -> {
+            this.selectedNode = null;
+            isEditingSchemaDoc = true; // Switch back to editing mode
+            // Re-enable editing
+            documentationTextArea.setEditable(true);
+            javadocTextArea.setEditable(true);
+            // Disable and clear example editor
+            exampleEditorPane.setDisable(true);
+            exampleListView.getItems().clear();
+            // Check immediately if the current content is different from the original schema doc
+            // to enable the save button if necessary.
+            updateSaveButtonState.run();
+        });
+        return editSchemaDocButton;
     }
 
     /**

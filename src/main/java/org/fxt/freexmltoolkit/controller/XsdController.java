@@ -16,20 +16,17 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XsdDiagramView;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
-import org.reactfx.Subscription;
+import org.jetbrains.annotations.NotNull;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.XsdSchema;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static org.fxt.freexmltoolkit.controls.XmlEditor.computeHighlighting;
 
 public class XsdController {
 
@@ -171,12 +168,6 @@ public class XsdController {
         });
 
         sourceCodeTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sourceCodeTextArea));
-        Subscription RTHLSubscription = sourceCodeTextArea.multiPlainChanges()
-                .successionEnds(Duration.ofMillis(200))
-                .subscribe(ignore -> {
-                    sourceCodeTextArea.setStyleSpans(0, computeHighlighting(sourceCodeTextArea.getText()));
-                });
-
         generateSampleDataButton.disableProperty().bind(xsdForSampleDataPath.textProperty().isEmpty());
 
         SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 1);
@@ -184,9 +175,6 @@ public class XsdController {
 
         // Setup for the sample data CodeArea
         sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));
-        Subscription sampleHLSubscription = sampleDataTextArea.multiPlainChanges()
-                .successionEnds(Duration.ofMillis(500)) // slightly longer delay for potentially large generated files
-                .subscribe(ignore -> sampleDataTextArea.setStyleSpans(0, computeHighlighting(sampleDataTextArea.getText())));
     }
 
     @FXML
@@ -211,23 +199,9 @@ public class XsdController {
         }
     }
 
-    /**
-     * Loads a given XSD file programmatically.
-     * This can be called from a parent controller, for example to load a file from a recent files list.
-     *
-     * @param file The XSD file to load.
-     */
-    public void loadXsdFile(File file) {
-        if (file != null && file.exists()) {
-            xmlService.setCurrentXsdFile(file);
-            openXsdFile(file);
-        }
-    }
-
     // ======================================================================
     // Methoden für den "Graphic" Tab
     // ======================================================================
-
     private void openXsdFile(File file) {
         // Update properties with the newly opened file and its directory
         propertiesService.addLastOpenFile(file);
@@ -450,6 +424,13 @@ public class XsdController {
         openDocFolder.setDisable(true);
         statusText.setText("Starting documentation generation...");
 
+        Task<Void> generationTask = getGenerationTask(xsdFile, outputDir);
+
+        // 4. Start the task
+        executeTask(generationTask);
+    }
+
+    private @NotNull Task<Void> getGenerationTask(File xsdFile, File outputDir) {
         Task<Void> generationTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -487,9 +468,7 @@ public class XsdController {
         // 3. Define what happens on success or failure
         generationTask.setOnSucceeded(event -> handleDocumentationSuccess(outputDir));
         generationTask.setOnFailed(event -> handleDocumentationFailure(generationTask.getException()));
-
-        // 4. Start the task
-        executeTask(generationTask);
+        return generationTask;
     }
 
     @FXML
@@ -510,9 +489,6 @@ public class XsdController {
 
         if (selectedDirectory != null) {
             documentationOutputDirPath.setText(selectedDirectory.getAbsolutePath());
-            // Update last used directory
-            // propertiesService.setLastOpenDirectory(selectedDirectory.getAbsolutePath());
-            // HIER NICHT
         }
     }
 

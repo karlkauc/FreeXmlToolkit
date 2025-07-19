@@ -93,7 +93,6 @@ public class XsdViewService {
     // =================================================================================
     // Private Hilfsmethoden (aus XsdDocumentationService verschoben)
     // =================================================================================
-
     private XsdNodeInfo buildLightweightNodeRecursive(XsdParser parser, XsdAbstractElement element, String currentXPath, Set<XsdAbstractElement> visitedOnPath) {
         if (element == null) {
             return null;
@@ -114,63 +113,69 @@ public class XsdViewService {
         List<XsdNodeInfo> children = new ArrayList<>();
         List<String> exampleValues = new ArrayList<>();
 
-        if (element instanceof XsdElement xsdElement) {
-            name = xsdElement.getName();
-            type = xsdElement.getType();
-            minOccurs = String.valueOf(xsdElement.getMinOccurs());
-            maxOccurs = xsdElement.getMaxOccurs();
+        switch (element) {
+            case XsdElement xsdElement -> {
+                name = xsdElement.getName();
+                type = xsdElement.getType();
+                minOccurs = String.valueOf(xsdElement.getMinOccurs());
+                maxOccurs = xsdElement.getMaxOccurs();
 
-            XsdAnnotation annotation = xsdElement.getAnnotation();
-            if (annotation != null) {
-                documentation = annotation.getDocumentations().stream()
-                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
-                exampleValues.addAll(extractExampleValues(annotation));
-            }
-
-            XsdComplexType complexType = xsdElement.getXsdComplexType();
-            if (complexType == null && xsdElement.getType() != null) {
-                String typeName = xsdElement.getType();
-                complexType = parser.getResultXsdSchemas()
-                        .flatMap(XsdSchema::getChildrenComplexTypes)
-                        .filter(ct -> typeName.equals(ct.getRawName()))
-                        .findFirst().orElse(null);
-            }
-
-            if (complexType != null) {
-                XsdMultipleElements particle = getParticle(complexType);
-                if (particle != null) {
-                    addParticleChildren(parser, children, particle, currentXPath, visitedOnPath);
+                XsdAnnotation annotation = xsdElement.getAnnotation();
+                if (annotation != null) {
+                    documentation = annotation.getDocumentations().stream()
+                            .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
+                    exampleValues.addAll(extractExampleValues(annotation));
                 }
-                complexType.getAllXsdAttributes().forEach(attribute ->
-                        children.add(buildLightweightNodeRecursive(parser, attribute, currentXPath + "/@" + attribute.getName(), visitedOnPath))
-                );
+
+                XsdComplexType complexType = xsdElement.getXsdComplexType();
+                if (complexType == null && xsdElement.getType() != null) {
+                    String typeName = xsdElement.getType();
+                    complexType = parser.getResultXsdSchemas()
+                            .flatMap(XsdSchema::getChildrenComplexTypes)
+                            .filter(ct -> typeName.equals(ct.getRawName()))
+                            .findFirst().orElse(null);
+                }
+
+                if (complexType != null) {
+                    XsdMultipleElements particle = getParticle(complexType);
+                    if (particle != null) {
+                        addParticleChildren(parser, children, particle, currentXPath, visitedOnPath);
+                    }
+                    complexType.getAllXsdAttributes().forEach(attribute ->
+                            children.add(buildLightweightNodeRecursive(parser, attribute, currentXPath + "/@" + attribute.getName(), visitedOnPath))
+                    );
+                }
+
             }
+            case XsdAttribute xsdAttribute -> {
+                name = "@" + xsdAttribute.getName();
+                type = xsdAttribute.getType();
+                minOccurs = "required".equals(xsdAttribute.getUse()) ? "1" : "0";
+                maxOccurs = "1";
 
-        } else if (element instanceof XsdAttribute xsdAttribute) {
-            name = "@" + xsdAttribute.getName();
-            type = xsdAttribute.getType();
-            minOccurs = "required".equals(xsdAttribute.getUse()) ? "1" : "0";
-            maxOccurs = "1";
-
-            XsdAnnotation annotation = xsdAttribute.getAnnotation();
-            if (annotation != null) {
-                documentation = annotation.getDocumentations().stream()
-                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
-                exampleValues.addAll(extractExampleValues(annotation));
+                XsdAnnotation annotation = xsdAttribute.getAnnotation();
+                if (annotation != null) {
+                    documentation = annotation.getDocumentations().stream()
+                            .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
+                    exampleValues.addAll(extractExampleValues(annotation));
+                }
             }
-        } else if (element instanceof XsdAny xsdAny) {
-            name = "any";
-            String namespaceInfo = xsdAny.getNamespace() != null ? xsdAny.getNamespace() : "##any";
-            String processContentsInfo = xsdAny.getProcessContents() != null ? xsdAny.getProcessContents() : "strict";
-            type = String.format("Wildcard (namespace: %s, process: %s)", namespaceInfo, processContentsInfo);
-            minOccurs = String.valueOf(xsdAny.getMinOccurs());
-            maxOccurs = xsdAny.getMaxOccurs();
+            case XsdAny xsdAny -> {
+                name = "any";
+                String namespaceInfo = xsdAny.getNamespace() != null ? xsdAny.getNamespace() : "##any";
+                String processContentsInfo = xsdAny.getProcessContents() != null ? xsdAny.getProcessContents() : "strict";
+                type = String.format("Wildcard (namespace: %s, process: %s)", namespaceInfo, processContentsInfo);
+                minOccurs = String.valueOf(xsdAny.getMinOccurs());
+                maxOccurs = xsdAny.getMaxOccurs();
 
-            XsdAnnotation annotation = xsdAny.getAnnotation();
-            if (annotation != null) {
-                documentation = annotation.getDocumentations().stream()
-                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
-                exampleValues.addAll(extractExampleValues(annotation));
+                XsdAnnotation annotation = xsdAny.getAnnotation();
+                if (annotation != null) {
+                    documentation = annotation.getDocumentations().stream()
+                            .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
+                    exampleValues.addAll(extractExampleValues(annotation));
+                }
+            }
+            default -> {
             }
         }
 
@@ -186,9 +191,6 @@ public class XsdViewService {
             if (content.getXsdExtension() != null) contentChild = content.getXsdExtension();
             else if (content.getXsdRestriction() != null) contentChild = content.getXsdRestriction();
 
-            if (contentChild instanceof XsdMultipleElements) {
-                return (XsdMultipleElements) contentChild;
-            }
         } else if (complexType.getChildAsSequence() != null) return complexType.getChildAsSequence();
         else if (complexType.getChildAsChoice() != null) return complexType.getChildAsChoice();
         else if (complexType.getChildAsAll() != null) return complexType.getChildAsAll();
@@ -201,12 +203,15 @@ public class XsdViewService {
                 .map(ReferenceBase::getElement)
                 .filter(Objects::nonNull)
                 .forEach(child -> {
-                    if (child instanceof XsdElement xsdElement) {
-                        children.add(buildLightweightNodeRecursive(parser, xsdElement, parentXpath + "/" + xsdElement.getName(), visitedOnPath));
-                    } else if (child instanceof XsdMultipleElements xsdMultipleElements) {
-                        addParticleChildren(parser, children, xsdMultipleElements, parentXpath, visitedOnPath);
-                    } else if (child instanceof XsdAny xsdAny) {
-                        children.add(buildLightweightNodeRecursive(parser, xsdAny, parentXpath + "/any", visitedOnPath));
+                    switch (child) {
+                        case XsdElement xsdElement ->
+                                children.add(buildLightweightNodeRecursive(parser, xsdElement, parentXpath + "/" + xsdElement.getName(), visitedOnPath));
+                        case XsdMultipleElements xsdMultipleElements ->
+                                addParticleChildren(parser, children, xsdMultipleElements, parentXpath, visitedOnPath);
+                        case XsdAny xsdAny ->
+                                children.add(buildLightweightNodeRecursive(parser, xsdAny, parentXpath + "/any", visitedOnPath));
+                        default -> {
+                        }
                     }
                 });
     }
