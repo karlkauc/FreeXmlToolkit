@@ -40,6 +40,9 @@ public class XsdDiagramView {
                     "-fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 5px 10px; " +
                     "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0d47a1; -fx-cursor: hand;";
 
+    private static final String CARDINALITY_LABEL_STYLE =
+            "-fx-font-size: 12px; -fx-text-fill: #555; -fx-font-family: 'Consolas', 'Monaco', monospace;";
+
     private static final String TOGGLE_BUTTON_STYLE =
             "-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #0d47a1; -fx-padding: 0 5px; -fx-cursor: hand;";
 
@@ -122,7 +125,12 @@ public class XsdDiagramView {
         nameLabel.setOnMouseClicked(event -> {
             updateDetailPane(node);
         });
-        nameAndToggleRow.getChildren().add(nameLabel);
+        // HINZUGEFÜGT: Label für Kardinalität erstellen und hinzufügen
+        Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
+        cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
+
+        // Das Label für den Namen und die Kardinalität in die Zeile einfügen
+        nameAndToggleRow.getChildren().addAll(nameLabel, cardinalityLabel);
 
         if (!node.children().isEmpty()) {
             Label toggleButton = new Label("+");
@@ -160,6 +168,26 @@ public class XsdDiagramView {
         nodeContainer.getChildren().addAll(parentInfoContainer, childrenContainer);
 
         return nodeContainer;
+    }
+
+    /**
+     * HINZUGEFÜGT: Eine Hilfsmethode, um die Kardinalität schön zu formatieren.
+     *
+     * @param minOccurs Die minOccurs-Zeichenkette.
+     * @param maxOccurs Die maxOccurs-Zeichenkette.
+     * @return Ein formatierter String wie "[1..*]" oder "[1..1]".
+     */
+    private String formatCardinality(String minOccurs, String maxOccurs) {
+        // Standardwerte setzen, falls null
+        String min = (minOccurs == null) ? "1" : minOccurs;
+        String max = (maxOccurs == null) ? "1" : maxOccurs;
+
+        // "unbounded" durch "*" ersetzen für eine kompaktere Darstellung
+        if ("unbounded".equalsIgnoreCase(max)) {
+            max = "*";
+        }
+
+        return String.format("[%s..%s]", min, max);
     }
 
     /**

@@ -11,6 +11,9 @@ import java.util.List;
  * @param documentation Die aus <xs:annotation> extrahierte Dokumentation.
  * @param children      Eine Liste der Kind-Knoten.
  * @param xpath         Der eindeutige XPath zu diesem Element, dient als Schlüssel.
+ * @param exampleValues Eine Liste von Beispielwerten.
+ * @param minOccurs     Die minimale Anzahl des Vorkommens (z.B. "0", "1").
+ * @param maxOccurs     Die maximale Anzahl des Vorkommens (z.B. "1", "unbounded").
  */
 public record XsdNodeInfo(
         String name,
@@ -18,5 +21,7 @@ public record XsdNodeInfo(
         String xpath,
         String documentation,
         List<XsdNodeInfo> children,
-        List<String> exampleValues // <-- NEUES FELD HINZUFÜGEN
+        List<String> exampleValues,
+        String minOccurs, // <-- NEU
+        String maxOccurs  // <-- NEU
 ) {}

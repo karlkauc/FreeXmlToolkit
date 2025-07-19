@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxt.freexmltoolkit.controls.XsdDiagramView;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
 import org.reactfx.Subscription;
@@ -304,7 +305,7 @@ public class XsdController {
             xsdInfoVersionLabel.setText(result.version());
 
             if (result.rootNode() != null) {
-                org.fxt.freexmltoolkit.controls.XsdDiagramView diagramView = new org.fxt.freexmltoolkit.controls.XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc());
+                XsdDiagramView diagramView = new XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc());
                 xsdStackPane.getChildren().add(diagramView.build());
             } else {
                 Label infoLabel = new Label("No root element found in schema.");

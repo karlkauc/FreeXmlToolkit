@@ -21,11 +21,11 @@ package org.fxt.freexmltoolkit.service;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
-import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
-import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
 import org.fxt.freexmltoolkit.domain.JavadocInfo;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
+import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
+import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -728,82 +728,6 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Baut den Baum für die grafische Ansicht aus den bereits verarbeiteten XSD-Daten.
-     *
-     * @return Der Wurzelknoten des Baumes oder null, wenn keiner gefunden wurde.
-     */
-    public XsdNodeInfo buildTreeFromProcessedData() {
-        if (xsdDocumentationData.getExtendedXsdElementMap().isEmpty()) {
-            logger.warn("XSD data has not been processed yet. Processing now.");
-            processXsd(false);
-        }
-
-        ExtendedXsdElement rootXsdElement = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
-                .filter(e -> e.getParentXpath().isEmpty() || e.getParentXpath().equals("/"))
-                .findFirst()
-                .orElse(null);
-
-        if (rootXsdElement == null) {
-            logger.error("No root element found to build the diagram tree.");
-            return null;
-        }
-
-        return buildNodeInfoRecursive(rootXsdElement);
-    }
-
-    /**
-     * Rekursive Hilfsmethode zum Aufbau des XsdNodeInfo-Baums.
-     */
-    private XsdNodeInfo buildNodeInfoRecursive(ExtendedXsdElement element) {
-        if (element == null) return null;
-
-        List<XsdNodeInfo> children = new ArrayList<>();
-        if (element.hasChildren()) {
-            for (String childXPath : element.getChildren()) {
-                ExtendedXsdElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
-                if (childElement != null) {
-                    children.add(buildNodeInfoRecursive(childElement));
-                }
-            }
-        }
-
-        String doc = "";
-        if (element.getXsdDocumentation() != null && !element.getXsdDocumentation().isEmpty()) {
-            doc = element.getXsdDocumentation().getFirst().getContent();
-        }
-        List<String> exampleValues = new ArrayList<>();
-        if (element.getXsdElement() != null && element.getXsdElement().getAnnotation() != null) {
-            exampleValues.addAll(extractExampleValues(element.getXsdElement().getAnnotation()));
-        }
-
-        return new XsdNodeInfo(
-                element.getElementName(),
-                element.getElementType(),
-                element.getCurrentXpath(),
-                doc,
-                children,
-                exampleValues
-        );
-    }
-
-    /**
-     * Erstellt einen leichtgewichtigen Baum für die Diagrammansicht direkt aus der XSD-Datei,
-     * ohne die aufwändige Dokumentationsverarbeitung durchzuführen.
-     *
-     * @param xsdPath Der Pfad zur XSD-Datei.
-     * @return Der Wurzelknoten des Baumes (XsdNodeInfo) oder null bei einem Fehler.
-     */
-    public XsdNodeInfo buildLightweightTree(String xsdPath) {
-        try {
-            // Delegiere an die Methode, die eine Parser-Instanz entgegennimmt.
-            return buildLightweightTree(new XsdParser(xsdPath));
-        } catch (Exception e) {
-            logger.error("Fehler beim Parsen der XSD-Datei: " + xsdPath, e);
-            return null;
-        }
-    }
-
-    /**
      * Erstellt einen leichtgewichtigen Baum für die Diagrammansicht aus einer bereits
      * bestehenden Parser-Instanz.
      *
@@ -839,19 +763,27 @@ public class XsdDocumentationService {
         if (visitedOnPath.contains(element)) {
             logger.warn("Recursion detected on element {}, path {}. Stopping this branch.", element, currentXPath);
             String elementName = (element instanceof XsdElement xsdEl) ? xsdEl.getName() + " (recursive)" : "Recursive...";
-            return new XsdNodeInfo(elementName, "", currentXPath, "Recursive definition, traversal stopped.", Collections.emptyList(), Collections.emptyList());
+            // NEU: Konstruktor mit Kardinalitätsfeldern aufrufen
+            return new XsdNodeInfo(elementName, "", currentXPath, "Recursive definition, traversal stopped.", Collections.emptyList(), Collections.emptyList(), "1", "1");
         }
         visitedOnPath.add(element); // Element zum aktuellen Pfad hinzufügen
 
         String name = "";
         String type = "";
         String documentation = "";
+        // NEU: Variablen für Kardinalität mit Standardwerten initialisieren
+        String minOccurs = "1";
+        String maxOccurs = "1";
         List<XsdNodeInfo> children = new ArrayList<>();
         List<String> exampleValues = new ArrayList<>();
 
         if (element instanceof XsdElement xsdElement) {
             name = xsdElement.getName();
             type = xsdElement.getType();
+            // NEU: Kardinalität aus dem XSD-Element auslesen
+            minOccurs = String.valueOf(xsdElement.getMinOccurs());
+            maxOccurs = xsdElement.getMaxOccurs();
+
             XsdAnnotation annotation = xsdElement.getAnnotation();
 
             // Extrahiere Dokumentation direkt vom Element oder seinem Typ
@@ -859,7 +791,7 @@ public class XsdDocumentationService {
                 documentation = xsdElement.getAnnotation().getDocumentations().stream()
                         .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
             }
-            
+
             exampleValues.addAll(extractExampleValues(annotation));
 
             // Sammle Kinder (Elemente und Attribute)
@@ -918,9 +850,17 @@ public class XsdDocumentationService {
 
         } else if (element instanceof XsdAttribute xsdAttribute) {
             name = "@" + xsdAttribute.getName();
-            type = xsdAttribute.getType();             
+            type = xsdAttribute.getType();
+            // NEU: Kardinalität für Attribute ableiten (use="required" vs. "optional")
+            if ("required".equals(xsdAttribute.getUse())) {
+                minOccurs = "1";
+            } else {
+                minOccurs = "0"; // Gilt für "optional" und "prohibited"
+            }
+            maxOccurs = "1"; // Attribute können immer nur einmal vorkommen
+
             XsdAnnotation annotation = xsdAttribute.getAnnotation();
-            
+
             if (xsdAttribute.getAnnotation() != null) {
                 documentation = xsdAttribute.getAnnotation().getDocumentations().stream()
                         .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
@@ -931,6 +871,11 @@ public class XsdDocumentationService {
             String namespaceInfo = xsdAny.getNamespace() != null ? xsdAny.getNamespace() : "##any";
             String processContentsInfo = xsdAny.getProcessContents() != null ? xsdAny.getProcessContents() : "strict";
             type = String.format("Wildcard (namespace: %s, process: %s)", namespaceInfo, processContentsInfo);
+
+            // NEU: Kardinalität für <xs:any> auslesen
+            minOccurs = String.valueOf(xsdAny.getMinOccurs());
+            maxOccurs = xsdAny.getMaxOccurs();
+
             XsdAnnotation annotation = xsdAny.getAnnotation();
             if (xsdAny.getAnnotation() != null) {
                 documentation = xsdAny.getAnnotation().getDocumentations().stream()
@@ -947,7 +892,9 @@ public class XsdDocumentationService {
                 currentXPath,
                 documentation,
                 children,
-                exampleValues
+                exampleValues,
+                minOccurs,
+                maxOccurs
         );
     }
 
