@@ -23,30 +23,21 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
 import org.fxt.freexmltoolkit.domain.JavadocInfo;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
-import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 import org.xmlet.xsdparser.core.XsdParser;
 import org.xmlet.xsdparser.xsdelements.*;
-import org.xmlet.xsdparser.xsdelements.elementswrapper.ReferenceBase;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
@@ -727,245 +718,6 @@ public class XsdDocumentationService {
         }
     }
 
-    /**
-     * Erstellt einen leichtgewichtigen Baum für die Diagrammansicht aus einer bereits
-     * bestehenden Parser-Instanz.
-     *
-     * @param parser Die bereits initialisierte XsdParser-Instanz.
-     * @return Der Wurzelknoten des Baumes (XsdNodeInfo) oder null bei einem Fehler.
-     */
-    public XsdNodeInfo buildLightweightTree(XsdParser parser) {
-        XsdElement rootElement = parser.getResultXsdElements().findFirst().orElse(null);
-
-        if (rootElement == null) {
-            logger.error("Kein Wurzelelement im Schema gefunden.");
-            return null;
-        }
-        // Starte die Rekursion mit einem leeren Set für den Pfad
-        return buildLightweightNodeRecursive(parser, rootElement, "/" + rootElement.getName(), new HashSet<>());
-    }
-
-    /**
-     * Rekursive Hilfsmethode, um den XsdNodeInfo-Baum aus den nativen Parser-Objekten aufzubauen.
-     *
-     * @param parser        Die Parser-Instanz, um globale Typen aufzulösen.
-     * @param element       Das aktuelle XSD-Element (oder Attribut) vom Parser.
-     * @param currentXPath  Der aktuelle XPath zu diesem Element.
-     * @param visitedOnPath Ein Set der Elemente im aktuellen Rekursionspfad, um Zyklen zu erkennen.
-     * @return Ein XsdNodeInfo-Objekt, das dieses Element und seine Kinder repräsentiert.
-     */
-    private XsdNodeInfo buildLightweightNodeRecursive(XsdParser parser, XsdAbstractElement element, String currentXPath, Set<XsdAbstractElement> visitedOnPath) {
-        if (element == null) {
-            return null;
-        }
-
-        // Rekursionsschutz: Prüfen, ob das Element bereits auf dem aktuellen Pfad besucht wurde.
-        if (visitedOnPath.contains(element)) {
-            logger.warn("Recursion detected on element {}, path {}. Stopping this branch.", element, currentXPath);
-            String elementName = (element instanceof XsdElement xsdEl) ? xsdEl.getName() + " (recursive)" : "Recursive...";
-            // NEU: Konstruktor mit Kardinalitätsfeldern aufrufen
-            return new XsdNodeInfo(elementName, "", currentXPath, "Recursive definition, traversal stopped.", Collections.emptyList(), Collections.emptyList(), "1", "1");
-        }
-        visitedOnPath.add(element); // Element zum aktuellen Pfad hinzufügen
-
-        String name = "";
-        String type = "";
-        String documentation = "";
-        // NEU: Variablen für Kardinalität mit Standardwerten initialisieren
-        String minOccurs = "1";
-        String maxOccurs = "1";
-        List<XsdNodeInfo> children = new ArrayList<>();
-        List<String> exampleValues = new ArrayList<>();
-
-        if (element instanceof XsdElement xsdElement) {
-            name = xsdElement.getName();
-            type = xsdElement.getType();
-            // NEU: Kardinalität aus dem XSD-Element auslesen
-            minOccurs = String.valueOf(xsdElement.getMinOccurs());
-            maxOccurs = xsdElement.getMaxOccurs();
-
-            XsdAnnotation annotation = xsdElement.getAnnotation();
-
-            // Extrahiere Dokumentation direkt vom Element oder seinem Typ
-            if (xsdElement.getAnnotation() != null) {
-                documentation = xsdElement.getAnnotation().getDocumentations().stream()
-                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
-            }
-
-            exampleValues.addAll(extractExampleValues(annotation));
-
-            // Sammle Kinder (Elemente und Attribute)
-            // KORREKTUR: Die Logik wurde robuster gemacht, um Abstürze zu vermeiden
-            // und auch referenzierte globale Typen korrekt aufzulösen.
-            XsdComplexType complexType = xsdElement.getXsdComplexType();
-            if (complexType == null && xsdElement.getType() != null) {
-                // Wenn der Typ referenziert ist, suche ihn in den globalen Definitionen.
-                String typeName = xsdElement.getType();
-                complexType = parser.getResultXsdSchemas()
-                        .flatMap(XsdSchema::getChildrenComplexTypes)
-                        .filter(ct -> typeName.equals(ct.getRawName()))
-                        .findFirst().orElse(null);
-            }
-
-            if (complexType != null) {
-                // Behandle die verschachtelte Struktur sicher.
-                XsdMultipleElements particle = null;
-                if (complexType.getComplexContent() != null) {
-                    // Fall 1: Inhalt ist in <complexContent> (typisch für Vererbung)
-                    var content = complexType.getComplexContent();
-                    XsdAbstractElement contentChild = null;
-                    if (content.getXsdExtension() != null) {
-                        contentChild = content.getXsdExtension();
-                    } else if (content.getXsdRestriction() != null) {
-                        contentChild = content.getXsdRestriction();
-                    }
-
-                    // KORREKTUR: Prüfen, ob die Extension/Restriction Kind-Elemente enthalten kann.
-                    // In manchen Fällen (z.B. nur Hinzufügen von Attributen) ist dies nicht der Fall,
-                    // was zu einem ClassCastException führen würde.
-                    if (contentChild instanceof XsdMultipleElements) {
-                        particle = (XsdMultipleElements) contentChild;
-                    }
-                } else if (complexType.getSimpleContent() != null) {
-                    // KORREKTUR: Fall 1b: Inhalt ist simpleContent.
-                    // Ein complexType mit simpleContent hat keine Kind-Elemente, nur Attribute.
-                    // Das explizite Abfangen verhindert den Absturz in der Parser-Bibliothek.
-                    // Die Attribute werden weiter unten separat verarbeitet.
-                } else {
-                    // Fall 2: Direkte Partikel wie <sequence>, <choice>
-                    if (complexType.getChildAsSequence() != null) particle = complexType.getChildAsSequence();
-                    else if (complexType.getChildAsChoice() != null) particle = complexType.getChildAsChoice();
-                    else if (complexType.getChildAsAll() != null) particle = complexType.getChildAsAll();
-                }
-
-                if (particle != null) {
-                    addParticleChildren(parser, children, particle, currentXPath, visitedOnPath);
-                }
-
-                // Attribute hinzufügen
-                complexType.getAllXsdAttributes().forEach(attribute ->
-                        children.add(buildLightweightNodeRecursive(parser, attribute, currentXPath + "/@" + attribute.getName(), visitedOnPath))
-                );
-            }
-
-        } else if (element instanceof XsdAttribute xsdAttribute) {
-            name = "@" + xsdAttribute.getName();
-            type = xsdAttribute.getType();
-            // NEU: Kardinalität für Attribute ableiten (use="required" vs. "optional")
-            if ("required".equals(xsdAttribute.getUse())) {
-                minOccurs = "1";
-            } else {
-                minOccurs = "0"; // Gilt für "optional" und "prohibited"
-            }
-            maxOccurs = "1"; // Attribute können immer nur einmal vorkommen
-
-            XsdAnnotation annotation = xsdAttribute.getAnnotation();
-
-            if (xsdAttribute.getAnnotation() != null) {
-                documentation = xsdAttribute.getAnnotation().getDocumentations().stream()
-                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
-            }
-            exampleValues.addAll(extractExampleValues(annotation));
-        } else if (element instanceof XsdAny xsdAny) {
-            name = "any";
-            String namespaceInfo = xsdAny.getNamespace() != null ? xsdAny.getNamespace() : "##any";
-            String processContentsInfo = xsdAny.getProcessContents() != null ? xsdAny.getProcessContents() : "strict";
-            type = String.format("Wildcard (namespace: %s, process: %s)", namespaceInfo, processContentsInfo);
-
-            // NEU: Kardinalität für <xs:any> auslesen
-            minOccurs = String.valueOf(xsdAny.getMinOccurs());
-            maxOccurs = xsdAny.getMaxOccurs();
-
-            XsdAnnotation annotation = xsdAny.getAnnotation();
-            if (xsdAny.getAnnotation() != null) {
-                documentation = xsdAny.getAnnotation().getDocumentations().stream()
-                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
-            }
-            exampleValues.addAll(extractExampleValues(annotation));
-        }
-
-        visitedOnPath.remove(element); // Backtrack: Element vom Pfad entfernen, bevor die Methode verlassen wird
-
-        return new XsdNodeInfo(
-                name,
-                type != null ? type : "",
-                currentXPath,
-                documentation,
-                children,
-                exampleValues,
-                minOccurs,
-                maxOccurs
-        );
-    }
-
-    /**
-     * Rekursive Hilfsmethode, die die Kinder eines Partikels (sequence, choice, group) verarbeitet
-     * und zur Kinderliste des Elternknotens hinzufügt.
-     *
-     * @param parser        Die Parser-Instanz für weitere rekursive Aufrufe.
-     * @param children      Die Liste der Kinder des Elternknotens.
-     * @param particle      Das Partikel-Element (sequence, choice, etc.).
-     * @param parentXpath   Der XPath des Elternknotens.
-     * @param visitedOnPath Das Set der besuchten Elemente zur Rekursionserkennung.
-     */
-    private void addParticleChildren(XsdParser parser, List<XsdNodeInfo> children, XsdMultipleElements particle, String parentXpath, Set<XsdAbstractElement> visitedOnPath) {
-        particle.getElements().stream()
-                .map(ReferenceBase::getElement)
-                .filter(Objects::nonNull)
-                .forEach(child -> {
-                    if (child instanceof XsdElement xsdElement) {
-                        // Für ein Element, erstelle einen neuen Knoten mit einem neuen XPath.
-                        children.add(buildLightweightNodeRecursive(parser, xsdElement, parentXpath + "/" + xsdElement.getName(), visitedOnPath));
-                    } else if (child instanceof XsdMultipleElements xsdMultipleElements) {
-                        // Für Container (choice, sequence, group), verarbeite deren Kinder rekursiv,
-                        // ohne den XPath zu ändern.
-                        addParticleChildren(parser, children, xsdMultipleElements, parentXpath, visitedOnPath);
-                    } else if (child instanceof XsdAny xsdAny) {
-                        // Erstelle einen Knoten für <xs:any>.
-                        children.add(buildLightweightNodeRecursive(parser, xsdAny, parentXpath + "/any", visitedOnPath));
-                    }
-                });
-    }
-
-    private List<String> extractExampleValues(XsdAnnotation annotation) {
-        if (annotation == null || annotation.getAppInfoList() == null) {
-            return Collections.emptyList();
-        }
-
-        List<String> values = new ArrayList<>();
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-
-        try {
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            for (XsdAppInfo appInfo : annotation.getAppInfoList()) {
-                String content = appInfo.getContent();
-                if (content == null || content.isBlank() || !content.contains("exampleValues")) {
-                    continue;
-                }
-
-                // Parse the content string as an XML document
-                try {
-                    // Wrap content in a dummy root to ensure it's well-formed XML
-                    Document doc = builder.parse(new InputSource(new StringReader("<dummy>" + content + "</dummy>")));
-
-                    // Use XPath to find the example values. Using local-name() to be prefix-agnostic.
-                    XPath xpath = XPathFactory.newInstance().newXPath();
-                    NodeList exampleNodes = (NodeList) xpath.evaluate("//*[local-name()='example']/@value", doc, XPathConstants.NODESET);
-
-                    for (int i = 0; i < exampleNodes.getLength(); i++) {
-                        values.add(exampleNodes.item(i).getNodeValue());
-                    }
-                } catch (SAXException | IOException | XPathExpressionException e) {
-                    logger.warn("Could not parse appinfo content or evaluate XPath for example values. Content: '{}', Error: {}", content, e.getMessage());
-                }
-            }
-        } catch (ParserConfigurationException e) {
-            logger.error("Could not create DocumentBuilder for parsing appinfo.", e);
-        }
-        return values;
-    }
-    
     private void executeAndTrack(String taskName, Runnable task) {
         if (progressListener != null) {
             // Melde den Start des Tasks
@@ -980,48 +732,5 @@ public class XsdDocumentationService {
             // Melde das Ende des Tasks mit der benötigten Zeit
             progressListener.onProgressUpdate(new ProgressUpdate(taskName, Status.FINISHED, durationNanos / 1_000_000));
         }
-    }
-
-    // Fügen Sie dieses Record hinzu, um die Daten strukturiert zurückzugeben.
-    public record DocumentationParts(String mainDocumentation, String javadocContent) {}
-
-    /**
-     * Extrahiert den allgemeinen Dokumentationstext und die Javadoc-Tags
-     * aus der Annotation eines XSD-Schemas.
-     *
-     * @param schema Das zu analysierende Schema.
-     * @return Ein DocumentationParts-Objekt mit den getrennten Inhalten.
-     */
-    public DocumentationParts extractDocumentationParts(XsdSchema schema) {
-        if (schema == null || schema.getAnnotation() == null || schema.getAnnotation().getDocumentations().isEmpty()) {
-            return new DocumentationParts("", "");
-        }
-
-        // KORREKTUR: Alle Dokumentations-Tags zusammenführen, nicht nur das erste.
-        // Dies stellt sicher, dass der gesamte Dokumentationstext erfasst wird.
-        String fullDoc = schema.getAnnotation().getDocumentations().stream()
-                .map(XsdAnnotationChildren::getContent)
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining("\n\n"));
-
-        if (fullDoc.isBlank()) {
-            return new DocumentationParts("", "");
-        }
-
-        // Trennt die Javadoc-Tags (@...) vom Rest des Textes
-        String[] lines = fullDoc.split("\\r?\\n");
-        StringBuilder mainDocBuilder = new StringBuilder();
-        StringBuilder javadocBuilder = new StringBuilder();
-
-        for (String line : lines) {
-            if (line.trim().startsWith("@")) {
-                javadocBuilder.append(line).append("\n");
-            } else {
-                mainDocBuilder.append(line).append("\n");
-            }
-        }
-
-        // Entfernt überflüssige Leerzeilen am Ende
-        return new DocumentationParts(mainDocBuilder.toString().trim(), javadocBuilder.toString().trim());
     }
 }

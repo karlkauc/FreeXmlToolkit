@@ -274,8 +274,8 @@ public class XsdController {
                 String fileContent = Files.readString(currentXsdFile.toPath());
                 // Langwierige Operation: Parsen und Baum erstellen
                 XsdParser parser = new XsdParser(currentXsdFile.getAbsolutePath());
-                XsdDocumentationService docService = new XsdDocumentationService();
-                XsdNodeInfo rootNode = docService.buildLightweightTree(parser);
+                XsdViewService viewService = new XsdViewService();
+                XsdNodeInfo rootNode = viewService.buildLightweightTree(parser);
 
                 // Metadaten und Dokumentation extrahieren
                 String targetNamespace = "Not defined";
@@ -288,7 +288,7 @@ public class XsdController {
                     }
 
                     // Dokumentation und Javadoc auslesen
-                    var docParts = docService.extractDocumentationParts(rootSchema);
+                    var docParts = viewService.extractDocumentationParts(rootSchema);
                     return new DiagramData(rootNode, targetNamespace, version, docParts.mainDocumentation(), docParts.javadocContent(), fileContent);
                 }
 
