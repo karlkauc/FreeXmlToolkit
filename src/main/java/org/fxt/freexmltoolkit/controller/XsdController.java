@@ -178,6 +178,9 @@ public class XsdController {
 
         generateSampleDataButton.disableProperty().bind(xsdForSampleDataPath.textProperty().isEmpty());
 
+        SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 1);
+        maxOccurrencesSpinner.setValueFactory(valueFactory);
+
         // Setup for the sample data CodeArea
         sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));
         Subscription sampleHLSubscription = sampleDataTextArea.multiPlainChanges()

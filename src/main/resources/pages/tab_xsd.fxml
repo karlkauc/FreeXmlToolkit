@@ -334,7 +334,6 @@
             <graphic>
                 <FontIcon iconLiteral="bi-keyboard" iconSize="16"/>
             </graphic>
-            <!-- UPDATED: Changed BorderPane to a VBox for consistent layout -->
             <VBox spacing="15" style="-fx-padding: 20px; -fx-background-color: white;">
                 <VBox spacing="10">
                     <!-- ADDED: Descriptive text for the Sample Data tab -->
@@ -370,7 +369,7 @@
                         <HBox spacing="20" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="2">
                             <CheckBox fx:id="mandatoryOnlyCheckBox" text="Create mandatory elements only"/>
                             <Label text="Max occurrences for repeating elements:"/>
-                            <Spinner fx:id="maxOccurrencesSpinner" editable="true" initialValue="1" prefWidth="70"/>
+                            <Spinner fx:id="maxOccurrencesSpinner" editable="true" prefWidth="70"/>
                         </HBox>
 
                         <columnConstraints>
