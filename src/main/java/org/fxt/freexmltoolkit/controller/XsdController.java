@@ -88,6 +88,9 @@ public class XsdController {
     @FXML
     private ProgressIndicator textProgress;
 
+    @FXML
+    private Button generateSampleDataButton;
+
     // ======================================================================
     // Felder und Methoden für den "Documentation" Tab
     // ======================================================================
@@ -172,6 +175,8 @@ public class XsdController {
                 .subscribe(ignore -> {
                     sourceCodeTextArea.setStyleSpans(0, computeHighlighting(sourceCodeTextArea.getText()));
                 });
+
+        generateSampleDataButton.disableProperty().bind(xsdForSampleDataPath.textProperty().isEmpty());
 
         // Setup for the sample data CodeArea
         sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));

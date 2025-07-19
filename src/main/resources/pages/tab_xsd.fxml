@@ -383,14 +383,15 @@
                             <RowConstraints/>
                         </rowConstraints>
                     </GridPane>
-                    <Button onAction="#generateSampleDataAction" text="Generate Sample XML" maxWidth="Infinity">
+                    <Button fx:id="generateSampleDataButton" onAction="#generateSampleDataAction"
+                            text="Generate Sample XML" disable="true">
                         <graphic>
                             <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
                         </graphic>
                     </Button>
                 </VBox>
 
-                <!-- UPDATED: Added VBox.vgrow to make the text area fill the remaining space -->
+                <!-- Added VBox.vgrow to make the text area fill the remaining space -->
                 <StackPane VBox.vgrow="ALWAYS">
                     <CodeArea fx:id="sampleDataTextArea"/>
                     <ProgressIndicator fx:id="progressSampleData" maxWidth="80" maxHeight="80" visible="false"/>
