@@ -24,7 +24,7 @@ public class XsdDiagramView {
     private final String initialDoc;
     private final String initialJavadoc;
 
-    private VBox detailPane; // The container for the detail information
+    private VBox detailPane;
     private XsdNodeInfo selectedNode;
 
     // Editor components
@@ -74,11 +74,9 @@ public class XsdDiagramView {
             return new Label("No element information found.");
         }
 
-        // Main content area is a SplitPane
         SplitPane splitPane = new SplitPane();
-        splitPane.setDividerPositions(0.8); // 80% for the tree, 20% for details
+        splitPane.setDividerPositions(0.8);
 
-        // Left side: The diagram tree in a ScrollPane
         VBox diagramContainer = new VBox();
         diagramContainer.setPadding(new Insets(10));
         diagramContainer.setAlignment(Pos.CENTER_LEFT);
@@ -88,25 +86,21 @@ public class XsdDiagramView {
         treeScrollPane.setFitToWidth(true);
         treeScrollPane.setFitToHeight(true);
 
-        // Right side: Use a BorderPane to pin the editor to the bottom.
         BorderPane rightPaneLayout = new BorderPane();
         rightPaneLayout.setStyle(DETAIL_PANE_STYLE);
 
-        // Center: Scrollable detail view.
-        detailPane = new VBox(10); // Container for node-specific details
+        detailPane = new VBox(10);
         Label placeholder = new Label("Click on a node to view details.");
         detailPane.getChildren().add(placeholder);
 
         ScrollPane detailScrollPane = new ScrollPane(detailPane);
         detailScrollPane.setFitToWidth(true);
         detailScrollPane.setFitToHeight(true);
-        // Make the scrollpane transparent, as the BorderPane provides the background and border
         detailScrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
         rightPaneLayout.setCenter(detailScrollPane);
 
-        // Bottom: The editor pane.
-        Node editorPane = createEditorPane(); // The TitledPane
-        BorderPane.setMargin(editorPane, new Insets(10, 0, 0, 0)); // Add some space above the editor
+        Node editorPane = createEditorPane();
+        BorderPane.setMargin(editorPane, new Insets(10, 0, 0, 0));
         rightPaneLayout.setBottom(editorPane);
 
         splitPane.getItems().addAll(treeScrollPane, rightPaneLayout);
@@ -114,20 +108,14 @@ public class XsdDiagramView {
     }
 
     private Node createNodeView(XsdNodeInfo node, int depth) {
-        // GEÄNDERT: Wir verwenden ein switch, um je nach Knotentyp unterschiedlich zu rendern.
         return switch (node.nodeType()) {
-            case ELEMENT, ATTRIBUTE -> // Attribute werden wie Elemente behandelt, aber ohne Kinder
-                    createElementNodeView(node);
+            case ELEMENT, ATTRIBUTE, ANY -> createElementNodeView(node);
             case SEQUENCE -> createStructuralNodeView(node, "SEQUENCE", SEQUENCE_NODE_STYLE);
             case CHOICE -> createStructuralNodeView(node, "CHOICE", CHOICE_NODE_STYLE);
-            case ANY ->
-                // Könnte auch eine eigene Darstellung bekommen, hier wie ein Element
-                    createElementNodeView(node);
             default -> new Label("Unknown Node Type: " + node.name());
         };
     }
 
-    // NEU: Eigene Methode für die Darstellung von Elementen (der bisherige Code aus createNodeView)
     private Node createElementNodeView(XsdNodeInfo node) {
         HBox nodeContainer = new HBox(15);
         nodeContainer.setAlignment(Pos.CENTER_LEFT);
@@ -148,7 +136,8 @@ public class XsdDiagramView {
         nameAndToggleRow.getChildren().addAll(nameLabel, cardinalityLabel);
 
         if (!node.children().isEmpty()) {
-            addToggleButton(nameAndToggleRow, childrenContainer);
+            // GEÄNDERT: Die Logik zum Lazy Loading wird hier übergeben
+            addToggleButton(nameAndToggleRow, childrenContainer, node);
         }
 
         parentInfoContainer.getChildren().add(nameAndToggleRow);
@@ -161,17 +150,15 @@ public class XsdDiagramView {
             parentInfoContainer.getChildren().add(docLabel);
         }
 
-        for (XsdNodeInfo childNode : node.children()) {
-            childrenContainer.getChildren().add(createNodeView(childNode, 0)); // Tiefe ist hier weniger relevant
-        }
+        // ENTFERNT: Die Schleife zum Erstellen der Kinder wird nicht mehr hier ausgeführt.
+        // Sie wird jetzt bei Bedarf im Toggle-Button-Handler ausgeführt.
 
         nodeContainer.getChildren().addAll(parentInfoContainer, childrenContainer);
         return nodeContainer;
     }
 
-    // NEU: Eigene Methode für die Darstellung von Sequence und Choice
     private Node createStructuralNodeView(XsdNodeInfo node, String title, String style) {
-        VBox structuralContainer = new VBox(5); // Hauptcontainer für diesen Knoten
+        VBox structuralContainer = new VBox(5);
 
         HBox titleRow = new HBox(5);
         titleRow.setAlignment(Pos.CENTER_LEFT);
@@ -184,28 +171,50 @@ public class XsdDiagramView {
         titleRow.getChildren().addAll(titleLabel, cardinalityLabel);
 
         VBox childrenContainer = new VBox(5);
-        childrenContainer.setPadding(new Insets(5, 0, 5, 20)); // Kinder einrücken
+        childrenContainer.setPadding(new Insets(5, 0, 5, 20));
         childrenContainer.setVisible(false);
         childrenContainer.setManaged(false);
 
         if (!node.children().isEmpty()) {
-            addToggleButton(titleRow, childrenContainer);
-            for (XsdNodeInfo childNode : node.children()) {
-                childrenContainer.getChildren().add(createNodeView(childNode, 0));
-            }
+            // GEÄNDERT: Die Logik zum Lazy Loading wird hier übergeben
+            addToggleButton(titleRow, childrenContainer, node);
         }
+
+        // ENTFERNT: Die Schleife zum Erstellen der Kinder wird nicht mehr hier ausgeführt.
 
         structuralContainer.getChildren().addAll(titleRow, childrenContainer);
         return structuralContainer;
     }
 
-    // NEU: Hilfsmethode, um doppelten Code für den Toggle-Button zu vermeiden
-    private void addToggleButton(HBox parentRow, VBox childrenContainer) {
+    /**
+     * GEÄNDERT: Diese Methode enthält jetzt die Kernlogik für das Lazy Loading.
+     * Sie fügt einen Toggle-Button hinzu, der die Kind-Knoten erst dann erstellt,
+     * wenn er zum ersten Mal geklickt wird.
+     *
+     * @param parentRow         Die HBox, zu der der Button hinzugefügt wird.
+     * @param childrenContainer Der VBox-Container, der die Kinder aufnehmen wird.
+     * @param node              Das Datenmodell des Eltern-Knotens, dessen Kinder geladen werden sollen.
+     */
+    private void addToggleButton(HBox parentRow, VBox childrenContainer, XsdNodeInfo node) {
         Label toggleButton = new Label("+");
         toggleButton.setStyle(TOGGLE_BUTTON_STYLE);
+
         final boolean[] isExpanded = {false};
+        final boolean[] childrenLoaded = {false}; // Flag, um zu prüfen, ob die Kinder schon geladen wurden
+
         toggleButton.setOnMouseClicked(event -> {
             isExpanded[0] = !isExpanded[0];
+
+            // Nur beim ersten Expandieren die Kinder-UI-Elemente erstellen
+            if (isExpanded[0] && !childrenLoaded[0]) {
+                for (XsdNodeInfo childNode : node.children()) {
+                    // Hier findet das "Lazy Loading" statt!
+                    childrenContainer.getChildren().add(createNodeView(childNode, 0));
+                }
+                childrenLoaded[0] = true; // Markieren, dass die Kinder geladen sind
+            }
+
+            // Sichtbarkeit umschalten
             childrenContainer.setVisible(isExpanded[0]);
             childrenContainer.setManaged(isExpanded[0]);
             toggleButton.setText(isExpanded[0] ? "−" : "+");
@@ -213,30 +222,15 @@ public class XsdDiagramView {
         parentRow.getChildren().add(toggleButton);
     }
 
-    /**
-     * HINZUGEFÜGT: Eine Hilfsmethode, um die Kardinalität schön zu formatieren.
-     *
-     * @param minOccurs Die minOccurs-Zeichenkette.
-     * @param maxOccurs Die maxOccurs-Zeichenkette.
-     * @return Ein formatierter String wie "[1..*]" oder "[1..1]".
-     */
     private String formatCardinality(String minOccurs, String maxOccurs) {
-        // Standardwerte setzen, falls null
         String min = (minOccurs == null) ? "1" : minOccurs;
         String max = (maxOccurs == null) ? "1" : maxOccurs;
-
-        // "unbounded" durch "*" ersetzen für eine kompaktere Darstellung
         if ("unbounded".equalsIgnoreCase(max)) {
             max = "*";
         }
-
         return String.format("[%s..%s]", min, max);
     }
 
-    /**
-     * Fills the detail area with information from the selected element.
-     * This version uses only the lightweight XsdNodeInfo.
-     */
     private void updateDetailPane(XsdNodeInfo node) {
         detailPane.getChildren().clear();
         if (node == null) {
@@ -260,24 +254,20 @@ public class XsdDiagramView {
             docHeader.setStyle(DETAIL_LABEL_STYLE);
             detailPane.getChildren().add(docHeader);
 
-            // Use a WebView to render potentially HTML-formatted documentation
             WebView docView = new WebView();
             docView.getEngine().loadContent("<html><body style='font-family: sans-serif; font-size: 13px;'>" + node.documentation() + "</body></html>");
-            docView.setPrefHeight(200); // Give it some initial size
+            docView.setPrefHeight(200);
             detailPane.getChildren().add(docView);
         }
 
-        // Update the editor pane with the documentation of the selected node
         this.selectedNode = node;
-        isEditingSchemaDoc = false; // Switch to "viewing" mode
+        isEditingSchemaDoc = false;
         this.documentationTextArea.setText(node.documentation() != null ? node.documentation() : "");
-        this.javadocTextArea.setText(""); // Sub-nodes don't have separate Javadoc
-        // When viewing a node's doc, make the editor read-only and disable saving.
+        this.javadocTextArea.setText("");
         this.documentationTextArea.setEditable(false);
         this.javadocTextArea.setEditable(false);
         this.saveDocumentationButton.setDisable(true);
 
-        // Populate and enable the example editor
         this.exampleListView.getItems().setAll(node.exampleValues());
         this.exampleEditorPane.setDisable(false);
     }
@@ -287,11 +277,9 @@ public class XsdDiagramView {
         titledPane.setAnimated(true);
         titledPane.setExpanded(false);
 
-        // The main container for all editor sections, with increased spacing
         VBox editorContent = new VBox(15);
         editorContent.setPadding(new Insets(10, 5, 5, 5));
 
-        // --- Documentation Section ---
         Label docLabel = new Label("Documentation");
         docLabel.getStyleClass().add("h3");
         this.documentationTextArea = new TextArea(initialDoc);
@@ -301,7 +289,6 @@ public class XsdDiagramView {
         VBox docSection = new VBox(5, docLabel, documentationTextArea);
         docSection.setStyle("-fx-background-color: #f0f4f8; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #dfe6ee; -fx-border-radius: 8;");
 
-        // --- Javadoc Section ---
         Label javadocLabel = new Label("Javadoc");
         javadocLabel.getStyleClass().add("h3");
         this.javadocTextArea = new TextArea(initialJavadoc);
@@ -313,12 +300,11 @@ public class XsdDiagramView {
 
         this.saveDocumentationButton = new Button("Save Documentation");
         saveDocumentationButton.setGraphic(new FontIcon("bi-save"));
-        saveDocumentationButton.setDisable(true); // Start disabled, as content is not "dirty" yet
+        saveDocumentationButton.setDisable(true);
         saveDocumentationButton.setOnAction(event -> controller.saveDocumentation(documentationTextArea.getText(), javadocTextArea.getText()));
 
-        // --- Example Values Section ---
         this.exampleEditorPane = new VBox(10);
-        exampleEditorPane.setDisable(true); // Disabled by default
+        exampleEditorPane.setDisable(true);
         exampleEditorPane.setStyle("-fx-background-color: #fffaf0; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #faebd7; -fx-border-radius: 8;");
 
         Label exampleValuesLabel = new Label("Example Values");
@@ -352,14 +338,12 @@ public class XsdDiagramView {
 
         exampleEditorPane.getChildren().addAll(exampleValuesLabel, exampleListView, addExampleBox, removeExampleButton);
 
-        // Add listeners to enable the save button on change, but only in schema-editing mode.
         Runnable updateSaveButtonState = () -> {
             if (isEditingSchemaDoc) {
-                // KORREKTUR: Verwende Objects.equals für einen null-sicheren Vergleich.
                 boolean docChanged = !java.util.Objects.equals(documentationTextArea.getText(), initialDoc);
                 boolean javadocChanged = !java.util.Objects.equals(javadocTextArea.getText(), initialJavadoc);
                 boolean isDirty = docChanged || javadocChanged;
-                saveDocumentationButton.setDisable(!isDirty || controller == null); // Nur aktivieren, wenn "dirty" und Controller vorhanden
+                saveDocumentationButton.setDisable(!isDirty || controller == null);
             } else {
                 saveDocumentationButton.setDisable(true);
             }
@@ -392,28 +376,19 @@ public class XsdDiagramView {
         editSchemaDocButton.setTooltip(new Tooltip("Switches to editing the main schema documentation, keeping the current text."));
         editSchemaDocButton.setOnAction(e -> {
             this.selectedNode = null;
-            isEditingSchemaDoc = true; // Switch back to editing mode
-            // Re-enable editing
+            isEditingSchemaDoc = true;
             documentationTextArea.setEditable(true);
             javadocTextArea.setEditable(true);
-            // Disable and clear example editor
             exampleEditorPane.setDisable(true);
             exampleListView.getItems().clear();
-            // Check immediately if the current content is different from the original schema doc
-            // to enable the save button if necessary.
             updateSaveButtonState.run();
         });
         return editSchemaDocButton;
     }
 
-    /**
-     * Adds a row to the detail grid.
-     * This method is now null-safe and has an improved layout.
-     */
     private void addDetailRow(GridPane grid, int rowIndex, String labelText, String valueText) {
-        // Handle null values to prevent crashes
         if (valueText == null) {
-            valueText = ""; // Use an empty string instead of null
+            valueText = "";
         }
 
         Label label = new Label(labelText);
@@ -422,7 +397,7 @@ public class XsdDiagramView {
 
         Label value = new Label(valueText);
         value.setWrapText(true);
-        value.setMaxWidth(300); // Adjusts the width
+        value.setMaxWidth(300);
 
         grid.add(label, 0, rowIndex);
         grid.add(value, 1, rowIndex);
