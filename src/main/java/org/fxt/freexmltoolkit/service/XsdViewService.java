@@ -22,6 +22,7 @@ import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +33,10 @@ import java.util.stream.Collectors;
 public class XsdViewService {
 
     private static final Logger logger = LogManager.getLogger(XsdViewService.class);
+
+    // NEU: Caches für schnellen Zugriff auf Typdefinitionen
+    private Map<String, XsdComplexType> complexTypeMap;
+    private Map<String, XsdSimpleType> simpleTypeMap;
 
     // Ein Record, um die extrahierten Dokumentationsteile strukturiert zurückzugeben.
     public record DocumentationParts(String mainDocumentation, String javadocContent) {
@@ -45,6 +50,9 @@ public class XsdViewService {
      * @return Der Wurzelknoten des Baumes (XsdNodeInfo) oder null bei einem Fehler.
      */
     public XsdNodeInfo buildLightweightTree(XsdParser parser) {
+        // OPTIMIERT: Initialisiere die Caches für einen schnellen Typ-Lookup.
+        initializeTypeCaches(parser);
+
         XsdElement rootElement = parser.getResultXsdElements().findFirst().orElse(null);
 
         if (rootElement == null) {
@@ -52,8 +60,36 @@ public class XsdViewService {
             return null;
         }
         // Starte die Rekursion mit einem leeren Set für den Pfad
-        return buildLightweightNodeRecursive(parser, rootElement, "/" + rootElement.getName(), new HashSet<>());
+        return buildLightweightNodeRecursive(rootElement, "/" + rootElement.getName(), new HashSet<>());
     }
+
+    /**
+     * NEU: Initialisiert die Maps für komplexe und einfache Typen, um die
+     * wiederholte Suche im Schema zu vermeiden. Dies ist der Schlüssel zur Performance-Verbesserung.
+     *
+     * @param parser Die XsdParser-Instanz.
+     */
+    private void initializeTypeCaches(XsdParser parser) {
+        // Sammelt alle ComplexTypes aus allen Schemas in einer Map.
+        // Bei doppelten Namen wird der erste gefundene verwendet (üblicherweise korrekt).
+        this.complexTypeMap = parser.getResultXsdSchemas()
+                .flatMap(XsdSchema::getChildrenComplexTypes)
+                .collect(Collectors.toMap(
+                        XsdComplexType::getRawName,
+                        Function.identity(),
+                        (existing, replacement) -> existing // Bei Duplikaten den ersten behalten
+                ));
+
+        // Sammelt alle SimpleTypes aus allen Schemas in einer Map.
+        this.simpleTypeMap = parser.getResultXsdSchemas()
+                .flatMap(XsdSchema::getChildrenSimpleTypes)
+                .collect(Collectors.toMap(
+                        XsdSimpleType::getRawName,
+                        Function.identity(),
+                        (existing, replacement) -> existing // Bei Duplikaten den ersten behalten
+                ));
+    }
+
 
     /**
      * Extrahiert den allgemeinen Dokumentationstext und die Javadoc-Tags
@@ -92,17 +128,19 @@ public class XsdViewService {
 
 
     // =================================================================================
-    // Private Hilfsmethoden (aus XsdDocumentationService verschoben)
+    // Private Hilfsmethoden
     // =================================================================================
-    private XsdNodeInfo buildLightweightNodeRecursive(XsdParser parser, XsdAbstractElement element, String currentXPath, Set<XsdAbstractElement> visitedOnPath) {
+
+    private XsdNodeInfo buildLightweightNodeRecursive(XsdAbstractElement element, String currentXPath, Set<XsdAbstractElement> visitedOnPath) {
         if (element == null) {
             return null;
         }
 
+        // Rekursionsschutz: Wenn wir ein Element auf dem aktuellen Pfad erneut besuchen, stoppen wir.
         if (visitedOnPath.contains(element)) {
             logger.warn("Recursion detected on element {}, path {}. Stopping this branch.", element, currentXPath);
             String elementName = (element instanceof XsdElement xsdEl) ? xsdEl.getName() + " (recursive)" : "Recursive...";
-            return new XsdNodeInfo(elementName, "", currentXPath, "Recursive definition, traversal stopped.", Collections.emptyList(), Collections.emptyList(), "1", "1", NodeType.ELEMENT);
+            return new XsdNodeInfo(elementName, "recursive", currentXPath, "Recursive definition, traversal stopped.", Collections.emptyList(), Collections.emptyList(), "1", "1", NodeType.ELEMENT);
         }
         visitedOnPath.add(element);
 
@@ -130,21 +168,18 @@ public class XsdViewService {
             }
 
             XsdComplexType complexType = xsdElement.getXsdComplexType();
+            // OPTIMIERT: Schneller Typ-Lookup aus dem Cache statt langsamer Suche im Schema.
             if (complexType == null && xsdElement.getType() != null) {
-                String typeName = xsdElement.getType();
-                complexType = parser.getResultXsdSchemas()
-                        .flatMap(XsdSchema::getChildrenComplexTypes)
-                        .filter(ct -> typeName.equals(ct.getRawName()))
-                        .findFirst().orElse(null);
+                complexType = complexTypeMap.get(xsdElement.getType());
             }
 
             if (complexType != null) {
                 XsdMultipleElements particle = getParticle(complexType);
                 if (particle != null) {
-                    children.add(buildLightweightNodeRecursive(parser, particle, currentXPath, visitedOnPath));
+                    children.add(buildLightweightNodeRecursive(particle, currentXPath, visitedOnPath));
                 }
                 complexType.getAllXsdAttributes().forEach(attribute ->
-                        children.add(buildLightweightNodeRecursive(parser, attribute, currentXPath + "/@" + attribute.getName(), visitedOnPath))
+                        children.add(buildLightweightNodeRecursive(attribute, currentXPath + "/@" + attribute.getName(), visitedOnPath))
                 );
             }
 
@@ -180,7 +215,7 @@ public class XsdViewService {
             minOccurs = String.valueOf(sequence.getMinOccurs());
             maxOccurs = sequence.getMaxOccurs();
             nodeType = NodeType.SEQUENCE;
-            addParticleChildren(parser, children, sequence, currentXPath, visitedOnPath);
+            addParticleChildren(children, sequence, currentXPath, visitedOnPath);
 
         } else if (element instanceof XsdChoice choice) {
             name = "choice";
@@ -188,45 +223,90 @@ public class XsdViewService {
             minOccurs = String.valueOf(choice.getMinOccurs());
             maxOccurs = choice.getMaxOccurs();
             nodeType = NodeType.CHOICE;
-            addParticleChildren(parser, children, choice, currentXPath, visitedOnPath);
+            addParticleChildren(children, choice, currentXPath, visitedOnPath);
         }
 
+        // Entferne das Element vom Pfad, damit es in anderen Zweigen des Baumes wieder besucht werden kann.
         visitedOnPath.remove(element);
 
         return new XsdNodeInfo(name, type != null ? type : "", currentXPath, documentation, children, exampleValues, minOccurs, maxOccurs, nodeType);
     }
 
+    // In der Datei: /src/main/java/org/fxt/freexmltoolkit/service/XsdViewService.java
+
     /**
-     * KORRIGIERTE METHODE: Behandelt den Fall 'simpleContent' korrekt.
+     * KORRIGIERTE UND ROBUSTE METHODE: Umgeht einen NullPointerException in der xsd-parser-Bibliothek,
+     * indem Kind-Elemente sicher über die getElements()-Methode gesucht werden.
+     *
+     * @param complexType Der zu analysierende komplexe Typ.
+     * @return Das gefundene Partikel (Sequence, Choice, All) oder null.
      */
     private XsdMultipleElements getParticle(XsdComplexType complexType) {
-        // Zuerst prüfen, ob es sich um simpleContent handelt.
-        // Ein complexType mit simpleContent hat keine Kind-Elemente (Partikel).
+        // 1. Zuerst prüfen, ob es sich um simpleContent handelt.
+        // Ein complexType mit simpleContent hat per Definition keine Kind-Elemente (Partikel).
         if (complexType.getSimpleContent() != null) {
             return null;
         }
 
+        // 2. Prüfe auf complexContent, das eine Erweiterung oder Beschränkung enthalten kann.
         if (complexType.getComplexContent() != null) {
             var content = complexType.getComplexContent();
-            XsdAbstractElement contentChild = null;
-            if (content.getXsdExtension() != null) {
-                contentChild = content.getXsdExtension();
-            } else if (content.getXsdRestriction() != null) {
-                contentChild = content.getXsdRestriction();
+
+            // Fall A: complexContent mit einer Erweiterung (xs:extension)
+            XsdExtension extension = content.getXsdExtension();
+            if (extension != null) {
+                // WORKAROUND: Die getChildAs... Methoden des Parsers sind nicht null-sicher.
+                // Wir durchsuchen stattdessen die generische Kinderliste, um ein Partikel
+                // (sequence, choice, all) sicher zu finden, ohne eine NPE auszulösen.
+                Optional<XsdMultipleElements> particle = extension.getElements()
+                        .stream()
+                        .map(ReferenceBase::getElement)
+                        .filter(Objects::nonNull)
+                        .filter(XsdMultipleElements.class::isInstance)
+                        .map(XsdMultipleElements.class::cast)
+                        .findFirst();
+
+                if (particle.isPresent()) {
+                    return particle.get();
+                }
+                // Wenn die Erweiterung selbst kein Partikel hat, ist das in Ordnung.
+                // Die Vererbung wird durch die rekursive Struktur von buildLightweightNodeRecursive behandelt,
+                // die den Basistyp separat verarbeitet.
             }
 
-        } else if (complexType.getChildAsSequence() != null) {
+            // Fall B: complexContent mit einer Beschränkung (xs:restriction)
+            XsdRestriction restriction = content.getXsdRestriction();
+            if (restriction != null) {
+                // Auch hier verwenden wir den sicheren Ansatz über getElements()
+                Optional<XsdMultipleElements> particle = restriction.getElements()
+                        .stream()
+                        .map(ReferenceBase::getElement)
+                        .filter(Objects::nonNull)
+                        .filter(XsdMultipleElements.class::isInstance)
+                        .map(XsdMultipleElements.class::cast)
+                        .findFirst();
+
+                if (particle.isPresent()) {
+                    return particle.get();
+                }
+            }
+        }
+
+        // 3. Direkte Partikel-Kinder (wenn kein complexContent vorhanden ist)
+        // Diese Aufrufe sind sicher, da sie direkt auf dem ComplexType erfolgen.
+        if (complexType.getXsdChildElement() != null && complexType.getChildAsSequence() != null) {
             return complexType.getChildAsSequence();
-        } else if (complexType.getChildAsChoice() != null) {
+        } else if (complexType.getXsdChildElement() != null && complexType.getChildAsChoice() != null) {
             return complexType.getChildAsChoice();
-        } else if (complexType.getChildAsAll() != null) {
+        } else if (complexType.getXsdChildElement() != null && complexType.getChildAsAll() != null) {
             return complexType.getChildAsAll();
         }
 
-        return null; // Kein Partikel gefunden
+        // 4. Kein Partikel gefunden
+        return null;
     }
 
-    private void addParticleChildren(XsdParser parser, List<XsdNodeInfo> children, XsdMultipleElements particle, String parentXpath, Set<XsdAbstractElement> visitedOnPath) {
+    private void addParticleChildren(List<XsdNodeInfo> children, XsdMultipleElements particle, String parentXpath, Set<XsdAbstractElement> visitedOnPath) {
         particle.getElements().stream()
                 .map(ReferenceBase::getElement)
                 .filter(Objects::nonNull)
@@ -235,7 +315,7 @@ public class XsdViewService {
                     if (child instanceof XsdElement xsdElement) {
                         childPath += "/" + xsdElement.getName();
                     }
-                    XsdNodeInfo childNode = buildLightweightNodeRecursive(parser, child, childPath, visitedOnPath);
+                    XsdNodeInfo childNode = buildLightweightNodeRecursive(child, childPath, visitedOnPath);
                     if (childNode != null) {
                         children.add(childNode);
                     }

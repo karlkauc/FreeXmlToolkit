@@ -280,6 +280,7 @@ public class XsdController {
 
             if (result.rootNode() != null) {
                 XsdDiagramView diagramView = new XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc());
+                logger.debug("lade diagramm...");
                 xsdStackPane.getChildren().add(diagramView.build());
             } else {
                 Label infoLabel = new Label("No root element found in schema.");
