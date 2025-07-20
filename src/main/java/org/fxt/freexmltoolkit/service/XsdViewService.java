@@ -101,7 +101,7 @@ public class XsdViewService {
         if (visitedOnPath.contains(element)) {
             logger.warn("Recursion detected on element {}, path {}. Stopping this branch.", element, currentXPath);
             String elementName = (element instanceof XsdElement xsdEl) ? xsdEl.getName() + " (recursive)" : "Recursive...";
-            return new XsdNodeInfo(elementName, "", currentXPath, "Recursive definition, traversal stopped.", Collections.emptyList(), Collections.emptyList(), "1", "1");
+            return new XsdNodeInfo(elementName, "", currentXPath, "Recursive definition, traversal stopped.", Collections.emptyList(), Collections.emptyList(), "1", "1", XsdNodeInfo.NodeType.ELEMENT);
         }
         visitedOnPath.add(element);
 
@@ -110,6 +110,7 @@ public class XsdViewService {
         String documentation = "";
         String minOccurs = "1";
         String maxOccurs = "1";
+        XsdNodeInfo.NodeType nodeType = XsdNodeInfo.NodeType.ELEMENT;
         List<XsdNodeInfo> children = new ArrayList<>();
         List<String> exampleValues = new ArrayList<>();
 
@@ -119,6 +120,7 @@ public class XsdViewService {
                 type = xsdElement.getType();
                 minOccurs = String.valueOf(xsdElement.getMinOccurs());
                 maxOccurs = xsdElement.getMaxOccurs();
+                nodeType = XsdNodeInfo.NodeType.ELEMENT;
 
                 XsdAnnotation annotation = xsdElement.getAnnotation();
                 if (annotation != null) {
@@ -139,7 +141,7 @@ public class XsdViewService {
                 if (complexType != null) {
                     XsdMultipleElements particle = getParticle(complexType);
                     if (particle != null) {
-                        addParticleChildren(parser, children, particle, currentXPath, visitedOnPath);
+                        children.add(buildLightweightNodeRecursive(parser, particle, currentXPath, visitedOnPath));
                     }
                     complexType.getAllXsdAttributes().forEach(attribute ->
                             children.add(buildLightweightNodeRecursive(parser, attribute, currentXPath + "/@" + attribute.getName(), visitedOnPath))
@@ -152,6 +154,7 @@ public class XsdViewService {
                 type = xsdAttribute.getType();
                 minOccurs = "required".equals(xsdAttribute.getUse()) ? "1" : "0";
                 maxOccurs = "1";
+                nodeType = XsdNodeInfo.NodeType.ATTRIBUTE;
 
                 XsdAnnotation annotation = xsdAttribute.getAnnotation();
                 if (annotation != null) {
@@ -167,6 +170,7 @@ public class XsdViewService {
                 type = String.format("Wildcard (namespace: %s, process: %s)", namespaceInfo, processContentsInfo);
                 minOccurs = String.valueOf(xsdAny.getMinOccurs());
                 maxOccurs = xsdAny.getMaxOccurs();
+                nodeType = XsdNodeInfo.NodeType.ANY;
 
                 XsdAnnotation annotation = xsdAny.getAnnotation();
                 if (annotation != null) {
@@ -175,13 +179,31 @@ public class XsdViewService {
                     exampleValues.addAll(extractExampleValues(annotation));
                 }
             }
+            case XsdSequence sequence -> {
+                name = "sequence";
+                type = "Container";
+                minOccurs = String.valueOf(sequence.getMinOccurs());
+                maxOccurs = sequence.getMaxOccurs();
+                nodeType = XsdNodeInfo.NodeType.SEQUENCE;
+                // Rekursiv die Kinder der Sequenz hinzufügen
+                addParticleChildren(parser, children, sequence, currentXPath, visitedOnPath);
+            }
+            case XsdChoice choice -> {
+                name = "choice";
+                type = "Container";
+                minOccurs = String.valueOf(choice.getMinOccurs());
+                maxOccurs = choice.getMaxOccurs();
+                nodeType = XsdNodeInfo.NodeType.CHOICE;
+                // Rekursiv die Kinder der Auswahl hinzufügen
+                addParticleChildren(parser, children, choice, currentXPath, visitedOnPath);
+            }
             default -> {
             }
         }
 
         visitedOnPath.remove(element);
 
-        return new XsdNodeInfo(name, type != null ? type : "", currentXPath, documentation, children, exampleValues, minOccurs, maxOccurs);
+        return new XsdNodeInfo(name, type != null ? type : "", currentXPath, documentation, children, exampleValues, minOccurs, maxOccurs, nodeType);
     }
 
     private XsdMultipleElements getParticle(XsdComplexType complexType) {
@@ -203,15 +225,16 @@ public class XsdViewService {
                 .map(ReferenceBase::getElement)
                 .filter(Objects::nonNull)
                 .forEach(child -> {
-                    switch (child) {
-                        case XsdElement xsdElement ->
-                                children.add(buildLightweightNodeRecursive(parser, xsdElement, parentXpath + "/" + xsdElement.getName(), visitedOnPath));
-                        case XsdMultipleElements xsdMultipleElements ->
-                                addParticleChildren(parser, children, xsdMultipleElements, parentXpath, visitedOnPath);
-                        case XsdAny xsdAny ->
-                                children.add(buildLightweightNodeRecursive(parser, xsdAny, parentXpath + "/any", visitedOnPath));
-                        default -> {
-                        }
+                    // GEÄNDERT: Wir rufen jetzt immer buildLightweightNodeRecursive auf,
+                    // egal welcher Typ das Kind ist. Die Methode selbst kümmert sich um die
+                    // korrekte Behandlung von Element, Sequence, Choice etc.
+                    String childPath = parentXpath;
+                    if (child instanceof XsdElement xsdElement) {
+                        childPath += "/" + xsdElement.getName();
+                    }
+                    XsdNodeInfo childNode = buildLightweightNodeRecursive(parser, child, childPath, visitedOnPath);
+                    if (childNode != null) {
+                        children.add(childNode);
                     }
                 });
     }

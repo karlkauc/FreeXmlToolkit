@@ -37,9 +37,18 @@ public class XsdDiagramView {
 
     // Styles
     private static final String NODE_LABEL_STYLE =
-            "-fx-background-color: #eef4ff; -fx-border-color: #adc8ff; -fx-border-width: 1px; " +
-                    "-fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 5px 10px; " +
+            "-fx-background-color: #eef4ff; -fx-border-color: #adc8ff; -fx-border-width: 1px; " + "-fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 5px 10px; " +
                     "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0d47a1; -fx-cursor: hand;";
+
+    private static final String SEQUENCE_NODE_STYLE =
+            "-fx-background-color: #f5f5f5; -fx-border-color: #bdbdbd; -fx-border-width: 1px; -fx-border-style: solid; " +
+                    "-fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 5px 10px; " +
+                    "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #424242;";
+
+    private static final String CHOICE_NODE_STYLE =
+            "-fx-background-color: #fff8e1; -fx-border-color: #ffc107; -fx-border-width: 1px; -fx-border-style: dashed; " +
+                    "-fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 5px 10px; " +
+                    "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #856404;";
 
     private static final String CARDINALITY_LABEL_STYLE =
             "-fx-font-size: 12px; -fx-text-fill: #555; -fx-font-family: 'Consolas', 'Monaco', monospace;";
@@ -105,51 +114,45 @@ public class XsdDiagramView {
     }
 
     private Node createNodeView(XsdNodeInfo node, int depth) {
-        // The spacing between the parent block and the children block is set to 15.
+        // GEÄNDERT: Wir verwenden ein switch, um je nach Knotentyp unterschiedlich zu rendern.
+        return switch (node.nodeType()) {
+            case ELEMENT, ATTRIBUTE -> // Attribute werden wie Elemente behandelt, aber ohne Kinder
+                    createElementNodeView(node);
+            case SEQUENCE -> createStructuralNodeView(node, "SEQUENCE", SEQUENCE_NODE_STYLE);
+            case CHOICE -> createStructuralNodeView(node, "CHOICE", CHOICE_NODE_STYLE);
+            case ANY ->
+                // Könnte auch eine eigene Darstellung bekommen, hier wie ein Element
+                    createElementNodeView(node);
+            default -> new Label("Unknown Node Type: " + node.name());
+        };
+    }
+
+    // NEU: Eigene Methode für die Darstellung von Elementen (der bisherige Code aus createNodeView)
+    private Node createElementNodeView(XsdNodeInfo node) {
         HBox nodeContainer = new HBox(15);
-        // Vertically centers the child elements next to the parent element.
         nodeContainer.setAlignment(Pos.CENTER_LEFT);
-
-        // A dedicated VBox for the parent element's information (name, doc).
-        // This allows us to treat them as a single unit.
         VBox parentInfoContainer = new VBox(5);
-
         HBox nameAndToggleRow = new HBox(5);
         nameAndToggleRow.setAlignment(Pos.CENTER_LEFT);
-
         VBox childrenContainer = new VBox(5);
         childrenContainer.setVisible(false);
         childrenContainer.setManaged(false);
 
         Label nameLabel = new Label(node.name());
         nameLabel.setStyle(NODE_LABEL_STYLE);
-        nameLabel.setOnMouseClicked(event -> {
-            updateDetailPane(node);
-        });
-        // Label für Kardinalität erstellen und hinzufügen
+        nameLabel.setOnMouseClicked(event -> updateDetailPane(node));
+
         Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
         cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
 
-        // Das Label für den Namen und die Kardinalität in die Zeile einfügen
         nameAndToggleRow.getChildren().addAll(nameLabel, cardinalityLabel);
 
         if (!node.children().isEmpty()) {
-            Label toggleButton = new Label("+");
-            toggleButton.setStyle(TOGGLE_BUTTON_STYLE);
-            final boolean[] isExpanded = {false};
-            toggleButton.setOnMouseClicked(event -> {
-                isExpanded[0] = !isExpanded[0];
-                childrenContainer.setVisible(isExpanded[0]);
-                childrenContainer.setManaged(isExpanded[0]);
-                toggleButton.setText(isExpanded[0] ? "−" : "+");
-            });
-            nameAndToggleRow.getChildren().add(toggleButton);
+            addToggleButton(nameAndToggleRow, childrenContainer);
         }
 
-        // Add the row with name and toggle to the parent container
         parentInfoContainer.getChildren().add(nameAndToggleRow);
 
-        // Also add the documentation (if available) to the parent container
         if (node.documentation() != null && !node.documentation().isBlank()) {
             Label docLabel = new Label(node.documentation());
             docLabel.setStyle(DOC_LABEL_STYLE);
@@ -158,17 +161,56 @@ public class XsdDiagramView {
             parentInfoContainer.getChildren().add(docLabel);
         }
 
-        // Fill the container for the child elements
         for (XsdNodeInfo childNode : node.children()) {
-            // The indentation (depth) is less relevant for the new structure,
-            // but we keep it for the recursion.
-            childrenContainer.getChildren().add(createNodeView(childNode, depth + 1));
+            childrenContainer.getChildren().add(createNodeView(childNode, 0)); // Tiefe ist hier weniger relevant
         }
 
-        // Add the parent block and the children block to the main HBox container
         nodeContainer.getChildren().addAll(parentInfoContainer, childrenContainer);
-
         return nodeContainer;
+    }
+
+    // NEU: Eigene Methode für die Darstellung von Sequence und Choice
+    private Node createStructuralNodeView(XsdNodeInfo node, String title, String style) {
+        VBox structuralContainer = new VBox(5); // Hauptcontainer für diesen Knoten
+
+        HBox titleRow = new HBox(5);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+        titleRow.setStyle(style);
+
+        Label titleLabel = new Label(title);
+        Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
+        cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
+
+        titleRow.getChildren().addAll(titleLabel, cardinalityLabel);
+
+        VBox childrenContainer = new VBox(5);
+        childrenContainer.setPadding(new Insets(5, 0, 5, 20)); // Kinder einrücken
+        childrenContainer.setVisible(false);
+        childrenContainer.setManaged(false);
+
+        if (!node.children().isEmpty()) {
+            addToggleButton(titleRow, childrenContainer);
+            for (XsdNodeInfo childNode : node.children()) {
+                childrenContainer.getChildren().add(createNodeView(childNode, 0));
+            }
+        }
+
+        structuralContainer.getChildren().addAll(titleRow, childrenContainer);
+        return structuralContainer;
+    }
+
+    // NEU: Hilfsmethode, um doppelten Code für den Toggle-Button zu vermeiden
+    private void addToggleButton(HBox parentRow, VBox childrenContainer) {
+        Label toggleButton = new Label("+");
+        toggleButton.setStyle(TOGGLE_BUTTON_STYLE);
+        final boolean[] isExpanded = {false};
+        toggleButton.setOnMouseClicked(event -> {
+            isExpanded[0] = !isExpanded[0];
+            childrenContainer.setVisible(isExpanded[0]);
+            childrenContainer.setManaged(isExpanded[0]);
+            toggleButton.setText(isExpanded[0] ? "−" : "+");
+        });
+        parentRow.getChildren().add(toggleButton);
     }
 
     /**
