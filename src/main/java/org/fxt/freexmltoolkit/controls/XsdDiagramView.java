@@ -95,7 +95,7 @@ public class XsdDiagramView {
         diagramContainer.getChildren().add(rootNodeView);
 
         ScrollPane treeScrollPane = new ScrollPane(diagramContainer);
-        treeScrollPane.setFitToWidth(true);
+        treeScrollPane.setFitToWidth(false);
         treeScrollPane.setFitToHeight(true);
 
         BorderPane rightPaneLayout = new BorderPane();
@@ -179,7 +179,7 @@ public class XsdDiagramView {
         // Kinder in Attribute und Strukturelemente aufteilen
         List<XsdNodeInfo> attributes = node.children().stream()
                 .filter(c -> c.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE)
-                .collect(Collectors.toList());
+                .toList();
         List<XsdNodeInfo> structuralChildren = node.children().stream()
                 .filter(c -> c.nodeType() != XsdNodeInfo.NodeType.ATTRIBUTE)
                 .collect(Collectors.toList());
