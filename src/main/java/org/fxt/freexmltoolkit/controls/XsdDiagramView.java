@@ -16,6 +16,8 @@ import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class XsdDiagramView {
 
@@ -40,6 +42,10 @@ public class XsdDiagramView {
             "-fx-background-color: #eef4ff; -fx-border-color: #adc8ff; -fx-border-width: 1px; " + "-fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 5px 10px; " +
                     "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0d47a1; -fx-cursor: hand;";
 
+    private static final String ATTRIBUTE_LABEL_STYLE =
+            "-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 1px; " + "-fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 3px 8px; " +
+                    "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px; -fx-font-weight: normal; -fx-text-fill: #495057; -fx-cursor: hand;";
+
     private static final String SEQUENCE_NODE_STYLE =
             "-fx-background-color: #f5f5f5; -fx-border-color: #bdbdbd; -fx-border-width: 1px; -fx-border-style: solid; " +
                     "-fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 5px 10px; " +
@@ -49,6 +55,11 @@ public class XsdDiagramView {
             "-fx-background-color: #fff8e1; -fx-border-color: #ffc107; -fx-border-width: 1px; -fx-border-style: dashed; " +
                     "-fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 5px 10px; " +
                     "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #856404;";
+
+    private static final String ANY_NODE_STYLE =
+            "-fx-background-color: #e9ecef; -fx-border-color: #ced4da; -fx-border-width: 1px; -fx-border-style: dotted; " +
+                    "-fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 5px 10px; " +
+                    "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #495057;";
 
     private static final String CARDINALITY_LABEL_STYLE =
             "-fx-font-size: 12px; -fx-text-fill: #555; -fx-font-family: 'Consolas', 'Monaco', monospace;";
@@ -75,13 +86,14 @@ public class XsdDiagramView {
         }
 
         SplitPane splitPane = new SplitPane();
-        splitPane.setDividerPositions(0.8);
+        splitPane.setDividerPositions(0.75);
 
         VBox diagramContainer = new VBox();
         diagramContainer.setPadding(new Insets(10));
-        diagramContainer.setAlignment(Pos.CENTER_LEFT);
-        Node rootNodeView = createNodeView(rootNode, 0);
+        diagramContainer.setAlignment(Pos.TOP_LEFT);
+        Node rootNodeView = createNodeView(rootNode);
         diagramContainer.getChildren().add(rootNodeView);
+
         ScrollPane treeScrollPane = new ScrollPane(diagramContainer);
         treeScrollPane.setFitToWidth(true);
         treeScrollPane.setFitToHeight(true);
@@ -107,24 +119,43 @@ public class XsdDiagramView {
         return splitPane;
     }
 
-    private Node createNodeView(XsdNodeInfo node, int depth) {
+    /**
+     * Haupt-Dispatch-Methode, die entscheidet, welche Art von Ansicht für einen Knoten erstellt wird.
+     */
+    private Node createNodeView(XsdNodeInfo node) {
         return switch (node.nodeType()) {
-            case ELEMENT, ATTRIBUTE, ANY -> createElementNodeView(node);
+            case ELEMENT -> createElementNodeView(node);
+            case ATTRIBUTE -> createAttributeNodeView(node);
+            case ANY -> createAnyNodeView(node);
             case SEQUENCE -> createStructuralNodeView(node, "SEQUENCE", SEQUENCE_NODE_STYLE);
             case CHOICE -> createStructuralNodeView(node, "CHOICE", CHOICE_NODE_STYLE);
             default -> new Label("Unknown Node Type: " + node.name());
         };
     }
 
+    /**
+     * Erstellt die Ansicht für ein <xs:element>.
+     * Dies ist die Kernmethode für das neue Kaskaden-Layout.
+     */
     private Node createElementNodeView(XsdNodeInfo node) {
-        HBox nodeContainer = new HBox(15);
-        nodeContainer.setAlignment(Pos.CENTER_LEFT);
-        VBox parentInfoContainer = new VBox(5);
+        // Hauptcontainer für die gesamte Elementansicht (Info links, Kinder rechts)
+        HBox mainContainer = new HBox(10);
+        mainContainer.setAlignment(Pos.TOP_LEFT);
+
+        // Linker Teil: Infos über das Element selbst und seine Attribute
+        VBox elementInfoContainer = new VBox(5);
+        elementInfoContainer.setPadding(new Insets(5));
+        elementInfoContainer.setStyle("-fx-border-color: #d0d0d0; -fx-border-width: 0 1px 0 0; -fx-border-style: dotted; -fx-padding: 5;");
+
+        // Rechter Teil: Container für strukturelle Kinder (sequence, choice)
+        VBox structuralChildrenContainer = new VBox(5);
+        structuralChildrenContainer.setPadding(new Insets(0, 0, 0, 10));
+        structuralChildrenContainer.setVisible(false);
+        structuralChildrenContainer.setManaged(false);
+
+        // --- Linken Teil befüllen (elementInfoContainer) ---
         HBox nameAndToggleRow = new HBox(5);
         nameAndToggleRow.setAlignment(Pos.CENTER_LEFT);
-        VBox childrenContainer = new VBox(5);
-        childrenContainer.setVisible(false);
-        childrenContainer.setManaged(false);
 
         Label nameLabel = new Label(node.name());
         nameLabel.setStyle(NODE_LABEL_STYLE);
@@ -134,32 +165,77 @@ public class XsdDiagramView {
         cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
 
         nameAndToggleRow.getChildren().addAll(nameLabel, cardinalityLabel);
+        elementInfoContainer.getChildren().add(nameAndToggleRow);
 
-        if (!node.children().isEmpty()) {
-            // GEÄNDERT: Die Logik zum Lazy Loading wird hier übergeben
-            addToggleButton(nameAndToggleRow, childrenContainer, node);
-        }
-
-        parentInfoContainer.getChildren().add(nameAndToggleRow);
-
+        // Dokumentation für das Element hinzufügen
         if (node.documentation() != null && !node.documentation().isBlank()) {
             Label docLabel = new Label(node.documentation());
             docLabel.setStyle(DOC_LABEL_STYLE);
             docLabel.setWrapText(true);
             docLabel.setMaxWidth(350);
-            parentInfoContainer.getChildren().add(docLabel);
+            elementInfoContainer.getChildren().add(docLabel);
         }
 
-        // ENTFERNT: Die Schleife zum Erstellen der Kinder wird nicht mehr hier ausgeführt.
-        // Sie wird jetzt bei Bedarf im Toggle-Button-Handler ausgeführt.
+        // Kinder in Attribute und Strukturelemente aufteilen
+        List<XsdNodeInfo> attributes = node.children().stream()
+                .filter(c -> c.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE)
+                .collect(Collectors.toList());
+        List<XsdNodeInfo> structuralChildren = node.children().stream()
+                .filter(c -> c.nodeType() != XsdNodeInfo.NodeType.ATTRIBUTE)
+                .collect(Collectors.toList());
 
-        nodeContainer.getChildren().addAll(parentInfoContainer, childrenContainer);
-        return nodeContainer;
+        // Attribute direkt zum linken Container hinzufügen
+        if (!attributes.isEmpty()) {
+            VBox attributeBox = new VBox(3);
+            attributeBox.setPadding(new Insets(8, 0, 0, 15));
+            for (XsdNodeInfo attr : attributes) {
+                attributeBox.getChildren().add(createNodeView(attr));
+            }
+            elementInfoContainer.getChildren().add(attributeBox);
+        }
+
+        // --- Rechten Teil einrichten (structuralChildrenContainer) ---
+        if (!structuralChildren.isEmpty()) {
+            // Der Toggle-Button steuert jetzt den rechten Container
+            addToggleButton(nameAndToggleRow, structuralChildrenContainer, structuralChildren);
+        }
+
+        // Finale Ansicht zusammenbauen
+        mainContainer.getChildren().add(elementInfoContainer);
+        if (!structuralChildren.isEmpty()) {
+            mainContainer.getChildren().add(structuralChildrenContainer);
+        }
+
+        return mainContainer;
     }
 
-    private Node createStructuralNodeView(XsdNodeInfo node, String title, String style) {
-        VBox structuralContainer = new VBox(5);
+    /**
+     * Erstellt die Ansicht für ein Attribut.
+     */
+    private Node createAttributeNodeView(XsdNodeInfo node) {
+        HBox attributeContainer = new HBox(5);
+        attributeContainer.setAlignment(Pos.CENTER_LEFT);
 
+        Label nameLabel = new Label(node.name());
+        nameLabel.setStyle(ATTRIBUTE_LABEL_STYLE);
+        nameLabel.setOnMouseClicked(event -> updateDetailPane(node));
+
+        Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
+        cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
+
+        attributeContainer.getChildren().addAll(nameLabel, cardinalityLabel);
+        return attributeContainer;
+    }
+
+    /**
+     * Erstellt die Ansicht für ein Strukturelement (<xs:sequence> oder <xs:choice>).
+     */
+    private Node createStructuralNodeView(XsdNodeInfo node, String title, String style) {
+        HBox mainContainer = new HBox(10);
+        mainContainer.setAlignment(Pos.TOP_LEFT);
+
+        // Linker Teil: Das "SEQUENCE" oder "CHOICE" Label
+        VBox titleContainer = new VBox();
         HBox titleRow = new HBox(5);
         titleRow.setAlignment(Pos.CENTER_LEFT);
         titleRow.setStyle(style);
@@ -167,35 +243,51 @@ public class XsdDiagramView {
         Label titleLabel = new Label(title);
         Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
         cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
-
         titleRow.getChildren().addAll(titleLabel, cardinalityLabel);
+        titleContainer.getChildren().add(titleRow);
 
-        VBox childrenContainer = new VBox(5);
-        childrenContainer.setPadding(new Insets(5, 0, 5, 20));
-        childrenContainer.setVisible(false);
-        childrenContainer.setManaged(false);
+        // Rechter Teil: Die eigentlichen Kinder der Sequenz/Choice
+        VBox childrenVBox = new VBox(5);
+        childrenVBox.setPadding(new Insets(0, 0, 5, 20));
+        childrenVBox.setVisible(false);
+        childrenVBox.setManaged(false);
+        childrenVBox.setStyle("-fx-border-color: #e0e0e0; -fx-border-width: 0 0 0 1px; -fx-border-style: solid;");
 
         if (!node.children().isEmpty()) {
-            // GEÄNDERT: Die Logik zum Lazy Loading wird hier übergeben
-            addToggleButton(titleRow, childrenContainer, node);
+            addToggleButton(titleRow, childrenVBox, node.children());
         }
 
-        // ENTFERNT: Die Schleife zum Erstellen der Kinder wird nicht mehr hier ausgeführt.
-
-        structuralContainer.getChildren().addAll(titleRow, childrenContainer);
-        return structuralContainer;
+        mainContainer.getChildren().addAll(titleContainer, childrenVBox);
+        return mainContainer;
     }
 
     /**
-     * GEÄNDERT: Diese Methode enthält jetzt die Kernlogik für das Lazy Loading.
-     * Sie fügt einen Toggle-Button hinzu, der die Kind-Knoten erst dann erstellt,
+     * Erstellt die Ansicht für ein <xs:any> Element.
+     */
+    private Node createAnyNodeView(XsdNodeInfo node) {
+        HBox nodeContainer = new HBox(5);
+        nodeContainer.setAlignment(Pos.CENTER_LEFT);
+
+        Label nameLabel = new Label(node.name());
+        nameLabel.setStyle(ANY_NODE_STYLE);
+        nameLabel.setOnMouseClicked(event -> updateDetailPane(node));
+
+        Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
+        cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
+
+        nodeContainer.getChildren().addAll(nameLabel, cardinalityLabel);
+        return nodeContainer;
+    }
+
+    /**
+     * Fügt einen Toggle-Button hinzu, der die Kind-Knoten erst dann erstellt (lazy loading),
      * wenn er zum ersten Mal geklickt wird.
      *
-     * @param parentRow         Die HBox, zu der der Button hinzugefügt wird.
+     * @param parentRow        Die HBox, zu der der Button hinzugefügt wird.
      * @param childrenContainer Der VBox-Container, der die Kinder aufnehmen wird.
-     * @param node              Das Datenmodell des Eltern-Knotens, dessen Kinder geladen werden sollen.
+     * @param childrenToRender  Die Liste der Kind-Datenmodelle, die gerendert werden sollen.
      */
-    private void addToggleButton(HBox parentRow, VBox childrenContainer, XsdNodeInfo node) {
+    private void addToggleButton(HBox parentRow, VBox childrenContainer, List<XsdNodeInfo> childrenToRender) {
         Label toggleButton = new Label("+");
         toggleButton.setStyle(TOGGLE_BUTTON_STYLE);
 
@@ -207,9 +299,9 @@ public class XsdDiagramView {
 
             // Nur beim ersten Expandieren die Kinder-UI-Elemente erstellen
             if (isExpanded[0] && !childrenLoaded[0]) {
-                for (XsdNodeInfo childNode : node.children()) {
+                for (XsdNodeInfo childNode : childrenToRender) {
                     // Hier findet das "Lazy Loading" statt!
-                    childrenContainer.getChildren().add(createNodeView(childNode, 0));
+                    childrenContainer.getChildren().add(createNodeView(childNode));
                 }
                 childrenLoaded[0] = true; // Markieren, dass die Kinder geladen sind
             }
@@ -295,6 +387,7 @@ public class XsdDiagramView {
         javadocTextArea.setPrefHeight(100.0);
         javadocTextArea.setWrapText(true);
         javadocTextArea.setPromptText("Enter Javadoc tags here, e.g.:\n@version 1.2.3\n@see http://example.com/docs\n@deprecated This schema is outdated.");
+
         VBox javadocSection = new VBox(5, javadocLabel, javadocTextArea);
         javadocSection.setStyle("-fx-background-color: #f0f8f0; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #dff0df; -fx-border-radius: 8;");
 
