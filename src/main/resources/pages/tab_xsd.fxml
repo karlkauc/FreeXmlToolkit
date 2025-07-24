@@ -397,6 +397,65 @@
                 </StackPane>
             </VBox>
         </Tab>
+        <!-- In tab_xsd.fxml innerhalb des <TabPane> einfügen -->
+        <Tab fx:id="flattenTab" closable="false" text="Flatten Schema">
+            <graphic>
+                <FontIcon iconLiteral="bi-layers-half" iconSize="16"/>
+            </graphic>
+            <VBox spacing="15" style="-fx-padding: 20px; -fx-background-color: white;">
+                <VBox spacing="10">
+                    <Label styleClass="h3" text="Schema Flattener"/>
+                    <Label wrapText="true"
+                           text="This tool merges an XSD file and all its included parts (via &lt;xs:include&gt;) into a single, self-contained XSD file. This is useful for distribution or for tools that do not support includes."/>
+                    <Separator style="-fx-padding: 5 0 5 0;"/>
+
+                    <GridPane hgap="10" vgap="10">
+                        <Label text="Source XSD File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0" HBox.hgrow="ALWAYS">
+                            <TextField fx:id="xsdToFlattenPath" promptText="Load the main XSD file..."
+                                       HBox.hgrow="ALWAYS"/>
+                            <Button onAction="#openXsdToFlattenChooser" text="Load XSD">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-folder2-open"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+
+                        <Label text="Save Flattened XSD to:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1" HBox.hgrow="ALWAYS">
+                            <TextField fx:id="flattenedXsdPath" promptText="Select where to save the flattened file..."
+                                       HBox.hgrow="ALWAYS"/>
+                            <Button onAction="#selectFlattenedXsdPath" text="Save to...">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-save"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="NEVER" minWidth="180.0"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+                        <rowConstraints>
+                            <RowConstraints/>
+                            <RowConstraints/>
+                        </rowConstraints>
+                    </GridPane>
+                    <Button fx:id="flattenXsdButton" onAction="#flattenXsdAction"
+                            text="Flatten XSD" disable="true">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
+                        </graphic>
+                    </Button>
+                    <Label fx:id="flattenStatusLabel" style="-fx-padding: 5 0;"/>
+                </VBox>
+
+                <StackPane VBox.vgrow="ALWAYS">
+                    <CodeArea fx:id="flattenedXsdTextArea" editable="false"/>
+                    <ProgressIndicator fx:id="flattenProgress" maxWidth="80" maxHeight="80" visible="false"/>
+                </StackPane>
+            </VBox>
+        </Tab>
     </TabPane>
 
     <!-- Task/Status Bar -->

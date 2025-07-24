@@ -39,6 +39,22 @@ public class XsdController {
     @FXML
     private Label statusText;
 
+    // schema nivelieren
+    @FXML
+    private Tab flattenTab;
+    @FXML
+    private TextField xsdToFlattenPath;
+    @FXML
+    private TextField flattenedXsdPath;
+    @FXML
+    private Button flattenXsdButton;
+    @FXML
+    private Label flattenStatusLabel;
+    @FXML
+    private CodeArea flattenedXsdTextArea;
+    @FXML
+    private ProgressIndicator flattenProgress;
+
     // ExecutorService für Hintergrund-Tasks
     private final ExecutorService executorService = Executors.newFixedThreadPool(2, r -> {
         Thread t = new Thread(r);
@@ -178,7 +194,7 @@ public class XsdController {
     }
 
     @FXML
-    private void openXsdFileChooser() {
+    private File openXsdFileChooser() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open XSD Schema");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Files", "*.xsd"));
@@ -196,7 +212,9 @@ public class XsdController {
         if (selectedFile != null) {
             xmlService.setCurrentXsdFile(selectedFile);
             openXsdFile(selectedFile);
+            return selectedFile;
         }
+        return null;
     }
 
     // ======================================================================
@@ -677,5 +695,102 @@ public class XsdController {
         });
 
         executorService.submit(task);
+    }
+
+    // Methoden für schema nivelieren:
+    // In XsdController.java hinzufügen
+
+    @FXML
+    private void openXsdToFlattenChooser() {
+        File selectedFile = openXsdFileChooser();
+        if (selectedFile != null) {
+            xsdToFlattenPath.setText(selectedFile.getAbsolutePath());
+            flattenedXsdPath.setText(getFlattenedPath(selectedFile.getAbsolutePath()));
+            flattenXsdButton.setDisable(false);
+        }
+    }
+
+    @FXML
+    private void selectFlattenedXsdPath() {
+        File file = showSaveDialog("Save Flattened XSD", "Flattened XSD Files", "*.xsd");
+        if (file != null) {
+            flattenedXsdPath.setText(file.getAbsolutePath());
+        }
+    }
+
+    @FXML
+    private void flattenXsdAction() {
+        String sourcePath = xsdToFlattenPath.getText();
+        String destinationPath = flattenedXsdPath.getText();
+
+        if (sourcePath == null || sourcePath.isBlank() || destinationPath == null || destinationPath.isBlank()) {
+            showAlert(Alert.AlertType.ERROR, "Error", "Please specify both a source and a destination file.");
+            return;
+        }
+
+        File sourceFile = new File(sourcePath);
+        File destinationFile = new File(destinationPath);
+
+        flattenProgress.setVisible(true);
+        flattenStatusLabel.setText("Flattening in progress...");
+        flattenedXsdTextArea.clear();
+
+        Task<String> flattenTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                XsdFlattenerService flattener = new XsdFlattenerService();
+                return flattener.flatten(sourceFile, destinationFile);
+            }
+        };
+
+        flattenTask.setOnSucceeded(event -> {
+            flattenProgress.setVisible(false);
+            String flattenedContent = flattenTask.getValue();
+            flattenedXsdTextArea.replaceText(flattenedContent);
+            flattenStatusLabel.setText("Successfully flattened and saved to: " + destinationFile.getAbsolutePath());
+            showAlert(Alert.AlertType.INFORMATION, "Success", "XSD has been flattened successfully.");
+        });
+
+        flattenTask.setOnFailed(event -> {
+            flattenProgress.setVisible(false);
+            flattenStatusLabel.setText("Error during flattening process.");
+            Throwable ex = flattenTask.getException();
+            showAlert(Alert.AlertType.ERROR, "Flattening Failed", "An error occurred: " + ex.getMessage());
+            ex.printStackTrace();
+        });
+
+        new Thread(flattenTask).start();
+    }
+
+    private String getFlattenedPath(String originalPath) {
+        if (originalPath == null || !originalPath.toLowerCase().endsWith(".xsd")) {
+            return "";
+        }
+        return originalPath.substring(0, originalPath.length() - 4) + "_flattened.xsd";
+    }
+
+    // Stellen Sie sicher, dass diese Methode bereits existiert oder fügen Sie sie hinzu
+    private File showSaveDialog(String title, String description, String extension) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle(title);
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(description, extension));
+        return fileChooser.showSaveDialog(tabPane.getScene().getWindow());
+    }
+
+    // In XsdController.java hinzufügen
+
+    /**
+     * Zeigt ein standardmäßiges JavaFX-Alert-Dialogfenster an.
+     *
+     * @param alertType Der Typ des Alerts (z.B. INFORMATION, ERROR, WARNING).
+     * @param title     Der Titel des Dialogfensters.
+     * @param content   Die Nachricht, die dem Benutzer angezeigt werden soll.
+     */
+    private void showAlert(Alert.AlertType alertType, String title, String content) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null); // Wir verwenden keinen Header-Text für ein einfacheres Aussehen
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }
