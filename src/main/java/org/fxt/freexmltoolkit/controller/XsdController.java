@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.controls.XsdDiagramView;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
@@ -183,7 +184,6 @@ public class XsdController {
             }
         });
 
-        sourceCodeTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sourceCodeTextArea));
         generateSampleDataButton.disableProperty().bind(xsdForSampleDataPath.textProperty().isEmpty());
 
         SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 1);
@@ -314,6 +314,9 @@ public class XsdController {
             sourceCodeTextArea.setVisible(true);
             sourceCodeTextArea.setManaged(true);
             textProgress.setVisible(false);
+
+            sourceCodeTextArea.replaceText(result.fileContent());
+            sourceCodeTextArea.setStyleSpans(0, XmlEditor.computeHighlighting(result.fileContent()));
 
             statusText.setText("XSD loaded successfully.");
         });
@@ -615,7 +618,10 @@ public class XsdController {
         generationTask.setOnSucceeded(event -> {
             progressSampleData.setVisible(false);
             String resultXml = generationTask.getValue();
+
             sampleDataTextArea.replaceText(resultXml);
+            sampleDataTextArea.setStyleSpans(0, XmlEditor.computeHighlighting(resultXml));
+
             statusText.setText("Sample XML generated successfully.");
 
             // Optional: Save to file if a path is provided
@@ -746,7 +752,11 @@ public class XsdController {
         flattenTask.setOnSucceeded(event -> {
             flattenProgress.setVisible(false);
             String flattenedContent = flattenTask.getValue();
+
+            // GEÄNDERT: Highlighting für die flattenedXsdTextArea anwenden
             flattenedXsdTextArea.replaceText(flattenedContent);
+            flattenedXsdTextArea.setStyleSpans(0, XmlEditor.computeHighlighting(flattenedContent));
+
             flattenStatusLabel.setText("Successfully flattened and saved to: " + destinationFile.getAbsolutePath());
             showAlert(Alert.AlertType.INFORMATION, "Success", "XSD has been flattened successfully.");
         });

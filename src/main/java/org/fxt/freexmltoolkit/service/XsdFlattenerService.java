@@ -121,7 +121,6 @@ public class XsdFlattenerService {
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-        transformer.setOutputProperty("{http://apache.org/xml/features/disallow-doctype-decl", "false");
 
         Writer out = new StringWriter();
         transformer.transform(new DOMSource(doc), new StreamResult(out));

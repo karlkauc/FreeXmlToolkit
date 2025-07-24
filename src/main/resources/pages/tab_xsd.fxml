@@ -141,7 +141,12 @@
                                     </Button>
                                 </children>
                             </VBox>
-                            <CodeArea fx:id="sourceCodeTextArea" editable="false" managed="false" visible="false"/>
+                            <!-- GEÄNDERT: CodeArea in ScrollPane eingebettet -->
+                            <ScrollPane fitToHeight="true" fitToWidth="true" managed="false" visible="false">
+                                <content>
+                                    <CodeArea fx:id="sourceCodeTextArea" editable="false"/>
+                                </content>
+                            </ScrollPane>
                             <ProgressIndicator fx:id="textProgress" maxHeight="80" maxWidth="80" visible="false"/>
                         </children>
                     </StackPane>
@@ -154,7 +159,6 @@
             </graphic>
             <BorderPane>
                 <top>
-                    <!-- Die Sektion wurde in ein TitledPane umgewandelt, um sie ausblendbar zu machen. -->
                     <TitledPane fx:id="xsdInfoPane" text="Schema Information" animated="true" expanded="true"
                                 managed="false" visible="false" collapsible="true">
                         <content>
@@ -223,7 +227,6 @@
             </graphic>
 
             <VBox spacing="15" style="-fx-padding: 20px; -fx-background-color: white;" VBox.vgrow="ALWAYS">
-                <!-- ADDED: Descriptive text for the Documentation tab -->
                 <Label styleClass="h3" text="Documentation Generator"/>
                 <Label wrapText="true"
                        text="This is the main control panel for generating the documentation. Select your XSD file, choose an output directory, and configure the options below. The tool will create a comprehensive HTML documentation set."/>
@@ -268,12 +271,6 @@
                     <Label text="create Example data if missing" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
                     <CheckBox fx:id="createExampleData" selected="true" GridPane.columnIndex="1"
                               GridPane.rowIndex="6"/>
-
-                    <!--
-                    <Label text="restrict to language" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
-                    <TextField GridPane.columnIndex="1" GridPane.rowIndex="7"/>
-                    -->
-                    <!--  pattern: [a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})* -->
 
                     <Label text="Grafik format" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
                     <ChoiceBox fx:id="grafikFormat" value="SVG" GridPane.columnIndex="1"
@@ -336,7 +333,6 @@
             </graphic>
             <VBox spacing="15" style="-fx-padding: 20px; -fx-background-color: white;">
                 <VBox spacing="10">
-                    <!-- ADDED: Descriptive text for the Sample Data tab -->
                     <Label styleClass="h3" text="Sample Data Generator"/>
                     <Label wrapText="true"
                            text="This tab allows you to generate sample XML data that conforms to the loaded XSD schema. You can specify whether to include only mandatory elements and set a limit for repeating elements."/>
@@ -390,14 +386,17 @@
                     </Button>
                 </VBox>
 
-                <!-- Added VBox.vgrow to make the text area fill the remaining space -->
                 <StackPane VBox.vgrow="ALWAYS">
-                    <CodeArea fx:id="sampleDataTextArea"/>
+                    <!-- GEÄNDERT: CodeArea in ScrollPane eingebettet -->
+                    <ScrollPane fitToHeight="true" fitToWidth="true">
+                        <content>
+                            <CodeArea fx:id="sampleDataTextArea"/>
+                        </content>
+                    </ScrollPane>
                     <ProgressIndicator fx:id="progressSampleData" maxWidth="80" maxHeight="80" visible="false"/>
                 </StackPane>
             </VBox>
         </Tab>
-        <!-- In tab_xsd.fxml innerhalb des <TabPane> einfügen -->
         <Tab fx:id="flattenTab" closable="false" text="Flatten Schema">
             <graphic>
                 <FontIcon iconLiteral="bi-layers-half" iconSize="16"/>
@@ -451,7 +450,12 @@
                 </VBox>
 
                 <StackPane VBox.vgrow="ALWAYS">
-                    <CodeArea fx:id="flattenedXsdTextArea" editable="false"/>
+                    <!-- GEÄNDERT: CodeArea in ScrollPane eingebettet -->
+                    <ScrollPane fitToHeight="true" fitToWidth="true">
+                        <content>
+                            <CodeArea fx:id="flattenedXsdTextArea" editable="false"/>
+                        </content>
+                    </ScrollPane>
                     <ProgressIndicator fx:id="flattenProgress" maxWidth="80" maxHeight="80" visible="false"/>
                 </StackPane>
             </VBox>

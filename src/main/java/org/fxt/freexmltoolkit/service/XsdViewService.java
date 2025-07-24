@@ -25,6 +25,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.apache.xmlbeans.impl.common.XMLBeansConstants.FEATURE_DISALLOW_DOCTYPE_DECL;
+
 /**
  * Ein Service, der spezialisierte Daten für die UI-Ansichten, insbesondere
  * für das XsdDiagramView, bereitstellt. Diese Klasse enthält die Logik zum
@@ -330,6 +332,11 @@ public class XsdViewService {
         List<String> values = new ArrayList<>();
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
+        try {
+            factory.setFeature(FEATURE_DISALLOW_DOCTYPE_DECL, false);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
 
         try {
             DocumentBuilder builder = factory.newDocumentBuilder();
