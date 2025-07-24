@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.application.Platform;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
@@ -36,6 +38,8 @@ public class XsdDiagramView {
     private ListView<String> exampleListView;
     private VBox exampleEditorPane;
     private boolean isEditingSchemaDoc = true;
+
+    private ScrollPane treeScrollPane;
 
     // Styles
     private static final String NODE_LABEL_STYLE =
@@ -94,9 +98,9 @@ public class XsdDiagramView {
         Node rootNodeView = createNodeView(rootNode);
         diagramContainer.getChildren().add(rootNodeView);
 
-        ScrollPane treeScrollPane = new ScrollPane(diagramContainer);
+        this.treeScrollPane = new ScrollPane(diagramContainer);
         treeScrollPane.setFitToWidth(false);
-        treeScrollPane.setFitToHeight(true);
+        treeScrollPane.setFitToHeight(false);
 
         BorderPane rightPaneLayout = new BorderPane();
         rightPaneLayout.setStyle(DETAIL_PANE_STYLE);
@@ -281,9 +285,10 @@ public class XsdDiagramView {
 
     /**
      * Fügt einen Toggle-Button hinzu, der die Kind-Knoten erst dann erstellt (lazy loading),
-     * wenn er zum ersten Mal geklickt wird.
+     * wenn er zum ersten Mal geklickt wird. Scrollt den neu sichtbaren Bereich automatisch
+     * in die Ansicht.
      *
-     * @param parentRow        Die HBox, zu der der Button hinzugefügt wird.
+     * @param parentRow         Die HBox, zu der der Button hinzugefügt wird.
      * @param childrenContainer Der VBox-Container, der die Kinder aufnehmen wird.
      * @param childrenToRender  Die Liste der Kind-Datenmodelle, die gerendert werden sollen.
      */
@@ -292,24 +297,59 @@ public class XsdDiagramView {
         toggleButton.setStyle(TOGGLE_BUTTON_STYLE);
 
         final boolean[] isExpanded = {false};
-        final boolean[] childrenLoaded = {false}; // Flag, um zu prüfen, ob die Kinder schon geladen wurden
+        final boolean[] childrenLoaded = {false};
 
         toggleButton.setOnMouseClicked(event -> {
             isExpanded[0] = !isExpanded[0];
 
-            // Nur beim ersten Expandieren die Kinder-UI-Elemente erstellen
             if (isExpanded[0] && !childrenLoaded[0]) {
                 for (XsdNodeInfo childNode : childrenToRender) {
-                    // Hier findet das "Lazy Loading" statt!
                     childrenContainer.getChildren().add(createNodeView(childNode));
                 }
-                childrenLoaded[0] = true; // Markieren, dass die Kinder geladen sind
+                childrenLoaded[0] = true;
             }
 
-            // Sichtbarkeit umschalten
             childrenContainer.setVisible(isExpanded[0]);
             childrenContainer.setManaged(isExpanded[0]);
             toggleButton.setText(isExpanded[0] ? "−" : "+");
+
+            // Scrollt den neu sichtbaren Bereich in die Ansicht
+            if (isExpanded[0]) {
+                // Platform.runLater stellt sicher, dass das Layout aktualisiert wurde,
+                // bevor wir versuchen, die Positionen zu berechnen.
+                Platform.runLater(() -> {
+                    if (treeScrollPane == null || treeScrollPane.getContent() == null) {
+                        return;
+                    }
+                    Node content = treeScrollPane.getContent();
+
+                    // Berechne die Position des Kind-Containers relativ zum gesamten Inhalt
+                    Bounds childBounds = childrenContainer.localToScene(childrenContainer.getBoundsInLocal());
+                    Bounds contentBounds = content.localToScene(content.getBoundsInLocal());
+
+                    if (childBounds == null || contentBounds == null) return;
+
+                    double layoutX = childBounds.getMinX() - contentBounds.getMinX();
+
+                    // Berechne die Dimensionen des sichtbaren Bereichs und des Gesamtinhalts
+                    double contentWidth = content.getBoundsInLocal().getWidth();
+                    double viewportWidth = treeScrollPane.getViewportBounds().getWidth();
+
+                    // Scrolle horizontal, wenn nötig
+                    if (contentWidth > viewportWidth) {
+                        // Ziel ist es, den Anfang des Kind-Containers sichtbar zu machen.
+                        // Wir berechnen den hvalue, der erforderlich ist, um den Container an den Anfang
+                        // des sichtbaren Bereichs zu bringen.
+                        double targetHValue = layoutX / (contentWidth - viewportWidth);
+
+                        // Scrolle nur, wenn der neue Bereich rechts außerhalb der aktuellen Ansicht liegt.
+                        // Ein Zurückscrollen nach links wird vermieden, um die Ansicht ruhig zu halten.
+                        if (targetHValue > treeScrollPane.getHvalue()) {
+                            treeScrollPane.setHvalue(Math.min(1.0, targetHValue));
+                        }
+                    }
+                });
+            }
         });
         parentRow.getChildren().add(toggleButton);
     }
