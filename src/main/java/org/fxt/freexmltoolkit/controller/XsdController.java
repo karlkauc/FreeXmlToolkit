@@ -18,11 +18,14 @@ import org.fxt.freexmltoolkit.controls.XsdDiagramView;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
 import org.jetbrains.annotations.NotNull;
-import org.xmlet.xsdparser.core.XsdParser;
-import org.xmlet.xsdparser.xsdelements.XsdSchema;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,6 +80,7 @@ public class XsdController {
         this.parentController = parentController;
     }
 
+
     // ======================================================================
     // Felder und Methoden für den "Graphic" Tab (XSD)
     // ======================================================================
@@ -92,6 +96,11 @@ public class XsdController {
     private Label xsdInfoPathLabel, xsdInfoNamespaceLabel, xsdInfoVersionLabel;
     @FXML
     private ProgressIndicator progressSampleData;
+
+    // Felder für den text tab
+
+    @FXML
+    private ScrollPane sourceCodeScrollPane;
     @FXML
     private HBox textInfoPane;
     @FXML
@@ -264,27 +273,44 @@ public class XsdController {
                 updateMessage("Parsing XSD and building diagram...");
 
                 String fileContent = Files.readString(currentXsdFile.toPath());
-                // Langwierige Operation: Parsen und Baum erstellen
-                XsdParser parser = new XsdParser(currentXsdFile.getAbsolutePath());
-                XsdViewService viewService = new XsdViewService();
-                XsdNodeInfo rootNode = viewService.buildLightweightTree(parser);
 
-                // Metadaten und Dokumentation extrahieren
+                // 1. Service für Baum und Doku verwenden (neue Implementierung)
+                XsdViewService viewService = new XsdViewService();
+                XsdNodeInfo rootNode = viewService.buildLightweightTree(fileContent);
+                XsdViewService.DocumentationParts docParts = viewService.extractDocumentationParts(fileContent);
+
+                // 2. Metadaten (targetNamespace, version) mit JAXP/DOM auslesen
                 String targetNamespace = "Not defined";
                 String version = "Not specified";
-                XsdSchema rootSchema = parser.getResultXsdSchemas().findFirst().orElse(null);
-                if (rootSchema != null) {
-                    targetNamespace = rootSchema.getTargetNamespace();
-                    if (rootSchema.getVersion() != null) {
-                        version = rootSchema.getVersion();
-                    }
 
-                    // Dokumentation und Javadoc auslesen
-                    var docParts = viewService.extractDocumentationParts(rootSchema);
-                    return new DiagramData(rootNode, targetNamespace, version, docParts.mainDocumentation(), docParts.javadocContent(), fileContent);
+                try {
+                    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                    // Sichere Verarbeitung ist wichtig
+                    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+                    factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                    factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                    factory.setXIncludeAware(false);
+                    factory.setExpandEntityReferences(false);
+
+                    DocumentBuilder builder = factory.newDocumentBuilder();
+                    // Wichtig: InputSource mit StringReader verwenden, um aus dem String zu parsen
+                    Document doc = builder.parse(new InputSource(new StringReader(fileContent)));
+
+                    org.w3c.dom.Element schemaElement = doc.getDocumentElement();
+                    if (schemaElement != null && "schema".equals(schemaElement.getLocalName())) {
+                        if (schemaElement.hasAttribute("targetNamespace")) {
+                            targetNamespace = schemaElement.getAttribute("targetNamespace");
+                        }
+                        if (schemaElement.hasAttribute("version")) {
+                            version = schemaElement.getAttribute("version");
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.warn("Could not read metadata (targetNamespace, version).", e);
+                    // Standardwerte werden beibehalten
                 }
 
-                return new DiagramData(rootNode, targetNamespace, version, "", "", fileContent);
+                return new DiagramData(rootNode, targetNamespace, version, docParts.mainDocumentation(), docParts.javadocContent(), fileContent);
             }
         };
 
@@ -311,11 +337,13 @@ public class XsdController {
             textInfoPane.setManaged(true);
             textInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
             sourceCodeTextArea.replaceText(result.fileContent());
-            sourceCodeTextArea.setVisible(true);
-            sourceCodeTextArea.setManaged(true);
+
+            sourceCodeScrollPane.setVisible(true);
+            sourceCodeScrollPane.setManaged(true);
+
             textProgress.setVisible(false);
 
-            sourceCodeTextArea.replaceText(result.fileContent());
+            // Das Syntax-Highlighting wird wie bisher angewendet
             sourceCodeTextArea.setStyleSpans(0, XmlEditor.computeHighlighting(result.fileContent()));
 
             statusText.setText("XSD loaded successfully.");

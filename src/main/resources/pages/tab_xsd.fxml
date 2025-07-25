@@ -141,8 +141,9 @@
                                     </Button>
                                 </children>
                             </VBox>
-                            <!-- GEÄNDERT: CodeArea in ScrollPane eingebettet -->
-                            <ScrollPane fitToHeight="true" fitToWidth="true" managed="false" visible="false">
+                            <!-- HIER DIE ÄNDERUNG: fx:id="sourceCodeScrollPane" hinzufügen -->
+                            <ScrollPane fx:id="sourceCodeScrollPane" fitToHeight="true" fitToWidth="true"
+                                        managed="false" visible="false">
                                 <content>
                                     <CodeArea fx:id="sourceCodeTextArea" editable="false"/>
                                 </content>

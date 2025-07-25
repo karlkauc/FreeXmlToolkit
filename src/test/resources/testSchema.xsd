@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) von XMLSpy2013 (s IT Solutions AT Spardat GmbH z.B. Buchhaltung) bearbeitet -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:altova="http://www.altova.com/xml-schema-extensions"
-           elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.2.3">
+<xs:schema xmlns:altova="http://www.altova.com/xml-schema-extensions"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           version="1.2.3">
     <xs:element name="Cars">
         <xs:annotation>
-            <xs:documentation>Comment describing your root element</xs:documentation>
+            <xs:documentation>manufactor doc</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence maxOccurs="3">
@@ -22,7 +25,7 @@
                             <xs:element name="Hybrid">
                                 <xs:complexType>
                                     <xs:sequence>
-                                        <xs:element name="ManufatorDate" type="xs:date" minOccurs="0" maxOccurs="3">
+                                        <xs:element maxOccurs="3" minOccurs="0" name="ManufatorDate" type="xs:date">
                                             <xs:annotation>
                                                 <xs:appinfo>
                                                     <altova:exampleValues>
