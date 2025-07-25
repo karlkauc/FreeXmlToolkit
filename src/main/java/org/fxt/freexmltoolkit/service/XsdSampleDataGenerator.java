@@ -30,9 +30,9 @@ import java.util.List;
  * Generiert Beispieldaten für XSD-Elemente basierend auf deren Typ,
  * Einschränkungen und Annotationen.
  */
-public class SampleDataGenerator {
+public class XsdSampleDataGenerator {
 
-    private static final Logger logger = LogManager.getLogger(SampleDataGenerator.class);
+    private static final Logger logger = LogManager.getLogger(XsdSampleDataGenerator.class);
     private static final int MAX_RECURSION_DEPTH = 10;
 
     /**

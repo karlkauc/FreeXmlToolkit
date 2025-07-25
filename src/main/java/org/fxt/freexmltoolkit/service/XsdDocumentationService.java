@@ -67,7 +67,7 @@ public class XsdDocumentationService {
     String schemaPrefix;
 
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
-    private final SampleDataGenerator sampleDataGenerator = new SampleDataGenerator();
+    private final XsdSampleDataGenerator xsdSampleDataGenerator = new XsdSampleDataGenerator();
 
     public void setProgressListener(TaskProgressListener progressListener) {
         this.progressListener = progressListener;
@@ -290,7 +290,7 @@ public class XsdDocumentationService {
                 if (currentType != null && prevElementTypes.contains(currentType.trim())) {
                     logger.info("Recursion detected for type {}. Stopping traversal.", currentType);
                     // Wichtig: Typ ist hier bereits korrekt gesetzt.
-                    extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
+                    extendedXsdElement.setSampleData(xsdSampleDataGenerator.generate(extendedXsdElement));
                     return;
                 }
 
@@ -382,7 +382,7 @@ public class XsdDocumentationService {
                 // da dies bereits am Anfang der Methode behandelt wurde.
 
                 // FINALER SCHRITT: Generiere Beispieldaten für das Element selbst.
-                extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
+                extendedXsdElement.setSampleData(xsdSampleDataGenerator.generate(extendedXsdElement));
             }
             // ... Der Rest der Methode bleibt unverändert
             case XsdAttribute xsdAttribute -> {
@@ -431,7 +431,7 @@ public class XsdDocumentationService {
                     }
                 }
                 // Beispieldaten für das Attribut generieren
-                extendedXsdElement.setSampleData(sampleDataGenerator.generate(extendedXsdElement));
+                extendedXsdElement.setSampleData(xsdSampleDataGenerator.generate(extendedXsdElement));
                 xsdDocumentationData.getExtendedXsdElementMap().put(currentXpath, extendedXsdElement);
             }
             case XsdChoice xsdChoice -> xsdChoice.getElements().forEach(x ->

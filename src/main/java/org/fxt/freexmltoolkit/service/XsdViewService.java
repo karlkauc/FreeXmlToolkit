@@ -155,77 +155,84 @@ public class XsdViewService {
         List<XsdNodeInfo> children = new ArrayList<>();
         List<String> exampleValues = new ArrayList<>();
 
-        if (element instanceof XsdElement xsdElement) {
-            name = xsdElement.getName();
-            type = xsdElement.getType();
-            minOccurs = String.valueOf(xsdElement.getMinOccurs());
-            maxOccurs = xsdElement.getMaxOccurs();
-            nodeType = NodeType.ELEMENT;
+        switch (element) {
+            case XsdElement xsdElement -> {
+                name = xsdElement.getName();
+                type = xsdElement.getType();
+                minOccurs = String.valueOf(xsdElement.getMinOccurs());
+                maxOccurs = xsdElement.getMaxOccurs();
+                nodeType = NodeType.ELEMENT;
 
-            XsdAnnotation annotation = xsdElement.getAnnotation();
-            if (annotation != null) {
-                documentation = annotation.getDocumentations().stream()
-                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
-                exampleValues.addAll(extractExampleValues(annotation));
-            }
-
-            XsdComplexType complexType = xsdElement.getXsdComplexType();
-            // OPTIMIERT: Schneller Typ-Lookup aus dem Cache statt langsamer Suche im Schema.
-            if (complexType == null && xsdElement.getType() != null) {
-                complexType = complexTypeMap.get(xsdElement.getType());
-            }
-
-            if (complexType != null) {
-                XsdMultipleElements particle = getParticle(complexType);
-                if (particle != null) {
-                    children.add(buildLightweightNodeRecursive(particle, currentXPath, visitedOnPath));
+                XsdAnnotation annotation = xsdElement.getAnnotation();
+                if (annotation != null) {
+                    documentation = annotation.getDocumentations().stream()
+                            .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
+                    exampleValues.addAll(extractExampleValues(annotation));
                 }
-                complexType.getAllXsdAttributes().forEach(attribute ->
-                        children.add(buildLightweightNodeRecursive(attribute, currentXPath + "/@" + attribute.getName(), visitedOnPath))
-                );
+
+                XsdComplexType complexType = xsdElement.getXsdComplexType();
+                // OPTIMIERT: Schneller Typ-Lookup aus dem Cache statt langsamer Suche im Schema.
+                if (complexType == null && xsdElement.getType() != null) {
+                    complexType = complexTypeMap.get(xsdElement.getType());
+                }
+
+                if (complexType != null) {
+                    XsdMultipleElements particle = getParticle(complexType);
+                    if (particle != null) {
+                        children.add(buildLightweightNodeRecursive(particle, currentXPath, visitedOnPath));
+                    }
+                    complexType.getAllXsdAttributes().forEach(attribute ->
+                            children.add(buildLightweightNodeRecursive(attribute, currentXPath + "/@" + attribute.getName(), visitedOnPath))
+                    );
+                }
+
             }
+            case XsdAttribute xsdAttribute -> {
+                name = "@" + xsdAttribute.getName();
+                type = xsdAttribute.getType();
+                minOccurs = "required".equals(xsdAttribute.getUse()) ? "1" : "0";
+                maxOccurs = "1";
+                nodeType = NodeType.ATTRIBUTE;
 
-        } else if (element instanceof XsdAttribute xsdAttribute) {
-            name = "@" + xsdAttribute.getName();
-            type = xsdAttribute.getType();
-            minOccurs = "required".equals(xsdAttribute.getUse()) ? "1" : "0";
-            maxOccurs = "1";
-            nodeType = NodeType.ATTRIBUTE;
-
-            XsdAnnotation annotation = xsdAttribute.getAnnotation();
-            if (annotation != null) {
-                documentation = annotation.getDocumentations().stream()
-                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
-                exampleValues.addAll(extractExampleValues(annotation));
+                XsdAnnotation annotation = xsdAttribute.getAnnotation();
+                if (annotation != null) {
+                    documentation = annotation.getDocumentations().stream()
+                            .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
+                    exampleValues.addAll(extractExampleValues(annotation));
+                }
             }
-        } else if (element instanceof XsdAny xsdAny) {
-            name = "any";
-            type = String.format("Wildcard (namespace: %s)", xsdAny.getNamespace() != null ? xsdAny.getNamespace() : "##any");
-            minOccurs = String.valueOf(xsdAny.getMinOccurs());
-            maxOccurs = xsdAny.getMaxOccurs();
-            nodeType = NodeType.ANY;
+            case XsdAny xsdAny -> {
+                name = "any";
+                type = String.format("Wildcard (namespace: %s)", xsdAny.getNamespace() != null ? xsdAny.getNamespace() : "##any");
+                minOccurs = String.valueOf(xsdAny.getMinOccurs());
+                maxOccurs = xsdAny.getMaxOccurs();
+                nodeType = NodeType.ANY;
 
-            XsdAnnotation annotation = xsdAny.getAnnotation();
-            if (annotation != null) {
-                documentation = annotation.getDocumentations().stream()
-                        .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
-                exampleValues.addAll(extractExampleValues(annotation));
+                XsdAnnotation annotation = xsdAny.getAnnotation();
+                if (annotation != null) {
+                    documentation = annotation.getDocumentations().stream()
+                            .map(XsdAnnotationChildren::getContent).collect(Collectors.joining("\n"));
+                    exampleValues.addAll(extractExampleValues(annotation));
+                }
             }
-        } else if (element instanceof XsdSequence sequence) {
-            name = "sequence";
-            type = "Container";
-            minOccurs = String.valueOf(sequence.getMinOccurs());
-            maxOccurs = sequence.getMaxOccurs();
-            nodeType = NodeType.SEQUENCE;
-            addParticleChildren(children, sequence, currentXPath, visitedOnPath);
-
-        } else if (element instanceof XsdChoice choice) {
-            name = "choice";
-            type = "Container";
-            minOccurs = String.valueOf(choice.getMinOccurs());
-            maxOccurs = choice.getMaxOccurs();
-            nodeType = NodeType.CHOICE;
-            addParticleChildren(children, choice, currentXPath, visitedOnPath);
+            case XsdSequence sequence -> {
+                name = "sequence";
+                type = "Container";
+                minOccurs = String.valueOf(sequence.getMinOccurs());
+                maxOccurs = sequence.getMaxOccurs();
+                nodeType = NodeType.SEQUENCE;
+                addParticleChildren(children, sequence, currentXPath, visitedOnPath);
+            }
+            case XsdChoice choice -> {
+                name = "choice";
+                type = "Container";
+                minOccurs = String.valueOf(choice.getMinOccurs());
+                maxOccurs = choice.getMaxOccurs();
+                nodeType = NodeType.CHOICE;
+                addParticleChildren(children, choice, currentXPath, visitedOnPath);
+            }
+            default -> {
+            }
         }
 
         // Entferne das Element vom Pfad, damit es in anderen Zweigen des Baumes wieder besucht werden kann.
@@ -234,12 +241,7 @@ public class XsdViewService {
         return new XsdNodeInfo(name, type != null ? type : "", currentXPath, documentation, children, exampleValues, minOccurs, maxOccurs, nodeType);
     }
 
-    // In der Datei: /src/main/java/org/fxt/freexmltoolkit/service/XsdViewService.java
-
     /**
-     * KORRIGIERTE UND ROBUSTE METHODE: Umgeht einen NullPointerException in der xsd-parser-Bibliothek,
-     * indem Kind-Elemente sicher über die getElements()-Methode gesucht werden.
-     *
      * @param complexType Der zu analysierende komplexe Typ.
      * @return Das gefundene Partikel (Sequence, Choice, All) oder null.
      */
