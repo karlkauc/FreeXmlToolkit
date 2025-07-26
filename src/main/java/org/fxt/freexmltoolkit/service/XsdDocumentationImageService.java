@@ -30,7 +30,6 @@ import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xmlet.xsdparser.xsdelements.XsdDocumentation;
 
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
@@ -266,8 +265,7 @@ public class XsdDocumentationImageService {
         leftRootLink.appendChild(text1);
         svgRoot.appendChild(leftRootLink);
 
-        double docHeightTotal = generateDocumentationElement(document, rootElement.getXsdDocumentation(), rootElementWidth, rootElementHeight, rootStartX, rootStartY);
-
+        double docHeightTotal = generateDocumentationElement(document, rootElement.getDocumentations(), rootElementWidth, rootElementHeight, rootStartX, rootStartY);
         // =================================================================================
         // Logik zum Zeichnen von Sequenz- oder Choice-Symbolen
         // =================================================================================
@@ -279,11 +277,15 @@ public class XsdDocumentationImageService {
         boolean isChoice = false;
         if (!childElements.isEmpty()) {
             ExtendedXsdElement firstChild = childElements.getFirst();
-            if (firstChild.getXsdElement() != null && firstChild.getXsdElement().getParent() != null) {
-                var parentOfChildren = firstChild.getXsdElement().getParent();
-                if (parentOfChildren instanceof org.xmlet.xsdparser.xsdelements.XsdSequence) {
+
+            if (firstChild.getCurrentNode() != null && firstChild.getCurrentNode().getParentNode() != null) {
+                // KORREKTUR: Wir prüfen jetzt den lokalen Namen des DOM-Knotens.
+                var parentOfChildren = firstChild.getCurrentNode().getParentNode();
+                String parentName = parentOfChildren.getLocalName();
+
+                if ("sequence".equals(parentName)) {
                     isSequence = true;
-                } else if (parentOfChildren instanceof org.xmlet.xsdparser.xsdelements.XsdChoice) {
+                } else if ("choice".equals(parentName)) {
                     isChoice = true;
                 }
             }
@@ -306,15 +308,20 @@ public class XsdDocumentationImageService {
             pathToSymbol.setAttribute("style", MANDATORY_FORMAT_NO_SHADOW);
             svgRoot.appendChild(pathToSymbol);
 
-            // Kardinalität für die Gruppe (Sequence/Choice) abrufen und anzeigen
             String groupCardinality = "";
-            var parentOfChildren = childElements.get(0).getXsdElement().getParent();
-            if (parentOfChildren instanceof org.xmlet.xsdparser.xsdelements.XsdSequence) {
-                var seq = (org.xmlet.xsdparser.xsdelements.XsdSequence) parentOfChildren;
-                groupCardinality = formatCardinality(String.valueOf(seq.getMinOccurs()), seq.getMaxOccurs());
-            } else if (parentOfChildren instanceof org.xmlet.xsdparser.xsdelements.XsdChoice) {
-                var choice = (org.xmlet.xsdparser.xsdelements.XsdChoice) parentOfChildren;
-                groupCardinality = formatCardinality(String.valueOf(choice.getMinOccurs()), choice.getMaxOccurs());
+            // Wir holen den Eltern-DOM-Knoten des ersten Kind-Elements.
+            // Dies ist der Partikel-Knoten (<xs:sequence> oder <xs:choice>).
+            Node particleNode = null;
+            if (!childElements.isEmpty() && childElements.getFirst().getCurrentNode() != null) {
+                particleNode = childElements.getFirst().getCurrentNode().getParentNode();
+            }
+
+            // Wir lesen die Kardinalität direkt von den Attributen des Partikel-Knotens.
+            if (particleNode != null) {
+                groupCardinality = formatCardinality(
+                        getAttributeValue(particleNode, "minOccurs", "1"),
+                        getAttributeValue(particleNode, "maxOccurs", "1")
+                );
             }
 
             // Zeige Kardinalität nur an, wenn sie nicht dem Standard "1..1" entspricht
@@ -474,13 +481,13 @@ public class XsdDocumentationImageService {
             svgRoot.appendChild(path);
 
             // Kardinalität auf der Linie
-            String cardinality = "";
-            if (childElement.getXsdElement() != null) {
-                cardinality = formatCardinality(
-                        String.valueOf(childElement.getXsdElement().getMinOccurs()),
-                        childElement.getXsdElement().getMaxOccurs()
-                );
-            }
+            // Die Kardinalität wird direkt von den Attributen des DOM-Knotens gelesen,
+            // der im ExtendedXsdElement gespeichert ist.
+            Node childNode = childElement.getCurrentNode();
+            String cardinality = formatCardinality(
+                    getAttributeValue(childNode, "minOccurs", "1"),
+                    getAttributeValue(childNode, "maxOccurs", "1")
+            );
 
             if (!cardinality.isBlank()) {
                 int cardinalityFontSize = font.getSize() - 4;
@@ -507,6 +514,7 @@ public class XsdDocumentationImageService {
 
         return document;
     }
+
 
     /**
      * Creates a small SVG circle element, used as a dot in diagrams.
@@ -548,6 +556,17 @@ public class XsdDocumentationImageService {
     }
 
     /**
+     * Helper to get an attribute's value from a DOM Node, with a default value.
+     */
+    private String getAttributeValue(Node node, String attrName, String defaultValue) {
+        if (node == null || node.getAttributes() == null) {
+            return defaultValue;
+        }
+        Node attrNode = node.getAttributes().getNamedItem(attrName);
+        return (attrNode != null) ? attrNode.getNodeValue() : defaultValue;
+    }
+
+    /**
      * Creates an SVG rectangle element in the correct namespace.
      */
     private Element createSvgRect(Document document, String id, double contentHeight, double contentWidth, String x, String y) {
@@ -581,7 +600,7 @@ public class XsdDocumentationImageService {
     /**
      * Generates and appends the documentation block to the SVG.
      */
-    private double generateDocumentationElement(Document document, List<XsdDocumentation> xsdDocumentation, double rootElementWidth, double rootElementHeight, int startX, int startY) {
+    private double generateDocumentationElement(Document document, List<ExtendedXsdElement.DocumentationInfo> xsdDocumentation, double rootElementWidth, double rootElementHeight, int startX, int startY) {
         // Eine kleinere Schriftart speziell für die Dokumentation erstellen.
         final Font docFont = font.deriveFont((float) font.getSize() - 2);
 
@@ -597,11 +616,11 @@ public class XsdDocumentationImageService {
         docText.setAttribute("font-family", docFont.getFontName());
 
         double docHeightTotal = 0;
-        for (XsdDocumentation documentation : xsdDocumentation) {
+        for (var documentation : xsdDocumentation) {
             StringWriter writer = new StringWriter();
             int length = 0;
 
-            for (String word : documentation.getContent().split(" ")) {
+            for (String word : documentation.content().split(" ")) {
                 //  Kleinere Schriftart für die Breitenberechnung verwenden.
                 var rectangle2D = docFont.getStringBounds(word + " ", frc);
                 var docHeight = rectangle2D.getBounds2D().getHeight();

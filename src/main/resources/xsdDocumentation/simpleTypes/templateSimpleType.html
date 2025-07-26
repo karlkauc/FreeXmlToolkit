@@ -1,19 +1,18 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" class="bg-slate-50" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title th:text="'Simple Type: ' + ${simpleType.name}">Simple Type Details</title>
-    <!-- Reference to the central Tailwind CSS file -->
-    <link href="../assets/freeXmlToolkit.css" rel="stylesheet">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="'Simple Type: ' + ${this.getAttributeValue(simpleTypeNode, 'name')}">Simple Type Details</title>
 
+    <!-- Tailwind CSS & Modern Font -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Optional: Custom design adjustments for Tailwind
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'], // A modern, easily readable font
+                        sans: ['Inter', 'sans-serif'],
                     },
                 }
             }
@@ -22,7 +21,7 @@
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
-<body class="bg-slate-50">
+<body class="font-sans text-slate-800" data-root-path=".." data-search-index-path="../search_index.json">
 
 <!-- Modern navigation with shadow and clear spacing -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
@@ -30,17 +29,34 @@
         <div class="flex justify-between items-center h-16">
             <!-- Left navigation group -->
             <div class="hidden md:flex items-baseline space-x-6">
-                <a href="../index.html" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
-                   aria-current="page">Home</a>
+                <a href="../index.html"
+                   class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Home</a>
                 <a href="../complexTypes.html"
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Complex
                     Types</a>
                 <a href="../simpleTypes.html"
-                   class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Simple
+                   class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100" aria-current="page">Simple
                     Types</a>
                 <a href="../dataDictionary.html"
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
+            </div>
+            <!-- Search Bar -->
+            <div class="relative flex-1 max-w-md mx-4">
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3" aria-hidden="true">
+                    <svg class="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                                fill-rule="evenodd"
+                                d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                                clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <input type="search" id="search-input" placeholder="Loading search index..." disabled
+                       class="w-full pl-3 pr-10 py-2 text-sm leading-tight text-slate-700 border border-slate-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-50 disabled:cursor-not-allowed">
+                <div id="search-results"
+                     class="absolute hidden w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg z-20 max-h-96 overflow-y-auto">
+                    <!-- Search results will be injected here -->
+                </div>
             </div>
             <!-- Right navigation group (GitHub Link) -->
             <div class="hidden md:block">
@@ -53,153 +69,133 @@
     </div>
 </nav>
 
-<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<main class="container mx-auto px-4 py-8 md:py-12">
 
     <!-- Main page title -->
-    <header class="mb-6">
+    <header class="mb-8">
         <h1 class="text-3xl font-bold text-slate-900">
-            Simple Type: <span class="font-mono text-sky-700" th:text="${simpleType.name}">TypeName</span>
+            Simple Type: <span class="font-mono text-sky-700"
+                               th:text="${this.getAttributeValue(simpleTypeNode, 'name')}">TypeName</span>
         </h1>
     </header>
 
     <!-- Main content area -->
-    <main class="bg-white border border-slate-200 rounded-lg shadow-sm">
+    <div class="space-y-8">
 
         <!-- 1. Documentation (if present) -->
-        <section th:if="${documentations != null and not #lists.isEmpty(documentations)}"
-                 class="p-6 border-b border-slate-200">
-            <h2 class="text-lg font-semibold text-slate-800 mb-3">Documentation</h2>
-            <div class="prose prose-slate max-w-none">
-                <!-- Iterates through all documentation entries -->
-                <p th:each="doc : ${documentations}" th:text="${doc.content}"></p>
+        <section th:if="${this.getDocumentationFromNode(simpleTypeNode) != ''}"
+                 class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+            <h2 class="text-xl font-semibold text-slate-900 mb-4">Documentation</h2>
+            <div class="prose prose-slate max-w-none text-slate-700">
+                <p th:text="${this.getDocumentationFromNode(simpleTypeNode)}"></p>
             </div>
         </section>
 
         <!-- 2. Restrictions -->
-        <section th:if="${restriction != null}" class="p-6">
-            <h2 class="text-lg font-semibold text-slate-800 mb-3">Restrictions</h2>
-            <div class="overflow-x-auto border border-slate-200 rounded-lg">
+        <section class="bg-white rounded-xl shadow-md border border-slate-200">
+            <header class="p-6 border-b border-slate-200">
+                <h2 class="text-xl font-semibold text-slate-900">Restrictions</h2>
+            </header>
+            <div class="p-6">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-sm">
+                    <thead class="text-sm">
                     <tr>
-                        <th scope="col" class="w-1/4 px-4 py-3 font-semibold text-slate-900">Property</th>
-                        <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Value</th>
+                        <th scope="col" class="w-1/3 pb-3 font-semibold text-slate-900">Property</th>
+                        <th scope="col" class="pb-3 font-semibold text-slate-900">Value</th>
                     </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-sm">
                     <!-- Base Type -->
                     <tr>
-                        <td class="px-4 py-3 font-medium text-slate-800">Base Type</td>
-                        <td class="px-4 py-3"><code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
-                                                    th:text="${restriction.base}">xs:string</code></td>
-                    </tr>
-                    <!-- Length Restrictions -->
-                    <tr th:if="${restriction.length != null}">
-                        <td class="px-4 py-3 font-medium text-slate-800">Fixed Length (length)</td>
-                        <td class="px-4 py-3" th:text="${restriction.length.value}"></td>
-                    </tr>
-                    <tr th:if="${restriction.minLength != null}">
-                        <td class="px-4 py-3 font-medium text-slate-800">Minimum Length (minLength)</td>
-                        <td class="px-4 py-3" th:text="${restriction.minLength.value}"></td>
-                    </tr>
-                    <tr th:if="${restriction.maxLength != null}">
-                        <td class="px-4 py-3 font-medium text-slate-800">Maximum Length (maxLength)</td>
-                        <td class="px-4 py-3" th:text="${restriction.maxLength.value}"></td>
-                    </tr>
-                    <!-- Pattern (Regular Expression) -->
-                    <tr th:if="${restriction.pattern != null}">
-                        <td class="px-4 py-3 font-medium text-slate-800">Pattern</td>
-                        <td class="px-4 py-3"><code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
-                                                    th:text="${restriction.pattern.value}"></code></td>
-                    </tr>
-                    <!-- Value Range Restrictions -->
-                    <tr th:if="${restriction.minInclusive != null}">
-                        <td class="px-4 py-3 font-medium text-slate-800">Minimum Value (inclusive)</td>
-                        <td class="px-4 py-3" th:text="${restriction.minInclusive.value}"></td>
-                    </tr>
-                    <tr th:if="${restriction.maxInclusive != null}">
-                        <td class="px-4 py-3 font-medium text-slate-800">Maximum Value (inclusive)</td>
-                        <td class="px-4 py-3" th:text="${restriction.maxInclusive.value}"></td>
-                    </tr>
-                    <tr th:if="${restriction.minExclusive != null}">
-                        <td class="px-4 py-3 font-medium text-slate-800">Minimum Value (exclusive)</td>
-                        <td class="px-4 py-3" th:text="${restriction.minExclusive.value}"></td>
-                    </tr>
-                    <tr th:if="${restriction.maxExclusive != null}">
-                        <td class="px-4 py-3 font-medium text-slate-800">Maximum Value (exclusive)</td>
-                        <td class="px-4 py-3" th:text="${restriction.maxExclusive.value}"></td>
-                    </tr>
-                    <!-- Digit Restrictions -->
-                    <tr th:if="${restriction.totalDigits != null}">
-                        <td class="px-4 py-3 font-medium text-slate-800">Total Digits (totalDigits)</td>
-                        <td class="px-4 py-3" th:text="${restriction.totalDigits.value}"></td>
-                    </tr>
-                    <tr th:if="${restriction.fractionDigits != null}">
-                        <td class="px-4 py-3 font-medium text-slate-800">Fraction Digits (fractionDigits)</td>
-                        <td class="px-4 py-3" th:text="${restriction.fractionDigits.value}"></td>
-                    </tr>
-                    <!-- Enumeration (List of values) -->
-                    <tr th:if="${restriction.enumeration != null and not #lists.isEmpty(restriction.enumeration)}">
-                        <td class="px-4 py-3 font-medium text-slate-800 align-top">Allowed Values (enumeration)</td>
-                        <td class="px-4 py-3">
-                            <ul class="space-y-2">
-                                <li th:each="enumValue : ${restriction.enumeration}">
-                                    <code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
-                                          th:text="${enumValue.value}"></code>
-                                    <!-- Documentation for the individual enum value (if present) -->
-                                    <div th:if="${enumValue.annotation != null and enumValue.annotation.documentations != null and not #lists.isEmpty(enumValue.annotation.documentations)}"
-                                         class="mt-1 pl-2 text-slate-600">
-                                        <p th:each="doc : ${enumValue.annotation.documentations}"
-                                           th:text="${doc.content}" class="text-xs"></p>
-                                    </div>
-                                </li>
-                            </ul>
+                        <td class="py-3 pr-4 font-medium text-slate-800">Base Type</td>
+                        <td class="py-3"><code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
+                                               th:text="${this.getRestrictionBase(simpleTypeNode)}">xs:string</code>
                         </td>
                     </tr>
+
+                    <!-- Dynamically iterate over all other facets -->
+                    <th:block th:each="facetNode : ${this.getRestrictionFacets(simpleTypeNode)}">
+                        <!-- Special handling for enumeration -->
+                        <tr th:if="${facetNode.localName == 'enumeration'}">
+                            <td class="py-3 pr-4 font-medium text-slate-800 align-top">Allowed Values (enumeration)</td>
+                            <td class="py-3">
+                                <ul class="space-y-2">
+                                    <!-- Iterate over all enumeration nodes with the same name -->
+                                    <li th:each="enumNode : ${this.getDirectChildElements(facetNode.parentNode, 'enumeration')}">
+                                        <code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
+                                              th:text="${this.getAttributeValue(enumNode, 'value')}"></code>
+                                        <!-- Documentation for the individual enum value -->
+                                        <div th:if="${this.getDocumentationFromNode(enumNode) != ''}"
+                                             class="mt-1 pl-2 text-slate-600 text-xs italic">
+                                            <p th:text="${this.getDocumentationFromNode(enumNode)}"></p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <!-- Generic handling for all other facets -->
+                        <tr th:unless="${facetNode.localName == 'enumeration'}">
+                            <td class="py-3 pr-4 font-medium text-slate-800" th:text="${facetNode.localName}"></td>
+                            <td class="py-3">
+                                <code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
+                                      th:text="${this.getAttributeValue(facetNode, 'value')}"></code>
+                            </td>
+                        </tr>
+                    </th:block>
+
                     </tbody>
                 </table>
+                <!-- Fallback message if no restrictions are defined -->
+                <div th:if="${#lists.isEmpty(this.getRestrictionFacets(simpleTypeNode))}" class="pt-4">
+                    <p class="text-slate-500">No specific restrictions are defined for this type beyond its base.</p>
+                </div>
             </div>
         </section>
 
         <!-- "Used In" Section -->
-        <section th:if="${not #lists.isEmpty(usedInElements)}" class="p-6">
-            <h2 class="text-lg font-semibold text-slate-800 mb-3">Used In</h2>
-            <div class="overflow-x-auto border border-slate-200 rounded-lg">
+        <section th:if="${not #lists.isEmpty(usedInElements)}"
+                 class="bg-white rounded-xl shadow-md border border-slate-200">
+            <header class="p-6 border-b border-slate-200">
+                <h2 class="text-xl font-semibold text-slate-900">Used In</h2>
+            </header>
+            <div class="p-6">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-sm">
+                    <thead class="text-sm">
                     <tr>
-                        <th scope="col" class="px-4 py-3 font-semibold text-slate-900">Element</th>
-                        <th scope="col" class="px-4 py-3 font-semibold text-slate-900">XPath</th>
+                        <th scope="col" class="pb-3 font-semibold text-slate-900">Element</th>
+                        <th scope="col" class="pb-3 font-semibold text-slate-900">XPath</th>
                     </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-sm">
-                    <tr th:each="element : ${usedInElements}">
-                        <td class="px-4 py-3 font-mono">
+                    <tr th:each="element : ${usedInElements}" class="hover:bg-slate-50/50">
+                        <td class="py-3 pr-4 font-mono">
                             <!-- Link to the detail page of the respective element -->
                             <a th:href="${'../details/' + element.pageName}" th:text="${element.elementName}"
                                class="text-sky-600 hover:text-sky-800 hover:underline"></a>
                         </td>
-                        <td class="px-4 py-3 font-mono text-slate-600" th:text="${element.currentXpath}"></td>
+                        <td class="py-3 font-mono text-slate-600" th:text="${element.currentXpath}"></td>
                     </tr>
                     </tbody>
                 </table>
             </div>
         </section>
-
-        <!-- Fallback message if no restrictions are defined -->
-        <div th:if="${restriction == null}" class="p-6">
-            <p class="text-slate-500">No specific restrictions are defined for this type.</p>
-        </div>
-    </main>
+    </div>
 
     <!-- Navigation button back to the overview -->
-    <div class="mt-6">
+    <div class="mt-8">
         <a href="../index.html"
-           class="inline-block bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm">
+           class="inline-flex items-center bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 mr-2">
+                <path fill-rule="evenodd"
+                      d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                      clip-rule="evenodd"/>
+            </svg>
             Back to Overview
         </a>
     </div>
-</div>
+</main>
+
+<script src="../assets/search.js" defer></script>
 
 </body>
 </html>

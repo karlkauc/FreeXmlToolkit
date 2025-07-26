@@ -93,21 +93,9 @@
 <!-- Main content -->
 <main class="container mx-auto px-4 py-8 md:py-12">
 
-    <!-- Breadcrumb navigation: Only shown if the XPath path exists. -->
-    <nav aria-label="breadcrumb" class="mb-6" th:if="${xpath != null}">
-        <ol class="flex items-center space-x-1 text-sm text-slate-500">
-            <!-- Iterates over each part of the path and creates a breadcrumb entry -->
-            <li th:each="path, state : ${xpath}" class="flex items-center">
-                <a th:href="${path.value}" th:text="${path.key}" class="hover:text-sky-600 hover:underline"></a>
-                <!-- Adds a separator icon, except for the last element -->
-                <svg th:if="${!state.last}" class="h-5 w-5 flex-shrink-0 text-slate-400" viewBox="0 0 20 20"
-                     fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd"
-                          d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                          clip-rule="evenodd"/>
-                </svg>
-            </li>
-        </ol>
+    <!-- Breadcrumb navigation: Now uses a pre-formatted HTML string for simplicity and correctness. -->
+    <nav aria-label="breadcrumb" class="mb-6 text-sm" th:if="${breadCrumbs != null}"
+         th:utext="${breadCrumbs}">
     </nav>
 
     <!-- Central detail card -->
@@ -144,15 +132,12 @@
             <section>
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">Diagram</h2>
                 <div class="p-4 border border-slate-200 rounded-lg bg-slate-50 overflow-x-auto">
-
                     <!-- Thymeleaf switch to differentiate between SVG and PNG -->
                     <div th:switch="${diagramType}">
-
                         <!-- Case 1: If the type is 'SVG', insert the SVG code directly -->
                         <div th:case="'SVG'" th:utext="${diagramContent}">
                             <!-- The raw SVG string is inserted here by Thymeleaf -->
                         </div>
-
                         <!-- Case 2: If the type is 'PNG', create a normal image tag -->
                         <div th:case="'PNG'" style="float:left;">
                             <img th:src="${'../' + diagramContent}" alt="Diagram of the element" class="mx-auto"/>
@@ -173,21 +158,22 @@
                 </div>
             </section>
 
-            <!-- ================================================================== -->
-            <!-- Section for Javadoc-style annotations                       -->
-            <!-- ================================================================== -->
+            <!-- Section for Javadoc-style annotations -->
             <section th:if="${element.javadocInfo != null and element.javadocInfo.hasData()}" class="space-y-6">
-
                 <!-- Deprecated Warning Box -->
                 <div th:if="${element.javadocInfo.deprecated != null}"
                      class="p-4 border-l-4 border-red-500 bg-red-50 rounded-r-lg">
                     <div class="flex items-start">
                         <div class="flex-shrink-0">
-                            <!-- ... Warning Icon ... -->
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor"
+                                 aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                      d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                                      clip-rule="evenodd"/>
+                            </svg>
                         </div>
                         <div class="ml-3">
                             <h3 class="text-sm font-bold text-red-800">Deprecated</h3>
-                            <!-- CORRECTION: Call the new parse method -->
                             <div class="mt-1 text-sm text-red-700 prose prose-sm max-w-none"
                                  th:utext="${this.parseJavadocLinks(element.javadocInfo.deprecated)}">
                             </div>
@@ -208,7 +194,6 @@
                         <dt class="text-sm font-medium text-slate-500">See Also</dt>
                         <dd class="mt-1 text-slate-900">
                             <ul class="list-disc list-inside space-y-1">
-                                <!-- CORRECTION: Call the new parse method for each item -->
                                 <li th:each="seeItem : ${element.javadocInfo.see}"
                                     th:utext="${this.parseJavadocLinks(seeItem)}">
                                 </li>
@@ -227,10 +212,11 @@
                         <dd class="mt-1 text-slate-900 font-mono" th:text="${element.elementType}">element-type</dd>
                     </div>
                     <div class="flex flex-col">
-                        <dt class="text-sm font-medium text-slate-500">Cardinality (min/max)</dt>
+                        <dt class="text-sm font-medium text-slate-500">Cardinality</dt>
+                        <!-- KORREKTUR: Greift auf eine Hilfsmethode zu, die die Kardinalität vom DOM-Knoten liest. -->
                         <dd class="mt-1 text-slate-900 font-mono"
-                            th:text="${element.getXsdElement() != null && element.getXsdElement().getMinOccurs() != null ? element.getXsdElement().getMinOccurs() + ' / ' + element.getXsdElement().getMaxOccurs() : 'n/a'}">
-                            1 / 1
+                            th:text="${this.getCardinality(element)}">
+                            1..1
                         </dd>
                     </div>
                     <div class="flex flex-col">
@@ -271,56 +257,36 @@
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 text-sm">
-                        <tr th:each="child: ${element.children}">
+                        <!-- KORREKTUR: Iteriert über die Liste der Kind-XPaths -->
+                        <tr th:each="childXpath: ${element.children}">
                             <td class="px-4 py-3 font-mono">
-                                <!--
-                                    The link now has a 'title' attribute to show the full path on hover.
-                                    The text is shortened if it is longer than 60 characters.
-                                -->
-                                <a th:href="${this.getPageName(child)}"
-                                   th:with="fullPath=${child.toString()}"
-                                   th:title="${fullPath}"
+                                <a th:href="${this.getPageName(childXpath)}"
+                                   th:title="${childXpath}"
                                    class="text-sky-600 hover:text-sky-800 hover:underline">
-
-                                    <!-- If the path is short, display it normally. -->
-                                    <span th:if="${#strings.length(fullPath) <= 60}" th:text="${fullPath}"></span>
-
-                                    <!-- If the path is long, shorten it intelligently. -->
-                                    <span th:unless="${#strings.length(fullPath) <= 60}"
-                                          th:with="pathParts=${#strings.arraySplit(fullPath, '/')}"
-                                          th:text="${(#arrays.length(pathParts) > 2) ?
-                                                     ('/' + pathParts[0] + '/.../' + pathParts[#arrays.length(pathParts) - 1]) :
-                                                     #strings.abbreviate(fullPath, 60)}">
-                                        <!--
-                                            More robust logic:
-                                            - Splits the path into segments at each '/'.
-                                            - If there are more than 2 segments (e.g., /root/middle/element),
-                                              the path is shortened to /root/.../element.
-                                            - Otherwise, the standard abbreviation is used as a fallback.
-                                        -->
+                                    <!-- KORREKTUR: Verbesserte und korrigierte Logik zur Pfad-Kürzung -->
+                                    <span th:with="pathParts=${#strings.arraySplit(childXpath, '/')}"
+                                          th:text="${(#arrays.length(pathParts) > 3) ? ('/' + pathParts[1] + '/.../' + pathParts[#arrays.length(pathParts) - 1]) : childXpath}">
                                     </span>
                                 </a>
                             </td>
 
                             <td class="px-4 py-3 font-mono">
-                                <!-- If the type is a custom type (not xs:...), it will be linked -->
-                                <a th:if="${this.isChildTypeLinkable(child)}"
-                                   th:href="${this.getChildTypePageName(child)}"
-                                   th:text="${this.getChildType(child)}"
+                                <!-- Die Logik zur Verlinkung von Typen bleibt gleich, da sie Hilfsmethoden nutzt -->
+                                <a th:if="${this.isChildTypeLinkable(childXpath)}"
+                                   th:href="${this.getChildTypePageName(childXpath)}"
+                                   th:text="${this.getChildType(childXpath)}"
                                    class="text-sky-600 hover:text-sky-800 hover:underline">
                                 </a>
-                                <!-- Otherwise (e.g., for 'xs:string'), it is displayed as normal text -->
-                                <span th:unless="${this.isChildTypeLinkable(child)}"
-                                      th:text="${this.getChildType(child)}">
+                                <span th:unless="${this.isChildTypeLinkable(childXpath)}"
+                                      th:text="${this.getChildType(childXpath)}">
                                 </span>
                             </td>
 
                             <td class="px-4 py-3 text-slate-600 prose prose-sm max-w-md"
-                                th:utext="${this.getChildDocumentation(child)}">
-                                child-docs
+                                th:utext="${this.getChildDocumentation(childXpath)}">
                             </td>
-                            <td class="px-4 py-3 font-mono text-slate-600" th:text="${this.getChildSampleData(child)}">
-                                sample-data
+                            <td class="px-4 py-3 font-mono text-slate-600"
+                                th:text="${this.getChildSampleData(childXpath)}">
                             </td>
                         </tr>
                         </tbody>
@@ -334,7 +300,6 @@
                 <div class="space-y-2">
                     <div th:each="appInfo: ${appInfos}" th:utext="${appInfo}"
                          class="p-3 bg-slate-100 rounded-md text-sm text-slate-700 font-mono">
-                        <!-- Generic appinfo content will be rendered here -->
                     </div>
                 </div>
             </section>
@@ -361,16 +326,12 @@
         const textToCopy = buttonElement.getAttribute('data-xpath');
         const tooltip = buttonElement.querySelector('#tooltip-text');
 
-        // Modern method for copying to the clipboard
         navigator.clipboard.writeText(textToCopy).then(() => {
-            // Success: Show a confirmation in the tooltip
             tooltip.textContent = 'Copied!';
-            // Reset the tooltip text after 2 seconds
             setTimeout(() => {
                 tooltip.textContent = 'Copy XPath';
             }, 2000);
         }).catch(err => {
-            // Error case: Log an error message
             tooltip.textContent = 'Failed to copy!';
             console.error('Could not copy text: ', err);
             setTimeout(() => {

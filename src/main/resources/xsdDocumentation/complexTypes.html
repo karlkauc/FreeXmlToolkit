@@ -20,7 +20,7 @@
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
-<body class="font-sans text-slate-800">
+<body class="font-sans text-slate-800" data-root-path="." data-search-index-path="search_index.json">
 
 <!-- Modern navigation with shadow and clear spacing -->
 <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10 border-b border-slate-200">
@@ -28,10 +28,11 @@
         <div class="flex justify-between items-center h-16">
             <!-- Left navigation group -->
             <div class="hidden md:flex items-baseline space-x-6">
-                <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
-                   aria-current="page">Home</a>
+                <a href="index.html"
+                   class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Home</a>
                 <a href="complexTypes.html"
-                   class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Complex
+                   class="px-3 py-2 rounded-md text-sm font-medium text-sky-600 bg-sky-100"
+                   aria-current="page">Complex
                     Types</a>
                 <a href="simpleTypes.html"
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Simple
@@ -40,6 +41,25 @@
                    class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900">Data
                     Dictionary</a>
             </div>
+
+            <!-- Search Bar -->
+            <div class="relative flex-1 max-w-md mx-4">
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3" aria-hidden="true">
+                    <svg class="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                                fill-rule="evenodd"
+                                d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                                clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <input type="search" id="search-input" placeholder="Loading search index..." disabled
+                       class="w-full pl-3 pr-10 py-2 text-sm leading-tight text-slate-700 border border-slate-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-50 disabled:cursor-not-allowed">
+                <div id="search-results"
+                     class="absolute hidden w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg z-20 max-h-96 overflow-y-auto">
+                    <!-- Search results will be injected here -->
+                </div>
+            </div>
+
             <!-- Right navigation group (GitHub Link) -->
             <div class="hidden md:block">
                 <a href="https://github.com/karlkauc/FreeXmlToolkit" target="_blank" class="flex items-center space-x-2 text-slate-700 font-bold">
@@ -61,23 +81,28 @@
     <!-- List of Complex Types -->
     <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
         <ul role="list" class="divide-y divide-slate-200">
-            <!-- Thymeleaf loop to iterate over all complex types -->
-            <li th:each="complexType : ${xsdComplexTypes}" class="hover:bg-slate-50 transition-colors">
-                <a th:href="${'complexTypes/' + complexType.name + '.html'}" class="block p-6">
+            <!-- NEU: Iteriert über eine Liste von DOM-Knoten -->
+            <li th:each="complexTypeNode : ${xsdComplexTypes}" class="hover:bg-slate-50 transition-colors">
+                <!-- NEU: Link wird mit Hilfsmethode generiert -->
+                <a th:href="${'complexTypes/' + this.getAttributeValue(complexTypeNode, 'name') + '.html'}"
+                   class="block p-6">
                     <div class="flex items-center justify-between">
-                        <p class="text-lg font-semibold text-sky-600 font-mono" th:text="${complexType.name}">
+                        <!-- NEU: Name wird mit Hilfsmethode ausgelesen -->
+                        <p class="text-lg font-semibold text-sky-600 font-mono"
+                           th:text="${this.getAttributeValue(complexTypeNode, 'name')}">
                             ComplexTypeName</p>
                         <div class="flex-shrink-0 flex space-x-2">
-                            <span th:if="${complexType.isElementAbstract()}"
+                            <!-- NEU: Attribute 'abstract' und 'mixed' werden direkt vom Knoten gelesen -->
+                            <span th:if="${this.getAttributeValue(complexTypeNode, 'abstract') == 'true'}"
                                   class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">Abstract</span>
-                            <span th:if="${complexType.isMixed()}"
+                            <span th:if="${this.getAttributeValue(complexTypeNode, 'mixed') == 'true'}"
                                   class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">Mixed</span>
                         </div>
                     </div>
-                    <div class="mt-2"
-                         th:if="${complexType.getAnnotation() != null and complexType.getAnnotation().getDocumentations() != null and not #lists.isEmpty(complexType.getAnnotation().getDocumentations())}">
+                    <!-- NEU: Dokumentation wird mit Hilfsmethode ausgelesen -->
+                    <div class="mt-2" th:if="${this.getDocumentationFromNode(complexTypeNode) != ''}">
                         <p class="text-sm text-slate-600"
-                           th:text="${complexType.getAnnotation().getDocumentations().get(0).getContent()}">
+                           th:text="${this.getDocumentationFromNode(complexTypeNode)}">
                             Documentation of the complex type...
                         </p>
                     </div>
@@ -86,6 +111,9 @@
         </ul>
     </div>
 </main>
+
+<!-- The search script will fetch the search_index.json file externally -->
+<script src="assets/search.js" defer></script>
 
 </body>
 </html>

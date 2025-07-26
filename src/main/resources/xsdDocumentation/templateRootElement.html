@@ -114,17 +114,14 @@
                 <dt class="text-sm font-medium text-slate-500">Target Namespace</dt>
                 <dd class="mt-1 text-slate-900" th:text="${targetNamespace}">TargetName</dd>
             </div>
+            <!-- NEU: Greift auf die neuen Variablen zu, die direkt vom Schema-Knoten kommen -->
             <div class="flex flex-col">
                 <dt class="text-sm font-medium text-slate-500">attributeFormDefault</dt>
-                <dd class="mt-1 font-mono text-sm text-slate-900" th:utext="${rootElement.getAttributeFormDefault()}">
-                    UNQUALIFIED
-                </dd>
+                <dd class="mt-1 font-mono text-sm text-slate-900" th:text="${attributeFormDefault}">unqualified</dd>
             </div>
             <div class="flex flex-col">
                 <dt class="text-sm font-medium text-slate-500">elementFormDefault</dt>
-                <dd class="mt-1 font-mono text-sm text-slate-900" th:utext="${rootElement.getElementFormDefault()}">
-                    UNQUALIFIED
-                </dd>
+                <dd class="mt-1 font-mono text-sm text-slate-900" th:text="${elementFormDefault}">unqualified</dd>
             </div>
             <div th:if="${version}" class="flex flex-col">
                 <dt class="text-sm font-medium text-slate-500">Version</dt>
@@ -144,7 +141,7 @@
         <table class="w-full text-left">
             <thead class="bg-slate-50 border-b border-slate-200">
             <tr>
-                <th scope="col" class="px-6 py-4 text-sm font-semibold text-slate-900">Elements</th>
+                <th scope="col" class="px-6 py-4 text-sm font-semibold text-slate-900">Global Elements</th>
                 <th scope="col" class="px-6 py-4 text-sm font-semibold text-slate-900">Complex Types</th>
                 <th scope="col" class="px-6 py-4 text-sm font-semibold text-slate-900">Simple Types</th>
             </tr>
@@ -154,27 +151,29 @@
                 <td class="px-6 py-4 align-top">
                     <!-- Vertical layout for the links -->
                     <div class="flex flex-col space-y-2">
-                        <a href="#"
-                           th:each="xsdElement : ${xsdElements}"
-                           th:href="${rootElementLink}"
-                           th:text="${xsdElement.name}"
+                        <!-- NEU: Iteriert über eine Liste von ExtendedXsdElement-Objekten -->
+                        <a th:each="xsdElement : ${xsdGlobalElements}"
+                           th:href="${'details/' + xsdElement.pageName}"
+                           th:text="${xsdElement.elementName}"
                            class="text-sky-600 hover:text-sky-800 hover:underline">Name
                         </a>
                     </div>
                 </td>
                 <td class="px-6 py-4 align-top">
                     <div class="flex flex-col space-y-2">
-                        <a th:each="xsdComplexType : ${xsdComplexTypes}"
-                           th:href="${'complexTypes/' + xsdComplexType.name + '.html'}"
-                           th:text="${xsdComplexType.name}"
+                        <!-- NEU: Iteriert über eine Liste von DOM-Knoten und nutzt eine Hilfsmethode für den Namen -->
+                        <a th:each="xsdComplexTypeNode : ${xsdComplexTypes}"
+                           th:href="${'complexTypes/' + this.getAttributeValue(xsdComplexTypeNode, 'name') + '.html'}"
+                           th:text="${this.getAttributeValue(xsdComplexTypeNode, 'name')}"
                            class="text-sky-600 hover:text-sky-800 hover:underline">LINK</a>
                     </div>
                 </td>
                 <td class="px-6 py-4 align-top">
                     <div class="flex flex-col space-y-2">
-                        <a th:each="xsdSimpleType : ${xsdSimpleTypes}"
-                           th:href="${'simpleTypes/' + xsdSimpleType.name + '.html'}"
-                           th:text="${xsdSimpleType.name}"
+                        <!-- NEU: Iteriert über eine Liste von DOM-Knoten und nutzt eine Hilfsmethode für den Namen -->
+                        <a th:each="xsdSimpleTypeNode : ${xsdSimpleTypes}"
+                           th:href="${'simpleTypes/' + this.getAttributeValue(xsdSimpleTypeNode, 'name') + '.html'}"
+                           th:text="${this.getAttributeValue(xsdSimpleTypeNode, 'name')}"
                            class="text-sky-600 hover:text-sky-800 hover:underline">LINK</a>
                     </div>
                 </td>
@@ -185,15 +184,8 @@
 
 </main>
 
-<!--
-  Embed the search index data directly into the page to avoid file protocol issues with fetch().
-  Thymeleaf's th:inline="javascript" handles the correct escaping and formatting.
--->
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    window.SEARCH_INDEX_DATA = JSON.parse(/*[[${searchIndexJson}]]*/ '[]');
-    /*]]>*/
-</script>
+<!-- The search script will now fetch the search_index.json file externally
+     using the path provided in the body's data-search-index-path attribute. -->
 <script src="assets/search.js" defer></script>
 </body>
 </html>

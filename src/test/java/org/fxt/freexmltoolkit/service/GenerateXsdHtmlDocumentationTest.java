@@ -69,7 +69,7 @@ public class GenerateXsdHtmlDocumentationTest {
     XmlService xmlService = XmlServiceImpl.getInstance();
 
     @Test
-    void parseXsdTest() {
+    void parseXsdTest() throws Exception {
         xsdDocumentationService.setXsdFilePath(XML_420_XSD);
         xsdDocumentationService.setMethod(XsdDocumentationService.ImageOutputMethod.SVG);
         xsdDocumentationService.processXsd(true);
@@ -83,7 +83,7 @@ public class GenerateXsdHtmlDocumentationTest {
     }
 
     @Test
-    void generateSeperatedFiles() {
+    void generateSeperatedFiles() throws Exception {
         logger.debug("Creating Documentation");
         xsdDocumentationService.setXsdFilePath(XML_420_XSD);
         xsdDocumentationService.parallelProcessing = true;
@@ -91,7 +91,7 @@ public class GenerateXsdHtmlDocumentationTest {
     }
 
     @Test
-    void testWithSeparateCalls() {
+    void testWithSeparateCalls() throws Exception {
         final var testFilePath = new File("output/testSchema");
         // xsdDocumentationService.debug = true;
         xsdDocumentationService.setXsdFilePath(SIMPLE_XSD_FILE);
@@ -107,7 +107,7 @@ public class GenerateXsdHtmlDocumentationTest {
     }
 
     @Test
-    void generateHtmlDoc() throws IOException {
+    void generateHtmlDoc() throws Exception {
         final var testFilePath = Paths.get(XML_LATEST_XSD);
         // final var testFilePath = Paths.get(SIMPLE_XSD_FILE);
         final var outputFilePath = Paths.get("../FundsXML_Documentation");

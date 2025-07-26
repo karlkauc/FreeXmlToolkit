@@ -33,7 +33,7 @@ public interface TaskProgressListener {
      * @param durationMillis Die Dauer des Tasks in Millisekunden (nur bei FINISHED relevant).
      */
     record ProgressUpdate(String taskName, Status status, long durationMillis) {
-        public enum Status { STARTED, FINISHED }
+        public enum Status {STARTED, RUNNING, FAILED, FINISHED}
     }
 
     void onProgressUpdate(ProgressUpdate update);

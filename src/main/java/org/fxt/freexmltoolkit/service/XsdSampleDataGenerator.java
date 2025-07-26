@@ -5,19 +5,8 @@ import jakarta.xml.bind.DatatypeConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xmlet.xsdparser.xsdelements.XsdAppInfo;
-import org.xmlet.xsdparser.xsdelements.XsdRestriction;
-import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdEnumeration;
-import org.xmlet.xsdparser.xsdelements.xsdrestrictions.XsdPattern;
+import org.fxt.freexmltoolkit.domain.ExtendedXsdElement.RestrictionInfo;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -25,10 +14,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Generiert Beispieldaten für XSD-Elemente basierend auf deren Typ,
- * Einschränkungen und Annotationen.
+ * Einschränkungen und Annotationen. Diese Version ist unabhängig von xmlet.xsdparser.
  */
 public class XsdSampleDataGenerator {
 
@@ -54,41 +44,29 @@ public class XsdSampleDataGenerator {
             return "";
         }
 
-        // Priorität 1: AppInfo mit Altova-Beispieldaten
-        if (element.getXsdElement() != null && element.getXsdElement().getAnnotation() != null) {
-            List<XsdAppInfo> appInfoList = element.getXsdElement().getAnnotation().getAppInfoList();
-            if (appInfoList != null) {
-                for (XsdAppInfo appInfo : appInfoList) {
-                    String sampleValue = extractAltovaSample(appInfo);
-                    if (sampleValue != null) {
-                        logger.debug("Found sample data in appinfo for {}: {}", element.getElementName(), sampleValue);
-                        return sampleValue;
-                    }
-                }
+        RestrictionInfo restriction = element.getRestrictionInfo();
+
+        // Priorität 2: Enumerations (Auswahllisten)
+        if (restriction != null && restriction.facets().containsKey("enumeration")) {
+            List<String> enumerations = restriction.facets().get("enumeration");
+            if (enumerations != null && !enumerations.isEmpty()) {
+                int randomIndex = java.util.concurrent.ThreadLocalRandom.current().nextInt(enumerations.size());
+                return enumerations.get(randomIndex);
             }
         }
 
-        XsdRestriction restriction = element.getXsdRestriction();
-
-        // Priorität 2: Enumerations (Auswahllisten)
-        if (restriction != null && restriction.getEnumeration() != null && !restriction.getEnumeration().isEmpty()) {
-            List<XsdEnumeration> enumerations = restriction.getEnumeration();
-            int randomIndex = java.util.concurrent.ThreadLocalRandom.current().nextInt(enumerations.size());
-            return enumerations.get(randomIndex).getValue();
-        }
-
-        // NEU: Priorität 3: Regex-Pattern
-        if (restriction != null && restriction.getPattern() != null) {
-            XsdPattern pattern = restriction.getPattern();
-
-            if (pattern != null && pattern.getValue() != null) {
+        // Priorität 3: Regex-Pattern
+        if (restriction != null && restriction.facets().containsKey("pattern")) {
+            String patternValue = restriction.facets().get("pattern").stream().findFirst().orElse(null);
+            if (patternValue != null) {
                 try {
-                    Generex generex = new Generex(pattern.getValue());
+                    // map java regex to XML regex syntax
+                    // ^ $ ???
+                    Generex generex = new Generex(patternValue);
                     return generex.random();
                 } catch (Exception e) {
                     logger.warn("Could not generate sample from pattern '{}' for element '{}'. Falling back. Error: {}",
-                            pattern.getValue(), element.getElementName(), e.getMessage());
-                    // Bei Fehler wird zum nächsten Mechanismus übergegangen (Fallback)
+                            patternValue, element.getElementName(), e.getMessage());
                 }
             }
         }
@@ -96,19 +74,19 @@ public class XsdSampleDataGenerator {
         // Priorität 4: Datentyp-basierte Generierung
         String elementType = element.getElementType();
         if (elementType == null && restriction != null) {
-            elementType = restriction.getBase();
+            elementType = restriction.base();
         }
 
-        if (elementType == null || (element.getXsdElement() != null && element.getXsdElement().getXsdComplexType() != null)) {
-            return ""; // Für komplexe Typen ohne einfachen Inhalt
+        // Für komplexe Typen mit Kind-Elementen keinen Textinhalt generieren
+        if (elementType == null || element.hasChildren()) {
+            return "";
         }
 
         String finalType = elementType.substring(elementType.lastIndexOf(":") + 1);
 
         return switch (finalType.toLowerCase()) {
             // Spezifischere String-Typen für bessere Beispiele
-            case "string", "token", "normalizedstring", "name" ->
-                    generateStringSample(restriction);
+            case "string", "token", "normalizedstring", "name" -> generateStringSample(restriction);
             case "language" -> "en-US";
             case "ncname" -> "exampleName1";
 
@@ -142,7 +120,7 @@ public class XsdSampleDataGenerator {
                 yield DatatypeConverter.printByte(randomDecimal.byteValue());
             }
 
-            // ... (der Rest der Methode für Datum, Boolean etc. bleibt unverändert) ...
+            // Datum, Zeit und Boolean
             case "date" -> {
                 long minDay = LocalDate.of(2020, 1, 1).toEpochDay();
                 long maxDay = LocalDate.now().toEpochDay();
@@ -161,17 +139,16 @@ public class XsdSampleDataGenerator {
                     java.util.concurrent.ThreadLocalRandom.current().nextInt(0, 60),
                     java.util.concurrent.ThreadLocalRandom.current().nextInt(0, 60)
             ).format(DateTimeFormatter.ISO_LOCAL_TIME);
-            case "gyear" -> String.valueOf(java.util.concurrent.ThreadLocalRandom.current().nextInt(1990, LocalDate.now().getYear() + 1));
-
-            // Boolean mit zufälligem Wert
+            case "gyear" ->
+                    String.valueOf(java.util.concurrent.ThreadLocalRandom.current().nextInt(1990, LocalDate.now().getYear() + 1));
             case "boolean" -> String.valueOf(java.util.concurrent.ThreadLocalRandom.current().nextBoolean());
 
             default -> {
                 // Rekursiver Versuch für abgeleitete Typen
-                if (restriction != null && restriction.getBase() != null) {
+                if (restriction != null && restriction.base() != null) {
                     ExtendedXsdElement tempElement = new ExtendedXsdElement();
-                    tempElement.setElementType(restriction.getBase());
-                    tempElement.setXsdRestriction(restriction);
+                    tempElement.setElementType(restriction.base());
+                    tempElement.setRestrictionInfo(restriction);
                     yield generateRecursive(tempElement, recursionDepth + 1);
                 }
                 yield ""; // Fallback für unbekannte einfache Typen
@@ -179,35 +156,33 @@ public class XsdSampleDataGenerator {
         };
     }
 
-    private String generateStringSample(XsdRestriction restriction) {
-        // Ein allgemeinerer Basis-String
+    private String generateStringSample(RestrictionInfo restriction) {
         String sample = "ExampleText";
 
         if (restriction != null) {
+            Map<String, List<String>> facets = restriction.facets();
             // Genaue Länge hat höchste Priorität
-            if (restriction.getLength() != null) {
-                int length = restriction.getLength().getValue();
-                return "a".repeat(Math.max(0, length));
+            if (facets.containsKey("length")) {
+                try {
+                    int length = Integer.parseInt(facets.get("length").getFirst());
+                    return "a".repeat(Math.max(0, length));
+                } catch (NumberFormatException e) {
+                    logger.warn("Could not parse length value: {}", facets.get("length").getFirst());
+                }
             }
 
-            Integer min = (restriction.getMinLength() != null) ? restriction.getMinLength().getValue() : null;
-            Integer max = (restriction.getMaxLength() != null) ? restriction.getMaxLength().getValue() : null;
+            Integer min = facets.containsKey("minLength") ? Integer.parseInt(facets.get("minLength").getFirst()) : null;
+            Integer max = facets.containsKey("maxLength") ? Integer.parseInt(facets.get("maxLength").getFirst()) : null;
 
-            // Wenn nur minLength definiert ist, erstelle einen String dieser Länge
             if (min != null && max == null) {
                 return "a".repeat(min);
             }
-
-            // Wenn nur maxLength definiert ist, kürze den Beispiel-String bei Bedarf
             if (min == null && max != null) {
                 return sample.length() > max ? sample.substring(0, max) : sample;
             }
-
-            // Wenn beide definiert sind, erstelle einen String mit einer zufälligen Länge im erlaubten Bereich
             if (min != null) {
-                // Stelle sicher, dass min nicht größer als max ist
                 if (min > max) {
-                    logger.warn("minLenth ({}) is greater than maxLength ({}) for a string restriction. Using minLength.", min, max);
+                    logger.warn("minLength ({}) is greater than maxLength ({}) for a string restriction. Using minLength.", min, max);
                     return "a".repeat(min);
                 }
                 int targetLength = (min.equals(max)) ? min : java.util.concurrent.ThreadLocalRandom.current().nextInt(min, max + 1);
@@ -220,101 +195,44 @@ public class XsdSampleDataGenerator {
     /**
      * Generiert eine Zufallszahl (als BigDecimal) unter Berücksichtigung von
      * min/max-Einschränkungen aus dem XSD.
-     *
-     * @param restriction Das Restriction-Objekt, das die Einschränkungen enthält.
-     * @param defaultMin  Der Standard-Minimalwert, falls keine Einschränkung vorhanden ist.
-     * @param defaultMax  Der Standard-Maximalwert, falls keine Einschränkung vorhanden ist.
-     * @return Eine zufällige BigDecimal-Zahl im gültigen Bereich.
      */
-    private BigDecimal generateNumberInRange(XsdRestriction restriction, BigDecimal defaultMin, BigDecimal defaultMax) {
+    private BigDecimal generateNumberInRange(RestrictionInfo restriction, BigDecimal defaultMin, BigDecimal defaultMax) {
         BigDecimal min = defaultMin;
         BigDecimal max = defaultMax;
 
         if (restriction != null) {
-            // Min-Einschränkungen auslesen
-            if (restriction.getMinInclusive() != null) {
+            Map<String, List<String>> facets = restriction.facets();
+            if (facets.containsKey("minInclusive")) {
                 try {
-                    min = new BigDecimal(restriction.getMinInclusive().getValue());
-                } catch (NumberFormatException e) {
-                    logger.warn("Could not parse minInclusive value: {}", restriction.getMinInclusive().getValue());
-                }
-            } else if (restriction.getMinExclusive() != null) {
+                    min = new BigDecimal(facets.get("minInclusive").getFirst());
+                } catch (NumberFormatException e) { /* ignore */ }
+            } else if (facets.containsKey("minExclusive")) {
                 try {
-                    // Bei Ganzzahlen bedeutet minExclusive 'v', dass der kleinste Wert 'v+1' ist.
-                    // Für Dezimalzahlen ist es komplexer, aber für Beispieldaten ist dies ein guter Kompromiss.
-                    min = new BigDecimal(restriction.getMinExclusive().getValue()).add(BigDecimal.ONE);
-                } catch (NumberFormatException e) {
-                    logger.warn("Could not parse minExclusive value: {}", restriction.getMinExclusive().getValue());
-                }
+                    min = new BigDecimal(facets.get("minExclusive").getFirst()).add(BigDecimal.ONE);
+                } catch (NumberFormatException e) { /* ignore */ }
             }
 
-            // Max-Einschränkungen auslesen
-            if (restriction.getMaxInclusive() != null) {
+            if (facets.containsKey("maxInclusive")) {
                 try {
-                    max = new BigDecimal(restriction.getMaxInclusive().getValue());
-                } catch (NumberFormatException e) {
-                    logger.warn("Could not parse maxInclusive value: {}", restriction.getMaxInclusive().getValue());
-                }
-            } else if (restriction.getMaxExclusive() != null) {
+                    max = new BigDecimal(facets.get("maxInclusive").getFirst());
+                } catch (NumberFormatException e) { /* ignore */ }
+            } else if (facets.containsKey("maxExclusive")) {
                 try {
-                    // Bei Ganzzahlen bedeutet maxExclusive 'v', dass der größte Wert 'v-1' ist.
-                    max = new BigDecimal(restriction.getMaxExclusive().getValue()).subtract(BigDecimal.ONE);
-                } catch (NumberFormatException e) {
-                    logger.warn("Could not parse maxExclusive value: {}", restriction.getMaxExclusive().getValue());
-                }
+                    max = new BigDecimal(facets.get("maxExclusive").getFirst()).subtract(BigDecimal.ONE);
+                } catch (NumberFormatException e) { /* ignore */ }
             }
         }
 
-        // Sicherstellen, dass min nicht größer als max ist
         if (min.compareTo(max) > 0) {
             logger.warn("Min value {} is greater than max value {}. Using max value for generation.", min, max);
             return max;
         }
-
         if (min.compareTo(max) == 0) {
             return min;
         }
 
-        // Eine zufällige Zahl im Bereich [min, max] generieren
         BigDecimal range = max.subtract(min);
         BigDecimal randomValue = min.add(range.multiply(BigDecimal.valueOf(Math.random())));
-
         return randomValue;
-    }
-
-    private String extractAltovaSample(XsdAppInfo appInfo) {
-        if (appInfo.getContent() == null) return null;
-
-        Document appInfoDoc = convertStringToDocument(appInfo.getContent());
-        if (appInfoDoc == null) return null;
-
-        Element root = appInfoDoc.getDocumentElement();
-        if (root != null && "altova:exampleValues".equals(root.getNodeName())) {
-            NodeList children = root.getChildNodes();
-            for (int i = 0; i < children.getLength(); i++) {
-                Node child = children.item(i);
-                if (child.getNodeType() == Node.ELEMENT_NODE && "altova:example".equals(child.getNodeName())) {
-                    Element exampleElement = (Element) child;
-                    if (exampleElement.hasAttribute("value")) {
-                        String value = exampleElement.getAttribute("value");
-                        if (!value.isBlank()) return value;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Document convertStringToDocument(String xmlStr) {
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            // Namespace-Awareness aktivieren, um mit Prefixen wie "altova:" korrekt umzugehen.
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            return builder.parse(new InputSource(new StringReader(xmlStr)));
-        } catch (Exception e) {
-            logger.error("Error converting string to XML document: {}", e.getMessage());
-            return null;
-        }
     }
 }

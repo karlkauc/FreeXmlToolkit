@@ -209,12 +209,13 @@
 /* =================================================================
    Listen und Bäume (TreeView, ListView)
    ================================================================= */
-
 .tree-view, .list-view {
-    -fx-background-color: -fx-control-background;
-    -fx-border-color: -fx-border-color;
-    -fx-border-radius: -fx-border-radius;
-    -fx-background-radius: -fx-border-radius;
+    /*
+      -fx-background-color: -fx-control-background;
+        -fx-border-color: -fx-border-color;
+        -fx-border-radius: -fx-border-radius;
+        -fx-background-radius: -fx-border-radius;
+     */
 }
 
 .tree-cell, .list-cell {
@@ -270,7 +271,7 @@
     -fx-padding: 5px;
     -fx-border-color: -fx-border-color;
     -fx-border-radius: -fx-border-radius;
-    -fx-background-radius: -fx-border-radius;
+    /* -fx-background-radius: -fx-border-radius; */
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);
 }
 

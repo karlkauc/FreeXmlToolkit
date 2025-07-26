@@ -27,13 +27,10 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.w3c.dom.Node;
-import org.xmlet.xsdparser.xsdelements.XsdAnnotation;
-import org.xmlet.xsdparser.xsdelements.XsdAnnotationChildren;
-import org.xmlet.xsdparser.xsdelements.XsdComplexType;
-import org.xmlet.xsdparser.xsdelements.XsdSimpleType;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -84,30 +81,49 @@ public class XsdDocumentationHtmlService {
     }
 
     void generateRootPage() {
-        // Generate and cache the search index at the very beginning.
         generateSearchIndex();
 
-        final var rootElementName = xsdDocumentationData.getElements().getFirst().getName();
+        if (xsdDocumentationData.getGlobalElements().isEmpty()) {
+            logger.error("No global elements found. Cannot generate root page.");
+            return;
+        }
+
+        Node rootElementNode = xsdDocumentationData.getGlobalElements().getFirst();
+        final String rootElementName = getAttributeValue(rootElementNode, "name");
+        final ExtendedXsdElement rootExtendedElement = xsdDocumentationData.getExtendedXsdElementMap().get("/" + rootElementName);
 
         var context = new Context();
         context.setVariable("date", LocalDate.now());
         context.setVariable("filename", Paths.get(xsdDocumentationData.getXsdFilePath()).getFileName().toString());
         context.setVariable("rootElementName", rootElementName);
         context.setVariable("version", xsdDocumentationData.getVersion());
-        context.setVariable("rootElement", xsdDocumentationData.getXmlSchema().getFirst());
-        context.setVariable("xsdElements", xsdDocumentationData.getElements().getFirst());
-        context.setVariable("xsdComplexTypes", xsdDocumentationData.getXsdComplexTypes());
-        context.setVariable("xsdSimpleTypes", xsdDocumentationData.getXsdSimpleTypes());
+        context.setVariable("rootElement", rootExtendedElement); // Pass the ExtendedXsdElement
+        context.setVariable("xsdComplexTypes", xsdDocumentationData.getGlobalComplexTypes());
+        context.setVariable("xsdSimpleTypes", xsdDocumentationData.getGlobalSimpleTypes());
         context.setVariable("namespace", xsdDocumentationData.getNameSpacesAsString());
-        context.setVariable("targetNamespace", xsdDocumentationData.getXmlSchema().getFirst().getTargetNamespace());
-        context.setVariable("rootElementLink", "details/" + xsdDocumentationData.getExtendedXsdElementMap().get("/" + rootElementName).getPageName());
+        context.setVariable("targetNamespace", xsdDocumentationData.getTargetNamespace());
+        context.setVariable("rootElementLink", "details/" + rootExtendedElement.getPageName());
+        context.setVariable("this", this);
+
+        // NEU: Die Liste der globalen Elemente aus der Map aller Elemente filtern.
+        // Globale Elemente sind solche auf Level 0.
+        List<ExtendedXsdElement> globalElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> e.getLevel() == 0)
+                .sorted(Comparator.comparing(ExtendedXsdElement::getCounter))
+                .collect(Collectors.toList());
+
+        // NEU: Die Variablen für das Template setzen.
+        context.setVariable("xsdGlobalElements", globalElements);
+        context.setVariable("attributeFormDefault", xsdDocumentationData.getAttributeFormDefault());
+        context.setVariable("elementFormDefault", xsdDocumentationData.getElementFormDefault());
+
 
         final var result = templateEngine.process("templateRootElement", context);
         final var outputFileName = Paths.get(outputDirectory.getPath(), "index.html").toFile().getAbsolutePath();
         logger.debug("Root File: {}", outputFileName);
 
         try {
-            Files.write(Paths.get(outputFileName), result.getBytes());
+            Files.writeString(Paths.get(outputFileName), result, StandardCharsets.UTF_8);
             logger.info("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -115,442 +131,283 @@ public class XsdDocumentationHtmlService {
     }
 
     void generateComplexTypePages() {
-        logger.debug("Complex Types");
-
-        for (var complexType : xsdDocumentationData.getXsdComplexTypes()) {
-            try {
-                String complexTypeName = complexType.getName();
-                if (complexTypeName == null || complexTypeName.isEmpty()) {
-                    logger.warn("Skipping complex type page for a type without a name.");
-                    continue;
-                }
-                final String cleanComplexTypeName = complexTypeName.substring(complexTypeName.lastIndexOf(":") + 1);
-
-                var context = new Context();
-                context.setVariable("complexType", complexType);
-
-                if (complexType.getAnnotation() != null && complexType.getAnnotation().getDocumentations() != null) {
-                    context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
-                }
-
-                var usedInElements = xsdDocumentationData.getTypeUsageMap()
-                        .getOrDefault(complexTypeName, Collections.emptyList());
-                context.setVariable("usedInElements", usedInElements);
-
-                context.setVariable("this", this);
-
-                List<ExtendedXsdElement> childElements = new ArrayList<>();
-                if (!usedInElements.isEmpty()) {
-                    ExtendedXsdElement representativeElement = usedInElements.getFirst();
-                    if (representativeElement != null && representativeElement.hasChildren()) {
-                        representativeElement.getChildren().stream()
-                                .map(xpath -> xsdDocumentationData.getExtendedXsdElementMap().get(xpath))
-                                .filter(java.util.Objects::nonNull)
-                                .forEach(childElements::add);
-                    }
-                }
-                context.setVariable("childElements", childElements);
-
-                final var result = templateEngine.process("complexTypes/templateComplexType", context);
-                final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", cleanComplexTypeName + ".html");
-
-                try {
-                    Files.write(outputFilePath, result.getBytes());
-                    logger.info("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
-                } catch (IOException e) {
-                    logger.error("ERROR in writing complex Type File: {}", e.getMessage());
-                }
-            } catch (Exception e) {
-                logger.error("ERROR in creating complex Type File for '{}': {}", complexType.getName(), e.getMessage(), e);
-            }
+        logger.debug("Generating Complex Type Pages...");
+        for (var complexTypeNode : xsdDocumentationData.getGlobalComplexTypes()) {
+            generateSingleComplexTypePage(complexTypeNode);
         }
     }
 
     void generateComplexTypePagesInParallel() {
         logger.debug("Generating Complex Type Pages in parallel...");
-
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            for (final var complexType : xsdDocumentationData.getXsdComplexTypes()) {
-                executor.submit(() -> {
-                    try {
-                        String complexTypeName = complexType.getName();
-                        if (complexTypeName == null || complexTypeName.isEmpty()) {
-                            logger.warn("Skipping complex type page for a type without a name.");
-                            return;
-                        }
-
-                        // Bereinige den Namen des ComplexType und den Dateinamen.
-                        final String cleanComplexTypeName = complexTypeName.substring(complexTypeName.lastIndexOf(":") + 1);
-
-                        var context = new Context();
-                        context.setVariable("complexType", complexType);
-
-                        context.setVariable("this", this);
-
-                        if (complexType.getAnnotation() != null && complexType.getAnnotation().getDocumentations() != null) {
-                            context.setVariable("documentations", complexType.getAnnotation().getDocumentations());
-                        }
-
-                        // Verwende die robuste Filterlogik anstelle der typeUsageMap.
-                        var usedInElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
-                                .filter(element -> {
-                                    String elementType = element.getElementType();
-                                    if (elementType == null) {
-                                        return false;
-                                    }
-                                    String cleanElementType = elementType.substring(elementType.lastIndexOf(":") + 1);
-                                    return cleanComplexTypeName.equals(cleanElementType);
-                                })
-                                .sorted(Comparator.comparing(ExtendedXsdElement::getCurrentXpath))
-                                .collect(Collectors.toList());
-                        context.setVariable("usedInElements", usedInElements);
-
-                        List<ExtendedXsdElement> childElements = new ArrayList<>();
-                        if (!usedInElements.isEmpty()) {
-                            ExtendedXsdElement representativeElement = usedInElements.getFirst();
-                            if (representativeElement != null && representativeElement.hasChildren()) {
-                                // Lade die vollständigen Kind-Objekte aus der Map
-                                representativeElement.getChildren().stream()
-                                        .map(xpath -> xsdDocumentationData.getExtendedXsdElementMap().get(xpath))
-                                        .filter(java.util.Objects::nonNull)
-                                        .forEach(childElements::add);
-                            }
-                        }
-                        context.setVariable("childElements", childElements);
-
-                        final var result = templateEngine.process("complexTypes/templateComplexType", context);
-                        // Der Dateiname wird ebenfalls bereinigt, um ":" Zeichen zu entfernen.
-                        final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", cleanComplexTypeName + ".html");
-                        Files.write(outputFilePath, result.getBytes());
-                        logger.info("Written Complex Type Page: {}", outputFilePath.getFileName());
-
-                    } catch (Exception e) {
-                        logger.error("ERROR in creating complex Type File for '{}': {}", complexType.getName(), e.getMessage(), e);
-                    }
-                });
+            for (final var complexTypeNode : xsdDocumentationData.getGlobalComplexTypes()) {
+                executor.submit(() -> generateSingleComplexTypePage(complexTypeNode));
             }
         }
     }
 
-    void generateDetailPages() {
-        xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
-
-        List<String> sortedKeys = new ArrayList<>(xsdDocumentationData.getExtendedXsdElementMap().keySet());
-        Collections.sort(sortedKeys);
-
-        for (String key : sortedKeys) {
-            final var currentElement = xsdDocumentationData.getExtendedXsdElementMap().get(key);
-            logger.debug("Generating single details page for {}", key);
-
-            try {
-                writeDetailsPageContent(currentElement, key, xsdDocumentationImageService);
-            } catch (Exception e) {
-                logger.warn("Error in thread while writing details page for element '{}': {}", key, e.getMessage());
+    private void generateSingleComplexTypePage(Node complexTypeNode) {
+        try {
+            String complexTypeName = getAttributeValue(complexTypeNode, "name");
+            if (complexTypeName == null || complexTypeName.isEmpty()) {
+                logger.warn("Skipping complex type page for a type without a name.");
+                return;
             }
+
+            var context = new Context();
+            context.setVariable("complexTypeNode", complexTypeNode);
+            context.setVariable("this", this);
+
+            // Find elements that use this type
+            var usedInElements = xsdDocumentationData.getTypeUsageMap()
+                    .getOrDefault(complexTypeName, Collections.emptyList());
+            context.setVariable("usedInElements", usedInElements);
+
+            // Find child elements from a representative element
+            List<ExtendedXsdElement> childElements = new ArrayList<>();
+            if (!usedInElements.isEmpty()) {
+                ExtendedXsdElement representativeElement = usedInElements.getFirst();
+                if (representativeElement != null && representativeElement.hasChildren()) {
+                    representativeElement.getChildren().stream()
+                            .map(xpath -> xsdDocumentationData.getExtendedXsdElementMap().get(xpath))
+                            .filter(Objects::nonNull)
+                            .forEach(childElements::add);
+                }
+            }
+            context.setVariable("childElements", childElements);
+
+            final var result = templateEngine.process("complexTypes/templateComplexType", context);
+            final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes", complexTypeName + ".html");
+
+            Files.writeString(outputFilePath, result, StandardCharsets.UTF_8);
+            logger.info("Written Complex Type Page: {}", outputFilePath.getFileName());
+
+        } catch (Exception e) {
+            logger.error("ERROR in creating complex Type File for node '{}': {}", getAttributeValue(complexTypeNode, "name"), e.getMessage(), e);
         }
     }
 
     void generateSimpleTypePages() {
-        logger.debug("Generating Simple Type Pages");
-
-        for (var simpleType : xsdDocumentationData.getXsdSimpleTypes()) {
-            try {
-                var context = new Context();
-                context.setVariable("simpleType", simpleType);
-                context.setVariable("restriction", simpleType.getRestriction());
-
-                if (simpleType.getAnnotation() != null && simpleType.getAnnotation().getDocumentations() != null) {
-                    context.setVariable("documentations", simpleType.getAnnotation().getDocumentations());
-                }
-                final String typeName = simpleType.getName();
-                if (typeName != null && !typeName.isEmpty()) {
-                    List<ExtendedXsdElement> usedInElements = xsdDocumentationData.getTypeUsageMap()
-                            .getOrDefault(typeName, Collections.emptyList());
-
-                    context.setVariable("usedInElements", usedInElements);
-                    logger.debug("Found {} usage(s) for simple type '{}' from usage map.", usedInElements.size(), typeName);
-                }
-
-                final var result = templateEngine.process("simpleTypes/templateSimpleType", context);
-                final String cleanFileName = simpleType.getName().substring(simpleType.getName().lastIndexOf(":") + 1);
-                final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", cleanFileName + ".html");
-                logger.debug("File: {}", outputFilePath.toFile().getAbsolutePath());
-
-                Files.write(outputFilePath, result.getBytes());
-                logger.info("Written {} bytes in File '{}'", new File(outputFilePath.toFile().getAbsolutePath()).length(), outputFilePath.toFile().getAbsolutePath());
-
-            } catch (Exception e) {
-                logger.error("ERROR in creating simple Type File for '{}': {}", simpleType.getName(), e.getMessage(), e);
-            }
+        logger.debug("Generating Simple Type Pages...");
+        for (var simpleTypeNode : xsdDocumentationData.getGlobalSimpleTypes()) {
+            generateSingleSimpleTypePage(simpleTypeNode);
         }
     }
 
     void generateSimpleTypePagesInParallel() {
         logger.debug("Generating Simple Type Pages in parallel...");
-
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            for (final var simpleType : xsdDocumentationData.getXsdSimpleTypes()) {
-                executor.submit(() -> {
-                    try {
-                        var context = new Context();
-                        context.setVariable("simpleType", simpleType);
-                        context.setVariable("restriction", simpleType.getRestriction());
-
-                        if (simpleType.getAnnotation() != null && simpleType.getAnnotation().getDocumentations() != null) {
-                            context.setVariable("documentations", simpleType.getAnnotation().getDocumentations());
-                        }
-
-                        final String typeName = simpleType.getName();
-                        if (typeName != null && !typeName.isEmpty()) {
-                            List<ExtendedXsdElement> usedInElements = xsdDocumentationData.getTypeUsageMap()
-                                    .getOrDefault(typeName, Collections.emptyList());
-                            context.setVariable("usedInElements", usedInElements);
-                        }
-
-                        final var result = templateEngine.process("simpleTypes/templateSimpleType", context);
-                        final String cleanFileName = simpleType.getName().substring(simpleType.getName().lastIndexOf(":") + 1);
-                        final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", cleanFileName + ".html");
-
-                        Files.write(outputFilePath, result.getBytes());
-                        logger.info("Written Simple Type Page: {}", outputFilePath.getFileName());
-
-                    } catch (Exception e) {
-                        logger.error("ERROR in creating simple Type File for '{}': {}", simpleType.getName(), e.getMessage(), e);
-                    }
-                });
+            for (final var simpleTypeNode : xsdDocumentationData.getGlobalSimpleTypes()) {
+                executor.submit(() -> generateSingleSimpleTypePage(simpleTypeNode));
             }
         }
     }
 
-    /**
-     * Generiert eine einzelne HTML-Seite, die alle gefundenen Complex Types auflistet.
-     * Jeder Eintrag verlinkt auf die jeweilige Detailseite des Typs.
-     */
-    void generateComplexTypesListPage() {
-        logger.debug("Generating Complex Types list page");
-
-        // 1. Thymeleaf-Kontext erstellen
-        final var context = new Context();
-
-        // 2. Die Liste aller Complex Types aus den gesammelten Daten holen
-        //    und dem Kontext hinzufügen, damit sie im Template verfügbar ist.
-        context.setVariable("xsdComplexTypes", xsdDocumentationData.getXsdComplexTypes());
-
-        // 3. Das Thymeleaf-Template "complexTypes.html" verarbeiten
-        final var result = templateEngine.process("complexTypes", context);
-
-        // 4. Den Ausgabepfad für die Datei definieren (z.B. output/complexTypes.html)
-        final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes.html");
-        logger.debug("Creating list page for complex types: {}", outputFilePath.toFile().getAbsolutePath());
-
-        // 5. Die generierte HTML-Datei schreiben
+    private void generateSingleSimpleTypePage(Node simpleTypeNode) {
         try {
-            Files.write(outputFilePath, result.getBytes());
-            logger.info("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
+            String typeName = getAttributeValue(simpleTypeNode, "name");
+            if (typeName == null || typeName.isEmpty()) {
+                logger.warn("Skipping simple type page for a type without a name.");
+                return;
+            }
+
+            var context = new Context();
+            context.setVariable("simpleTypeNode", simpleTypeNode);
+            context.setVariable("this", this);
+
+            List<ExtendedXsdElement> usedInElements = xsdDocumentationData.getTypeUsageMap()
+                    .getOrDefault(typeName, Collections.emptyList());
+            context.setVariable("usedInElements", usedInElements);
+
+            final var result = templateEngine.process("simpleTypes/templateSimpleType", context);
+            final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes", typeName + ".html");
+
+            Files.writeString(outputFilePath, result, StandardCharsets.UTF_8);
+            logger.info("Written Simple Type Page: {}", outputFilePath.getFileName());
+
+        } catch (Exception e) {
+            logger.error("ERROR in creating simple Type File for node '{}': {}", getAttributeValue(simpleTypeNode, "name"), e.getMessage(), e);
+        }
+    }
+
+    public void generateDetailPages() {
+        logger.debug("Generating detail pages for all elements...");
+        xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
+        xsdDocumentationData.getExtendedXsdElementMap().values().forEach(this::generateDetailPage);
+        logger.debug("Finished generating detail pages.");
+    }
+
+    public void generateDetailsPagesInParallel() {
+        logger.debug("Generating detail pages for all elements (in parallel)...");
+        xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
+        xsdDocumentationData.getExtendedXsdElementMap().values().parallelStream().forEach(this::generateDetailPage);
+        logger.debug("Finished generating detail pages (in parallel).");
+    }
+
+    private void generateDetailPage(ExtendedXsdElement element) {
+        try {
+            final Context context = new Context();
+            context.setVariable("this", this); // Wichtig, damit this.* im Template funktioniert
+            context.setVariable("element", element);
+
+            // Die fehlenden Variablen aus dem 'element'-Objekt auslesen und an das Template übergeben
+            context.setVariable("documentation", element.getLanguageDocumentation());
+            context.setVariable("sampleData", element.getDisplaySampleData());
+            context.setVariable("appInfos", element.getGenericAppInfos());
+            context.setVariable("code", element.getSourceCode());
+
+            // Bestehende Variablen (aus anderen Templates abgeleitet)
+            context.setVariable("diagramType", xsdDocService.imageOutputMethod.name());
+            context.setVariable("diagramContent", generateDiagram(element));
+            context.setVariable("breadCrumbs", generateBreadcrumbs(element));
+            context.setVariable("namespace", formatNamespaces(xsdDocumentationData.getNamespaces()));
+
+            final String html = templateEngine.process("details/templateDetail", context);
+            final File outputFile = new File(outputDirectory + "/details", element.getPageName());
+            Files.writeString(outputFile.toPath(), html, StandardCharsets.UTF_8);
+
         } catch (IOException e) {
-            // Bei einem Fehler den Prozess abbrechen
-            throw new RuntimeException("Could not write complex types list page", e);
+            logger.error("Failed to generate detail page for element: {}", element.getCurrentXpath(), e);
+            // Optional: re-throw as a runtime exception to stop the build
+            // throw new RuntimeException("Failed to generate detail page for " + element.getCurrentXpath(), e);
         }
     }
 
     /**
-     * Generiert eine einzelne HTML-Seite, die alle gefundenen Simple Types auflistet.
+     * Generiert das Diagramm für ein gegebenes Element.
+     * Je nach Konfiguration wird entweder ein SVG-String oder der Pfad zu einer PNG-Datei zurückgegeben.
+     *
+     * @param element Das Element, für das das Diagramm erstellt werden soll.
+     * @return Der SVG-Inhalt oder der relative Pfad zur PNG-Datei.
      */
-    void generateSimpleTypesListPage() {
-        logger.debug("Generating Simple Types list page");
-
-        final var context = new Context();
-
-        // Die Liste aller Simple Types aus den Daten holen und dem Kontext hinzufügen
-        context.setVariable("xsdSimpleTypes", xsdDocumentationData.getXsdSimpleTypes());
-
-        // Das Thymeleaf-Template "simpleTypes.html" verarbeiten
-        final var result = templateEngine.process("simpleTypes", context);
-
-        // Den Ausgabepfad für die Datei definieren (z.B. output/simpleTypes.html)
-        final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes.html");
-        logger.debug("Creating list page for simple types: {}", outputFilePath.toFile().getAbsolutePath());
-
-        // Die generierte HTML-Datei schreiben
+    private String generateDiagram(ExtendedXsdElement element) {
+        if (xsdDocumentationImageService == null) {
+            logger.warn("XsdDocumentationImageService is not initialized. Cannot generate diagram.");
+            return "<!-- Image service not available -->";
+        }
         try {
-            Files.write(outputFilePath, result.getBytes());
-            logger.info("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
+            if (xsdDocService.imageOutputMethod == XsdDocumentationService.ImageOutputMethod.SVG) {
+                // Gibt den rohen SVG-String direkt zurück
+                return xsdDocumentationImageService.generateSvgString(element.getCurrentXpath());
+            } else {
+                // Generiert eine PNG-Datei und gibt den relativen Pfad zurück
+                String relativePath = ASSETS_PATH + "/" + element.getPageName().replace(".html", ".png");
+                File outputFile = new File(outputDirectory, relativePath);
+                xsdDocumentationImageService.generateImage(element.getCurrentXpath(), outputFile);
+                return relativePath; // z.B. "assets/MyElement_hash.png"
+            }
+        } catch (Exception e) {
+            logger.error("Could not generate diagram for element '{}'", element.getCurrentXpath(), e);
+            return "<!-- Error generating diagram -->";
+        }
+    }
+
+
+    /**
+     * Generiert die Breadcrumb-Navigation für ein Element.
+     *
+     * @param element Das aktuelle Element.
+     * @return Ein HTML-String, der die Breadcrumb-Navigation darstellt.
+     */
+    private String generateBreadcrumbs(ExtendedXsdElement element) {
+        if (element == null) {
+            return "";
+        }
+        LinkedList<String> crumbs = new LinkedList<>();
+        ExtendedXsdElement current = element;
+
+        // Traverse up the hierarchy from the current element to the root
+        while (current != null) {
+            String link;
+            // The current page's element should not be a link
+            if (current == element) {
+                link = "<span class='font-medium text-slate-500'>" + escapeHtml(current.getElementName()) + "</span>";
+            } else {
+                // The link needs to be relative from the 'details' subdirectory
+                link = "<a href='" + getPageName(current.getCurrentXpath()) + "' class='text-sky-600 hover:underline'>" + escapeHtml(current.getElementName()) + "</a>";
+            }
+            crumbs.addFirst(link);
+            current = (current.getParentXpath() != null) ? xsdDocumentationData.getExtendedXsdElementMap().get(current.getParentXpath()) : null;
+        }
+
+        // Add a "Home" link at the beginning, pointing to the root index.html
+        crumbs.addFirst("<a href='../index.html' class='text-sky-600 hover:underline'>Schema</a>");
+
+        return String.join(" <span class='mx-1 text-slate-400'>/</span> ", crumbs);
+    }
+
+
+    /**
+     * Formatiert die Liste der Namespaces in einen lesbaren HTML-String.
+     *
+     * @param namespaces Eine Map von Namespace-Präfixen zu URIs.
+     * @return Ein formatierter HTML-String.
+     */
+    private String formatNamespaces(Map<String, String> namespaces) {
+        if (namespaces == null || namespaces.isEmpty()) {
+            return "No namespaces defined.";
+        }
+        return namespaces.entrySet().stream()
+                .map(entry -> "<b>" + escapeHtml(entry.getKey()) + "</b>" + " = \"" + escapeHtml(entry.getValue()) + "\"")
+                .collect(Collectors.joining("<br />"));
+    }
+
+    void generateComplexTypesListPage() {
+        final var context = new Context();
+        context.setVariable("xsdComplexTypes", xsdDocumentationData.getGlobalComplexTypes());
+        context.setVariable("this", this);
+        final var result = templateEngine.process("complexTypes", context);
+        final var outputFilePath = Paths.get(outputDirectory.getPath(), "complexTypes.html");
+        try {
+            Files.writeString(outputFilePath, result, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not write complex types list page", e);
+        }
+    }
+
+    void generateSimpleTypesListPage() {
+        final var context = new Context();
+        context.setVariable("xsdSimpleTypes", xsdDocumentationData.getGlobalSimpleTypes());
+        context.setVariable("this", this);
+        final var result = templateEngine.process("simpleTypes", context);
+        final var outputFilePath = Paths.get(outputDirectory.getPath(), "simpleTypes.html");
+        try {
+            Files.writeString(outputFilePath, result, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Could not write simple types list page", e);
         }
     }
 
-    void writeDetailsPageContent(ExtendedXsdElement currentElement,
-                                 String currentXpath,
-                                 XsdDocumentationImageService xsdDocumentationImageService) {
-        var context = new Context();
-        context.setVariable("element", currentElement);
-        String diagramContent;
-        String diagramType;
-
-        if (xsdDocService.imageOutputMethod == XsdDocumentationService.ImageOutputMethod.SVG) {
-            // Fall 1: SVG direkt als String generieren
-            diagramContent = xsdDocumentationImageService.generateSvgString(currentXpath);
-            diagramType = "SVG";
-            logger.debug("Generating SVG diagram for {}", currentElement.getElementName());
-
-        } else {
-            // Fall 2: PNG-Bild generieren und den Pfad speichern
-            // Sicherstellen, dass das "images"-Verzeichnis existiert
-            File imagesDir = new File(outputDirectory, "images");
-            if (!imagesDir.exists()) {
-                imagesDir.mkdirs();
-            }
-
-            // Zieldatei für das Bild definieren
-            File imageFile = new File(imagesDir, currentElement.getPageName().replace(".html", ".png"));
-
-            // Bild mit der Methode aus XsdDocumentationService generieren
-            xsdDocumentationImageService.generateImage(currentXpath, imageFile);
-
-            // Im Template benötigen wir den relativen Pfad zum Bild
-            diagramContent = "images/" + imageFile.getName();
-            diagramType = "PNG";
-            logger.debug("Generating PNG diagram for {}: {}", currentElement.getElementName(), diagramContent);
-        }
-
-        // Die Ergebnisse an das Template übergeben
-        context.setVariable("diagramContent", diagramContent);
-        context.setVariable("diagramType", diagramType);
-
-        var breadCrumbs = getBreadCrumbs(currentElement);
-        if (breadCrumbs != null && !breadCrumbs.isEmpty()) {
-            context.setVariable("xpath", getBreadCrumbs(currentElement));
-        }
-        context.setVariable("code", currentElement.getSourceCode());
-        context.setVariable("element", currentElement);
-        if (currentElement.getSampleData() != null) {
-            context.setVariable("sampleData", currentElement.getSampleData());
-        }
-        context.setVariable("namespace", xsdDocumentationData.getNameSpacesAsString());
-        context.setVariable("this", this);
-
-        if (currentElement.getXsdElement() != null && currentElement.getXsdElement().getType() != null) {
-            context.setVariable("type", currentElement.getElementType());
-        } else {
-            context.setVariable("type", "NULL");
-        }
-
-        // Wir verwenden jetzt die vorverarbeiteten generischen App-Infos.
-        // Das JavadocInfo-Objekt ist bereits über das "element"-Objekt verfügbar.
-        if (currentElement.getGenericAppInfos() != null && !currentElement.getGenericAppInfos().isEmpty()) {
-            context.setVariable("appInfos", currentElement.getGenericAppInfos());
-        }
-
-        Map<String, String> docTemp = new LinkedHashMap<>();
-        if (currentElement.getLanguageDocumentation() != null && !currentElement.getLanguageDocumentation().isEmpty()) {
-            docTemp = currentElement.getLanguageDocumentation();
-        }
-        context.setVariable("documentation", docTemp);
-
-        currentElement.getChildren().forEach(child -> {
-            try {
-                if (xsdDocumentationData.getExtendedXsdElementMap().get(child) != null) {
-                    logger.debug("Child: {}, Page Name: {}", child, xsdDocumentationData.getExtendedXsdElementMap().get(child).getPageName());
-                } else {
-                    logger.debug("Child {}, no enty found.", child);
-                }
-            } catch (Exception e) {
-                logger.warn("Error in Children for child: {}. Message: {}", child, e.getMessage());
-            }
-        });
-
-        final var result = templateEngine.process("details/templateDetail", context);
-        final var outputFileName = Paths.get(outputDirectory.getPath(), "details", currentElement.getPageName()).toFile().getAbsolutePath();
-        logger.debug("File: {}", outputFileName);
-
-        try {
-            Files.write(Paths.get(outputFileName), result.getBytes());
-            logger.info("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    void generateDetailsPagesInParallel() {
-        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            final XsdDocumentationImageService xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
-
-            for (final String key : xsdDocumentationData.getExtendedXsdElementMap().keySet()) {
-                final var currentElement = xsdDocumentationData.getExtendedXsdElementMap().get(key);
-                logger.debug("Submitting details page generation for {}", key);
-
-                executor.submit(() -> {
-                    try {
-                        writeDetailsPageContent(currentElement, key, xsdDocumentationImageService);
-                    } catch (Exception e) {
-                        // Es ist eine gute Praxis, auch innerhalb des Threads zu loggen.
-                        logger.warn("Error in thread while writing details page for element '{}': {}", key, e.getMessage());
-                    }
-                });
-            }
-        }
-    }
-
-
     void generateDataDictionaryPage() {
-        logger.debug("Generating Data Dictionary page");
-
         final var context = new Context();
-
-        // Hole alle Elemente und sortiere sie nach ihrem XPath für eine konsistente Ausgabe.
         List<ExtendedXsdElement> allElements = new ArrayList<>(xsdDocumentationData.getExtendedXsdElementMap().values());
         allElements.sort(Comparator.comparing(ExtendedXsdElement::getCounter));
-
         context.setVariable("allElements", allElements);
-        context.setVariable("this", this); // Damit wir getChildDocumentation im Template aufrufen können
-
+        context.setVariable("this", this);
         final var result = templateEngine.process("dataDictionary", context);
-
         final var outputFilePath = Paths.get(outputDirectory.getPath(), "dataDictionary.html");
-        logger.debug("Creating data dictionary page: {}", outputFilePath.toFile().getAbsolutePath());
-
         try {
-            Files.write(outputFilePath, result.getBytes());
-            logger.info("Written {} bytes to File '{}'", outputFilePath.toFile().length(), outputFilePath.toFile().getAbsolutePath());
+            Files.writeString(outputFilePath, result, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Could not write data dictionary page", e);
         }
     }
 
-    /**
-     * Generiert eine JSON-Datei, die als clientseitiger Suchindex dient.
-     * Diese Datei enthält alle relevanten Informationen zu den Schema-Elementen.
-     */
     void generateSearchIndex() {
-        logger.debug("Generating search index file (search_index.json)");
-
         List<Map<String, String>> searchData = new ArrayList<>();
         for (ExtendedXsdElement element : xsdDocumentationData.getExtendedXsdElementMap().values()) {
-            Map<String, String> item = new LinkedHashMap<>(); // Use LinkedHashMap for consistent key order
-
+            Map<String, String> item = new LinkedHashMap<>();
             item.put("name", element.getElementName());
             item.put("url", "details/" + element.getPageName());
             item.put("xpath", element.getCurrentXpath());
-
-            String docText = "";
-            // KORREKTUR: Greife direkt auf die rohen XsdDocumentation-Objekte zu,
-            // um sicherzustellen, dass wir reinen Text ohne Markdown-Rendering erhalten.
-            if (element.getXsdDocumentation() != null && !element.getXsdDocumentation().isEmpty()) {
-                docText = element.getXsdDocumentation().stream()
-                        .map(XsdAnnotationChildren::getContent) // Use parent class for safety
-                        .filter(Objects::nonNull)              // Filter out potential null values
-                        .collect(Collectors.joining(" "));
-            }
+            String docText = element.getDocumentations().stream()
+                    .map(ExtendedXsdElement.DocumentationInfo::content)
+                    .collect(Collectors.joining(" "));
             item.put("doc", docText);
-
             searchData.add(item);
         }
 
-        // Manually build the JSON string to avoid external dependencies
-        StringBuilder jsonBuilder = new StringBuilder();
-        jsonBuilder.append("[\n");
-
+        StringBuilder jsonBuilder = new StringBuilder("[\n");
         for (int i = 0; i < searchData.size(); i++) {
             Map<String, String> item = searchData.get(i);
             jsonBuilder.append("  {\n");
@@ -558,112 +415,25 @@ public class XsdDocumentationHtmlService {
             jsonBuilder.append("    \"url\": \"").append(escapeJson(item.get("url"))).append("\",\n");
             jsonBuilder.append("    \"xpath\": \"").append(escapeJson(item.get("xpath"))).append("\",\n");
             jsonBuilder.append("    \"doc\": \"").append(escapeJson(item.get("doc"))).append("\"\n");
-            jsonBuilder.append("  }");
-            if (i < searchData.size() - 1) {
-                jsonBuilder.append(",\n");
-            } else {
-                jsonBuilder.append("\n");
-            }
+            jsonBuilder.append(i < searchData.size() - 1 ? "  },\n" : "  }\n");
         }
-
         jsonBuilder.append("]");
 
         final var outputFilePath = Paths.get(outputDirectory.getPath(), "search_index.json");
         try {
-            Files.writeString(outputFilePath, jsonBuilder.toString());
-            logger.info("Written search index file to '{}'", outputFilePath.toAbsolutePath());
+            Files.writeString(outputFilePath, jsonBuilder.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Could not write search index file", e);
         }
     }
 
-    private String escapeJson(String raw) {
-        if (raw == null) {
-            return "";
-        }
-        return raw.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\b", "\\b")
-                .replace("\f", "\\f")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
-    }
-
-    /**
-     * Holt die Dokumentation für einen bestimmten Typ (Simple oder Complex).
-     *
-     * @param xpath Der XPath des Elements, dessen Typ-Dokumentation gesucht wird.
-     * @return Die gefundene Dokumentation als String, oder ein leerer String, wenn nichts gefunden wurde.
-     */
-    // Ersetze die bestehende Methode
-    public String getTypeDocumentation(String xpath) {
-        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
-
-        if (element == null || element.getElementType() == null || element.getElementType().startsWith("xs:")) {
-            return "";
-        }
-        final String typeName = element.getElementType();
-        // KORREKTUR: Bereinige den Namen für den Vergleich
-        final String cleanTypeName = typeName.substring(typeName.lastIndexOf(":") + 1);
-
-        // Suche in den SimpleTypes
-        var simpleTypeDoc = xsdDocumentationData.getXsdSimpleTypes().stream()
-                .filter(st -> {
-                    String cleanStName = st.getName().substring(st.getName().lastIndexOf(":") + 1);
-                    return cleanTypeName.equals(cleanStName);
-                })
-                .findFirst()
-                .map(XsdSimpleType::getAnnotation)
-                .map(XsdAnnotation::getDocumentations)
-                .map(docs -> docs.stream().map(XsdAnnotationChildren::getContent).collect(Collectors.joining(" ")))
-                .orElse(null);
-
-        if (simpleTypeDoc != null) {
-            return simpleTypeDoc;
-        }
-
-        // Suche in den ComplexTypes
-        return xsdDocumentationData.getXsdComplexTypes().stream()
-                .filter(ct -> {
-                    String cleanCtName = ct.getName().substring(ct.getName().lastIndexOf(":") + 1);
-                    return cleanTypeName.equals(cleanCtName);
-                })
-                .findFirst()
-                .map(XsdComplexType::getAnnotation)
-                .map(XsdAnnotation::getDocumentations)
-                .map(docs -> docs.stream().map(XsdAnnotationChildren::getContent).collect(Collectors.joining(" ")))
-                .orElse("");
-    }
-
-
-    Map<String, String> getBreadCrumbs(ExtendedXsdElement currentElement) {
-        var xpath = new StringBuilder();
-        Map<String, String> breadCrumbs = new LinkedHashMap<>();
-
-        final var t = currentElement.getCurrentXpath().split("/");
-        for (String element : t) {
-            if (!element.isEmpty()) {
-                xpath.append("/").append(element);
-                String link = "#";
-                if (xsdDocumentationData.getExtendedXsdElementMap() != null && xsdDocumentationData.getExtendedXsdElementMap().get(xpath.toString()) != null) {
-                    link = xsdDocumentationData.getExtendedXsdElementMap().get(xpath.toString()).getPageName();
-                }
-                breadCrumbs.put(element, link);
-            }
-        }
-
-        return breadCrumbs;
-    }
-
-    private void copyAssets(String resourcePath, File assetsDirectory) throws Exception {
-        copyResource(resourcePath, assetsDirectory, ASSETS_PATH);
-    }
-
-
+    // ... [copyResources, deleteDirectory, etc. remain the same] ...
     void copyResources() {
         try {
-            deleteDirectory(outputDirectory);
+            // Use a more robust deletion method
+            if (outputDirectory.exists()) {
+                deleteDirectory(outputDirectory);
+            }
 
             Files.createDirectories(outputDirectory.toPath());
             Files.createDirectories(Paths.get(outputDirectory.getPath(), ASSETS_PATH));
@@ -684,23 +454,8 @@ public class XsdDocumentationHtmlService {
         }
     }
 
-
-    public String getNodeTypeNameFromNodeType(short nodeType) {
-        return switch (nodeType) {
-            case Node.ELEMENT_NODE -> "Element";
-            case Node.ATTRIBUTE_NODE -> "Attribute";
-            case Node.TEXT_NODE -> "Text";
-            case Node.CDATA_SECTION_NODE -> "CDATA Section";
-            case Node.ENTITY_REFERENCE_NODE -> "Entity Reference";
-            case Node.ENTITY_NODE -> "Entity";
-            case Node.PROCESSING_INSTRUCTION_NODE -> "Processing Instruction";
-            case Node.COMMENT_NODE -> "Comment";
-            case Node.DOCUMENT_NODE -> "Document";
-            case Node.DOCUMENT_TYPE_NODE -> "Document Type";
-            case Node.DOCUMENT_FRAGMENT_NODE -> "Document Fragment";
-            case Node.NOTATION_NODE -> "Notation";
-            default -> "Unknown";
-        };
+    private void copyAssets(String resourcePath, File assetsDirectory) throws Exception {
+        copyResource(resourcePath, assetsDirectory, ASSETS_PATH);
     }
 
     private void copyResource(String resourcePath, File outputDirectory, String targetPath) throws IOException {
@@ -717,68 +472,268 @@ public class XsdDocumentationHtmlService {
         directoryToBeDeleted.delete();
     }
 
-    public Node getChildNodeFromXpath(String xpath) {
-        try {
-            return xsdDocumentationData.getExtendedXsdElementMap().get(xpath).getCurrentNode();
-        } catch (Exception e) {
-            logger.debug("ERROR in getting Node: {}", e.getMessage());
+
+    // =================================================================================
+    // Helper methods for Thymeleaf to interact with DOM Nodes
+    // =================================================================================
+    public String getAttributeValue(Node node, String attrName) {
+        return getAttributeValue(node, attrName, null);
+    }
+
+    public String getDocumentationFromNode(Node node) {
+        if (node == null) return "";
+
+        Node annotationNode = getDirectChildElement(node, "annotation");
+        if (annotationNode == null) return "";
+
+        List<String> docStrings = new ArrayList<>();
+        for (Node docNode : getDirectChildElements(annotationNode, "documentation")) {
+            docStrings.add(docNode.getTextContent());
+        }
+        return String.join("\n", docStrings);
+    }
+
+    public String getRestrictionBase(Node simpleTypeNode) {
+        Node restrictionNode = getDirectChildElement(simpleTypeNode, "restriction");
+        return (restrictionNode != null) ? getAttributeValue(restrictionNode, "base") : "";
+    }
+
+    public List<Node> getRestrictionFacets(Node simpleTypeNode) {
+        Node restrictionNode = getDirectChildElement(simpleTypeNode, "restriction");
+        if (restrictionNode == null) return Collections.emptyList();
+        List<Node> facets = new ArrayList<>();
+        for (Node child = restrictionNode.getFirstChild(); child != null; child = child.getNextSibling()) {
+            if (child.getNodeType() == Node.ELEMENT_NODE && !"annotation".equals(child.getLocalName())) {
+                facets.add(child);
+            }
+        }
+        return facets;
+    }
+
+    private Node getDirectChildElement(Node parent, String childName) {
+        if (parent == null) return null;
+        for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
+            if (child.getNodeType() == Node.ELEMENT_NODE && childName.equals(child.getLocalName())) {
+                return child;
+            }
         }
         return null;
-    }
-
-    public String getChildType(String xpath) {
-        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
-        if (element != null && element.getElementType() != null) {
-            return element.getElementType();
-        }
-        return null;
-    }
-
-    public String getChildSampleData(String xpath) {
-        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
-        if (element != null && element.getSampleData() != null && !element.getSampleData().isEmpty()) {
-            return element.getSampleData();
-        }
-        return null;
-    }
-
-    public String getPageName(String xpath) {
-        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
-        if (element != null && element.getPageName() != null) {
-            return element.getPageName();
-        }
-        return "#";
-    }
-
-    public String getChildDocumentation(String xpath) {
-        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
-        if (element != null) {
-            return element.getDocumentationAsHtml();
-        }
-        return "";
     }
 
     /**
-     * Prüft, ob der Typ eines Kind-Elements ein verlinkbarer, benutzerdefinierter Typ ist.
+     * Sammelt alle Attribute für einen gegebenen complexType, inklusive der Attribute
+     * aus Basis-Typen (Vererbung) und referenzierten Attributgruppen.
      *
-     * @param childXPath Der XPath des Kind-Elements.
-     * @return true, wenn der Typ kein eingebauter xs-Typ ist, sonst false.
+     * @param complexTypeNode Der DOM-Knoten des complexType.
+     * @return Eine Liste von DOM-Knoten, die die Attribute repräsentieren.
      */
+    public List<Node> getAttributes(Node complexTypeNode) {
+        if (complexTypeNode == null) {
+            return Collections.emptyList();
+        }
+
+        List<Node> attributes = new ArrayList<>();
+        Set<String> processedAttributeNames = new HashSet<>();
+
+        // Iterative Verarbeitung der Vererbungshierarchie mit einem Stack
+        Deque<Node> nodesToProcess = new ArrayDeque<>();
+        nodesToProcess.push(complexTypeNode);
+
+        while (!nodesToProcess.isEmpty()) {
+            Node currentNode = nodesToProcess.pop();
+            Node attributeContainer = currentNode;
+            String baseTypeName = null;
+
+            // Prüfen, ob es sich um eine Erweiterung handelt (<complexContent> oder <simpleContent>)
+            Node complexContent = getDirectChildElement(currentNode, "complexContent");
+            if (complexContent != null) {
+                Node extension = getDirectChildElement(complexContent, "extension");
+                if (extension != null) {
+                    attributeContainer = extension;
+                    baseTypeName = getAttributeValue(extension, "base");
+                }
+            } else {
+                Node simpleContent = getDirectChildElement(currentNode, "simpleContent");
+                if (simpleContent != null) {
+                    Node extension = getDirectChildElement(simpleContent, "extension");
+                    if (extension != null) {
+                        attributeContainer = extension;
+                        baseTypeName = getAttributeValue(extension, "base");
+                    }
+                }
+            }
+
+            // Attribute aus dem aktuellen Container (Typ oder Extension) sammeln
+            processAttributesInContainer(attributeContainer, attributes, processedAttributeNames);
+
+            // Basistyp zur weiteren Verarbeitung auf den Stack legen
+            if (baseTypeName != null) {
+                Node baseTypeNode = xsdDocService.findTypeNodeByName(baseTypeName);
+                if (baseTypeNode != null) {
+                    nodesToProcess.push(baseTypeNode);
+                }
+            }
+        }
+
+        // Attribute in der Vererbungsreihenfolge (Basis zuerst) anzeigen
+        Collections.reverse(attributes);
+        return attributes;
+    }
+
+    /**
+     * Eine Hilfsmethode, die Attribute und Attributgruppen innerhalb eines Knotens verarbeitet.
+     */
+    private void processAttributesInContainer(Node containerNode, List<Node> attributes, Set<String> processedAttributeNames) {
+        // Direkte Attribute
+        for (Node attrNode : getDirectChildElements(containerNode, "attribute")) {
+            String attrName = getAttributeValue(attrNode, "name");
+            if (attrName != null && processedAttributeNames.add(attrName)) {
+                attributes.add(attrNode);
+            }
+        }
+        // Referenzierte Attributgruppen
+        for (Node attrGroupRefNode : getDirectChildElements(containerNode, "attributeGroup")) {
+            String ref = getAttributeValue(attrGroupRefNode, "ref");
+            if (ref != null) {
+                Node attributeGroupNode = xsdDocService.findReferencedNode("attributeGroup", ref);
+                if (attributeGroupNode != null) {
+                    processAttributesInContainer(attributeGroupNode, attributes, processedAttributeNames);
+                }
+            }
+        }
+    }
+
+    public List<Node> getDirectChildElements(Node parent, String childName) {
+        if (parent == null) return Collections.emptyList();
+        List<Node> children = new ArrayList<>();
+        for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
+            if (child.getNodeType() == Node.ELEMENT_NODE && childName.equals(child.getLocalName())) {
+                children.add(child);
+            }
+        }
+        return children;
+    }
+
+    /**
+     * Ermittelt die Kardinalität eines Elements (z.B. "0..1", "1..*", "1").
+     *
+     * @param element Das ExtendedXsdElement.
+     * @return Ein String, der die Kardinalität repräsentiert.
+     */
+    public String getCardinality(ExtendedXsdElement element) {
+        if (element == null || element.getCurrentNode() == null) {
+            return "1"; // Default
+        }
+
+        Node node = element.getCurrentNode();
+        // Für Attribute wird die Kardinalität durch "use" bestimmt
+        if ("attribute".equals(node.getLocalName())) {
+            String use = getAttributeValue(node, "use", "optional");
+            return "required".equals(use) ? "1" : "0..1";
+        }
+
+        // Für Elemente wird minOccurs/maxOccurs verwendet
+        String minOccurs = getAttributeValue(node, "minOccurs", "1");
+        String maxOccurs = getAttributeValue(node, "maxOccurs", "1");
+
+        if (minOccurs.equals(maxOccurs)) {
+            return minOccurs;
+        }
+        if ("unbounded".equals(maxOccurs)) {
+            return minOccurs + "..*";
+        }
+        return minOccurs + ".." + maxOccurs;
+    }
+
+    /**
+     * Ruft den Datentyp eines Kind-Elements anhand seines XPath ab.
+     *
+     * @param childXpath Der XPath des Kind-Elements.
+     * @return Der Typname oder ein leerer String.
+     */
+    public String getChildType(String childXpath) {
+        ExtendedXsdElement child = xsdDocService.xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
+        return (child != null) ? child.getElementType() : "";
+    }
+
+    /**
+     * Ruft die Beispieldaten für ein Kind-Element anhand seines XPath ab.
+     *
+     * @param childXpath Der XPath des Kind-Elements.
+     * @return Die Beispieldaten oder ein leerer String.
+     */
+    public String getChildSampleData(String childXpath) {
+        ExtendedXsdElement child = xsdDocService.xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
+        return (child != null) ? child.getSampleData() : "";
+    }
+
+    // Fügen Sie auch diese private Hilfsmethode hinzu, falls sie nicht schon existiert
+    public String getAttributeValue(Node node, String attrName, String defaultValue) {
+        if (node == null || node.getAttributes() == null) return defaultValue;
+        Node attrNode = node.getAttributes().getNamedItem(attrName);
+        return (attrNode != null) ? attrNode.getNodeValue() : defaultValue;
+    }
+
+    /**
+     * Prüft, ob der Typ eines Attributs ein benutzerdefinierter SimpleType ist,
+     * für den eine Detailseite existiert.
+     *
+     * @param attrNode Der Attribut-Knoten.
+     * @return true, wenn der Typ verlinkbar ist.
+     */
+    public boolean isAttributeTypeLinkable(Node attrNode) {
+        if (attrNode == null) {
+            return false;
+        }
+        String typeName = getAttributeValue(attrNode, "type");
+        if (typeName == null || typeName.isEmpty() || typeName.startsWith("xs:") || typeName.startsWith("xsd:")) {
+            return false;
+        }
+        // Prüft, ob der Typ in der Liste der globalen (Simple-)Typen bekannt ist.
+        return xsdDocService.findTypeNodeByName(typeName) != null;
+    }
+
+    /**
+     * Generiert den relativen Pfad zur Detailseite des Attribut-Typs.
+     *
+     * @param attrNode Der Attribut-Knoten.
+     * @return Der Pfad zur HTML-Seite, z.B. "../simpleTypes/MySimpleType.html".
+     */
+    public String getAttributeTypePageName(Node attrNode) {
+        if (attrNode == null) {
+            return "";
+        }
+        String typeName = getAttributeValue(attrNode, "type");
+        if (typeName == null || typeName.isEmpty()) {
+            return "";
+        }
+        String cleanTypeName = xsdDocService.stripNamespace(typeName);
+        return "../simpleTypes/" + cleanTypeName + ".html";
+    }
+
+    // =================================================================================
+    // Helper methods for linking and data retrieval from templates
+    // =================================================================================
+
+    public String getPageName(String xpath) {
+        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        return (element != null) ? element.getPageName() : "#";
+    }
+
+
+    public String getChildDocumentation(String xpath) {
+        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        return (element != null) ? element.getDocumentationAsHtml() : "";
+    }
+
     public boolean isChildTypeLinkable(String childXPath) {
         ExtendedXsdElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
         if (childElement != null && childElement.getElementType() != null) {
-            // Ein Typ ist verlinkbar, wenn er nicht mit dem Standard-Namespace-Präfix "xs:" beginnt.
             return !childElement.getElementType().startsWith("xs:");
         }
         return false;
     }
 
-    /**
-     * Gibt den relativen Pfad zur Detailseite des Typs eines Kind-Elements zurück.
-     *
-     * @param childXPath Der XPath des Kind-Elements.
-     * @return Der Dateiname für die Detailseite (z.B. "../simpleTypes/MySimpleType.html").
-     */
     public String getChildTypePageName(String childXPath) {
         ExtendedXsdElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
         if (childElement == null || childElement.getElementType() == null) {
@@ -786,70 +741,137 @@ public class XsdDocumentationHtmlService {
         }
 
         String typeName = childElement.getElementType();
-        String cleanTypeName = typeName.substring(typeName.lastIndexOf(":") + 1);
-
-        // Vergleiche die bereinigten Namen, um den Typ korrekt zu finden
-        boolean isSimpleType = xsdDocumentationData.getXsdSimpleTypes().stream()
-                .anyMatch(st -> {
-                    String cleanStName = st.getName().substring(st.getName().lastIndexOf(":") + 1);
-                    return cleanTypeName.equals(cleanStName);
-                });
-
+        boolean isSimpleType = xsdDocumentationData.getGlobalSimpleTypes().stream()
+                .anyMatch(st -> typeName.equals(getAttributeValue(st, "name")));
         if (isSimpleType) {
-            return "../simpleTypes/" + cleanTypeName + ".html";
+            return "../simpleTypes/" + typeName + ".html";
         }
 
-        boolean isComplexType = xsdDocumentationData.getXsdComplexTypes().stream()
-                .anyMatch(ct -> {
-                    String cleanCtName = ct.getName().substring(ct.getName().lastIndexOf(":") + 1);
-                    return cleanTypeName.equals(cleanCtName);
-                });
-
+        boolean isComplexType = xsdDocumentationData.getGlobalComplexTypes().stream()
+                .anyMatch(ct -> typeName.equals(getAttributeValue(ct, "name")));
         if (isComplexType) {
-            return "../complexTypes/" + cleanTypeName + ".html";
+            return "../complexTypes/" + typeName + ".html";
         }
 
         return "#";
     }
-
-    /**
-     * Parses Javadoc-style content and resolves {@link ...} tags into HTML links.
-     * This method is called from the Thymeleaf template at render time.
-     *
-     * @param content The raw string content from a Javadoc-style tag (e.g., from @see or @deprecated).
-     * @return An HTML string with resolved links.
-     */
     public String parseJavadocLinks(String content) {
         if (content == null || content.isEmpty()) {
             return "";
         }
-
-        // Pattern to find {@link XPATH}
+        // Regex to find {@link SomeElementName}
         Pattern linkPattern = Pattern.compile("\\{@link\\s+([^}]+)\\}");
         Matcher matcher = linkPattern.matcher(content);
-        StringBuilder sb = new StringBuilder();
 
-        while (matcher.find()) {
-            String xpath = matcher.group(1).trim();
-            ExtendedXsdElement linkedElement = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        // Replace each found link with a proper HTML <a> tag
+        return matcher.replaceAll(matchResult -> {
+            String targetName = matchResult.group(1).trim();
 
-            String linkHtml;
-            if (linkedElement != null) {
-                // Element was found, create a valid link to its detail page.
-                // The path must be relative from the 'details' directory.
-                String url = linkedElement.getPageName();
-                linkHtml = String.format("<a href=\"%s\" class=\"font-mono text-sky-600 hover:underline\">%s</a>", url, xpath);
+            // Find the element by its name. This is a simple lookup.
+            // For schemas with duplicate names, this might link to the first one found.
+            Optional<ExtendedXsdElement> targetElement = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                    .filter(e -> targetName.equals(e.getElementName()))
+                    .findFirst();
+
+            if (targetElement.isPresent()) {
+                // If found, create a link to its detail page
+                String url = "details/" + targetElement.get().getPageName();
+                return "<a href='" + url + "'><code>" + escapeHtml(targetName) + "</code></a>";
             } else {
-                // Element was not found, display as text with a visual warning.
-                linkHtml = String.format("<span class=\"font-mono text-red-500\" title=\"Link target not found: %s\">%s</span>", xpath, xpath);
+                // If the link target is not found, just return the name as plain code text.
+                return "<code>" + escapeHtml(targetName) + "</code>";
             }
-            // Replace the matched {@link...} tag with the generated HTML.
-            matcher.appendReplacement(sb, Matcher.quoteReplacement(linkHtml));
-        }
-        // Append the rest of the string that did not contain a link tag.
-        matcher.appendTail(sb);
-
-        return sb.toString();
+        });
     }
 
+    public String getBreadCrumbs(ExtendedXsdElement element) {
+        if (element == null) {
+            return "";
+        }
+        LinkedList<String> crumbs = new LinkedList<>();
+        ExtendedXsdElement current = element;
+
+        // Traverse up the hierarchy from the current element to the root
+        while (current != null) {
+            String link;
+            // The current page's element should not be a link
+            if (current == element) {
+                link = "<span class='text-slate-500'>" + escapeHtml(current.getElementName()) + "</span>";
+            } else {
+                link = "<a href='" + getPageName(current.getCurrentXpath()) + "' class='text-sky-600 hover:underline'>" + escapeHtml(current.getElementName()) + "</a>";
+            }
+            crumbs.addFirst(link);
+            current = (current.getParentXpath() != null) ? xsdDocumentationData.getExtendedXsdElementMap().get(current.getParentXpath()) : null;
+        }
+
+        // Add a "Home" link at the beginning
+        crumbs.addFirst("<a href='../index.html' class='text-sky-600 hover:underline'>Schema</a>");
+
+        return String.join(" <span class='text-slate-400'>/</span> ", crumbs);
+    }
+
+    /**
+     * Ruft die Dokumentation für den Typ eines Elements ab, das durch seinen XPath identifiziert wird.
+     * Diese Methode ist jetzt robust und behandelt eingebaute XSD-Typen (z.B. "xs:string") korrekt,
+     * indem sie für diese einen leeren String zurückgibt.
+     *
+     * @param xpath Der XPath des Elements.
+     * @return Die Dokumentation des Element-Typs oder ein leerer String, falls keine
+     * benutzerdefinierte Dokumentation gefunden wurde oder der Typ ein eingebauter ist.
+     */
+    public String getTypeDocumentation(String xpath) {
+        if (xpath == null || xpath.isEmpty()) {
+            return "";
+        }
+
+        // 1. Das Element anhand seines XPath finden.
+        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        if (element == null) {
+            return ""; // Element nicht im Service gefunden.
+        }
+
+        // 2. Den Typnamen des Elements abrufen.
+        String typeName = element.getElementType();
+        if (typeName == null || typeName.isEmpty()) {
+            return ""; // Element hat keinen definierten Typ.
+        }
+
+        // 3. WICHTIG: Eingebaute XSD-Typen ignorieren, da sie keine lokale Dokumentation haben.
+        if (typeName.startsWith("xs:") || typeName.startsWith("xsd:")) {
+            return ""; // Dies verhindert die NullPointerException.
+        }
+
+        // 4. Den Definitions-Knoten für den benutzerdefinierten Typ finden.
+        // KORREKTUR: xsdDocService statt xsdDocumentationService verwenden
+        Node typeNode = xsdDocService.findTypeNodeByName(typeName);
+        if (typeNode == null) {
+            // Typ wurde nicht in der Schema-Map gefunden.
+            return "";
+        }
+
+        // 5. Die Dokumentation vom gefundenen Typ-Knoten sicher abrufen.
+        return getDocumentationFromNode(typeNode);
+    }
+
+    private String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\b", "\\b")
+                .replace("\f", "\\f")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    private String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
+    }
 }

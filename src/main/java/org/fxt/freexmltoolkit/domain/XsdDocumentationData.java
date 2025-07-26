@@ -18,30 +18,63 @@
 
 package org.fxt.freexmltoolkit.domain;
 
-import org.xmlet.xsdparser.core.utils.NamespaceInfo;
-import org.xmlet.xsdparser.xsdelements.XsdComplexType;
-import org.xmlet.xsdparser.xsdelements.XsdElement;
-import org.xmlet.xsdparser.xsdelements.XsdSchema;
-import org.xmlet.xsdparser.xsdelements.XsdSimpleType;
+import org.w3c.dom.Node;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * DTO to hold all relevant data parsed from an XSD for documentation generation.
+ * This version uses native Java XML (DOM) types instead of external libraries.
+ */
 public class XsdDocumentationData {
 
-    Map<String, ExtendedXsdElement> extendedXsdElementMap = new HashMap<>();
+    // Maps an XPath to its corresponding detailed element information.
+    private Map<String, ExtendedXsdElement> extendedXsdElementMap = new HashMap<>();
+
+    // Caches which elements use a specific type for faster lookups.
     private Map<String, List<ExtendedXsdElement>> typeUsageMap = new HashMap<>();
 
-    List<XsdSchema> xmlSchema;
-    private List<XsdComplexType> xsdComplexTypes;
-    private List<XsdSimpleType> xsdSimpleTypes;
-    private List<XsdElement> elements;
-    Map<String, NamespaceInfo> namespaces = new HashMap<>();
-    String version;
+    // Holds all global <xs:element> nodes.
+    private List<Node> globalElements = new ArrayList<>();
 
-    String xsdFilePath;
+    // Holds all global <xs:complexType> nodes.
+    private List<Node> globalComplexTypes = new ArrayList<>();
+
+    // Holds all global <xs:simpleType> nodes.
+    private List<Node> globalSimpleTypes = new ArrayList<>();
+
+    // Holds all namespaces found in the schema (prefix -> URI).
+    private Map<String, String> namespaces = new HashMap<>();
+
+    private String version;
+    private String targetNamespace;
+    private String xsdFilePath;
+
+    private String attributeFormDefault;
+    private String elementFormDefault;
+
+
+    public String getAttributeFormDefault() {
+        return attributeFormDefault;
+    }
+
+    public void setAttributeFormDefault(String attributeFormDefault) {
+        this.attributeFormDefault = attributeFormDefault;
+    }
+
+    public String getElementFormDefault() {
+        return elementFormDefault;
+    }
+
+    public void setElementFormDefault(String elementFormDefault) {
+        this.elementFormDefault = elementFormDefault;
+    }
+
+    // --- Getters and Setters ---
 
     public Map<String, List<ExtendedXsdElement>> getTypeUsageMap() {
         return typeUsageMap;
@@ -51,46 +84,35 @@ public class XsdDocumentationData {
         this.typeUsageMap = typeUsageMap;
     }
 
-    public List<XsdSchema> getXmlSchema() {
-        return xmlSchema;
+    public List<Node> getGlobalComplexTypes() {
+        return globalComplexTypes;
     }
 
-    public void setXmlSchema(List<XsdSchema> xmlSchema) {
-        this.xmlSchema = xmlSchema;
-        if (xmlSchema != null && !xmlSchema.isEmpty()) {
-            this.namespaces = xmlSchema.getFirst().getNamespaces();
-        }
+    public void setGlobalComplexTypes(List<Node> globalComplexTypes) {
+        this.globalComplexTypes = globalComplexTypes;
     }
 
-    public List<XsdComplexType> getXsdComplexTypes() {
-        return xsdComplexTypes;
+    public List<Node> getGlobalSimpleTypes() {
+        return globalSimpleTypes;
     }
 
-    public void setXsdComplexTypes(List<XsdComplexType> xsdComplexTypes) {
-        this.xsdComplexTypes = xsdComplexTypes;
+    public void setGlobalSimpleTypes(List<Node> globalSimpleTypes) {
+        this.globalSimpleTypes = globalSimpleTypes;
     }
 
-    public List<XsdSimpleType> getXsdSimpleTypes() {
-        return xsdSimpleTypes;
+    public List<Node> getGlobalElements() {
+        return globalElements;
     }
 
-    public void setXsdSimpleTypes(List<XsdSimpleType> xsdSimpleTypes) {
-        this.xsdSimpleTypes = xsdSimpleTypes;
+    public void setGlobalElements(List<Node> globalElements) {
+        this.globalElements = globalElements;
     }
 
-    public List<XsdElement> getElements() {
-        return elements;
-    }
-
-    public void setElements(List<XsdElement> elements) {
-        this.elements = elements;
-    }
-
-    public Map<String, NamespaceInfo> getNamespaces() {
+    public Map<String, String> getNamespaces() {
         return namespaces;
     }
 
-    public void setNamespaces(Map<String, NamespaceInfo> namespaces) {
+    public void setNamespaces(Map<String, String> namespaces) {
         this.namespaces = namespaces;
     }
 
@@ -118,11 +140,25 @@ public class XsdDocumentationData {
         this.version = version;
     }
 
+    public String getTargetNamespace() {
+        return targetNamespace;
+    }
+
+    public void setTargetNamespace(String targetNamespace) {
+        this.targetNamespace = targetNamespace;
+    }
+
+    /**
+     * Returns a string representation of the namespaces for display.
+     *
+     * @return A formatted string of namespaces.
+     */
     public String getNameSpacesAsString() {
-        return namespaces
-                .keySet()
-                .stream()
-                .map(ns -> ns + "=" + "'" + namespaces.get(ns).getName() + "'" + "<br />")
-                .collect(Collectors.joining());
+        if (namespaces == null || namespaces.isEmpty()) {
+            return "";
+        }
+        return namespaces.entrySet().stream()
+                .map(entry -> entry.getKey() + "='" + entry.getValue() + "'")
+                .collect(Collectors.joining("<br />"));
     }
 }
