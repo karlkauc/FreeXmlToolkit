@@ -40,6 +40,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.service.MyLspClient;
 import org.fxt.freexmltoolkit.service.XmlService;
@@ -133,12 +134,12 @@ public class XmlController {
         codeAreaXpath.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXpath));
         virtualizedScrollPaneXpath = new VirtualizedScrollPane<>(codeAreaXpath);
         stackPaneXPath.getChildren().add(virtualizedScrollPaneXpath);
-        codeAreaXpath.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXpath.setStyleSpans(0, XmlEditor.computeHighlighting(newText))));
+        codeAreaXpath.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXpath.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText))));
 
         codeAreaXQuery.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXQuery));
         virtualizedScrollPaneXQuery = new VirtualizedScrollPane<>(codeAreaXQuery);
         stackPaneXQuery.getChildren().add(virtualizedScrollPaneXQuery);
-        codeAreaXQuery.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXQuery.setStyleSpans(0, XmlEditor.computeHighlighting(newText))));
+        codeAreaXQuery.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXQuery.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText))));
 
         searchField.textProperty().addListener((obs, oldVal, newVal) -> {
             XmlEditor currentEditor = getCurrentXmlEditor();
@@ -298,44 +299,41 @@ public class XmlController {
         return (XmlEditor) active;
     }
 
-    private CodeArea getCurrentCodeArea() {
-        Tab activeTab = xmlFilesPane.getSelectionModel().getSelectedItem();
-        if (activeTab == null) {
-            return null; // No active tab
-        }
-
-        // Safely traverse the UI structure to prevent NullPointer- and ClassCastExceptions.
-        if (activeTab.getContent() instanceof TabPane innerTabPane) {
-            if (!innerTabPane.getTabs().isEmpty() && innerTabPane.getTabs().getFirst().getContent() instanceof StackPane stackPane) {
-                if (!stackPane.getChildren().isEmpty() && stackPane.getChildren().getFirst() instanceof VirtualizedScrollPane<?> scrollPane) {
-                    if (scrollPane.getContent() instanceof CodeArea codeArea) {
-                        return codeArea; // Successfully found the CodeArea
-                    }
-                }
-            }
-        }
-
-        // If the structure does not match, return null.
-        return null;
-    }
-
+    // Die Methoden für die Schriftgröße können entfernt werden, da die Steuerung
+    // jetzt direkt im XmlCodeEditor über Tastenkürzel und Mausrad erfolgt.
+    // Falls du sie für Toolbar-Buttons behalten möchtest, kannst du sie so implementieren:
     @FXML
     private void increaseFontSize() {
-        getCurrentXmlEditor().increaseFontSize();
+        XmlEditor editor = getCurrentXmlEditor();
+        if (editor != null) {
+            editor.getXmlCodeEditor().increaseFontSize();
+        }
     }
 
     @FXML
     private void decreaseFontSize() {
-        getCurrentXmlEditor().decreaseFontSize();
+        XmlEditor editor = getCurrentXmlEditor();
+        if (editor != null) {
+            editor.getXmlCodeEditor().decreaseFontSize();
+        }
     }
 
+    // Die `getCurrentCodeArea()` Methode muss angepasst werden, um die neue Struktur zu finden.
+    private CodeArea getCurrentCodeArea() {
+        XmlEditor editor = getCurrentXmlEditor();
+        if (editor != null) {
+            // Direkter Zugriff über die öffentliche Referenz in XmlEditor
+            return editor.codeArea;
+        }
+        return null;
+    }
 
     @FXML
     private void runXpathQueryPressed() {
         var currentCodeArea = getCurrentCodeArea();
-        String xml = currentCodeArea.getText();
 
-        if (xml != null) {
+        if (currentCodeArea != null && currentCodeArea.getText() != null) {
+            String xml = currentCodeArea.getText();
             Tab selectedItem = xPathQueryPane.getSelectionModel().getSelectedItem();
             String query = ((CodeArea) ((VirtualizedScrollPane<?>) ((StackPane) selectedItem.getContent()).getChildren().getFirst()).getContent()).getText();
             String result = "";
@@ -697,28 +695,18 @@ public class XmlController {
     @FXML
     private void moveUp() {
         logger.debug("Moving caret and scrollbar to the beginning.");
-        var area = getCurrentCodeArea();
-        if (area != null) {
-            // Setzt den Cursor an die Position 0 (Anfang des Dokuments)
-            area.moveTo(0);
-            // Erzwingt, dass der Scrollbalken ganz nach oben geht, indem die erste Zeile oben angezeigt wird
-            area.showParagraphAtTop(0);
-            // Stellt sicher, dass der Bereich den Fokus erhält, damit der Cursor sichtbar ist
-            area.requestFocus();
+        XmlEditor editor = getCurrentXmlEditor();
+        if (editor != null) {
+            editor.getXmlCodeEditor().moveUp();
         }
     }
 
     @FXML
     private void moveDown() {
         logger.debug("Moving caret and scrollbar to the end.");
-        var area = getCurrentCodeArea();
-        if (area != null && area.getText() != null && !area.getParagraphs().isEmpty()) {
-            // Setzt den Cursor an das Ende des Textes
-            area.moveTo(area.getLength());
-            // Erzwingt, dass der Scrollbalken ganz nach unten geht, indem die letzte Zeile unten angezeigt wird
-            area.showParagraphAtBottom(area.getParagraphs().size() - 1);
-            // Stellt sicher, dass der Bereich den Fokus erhält, damit der Cursor sichtbar ist
-            area.requestFocus();
+        XmlEditor editor = getCurrentXmlEditor();
+        if (editor != null) {
+            editor.getXmlCodeEditor().moveDown();
         }
     }
 

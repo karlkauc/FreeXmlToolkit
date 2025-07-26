@@ -35,6 +35,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.FileExplorer;
+import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
@@ -179,7 +180,7 @@ public class XsltController {
 
     private void renderXML(String output) {
         renderText(output);
-        Platform.runLater(() -> codeArea.setStyleSpans(0, XmlEditor.computeHighlighting(output)));
+        Platform.runLater(() -> codeArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(output)));
     }
 
     private void renderText(String output) {

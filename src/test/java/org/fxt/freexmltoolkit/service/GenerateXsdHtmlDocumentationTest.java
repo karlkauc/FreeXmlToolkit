@@ -18,13 +18,8 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import jlibs.xml.sax.XMLDocument;
-import jlibs.xml.xsd.XSInstance;
-import jlibs.xml.xsd.XSParser;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.xerces.xs.XSModel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.w3c.dom.Document;
@@ -34,13 +29,11 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -50,8 +43,6 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.awt.*;
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -208,31 +199,4 @@ public class GenerateXsdHtmlDocumentationTest {
 
         System.out.println("Node count: " + nodeList.getLength());
     }
-
-    @Test
-    public void createXmlSampleData() throws TransformerConfigurationException {
-        final var testFilePath = Paths.get("examples/xsd/FundsXML_306.xsd");
-        XSModel xsModel = new XSParser().parse(testFilePath.toUri().toString());
-        XSInstance xsInstance = new XSInstance();
-        xsInstance.minimumElementsGenerated = 2;
-        xsInstance.maximumElementsGenerated = 4;
-        xsInstance.generateOptionalElements = Boolean.TRUE; // null means random
-
-        Writer s = new StringWriter();
-        QName rootElement = new QName("http://www.fundsxml.org/XMLSchema/3.0.6", "FundsXML");
-        XMLDocument sampleXml = new XMLDocument(new StreamResult(s), false, 4, null);
-        logger.debug("start generating xml");
-        xsInstance.generate(xsModel, rootElement, sampleXml);
-        logger.debug("end generating xml");
-
-        var fileName = Path.of("testdata.xml");
-
-        try {
-            Files.write(fileName, s.toString().getBytes());
-            logger.debug("File written: {} bytes", FileUtils.byteCountToDisplaySize(fileName.toFile().length()));
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        }
-    }
-
 }

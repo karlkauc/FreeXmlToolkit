@@ -67,10 +67,6 @@ dependencies {
     // XSLT
     implementation("net.sf.saxon:Saxon-HE:12.7")
 
-    // create sample XML files
-    implementation("in.jlibs:jlibs-xsd:3.0.1")
-    implementation("in.jlibs:jlibs-xml:3.0.1")
-
     // XML Bindings
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
 
@@ -96,9 +92,6 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-api:3.0.0-beta2")
     implementation("org.apache.logging.log4j:log4j-core:3.0.0-beta2")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:3.0.0-beta2")
-
-    // XSD Parser
-    implementation("com.github.xmlet:xsdParser:1.2.19")
 
     //  Certificate & XML Signature
     implementation("org.apache.santuario:xmlsec:4.0.4")
@@ -142,7 +135,7 @@ dependencies {
     implementation("jakarta.activation:jakarta.activation-api:2.1.3")
 
     // debugging
-    implementation("io.github.palexdev:scenicview:17.0.2")
+    // implementation("io.github.palexdev:scenicview:17.0.2")
 
     // http connection with NTLM Proxy Auth
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.4")
@@ -150,6 +143,7 @@ dependencies {
 
     // pattern for example data
     implementation("com.github.mifmif:generex:1.0.2")
+    implementation("com.github.curious-odd-man:rgxgen:3.0")
 
     testImplementation(platform("org.junit:junit-bom:5.13.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")

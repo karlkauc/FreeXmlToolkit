@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.controls.XsdDiagramView;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
@@ -344,7 +345,7 @@ public class XsdController {
             textProgress.setVisible(false);
 
             // Das Syntax-Highlighting wird wie bisher angewendet
-            sourceCodeTextArea.setStyleSpans(0, XmlEditor.computeHighlighting(result.fileContent()));
+            sourceCodeTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(result.fileContent()));
 
             statusText.setText("XSD loaded successfully.");
         });
@@ -648,7 +649,7 @@ public class XsdController {
             String resultXml = generationTask.getValue();
 
             sampleDataTextArea.replaceText(resultXml);
-            sampleDataTextArea.setStyleSpans(0, XmlEditor.computeHighlighting(resultXml));
+            sampleDataTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(resultXml));
 
             statusText.setText("Sample XML generated successfully.");
 
@@ -783,7 +784,7 @@ public class XsdController {
 
             // GEÄNDERT: Highlighting für die flattenedXsdTextArea anwenden
             flattenedXsdTextArea.replaceText(flattenedContent);
-            flattenedXsdTextArea.setStyleSpans(0, XmlEditor.computeHighlighting(flattenedContent));
+            flattenedXsdTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(flattenedContent));
 
             flattenStatusLabel.setText("Successfully flattened and saved to: " + destinationFile.getAbsolutePath());
             showAlert(Alert.AlertType.INFORMATION, "Success", "XSD has been flattened successfully.");

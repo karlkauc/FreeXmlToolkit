@@ -170,8 +170,8 @@ public class ConnectionServiceImpl implements ConnectionService {
                     credentialsProvider.setCredentials(new AuthScope(proxy), basicCredentials);
 
                     // For NTLM/Negotiate authentication
-                    Credentials ntlmCredentials = new NTCredentials(proxyUser, proxyPass.toCharArray(), null, null);
-                    credentialsProvider.setCredentials(new AuthScope(proxy), ntlmCredentials);
+                    // Credentials ntlmCredentials = new NTCredentials(proxyUser, proxyPass.toCharArray(), null, null);
+                    // credentialsProvider.setCredentials(new AuthScope(proxy), ntlmCredentials);
                 }
             } catch (NumberFormatException e) {
                 logger.error("Invalid proxy port number provided: '{}'", proxyPortStr, e);

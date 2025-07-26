@@ -57,37 +57,21 @@ public class XmlEditor extends Tab {
 
     public static final int MAX_SIZE_FOR_FORMATTING = 1024 * 1024 * 20;
     public static final String DEFAULT_FILE_NAME = "Untitled.xml *";
-    private static final int DEFAULT_FONT_SIZE = 11;
 
     private final Tab xml = new Tab("XML");
     private final Tab graphic = new Tab("Graphic");
 
     private final ObjectProperty<Runnable> onSearchRequested = new SimpleObjectProperty<>();
 
-    StackPane stackPane = new StackPane();
-
-    public CodeArea codeArea = new CodeArea();
-    VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
+    private final XmlCodeEditor xmlCodeEditor = new XmlCodeEditor();
+    public final CodeArea codeArea = xmlCodeEditor.getCodeArea();
 
     private List<Diagnostic> currentDiagnostics = new ArrayList<>();
 
     private final static Logger logger = LogManager.getLogger(XmlEditor.class);
 
-    private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
-            + "|(?<COMMENT><!--[^<>]+-->)");
-
-    private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
-
-    private static final int GROUP_OPEN_BRACKET = 2;
-    private static final int GROUP_ELEMENT_NAME = 3;
-    private static final int GROUP_ATTRIBUTES_SECTION = 4;
-    private static final int GROUP_CLOSE_BRACKET = 5;
-    private static final int GROUP_ATTRIBUTE_NAME = 1;
-    private static final int GROUP_EQUAL_SYMBOL = 2;
-    private static final int GROUP_ATTRIBUTE_VALUE = 3;
 
     File xmlFile;
-    private int fontSize = 11;
 
     TransformerFactory transformerFactory = TransformerFactory.newInstance();
     DocumentBuilder db;
@@ -132,10 +116,7 @@ public class XmlEditor extends Tab {
 
     public final void setOnSearchRequested(Runnable value) {
         onSearchRequested.set(value);
-    }
-
-    public final Runnable getOnSearchRequested() {
-        return onSearchRequested.get();
+        xmlCodeEditor.setOnSearchRequested(value);
     }
 
     private void init() {
@@ -171,13 +152,7 @@ public class XmlEditor extends Tab {
             }
         });
 
-        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            applyStyles();
-        });
-
-        // NEU: Initialisierung des PopOver und des Timers
+        // Initialisierung des PopOver und des Timers
         popOverLabel.setWrapText(true);
         popOverLabel.setStyle("-fx-padding: 8px; -fx-font-family: 'monospaced';");
         hoverPopOver = new PopOver(popOverLabel);
@@ -185,36 +160,7 @@ public class XmlEditor extends Tab {
         hoverPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
         hoverDelay.setOnFinished(e -> triggerLspHover());
 
-
-        codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
-            if (event.isControlDown()) {
-                if (event.getDeltaY() > 0) {
-                    increaseFontSize();
-                } else {
-                    decreaseFontSize();
-                }
-                event.consume();
-            }
-        });
-
-        codeArea.addEventFilter(KeyEvent.ANY, event -> {
-            if (event.getEventType() == KeyEvent.KEY_PRESSED) {
-                if (event.isControlDown() && event.getCode() == KeyCode.F) {
-                    if (getOnSearchRequested() != null) {
-                        getOnSearchRequested().run();
-                        event.consume();
-                    }
-                } else if (event.isControlDown() && (event.getCode() == KeyCode.NUMPAD0 || event.getCode() == KeyCode.DIGIT0)) {
-                    resetFontSize();
-                    event.consume();
-                }
-            }
-        });
-
-        stackPane.getChildren().add(virtualizedScrollPane);
-        setFontSize(DEFAULT_FONT_SIZE);
-
-        xml.setContent(stackPane);
+        xml.setContent(xmlCodeEditor);
 
         this.setText(DEFAULT_FILE_NAME);
         this.setClosable(true);
@@ -239,11 +185,12 @@ public class XmlEditor extends Tab {
         if (codeArea.getText().length() >= MAX_SIZE_FOR_FORMATTING) {
             return;
         }
-        // RichTextFX erlaubt das Überlagern von Style-Ebenen.
-        // Zuerst das Syntax-Highlighting, dann die Diagnose-Unterstreichungen darüber.
-        codeArea.setStyleSpans(0, computeHighlighting(codeArea.getText())
+        StyleSpans<Collection<String>> syntaxHighlighting = XmlCodeEditor.computeHighlighting(codeArea.getText());
+
+        // Überlagere sie mit den Diagnose-Stilen
+        codeArea.setStyleSpans(0, syntaxHighlighting
                 .overlay(computeDiagnosticStyles(), (syntaxStyles, diagnosticStyles) -> {
-                    // Wenn es einen Diagnose-Stil gibt, hat er Vorrang.
+                    // Wenn ein Diagnose-Stil vorhanden ist, hat er Vorrang.
                     return diagnosticStyles.isEmpty() ? syntaxStyles : diagnosticStyles;
                 }));
     }
@@ -281,15 +228,12 @@ public class XmlEditor extends Tab {
      */
     private String getStyleClassFor(DiagnosticSeverity severity) {
         if (severity == null) return "diagnostic-warning"; // Fallback
-        switch (severity) {
-            case Error:
-                return "diagnostic-error";
-            case Warning:
-                return "diagnostic-warning";
+        return switch (severity) {
+            case Error -> "diagnostic-error";
+            case Warning -> "diagnostic-warning";
             // Weitere Fälle wie Information oder Hint können hier hinzugefügt werden.
-            default:
-                return "diagnostic-warning";
-        }
+            default -> "diagnostic-warning";
+        };
     }
 
     /**
@@ -437,23 +381,6 @@ public class XmlEditor extends Tab {
         return xmlService;
     }
 
-    public void increaseFontSize() {
-        setFontSize(++fontSize);
-    }
-
-    public void decreaseFontSize() {
-        setFontSize(--fontSize);
-    }
-
-    private void resetFontSize() {
-        fontSize = DEFAULT_FONT_SIZE;
-        setFontSize(fontSize);
-    }
-
-    private void setFontSize(int size) {
-        codeArea.setStyle("-fx-font-size: " + size + "pt;");
-    }
-
     public void refresh() {
         if (this.xmlFile != null && this.xmlFile.exists()) {
             // 1. Textansicht direkt aus der Datei laden. Dies ist die primäre und robusteste Aktion.
@@ -566,52 +493,14 @@ public class XmlEditor extends Tab {
         }
     }
 
+    public XmlCodeEditor getXmlCodeEditor() {
+        return xmlCodeEditor;
+    }
+
     /**
      * Clears the current search highlight by deselecting any selected text.
      */
     public void clearHighlight() {
         codeArea.deselect();
-    }
-
-    public static StyleSpans<Collection<String>> computeHighlighting(String text) {
-        Matcher matcher = XML_TAG.matcher(text);
-        int lastKwEnd = 0;
-        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-
-        while (matcher.find()) {
-            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
-            if (matcher.group("COMMENT") != null) {
-                spansBuilder.add(Collections.singleton("comment"), matcher.end() - matcher.start());
-            } else {
-                if (matcher.group("ELEMENT") != null) {
-                    String attributesText = matcher.group(GROUP_ATTRIBUTES_SECTION);
-
-                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_OPEN_BRACKET) - matcher.start(GROUP_OPEN_BRACKET));
-                    spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
-
-                    if (!attributesText.isEmpty()) {
-                        lastKwEnd = 0;
-
-                        Matcher amatcher = ATTRIBUTES.matcher(attributesText);
-                        while (amatcher.find()) {
-                            spansBuilder.add(Collections.emptyList(), amatcher.start() - lastKwEnd);
-                            spansBuilder.add(Collections.singleton("attribute"), amatcher.end(GROUP_ATTRIBUTE_NAME) - amatcher.start(GROUP_ATTRIBUTE_NAME));
-                            spansBuilder.add(Collections.singleton("tagmark"), amatcher.end(GROUP_EQUAL_SYMBOL) - amatcher.end(GROUP_ATTRIBUTE_NAME));
-                            spansBuilder.add(Collections.singleton("avalue"), amatcher.end(GROUP_ATTRIBUTE_VALUE) - amatcher.end(GROUP_EQUAL_SYMBOL));
-                            lastKwEnd = amatcher.end();
-                        }
-                        if (attributesText.length() > lastKwEnd)
-                            spansBuilder.add(Collections.emptyList(), attributesText.length() - lastKwEnd);
-                    }
-
-                    lastKwEnd = matcher.end(GROUP_ATTRIBUTES_SECTION);
-
-                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_CLOSE_BRACKET) - lastKwEnd);
-                }
-            }
-            lastKwEnd = matcher.end();
-        }
-        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
-        return spansBuilder.create();
     }
 }
