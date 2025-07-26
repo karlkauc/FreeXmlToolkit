@@ -64,7 +64,7 @@ public class XsdDocumentationService {
     public XsdDocumentationData xsdDocumentationData = new XsdDocumentationData();
 
     int counter;
-    boolean parallelProcessing = false;
+    boolean parallelProcessing = true;
 
     public enum ImageOutputMethod {SVG, PNG}
 

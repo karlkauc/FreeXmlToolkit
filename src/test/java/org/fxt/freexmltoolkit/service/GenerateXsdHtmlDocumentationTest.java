@@ -27,7 +27,10 @@ import org.apache.logging.log4j.Logger;
 import org.apache.xerces.xs.XSModel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -63,10 +66,7 @@ public class GenerateXsdHtmlDocumentationTest {
     final static String SIMPLE_XSD_FILE = "src/test/resources/testSchema.xsd";
 
     final XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
-
     private final static Logger logger = LogManager.getLogger(GenerateXsdHtmlDocumentationTest.class);
-
-    XmlService xmlService = XmlServiceImpl.getInstance();
 
     @Test
     void parseXsdTest() throws Exception {
@@ -118,88 +118,6 @@ public class GenerateXsdHtmlDocumentationTest {
         this.xsdDocumentationService.generateXsdDocumentation(outputFilePath.toFile());
         Desktop.getDesktop().open(new File(outputFilePath.toFile().getAbsolutePath() + "/index.html"));
     }
-
-
-    @Test
-    void generatePureSvg() {
-        final var testFilePath = Paths.get("examples/xsd/purchageOrder.xsd");
-        this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());
-
-        XsdDocumentationImageService xsdDocumentationImageService = new XsdDocumentationImageService(null);
-
-        this.xmlService.setCurrentXmlFile(testFilePath.toFile());
-        var childNodes = this.xmlService.getXmlDocument().getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            var node = childNodes.item(i);
-
-            switch (node.getNodeType()) {
-                case Node.ATTRIBUTE_NODE:
-                    logger.debug("ATTR:");
-                    logger.debug(node.getAttributes().toString());
-                    break;
-
-                case Node.CDATA_SECTION_NODE:
-                    logger.debug("CDATA:");
-                    break;
-
-                case Node.COMMENT_NODE:
-                    logger.debug("COMM:");
-                    logger.debug(node.getTextContent());
-                    break;
-
-                case Node.DOCUMENT_FRAGMENT_NODE:
-                    logger.debug("DOC_FRAG:");
-                    break;
-
-                case Node.DOCUMENT_NODE:
-                    logger.debug("DOC:");
-                    break;
-
-                case Node.DOCUMENT_TYPE_NODE:
-                    logger.debug("DOC_TYPE:");
-                    NamedNodeMap nodeMap = ((DocumentType) node).getEntities();
-                    break;
-
-                case Node.ELEMENT_NODE:
-                    logger.debug("ELEM:");
-                    logger.debug("Value : {}", node.getNodeValue());
-                    logger.debug("Local Name: {}", node.getLocalName());
-                    logger.debug("Node Name: {}", node.getNodeName());
-
-                    // var document = xsdDocumentationImageService.generateSvgDiagram((Element) node);
-                    NamedNodeMap atts = node.getAttributes();
-                    logger.debug(atts.toString());
-                    break;
-
-                case Node.ENTITY_NODE:
-                    logger.debug("ENT:");
-                    break;
-
-                case Node.ENTITY_REFERENCE_NODE:
-                    logger.debug("ENT_REF:");
-                    break;
-
-                case Node.NOTATION_NODE:
-                    logger.debug("NOTATION:");
-                    break;
-
-                case Node.PROCESSING_INSTRUCTION_NODE:
-                    logger.debug("PROC_INST:");
-                    break;
-
-                case Node.TEXT_NODE:
-                    logger.debug("TEXT:");
-                    logger.debug(node.getTextContent());
-                    break;
-
-                default:
-                    logger.debug("UNSUPPORTED NODE: {}", node.getNodeType());
-                    break;
-            }
-
-        }
-    }
-
 
     @Test
     void createHtmlTable420() {
