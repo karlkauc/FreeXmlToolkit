@@ -43,6 +43,8 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.service.MyLspClient;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.xml.sax.SAXParseException;
 
@@ -50,7 +52,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -75,6 +76,8 @@ public class XmlController {
 
     private MainController mainController;
 
+    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+
     @FXML
     Button openFile, saveFile, prettyPrint, newFile, validateSchema, runXpathQuery, minifyButton;
 
@@ -84,7 +87,6 @@ public class XmlController {
     @FXML
     ComboBox<File> schemaList = new ComboBox<>();
 
-    String lastOpenDir;
     FileChooser fileChooser = new FileChooser();
 
     @FXML
@@ -320,9 +322,9 @@ public class XmlController {
     // Die `getCurrentCodeArea()` Methode muss angepasst werden, um die neue Struktur zu finden.
     private CodeArea getCurrentCodeArea() {
         XmlEditor editor = getCurrentXmlEditor();
-        if (editor != null) {
-            // Direkter Zugriff über die öffentliche Referenz in XmlEditor
-            return editor.codeArea;
+        if (editor != null && editor.getXmlCodeEditor() != null) {
+            // Greift über den XmlCodeEditor auf die CodeArea zu.
+            return editor.getXmlCodeEditor().getCodeArea();
         }
         return null;
     }
@@ -536,43 +538,45 @@ public class XmlController {
             File xmlFile = currentXmlEditor.getXmlFile();
 
             if (xmlFile == null) {
-                if (lastOpenDir == null) {
-                    lastOpenDir = Path.of(".").toString();
-                    logger.debug("New last open Dir: {}", lastOpenDir);
+                // Datei ist neu, also "Speichern unter"-Dialog anzeigen
+                String lastDirString = propertiesService.getLastOpenDirectory();
+                if (lastDirString != null) {
+                    File lastDir = new File(lastDirString);
+                    if (lastDir.exists() && lastDir.isDirectory()) {
+                        fileChooser.setInitialDirectory(lastDir);
+                    }
                 }
 
-                fileChooser.setInitialDirectory(new File(lastOpenDir));
+                fileChooser.getExtensionFilters().clear();
                 fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
                 File selectedFile = fileChooser.showSaveDialog(null);
 
                 if (selectedFile != null) {
-                    getCurrentXmlEditor().getXmlService().setCurrentXmlFile(selectedFile);
-                    currentXmlEditor.setXmlFile(selectedFile);
-                    currentXmlEditor.setText(selectedFile.getName());
-
-                    if (!selectedFile.exists()) {
-                        Files.writeString(selectedFile.toPath(), getCurrentCodeArea().getText(), Charset.defaultCharset());
-                        this.schemaValidText.setText("Saved " + selectedFile.length() + " Bytes");
+                    // Speichere das neue Verzeichnis
+                    if (selectedFile.getParentFile() != null) {
+                        propertiesService.setLastOpenDirectory(selectedFile.getParentFile().getAbsolutePath());
                     }
-                }
 
-            } else {
-                byte[] strToBytes = getCurrentCodeArea().getText().getBytes();
-                Files.write(xmlFile.toPath(), strToBytes);
+                    xmlFile = selectedFile; // Die ausgewählte Datei wird zur neuen Datei des Editors
+                    currentXmlEditor.getXmlService().setCurrentXmlFile(xmlFile);
+                    currentXmlEditor.setXmlFile(xmlFile);
+                    currentXmlEditor.setText(xmlFile.getName());
+                } else {
+                    return false; // Benutzer hat abgebrochen
+                }
             }
 
-            Path path = Paths.get(getCurrentXmlEditor().getXmlService().getCurrentXmlFile().getPath());
+            // Speichere den Inhalt in die (neue oder bestehende) Datei
+            Path path = xmlFile.toPath();
             byte[] strToBytes = getCurrentCodeArea().getText().getBytes();
             Files.write(path, strToBytes);
 
             logger.debug("File saved!");
-            getCurrentXmlEditor().getXmlService().setCurrentXmlFile(path.toFile());
-            schemaValidText.setText("File '" + path + "' saved (" + path.toFile().length() + " bytes)");
+            schemaValidText.setText("File '" + path.getFileName() + "' saved (" + path.toFile().length() + " bytes)");
 
             return true;
         } catch (Exception e) {
             logger.error("Exception in writing File: {}", e.getMessage());
-            // logger.error("File: {}", this.xmlService.getCurrentXmlFile().getAbsolutePath());
         }
         return false;
     }
@@ -711,19 +715,27 @@ public class XmlController {
 
     @FXML
     private void openFile() {
-        logger.debug("Last open Dir: {}", lastOpenDir);
-        if (lastOpenDir == null) {
-            lastOpenDir = Path.of(".").toString();
-            logger.debug("New last open Dir: {}", lastOpenDir);
+        // Lese das zuletzt geöffnete Verzeichnis aus dem PropertiesService
+        String lastDirString = propertiesService.getLastOpenDirectory();
+        if (lastDirString != null) {
+            File lastDir = new File(lastDirString);
+            if (lastDir.exists() && lastDir.isDirectory()) {
+                fileChooser.setInitialDirectory(lastDir);
+            }
         }
 
-        fileChooser.setInitialDirectory(new File(lastOpenDir));
+        // Stelle sicher, dass nur der XML-Filter aktiv ist
+        fileChooser.getExtensionFilters().clear();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
         File selectedFile = fileChooser.showOpenDialog(null);
 
         if (selectedFile != null && selectedFile.exists()) {
             logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
-            this.lastOpenDir = selectedFile.getParent();
+
+            // Speichere das neue Verzeichnis im PropertiesService
+            if (selectedFile.getParentFile() != null) {
+                propertiesService.setLastOpenDirectory(selectedFile.getParentFile().getAbsolutePath());
+            }
 
             XmlEditor xmlEditor = new XmlEditor(selectedFile);
 
@@ -731,6 +743,18 @@ public class XmlController {
             xmlFilesPane.getSelectionModel().select(xmlEditor);
 
             xmlEditor.refresh();
+
+            // Fokus auf den neuen Editor setzen, nachdem die UI-Änderungen verarbeitet wurden.
+            Platform.runLater(() -> {
+                // 1. Zuerst den Fokus auf den Tab-Container legen.
+                xmlFilesPane.requestFocus();
+
+                // 2. Dann den Fokus an die CodeArea im Inneren übergeben.
+                if (xmlEditor.getXmlCodeEditor().getCodeArea() != null) {
+                    xmlEditor.getXmlCodeEditor().getCodeArea().requestFocus();
+                    xmlEditor.getXmlCodeEditor().moveUp(); // Setzt den Cursor an den Anfang.
+                }
+            });
 
             xmlEditor.getXmlService().setCurrentXmlFile(selectedFile);
             xmlEditor.setOnSearchRequested(() -> {

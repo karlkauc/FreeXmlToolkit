@@ -124,10 +124,6 @@ public class XmlCodeEditor extends StackPane {
         return onSearchRequested;
     }
 
-    public CodeArea getCodeArea() {
-        return codeArea;
-    }
-
     public void moveUp() {
         codeArea.moveTo(0);
         codeArea.showParagraphAtTop(0);
@@ -193,6 +189,16 @@ public class XmlCodeEditor extends StackPane {
         codeArea.setStyleSpans(0, syntaxHighlighting.overlay(searchSpansBuilder.create(), (style1, style2) -> {
             return style2.isEmpty() ? style1 : style2;
         }));
+    }
+
+    /**
+     * Gibt die interne CodeArea-Instanz zurück.
+     * Dies ermöglicht kontrollierten Zugriff von außen, z.B. für Fokus-Management.
+     *
+     * @return Die CodeArea-Komponente.
+     */
+    public CodeArea getCodeArea() {
+        return codeArea;
     }
 
     public static StyleSpans<Collection<String>> computeHighlighting(String text) {
