@@ -11,9 +11,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -22,9 +19,7 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageServer;
-import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
-import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.TwoDimensional;
@@ -50,8 +45,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class XmlEditor extends Tab {
 
@@ -480,11 +473,16 @@ public class XmlEditor extends Tab {
 
         String content = codeArea.getText();
         // Search for the first occurrence from the beginning of the document
-        int index = content.indexOf(text);
+        int index = content.toLowerCase().indexOf(text.toLowerCase());
 
         if (index != -1) {
             // Found the text, select it to highlight it
             codeArea.selectRange(index, index + text.length());
+
+            // Scroll the view to the found text
+            // Zum ersten Treffer scrollen und den Cursor dorthin bewegen.
+            codeArea.moveTo(index);
+
             // Scroll the view to the found text
             codeArea.requestFollowCaret();
         } else {
@@ -502,5 +500,8 @@ public class XmlEditor extends Tab {
      */
     public void clearHighlight() {
         codeArea.deselect();
+
+        // Ruft die search-Methode mit leerem Text auf, um die Hervorhebung zurückzusetzen.
+        xmlCodeEditor.searchAndHighlight(null);
     }
 }

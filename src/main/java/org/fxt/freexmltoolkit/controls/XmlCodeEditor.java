@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+
 /**
  * A self-contained XML code editor component that extends StackPane.
  * It includes a CodeArea with line numbers, syntax highlighting logic,
@@ -30,7 +32,7 @@ public class XmlCodeEditor extends StackPane {
     private final CodeArea codeArea = new CodeArea();
     private final VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
 
-    // NEU: Property, um eine Such-Aktion von außen zu registrieren
+    // Property, um eine Such-Aktion von außen zu registrieren
     private final ObjectProperty<Runnable> onSearchRequested = new SimpleObjectProperty<>();
 
     // --- Syntax Highlighting Patterns (aus XmlEditor verschoben) ---
@@ -64,7 +66,7 @@ public class XmlCodeEditor extends StackPane {
         resetFontSize();
     }
 
-    // GEÄNDERT: Der Key-Pressed-Handler wurde um die Strg+F Logik erweitert
+    // Der Key-Pressed-Handler wurde um die Strg+F Logik erweitert
     private void setupEventHandlers() {
         // Schriftgröße mit Strg + Mausrad ändern
         codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
@@ -107,7 +109,7 @@ public class XmlCodeEditor extends StackPane {
     // --- Öffentliche API für den Editor ---
 
     /**
-     * NEU: Setzt die Aktion, die bei Strg+F ausgeführt werden soll.
+     * Setzt die Aktion, die bei Strg+F ausgeführt werden soll.
      * @param value Die auszuführende Aktion (Runnable).
      */
     public final void setOnSearchRequested(Runnable value) {
@@ -157,6 +159,40 @@ public class XmlCodeEditor extends StackPane {
 
     private void setFontSize(int size) {
         codeArea.setStyle("-fx-font-size: " + size + "pt;");
+    }
+
+    /**
+     * Sucht nach dem gegebenen Text in der CodeArea, hebt alle Vorkommen hervor
+     * und scrollt zum ersten Treffer.
+     *
+     * @param text Der zu suchende Text. Wenn null oder leer, wird die Hervorhebung entfernt.
+     */
+    public void searchAndHighlight(String text) {
+        // Zuerst das normale Syntax-Highlighting anwenden
+        StyleSpans<Collection<String>> syntaxHighlighting = computeHighlighting(codeArea.getText());
+
+        if (text == null || text.isBlank()) {
+            codeArea.setStyleSpans(0, syntaxHighlighting); // Nur Syntax-Highlighting
+            return;
+        }
+
+        // Style für die Such-Hervorhebung erstellen
+        StyleSpansBuilder<Collection<String>> searchSpansBuilder = new StyleSpansBuilder<>();
+        Pattern pattern = Pattern.compile(Pattern.quote(text), CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(codeArea.getText());
+        int lastMatchEnd = 0;
+
+        while (matcher.find()) {
+            searchSpansBuilder.add(Collections.emptyList(), matcher.start() - lastMatchEnd);
+            searchSpansBuilder.add(Collections.singleton("search-highlight"), matcher.end() - matcher.start());
+            lastMatchEnd = matcher.end();
+        }
+        searchSpansBuilder.add(Collections.emptyList(), codeArea.getLength() - lastMatchEnd);
+
+        // Such-Highlighting über das Syntax-Highlighting legen
+        codeArea.setStyleSpans(0, syntaxHighlighting.overlay(searchSpansBuilder.create(), (style1, style2) -> {
+            return style2.isEmpty() ? style1 : style2;
+        }));
     }
 
     public static StyleSpans<Collection<String>> computeHighlighting(String text) {

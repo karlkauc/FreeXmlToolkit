@@ -151,11 +151,12 @@ public class XmlController {
 
         searchField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
-                XmlEditor currentEditor = getCurrentXmlEditor();
-                if (currentEditor != null) {
-                    // Entfernt die Hervorhebung im Editor
-                    currentEditor.clearHighlight();
-                }
+                XmlEditor editor = getCurrentXmlEditor();
+                if (editor == null) return;
+
+                // Hervorhebung entfernen
+                editor.clearHighlight();
+
                 // Leert das Suchfeld
                 searchField.clear();
 
@@ -204,7 +205,7 @@ public class XmlController {
     private void createAndAddXmlTab(File file) {
         // Die Konstruktoren von XmlEditor müssen angepasst werden, um den MainController zu akzeptieren
         XmlEditor xmlEditor = new XmlEditor(file); // Behalten Sie Ihren Konstruktor bei
-        xmlEditor.setMainController(this.mainController); // NEU: Übergeben Sie den Controller
+        xmlEditor.setMainController(this.mainController); // Übergeben Sie den Controller
 
         xmlEditor.setLanguageServer(this.serverProxy);
         xmlEditor.refresh();
@@ -249,10 +250,9 @@ public class XmlController {
         for (File f : db.getFiles()) {
             logger.debug("add File: '{}': {}", f.getName(), f.getAbsolutePath());
             XmlEditor xmlEditor = new XmlEditor(f);
-            xmlEditor.setXmlFile(f);
             xmlEditor.refresh();
 
-            // NEU: Setzt die Aktion für die Suchanfrage
+            // Setzt die Aktion für die Suchanfrage
             xmlEditor.setOnSearchRequested(() -> {
                 searchField.requestFocus();
                 searchField.selectAll();
@@ -267,7 +267,6 @@ public class XmlController {
         logger.debug("Loading file {}", f.getAbsolutePath());
 
         XmlEditor xmlEditor = new XmlEditor(f);
-        xmlEditor.setXmlFile(f);
         xmlEditor.refresh();
 
         xmlEditor.setOnSearchRequested(() -> {
@@ -727,7 +726,6 @@ public class XmlController {
             this.lastOpenDir = selectedFile.getParent();
 
             XmlEditor xmlEditor = new XmlEditor(selectedFile);
-            xmlEditor.setXmlFile(selectedFile);
 
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
@@ -735,6 +733,11 @@ public class XmlController {
             xmlEditor.refresh();
 
             xmlEditor.getXmlService().setCurrentXmlFile(selectedFile);
+            xmlEditor.setOnSearchRequested(() -> {
+                searchField.requestFocus();
+                searchField.selectAll();
+            });
+
             if (xmlEditor.getXmlService().loadSchemaFromXMLFile()) {
                 schemaList.getItems().add(xmlEditor.getXmlService().getCurrentXsdFile());
             }

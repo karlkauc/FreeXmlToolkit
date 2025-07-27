@@ -456,6 +456,12 @@
     -fx-background-radius: -fx-border-radius; /* Verwendet den globalen Radius für Konsistenz */
 }
 
+/* XML Suche */
+.search-highlight {
+    -fx-fill: black;
+    -fx-background-color: #ffdd00; /* Ein leuchtendes Gelb */
+}
+
 /*
  * Stylesheet for the XML Editor Highlighting in FreeXmlToolkit
  */
