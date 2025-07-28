@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.IntStream;
 
@@ -250,12 +250,44 @@ public class SimpleNodeElement extends VBox {
     private GridPane createTable(Node subNode) {
         GridPane gridPane = new GridPane();
         gridPane.getStyleClass().add("table-grid");
-        int row = 1;
-        Map<String, Integer> columns = new HashMap<>();
 
+        // Map, um Spaltennamen und ihre Indizes zu speichern.
+        // LinkedHashMap behält die Einfügereihenfolge bei, was für eine konsistente Spaltenreihenfolge sorgt.
+        Map<String, Integer> columns = new LinkedHashMap<>();
+
+        // --- SCHRITT 1: Alle Spaltenköpfe im Voraus ermitteln ---
+        // Wir durchlaufen alle Zeilen, nur um die Spaltennamen zu sammeln.
         for (int i = 0; i < subNode.getChildNodes().getLength(); i++) {
             Node oneRow = subNode.getChildNodes().item(i);
             if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
+                for (int x = 0; x < oneRow.getChildNodes().getLength(); x++) {
+                    Node oneNode = oneRow.getChildNodes().item(x);
+                    if (oneNode.getNodeType() == Node.ELEMENT_NODE) {
+                        // Fügt den Spaltennamen hinzu, falls er noch nicht existiert,
+                        // und weist ihm den nächsten verfügbaren Index zu.
+                        columns.computeIfAbsent(oneNode.getNodeName(), k -> columns.size());
+                    }
+                }
+            }
+        }
+
+        // --- SCHRITT 2: Header-Zeile basierend auf den gesammelten Spalten erstellen ---
+        for (Map.Entry<String, Integer> entry : columns.entrySet()) {
+            String columnName = entry.getKey();
+            int columnIndex = entry.getValue();
+
+            var headerLabel = new Label(columnName);
+            var headerPane = new StackPane(headerLabel);
+            headerPane.getStyleClass().add("table-header");
+            gridPane.add(headerPane, columnIndex, 0); // Header immer in Zeile 0
+        }
+
+        // --- SCHRITT 3: Datenzeilen füllen ---
+        int row = 1; // Daten beginnen in Zeile 1
+        for (int i = 0; i < subNode.getChildNodes().getLength(); i++) {
+            Node oneRow = subNode.getChildNodes().item(i);
+            if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
+                // Die Hilfsmethoden verwenden jetzt die vorab gefüllte 'columns'-Map.
                 addTableRow(gridPane, oneRow, row, columns);
                 row++;
             }
