@@ -30,7 +30,11 @@ application {
     mainClass.set("org.fxt.freexmltoolkit.FxtGui")
     // mainClass.set("org.fxt.freexmltoolkit.GuiTest")
     applicationName = "FreeXmlToolkit"
-    applicationDefaultJvmArgs = listOf("-Djavafx.css.dump.lookup.errors=true", "--enable-native-access=javafx.graphics")
+    applicationDefaultJvmArgs = listOf(
+        "-Djavafx.css.dump.lookup.errors=true",
+        "--enable-native-access=javafx.graphics",
+        "-Djavafx.verbose=true"
+    )
 }
 
 configurations.all {

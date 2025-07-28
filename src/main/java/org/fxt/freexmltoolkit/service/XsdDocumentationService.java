@@ -399,10 +399,6 @@ public class XsdDocumentationService {
 
     // --- XML/DOM Processing Helper Methods ---
     private void initializeXmlTools() throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-
         XPathFactory xPathFactory = XPathFactory.newInstance();
         xpath = xPathFactory.newXPath();
         xpath.setNamespaceContext(new NamespaceContext() {
@@ -423,6 +419,8 @@ public class XsdDocumentationService {
     private Document parseXsdContent(String xsdContent) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+
         DocumentBuilder builder = factory.newDocumentBuilder();
         return builder.parse(new InputSource(new StringReader(xsdContent)));
     }
