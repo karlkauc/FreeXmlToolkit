@@ -465,6 +465,33 @@
     -fx-text-fill: -fx-primary-accent-text;
 }
 
+/* Container für Kind-Elemente (sorgt für die Einrückung und die vertikale Linie) */
+.children-container {
+    /* WICHTIG: Die linke Einrückung wird entfernt, da sie jetzt von der collapse-bar übernommen wird */
+    -fx-padding: 2px 0 2px 0;
+    -fx-border-color: -fx-border-color-subtle transparent transparent transparent;
+    -fx-border-width: 1px;
+    -fx-border-style: solid;
+    -fx-spacing: 4px; /* Abstand zwischen den Kind-Elementen */
+}
+
+/* NEU: Die seitliche, klickbare Leiste zum Einklappen */
+.collapse-bar {
+    -fx-min-width: 20px; /* Breite, die der alten Einrückung entspricht */
+    -fx-max-width: 20px;
+    -fx-background-color: transparent; /* Standardmäßig unsichtbar */
+    -fx-cursor: hand; /* Zeigt an, dass man hier klicken kann */
+    /* Zeichnet eine Linie auf der rechten Seite, die sich mit der Linie des children-container verbindet */
+    -fx-border-color: transparent -fx-border-color-subtle transparent transparent;
+    -fx-border-width: 1px;
+    -fx-border-style: solid;
+}
+
+.collapse-bar:hover {
+    /* Heller Hintergrund beim Überfahren, um die Klickbarkeit zu verdeutlichen */
+    -fx-background-color: #e9ecef;
+}
+
 /* Kommentar-Styling */
 .xml-tree-comment {
     -fx-text-fill: -fx-text-color-muted;

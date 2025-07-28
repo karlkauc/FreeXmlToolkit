@@ -32,10 +32,7 @@ public class SimpleNodeElement extends VBox {
         this.xmlEditor = caller;
         // Dem Wurzelelement wird eine CSS-Klasse für gezieltes Styling zugewiesen.
         this.getStyleClass().add("simple-node-element");
-        createByNode(node);
-    }
 
-    public void createByNode(Node node) {
         if (node.hasChildNodes()) {
             // Attribute werden jetzt direkt innerhalb der jeweiligen Node-Typen behandelt
             addChildNodes(node);
@@ -149,16 +146,12 @@ public class SimpleNodeElement extends VBox {
         headerBox.getStyleClass().add("element-box");
         headerBox.setAlignment(Pos.CENTER_LEFT);
 
-        // Erstelle das Icon als eine separate Region, die als Leinwand für das SVG dient.
         Region icon = new Region();
-        icon.getStyleClass().add("icon"); // Eine generische Klasse für das Icon
+        icon.getStyleClass().add("icon");
 
-        // Erstelle den Button und setze das Icon als seine Grafik.
         Button toggleButton = new Button();
         toggleButton.setGraphic(icon);
         toggleButton.getStyleClass().add("tree-toggle-button");
-
-        // Setze den initialen Zustand (eingeklappt)
         icon.getStyleClass().add("toggle-expand");
 
         Label label = new Label(subNode.getNodeName());
@@ -169,43 +162,52 @@ public class SimpleNodeElement extends VBox {
 
         headerBox.getChildren().addAll(toggleButton, label, countLabel);
 
-        // 2. Der Container für die Kind-Elemente, anfangs leer und unsichtbar
+        // 2. Der Container für die Kind-Elemente
         VBox childrenContainer = new VBox();
         childrenContainer.getStyleClass().add("children-container");
-        childrenContainer.setVisible(false);
-        childrenContainer.setManaged(false); // Wichtig für das Layout
+
+        // --- NEU: Die seitliche Klick-Leiste zum Einklappen ---
+        Region collapseBar = new Region();
+        collapseBar.getStyleClass().add("collapse-bar");
+        // Ein Klick auf die Leiste löst die Aktion des Toggle-Buttons aus
+        collapseBar.setOnMouseClicked(event -> toggleButton.fire());
+
+        // --- NEU: Ein HBox-Wrapper für Leiste und Inhalt ---
+        HBox contentWrapper = new HBox(collapseBar, childrenContainer);
+        // Der childrenContainer soll den gesamten verfügbaren horizontalen Platz einnehmen
+        HBox.setHgrow(childrenContainer, Priority.ALWAYS);
+
+        // Initialer Zustand: Alles unsichtbar
+        contentWrapper.setVisible(false);
+        contentWrapper.setManaged(false);
 
         // 3. Die Aktion zum Umschalten der Sichtbarkeit
         toggleButton.setOnAction(event -> {
-            boolean isExpanded = childrenContainer.isVisible();
+            boolean isExpanded = contentWrapper.isVisible();
             if (isExpanded) {
                 // Zuklappen
-                childrenContainer.setVisible(false);
-                childrenContainer.setManaged(false);
-                // Wechsle die Klasse auf dem Icon
+                contentWrapper.setVisible(false);
+                contentWrapper.setManaged(false);
                 icon.getStyleClass().remove("toggle-collapse");
                 icon.getStyleClass().add("toggle-expand");
             } else {
                 // Aufklappen
-                // Kinder nur beim ersten Mal erstellen
                 if (childrenContainer.getChildren().isEmpty()) {
                     if (shouldBeTable(subNode)) {
                         childrenContainer.getChildren().add(createTable(subNode));
                     } else {
-                        // Reguläre Kind-Elemente hinzufügen
                         childrenContainer.getChildren().add(new SimpleNodeElement(subNode, xmlEditor));
                     }
                 }
-                childrenContainer.setVisible(true);
-                childrenContainer.setManaged(true);
-                // Wechsle die Klasse auf dem Icon
+                contentWrapper.setVisible(true);
+                contentWrapper.setManaged(true);
                 icon.getStyleClass().remove("toggle-expand");
                 icon.getStyleClass().add("toggle-collapse");
             }
         });
 
-        // 4. Header und Inhalts-Container zum Haupt-VBox hinzufügen
-        this.getChildren().addAll(headerBox, childrenContainer);
+        // 4. Header und den neuen contentWrapper zum Haupt-VBox hinzufügen
+        this.getChildren().addAll(headerBox, contentWrapper);
     }
 
     @NotNull
