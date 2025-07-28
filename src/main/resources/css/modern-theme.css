@@ -341,119 +341,164 @@
     -fx-padding: 0 0 10px 0;
 }
 
-/* =============================================================
-   Layout für Xml Grid
-   ============================================================= */
+/* =================================================================
+   Modernes Layout für die XML-Baumansicht (SimpleNodeElement)
+   ================================================================= */
 
-/* Container für ein komplettes Node-Element. */
+/* Basis-Container für ein XML-Element. Kein eigener Rand, da die Kinder die Ränder definieren. */
 .simple-node-element {
+    -fx-padding: 0 0 0 5px;
+}
+
+/* Container für Kind-Elemente (sorgt für die Einrückung und die vertikale Linie) */
+.children-container {
+    -fx-padding: 2px 0 2px 20px; /* Einrückung links */
+    -fx-border-color: -fx-border-color-subtle transparent transparent transparent;
+    -fx-border-width: 1px;
+    -fx-border-style: solid;
+    -fx-spacing: 4px; /* Abstand zwischen den Kind-Elementen */
+}
+
+/* Header-Zeile für aufklappbare Elemente */
+.element-box {
+    -fx-padding: 4px;
+    -fx-alignment: center-left;
+    -fx-background-radius: -fx-border-radius;
+    -fx-cursor: hand;
+}
+
+.element-box:hover {
+    -fx-background-color: #e9ecef;
+}
+
+/* Label für den Namen eines komplexen Knotens */
+.node-label-complex {
+    -fx-font-size: 1.05em; /* Etwas größer als normaler Text */
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-color;
+}
+
+/* Label für die Anzahl der Kinder */
+.node-count-label {
+    -fx-font-size: 0.9em; /* Etwas kleiner */
+    -fx-text-fill: -fx-text-color-secondary;
+    -fx-padding: 0 0 0 5px;
+}
+
+/* Der Toggle-Button, der das SVG-Icon enthält */
+.tree-toggle-button {
+    -fx-background-color: transparent;
+    -fx-min-width: 18px;
+    -fx-min-height: 18px;
+    -fx-max-width: 18px;
+    -fx-max-height: 18px;
+    -fx-padding: 0;
+    -fx-background-radius: 100px; /* Macht den Hover-Effekt rund */
+}
+
+.tree-toggle-button:hover {
+    -fx-background-color: #e9ecef; /* Hintergrund-Hover auf dem Button */
+}
+
+/* Das Icon selbst, das als Grafik im Button sitzt */
+.tree-toggle-button .icon {
+    -fx-min-width: 8px;
+    -fx-min-height: 8px;
+    -fx-max-width: 8px;
+    -fx-max-height: 8px;
+    -fx-background-color: -fx-text-color-secondary;
+}
+
+.tree-toggle-button:hover .icon {
+    -fx-background-color: -fx-text-color; /* Icon wird beim Hover dunkler */
+}
+
+/* Form des Icons via SVG-Pfad. Wird auf das .icon-Element angewendet. */
+.icon.toggle-expand {
+    /* SVG-Pfad für einen Pfeil nach rechts (eingeklappt) */
+    -fx-shape: "M 0 0 L 8 4 L 0 8 Z";
+}
+
+.icon.toggle-collapse {
+    /* SVG-Pfad für einen Pfeil nach unten (ausgeklappt) */
+    -fx-shape: "M 0 0 L 8 0 L 4 8 Z";
+}
+
+/* Styling für einfache Text-Knoten (<tag>wert</tag>) und deren Attribute */
+.xml-tree-text {
     -fx-background-color: -fx-control-background;
+    -fx-padding: 8px;
     -fx-border-color: -fx-border-color-subtle;
     -fx-border-width: 1px;
     -fx-border-radius: -fx-border-radius;
     -fx-background-radius: -fx-border-radius;
-    -fx-padding: 5px;
-    -fx-spacing: 2px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 5, 0, 0, 1);
+    -fx-hgap: 10px;
+    -fx-vgap: 4px;
 }
 
-/* Style für das Gitter-Layout innerhalb eines Knotens */
-.tree-grid {
-    -fx-hgap: 2px;
-    -fx-vgap: 2px;
-}
-
-/* Style für Kommentar-Knoten */
-.xml-tree-comment {
+/* Box für den Namen eines Elements oder Attributs */
+.node-name-box, .attribute-box {
+    -fx-alignment: center-left;
     -fx-text-fill: -fx-text-color-secondary;
+    -fx-font-weight: bold;
+}
+
+.attribute-box .label {
+    -fx-text-fill: #0550ae; /* Spezifisches Blau für Attribute, um sie hervorzuheben */
+}
+
+/* Box für den Wert eines Elements oder Attributs */
+.node-value-box, .attribute-value-box {
+    -fx-alignment: center-left;
+    -fx-text-fill: -fx-text-color;
+    -fx-background-radius: 4px;
+    -fx-padding: 2px 5px;
+}
+
+.node-value-box:hover, .attribute-value-box:hover {
+    -fx-background-color: -fx-primary-accent;
+    -fx-cursor: hand;
+}
+
+.node-value-box:hover .label,
+.attribute-value-box:hover .label {
+    -fx-text-fill: -fx-primary-accent-text;
+}
+
+/* Kommentar-Styling */
+.xml-tree-comment {
+    -fx-text-fill: -fx-text-color-muted;
     -fx-font-style: italic;
     -fx-padding: 2px 5px;
 }
 
-/* Box für den Elementnamen (links) */
-.node-name-box {
-    -fx-padding: 2px 4px;
-    -fx-alignment: center-left; /* KORREKTUR: Korrekter Wert für linksbündig, vertikal zentriert */
-}
-
-/* Box für den Elementwert (rechts) */
-.node-value-box {
-    -fx-padding: 2px 4px;
-    -fx-background-color: #eefbf2;
-    -fx-background-radius: -fx-border-radius;
-    -fx-alignment: center-left; /* KORREKTUR: Korrekter Wert */
-}
-
-/* Box für einen Attributnamen, z.B. @id */
-.attribute-box {
-    -fx-background-color: #eef2ff;
-    -fx-text-fill: #3730a3;
-    -fx-padding: 2px 4px;
+/* Tabellen-Styling für wiederholende Elemente */
+.table-grid {
+    -fx-hgap: 1px;
+    -fx-vgap: 1px;
+    -fx-background-color: -fx-border-color-subtle;
+    -fx-border: 1px solid -fx-border-color-subtle;
     -fx-border-radius: -fx-border-radius;
     -fx-background-radius: -fx-border-radius;
-    -fx-alignment: center-left; /* KORREKTUR: Korrekter Wert */
+    -fx-padding: 1px; /* Wichtig, damit der äußere Rand sichtbar ist */
 }
 
-/* Box für einen Attributwert */
-.attribute-value-box {
-    -fx-background-color: #fefce8;
-    -fx-padding: 2px 4px;
-    -fx-background-radius: -fx-border-radius;
-    -fx-alignment: center-left; /* KORREKTUR: Korrekter Wert */
-}
-
-/* Box für ein komplexes Element, das erweitert/zugeklappt werden kann */
-.element-box {
-    -fx-background-color: #fff7ed;
-    -fx-padding: 2px 4px;
-    -fx-border-radius: -fx-border-radius;
-    -fx-background-radius: -fx-border-radius;
-    -fx-alignment: top-left; /* KORREKTUR: Korrekter Wert */
-}
-
-/* Style für das TextField bei der Bearbeitung eines Wertes (unverändert) */
-.simple-node-element .text-field {
-    -fx-border-radius: 2px;
-    -fx-background-color: #fee2e2;
-    -fx-border-color: #fca5a5;
-}
-
-/* Style für Tabellen-Header in der Gitteransicht. */
 .table-header {
-    -fx-background-color: -fx-background-color;
+    -fx-background-color: #f6f8fa; /* Etwas dunkler als der Zellhintergrund */
     -fx-font-weight: bold;
+    -fx-padding: 6px 8px;
     -fx-text-fill: -fx-text-color;
-    -fx-padding: 4px 8px;
-    -fx-border-color: -fx-border-color-subtle;
-    -fx-border-width: 0 0 2px 0;
+    -fx-alignment: center-left;
 }
 
-/* Basis-Stil für eine Zelle in der Tabellenansicht */
 .table-cell {
-    -fx-background-color: -fx-control-background;
-    -fx-border-color: -fx-border-color-subtle;
-    -fx-border-width: 0 1px 1px 0;
-    -fx-padding: 4px 8px;
+    -fx-background-color: -fx-control-inner-background; /* Weißer Hintergrund für Zellen */
+    -fx-padding: 6px 8px;
+    -fx-alignment: center-left;
 }
 
-/* Hover-Effekt für Tabellenzellen */
 .table-cell:hover {
-    -fx-background-color: #f0f2f5;
-}
-
-/* ... nach dem .table-cell:hover Block ... */
-
-/* Spezieller Stil für die Plus/Minus-Buttons im XML-Baum */
-.tree-toggle-button {
-    -fx-background-color: transparent; /* Macht den Button-Hintergrund unsichtbar */
-    -fx-padding: 0; /* Entfernt den Innenabstand um das Icon */
-    -fx-border-width: 0; /* Entfernt den Rand */
-}
-
-/* Fügt einen dezenten Hover-Effekt für besseres User-Feedback hinzu */
-.tree-toggle-button:hover {
-    -fx-background-color: #e9ecef;
-    -fx-background-radius: -fx-border-radius; /* Verwendet den globalen Radius für Konsistenz */
+    -fx-background-color: #f6f8fa;
 }
 
 /* XML Suche */
