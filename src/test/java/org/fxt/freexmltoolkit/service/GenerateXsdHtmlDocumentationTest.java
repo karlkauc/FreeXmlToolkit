@@ -199,4 +199,50 @@ public class GenerateXsdHtmlDocumentationTest {
 
         System.out.println("Node count: " + nodeList.getLength());
     }
+
+    @Test
+    void compareParallelVsSequentialPerformance() throws Exception {
+        logger.info("Starting performance comparison: Parallel vs. Sequential Documentation Generation");
+
+        // --- Configuration ---
+        final String xsdFile = XML_420_XSD; // A reasonably complex XSD for a good test
+        final File outputDirSequential = new File("../output/docs_sequential");
+        final File outputDirParallel = new File("../output/docs_parallel");
+
+        // --- 1. Sequential Execution ---
+        logger.info("--- Running Sequential Test ---");
+        XsdDocumentationService sequentialService = new XsdDocumentationService();
+        sequentialService.setXsdFilePath(xsdFile);
+        sequentialService.setParallelProcessing(false);
+        sequentialService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
+
+        long startTimeSequential = System.currentTimeMillis();
+        sequentialService.generateXsdDocumentation(outputDirSequential);
+        long endTimeSequential = System.currentTimeMillis();
+        long durationSequential = endTimeSequential - startTimeSequential;
+        logger.info("--- Sequential execution finished in: {} ms ---", durationSequential);
+
+        // --- 2. Parallel Execution ---
+        logger.info("--- Running Parallel Test ---");
+        XsdDocumentationService parallelService = new XsdDocumentationService();
+        parallelService.setXsdFilePath(xsdFile);
+        parallelService.setParallelProcessing(true);
+        parallelService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
+
+        long startTimeParallel = System.currentTimeMillis();
+        parallelService.generateXsdDocumentation(outputDirParallel);
+        long endTimeParallel = System.currentTimeMillis();
+        long durationParallel = endTimeParallel - startTimeParallel;
+        logger.info("--- Parallel execution finished in: {} ms ---", durationParallel);
+
+        // --- 3. Summary ---
+        logger.info("================== PERFORMANCE SUMMARY ==================");
+        logger.info("Sequential Time: {} ms", durationSequential);
+        logger.info("Parallel Time:   {} ms", durationParallel);
+        if (durationSequential > 0 && durationParallel > 0) {
+            double improvement = ((double) (durationSequential - durationParallel) / durationSequential) * 100;
+            logger.info("Performance Improvement with Parallel Processing: {}%", improvement);
+        }
+        logger.info("=======================================================");
+    }
 }
