@@ -48,6 +48,25 @@ public class XsdDocumentationImageService {
 
     private final static Logger logger = LogManager.getLogger(XsdDocumentationImageService.class);
 
+    // Ein ThreadLocal, das für jeden Thread eine wiederverwendbare Transformer-Instanz bereitstellt.
+    // Dies vermeidet den hohen Aufwand, bei jedem Aufruf von asString() eine neue Instanz zu erstellen.
+    private static final ThreadLocal<Transformer> transformerThreadLocal = ThreadLocal.withInitial(() -> {
+        try {
+            TransformerFactory factory = TransformerFactory.newInstance();
+            factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            Transformer trans = factory.newTransformer();
+            // Konfiguriere Eigenschaften, die für alle Transformationen gleich sind
+            trans.setOutputProperty(OutputKeys.INDENT, "yes");
+            trans.setOutputProperty(OutputKeys.VERSION, "1.0");
+            return trans;
+        } catch (TransformerConfigurationException e) {
+            logger.error("Fatal error during thread-local Transformer initialization", e);
+            // Dies ist ein schwerwiegender Konfigurationsfehler, der die Anwendung stoppen sollte.
+            throw new IllegalStateException("Failed to create thread-local Transformer", e);
+        }
+    });
+
+
     final int margin = 10;
     final int gapBetweenSides = 100;
 
@@ -649,31 +668,34 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Converts a DOM node to a string representation.
+     * Converts a DOM node to a string representation using a thread-safe, cached Transformer.
      *
      * @param node the DOM node
      * @return the string representation of the node
      */
     private static String asString(Node node) {
-        StringWriter writer = new StringWriter();
-        try {
-            TransformerFactory factory = TransformerFactory.newInstance();
-            factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        // try-with-resources stellt sicher, dass der Writer immer geschlossen wird.
+        try (StringWriter writer = new StringWriter()) {
+            // Hole die wiederverwendbare Transformer-Instanz für den aktuellen Thread.
+            Transformer trans = transformerThreadLocal.get();
 
-            Transformer trans = factory.newTransformer();
-            trans.setOutputProperty(OutputKeys.INDENT, "yes");
-            trans.setOutputProperty(OutputKeys.VERSION, "1.0");
-            if (!(node instanceof Document)) {
+            // Passe die eine dynamische Eigenschaft für diesen spezifischen Aufruf an.
+            // Dies ist entscheidend, da die Transformer-Instanz wiederverwendet wird.
+            if (node instanceof Document) {
+                trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            } else {
                 trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             }
+
             trans.transform(new DOMSource(node), new StreamResult(writer));
-        } catch (final TransformerConfigurationException ex) {
-            logger.error("Transformer configuration error during serialization", ex);
-            throw new IllegalStateException("Failed to configure XML Transformer", ex);
+            return writer.toString();
         } catch (final TransformerException ex) {
             logger.error("Failed to transform DOM node to string", ex);
             throw new IllegalArgumentException("Failed to transform node", ex);
+        } catch (final IOException ex) {
+            // StringWriter sollte keine IOException werfen, aber es ist gute Praxis, sie zu behandeln.
+            logger.error("IO error during node serialization", ex);
+            throw new UncheckedIOException(ex);
         }
-        return writer.toString();
     }
 }
