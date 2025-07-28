@@ -34,7 +34,6 @@ public class SimpleNodeElement extends VBox {
         this.getStyleClass().add("simple-node-element");
 
         if (node.hasChildNodes()) {
-            // Attribute werden jetzt direkt innerhalb der jeweiligen Node-Typen behandelt
             addChildNodes(node);
         }
     }
@@ -86,7 +85,7 @@ public class SimpleNodeElement extends VBox {
         nodeName.setTooltip(new Tooltip(subNode.getNodeName()));
         nodeValue.setTooltip(new Tooltip(firstItem.getNodeValue()));
 
-        nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, firstItem));
+        nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, subNode));
 
         GridPane gridPane = new GridPane();
         gridPane.getStyleClass().add("xml-tree-text");
@@ -210,41 +209,81 @@ public class SimpleNodeElement extends VBox {
         this.getChildren().addAll(headerBox, contentWrapper);
     }
 
+    // In der Klasse: SimpleNodeElement.java
+
     @NotNull
     private EventHandler<MouseEvent> editNodeValueHandler(Label nodeValueLabel, Node domNode) {
         return event -> {
             if (event.getClickCount() != 2) return; // Nur bei Doppelklick bearbeiten
 
-            try {
-                final String originalValue = nodeValueLabel.getText();
-                HBox parent = (HBox) nodeValueLabel.getParent();
-
-                TextField textField = new TextField(originalValue);
-                textField.setOnAction(e -> handleEditCommit(textField, nodeValueLabel, domNode, parent));
-                textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
-                    if (!newVal) { // Wenn der Fokus verloren geht
-                        handleEditCancel(textField, nodeValueLabel, originalValue, parent);
-                    }
-                });
-
-                parent.getChildren().setAll(textField);
-                textField.requestFocus();
-                textField.selectAll();
-
-            } catch (ClassCastException e) {
-                logger.error("Error while creating edit textfield for node value: {}", nodeValueLabel.getText(), e);
+            if (!(nodeValueLabel.getParent() instanceof Pane parent)) {
+                logger.warn("Cannot edit node value, label's parent is not a Pane.");
+                return;
             }
+
+            final String originalValue = nodeValueLabel.getText();
+            TextField textField = new TextField(originalValue);
+
+            // Ein Flag, um zu verfolgen, ob die Bearbeitung erfolgreich committet wurde.
+            // Wir verwenden ein Array, damit die Variable im Lambda-Ausdruck effektiv final ist.
+            final boolean[] committed = {false};
+
+            // 1. Die Commit-Aktion (ENTER) setzt die Flag auf true.
+            textField.setOnAction(e -> {
+                handleEditCommit(textField, nodeValueLabel, domNode, parent);
+                committed[0] = true;
+            });
+
+            // 2. Die Cancel-Aktion (Fokusverlust) wird NUR ausgeführt, wenn NICHT committet wurde.
+            textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                if (!newVal && !committed[0]) { // Prüfe den Flag!
+                    handleEditCancel(textField, nodeValueLabel, originalValue, parent);
+                }
+            });
+
+            parent.getChildren().setAll(textField);
+            textField.requestFocus();
+            textField.selectAll();
         };
     }
 
-    private void handleEditCommit(TextField textField, Label label, Node node, HBox parent) {
-        label.setText(textField.getText());
-        node.setNodeValue(textField.getText());
+    /**
+     * Übernimmt den neuen Wert aus dem Textfeld, aktualisiert das UI-Label und den zugrundeliegenden XML-DOM-Knoten.
+     *
+     * @param textField       Das Textfeld mit dem neuen Wert.
+     * @param label           Das UI-Label, das wieder angezeigt werden soll.
+     * @param domNodeToUpdate Der XML-Knoten (Text oder Attribut), dessen Wert aktualisiert wird.
+     * @param parent          Der UI-Container, in dem das Label/Textfeld liegt.
+     */
+    private void handleEditCommit(TextField textField, Label label, Node domNodeToUpdate, Pane parent) {
+        // 1. Neuen Wert aus dem Textfeld holen.
+        final String newValue = textField.getText() != null ? textField.getText() : "";
+
+        // 2. Den Text des UI-Labels aktualisieren.
+        label.setText(newValue);
+
+        // Protokolliere alte und neue Werte
+        String oldValue = domNodeToUpdate.getNodeType() == Node.ELEMENT_NODE
+                ? domNodeToUpdate.getTextContent()
+                : domNodeToUpdate.getNodeValue();
+        logger.info("Wertänderung - Alt: '{}', Neu: '{}'", oldValue, newValue);
+
+        // 3. Den Wert im XML-DOM aktualisieren.
+        if (domNodeToUpdate.getNodeType() == Node.ELEMENT_NODE) {
+            domNodeToUpdate.setTextContent(newValue);
+        } else {
+            domNodeToUpdate.setNodeValue(newValue);
+        }
+
+        // 4. Das Textfeld wieder durch das Label ersetzen.
         parent.getChildren().setAll(label);
-        this.xmlEditor.refreshTextView();
+
+        // 5. Die Textansicht des Editors aktualisieren.
+        // KORREKTUR: Ruft die neue Methode auf, die aus dem DOM liest, nicht aus der Datei.
+        this.xmlEditor.refreshTextViewFromDom();
     }
 
-    private void handleEditCancel(TextField textField, Label label, String originalValue, HBox parent) {
+    private void handleEditCancel(TextField textField, Label label, String originalValue, Pane parent) {
         label.setText(originalValue);
         parent.getChildren().setAll(label);
     }
@@ -308,20 +347,20 @@ public class SimpleNodeElement extends VBox {
 
     private void addTableCell(GridPane gridPane, Node oneNode, int row, Map<String, Integer> columns) {
         var nodeName = oneNode.getNodeName();
-        int colPos = columns.computeIfAbsent(nodeName, k -> columns.size());
 
-        // Header nur einmal hinzufügen
-        if (row == 1) {
-            var headerLabel = new Label(nodeName);
-            var headerPane = new StackPane(headerLabel);
-            headerPane.getStyleClass().add("table-header");
-            gridPane.add(headerPane, colPos, 0);
+        // Die Spaltenposition wird jetzt zuverlässig aus der vorab gefüllten Map geholt.
+        Integer colPos = columns.get(nodeName);
+        if (colPos == null) {
+            // Dies sollte mit der neuen createTable-Logik nicht passieren, ist aber eine gute Absicherung.
+            logger.warn("Column '{}' not found in pre-calculated header map. Skipping cell.", nodeName);
+            return;
         }
 
         StackPane cellPane;
         if (oneNode.getChildNodes().getLength() == 1 && oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
             var contentLabel = new Label(oneNode.getTextContent());
-            contentLabel.setOnMouseClicked(editNodeValueHandler(contentLabel, oneNode.getChildNodes().item(0)));
+            // Wir übergeben den ELEMENT-Knoten (oneNode), nicht mehr seinen Text-Kind-Knoten.
+            contentLabel.setOnMouseClicked(editNodeValueHandler(contentLabel, oneNode));
             cellPane = new StackPane(contentLabel);
         } else {
             // Verschachtelte komplexe Knoten in einer Tabelle

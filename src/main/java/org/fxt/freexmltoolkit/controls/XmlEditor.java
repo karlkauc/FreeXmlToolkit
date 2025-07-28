@@ -34,6 +34,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -67,6 +68,7 @@ public class XmlEditor extends Tab {
     File xmlFile;
 
     TransformerFactory transformerFactory = TransformerFactory.newInstance();
+    Transformer transformer;
     DocumentBuilder db;
     Document document;
     XmlService xmlService = new XmlServiceImpl();
@@ -115,8 +117,11 @@ public class XmlEditor extends Tab {
     private void init() {
         try {
             db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            transformer = transformerFactory.newTransformer();
         } catch (ParserConfigurationException e) {
             logger.warn("Error parsing XML file: {}", e.getMessage());
+        } catch (TransformerConfigurationException e) {
+            throw new RuntimeException(e);
         }
 
         TabPane tabPane = new TabPane();
@@ -395,6 +400,24 @@ public class XmlEditor extends Tab {
         }
     }
 
+    /**
+     * Aktualisiert die Textansicht, indem das aktuelle, im Speicher befindliche
+     * DOM-Dokument serialisiert wird. Dies wird verwendet, nachdem Änderungen
+     * in der grafischen Ansicht vorgenommen wurden.
+     */
+    public void refreshTextViewFromDom() {
+        if (document == null) {
+            logger.warn("Attempted to refresh text view from DOM, but document is null.");
+            return;
+        }
+        String xmlContent = getDocumentAsString();
+        if (xmlContent != null) {
+            // Der textProperty-Listener in XmlCodeEditor löst nur das Syntax-Highlighting aus,
+            // was hier korrekt und erwünscht ist.
+            codeArea.clear();
+            codeArea.replaceText(xmlContent);
+        }
+    }
 
     void refreshTextView() {
         if (xmlFile == null || !xmlFile.exists()) {
@@ -423,7 +446,7 @@ public class XmlEditor extends Tab {
             return null;
         }
         try {
-            Transformer transformer = transformerFactory.newTransformer();
+
             StringWriter stringWriter = new StringWriter();
             transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
             return stringWriter.toString();
