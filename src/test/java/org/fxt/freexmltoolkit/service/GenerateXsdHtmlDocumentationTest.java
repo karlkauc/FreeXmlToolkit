@@ -220,7 +220,7 @@ public class GenerateXsdHtmlDocumentationTest {
         sequentialService.generateXsdDocumentation(outputDirSequential);
         long endTimeSequential = System.currentTimeMillis();
         long durationSequential = endTimeSequential - startTimeSequential;
-        logger.info("--- Sequential execution finished in: {} ms ---", durationSequential);
+        logger.info("--- Sequential execution finished in: {} ---", formatDuration(durationSequential));
 
         // --- 2. Parallel Execution ---
         logger.info("--- Running Parallel Test ---");
@@ -233,16 +233,27 @@ public class GenerateXsdHtmlDocumentationTest {
         parallelService.generateXsdDocumentation(outputDirParallel);
         long endTimeParallel = System.currentTimeMillis();
         long durationParallel = endTimeParallel - startTimeParallel;
-        logger.info("--- Parallel execution finished in: {} ms ---", durationParallel);
+        logger.info("--- Parallel execution finished in: {} ---", formatDuration(durationParallel));
 
         // --- 3. Summary ---
         logger.info("================== PERFORMANCE SUMMARY ==================");
-        logger.info("Sequential Time: {} ms", durationSequential);
-        logger.info("Parallel Time:   {} ms", durationParallel);
+        logger.info("Sequential Time: {}", formatDuration(durationSequential));
+        logger.info("Parallel Time:   {}", formatDuration(durationParallel));
+
         if (durationSequential > 0 && durationParallel > 0) {
             double improvement = ((double) (durationSequential - durationParallel) / durationSequential) * 100;
-            logger.info("Performance Improvement with Parallel Processing: {}%", improvement);
+            logger.info("Performance Improvement with Parallel Processing: {}%", String.format("%.2f", improvement));
         }
         logger.info("=======================================================");
+    }
+
+    /**
+     * Formatiert eine Millisekunden-Dauer in einen lesbareren String, der auch Sekunden enthält.
+     *
+     * @param millis Die Dauer in Millisekunden.
+     * @return Ein formatierter String (z.B. "12345 ms (12.35 s)").
+     */
+    private String formatDuration(long millis) {
+        return String.format("%,d ms (%.2f s)", millis, millis / 1000.0);
     }
 }

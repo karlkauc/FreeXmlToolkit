@@ -91,16 +91,16 @@ public class XsdDocumentationImageService {
      * This version is more efficient and avoids serialization warnings by passing the
      * DOM document directly to the transcoder.
      *
-     * @param rootXpath the root XPath of the XSD element
-     * @param file      the file to save the generated image (should have a .png extension)
+     * @param rootElement
+     * @param file        the file to save the generated image (should have a .png extension)
      * @return the file path of the generated image, or null on failure
      */
-    public String generateImage(String rootXpath, File file) {
+    public String generateImage(ExtendedXsdElement rootElement, File file) {
         try {
             // 1. SVG-DOM-Dokument wie zuvor generieren
-            Document svgDocument = generateSvgDiagramms(rootXpath);
+            Document svgDocument = generateSvgDocument(rootElement);
             if (svgDocument.getDocumentElement() == null || !svgDocument.getDocumentElement().hasChildNodes()) {
-                logger.warn("Generated SVG for {} is empty, skipping image creation.", rootXpath);
+                logger.warn("Generated SVG for {} is empty, skipping image creation.", rootElement.getCurrentXpath());
                 return null;
             }
 
@@ -132,21 +132,15 @@ public class XsdDocumentationImageService {
     /**
      * Generates an SVG string representation of the XSD element.
      *
-     * @param rootXpath the root XPath of the XSD element
+     * @param rootElement
      * @return the SVG string representation
      */
-    public String generateSvgString(String rootXpath) {
-        var element = generateSvgDiagramms(rootXpath);
-        return asString(element.getDocumentElement());
+    public String generateSvgString(ExtendedXsdElement rootElement) {
+        Document svgDocument = generateSvgDocument(rootElement);
+        return asString(svgDocument.getDocumentElement());
     }
 
-    /**
-     * Generates an SVG diagram for the XSD element and its children.
-     *
-     * @param rootXpath the root XPath of the XSD element
-     * @return the SVG document
-     */
-    public Document generateSvgDiagramms(String rootXpath) {
+    private Document generateSvgDocument(ExtendedXsdElement rootElement) {
         final Document document = domImpl.createDocument(svgNS, "svg", null);
         var svgRoot = document.getDocumentElement();
 
@@ -220,9 +214,8 @@ public class XsdDocumentationImageService {
 
         svgRoot.appendChild(defs);
 
-        var rootElement = extendedXsdElements.get(rootXpath);
         if (rootElement == null) {
-            logger.warn("Could not find root element for XPath: {}. Cannot generate diagram.", rootXpath);
+            logger.warn("Root element is null. Cannot generate diagram.");
             return document;
         }
         List<ExtendedXsdElement> childElements = new ArrayList<>();

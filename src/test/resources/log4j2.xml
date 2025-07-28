@@ -32,22 +32,22 @@
             <AppenderRef ref="Console" level="DEBUG"/>
             <appender-ref ref="MyFile" level="DEBUG"/>
         </Root>
-        <Logger name="org.apache.poi" level="INFO">
+        <Logger name="org.apache.poi" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.thymeleaf" level="INFO">
+        <Logger name="org.thymeleaf" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.apache.hc.client5.http" level="ERROR">
+        <Logger name="org.apache.hc.client5.http" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.eclipse.lemminx" level="DEBUG">
+        <Logger name="org.eclipse.lemminx" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.fxt.freexmltoolkit.service.XsdDocumentationImageService" level="INFO">
+        <Logger name="org.fxt.freexmltoolkit.service.XsdDocumentationImageService" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.fxt.freexmltoolkit.service" level="DEBUG">
+        <Logger name="org.fxt.freexmltoolkit.service" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>

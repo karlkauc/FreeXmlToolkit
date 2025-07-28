@@ -232,14 +232,14 @@ public class XsdDocumentationHtmlService {
 
     public void generateDetailPages() {
         logger.debug("Generating detail pages for all elements...");
-        xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
+        // xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
         xsdDocumentationData.getExtendedXsdElementMap().values().forEach(this::generateDetailPage);
         logger.debug("Finished generating detail pages.");
     }
 
     public void generateDetailsPagesInParallel() {
         logger.debug("Generating detail pages for all elements (in parallel)...");
-        xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
+        // xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
         xsdDocumentationData.getExtendedXsdElementMap().values().parallelStream().forEach(this::generateDetailPage);
         logger.debug("Finished generating detail pages (in parallel).");
     }
@@ -288,12 +288,12 @@ public class XsdDocumentationHtmlService {
         try {
             if (xsdDocService.imageOutputMethod == XsdDocumentationService.ImageOutputMethod.SVG) {
                 // Gibt den rohen SVG-String direkt zurück
-                return xsdDocumentationImageService.generateSvgString(element.getCurrentXpath());
+                return xsdDocumentationImageService.generateSvgString(element);
             } else {
                 // Generiert eine PNG-Datei und gibt den relativen Pfad zurück
                 String relativePath = ASSETS_PATH + "/" + element.getPageName().replace(".html", ".png");
                 File outputFile = new File(outputDirectory, relativePath);
-                xsdDocumentationImageService.generateImage(element.getCurrentXpath(), outputFile);
+                xsdDocumentationImageService.generateImage(element, outputFile);
                 return relativePath; // z.B. "assets/MyElement_hash.png"
             }
         } catch (Exception e) {

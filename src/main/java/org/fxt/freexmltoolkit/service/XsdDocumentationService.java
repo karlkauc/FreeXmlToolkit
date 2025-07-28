@@ -83,6 +83,25 @@ public class XsdDocumentationService {
     private Map<String, Node> groupMap = new HashMap<>();
     private Map<String, Node> attributeGroupMap = new HashMap<>();
 
+    // Stellt für jeden Thread eine eigene, threadsichere Transformer-Instanz bereit.
+    // Dies vermeidet die Kosten der ständigen Neuerstellung in einer parallelen Umgebung.
+    private static final ThreadLocal<Transformer> transformerThreadLocal = ThreadLocal.withInitial(() -> {
+        try {
+            TransformerFactory factory = TransformerFactory.newInstance();
+            // Sicherheitsmerkmal, um externe DTDs und Entitäten zu blockieren
+            factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            Transformer transformer = factory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            return transformer;
+        } catch (Exception e) {
+            // Wenn die Initialisierung fehlschlägt, wird eine RuntimeException ausgelöst.
+            // Dies ist in einem ThreadLocal-Initialisierer angemessen.
+            throw new RuntimeException("Failed to initialize thread-local Transformer", e);
+        }
+    });
+
     public void setProgressListener(TaskProgressListener progressListener) {
         this.progressListener = progressListener;
     }
@@ -111,6 +130,9 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.setOutputDirectory(outputDirectory);
         xsdDocumentationHtmlService.setDocumentationData(xsdDocumentationData);
         xsdDocumentationHtmlService.setXsdDocumentationService(this);
+
+        // Der ImageService wird jetzt hier zentral initialisiert, damit er für die Vorerstellung bereit ist.
+        xsdDocumentationHtmlService.xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
 
         executeAndTrack("Copying resources", xsdDocumentationHtmlService::copyResources);
         executeAndTrack("Generating root page", xsdDocumentationHtmlService::generateRootPage);
@@ -724,9 +746,8 @@ public class XsdDocumentationService {
     private String nodeToString(Node node) {
         try {
             StringWriter writer = new StringWriter();
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            // Holt die Transformer-Instanz, die für den aktuellen Thread spezifisch ist.
+            Transformer transformer = transformerThreadLocal.get();
             transformer.transform(new DOMSource(node), new StreamResult(writer));
             return writer.toString();
         } catch (Exception e) {
