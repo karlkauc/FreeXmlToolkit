@@ -20,11 +20,11 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
-import org.fxt.freexmltoolkit.domain.ExtendedXsdElement.DocumentationInfo;
-import org.fxt.freexmltoolkit.domain.ExtendedXsdElement.RestrictionInfo;
-import org.fxt.freexmltoolkit.domain.JavadocInfo;
+import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
 import org.w3c.dom.Document;
@@ -217,7 +217,7 @@ public class XsdDocumentationService {
     }
 
     private void processElementOrAttribute(Node node, String currentXPath, String parentXPath, int level, Set<Node> visitedOnPath) {
-        ExtendedXsdElement extendedElem = new ExtendedXsdElement();
+        XsdExtendedElement extendedElem = new XsdExtendedElement();
         extendedElem.setUseMarkdownRenderer(this.useMarkdownRenderer);
         extendedElem.setCurrentNode(node);
         extendedElem.setCounter(counter++);
@@ -316,9 +316,9 @@ public class XsdDocumentationService {
             }
         }
 
-        List<ExtendedXsdElement> rootElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+        List<XsdExtendedElement> rootElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                 .filter(e -> e.getParentXpath() == null || e.getParentXpath().equals("/"))
-                .sorted(Comparator.comparing(ExtendedXsdElement::getCounter))
+                .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
                 .toList();
 
         if (rootElements.isEmpty()) {
@@ -326,12 +326,12 @@ public class XsdDocumentationService {
         }
 
         StringBuilder xmlBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        ExtendedXsdElement root = rootElements.getFirst();
+        XsdExtendedElement root = rootElements.getFirst();
         buildXmlElement(xmlBuilder, root, mandatoryOnly, maxOccurrences, 0);
         return xmlBuilder.toString();
     }
 
-    private void buildXmlElement(StringBuilder sb, ExtendedXsdElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
+    private void buildXmlElement(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
         if (element == null || (mandatoryOnly && !element.isMandatory())) {
             return;
         }
@@ -358,20 +358,20 @@ public class XsdDocumentationService {
             sb.append(indent).append("<").append(element.getElementName());
 
             // Separate children into attributes and elements
-            List<ExtendedXsdElement> attributes = element.getChildren().stream()
+            List<XsdExtendedElement> attributes = element.getChildren().stream()
                     .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
                     .filter(Objects::nonNull)
                     .filter(e -> e.getElementName().startsWith("@"))
                     .toList();
 
-            List<ExtendedXsdElement> childElements = element.getChildren().stream()
+            List<XsdExtendedElement> childElements = element.getChildren().stream()
                     .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
                     .filter(Objects::nonNull)
                     .filter(e -> !e.getElementName().startsWith("@"))
                     .toList();
 
             // Render attributes
-            for (ExtendedXsdElement attr : attributes) {
+            for (XsdExtendedElement attr : attributes) {
                 if (mandatoryOnly && !attr.isMandatory()) continue;
                 String attrName = attr.getElementName().substring(1);
                 String attrValue = attr.getSampleData() != null ? attr.getSampleData() : "";
@@ -387,7 +387,7 @@ public class XsdDocumentationService {
 
                 if (!childElements.isEmpty()) {
                     sb.append("\n");
-                    for (ExtendedXsdElement childElement : childElements) {
+                    for (XsdExtendedElement childElement : childElements) {
                         buildXmlElement(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel + 1);
                     }
                     sb.append(indent);
@@ -466,18 +466,18 @@ public class XsdDocumentationService {
 
     private void buildTypeUsageMap() {
         logger.debug("Building type usage index for faster lookups...");
-        Map<String, List<ExtendedXsdElement>> typeUsageMap = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+        Map<String, List<XsdExtendedElement>> typeUsageMap = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                 .filter(element -> element.getElementType() != null && !element.getElementType().isEmpty())
-                .collect(Collectors.groupingBy(ExtendedXsdElement::getElementType));
+                .collect(Collectors.groupingBy(XsdExtendedElement::getElementType));
 
         typeUsageMap.values().parallelStream()
-                .forEach(list -> list.sort(Comparator.comparing(ExtendedXsdElement::getCurrentXpath)));
+                .forEach(list -> list.sort(Comparator.comparing(XsdExtendedElement::getCurrentXpath)));
 
         xsdDocumentationData.setTypeUsageMap(typeUsageMap);
         logger.debug("Type usage index built with {} types.", typeUsageMap.size());
     }
 
-    private void processAnnotations(Node annotationNode, ExtendedXsdElement extendedElem) {
+    private void processAnnotations(Node annotationNode, XsdExtendedElement extendedElem) {
         if (annotationNode == null) {
             return;
         }
@@ -489,7 +489,7 @@ public class XsdDocumentationService {
         }
 
         // 2. AppInfo-Tags verarbeiten (für Javadoc und Altova-Beispiele)
-        JavadocInfo javadocInfo = extendedElem.getJavadocInfo() != null ? extendedElem.getJavadocInfo() : new JavadocInfo();
+        XsdDocInfo xsdDocInfo = extendedElem.getJavadocInfo() != null ? extendedElem.getJavadocInfo() : new XsdDocInfo();
         List<String> genericAppInfos = extendedElem.getGenericAppInfos() != null ? extendedElem.getGenericAppInfos() : new ArrayList<>();
         List<String> exampleValues = extendedElem.getExampleValues(); // Liste für Beispielwerte holen
 
@@ -497,10 +497,10 @@ public class XsdDocumentationService {
             // Javadoc-Style-Tags verarbeiten
             String source = getAttributeValue(appInfoNode, "source");
             if (source != null && !source.isBlank()) {
-                if (source.startsWith("@since")) javadocInfo.setSince(source.substring("@since".length()).trim());
-                else if (source.startsWith("@see")) javadocInfo.getSee().add(source.substring("@see".length()).trim());
+                if (source.startsWith("@since")) xsdDocInfo.setSince(source.substring("@since".length()).trim());
+                else if (source.startsWith("@see")) xsdDocInfo.getSee().add(source.substring("@see".length()).trim());
                 else if (source.startsWith("@deprecated"))
-                    javadocInfo.setDeprecated(source.substring("@deprecated".length()).trim());
+                    xsdDocInfo.setDeprecated(source.substring("@deprecated".length()).trim());
                 else genericAppInfos.add(source);
             } else {
                 // Altova-Beispielwerte extrahieren
@@ -528,8 +528,8 @@ public class XsdDocumentationService {
         }
 
         // 3. Gesammelte Informationen im Element speichern
-        if (javadocInfo.hasData()) {
-            extendedElem.setJavadocInfo(javadocInfo);
+        if (xsdDocInfo.hasData()) {
+            extendedElem.setJavadocInfo(xsdDocInfo);
         }
         if (!genericAppInfos.isEmpty()) {
             extendedElem.setGenericAppInfos(genericAppInfos);

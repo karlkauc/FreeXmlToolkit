@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Holds structured Javadoc-style information extracted from XSD appinfo tags.
  */
-public class JavadocInfo implements Serializable {
+public class XsdDocInfo implements Serializable {
 
     private String since;
     private final List<String> see = new ArrayList<>();

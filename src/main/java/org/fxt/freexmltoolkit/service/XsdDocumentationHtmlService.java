@@ -20,8 +20,8 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
@@ -90,14 +90,14 @@ public class XsdDocumentationHtmlService {
 
         Node rootElementNode = xsdDocumentationData.getGlobalElements().getFirst();
         final String rootElementName = getAttributeValue(rootElementNode, "name");
-        final ExtendedXsdElement rootExtendedElement = xsdDocumentationData.getExtendedXsdElementMap().get("/" + rootElementName);
+        final XsdExtendedElement rootExtendedElement = xsdDocumentationData.getExtendedXsdElementMap().get("/" + rootElementName);
 
         var context = new Context();
         context.setVariable("date", LocalDate.now());
         context.setVariable("filename", Paths.get(xsdDocumentationData.getXsdFilePath()).getFileName().toString());
         context.setVariable("rootElementName", rootElementName);
         context.setVariable("version", xsdDocumentationData.getVersion());
-        context.setVariable("rootElement", rootExtendedElement); // Pass the ExtendedXsdElement
+        context.setVariable("rootElement", rootExtendedElement); // Pass the XsdExtendedElement
         context.setVariable("xsdComplexTypes", xsdDocumentationData.getGlobalComplexTypes());
         context.setVariable("xsdSimpleTypes", xsdDocumentationData.getGlobalSimpleTypes());
         context.setVariable("namespace", xsdDocumentationData.getNameSpacesAsString());
@@ -107,9 +107,9 @@ public class XsdDocumentationHtmlService {
 
         // NEU: Die Liste der globalen Elemente aus der Map aller Elemente filtern.
         // Globale Elemente sind solche auf Level 0.
-        List<ExtendedXsdElement> globalElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+        List<XsdExtendedElement> globalElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                 .filter(e -> e.getLevel() == 0)
-                .sorted(Comparator.comparing(ExtendedXsdElement::getCounter))
+                .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
                 .collect(Collectors.toList());
 
         // NEU: Die Variablen für das Template setzen.
@@ -164,9 +164,9 @@ public class XsdDocumentationHtmlService {
             context.setVariable("usedInElements", usedInElements);
 
             // Find child elements from a representative element
-            List<ExtendedXsdElement> childElements = new ArrayList<>();
+            List<XsdExtendedElement> childElements = new ArrayList<>();
             if (!usedInElements.isEmpty()) {
-                ExtendedXsdElement representativeElement = usedInElements.getFirst();
+                XsdExtendedElement representativeElement = usedInElements.getFirst();
                 if (representativeElement != null && representativeElement.hasChildren()) {
                     representativeElement.getChildren().stream()
                             .map(xpath -> xsdDocumentationData.getExtendedXsdElementMap().get(xpath))
@@ -215,7 +215,7 @@ public class XsdDocumentationHtmlService {
             context.setVariable("simpleTypeNode", simpleTypeNode);
             context.setVariable("this", this);
 
-            List<ExtendedXsdElement> usedInElements = xsdDocumentationData.getTypeUsageMap()
+            List<XsdExtendedElement> usedInElements = xsdDocumentationData.getTypeUsageMap()
                     .getOrDefault(typeName, Collections.emptyList());
             context.setVariable("usedInElements", usedInElements);
 
@@ -244,7 +244,7 @@ public class XsdDocumentationHtmlService {
         logger.debug("Finished generating detail pages (in parallel).");
     }
 
-    private void generateDetailPage(ExtendedXsdElement element) {
+    private void generateDetailPage(XsdExtendedElement element) {
         try {
             final Context context = new Context();
             context.setVariable("this", this); // Wichtig, damit this.* im Template funktioniert
@@ -280,7 +280,7 @@ public class XsdDocumentationHtmlService {
      * @param element Das Element, für das das Diagramm erstellt werden soll.
      * @return Der SVG-Inhalt oder der relative Pfad zur PNG-Datei.
      */
-    private String generateDiagram(ExtendedXsdElement element) {
+    private String generateDiagram(XsdExtendedElement element) {
         if (xsdDocumentationImageService == null) {
             logger.warn("XsdDocumentationImageService is not initialized. Cannot generate diagram.");
             return "<!-- Image service not available -->";
@@ -309,12 +309,12 @@ public class XsdDocumentationHtmlService {
      * @param element Das aktuelle Element.
      * @return Ein HTML-String, der die Breadcrumb-Navigation darstellt.
      */
-    private String generateBreadcrumbs(ExtendedXsdElement element) {
+    private String generateBreadcrumbs(XsdExtendedElement element) {
         if (element == null) {
             return "";
         }
         LinkedList<String> crumbs = new LinkedList<>();
-        ExtendedXsdElement current = element;
+        XsdExtendedElement current = element;
 
         // Traverse up the hierarchy from the current element to the root
         while (current != null) {
@@ -380,8 +380,8 @@ public class XsdDocumentationHtmlService {
 
     void generateDataDictionaryPage() {
         final var context = new Context();
-        List<ExtendedXsdElement> allElements = new ArrayList<>(xsdDocumentationData.getExtendedXsdElementMap().values());
-        allElements.sort(Comparator.comparing(ExtendedXsdElement::getCounter));
+        List<XsdExtendedElement> allElements = new ArrayList<>(xsdDocumentationData.getExtendedXsdElementMap().values());
+        allElements.sort(Comparator.comparing(XsdExtendedElement::getCounter));
         context.setVariable("allElements", allElements);
         context.setVariable("this", this);
         final var result = templateEngine.process("dataDictionary", context);
@@ -395,13 +395,13 @@ public class XsdDocumentationHtmlService {
 
     void generateSearchIndex() {
         List<Map<String, String>> searchData = new ArrayList<>();
-        for (ExtendedXsdElement element : xsdDocumentationData.getExtendedXsdElementMap().values()) {
+        for (XsdExtendedElement element : xsdDocumentationData.getExtendedXsdElementMap().values()) {
             Map<String, String> item = new LinkedHashMap<>();
             item.put("name", element.getElementName());
             item.put("url", "details/" + element.getPageName());
             item.put("xpath", element.getCurrentXpath());
             String docText = element.getDocumentations().stream()
-                    .map(ExtendedXsdElement.DocumentationInfo::content)
+                    .map(XsdExtendedElement.DocumentationInfo::content)
                     .collect(Collectors.joining(" "));
             item.put("doc", docText);
             searchData.add(item);
@@ -617,10 +617,10 @@ public class XsdDocumentationHtmlService {
     /**
      * Ermittelt die Kardinalität eines Elements (z.B. "0..1", "1..*", "1").
      *
-     * @param element Das ExtendedXsdElement.
+     * @param element Das XsdExtendedElement.
      * @return Ein String, der die Kardinalität repräsentiert.
      */
-    public String getCardinality(ExtendedXsdElement element) {
+    public String getCardinality(XsdExtendedElement element) {
         if (element == null || element.getCurrentNode() == null) {
             return "1"; // Default
         }
@@ -652,7 +652,7 @@ public class XsdDocumentationHtmlService {
      * @return Der Typname oder ein leerer String.
      */
     public String getChildType(String childXpath) {
-        ExtendedXsdElement child = xsdDocService.xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
+        XsdExtendedElement child = xsdDocService.xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
         return (child != null) ? child.getElementType() : "";
     }
 
@@ -663,7 +663,7 @@ public class XsdDocumentationHtmlService {
      * @return Die Beispieldaten oder ein leerer String.
      */
     public String getChildSampleData(String childXpath) {
-        ExtendedXsdElement child = xsdDocService.xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
+        XsdExtendedElement child = xsdDocService.xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
         return (child != null) ? child.getSampleData() : "";
     }
 
@@ -716,18 +716,18 @@ public class XsdDocumentationHtmlService {
     // =================================================================================
 
     public String getPageName(String xpath) {
-        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
         return (element != null) ? element.getPageName() : "#";
     }
 
 
     public String getChildDocumentation(String xpath) {
-        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
         return (element != null) ? element.getDocumentationAsHtml() : "";
     }
 
     public boolean isChildTypeLinkable(String childXPath) {
-        ExtendedXsdElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+        XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
         if (childElement != null && childElement.getElementType() != null) {
             return !childElement.getElementType().startsWith("xs:");
         }
@@ -735,7 +735,7 @@ public class XsdDocumentationHtmlService {
     }
 
     public String getChildTypePageName(String childXPath) {
-        ExtendedXsdElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+        XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
         if (childElement == null || childElement.getElementType() == null) {
             return "#";
         }
@@ -769,7 +769,7 @@ public class XsdDocumentationHtmlService {
 
             // Find the element by its name. This is a simple lookup.
             // For schemas with duplicate names, this might link to the first one found.
-            Optional<ExtendedXsdElement> targetElement = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+            Optional<XsdExtendedElement> targetElement = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
                     .filter(e -> targetName.equals(e.getElementName()))
                     .findFirst();
 
@@ -784,12 +784,12 @@ public class XsdDocumentationHtmlService {
         });
     }
 
-    public String getBreadCrumbs(ExtendedXsdElement element) {
+    public String getBreadCrumbs(XsdExtendedElement element) {
         if (element == null) {
             return "";
         }
         LinkedList<String> crumbs = new LinkedList<>();
-        ExtendedXsdElement current = element;
+        XsdExtendedElement current = element;
 
         // Traverse up the hierarchy from the current element to the root
         while (current != null) {
@@ -825,7 +825,7 @@ public class XsdDocumentationHtmlService {
         }
 
         // 1. Das Element anhand seines XPath finden.
-        ExtendedXsdElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+        XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
         if (element == null) {
             return ""; // Element nicht im Service gefunden.
         }

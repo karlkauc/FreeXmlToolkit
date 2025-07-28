@@ -4,8 +4,8 @@ import com.mifmif.common.regex.Generex;
 import jakarta.xml.bind.DatatypeConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
-import org.fxt.freexmltoolkit.domain.ExtendedXsdElement.RestrictionInfo;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,7 +31,7 @@ public class XsdSampleDataGenerator {
      * @param element Das Element, für das Daten generiert werden sollen.
      * @return Ein String mit den passenden Beispieldaten.
      */
-    public String generate(ExtendedXsdElement element) {
+    public String generate(XsdExtendedElement element) {
         return generateRecursive(element, 0);
     }
 
@@ -39,7 +39,7 @@ public class XsdSampleDataGenerator {
      * Generiert Beispieldaten für ein gegebenes XSD-Element unter Berücksichtigung
      * von Datentypen und Einschränkungen.
      */
-    private String generateRecursive(ExtendedXsdElement element, int recursionDepth) {
+    private String generateRecursive(XsdExtendedElement element, int recursionDepth) {
         if (element == null || recursionDepth > MAX_RECURSION_DEPTH) {
             return "";
         }
@@ -146,7 +146,7 @@ public class XsdSampleDataGenerator {
             default -> {
                 // Rekursiver Versuch für abgeleitete Typen
                 if (restriction != null && restriction.base() != null) {
-                    ExtendedXsdElement tempElement = new ExtendedXsdElement();
+                    XsdExtendedElement tempElement = new XsdExtendedElement();
                     tempElement.setElementType(restriction.base());
                     tempElement.setRestrictionInfo(restriction);
                     yield generateRecursive(tempElement, recursionDepth + 1);

@@ -25,7 +25,7 @@ import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -88,14 +88,14 @@ public class XsdDocumentationImageService {
     DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
     final static String svgNS = "http://www.w3.org/2000/svg";
 
-    Map<String, ExtendedXsdElement> extendedXsdElements;
+    Map<String, XsdExtendedElement> extendedXsdElements;
 
     /**
      * Constructs a new XsdDocumentationImageService with the given extended XSD elements.
      *
      * @param extendedXsdElements the extended XSD elements
      */
-    public XsdDocumentationImageService(Map<String, ExtendedXsdElement> extendedXsdElements) {
+    public XsdDocumentationImageService(Map<String, XsdExtendedElement> extendedXsdElements) {
         this.extendedXsdElements = extendedXsdElements;
 
         font = new Font("Arial", Font.PLAIN, 16);
@@ -114,7 +114,7 @@ public class XsdDocumentationImageService {
      * @param file        the file to save the generated image (should have a .png extension)
      * @return the file path of the generated image, or null on failure
      */
-    public String generateImage(ExtendedXsdElement rootElement, File file) {
+    public String generateImage(XsdExtendedElement rootElement, File file) {
         try {
             // 1. SVG-DOM-Dokument wie zuvor generieren
             Document svgDocument = generateSvgDocument(rootElement);
@@ -154,12 +154,12 @@ public class XsdDocumentationImageService {
      * @param rootElement
      * @return the SVG string representation
      */
-    public String generateSvgString(ExtendedXsdElement rootElement) {
+    public String generateSvgString(XsdExtendedElement rootElement) {
         Document svgDocument = generateSvgDocument(rootElement);
         return asString(svgDocument.getDocumentElement());
     }
 
-    private Document generateSvgDocument(ExtendedXsdElement rootElement) {
+    private Document generateSvgDocument(XsdExtendedElement rootElement) {
         final Document document = domImpl.createDocument(svgNS, "svg", null);
         var svgRoot = document.getDocumentElement();
 
@@ -237,7 +237,7 @@ public class XsdDocumentationImageService {
             logger.warn("Root element is null. Cannot generate diagram.");
             return document;
         }
-        List<ExtendedXsdElement> childElements = new ArrayList<>();
+        List<XsdExtendedElement> childElements = new ArrayList<>();
         if (rootElement.getChildren() != null) {
             for (String temp : rootElement.getChildren()) {
                 if (extendedXsdElements.get(temp) != null) {
@@ -249,7 +249,7 @@ public class XsdDocumentationImageService {
         // Berechnungen für die Größe (unverändert)
         double rightBoxHeight = 20;
         double rightBoxWidth = 0;
-        for (ExtendedXsdElement childElement : childElements) {
+        for (XsdExtendedElement childElement : childElements) {
             String elementName = childElement.getElementName() != null ? childElement.getElementName() : "";
             String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
             var nameBounds = font.getStringBounds(elementName, frc);
@@ -288,7 +288,7 @@ public class XsdDocumentationImageService {
         boolean isSequence = false;
         boolean isChoice = false;
         if (!childElements.isEmpty()) {
-            ExtendedXsdElement firstChild = childElements.getFirst();
+            XsdExtendedElement firstChild = childElements.getFirst();
 
             if (firstChild.getCurrentNode() != null && firstChild.getCurrentNode().getParentNode() != null) {
                 // KORREKTUR: Wir prüfen jetzt den lokalen Namen des DOM-Knotens.
@@ -417,7 +417,7 @@ public class XsdDocumentationImageService {
         double actualHeight = 20;
         final double finalRightStartX = rightStartX + (isSequence || isChoice ? 20.0 : 0.0);
 
-        for (ExtendedXsdElement childElement : childElements) {
+        for (XsdExtendedElement childElement : childElements) {
             String elementName = childElement.getElementName();
             String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
             var nameBounds = font.getStringBounds(elementName, frc);
@@ -494,7 +494,7 @@ public class XsdDocumentationImageService {
 
             // Kardinalität auf der Linie
             // Die Kardinalität wird direkt von den Attributen des DOM-Knotens gelesen,
-            // der im ExtendedXsdElement gespeichert ist.
+            // der im XsdExtendedElement gespeichert ist.
             Node childNode = childElement.getCurrentNode();
             String cardinality = formatCardinality(
                     getAttributeValue(childNode, "minOccurs", "1"),
@@ -612,7 +612,7 @@ public class XsdDocumentationImageService {
     /**
      * Generates and appends the documentation block to the SVG.
      */
-    private double generateDocumentationElement(Document document, List<ExtendedXsdElement.DocumentationInfo> xsdDocumentation, double rootElementWidth, double rootElementHeight, int startX, int startY) {
+    private double generateDocumentationElement(Document document, List<XsdExtendedElement.DocumentationInfo> xsdDocumentation, double rootElementWidth, double rootElementHeight, int startX, int startY) {
         // Eine kleinere Schriftart speziell für die Dokumentation erstellen.
         final Font docFont = font.deriveFont((float) font.getSize() - 2);
 

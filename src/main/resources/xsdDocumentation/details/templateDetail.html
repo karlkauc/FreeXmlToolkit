@@ -159,9 +159,9 @@
             </section>
 
             <!-- Section for Javadoc-style annotations -->
-            <section th:if="${element.javadocInfo != null and element.javadocInfo.hasData()}" class="space-y-6">
+            <section th:if="${element.xsdDocInfo != null and element.xsdDocInfo.hasData()}" class="space-y-6">
                 <!-- Deprecated Warning Box -->
-                <div th:if="${element.javadocInfo.deprecated != null}"
+                <div th:if="${element.xsdDocInfo.deprecated != null}"
                      class="p-4 border-l-4 border-red-500 bg-red-50 rounded-r-lg">
                     <div class="flex items-start">
                         <div class="flex-shrink-0">
@@ -175,7 +175,7 @@
                         <div class="ml-3">
                             <h3 class="text-sm font-bold text-red-800">Deprecated</h3>
                             <div class="mt-1 text-sm text-red-700 prose prose-sm max-w-none"
-                                 th:utext="${this.parseJavadocLinks(element.javadocInfo.deprecated)}">
+                                 th:utext="${this.parseJavadocLinks(element.xsdDocInfo.deprecated)}">
                             </div>
                         </div>
                     </div>
@@ -184,17 +184,17 @@
                 <!-- Grid for other Javadoc info like @since and @see -->
                 <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
                     <!-- Since -->
-                    <div th:if="${element.javadocInfo.since != null}" class="flex flex-col">
+                    <div th:if="${element.xsdDocInfo.since != null}" class="flex flex-col">
                         <dt class="text-sm font-medium text-slate-500">Since</dt>
-                        <dd class="mt-1 text-slate-900 font-mono" th:text="${element.javadocInfo.since}">1.0.0</dd>
+                        <dd class="mt-1 text-slate-900 font-mono" th:text="${element.xsdDocInfo.since}">1.0.0</dd>
                     </div>
 
                     <!-- See Also -->
-                    <div th:if="${!#lists.isEmpty(element.javadocInfo.see)}" class="flex flex-col md:col-span-full">
+                    <div th:if="${!#lists.isEmpty(element.xsdDocInfo.see)}" class="flex flex-col md:col-span-full">
                         <dt class="text-sm font-medium text-slate-500">See Also</dt>
                         <dd class="mt-1 text-slate-900">
                             <ul class="list-disc list-inside space-y-1">
-                                <li th:each="seeItem : ${element.javadocInfo.see}"
+                                <li th:each="seeItem : ${element.xsdDocInfo.see}"
                                     th:utext="${this.parseJavadocLinks(seeItem)}">
                                 </li>
                             </ul>

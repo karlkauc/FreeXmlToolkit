@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * Represents an extended XSD element with additional properties and methods,
  * now based on a native DOM Node.
  */
-public class ExtendedXsdElement implements Serializable {
+public class XsdExtendedElement implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 2L;
@@ -54,7 +54,7 @@ public class ExtendedXsdElement implements Serializable {
     // Parsed and structured data from the currentNode
     private List<DocumentationInfo> documentations = new ArrayList<>();
     private RestrictionInfo restrictionInfo;
-    private JavadocInfo javadocInfo;
+    private XsdDocInfo xsdDocInfo;
     private List<String> genericAppInfos;
     private List<String> exampleValues = new ArrayList<>();
 
@@ -78,9 +78,9 @@ public class ExtendedXsdElement implements Serializable {
     }
 
     /**
-     * Constructs an ExtendedXsdElement with default settings for Markdown.
+     * Constructs an XsdExtendedElement with default settings for Markdown.
      */
-    public ExtendedXsdElement() {
+    public XsdExtendedElement() {
         MutableDataSet options = new MutableDataSet();
         options.set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create(), StrikethroughExtension.create()));
         options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
@@ -339,12 +339,12 @@ public class ExtendedXsdElement implements Serializable {
         this.restrictionInfo = restrictionInfo;
     }
 
-    public JavadocInfo getJavadocInfo() {
-        return javadocInfo;
+    public XsdDocInfo getJavadocInfo() {
+        return xsdDocInfo;
     }
 
-    public void setJavadocInfo(JavadocInfo javadocInfo) {
-        this.javadocInfo = javadocInfo;
+    public void setJavadocInfo(XsdDocInfo xsdDocInfo) {
+        this.xsdDocInfo = xsdDocInfo;
     }
 
     public List<String> getGenericAppInfos() {

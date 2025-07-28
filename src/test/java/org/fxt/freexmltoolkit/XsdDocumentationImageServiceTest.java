@@ -1,6 +1,6 @@
 package org.fxt.freexmltoolkit;
 
-import org.fxt.freexmltoolkit.domain.ExtendedXsdElement;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.service.XsdDocumentationImageService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +16,7 @@ import java.util.Map;
 class XsdDocumentationImageServiceTest {
 
     private XsdDocumentationImageService service;
-    private Map<String, ExtendedXsdElement> extendedXsdElements;
+    private Map<String, XsdExtendedElement> extendedXsdElements;
 
     @BeforeEach
     void setUp() {
@@ -26,7 +26,7 @@ class XsdDocumentationImageServiceTest {
 
     @Test
     void generateImageWithValidInput() {
-        ExtendedXsdElement element = Mockito.mock(ExtendedXsdElement.class);
+        XsdExtendedElement element = Mockito.mock(XsdExtendedElement.class);
         Mockito.when(element.getElementName()).thenReturn("TestElement");
         extendedXsdElements.put("/root", element);
 
@@ -49,7 +49,7 @@ class XsdDocumentationImageServiceTest {
 
     @Test
     void generateSvgStringWithValidInput() {
-        ExtendedXsdElement element = Mockito.mock(ExtendedXsdElement.class);
+        XsdExtendedElement element = Mockito.mock(XsdExtendedElement.class);
         Mockito.when(element.getElementName()).thenReturn("TestElement");
         extendedXsdElements.put("/root", element);
 

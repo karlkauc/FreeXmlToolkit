@@ -33,10 +33,10 @@ import java.util.stream.Collectors;
 public class XsdDocumentationData {
 
     // Maps an XPath to its corresponding detailed element information.
-    private Map<String, ExtendedXsdElement> extendedXsdElementMap = new HashMap<>();
+    private Map<String, XsdExtendedElement> extendedXsdElementMap = new HashMap<>();
 
     // Caches which elements use a specific type for faster lookups.
-    private Map<String, List<ExtendedXsdElement>> typeUsageMap = new HashMap<>();
+    private Map<String, List<XsdExtendedElement>> typeUsageMap = new HashMap<>();
 
     // Holds all global <xs:element> nodes.
     private List<Node> globalElements = new ArrayList<>();
@@ -76,11 +76,11 @@ public class XsdDocumentationData {
 
     // --- Getters and Setters ---
 
-    public Map<String, List<ExtendedXsdElement>> getTypeUsageMap() {
+    public Map<String, List<XsdExtendedElement>> getTypeUsageMap() {
         return typeUsageMap;
     }
 
-    public void setTypeUsageMap(Map<String, List<ExtendedXsdElement>> typeUsageMap) {
+    public void setTypeUsageMap(Map<String, List<XsdExtendedElement>> typeUsageMap) {
         this.typeUsageMap = typeUsageMap;
     }
 
@@ -116,11 +116,11 @@ public class XsdDocumentationData {
         this.namespaces = namespaces;
     }
 
-    public Map<String, ExtendedXsdElement> getExtendedXsdElementMap() {
+    public Map<String, XsdExtendedElement> getExtendedXsdElementMap() {
         return extendedXsdElementMap;
     }
 
-    public void setExtendedXsdElementMap(Map<String, ExtendedXsdElement> extendedXsdElementMap) {
+    public void setExtendedXsdElementMap(Map<String, XsdExtendedElement> extendedXsdElementMap) {
         this.extendedXsdElementMap = extendedXsdElementMap;
     }
 

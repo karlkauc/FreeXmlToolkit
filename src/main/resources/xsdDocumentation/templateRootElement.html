@@ -151,7 +151,7 @@
                 <td class="px-6 py-4 align-top">
                     <!-- Vertical layout for the links -->
                     <div class="flex flex-col space-y-2">
-                        <!-- NEU: Iteriert über eine Liste von ExtendedXsdElement-Objekten -->
+                        <!-- NEU: Iteriert über eine Liste von XsdExtendedElement-Objekten -->
                         <a th:each="xsdElement : ${xsdGlobalElements}"
                            th:href="${'details/' + xsdElement.pageName}"
                            th:text="${xsdElement.elementName}"
