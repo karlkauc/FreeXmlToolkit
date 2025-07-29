@@ -519,12 +519,14 @@
 .folding-indicator.expanded {
     /* Ein nach unten zeigender Winkel (v) */
     -fx-shape: "M 2 4 L 6 8 L 10 4";
+    -fx-background-color: red;
 }
 
 /* SVG-Pfad für ein nach rechts zeigendes Dreieck (eingeklappt) */
 .folding-indicator.collapsed {
     /* Ein nach rechts zeigender Winkel (>) */
     -fx-shape: "M 4 2 L 8 6 L 4 10";
+    -fx-background-color: blue;
 }
 
 /* Tabellen-Styling für wiederholende Elemente */
