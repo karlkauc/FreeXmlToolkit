@@ -1,8 +1,10 @@
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -41,6 +43,10 @@ public class XmlCodeEditor extends StackPane {
 
     // Speichert Start- und Endzeilen der faltbaren Bereiche
     private final Map<Integer, Integer> foldingRegions = new HashMap<>();
+
+    // Speichert den Zustand der eingeklappten Zeilen manuell,
+    // um Probleme mit der Bibliotheks-API zu umgehen.
+    private final Set<Integer> foldedLines = new HashSet<>();
 
     // --- Syntax Highlighting Patterns (aus XmlEditor verschoben) ---
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
@@ -119,16 +125,24 @@ public class XmlCodeEditor extends StackPane {
      */
     private IntFunction<Node> createParagraphGraphicFactory() {
         return lineIndex -> {
+            // Sicherheitsprüfung, da die Factory während Textänderungen aufgerufen werden kann
+            if (lineIndex >= codeArea.getParagraphs().size()) {
+                return new HBox(LineNumberFactory.get(codeArea).apply(lineIndex));
+            }
+
             boolean isFoldable = foldingRegions.containsKey(lineIndex);
-            // KORREKTUR 1: Die korrekte Methode von RichTextFX ist 'isParagraphFolded'.
-            boolean isFolded = codeArea.isFolded(lineIndex);
+
+            // Wir verwenden unseren eigenen Zustandsspeicher statt einer Bibliotheksmethode.
+            boolean isFolded = foldedLines.contains(lineIndex);
 
             // Falt-Symbol erstellen
             StackPane foldingIndicator = new StackPane();
             foldingIndicator.getStyleClass().add("folding-indicator");
             foldingIndicator.setPrefSize(12, 12);
+            foldingIndicator.setMinSize(12, 12);
+            foldingIndicator.setMaxSize(12, 12);
 
-            // Zustand (ausgeklappt/eingeklappt) setzen
+            // CSS-Klassen für den Zustand (ausgeklappt/eingeklappt) setzen
             if (isFolded) {
                 foldingIndicator.getStyleClass().add("collapsed");
             } else {
@@ -137,17 +151,45 @@ public class XmlCodeEditor extends StackPane {
 
             // Klick-Logik
             foldingIndicator.setOnMouseClicked(e -> {
-                // KORREKTUR 2: Den Zustand immer frisch abfragen, da er sich seit dem
-                // Zeichnen geändert haben könnte.
-                if (codeArea.isFolded(lineIndex)) {
-                    codeArea.unfoldParagraphs(lineIndex);
-                } else {
-                    // foldParagraphs benötigt Start- und Endzeile
-                    Integer endLine = foldingRegions.get(lineIndex);
-                    if (endLine != null) {
-                        codeArea.foldParagraphs(lineIndex, endLine);
-                    }
+                // Bei großen Textblöcken kann das Falten die UI blockieren.
+                // Wir ändern den Cursor, um dem Benutzer Feedback zu geben, dass die Anwendung arbeitet.
+                if (getScene() != null) {
+                    getScene().setCursor(Cursor.WAIT);
                 }
+
+                // Wir verwenden Platform.runLater, damit die UI Zeit hat, den Cursor zu aktualisieren,
+                // bevor die blockierende Operation startet.
+                Platform.runLater(() -> {
+                    try {
+                        // Erneut auf Gültigkeit prüfen, falls sich der Text in der Zwischenzeit geändert hat
+                        if (lineIndex >= codeArea.getParagraphs().size()) {
+                            return;
+                        }
+
+                        // Den Zustand immer frisch aus unserem eigenen Set abfragen und aktualisieren
+                        if (foldedLines.contains(lineIndex)) {
+                            codeArea.unfoldParagraphs(lineIndex);
+                            foldedLines.remove(lineIndex); // Zustand aktualisieren
+                        } else {
+                            Integer endLine = foldingRegions.get(lineIndex);
+                            if (endLine != null) {
+                                codeArea.foldParagraphs(lineIndex, endLine);
+                                foldedLines.add(lineIndex); // Zustand aktualisieren
+                            }
+                        }
+
+                        // KORREKTUR: Erzwingt eine sofortige Neuzeichnung aller Gutter-Grafiken.
+                        // Dies synchronisiert den visuellen Zustand der Icons mit unserem internen Zustand.
+                        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
+
+                    } finally {
+                        // Den Cursor im finally-Block zurücksetzen, um sicherzustellen,
+                        // dass er auch bei einem Fehler wieder normal wird.
+                        if (getScene() != null) {
+                            getScene().setCursor(Cursor.DEFAULT);
+                        }
+                    }
+                });
             });
 
             // Zeilennummer-Grafik holen
@@ -156,9 +198,9 @@ public class XmlCodeEditor extends StackPane {
             // Zeilennummer und Falt-Symbol in einer HBox kombinieren
             HBox hbox = new HBox(lineNumberNode, foldingIndicator);
             hbox.setAlignment(Pos.CENTER_LEFT);
-            hbox.setSpacing(5); // Fügt einen kleinen Abstand hinzu
+            hbox.setSpacing(5);
 
-            // Das Symbol ist immer sichtbar, wenn die Zeile faltbar ist.
+            // Das Symbol ist nur sichtbar, wenn die Zeile faltbar ist.
             foldingIndicator.setVisible(isFoldable);
 
             return hbox;
@@ -172,13 +214,14 @@ public class XmlCodeEditor extends StackPane {
      */
     public void updateFoldingRanges(List<FoldingRange> ranges) {
         foldingRegions.clear();
+        foldedLines.clear(); // Setzt unseren manuellen Falt-Zustand zurück.
+
         if (ranges != null) {
             for (FoldingRange range : ranges) {
                 foldingRegions.put(range.getStartLine(), range.getEndLine());
             }
         }
-        // KORREKTUR 3: Erzwinge eine Neuzeichnung der Gutter-Grafiken, nachdem die Daten aktualisiert wurden.
-        // Ohne diesen Aufruf weiß die UI nichts von den neuen Falt-Bereichen und zeigt nichts an.
+        // Erzwinge eine Neuzeichnung der Gutter-Grafiken, nachdem die Daten aktualisiert wurden.
         codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
     }
 
