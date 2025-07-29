@@ -499,6 +499,34 @@
     -fx-padding: 2px 5px;
 }
 
+/* =================================================================
+   XML Code Editor - Erweiterungen
+   ================================================================= */
+
+/* Stil für den Falt-Indikator im Gutter */
+.folding-indicator {
+    -fx-background-color: transparent;
+    -fx-stroke: -fx-text-color-muted; /* Sehr dezente Farbe für die Linie */
+    -fx-stroke-width: 1.5; /* Eine dünne, aber klare Linie */
+    -fx-cursor: hand;
+}
+
+.folding-indicator:hover {
+    -fx-stroke: -fx-text-color; /* Wird beim Hover dunkler */
+}
+
+/* SVG-Pfade für feine Winkel (Chevrons) statt gefüllter Dreiecke */
+.folding-indicator.expanded {
+    /* Ein nach unten zeigender Winkel (v) */
+    -fx-shape: "M 2 4 L 6 8 L 10 4";
+}
+
+/* SVG-Pfad für ein nach rechts zeigendes Dreieck (eingeklappt) */
+.folding-indicator.collapsed {
+    /* Ein nach rechts zeigender Winkel (>) */
+    -fx-shape: "M 4 2 L 8 6 L 4 10";
+}
+
 /* Tabellen-Styling für wiederholende Elemente */
 .table-grid {
     -fx-hgap: 1px;

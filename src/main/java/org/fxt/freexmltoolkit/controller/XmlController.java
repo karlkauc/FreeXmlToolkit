@@ -127,6 +127,8 @@ public class XmlController {
         return t;
     });
 
+    private final Map<String, Integer> documentVersions = new ConcurrentHashMap<>();
+
 
     @FXML
     private void initialize() {
@@ -212,6 +214,13 @@ public class XmlController {
         xmlEditor.setLanguageServer(this.serverProxy);
         xmlEditor.refresh();
 
+        // Füge einen Listener hinzu, der den Server über Textänderungen informiert.
+        // Dies ist entscheidend für aktuelle Diagnosen und Falt-Bereiche.
+        xmlEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
+            notifyLspServerFileChanged(xmlEditor);
+        });
+
+
         xmlEditor.setOnSearchRequested(() -> {
             searchField.requestFocus();
             searchField.selectAll();
@@ -254,6 +263,13 @@ public class XmlController {
             XmlEditor xmlEditor = new XmlEditor(f);
             xmlEditor.refresh();
 
+            // NEU: Füge einen Listener hinzu, der den Server über Textänderungen informiert.
+            // Dies ist entscheidend für aktuelle Diagnosen und Falt-Bereiche.
+            xmlEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
+                notifyLspServerFileChanged(xmlEditor);
+            });
+
+
             // Setzt die Aktion für die Suchanfrage
             xmlEditor.setOnSearchRequested(() -> {
                 searchField.requestFocus();
@@ -270,6 +286,13 @@ public class XmlController {
 
         XmlEditor xmlEditor = new XmlEditor(f);
         xmlEditor.refresh();
+
+        // NEU: Füge einen Listener hinzu, der den Server über Textänderungen informiert.
+        // Dies ist entscheidend für aktuelle Diagnosen und Falt-Bereiche.
+        xmlEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
+            notifyLspServerFileChanged(xmlEditor);
+        });
+
 
         xmlEditor.setOnSearchRequested(() -> {
             searchField.requestFocus();
@@ -451,6 +474,11 @@ public class XmlController {
             // 3. Sende die Benachrichtigung an den Text-Service des Servers
             // Dies ist eine asynchrone Benachrichtigung, wir warten nicht auf eine Antwort.
             this.serverProxy.getTextDocumentService().didOpen(params);
+
+            // Initialisiere die Version für dieses Dokument
+            documentVersions.put(file.toURI().toString(), 1);
+
+            requestFoldingRanges(getCurrentXmlEditor());
 
             logger.info("✅ Sent 'didOpen' notification for {} to LSP server.", file.getName());
 
@@ -739,11 +767,24 @@ public class XmlController {
 
             XmlEditor xmlEditor = new XmlEditor(selectedFile);
 
+            // NEU: Füge einen Listener hinzu, der den Server über Textänderungen informiert.
+            // Dies ist entscheidend für aktuelle Diagnosen und Falt-Bereiche.
+            xmlEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
+                notifyLspServerFileChanged(xmlEditor);
+            });
+
+
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
 
             xmlEditor.refresh();
-
+            // Die Anforderung für Falt-Bereiche darf erst erfolgen,
+            // nachdem der Server über das Öffnen der Datei informiert wurde.
+            // Die Methode notifyLspServerFileOpened übernimmt diese Aufgabe.
+            CodeArea codeArea = xmlEditor.getXmlCodeEditor().getCodeArea();
+            if (codeArea != null) {
+                notifyLspServerFileOpened(selectedFile, codeArea.getText());
+            }
             // Fokus auf den neuen Editor setzen, nachdem die UI-Änderungen verarbeitet wurden.
             Platform.runLater(() -> {
                 // 1. Zuerst den Fokus auf den Tab-Container legen.
@@ -834,6 +875,74 @@ public class XmlController {
         }
     }
 
+    /**
+     * NEU: Sendet eine 'didChange' Benachrichtigung an den LSP-Server, wenn sich der
+     * Text in einem Editor ändert. Aktualisiert auch die Falt-Bereiche.
+     *
+     * @param editor Der Editor, dessen Inhalt sich geändert hat.
+     */
+    private void notifyLspServerFileChanged(XmlEditor editor) {
+        if (serverProxy == null || editor == null || editor.getXmlFile() == null) {
+            return;
+        }
+        File file = editor.getXmlFile();
+        String uri = file.toURI().toString();
+        String content = editor.getXmlCodeEditor().getCodeArea().getText();
+
+        // Version für dieses Dokument erhöhen
+        int version = documentVersions.compute(uri, (k, v) -> (v == null) ? 1 : v + 1);
+
+        VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(uri, version);
+        // Wir senden den kompletten neuen Text. Das ist einfacher als inkrementelle Änderungen.
+        TextDocumentContentChangeEvent changeEvent = new TextDocumentContentChangeEvent(content);
+        DidChangeTextDocumentParams params = new DidChangeTextDocumentParams(identifier, Collections.singletonList(changeEvent));
+
+        serverProxy.getTextDocumentService().didChange(params);
+        logger.debug("Sent 'didChange' (v{}) notification for {}", version, file.getName());
+
+        // Nach einer Änderung müssen die Falt-Bereiche neu angefordert werden.
+        requestFoldingRanges(editor);
+    }
+
+    /**
+     * Fordert die Falt-Bereiche vom LSP-Server für den angegebenen Editor an
+     * und aktualisiert die UI, wenn die Antwort eintrifft.
+     *
+     * @param editor Der XmlEditor, für den die Falt-Bereiche angefordert werden.
+     */
+    private void requestFoldingRanges(XmlEditor editor) {
+        // Die Methode wurde robuster und lesbarer gemacht.
+        if (serverProxy == null || editor == null || editor.getXmlFile() == null || editor.getXmlCodeEditor() == null) {
+            return; // Nichts tun, wenn Server oder Datei nicht bereit sind
+        }
+
+        FoldingRangeRequestParams params = new FoldingRangeRequestParams(new TextDocumentIdentifier(editor.getXmlFile().toURI().toString()));
+        logger.debug("Requesting folding ranges for: {}", editor.getXmlFile().getName());
+
+        serverProxy.getTextDocumentService().foldingRange(params).thenAccept(foldingRanges -> {
+            // KORREKTUR: Prüfen, ob die Antwort vom Server null ist, bevor sie verwendet wird.
+            // Dies verhindert die NullPointerException aus dem Stacktrace.
+            final List<FoldingRange> finalRanges = (foldingRanges != null) ? foldingRanges : Collections.emptyList();
+
+            logger.debug("Received {} folding ranges.", finalRanges.size());
+            // Die UI muss auf dem JavaFX Application Thread aktualisiert werden
+            Platform.runLater(() -> {
+                // Es ist gute Praxis, hier nochmals zu prüfen, ob der Editor noch existiert,
+                // da der Benutzer den Tab in der Zwischenzeit geschlossen haben könnte.
+                if (editor.getXmlCodeEditor() != null) {
+                    editor.getXmlCodeEditor().updateFoldingRanges(finalRanges);
+                    logger.debug("Folding ranges updated for {}.", editor.getXmlFile().getName());
+                    if (foldingRanges != null) {
+                        foldingRanges.forEach(r -> logger.debug("Range: {}:{}", r.getStartLine(), r.getEndLine()));
+                    }
+                }
+            });
+        }).exceptionally(e -> {
+            logger.error("Failed to get folding ranges for {}", editor.getXmlFile().getName(), e);
+            return null;
+        });
+    }
+
     @FXML
     private void test() {
         // 1. Hole den aktuellen Editor.
@@ -851,6 +960,14 @@ public class XmlController {
                 searchField.requestFocus();
                 searchField.selectAll();
             });
+
+            // Listener für Textänderungen auch hier hinzufügen, damit Falt-Bereiche
+            // und Diagnosen bei der Bearbeitung aktualisiert werden.
+            XmlEditor finalCurrentEditor = currentEditor;
+            currentEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
+                notifyLspServerFileChanged(finalCurrentEditor);
+            });
+
 
             // Den neuen Editor zur UI hinzufügen und ihn zum aktiven Tab machen
             xmlFilesPane.getTabs().add(currentEditor);

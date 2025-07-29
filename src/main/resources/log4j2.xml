@@ -33,16 +33,16 @@
             <AppenderRef ref="Console" level="DEBUG"/>
             <!-- <appender-ref ref="MyFile" level="DEBUG"/> -->
         </Root>
-        <Logger name="org.apache.poi" level="INFO">
+        <Logger name="org.apache.poi" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.thymeleaf" level="INFO">
+        <Logger name="org.thymeleaf" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.fxt.freexmltoolkit.controls.SimpleNodeElement" level="INFO">
+        <Logger name="org.fxt.freexmltoolkit.controls.SimpleNodeElement" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.apache.hc.client5" level="ERROR">
+        <Logger name="org.apache.hc.client5" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>

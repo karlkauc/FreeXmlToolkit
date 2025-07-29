@@ -2,18 +2,22 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import org.eclipse.lsp4j.FoldingRange;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
+import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +39,9 @@ public class XmlCodeEditor extends StackPane {
     // Property, um eine Such-Aktion von außen zu registrieren
     private final ObjectProperty<Runnable> onSearchRequested = new SimpleObjectProperty<>();
 
+    // Speichert Start- und Endzeilen der faltbaren Bereiche
+    private final Map<Integer, Integer> foldingRegions = new HashMap<>();
+
     // --- Syntax Highlighting Patterns (aus XmlEditor verschoben) ---
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
             + "|(?<COMMENT><!--[^<>]+-->)");
@@ -54,7 +61,7 @@ public class XmlCodeEditor extends StackPane {
     }
 
     private void initialize() {
-        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
 
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             codeArea.setStyleSpans(0, computeHighlighting(newText));
@@ -96,7 +103,7 @@ public class XmlCodeEditor extends StackPane {
                 }
             }
 
-            // NEU: Suche mit Strg + F
+            // Suche mit Strg + F
             if (event.isControlDown() && event.getCode() == KeyCode.F) {
                 if (getOnSearchRequested() != null) {
                     getOnSearchRequested().run();
@@ -104,6 +111,75 @@ public class XmlCodeEditor extends StackPane {
                 }
             }
         });
+    }
+
+
+    /**
+     * Erstellt eine Factory, die für jede Zeile eine Grafik (Zeilennummer + Falt-Symbol) erzeugt.
+     */
+    private IntFunction<Node> createParagraphGraphicFactory() {
+        return lineIndex -> {
+            boolean isFoldable = foldingRegions.containsKey(lineIndex);
+            // KORREKTUR 1: Die korrekte Methode von RichTextFX ist 'isParagraphFolded'.
+            boolean isFolded = codeArea.isFolded(lineIndex);
+
+            // Falt-Symbol erstellen
+            StackPane foldingIndicator = new StackPane();
+            foldingIndicator.getStyleClass().add("folding-indicator");
+            foldingIndicator.setPrefSize(12, 12);
+
+            // Zustand (ausgeklappt/eingeklappt) setzen
+            if (isFolded) {
+                foldingIndicator.getStyleClass().add("collapsed");
+            } else {
+                foldingIndicator.getStyleClass().add("expanded");
+            }
+
+            // Klick-Logik
+            foldingIndicator.setOnMouseClicked(e -> {
+                // KORREKTUR 2: Den Zustand immer frisch abfragen, da er sich seit dem
+                // Zeichnen geändert haben könnte.
+                if (codeArea.isFolded(lineIndex)) {
+                    codeArea.unfoldParagraphs(lineIndex);
+                } else {
+                    // foldParagraphs benötigt Start- und Endzeile
+                    Integer endLine = foldingRegions.get(lineIndex);
+                    if (endLine != null) {
+                        codeArea.foldParagraphs(lineIndex, endLine);
+                    }
+                }
+            });
+
+            // Zeilennummer-Grafik holen
+            Node lineNumberNode = LineNumberFactory.get(codeArea).apply(lineIndex);
+
+            // Zeilennummer und Falt-Symbol in einer HBox kombinieren
+            HBox hbox = new HBox(lineNumberNode, foldingIndicator);
+            hbox.setAlignment(Pos.CENTER_LEFT);
+            hbox.setSpacing(5); // Fügt einen kleinen Abstand hinzu
+
+            // Das Symbol ist immer sichtbar, wenn die Zeile faltbar ist.
+            foldingIndicator.setVisible(isFoldable);
+
+            return hbox;
+        };
+    }
+
+    /**
+     * Aktualisiert die Falt-Informationen basierend auf den Daten vom LSP-Server.
+     *
+     * @param ranges Eine Liste von FoldingRange-Objekten.
+     */
+    public void updateFoldingRanges(List<FoldingRange> ranges) {
+        foldingRegions.clear();
+        if (ranges != null) {
+            for (FoldingRange range : ranges) {
+                foldingRegions.put(range.getStartLine(), range.getEndLine());
+            }
+        }
+        // KORREKTUR 3: Erzwinge eine Neuzeichnung der Gutter-Grafiken, nachdem die Daten aktualisiert wurden.
+        // Ohne diesen Aufruf weiß die UI nichts von den neuen Falt-Bereichen und zeigt nichts an.
+        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
     }
 
     // --- Öffentliche API für den Editor ---
