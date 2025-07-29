@@ -817,9 +817,24 @@ public class XmlController {
 
     @FXML
     private void print() {
-        logger.debug("BIN DRINNEN");
-        logger.debug(emptyXmlEditor.getDocument().getNodeValue());
+        logger.debug("Print button clicked.");
+        XmlEditor currentEditor = getCurrentXmlEditor();
+        if (currentEditor != null) {
+            // Die Methode getDocumentAsString() wurde in XmlEditor public gemacht.
+            String documentContent = currentEditor.getDocumentAsString();
+            if (documentContent != null) {
+                System.out.println("--- Current Document Content ---");
+                System.out.println(documentContent);
+                System.out.println("------------------------------");
+                logger.info("Document content printed to console.");
+            } else {
+                logger.warn("Current document content is null or could not be serialized.");
+            }
+        } else {
+            logger.warn("No active XML editor found.");
+        }
     }
+
     @FXML
     private void test() {
         Path xmlExampleFile = Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml");

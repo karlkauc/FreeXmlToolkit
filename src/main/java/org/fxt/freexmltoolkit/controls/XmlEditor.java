@@ -135,8 +135,7 @@ public class XmlEditor extends Tab {
 
         xml.setOnSelectionChanged(e -> {
             if (xml.isSelected()) {
-                logger.debug("refresh Text view");
-                refreshTextView();
+                logger.debug("XML tab selected. View is already up-to-date.");
             } else {
                 logger.debug("refresh Graphic view");
                 try {
@@ -145,7 +144,8 @@ public class XmlEditor extends Tab {
                         refreshGraphicView();
                     }
                 } catch (SAXException | IOException ex) {
-                    logger.info("could not create graphic view.");
+                    logger.info("Could not create graphic view, likely due to invalid XML: {}", ex.getMessage());
+                    graphic.setContent(new Label("Invalid XML. Cannot display graphic view."));
                 }
             }
         });
@@ -441,7 +441,7 @@ public class XmlEditor extends Tab {
         return this.document;
     }
 
-    private String getDocumentAsString() {
+    public String getDocumentAsString() {
         if (document == null) {
             return null;
         }
