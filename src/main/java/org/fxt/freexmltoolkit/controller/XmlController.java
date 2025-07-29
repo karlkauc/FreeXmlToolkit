@@ -820,7 +820,6 @@ public class XmlController {
         logger.debug("Print button clicked.");
         XmlEditor currentEditor = getCurrentXmlEditor();
         if (currentEditor != null) {
-            // Die Methode getDocumentAsString() wurde in XmlEditor public gemacht.
             String documentContent = currentEditor.getDocumentAsString();
             if (documentContent != null) {
                 System.out.println("--- Current Document Content ---");
@@ -837,25 +836,60 @@ public class XmlController {
 
     @FXML
     private void test() {
+        // 1. Hole den aktuellen Editor.
+        XmlEditor currentEditor = getCurrentXmlEditor();
+
+        // 2. Wenn kein Editor aktiv ist, erstelle einen neuen.
+        if (currentEditor == null) {
+            logger.info("Test button clicked, but no active editor found. Creating a new one.");
+            currentEditor = new XmlEditor(); // Erstellt einen neuen, leeren Editor
+
+            // Notwendige Abhängigkeiten und Listener für den neuen Editor setzen
+            currentEditor.setMainController(this.mainController);
+            currentEditor.setLanguageServer(this.serverProxy);
+            currentEditor.setOnSearchRequested(() -> {
+                searchField.requestFocus();
+                searchField.selectAll();
+            });
+
+            // Den neuen Editor zur UI hinzufügen und ihn zum aktiven Tab machen
+            xmlFilesPane.getTabs().add(currentEditor);
+            xmlFilesPane.getSelectionModel().select(currentEditor);
+        }
+
+        // 3. Definiere die Pfade zu den Testdateien.
         Path xmlExampleFile = Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml");
+        Path xsdExampleFile = Paths.get("release/examples/xsd/FundsXML4.xsd");
 
-        getCurrentXmlEditor().getXmlService().setCurrentXmlFile(xmlExampleFile.toFile());
-        getCurrentXmlEditor().getXmlService().setCurrentXsdFile(Paths.get("release/examples/xsd/FundsXML4.xsd").toFile());
-
-        try {
-            emptyXmlEditor = getCurrentXmlEditor();
-            emptyXmlEditor.setXmlFile(xmlExampleFile.toFile());
-            emptyXmlEditor.refresh();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
+        // 4. Prüfe, ob die Testdatei existiert, um Fehler zu vermeiden.
+        if (!Files.exists(xmlExampleFile)) {
+            logger.error("Test file not found at path: {}", xmlExampleFile.toAbsolutePath());
+            new Alert(Alert.AlertType.ERROR, "Test file not found: " + xmlExampleFile).showAndWait();
+            return;
         }
 
-        getCurrentXmlEditor().getXmlService().setCurrentXmlFile(xmlExampleFile.toFile());
-        if (getCurrentXmlEditor().getXmlService().loadSchemaFromXMLFile()) {
-            schemaList.getItems().add(getCurrentXmlEditor().getXmlService().getCurrentXsdFile());
-        }
+        // 5. Konfiguriere den Editor und seinen Service mit den neuen Dateien.
+        logger.debug("Loading test file '{}' into the current editor.", xmlExampleFile.getFileName());
+        currentEditor.setXmlFile(xmlExampleFile.toFile());
 
+        XmlService service = currentEditor.getXmlService();
+        service.setCurrentXmlFile(xmlExampleFile.toFile());
+        service.setCurrentXsdFile(xsdExampleFile.toFile());
+
+        // 6. Lade den Inhalt der Datei in die UI.
+        currentEditor.refresh();
+
+        // 7. Führe Folgeaktionen aus, die vom geladenen Inhalt abhängen.
         validateSchema();
-        notifyLspServerFileOpened(getCurrentXmlEditor().getXmlFile(), getCurrentCodeArea().getText());
+
+        CodeArea codeArea = getCurrentCodeArea();
+        if (codeArea != null) {
+            // Benachrichtige den LSP-Server, dass die Datei jetzt "geöffnet" ist.
+            notifyLspServerFileOpened(currentEditor.getXmlFile(), codeArea.getText());
+        } else {
+            logger.warn("Could not get CodeArea after refresh to notify LSP server.");
+        }
+
+        logger.debug("Test file loading complete.");
     }
 }

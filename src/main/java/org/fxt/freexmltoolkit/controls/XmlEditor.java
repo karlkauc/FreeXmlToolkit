@@ -90,7 +90,6 @@ public class XmlEditor extends Tab {
     public XmlEditor(File file) {
         init();
         this.setXmlFile(file);
-        // refresh() wird nun vom Controller aufgerufen, nachdem der Tab zur Szene hinzugefügt wurde.
     }
 
     public void setMainController(MainController mainController) {
