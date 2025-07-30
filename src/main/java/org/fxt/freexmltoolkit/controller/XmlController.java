@@ -220,7 +220,6 @@ public class XmlController {
             notifyLspServerFileChanged(xmlEditor);
         });
 
-
         xmlEditor.setOnSearchRequested(() -> {
             searchField.requestFocus();
             searchField.selectAll();
@@ -260,62 +259,26 @@ public class XmlController {
 
         for (File f : db.getFiles()) {
             logger.debug("add File: '{}': {}", f.getName(), f.getAbsolutePath());
-            XmlEditor xmlEditor = new XmlEditor(f);
-            xmlEditor.refresh();
-
-            // NEU: Füge einen Listener hinzu, der den Server über Textänderungen informiert.
-            // Dies ist entscheidend für aktuelle Diagnosen und Falt-Bereiche.
-            xmlEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
-                notifyLspServerFileChanged(xmlEditor);
-            });
-
-
-            // Setzt die Aktion für die Suchanfrage
-            xmlEditor.setOnSearchRequested(() -> {
-                searchField.requestFocus();
-                searchField.selectAll();
-            });
-
-            xmlFilesPane.getTabs().add(xmlEditor);
-            xmlFilesPane.getSelectionModel().select(xmlEditor);
+            createAndAddXmlTab(f);
         }
     }
 
-    protected void loadFile(File f) {
-        logger.debug("Loading file {}", f.getAbsolutePath());
-
-        XmlEditor xmlEditor = new XmlEditor(f);
-        xmlEditor.refresh();
-
-        // NEU: Füge einen Listener hinzu, der den Server über Textänderungen informiert.
-        // Dies ist entscheidend für aktuelle Diagnosen und Falt-Bereiche.
-        xmlEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
-            notifyLspServerFileChanged(xmlEditor);
-        });
-
-
-        xmlEditor.setOnSearchRequested(() -> {
-            searchField.requestFocus();
-            searchField.selectAll();
-        });
-
-        xmlFilesPane.getTabs().add(xmlEditor);
-        xmlFilesPane.getSelectionModel().select(xmlEditor);
+    /**
+     * Die Methode ist jetzt public und wurde refaktorisiert, um die
+     * zentrale `createAndAddXmlTab`-Methode zu verwenden. Das vermeidet Code-Duplizierung.
+     *
+     * @param f Die zu ladende Datei.
+     */
+    public void loadFile(File f) {
+        logger.debug("Loading file {} via createAndAddXmlTab", f.getAbsolutePath());
+        createAndAddXmlTab(f);
     }
 
     @FXML
     private void newFilePressed() {
         logger.debug("New File Pressed");
-
-        XmlEditor x = new XmlEditor();
-
-        x.setOnSearchRequested(() -> {
-            searchField.requestFocus();
-            searchField.selectAll();
-        });
-
-        xmlFilesPane.getTabs().add(x);
-        xmlFilesPane.getSelectionModel().select(x);
+        // Verwendung der zentralen Methode zum Erstellen von Tabs
+        createAndAddXmlTab(null);
     }
 
     private XmlEditor getCurrentXmlEditor() {
@@ -424,7 +387,7 @@ public class XmlController {
     }
 
     /**
-     * NEU: Wird vom MyLspClient aufgerufen. Speichert die Diagnosen
+     * Wird vom MyLspClient aufgerufen. Speichert die Diagnosen
      * und stößt die UI-Aktualisierung an.
      */
     public void publishDiagnostics(PublishDiagnosticsParams diagnostics) {
@@ -440,7 +403,7 @@ public class XmlController {
     }
 
     /**
-     * NEU: Hilfsmethode, um den geöffneten XmlEditor für einen URI zu finden.
+     * Hilfsmethode, um den geöffneten XmlEditor für einen URI zu finden.
      */
     private Optional<XmlEditor> findEditorByUri(String uri) {
         for (Tab tab : xmlFilesPane.getTabs()) {
@@ -506,8 +469,6 @@ public class XmlController {
                     // Benachrichtige den LSP-Server, dass die Datei geöffnet wurde.
                     notifyLspServerFileOpened(file, content);
                 }
-
-                // ... restlicher Code der Methode (falls vorhanden) ...
 
             } catch (IOException e) {
                 logger.error("Could not read file {}", file.getAbsolutePath(), e);

@@ -14,7 +14,6 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
-import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.controls.XsdDiagramView;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
@@ -220,7 +219,7 @@ public class XsdController {
 
         File selectedFile = fileChooser.showOpenDialog(tabPane.getScene().getWindow());
         if (selectedFile != null) {
-            xmlService.setCurrentXsdFile(selectedFile);
+            // Die zentrale Methode `openXsdFile` ist nun für alles verantwortlich.
             openXsdFile(selectedFile);
             return selectedFile;
         }
@@ -230,9 +229,28 @@ public class XsdController {
     // ======================================================================
     // Methoden für den "Graphic" Tab
     // ======================================================================
-    private void openXsdFile(File file) {
-        // Update properties with the newly opened file and its directory
-        propertiesService.addLastOpenFile(file);
+
+    /**
+     * Die Methode ist jetzt public, damit sie vom MainController
+     * aufgerufen werden kann, wenn eine XSD-Datei aus der "Zuletzt geöffnet"-Liste
+     * ausgewählt wird.
+     *
+     * @param file Die zu öffnende XSD-Datei.
+     */
+    public void openXsdFile(File file) {
+        // Die Datei muss ZUERST im Service gesetzt werden,
+        // damit alle nachfolgenden Methoden den korrekten Zustand haben.
+        xmlService.setCurrentXsdFile(file);
+
+        // Rufe die zentrale Methode im MainController auf.
+        // Diese fügt die Datei nicht nur zur Liste hinzu, sondern aktualisiert auch das Menü.
+        if (parentController != null) {
+            parentController.addFileToRecentFiles(file);
+        } else {
+            // Fallback, falls der Parent-Controller aus irgendeinem Grund nicht gesetzt ist.
+            propertiesService.addLastOpenFile(file);
+        }
+
         if (file.getParent() != null) {
             propertiesService.setLastOpenDirectory(file.getParent());
         }
@@ -240,6 +258,7 @@ public class XsdController {
         String absolutePath = file.getAbsolutePath();
         xsdFilePath.setText(absolutePath);
         xsdForSampleDataPath.setText(absolutePath);
+        xsdToFlattenPath.setText(absolutePath); // Auch für den Flatten-Tab setzen
 
         setupXsdDiagram();
     }
@@ -433,6 +452,17 @@ public class XsdController {
         });
 
         executeTask(saveExamplesTask);
+    }
+
+    /**
+     * Wählt programmatisch den "Text"-Tab in der Tab-Ansicht aus.
+     */
+    public void selectTextTab() {
+        logger.debug("select text tab");
+        if (tabPane != null && textTab != null) {
+            logger.debug("tabpane und texttab != null");
+            tabPane.getSelectionModel().select(textTab);
+        }
     }
 
     // ======================================================================

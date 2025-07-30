@@ -53,6 +53,7 @@ public class MainController {
 
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     XmlController xmlController;
+    XsdController xsdController;
 
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     public final ExecutorService service = Executors.newCachedThreadPool();
@@ -145,13 +146,23 @@ public class MainController {
             MenuItem m = new MenuItem(f.getName());
             m.setOnAction(event -> {
                 logger.debug("File {} selected from recent files.", f.getAbsolutePath());
-                if (xmlController != null) {
-                    xmlController.displayFileContent(f);
+
+                // KORREKTUR: Prüfe den Dateityp und rufe die entsprechende Methode auf.
+                String fileName = f.getName().toLowerCase();
+                if (fileName.endsWith(".xml")) {
+                    switchToXmlViewAndLoadFile(f);
+                } else if (fileName.endsWith(".xsd")) {
+                    switchToXsdViewAndLoadFile(f);
+                } else {
+                    logger.warn("Unhandled file type from recent files list: {}", f.getName());
+                    // Optional: Einen Alert anzeigen
+                    new Alert(Alert.AlertType.INFORMATION, "Dieser Dateityp kann aus der 'Zuletzt geöffnet'-Liste nicht direkt geöffnet werden.").show();
                 }
             });
             lastOpenFilesMenu.getItems().add(m);
         }
     }
+
 
     /**
      * NEU: Öffentliche Methode, die von anderen Controllern aufgerufen werden kann,
@@ -213,7 +224,7 @@ public class MainController {
     }
 
     /**
-     * NEU: Wechselt programmatisch zum XML-Tab und lädt eine Datei.
+     * Wechselt programmatisch zum XML-Tab und lädt eine Datei.
      *
      * @param fileToLoad Die zu ladende Datei.
      */
@@ -234,13 +245,44 @@ public class MainController {
         // nach dem Laden und Anzeigen der neuen Szene ausgeführt werden.
         if (this.xmlController != null && fileToLoad != null && fileToLoad.exists()) {
             Platform.runLater(() -> {
-                xmlController.displayFileContent(fileToLoad);
-                addFileToRecentFiles(fileToLoad); // Optional: Datei zur Liste der zuletzt geöffneten hinzufügen
+                // Ruft loadFile auf, um die Datei in einem neuen Tab zu öffnen,
+                // anstatt den Inhalt des aktuellen Tabs zu ersetzen.
+                xmlController.loadFile(fileToLoad);
             });
         } else {
             logger.warn("XmlController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
         }
     }
+
+    /**
+     * Wechselt programmatisch zum XSD-Tab und lädt eine Datei.
+     *
+     * @param fileToLoad Die zu ladende XSD-Datei.
+     */
+    public void switchToXsdViewAndLoadFile(File fileToLoad) {
+        if (xsd == null) {
+            logger.error("XSD-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
+            return;
+        }
+        // Visuellen Stil des Menü-Buttons anpassen
+        xsd.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        xsd.getStyleClass().add("active");
+
+        // Die XSD-Seite laden
+        loadPageFromPath("/pages/tab_xsd.fxml");
+
+        // Sicherstellen, dass der XsdController initialisiert ist und die Datei laden.
+        if (this.xsdController != null && fileToLoad != null && fileToLoad.exists()) {
+            Platform.runLater(() -> {
+                // Ruft openXsdFile auf, um die Datei in der grafischen und Text-Ansicht zu laden.
+                xsdController.openXsdFile(fileToLoad);
+                xsdController.selectTextTab();
+            });
+        } else {
+            logger.warn("XsdController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
+        }
+    }
+
 
     private void setParentController(Object controller) {
         if (controller instanceof XmlController) {
@@ -254,6 +296,7 @@ public class MainController {
             ((WelcomeController) controller).setParentController(this);
         } else if (controller instanceof XsdController) {
             logger.debug("set XSD Controller");
+            this.xsdController = (XsdController) controller;
             ((XsdController) controller).setParentController(this);
         } else if (controller instanceof XsltController) {
             logger.debug("set XSLT Controller");
