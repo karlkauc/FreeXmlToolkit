@@ -932,9 +932,6 @@ public class XmlController {
                 if (editor.getXmlCodeEditor() != null) {
                     editor.getXmlCodeEditor().updateFoldingRanges(finalRanges);
                     logger.debug("Folding ranges updated for {}.", editor.getXmlFile().getName());
-                    if (foldingRanges != null) {
-                        foldingRanges.forEach(r -> logger.debug("Range: {}:{}", r.getStartLine(), r.getEndLine()));
-                    }
                 }
             });
         }).exceptionally(e -> {

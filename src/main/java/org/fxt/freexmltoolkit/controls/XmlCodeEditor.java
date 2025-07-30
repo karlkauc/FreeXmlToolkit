@@ -10,6 +10,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import org.eclipse.lsp4j.FoldingRange;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -136,17 +137,23 @@ public class XmlCodeEditor extends StackPane {
             boolean isFolded = foldedLines.contains(lineIndex);
 
             // Falt-Symbol erstellen
+            /*
             StackPane foldingIndicator = new StackPane();
             foldingIndicator.getStyleClass().add("folding-indicator");
             foldingIndicator.setPrefSize(12, 12);
-            foldingIndicator.setMinSize(12, 12);
-            foldingIndicator.setMaxSize(12, 12);
+            foldingIndicator.setMinSize(12,12);
+             */
+
+            Region foldingIndicator = new Region();
+            foldingIndicator.getStyleClass().add("icon");
+            foldingIndicator.setPrefSize(12, 12);
+            foldingIndicator.setStyle("-fx-background-color: #44aad1;");
 
             // CSS-Klassen für den Zustand (ausgeklappt/eingeklappt) setzen
             if (isFolded) {
-                foldingIndicator.getStyleClass().add("collapsed");
+                foldingIndicator.getStyleClass().add("toggle-collapse");
             } else {
-                foldingIndicator.getStyleClass().add("expanded");
+                foldingIndicator.getStyleClass().add("toggle-expand");
             }
 
             // Klick-Logik
@@ -197,7 +204,7 @@ public class XmlCodeEditor extends StackPane {
 
             // Zeilennummer und Falt-Symbol in einer HBox kombinieren
             HBox hbox = new HBox(lineNumberNode, foldingIndicator);
-            hbox.setAlignment(Pos.CENTER_LEFT);
+            hbox.setAlignment(Pos.BASELINE_LEFT);
             hbox.setSpacing(5);
 
             // Das Symbol ist nur sichtbar, wenn die Zeile faltbar ist.

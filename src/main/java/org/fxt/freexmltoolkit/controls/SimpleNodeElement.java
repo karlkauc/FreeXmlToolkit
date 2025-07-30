@@ -209,8 +209,6 @@ public class SimpleNodeElement extends VBox {
         this.getChildren().addAll(headerBox, contentWrapper);
     }
 
-    // In der Klasse: SimpleNodeElement.java
-
     @NotNull
     private EventHandler<MouseEvent> editNodeValueHandler(Label nodeValueLabel, Node domNode) {
         return event -> {

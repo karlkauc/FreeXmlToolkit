@@ -506,13 +506,15 @@
 /* Stil für den Falt-Indikator im Gutter */
 .folding-indicator {
     -fx-background-color: transparent;
-    -fx-stroke: -fx-text-color-muted; /* Sehr dezente Farbe für die Linie */
+    /* -fx-background-color: green; */
+    -fx-stroke: linear-gradient(from 0% 0% to 0% 100%, #555555, #aaaaaa);
+    /* -fx-stroke: -fx-text-color-muted;  Sehr dezente Farbe für die Linie */
     -fx-stroke-width: 1.5; /* Eine dünne, aber klare Linie */
     -fx-cursor: hand;
 }
 
 .folding-indicator:hover {
-    -fx-stroke: -fx-text-color; /* Wird beim Hover dunkler */
+    -fx-stroke: -fx-text-color;
 }
 
 /* SVG-Pfade für feine Winkel (Chevrons) statt gefüllter Dreiecke */
@@ -526,7 +528,7 @@
 .folding-indicator.collapsed {
     /* Ein nach rechts zeigender Winkel (>) */
     -fx-shape: "M 4 2 L 8 6 L 4 10";
-    -fx-background-color: blue;
+    /* -fx-background-color: blue; */
 }
 
 /* Tabellen-Styling für wiederholende Elemente */
@@ -595,7 +597,7 @@
 
 /* line Number */
 .lineno {
-    -fx-background-color: #e3e3e3;
+    -fx-background-color: #f0f2f5;
 }
 
 /* defaults */
