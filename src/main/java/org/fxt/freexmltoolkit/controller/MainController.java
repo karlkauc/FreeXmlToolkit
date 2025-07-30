@@ -39,6 +39,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -202,7 +203,6 @@ public class MainController {
 
         currentButton.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
         currentButton.getStyleClass().add("active");
-
     }
 
     /**
@@ -283,32 +283,44 @@ public class MainController {
         }
     }
 
-
     private void setParentController(Object controller) {
-        if (controller instanceof XmlController) {
-            this.xmlController = (XmlController) controller;
-            ((XmlController) controller).setParentController(this);
-        } else if (controller instanceof XsdValidationController) {
-            ((XsdValidationController) controller).setParentController(this);
-        } else if (controller instanceof SettingsController) {
-            ((SettingsController) controller).setParentController(this);
-        } else if (controller instanceof WelcomeController) {
-            ((WelcomeController) controller).setParentController(this);
-        } else if (controller instanceof XsdController) {
-            logger.debug("set XSD Controller");
-            this.xsdController = (XsdController) controller;
-            ((XsdController) controller).setParentController(this);
-        } else if (controller instanceof XsltController) {
-            logger.debug("set XSLT Controller");
-            ((XsltController) controller).setParentController(this);
-        } else if (controller instanceof FopController) {
-            logger.debug("set FOP Controller");
-            ((FopController) controller).setParentController(this);
-        } else if (controller instanceof SignatureController) {
-            logger.debug("set Signature Controller");
-            ((SignatureController) controller).setParentController(this);
+        switch (controller) {
+            case XmlController xmlController1 -> {
+                logger.debug("set XML Controller");
+                this.xmlController = xmlController1;
+                xmlController1.setParentController(this);
+            }
+            case XsdValidationController xsdValidationController -> xsdValidationController.setParentController(this);
+            case SettingsController settingsController -> settingsController.setParentController(this);
+            case WelcomeController welcomeController -> welcomeController.setParentController(this);
+            case XsdController xsdController1 -> {
+                logger.debug("set XSD Controller");
+                this.xsdController = xsdController1;
+                xsdController1.setParentController(this);
+            }
+            case XsltController xsltController -> {
+                logger.debug("set XSLT Controller");
+                xsltController.setParentController(this);
+            }
+            case FopController fopController -> {
+                logger.debug("set FOP Controller");
+                fopController.setParentController(this);
+            }
+            case SignatureController signatureController -> {
+                logger.debug("set Signature Controller");
+                signatureController.setParentController(this);
+            }
+            case null, default -> {
+                if (controller != null) {
+                    logger.error("no valid controller found: {}", controller.getClass());
+                } else {
+                    logger.error("no controller found");
+                }
+            }
         }
-        logger.debug("Controller Class: {}", controller.getClass());
+        if (controller != null) {
+            logger.debug("Controller Class: {}", controller.getClass());
+        }
     }
 
     /**
@@ -323,14 +335,14 @@ public class MainController {
         // Setzt das Icon für das Dialogfenster
         try {
             Stage stage = (Stage) aboutDialog.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image(getClass().getResourceAsStream("/img/logo.png")));
+            stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/logo.png"))));
         } catch (Exception e) {
             logger.warn("Could not load logo for about dialog window.", e);
         }
 
         // Setzt die Grafik (Logo) im Header-Panel
         try {
-            ImageView logo = new ImageView(new Image(getClass().getResourceAsStream("/img/logo.png")));
+            ImageView logo = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/logo.png"))));
             logo.setFitHeight(60);
             logo.setPreserveRatio(true);
             aboutDialog.setGraphic(logo);
@@ -339,10 +351,13 @@ public class MainController {
         }
 
         aboutDialog.setContentText(
-                "Version: 2024.1\n" +
-                        "Copyright (c) Karl Kauc 2024.\n\n" +
-                        "Dieses Produkt ist unter der Apache License, Version 2.0, lizenziert. " +
-                        "Eine Kopie der Lizenz erhalten Sie unter:\nhttp://www.apache.org/licenses/LICENSE-2.0"
+                """
+                        Version: 2024.1
+                        Copyright (c) Karl Kauc 2024.
+                        
+                        Dieses Produkt ist unter der Apache License, Version 2.0, lizenziert. \
+                        Eine Kopie der Lizenz erhalten Sie unter:
+                        http://www.apache.org/licenses/LICENSE-2.0"""
         );
 
         aboutDialog.showAndWait();
