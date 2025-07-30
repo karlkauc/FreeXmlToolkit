@@ -121,6 +121,8 @@ public class XmlCodeEditor extends StackPane {
     }
 
 
+    // in XmlCodeEditor.java
+
     /**
      * Erstellt eine Factory, die für jede Zeile eine Grafik (Zeilennummer + Falt-Symbol) erzeugt.
      */
@@ -136,24 +138,21 @@ public class XmlCodeEditor extends StackPane {
             // Wir verwenden unseren eigenen Zustandsspeicher statt einer Bibliotheksmethode.
             boolean isFolded = foldedLines.contains(lineIndex);
 
-            // Falt-Symbol erstellen
-            /*
-            StackPane foldingIndicator = new StackPane();
-            foldingIndicator.getStyleClass().add("folding-indicator");
-            foldingIndicator.setPrefSize(12, 12);
-            foldingIndicator.setMinSize(12,12);
-             */
-
+            // KORREKTUR: Wir verwenden Region, aber mit den korrekten Style-Klassen
+            // und ohne fest codierte Farben, damit das CSS-Styling funktioniert.
             Region foldingIndicator = new Region();
-            foldingIndicator.getStyleClass().add("icon");
+            foldingIndicator.getStyleClass().add("folding-indicator"); // Korrekte Basis-Klasse
             foldingIndicator.setPrefSize(12, 12);
-            foldingIndicator.setStyle("-fx-background-color: #44aad1;");
+            // Wichtig: min/max-Size setzen, damit die Region nicht schrumpft/wächst.
+            foldingIndicator.setMinSize(12, 12);
+            foldingIndicator.setMaxSize(12, 12);
+
 
             // CSS-Klassen für den Zustand (ausgeklappt/eingeklappt) setzen
             if (isFolded) {
-                foldingIndicator.getStyleClass().add("toggle-collapse");
+                foldingIndicator.getStyleClass().add("collapsed"); // Korrekte Zustands-Klasse
             } else {
-                foldingIndicator.getStyleClass().add("toggle-expand");
+                foldingIndicator.getStyleClass().add("expanded"); // Korrekte Zustands-Klasse
             }
 
             // Klick-Logik
@@ -213,6 +212,7 @@ public class XmlCodeEditor extends StackPane {
             return hbox;
         };
     }
+
 
     /**
      * Aktualisiert die Falt-Informationen basierend auf den Daten vom LSP-Server.

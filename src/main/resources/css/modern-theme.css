@@ -505,15 +505,18 @@
 
 /* Stil für den Falt-Indikator im Gutter */
 .folding-indicator {
+    /* Setzt den Hintergrund explizit auf transparent.
+     * Dies ist ein wichtiger Schritt, da JavaFX manchmal einen definierten
+     * Hintergrund benötigt, um den Stroke (die Umrandung) einer Form zu zeichnen. */
     -fx-background-color: transparent;
-    /* -fx-background-color: green; */
+    /* Ein vertikaler Farbverlauf von dunkelgrau zu hellgrau für die Linien des Symbols */
     -fx-stroke: linear-gradient(from 0% 0% to 0% 100%, #555555, #aaaaaa);
-    /* -fx-stroke: -fx-text-color-muted;  Sehr dezente Farbe für die Linie */
     -fx-stroke-width: 1.5; /* Eine dünne, aber klare Linie */
     -fx-cursor: hand;
 }
 
 .folding-indicator:hover {
+    /* Beim Hover wird der Farbverlauf durch eine kräftigere, einheitliche Farbe ersetzt */
     -fx-stroke: -fx-text-color;
 }
 
@@ -521,14 +524,12 @@
 .folding-indicator.expanded {
     /* Ein nach unten zeigender Winkel (v) */
     -fx-shape: "M 2 4 L 6 8 L 10 4";
-    -fx-background-color: red;
 }
 
 /* SVG-Pfad für ein nach rechts zeigendes Dreieck (eingeklappt) */
 .folding-indicator.collapsed {
     /* Ein nach rechts zeigender Winkel (>) */
     -fx-shape: "M 4 2 L 8 6 L 4 10";
-    /* -fx-background-color: blue; */
 }
 
 /* Tabellen-Styling für wiederholende Elemente */

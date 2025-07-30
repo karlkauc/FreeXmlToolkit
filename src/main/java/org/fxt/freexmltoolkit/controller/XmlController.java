@@ -537,76 +537,111 @@ public class XmlController {
         }
     }
 
+    /**
+     * Wird vom "Save File"-Button in der FXML-Datei aufgerufen.
+     * Diese Methode orchestriert den gesamten Speicherprozess: Validierung, Benutzerbestätigung und das eigentliche Speichern.
+     */
     @FXML
-    private boolean saveFile() {
-        var errors = getCurrentXmlEditor().getXmlService().validateText(getCurrentCodeArea().getText());
+    private void saveFile() {
+        XmlEditor currentEditor = getCurrentXmlEditor();
+        CodeArea currentCodeArea = getCurrentCodeArea();
 
-        if (errors == null || errors.isEmpty()) {
-            return saveTextToFile();
-        } else {
-            Alert a = new Alert(Alert.AlertType.CONFIRMATION);
-            a.setTitle("Text not schema Valid");
-            a.setHeaderText(errors.size() + " Errors found.");
-            a.setContentText("Save anyway?");
+        // 1. Sicherstellen, dass ein Editor aktiv ist
+        if (currentEditor == null || currentCodeArea == null) {
+            logger.warn("Speicheraktion ausgelöst, aber kein aktiver Editor gefunden.");
+            return;
+        }
 
-            var result = a.showAndWait();
-            if (result.isPresent()) {
-                var buttonType = result.get();
-                if (buttonType == ButtonType.OK) {
-                    return saveTextToFile();
-                }
+        // 2. Inhalt validieren. Der XmlService prüft auf Wohlgeformtheit
+        //    und, falls ein Schema vorhanden ist, auf Schemavalidität.
+        String contentToValidate = currentCodeArea.getText();
+        XmlService service = currentEditor.getXmlService();
+
+        // Schema-Datei für die Validierung bestimmen.
+        // Priorität 1: Die explizite Auswahl des Benutzers in der ComboBox.
+        File schemaToUse = schemaList.getValue();
+
+        // Priorität 2: Wenn nichts ausgewählt ist, das vom Service erkannte Schema verwenden.
+        // Dies ist nützlich, wenn ein Schema automatisch aus der XML-Datei geladen wurde.
+        if (schemaToUse == null) {
+            schemaToUse = service.getCurrentXsdFile();
+        }
+
+        // 2. Inhalt validieren.
+        // Die Methode `validateText(String, File)` prüft auf Wohlgeformtheit, wenn das Schema null ist,
+        // und zusätzlich auf Schemavalidität, wenn ein Schema angegeben ist.
+        List<SAXParseException> errors = service.validateText(contentToValidate, schemaToUse);
+
+        // 3. Wenn Fehler gefunden wurden, den Benutzer um Bestätigung bitten.
+        if (errors != null && !errors.isEmpty()) {
+            Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmationDialog.setTitle("Validierungsfehler");
+            confirmationDialog.setHeaderText(errors.size() + " Validierungsfehler gefunden.");
+            confirmationDialog.setContentText("Das XML ist nicht wohlgeformt oder nicht schemakonform.\n\nWirklich speichern?");
+
+            Optional<ButtonType> result = confirmationDialog.showAndWait();
+            // Aktion abbrechen, wenn der Benutzer nicht "OK" klickt.
+            if (result.isEmpty() || result.get() != ButtonType.OK) {
+                return;
             }
         }
-        return false;
+
+        // 4. Mit dem Speichern fortfahren.
+        saveTextToFile(currentEditor);
     }
 
-    private boolean saveTextToFile() {
-        try {
-            var currentXmlEditor = getCurrentXmlEditor();
-            File xmlFile = currentXmlEditor.getXmlFile();
+    /**
+     * Eine Hilfsmethode, die die eigentliche Datei-I/O-Logik kapselt.
+     * Sie unterscheidet zwischen dem Speichern einer neuen und einer bestehenden Datei.
+     *
+     * @param editor Der XmlEditor, dessen Inhalt gespeichert werden soll.
+     */
+    private void saveTextToFile(XmlEditor editor) {
+        File targetFile = editor.getXmlFile();
+        String content = editor.getXmlCodeEditor().getCodeArea().getText();
 
-            if (xmlFile == null) {
-                // Datei ist neu, also "Speichern unter"-Dialog anzeigen
-                String lastDirString = propertiesService.getLastOpenDirectory();
-                if (lastDirString != null) {
-                    File lastDir = new File(lastDirString);
-                    if (lastDir.exists() && lastDir.isDirectory()) {
-                        fileChooser.setInitialDirectory(lastDir);
-                    }
-                }
+        // Fall 1: Es ist ein neues, ungespeichertes Dokument. "Speichern unter"-Dialog anzeigen.
+        if (targetFile == null) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("XML-Datei speichern");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML-Dateien (*.xml)", "*.xml"));
 
-                fileChooser.getExtensionFilters().clear();
-                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
-                File selectedFile = fileChooser.showSaveDialog(null);
-
-                if (selectedFile != null) {
-                    // Speichere das neue Verzeichnis
-                    if (selectedFile.getParentFile() != null) {
-                        propertiesService.setLastOpenDirectory(selectedFile.getParentFile().getAbsolutePath());
-                    }
-
-                    xmlFile = selectedFile; // Die ausgewählte Datei wird zur neuen Datei des Editors
-                    currentXmlEditor.getXmlService().setCurrentXmlFile(xmlFile);
-                    currentXmlEditor.setXmlFile(xmlFile);
-                    currentXmlEditor.setText(xmlFile.getName());
-                } else {
-                    return false; // Benutzer hat abgebrochen
+            // Das zuletzt verwendete Verzeichnis für eine bessere Benutzererfahrung voreinstellen.
+            String lastDirString = propertiesService.getLastOpenDirectory();
+            if (lastDirString != null) {
+                File lastDir = new File(lastDirString);
+                if (lastDir.exists() && lastDir.isDirectory()) {
+                    fileChooser.setInitialDirectory(lastDir);
                 }
             }
 
-            // Speichere den Inhalt in die (neue oder bestehende) Datei
-            Path path = xmlFile.toPath();
-            byte[] strToBytes = getCurrentCodeArea().getText().getBytes();
-            Files.write(path, strToBytes);
+            File selectedFile = fileChooser.showSaveDialog(xmlFilesPane.getScene().getWindow());
 
-            logger.debug("File saved!");
-            schemaValidText.setText("File '" + path.getFileName() + "' saved (" + path.toFile().length() + " bytes)");
+            if (selectedFile == null) {
+                return; // Benutzer hat den Dialog abgebrochen.
+            }
 
-            return true;
-        } catch (Exception e) {
-            logger.error("Exception in writing File: {}", e.getMessage());
+            // Den Editor mit den Informationen der neuen Datei aktualisieren.
+            targetFile = selectedFile;
+            editor.setXmlFile(targetFile);
+            editor.getXmlService().setCurrentXmlFile(targetFile);
+            mainController.addFileToRecentFiles(targetFile);
+
+            // Das neue Verzeichnis für das nächste Mal speichern.
+            if (targetFile.getParentFile() != null) {
+                propertiesService.setLastOpenDirectory(targetFile.getParentFile().getAbsolutePath());
+            }
         }
-        return false;
+
+        // Fall 2: Datei schreiben (entweder die bestehende oder die neu ausgewählte).
+        try {
+            Files.writeString(targetFile.toPath(), content, StandardCharsets.UTF_8);
+            logger.info("Datei erfolgreich gespeichert: {}", targetFile.getAbsolutePath());
+            schemaValidText.setText("Datei '" + targetFile.getName() + "' gespeichert (" + targetFile.length() + " Bytes).");
+        } catch (IOException e) {
+            logger.error("Fehler beim Schreiben der Datei: {}", targetFile.getAbsolutePath(), e);
+            new Alert(Alert.AlertType.ERROR, "Konnte Datei nicht speichern:\n" + e.getMessage()).showAndWait();
+        }
     }
 
     @FXML
