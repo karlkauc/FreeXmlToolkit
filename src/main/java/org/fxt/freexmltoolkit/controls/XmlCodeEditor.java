@@ -90,7 +90,6 @@ public class XmlCodeEditor extends StackPane {
 
         // Handler für Tastenkombinationen
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            // Schriftgröße mit Strg +/-, Reset mit Strg + 0
             if (event.isControlDown()) {
                 // Schriftgröße mit Strg +/-, Reset mit Strg + 0
                 switch (event.getCode()) {
@@ -160,8 +159,6 @@ public class XmlCodeEditor extends StackPane {
         String newContent = pattern.matcher(codeArea.getText()).replaceAll(replaceText);
         codeArea.replaceText(newContent);
     }
-
-
 
     /**
      * Erstellt eine Factory, die für jede Zeile eine Grafik (Zeilennummer + Falt-Symbol) erzeugt.

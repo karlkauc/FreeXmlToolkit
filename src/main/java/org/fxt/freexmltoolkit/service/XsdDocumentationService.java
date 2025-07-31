@@ -489,7 +489,7 @@ public class XsdDocumentationService {
         }
 
         // 2. AppInfo-Tags verarbeiten (für Javadoc und Altova-Beispiele)
-        XsdDocInfo xsdDocInfo = extendedElem.getJavadocInfo() != null ? extendedElem.getJavadocInfo() : new XsdDocInfo();
+        XsdDocInfo xsdDocInfo = extendedElem.getXsdDocInfo() != null ? extendedElem.getXsdDocInfo() : new XsdDocInfo();
         List<String> genericAppInfos = extendedElem.getGenericAppInfos() != null ? extendedElem.getGenericAppInfos() : new ArrayList<>();
         List<String> exampleValues = extendedElem.getExampleValues(); // Liste für Beispielwerte holen
 
@@ -529,7 +529,7 @@ public class XsdDocumentationService {
 
         // 3. Gesammelte Informationen im Element speichern
         if (xsdDocInfo.hasData()) {
-            extendedElem.setJavadocInfo(xsdDocInfo);
+            extendedElem.setXsdDocInfo(xsdDocInfo);
         }
         if (!genericAppInfos.isEmpty()) {
             extendedElem.setGenericAppInfos(genericAppInfos);

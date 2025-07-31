@@ -1,0 +1,14 @@
+{
+  "name": "freexmltoolkit-docs",
+  "version": "1.0.0",
+  "description": "Build process for the FreeXMLToolkit HTML documentation CSS.",
+  "scripts": {
+    "build-css": "@tailwindcss/cli -i tailwind-input.css -o ../xsdDocumentation/assets/freexmltoolkit-docs.css"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.1.11"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.11"
+  }
+}

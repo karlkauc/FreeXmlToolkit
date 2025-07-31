@@ -441,14 +441,15 @@ public class XsdDocumentationHtmlService {
             Files.createDirectories(Paths.get(outputDirectory.getPath(), "complexTypes"));
             Files.createDirectories(Paths.get(outputDirectory.getPath(), "simpleTypes"));
 
-            copyAssets("/xsdDocumentation/assets/bootstrap.bundle.min.js", outputDirectory);
             copyAssets("/xsdDocumentation/assets/prism.js", outputDirectory);
             copyAssets("/xsdDocumentation/assets/prism.css", outputDirectory);
-            copyAssets("/xsdDocumentation/assets/freeXmlToolkit.css", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/freexmltoolkit-docs.css", outputDirectory);
             copyAssets("/xsdDocumentation/assets/search.js", outputDirectory);
             copyAssets("/xsdDocumentation/assets/plus.png", outputDirectory);
             copyAssets("/xsdDocumentation/assets/logo.png", outputDirectory);
             copyAssets("/xsdDocumentation/assets/Roboto-Regular.ttf", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/Inter.ttf", outputDirectory);
+            copyAssets("/xsdDocumentation/assets/Inter-Italic.ttf", outputDirectory);
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }

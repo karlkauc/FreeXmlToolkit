@@ -339,11 +339,11 @@ public class XsdExtendedElement implements Serializable {
         this.restrictionInfo = restrictionInfo;
     }
 
-    public XsdDocInfo getJavadocInfo() {
+    public XsdDocInfo getXsdDocInfo() {
         return xsdDocInfo;
     }
 
-    public void setJavadocInfo(XsdDocInfo xsdDocInfo) {
+    public void setXsdDocInfo(XsdDocInfo xsdDocInfo) {
         this.xsdDocInfo = xsdDocInfo;
     }
 

@@ -24,21 +24,11 @@
     <!-- NEU: Titel wird mit Hilfsmethode aus dem Node-Objekt gelesen -->
     <title th:text="'Complex Type: ' + ${this.getAttributeValue(complexTypeNode, 'name')}">XSD Documentation</title>
 
-    <!-- Tailwind CSS & Modern Font -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-    <link rel="preconnect" href="https://rsms.me/">
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <!-- Generated Tailwind CSS -->
+    <link href="../assets/freexmltoolkit-docs.css" rel="stylesheet">
+
+    <!-- PrismJS for Syntax Highlighting -->
+    <link href="../assets/prism.css" rel="stylesheet"/>
 </head>
 <!-- NEU: Body-Tag mit data-Attributen für das Such-Skript -->
 <body class="font-sans text-slate-800" data-root-path=".." data-search-index-path="../search_index.json">

@@ -22,22 +22,16 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="'XSD Documentation for \'' + ${rootElementName} + '\''">XSD Documentation</title>
-    <!-- Include Tailwind CSS via CDN for easy integration -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Optional: Custom design adjustments for Tailwind
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'], // A modern, easily readable font
-                    },
-                }
-            }
-        }
-    </script>
+
+    <!--
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    -->
+
+    <!-- Generated Tailwind CSS -->
+    <link href="assets/freexmltoolkit-docs.css" rel="stylesheet">
+    <!-- PrismJS for Syntax Highlighting -->
+    <link href="assets/prism.css" rel="stylesheet"/>
 </head>
 <body class="font-sans text-slate-800" data-root-path="." data-search-index-path="search_index.json">
 
