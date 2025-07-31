@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controller;
 
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.SimpleFileServer;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -10,6 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -31,7 +34,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -83,6 +88,14 @@ public class XsdController {
     private PopOver searchPopOver;
 
     private enum SearchMode {SEARCH, REPLACE}
+
+    // --- NEU: Felder für die Dokumentations-Vorschau ---
+    @FXML
+    private Tab docPreviewTab;
+    @FXML
+    private WebView docWebView;
+    private HttpServer docServer;
+    private static final int DOC_SERVER_PORT = 8080;
 
 
 
@@ -171,7 +184,7 @@ public class XsdController {
     private VBox taskStatusBar;
     @FXML
     private VBox taskContainer;
-    @FXML
+
     private final static Logger logger = LogManager.getLogger(XsdController.class);
 
     private record DiagramData(XsdNodeInfo rootNode, String targetNamespace, String version, String documentation, String javadoc, String fileContent) {
@@ -232,6 +245,12 @@ public class XsdController {
             });
         } catch (IOException e) {
             logger.error("Failed to initialize search popup for XSD editor.", e);
+        }
+        // NEU: Preview-Tab initial ausblenden und unzugänglich machen
+        if (docPreviewTab != null) {
+            docPreviewTab.setDisable(true);
+            // Optional: Den Tab komplett aus der Tab-Leiste entfernen, bis er gebraucht wird.
+            // tabPane.getTabs().remove(docPreviewTab);
         }
     }
 
@@ -640,18 +659,32 @@ public class XsdController {
         openDocFolder.setOnAction(e -> openFolderInExplorer(outputDir));
 
         if (openFileAfterCreation.isSelected()) {
-            File indexFile = new File(outputDir, "index.html");
-            if (indexFile.exists()) {
-                try {
-                    // Use Desktop API to open the default browser
-                    java.awt.Desktop.getDesktop().browse(indexFile.toURI());
-                } catch (IOException ex) {
-                    logger.error("Could not open index.html in browser.", ex);
-                    // Fallback to just opening the folder if the browser fails
-                    openFolderInExplorer(outputDir);
-                }
-            }
+            startDocServerAndShowPreview(outputDir);
         }
+    }
+
+    /**
+     * Startet den eingebetteten Webserver und lädt die Vorschau in die WebView.
+     *
+     * @param outputDir Das Stammverzeichnis für den Webserver.
+     */
+    private void startDocServerAndShowPreview(File outputDir) {
+        stopDocServer(); // Zuerst einen eventuell laufenden alten Server stoppen
+
+        Path docRootPath = outputDir.toPath().toAbsolutePath().normalize();
+        docServer = SimpleFileServer.createFileServer(
+                new InetSocketAddress(DOC_SERVER_PORT),
+                docRootPath,
+                SimpleFileServer.OutputLevel.INFO);
+        docServer.start();
+        logger.info("Documentation server started on http://localhost:{}", DOC_SERVER_PORT);
+
+        String url = "http://localhost:" + DOC_SERVER_PORT + "/index.html";
+        Platform.runLater(() -> {
+            docWebView.getEngine().load(url);
+            docPreviewTab.setDisable(false);
+            tabPane.getSelectionModel().select(docPreviewTab);
+        });
     }
 
     /**
@@ -925,6 +958,8 @@ public class XsdController {
      * Hintergrund-Threads sauber beendet werden, wenn die Anwendung geschlossen wird.
      */
     public void shutdown() {
+        stopDocServer();
+
         logger.info("Shutting down XsdController's ExecutorService...");
         executorService.shutdown();
         try {
@@ -938,5 +973,16 @@ public class XsdController {
             Thread.currentThread().interrupt(); // Set the interrupt flag again
         }
         logger.info("XsdController shutdown complete.");
+    }
+
+    /**
+     * Stoppt den laufenden Dokumentations-Webserver, falls vorhanden.
+     */
+    private void stopDocServer() {
+        if (docServer != null) {
+            docServer.stop(0); // 0 Sekunden Verzögerung beim Beenden
+            docServer = null;
+            logger.info("Documentation server stopped.");
+        }
     }
 }

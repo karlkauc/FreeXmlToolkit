@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.SimpleFileServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
@@ -43,6 +45,8 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.awt.*;
 import java.io.*;
+import java.net.InetSocketAddress;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -99,15 +103,56 @@ public class GenerateXsdHtmlDocumentationTest {
 
     @Test
     void generateHtmlDoc() throws Exception {
+        // --- 1. Konfiguration und Generierung der Dokumentation ---
         final var testFilePath = Paths.get(XML_LATEST_XSD);
-        // final var testFilePath = Paths.get(SIMPLE_XSD_FILE);
         final var outputFilePath = Paths.get("../FundsXML_Documentation");
+
         this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());
         this.xsdDocumentationService.setUseMarkdownRenderer(true);
         this.xsdDocumentationService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
         this.xsdDocumentationService.setParallelProcessing(true);
         this.xsdDocumentationService.generateXsdDocumentation(outputFilePath.toFile());
-        Desktop.getDesktop().open(new File(outputFilePath.toFile().getAbsolutePath() + "/index.html"));
+
+        // --- 2. Eingebetteten HTTP-Server starten ---
+        int port = 8080;
+
+        // KORREKTUR: Der SimpleFileServer benötigt einen absoluten Pfad.
+        // Wir wandeln den relativen Pfad in einen absoluten um und normalisieren ihn.
+        Path docRootPath = outputFilePath.toAbsolutePath().normalize();
+        File docRoot = docRootPath.toFile();
+
+        // Erstellt einen einfachen Dateiserver, der den Inhalt des docRoot-Verzeichnisses bereitstellt.
+        // Diese Funktionalität ist seit JDK 18 standardmäßig verfügbar.
+        HttpServer server = SimpleFileServer.createFileServer(
+                new InetSocketAddress(port),
+                docRootPath, // Verwende den jetzt absoluten Pfad
+                SimpleFileServer.OutputLevel.INFO
+        );
+        server.start();
+
+        logger.info("====================================================================");
+        logger.info("HTTP-Server gestartet auf http://localhost:{}", port);
+        logger.info("Das Stammverzeichnis ist: {}", docRoot.getAbsolutePath());
+        logger.info("Stoppen Sie den Test in Ihrer IDE, um den Server zu beenden.");
+        logger.info("====================================================================");
+
+
+        // --- 3. Browser mit der Server-URL öffnen ---
+        String url = "http://localhost:" + port + "/index.html";
+        try {
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                Desktop.getDesktop().browse(new java.net.URI(url));
+            } else {
+                logger.warn("Konnte den Browser nicht automatisch öffnen. Bitte öffnen Sie manuell: {}", url);
+            }
+        } catch (Exception e) {
+            logger.error("Fehler beim Öffnen des Browsers.", e);
+        }
+
+        // --- 4. Den Test-Thread (und damit den Server) am Leben halten ---
+        // Der Server läuft in einem Hintergrund-Thread. Dieser Haupt-Thread muss blockiert werden,
+        // damit der Test nicht sofort endet und der Server heruntergefahren wird.
+        Thread.sleep(Long.MAX_VALUE);
     }
 
     @Test

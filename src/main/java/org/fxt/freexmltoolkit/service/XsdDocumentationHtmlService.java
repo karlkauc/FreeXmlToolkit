@@ -445,12 +445,12 @@ public class XsdDocumentationHtmlService {
             copyAssets("/xsdDocumentation/assets/prism.css", outputDirectory);
             copyAssets("/xsdDocumentation/assets/freexmltoolkit-docs.css", outputDirectory);
             copyAssets("/xsdDocumentation/assets/search.js", outputDirectory);
-            copyAssets("/xsdDocumentation/assets/plus.png", outputDirectory);
             copyAssets("/xsdDocumentation/assets/logo.png", outputDirectory);
             copyAssets("/xsdDocumentation/assets/Roboto-Regular.ttf", outputDirectory);
             copyAssets("/xsdDocumentation/assets/Inter.ttf", outputDirectory);
             copyAssets("/xsdDocumentation/assets/Inter-Italic.ttf", outputDirectory);
         } catch (Exception e) {
+            logger.error("Could not copy resources. Error: {}", e.getMessage());
             throw new RuntimeException(e.getMessage(), e);
         }
     }

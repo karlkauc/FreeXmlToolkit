@@ -21,6 +21,7 @@
 <?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
 <?import org.fxmisc.richtext.CodeArea?>
 <?import org.fxt.freexmltoolkit.controls.XmlCodeEditor?>
 <?import org.kordamp.ikonli.javafx.*?>
@@ -323,6 +324,16 @@
             </VBox>
 
         </Tab>
+
+        <!-- NEU: Tab für die Live-Vorschau der Dokumentation -->
+        <Tab fx:id="docPreviewTab" text="Preview">
+            <content>
+                <StackPane>
+                    <WebView fx:id="docWebView"/>
+                </StackPane>
+            </content>
+        </Tab>
+
         <Tab closable="false" text="Generate Example Data">
             <graphic>
                 <FontIcon iconLiteral="bi-keyboard" iconSize="16"/>
