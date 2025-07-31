@@ -91,24 +91,77 @@ public class XmlCodeEditor extends StackPane {
         // Handler für Tastenkombinationen
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             // Schriftgröße mit Strg +/-, Reset mit Strg + 0
-            switch (event.getCode()) {
-                case PLUS, ADD -> {
-                    increaseFontSize();
-                    event.consume();
-                }
-                case MINUS, SUBTRACT -> {
-                    decreaseFontSize();
-                    event.consume();
-                }
-                case NUMPAD0, DIGIT0 -> {
-                    resetFontSize();
-                    event.consume();
-                }
-                default -> {
+            if (event.isControlDown()) {
+                // Schriftgröße mit Strg +/-, Reset mit Strg + 0
+                switch (event.getCode()) {
+                    case PLUS, ADD -> {
+                        increaseFontSize();
+                        event.consume();
+                    }
+                    case MINUS, SUBTRACT -> {
+                        decreaseFontSize();
+                        event.consume();
+                    }
+                    case NUMPAD0, DIGIT0 -> {
+                        resetFontSize();
+                        event.consume();
+                    }
+                    default -> {
+                    }
                 }
             }
         });
     }
+
+    // --- NEUE Such- und Ersetzen-Methoden (von XmlEditor hierher verschoben) ---
+
+    public void find(String text, boolean forward) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        String content = codeArea.getText();
+        int searchFrom = codeArea.getSelection().getEnd();
+
+        int index;
+        if (forward) {
+            index = content.toLowerCase().indexOf(text.toLowerCase(), searchFrom);
+            // Wrap around if not found from caret onwards
+            if (index == -1) {
+                index = content.toLowerCase().indexOf(text.toLowerCase());
+            }
+        } else {
+            searchFrom = codeArea.getSelection().getStart() - 1;
+            index = content.toLowerCase().lastIndexOf(text.toLowerCase(), searchFrom);
+            // Wrap around
+            if (index == -1) {
+                index = content.toLowerCase().lastIndexOf(text.toLowerCase());
+            }
+        }
+
+        if (index >= 0) {
+            codeArea.selectRange(index, index + text.length());
+            codeArea.requestFollowCaret();
+        }
+    }
+
+    public void replace(String findText, String replaceText) {
+        if (findText == null || findText.isEmpty()) return;
+
+        String selectedText = codeArea.getSelectedText();
+        if (selectedText.equalsIgnoreCase(findText)) {
+            codeArea.replaceSelection(replaceText);
+        }
+        find(findText, true);
+    }
+
+    public void replaceAll(String findText, String replaceText) {
+        if (findText == null || findText.isEmpty()) return;
+        Pattern pattern = Pattern.compile(Pattern.quote(findText), Pattern.CASE_INSENSITIVE);
+        String newContent = pattern.matcher(codeArea.getText()).replaceAll(replaceText);
+        codeArea.replaceText(newContent);
+    }
+
+
 
     /**
      * Erstellt eine Factory, die für jede Zeile eine Grafik (Zeilennummer + Falt-Symbol) erzeugt.

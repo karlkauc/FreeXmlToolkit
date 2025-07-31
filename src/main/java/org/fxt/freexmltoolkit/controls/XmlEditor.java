@@ -46,7 +46,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
 
 public class XmlEditor extends Tab {
 
@@ -194,7 +193,7 @@ public class XmlEditor extends Tab {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/controls/SearchReplaceControl.fxml"));
         Pane searchPane = loader.load();
         searchController = loader.getController();
-        searchController.setXmlEditor(this);
+        searchController.setXmlCodeEditor(this.xmlCodeEditor);
 
         searchPopOver = new PopOver(searchPane);
         searchPopOver.setDetachable(false);
@@ -535,55 +534,15 @@ public class XmlEditor extends Tab {
     // --- NEUE Such- und Ersetzen-Methoden ---
 
     public void find(String text, boolean forward) {
-        // If search text is empty, just clear any existing selection/highlight
-        if (text == null || text.isEmpty()) {
-            return;
-        }
-        String content = codeArea.getText();
-        int searchFrom = codeArea.getSelection().getEnd();
-
-        int index;
-        if (forward) {
-            index = content.toLowerCase().indexOf(text.toLowerCase(), searchFrom);
-            // Wrap around if not found from caret onwards
-            if (index == -1) {
-                index = content.toLowerCase().indexOf(text.toLowerCase());
-            }
-        } else {
-            // Text not found, clear any existing selection
-            searchFrom = codeArea.getSelection().getStart() - 1;
-            index = content.toLowerCase().lastIndexOf(text.toLowerCase(), searchFrom);
-            // Wrap around
-            if (index == -1) {
-                index = content.toLowerCase().lastIndexOf(text.toLowerCase());
-            }
-        }
-
-        if (index >= 0) {
-            codeArea.selectRange(index, index + text.length());
-            codeArea.requestFollowCaret();
-        }
+        xmlCodeEditor.find(text, forward);
     }
 
     public void replace(String findText, String replaceText) {
-        if (findText == null || findText.isEmpty()) return;
-
-        String selectedText = codeArea.getSelectedText();
-        if (selectedText.equalsIgnoreCase(findText)) {
-            codeArea.replaceSelection(replaceText);
-        }
-        // Find the next occurrence after replacing
-        find(findText, true);
+        xmlCodeEditor.replace(findText, replaceText);
     }
 
     public void replaceAll(String findText, String replaceText) {
-        if (findText == null || findText.isEmpty()) return;
-
-        // Use regex for case-insensitive replacement
-        Pattern pattern = Pattern.compile(Pattern.quote(findText), Pattern.CASE_INSENSITIVE);
-        String newContent = pattern.matcher(codeArea.getText()).replaceAll(replaceText);
-
-        codeArea.replaceText(newContent);
+        xmlCodeEditor.replaceAll(findText, replaceText);
     }
 
     public XmlCodeEditor getXmlCodeEditor() {

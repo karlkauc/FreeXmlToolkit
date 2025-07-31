@@ -5,7 +5,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
-import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 
 public class SearchReplaceController {
 
@@ -26,7 +26,7 @@ public class SearchReplaceController {
     @FXML
     private Label replaceStatusLabel;
 
-    private XmlEditor xmlEditor;
+    private XmlCodeEditor xmlCodeEditor;
 
     @FXML
     public void initialize() {
@@ -34,35 +34,35 @@ public class SearchReplaceController {
         findFieldReplace.textProperty().bindBidirectional(findFieldSearch.textProperty());
     }
 
-    public void setXmlEditor(XmlEditor xmlEditor) {
-        this.xmlEditor = xmlEditor;
+    public void setXmlCodeEditor(XmlCodeEditor xmlCodeEditor) {
+        this.xmlCodeEditor = xmlCodeEditor;
     }
 
     @FXML
     private void findNext() {
-        if (xmlEditor != null) {
-            xmlEditor.find(findFieldSearch.getText(), true);
+        if (xmlCodeEditor != null) {
+            xmlCodeEditor.find(findFieldSearch.getText(), true);
         }
     }
 
     @FXML
     private void findPrevious() {
-        if (xmlEditor != null) {
-            xmlEditor.find(findFieldSearch.getText(), false);
+        if (xmlCodeEditor != null) {
+            xmlCodeEditor.find(findFieldSearch.getText(), false);
         }
     }
 
     @FXML
     private void replace() {
-        if (xmlEditor != null) {
-            xmlEditor.replace(findFieldReplace.getText(), replaceField.getText());
+        if (xmlCodeEditor != null) {
+            xmlCodeEditor.replace(findFieldReplace.getText(), replaceField.getText());
         }
     }
 
     @FXML
     private void replaceAll() {
-        if (xmlEditor != null) {
-            xmlEditor.replaceAll(findFieldReplace.getText(), replaceField.getText());
+        if (xmlCodeEditor != null) {
+            xmlCodeEditor.replaceAll(findFieldReplace.getText(), replaceField.getText());
         }
     }
 

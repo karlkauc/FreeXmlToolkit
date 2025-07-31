@@ -3,16 +3,21 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.controlsfx.control.PopOver;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XsdDiagramView;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
@@ -72,6 +77,14 @@ public class XsdController {
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     private MainController parentController;
+
+    // --- NEU: Such- und Ersetzen-Funktionalität ---
+    private SearchReplaceController searchController;
+    private PopOver searchPopOver;
+
+    private enum SearchMode {SEARCH, REPLACE}
+
+
 
     /**
      * Allows a parent controller to set itself for communication.
@@ -200,9 +213,39 @@ public class XsdController {
         // Setup for the sample data CodeArea
         sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));
 
-        // Den neuen XmlCodeEditor als nicht editierbar konfigurieren
-        sourceCodeEditor.getCodeArea().setEditable(false);
+        // NEU: Such-Popup und Tastenkürzel für den XSD-Texteditor hinzufügen
+        try {
+            initializeSearchPopup();
+            sourceCodeEditor.getCodeArea().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                if (event.isControlDown()) {
+                    switch (event.getCode()) {
+                        case F -> {
+                            showSearchPopup(SearchMode.SEARCH);
+                            event.consume();
+                        }
+                        case R -> {
+                            showSearchPopup(SearchMode.REPLACE);
+                            event.consume();
+                        }
+                    }
+                }
+            });
+        } catch (IOException e) {
+            logger.error("Failed to initialize search popup for XSD editor.", e);
+        }
     }
+
+    private void initializeSearchPopup() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/controls/SearchReplaceControl.fxml"));
+        Pane searchPane = loader.load();
+        searchController = loader.getController();
+        searchController.setXmlCodeEditor(this.sourceCodeEditor); // Verbindet die Suche mit dem XSD-Editor
+        searchPopOver = new PopOver(searchPane);
+        searchPopOver.setDetachable(false);
+        searchPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
+        searchPopOver.setTitle("Find/Replace");
+    }
+
 
     @FXML
     private File openXsdFileChooser() {
@@ -227,6 +270,21 @@ public class XsdController {
         }
         return null;
     }
+
+    /**
+     * NEU: Zeigt das Such-Popup für den XSD-Editor an.
+     */
+    private void showSearchPopup(SearchMode mode) {
+        if (searchPopOver == null) return;
+        if (mode == SearchMode.SEARCH) {
+            searchController.selectTab(searchController.getSearchTab());
+        } else {
+            searchController.selectTab(searchController.getReplaceTab());
+        }
+        searchPopOver.show(sourceCodeEditor.getCodeArea(), -5);
+        searchController.focusFindField();
+    }
+
 
     // ======================================================================
     // Methoden für den "Graphic" Tab
