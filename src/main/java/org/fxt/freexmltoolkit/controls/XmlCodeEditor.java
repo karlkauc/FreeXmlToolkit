@@ -120,9 +120,6 @@ public class XmlCodeEditor extends StackPane {
         });
     }
 
-
-    // in XmlCodeEditor.java
-
     /**
      * Erstellt eine Factory, die für jede Zeile eine Grafik (Zeilennummer + Falt-Symbol) erzeugt.
      */

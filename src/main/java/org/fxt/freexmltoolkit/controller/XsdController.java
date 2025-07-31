@@ -101,15 +101,13 @@ public class XsdController {
     // Felder für den text tab
 
     @FXML
-    private ScrollPane sourceCodeScrollPane;
-    @FXML
     private HBox textInfoPane;
     @FXML
     private Label textInfoPathLabel;
     @FXML
     private VBox noFileLoadedPaneText;
     @FXML
-    private CodeArea sourceCodeTextArea;
+    private XmlCodeEditor sourceCodeEditor;
     @FXML
     private ProgressIndicator textProgress;
 
@@ -188,8 +186,8 @@ public class XsdController {
                     noFileLoadedPaneText.setManaged(true);
                     textInfoPane.setVisible(false);
                     textInfoPane.setManaged(false);
-                    sourceCodeTextArea.setVisible(false);
-                    sourceCodeTextArea.setManaged(false);
+                    sourceCodeEditor.setVisible(false);
+                    sourceCodeEditor.setManaged(false);
                 }
             }
         });
@@ -201,6 +199,9 @@ public class XsdController {
 
         // Setup for the sample data CodeArea
         sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));
+
+        // Den neuen XmlCodeEditor als nicht editierbar konfigurieren
+        sourceCodeEditor.getCodeArea().setEditable(false);
     }
 
     @FXML
@@ -357,15 +358,12 @@ public class XsdController {
             textInfoPane.setVisible(true);
             textInfoPane.setManaged(true);
             textInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
-            sourceCodeTextArea.replaceText(result.fileContent());
 
-            sourceCodeScrollPane.setVisible(true);
-            sourceCodeScrollPane.setManaged(true);
+            sourceCodeEditor.getCodeArea().replaceText(result.fileContent());
+            sourceCodeEditor.setVisible(true);
+            sourceCodeEditor.setManaged(true);
 
             textProgress.setVisible(false);
-
-            // Das Syntax-Highlighting wird wie bisher angewendet
-            sourceCodeTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(result.fileContent()));
 
             statusText.setText("XSD loaded successfully.");
         });
