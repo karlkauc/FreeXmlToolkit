@@ -23,10 +23,6 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
@@ -48,8 +44,6 @@ public class FxtGui extends Application {
 
     public static ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-    final KeyCombination safeFileKey = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
-
     final static String APP_ICON_PATH = "img/logo.png";
 
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
@@ -68,12 +62,6 @@ public class FxtGui extends Application {
             mainController = loader.getController();
 
             var scene = new Scene(root, 1024, 768);
-            scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
-                if (safeFileKey.match(e)) {
-                    System.out.println("SAVE PRESSED");
-                    e.consume();
-                }
-            });
 
             // MAC Taskbar Image
             try {
@@ -94,7 +82,6 @@ public class FxtGui extends Application {
             primaryStage.setScene(scene);
             primaryStage.setMaximized(true);
 
-            // ScenicView.show(primaryStage.getScene());
             primaryStage.show();
         } catch (IOException e) {
             logger.error(e.getMessage());

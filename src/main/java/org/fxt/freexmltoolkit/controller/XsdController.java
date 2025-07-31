@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class XsdController {
 
@@ -828,7 +829,7 @@ public class XsdController {
             ex.printStackTrace();
         });
 
-        new Thread(flattenTask).start();
+        executeTask(flattenTask);
     }
 
     private String getFlattenedPath(String originalPath) {
@@ -861,5 +862,25 @@ public class XsdController {
         alert.setHeaderText(null); // Wir verwenden keinen Header-Text für ein einfacheres Aussehen
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    /**
+     * Fährt den internen ExecutorService herunter, um sicherzustellen, dass alle
+     * Hintergrund-Threads sauber beendet werden, wenn die Anwendung geschlossen wird.
+     */
+    public void shutdown() {
+        logger.info("Shutting down XsdController's ExecutorService...");
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                logger.warn("ExecutorService did not terminate in time, forcing shutdown.");
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            logger.error("Shutdown of ExecutorService was interrupted.", e);
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt(); // Set the interrupt flag again
+        }
+        logger.info("XsdController shutdown complete.");
     }
 }

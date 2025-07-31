@@ -124,6 +124,10 @@ public class MainController {
         if (xmlController != null) {
             xmlController.shutdown();
         }
+        if (xsdController != null) {
+            xsdController.shutdown();
+        }
+
         logger.info("Aufräumarbeiten abgeschlossen. Anwendung wird geschlossen.");
     }
 

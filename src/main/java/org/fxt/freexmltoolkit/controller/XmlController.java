@@ -129,7 +129,6 @@ public class XmlController {
 
     private final Map<String, Integer> documentVersions = new ConcurrentHashMap<>();
 
-
     @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
