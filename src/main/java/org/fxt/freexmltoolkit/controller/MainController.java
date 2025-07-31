@@ -170,7 +170,7 @@ public class MainController {
 
 
     /**
-     * NEU: Öffentliche Methode, die von anderen Controllern aufgerufen werden kann,
+     * Öffentliche Methode, die von anderen Controllern aufgerufen werden kann,
      * um eine Datei zur Liste der zuletzt geöffneten Dateien hinzuzufügen.
      *
      * @param file die geöffnete Datei

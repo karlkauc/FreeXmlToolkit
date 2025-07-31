@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.fxt.freexmltoolkit.controls.XmlEditor?>
@@ -57,21 +57,6 @@
                 <Button onAction="#decreaseFontSize" text="-" />
             </VBox>
             <Separator orientation="VERTICAL" />
-            <StackPane prefWidth="200.0" alignment="CENTER_LEFT">
-                <TextField fx:id="searchField" promptText="search...">
-                    <padding>
-                        <Insets left="5" right="25" top="5" bottom="5" />
-                    </padding>
-                </TextField>
-                <Label StackPane.alignment="CENTER_RIGHT">
-                    <graphic>
-                        <FontIcon iconLiteral="bi-search" iconColor="#6c757d" />
-                    </graphic>
-                    <padding>
-                        <Insets right="5" />
-                    </padding>
-                </Label>
-            </StackPane>
         </HBox>
         <HBox styleClass="xml">
             <Separator orientation="VERTICAL" />

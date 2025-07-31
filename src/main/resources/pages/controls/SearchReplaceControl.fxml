@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<VBox spacing="10.0" style="-fx-padding: 10; -fx-min-width: 350;" xmlns="http://javafx.com/javafx/17.0.2-ea"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.fxt.freexmltoolkit.controller.controls.SearchReplaceController">
+    <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE">
+        <Tab fx:id="searchTab" text="Search">
+            <VBox spacing="10.0" style="-fx-padding: 10;">
+                <GridPane hgap="10.0" vgap="8.0">
+                    <Label text="Find:" GridPane.rowIndex="0"/>
+                    <TextField fx:id="findFieldSearch" promptText="Enter text to find..." GridPane.columnIndex="1"
+                               GridPane.rowIndex="0"/>
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints/>
+                    </rowConstraints>
+                </GridPane>
+                <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                    <Label fx:id="searchStatusLabel" HBox.hgrow="ALWAYS"/>
+                    <Button onAction="#findPrevious" text="Previous">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-arrow-up"/>
+                        </graphic>
+                    </Button>
+                    <Button onAction="#findNext" text="Next">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-arrow-down"/>
+                        </graphic>
+                    </Button>
+                </HBox>
+            </VBox>
+        </Tab>
+        <Tab fx:id="replaceTab" text="Find &amp; Replace">
+            <VBox spacing="10.0" style="-fx-padding: 10;">
+                <GridPane hgap="10.0" vgap="8.0">
+                    <Label text="Find:" GridPane.rowIndex="0"/>
+                    <TextField fx:id="findFieldReplace" promptText="Enter text to find..." GridPane.columnIndex="1"
+                               GridPane.rowIndex="0"/>
+                    <Label text="Replace with:" GridPane.rowIndex="1"/>
+                    <TextField fx:id="replaceField" promptText="Enter replacement text..." GridPane.columnIndex="1"
+                               GridPane.rowIndex="1"/>
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints/>
+                        <RowConstraints/>
+                    </rowConstraints>
+                </GridPane>
+                <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                    <Label fx:id="replaceStatusLabel" HBox.hgrow="ALWAYS"/>
+                    <Button onAction="#replace" text="Replace"/>
+                    <Button onAction="#replaceAll" text="Replace All"/>
+                </HBox>
+            </VBox>
+        </Tab>
+    </TabPane>
+</VBox>

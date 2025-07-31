@@ -2,8 +2,7 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Side;
@@ -24,6 +23,7 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.TwoDimensional;
 import org.fxt.freexmltoolkit.controller.MainController;
+import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -46,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 
 public class XmlEditor extends Tab {
 
@@ -54,8 +55,6 @@ public class XmlEditor extends Tab {
 
     private final Tab xml = new Tab("XML");
     private final Tab graphic = new Tab("Graphic");
-
-    private final ObjectProperty<Runnable> onSearchRequested = new SimpleObjectProperty<>();
 
     private final XmlCodeEditor xmlCodeEditor = new XmlCodeEditor();
     public final CodeArea codeArea = xmlCodeEditor.getCodeArea();
@@ -83,6 +82,14 @@ public class XmlEditor extends Tab {
     // NEU: Timer, um Anfragen zu verzögern (Debouncing)
     private final PauseTransition hoverDelay = new PauseTransition(Duration.millis(500));
 
+    // --- NEU: Such- und Ersetzen-Funktionalität ---
+    private SearchReplaceController searchController;
+    private PopOver searchPopOver;
+    private final int lastSearchIndex = 0;
+
+    private enum SearchMode {SEARCH, REPLACE}
+
+
     public XmlEditor() {
         init();
     }
@@ -97,20 +104,10 @@ public class XmlEditor extends Tab {
     }
 
     /**
-     * NEU: Setter, um den Server-Proxy direkt zu übergeben.
+     * Setter, um den Server-Proxy direkt zu übergeben.
      */
     public void setLanguageServer(LanguageServer serverProxy) {
         this.serverProxy = serverProxy;
-    }
-
-
-    public final ObjectProperty<Runnable> onSearchRequestedProperty() {
-        return onSearchRequested;
-    }
-
-    public final void setOnSearchRequested(Runnable value) {
-        onSearchRequested.set(value);
-        xmlCodeEditor.setOnSearchRequested(value);
     }
 
     private void init() {
@@ -157,6 +154,30 @@ public class XmlEditor extends Tab {
         hoverPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
         hoverDelay.setOnFinished(e -> triggerLspHover());
 
+        // NEU: Tastenkürzel für Suchen und Ersetzen direkt hier hinzufügen
+        codeArea.setOnKeyPressed(event -> {
+            if (event.isControlDown()) {
+                switch (event.getCode()) {
+                    case F -> {
+                        showSearchPopup(SearchMode.SEARCH);
+                        event.consume();
+                    }
+                    case R -> {
+                        showSearchPopup(SearchMode.REPLACE);
+                        event.consume();
+                    }
+                }
+            }
+        });
+
+        // NEU: Such-Popup initialisieren
+        try {
+            initializeSearchPopup();
+        } catch (IOException e) {
+            logger.error("Failed to initialize search popup.", e);
+            throw new RuntimeException(e);
+        }
+
         xml.setContent(xmlCodeEditor);
 
         this.setText(DEFAULT_FILE_NAME);
@@ -164,6 +185,37 @@ public class XmlEditor extends Tab {
         this.setOnCloseRequest(eh -> logger.debug("Close Event"));
 
         this.setContent(tabPane);
+    }
+
+    /**
+     * Lädt die FXML für das Such-Popup und konfiguriert es.
+     */
+    private void initializeSearchPopup() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/controls/SearchReplaceControl.fxml"));
+        Pane searchPane = loader.load();
+        searchController = loader.getController();
+        searchController.setXmlEditor(this);
+
+        searchPopOver = new PopOver(searchPane);
+        searchPopOver.setDetachable(false);
+        searchPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
+        searchPopOver.setTitle("Find/Replace");
+    }
+
+    /**
+     * Zeigt das Such-Popup an und wählt den richtigen Tab aus.
+     */
+    private void showSearchPopup(SearchMode mode) {
+        if (searchPopOver == null) return;
+
+        if (mode == SearchMode.SEARCH) {
+            searchController.selectTab(searchController.getSearchTab());
+        } else {
+            searchController.selectTab(searchController.getReplaceTab());
+        }
+
+        searchPopOver.show(codeArea, -5);
+        searchController.focusFindField();
     }
 
     /**
@@ -480,50 +532,61 @@ public class XmlEditor extends Tab {
         }
     }
 
-    /**
-     * Searches for the given text in the CodeArea and highlights the first occurrence
-     * by selecting it.
-     *
-     * @param text The text to search for. If null or empty, the highlight is cleared.
-     */
-    public void searchAndHighlight(String text) {
+    // --- NEUE Such- und Ersetzen-Methoden ---
+
+    public void find(String text, boolean forward) {
         // If search text is empty, just clear any existing selection/highlight
         if (text == null || text.isEmpty()) {
-            codeArea.deselect();
             return;
         }
-
         String content = codeArea.getText();
-        // Search for the first occurrence from the beginning of the document
-        int index = content.toLowerCase().indexOf(text.toLowerCase());
+        int searchFrom = codeArea.getSelection().getEnd();
 
-        if (index != -1) {
-            // Found the text, select it to highlight it
-            codeArea.selectRange(index, index + text.length());
-
-            // Scroll the view to the found text
-            // Zum ersten Treffer scrollen und den Cursor dorthin bewegen.
-            codeArea.moveTo(index);
-
-            // Scroll the view to the found text
-            codeArea.requestFollowCaret();
+        int index;
+        if (forward) {
+            index = content.toLowerCase().indexOf(text.toLowerCase(), searchFrom);
+            // Wrap around if not found from caret onwards
+            if (index == -1) {
+                index = content.toLowerCase().indexOf(text.toLowerCase());
+            }
         } else {
             // Text not found, clear any existing selection
-            codeArea.deselect();
+            searchFrom = codeArea.getSelection().getStart() - 1;
+            index = content.toLowerCase().lastIndexOf(text.toLowerCase(), searchFrom);
+            // Wrap around
+            if (index == -1) {
+                index = content.toLowerCase().lastIndexOf(text.toLowerCase());
+            }
         }
+
+        if (index >= 0) {
+            codeArea.selectRange(index, index + text.length());
+            codeArea.requestFollowCaret();
+        }
+    }
+
+    public void replace(String findText, String replaceText) {
+        if (findText == null || findText.isEmpty()) return;
+
+        String selectedText = codeArea.getSelectedText();
+        if (selectedText.equalsIgnoreCase(findText)) {
+            codeArea.replaceSelection(replaceText);
+        }
+        // Find the next occurrence after replacing
+        find(findText, true);
+    }
+
+    public void replaceAll(String findText, String replaceText) {
+        if (findText == null || findText.isEmpty()) return;
+
+        // Use regex for case-insensitive replacement
+        Pattern pattern = Pattern.compile(Pattern.quote(findText), Pattern.CASE_INSENSITIVE);
+        String newContent = pattern.matcher(codeArea.getText()).replaceAll(replaceText);
+
+        codeArea.replaceText(newContent);
     }
 
     public XmlCodeEditor getXmlCodeEditor() {
         return xmlCodeEditor;
-    }
-
-    /**
-     * Clears the current search highlight by deselecting any selected text.
-     */
-    public void clearHighlight() {
-        codeArea.deselect();
-
-        // Ruft die search-Methode mit leerem Text auf, um die Hervorhebung zurückzusetzen.
-        xmlCodeEditor.searchAndHighlight(null);
     }
 }

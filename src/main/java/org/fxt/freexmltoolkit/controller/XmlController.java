@@ -24,7 +24,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -108,9 +107,6 @@ public class XmlController {
     XmlEditor emptyXmlEditor;
 
     @FXML
-    TextField searchField;
-
-    @FXML
     private ProgressIndicator operationProgressBar;
 
     // --- LSP Server Felder ---
@@ -143,34 +139,6 @@ public class XmlController {
         virtualizedScrollPaneXQuery = new VirtualizedScrollPane<>(codeAreaXQuery);
         stackPaneXQuery.getChildren().add(virtualizedScrollPaneXQuery);
         codeAreaXQuery.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXQuery.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText))));
-
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
-            XmlEditor currentEditor = getCurrentXmlEditor();
-            if (currentEditor != null) {
-                // Ruft die neue Suchmethode im aktiven Editor auf
-                currentEditor.searchAndHighlight(newVal);
-            }
-        });
-
-        searchField.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ESCAPE) {
-                XmlEditor editor = getCurrentXmlEditor();
-                if (editor == null) return;
-
-                // Hervorhebung entfernen
-                editor.clearHighlight();
-
-                // Leert das Suchfeld
-                searchField.clear();
-
-                // Optional: Fokus zurück auf den Editor setzen für nahtloses Weiterarbeiten
-                CodeArea currentCodeArea = getCurrentCodeArea();
-                if (currentCodeArea != null) {
-                    currentCodeArea.requestFocus();
-                }
-            }
-        });
-
 
         var t = System.getenv("debug");
         if (t != null) {
@@ -217,11 +185,6 @@ public class XmlController {
         // Dies ist entscheidend für aktuelle Diagnosen und Falt-Bereiche.
         xmlEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
             notifyLspServerFileChanged(xmlEditor);
-        });
-
-        xmlEditor.setOnSearchRequested(() -> {
-            searchField.requestFocus();
-            searchField.selectAll();
         });
 
         xmlFilesPane.getTabs().add(xmlEditor);
@@ -793,10 +756,6 @@ public class XmlController {
             });
 
             xmlEditor.getXmlService().setCurrentXmlFile(selectedFile);
-            xmlEditor.setOnSearchRequested(() -> {
-                searchField.requestFocus();
-                searchField.selectAll();
-            });
 
             if (xmlEditor.getXmlService().loadSchemaFromXMLFile()) {
                 schemaList.getItems().add(xmlEditor.getXmlService().getCurrentXsdFile());
@@ -948,10 +907,6 @@ public class XmlController {
             // Notwendige Abhängigkeiten und Listener für den neuen Editor setzen
             currentEditor.setMainController(this.mainController);
             currentEditor.setLanguageServer(this.serverProxy);
-            currentEditor.setOnSearchRequested(() -> {
-                searchField.requestFocus();
-                searchField.selectAll();
-            });
 
             // Listener für Textänderungen auch hier hinzufügen, damit Falt-Bereiche
             // und Diagnosen bei der Bearbeitung aktualisiert werden.

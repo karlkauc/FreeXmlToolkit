@@ -1,12 +1,9 @@
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
@@ -38,9 +35,6 @@ public class XmlCodeEditor extends StackPane {
 
     private final CodeArea codeArea = new CodeArea();
     private final VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
-
-    // Property, um eine Such-Aktion von außen zu registrieren
-    private final ObjectProperty<Runnable> onSearchRequested = new SimpleObjectProperty<>();
 
     // Speichert Start- und Endzeilen der faltbaren Bereiche
     private final Map<Integer, Integer> foldingRegions = new HashMap<>();
@@ -97,24 +91,20 @@ public class XmlCodeEditor extends StackPane {
         // Handler für Tastenkombinationen
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             // Schriftgröße mit Strg +/-, Reset mit Strg + 0
-            if (event.isControlDown()) {
-                if (event.getCode() == KeyCode.PLUS || event.getCode() == KeyCode.ADD) {
+            switch (event.getCode()) {
+                case PLUS, ADD -> {
                     increaseFontSize();
                     event.consume();
-                } else if (event.getCode() == KeyCode.MINUS || event.getCode() == KeyCode.SUBTRACT) {
+                }
+                case MINUS, SUBTRACT -> {
                     decreaseFontSize();
                     event.consume();
-                } else if (event.getCode() == KeyCode.NUMPAD0 || event.getCode() == KeyCode.DIGIT0) {
+                }
+                case NUMPAD0, DIGIT0 -> {
                     resetFontSize();
                     event.consume();
                 }
-            }
-
-            // Suche mit Strg + F
-            if (event.isControlDown() && event.getCode() == KeyCode.F) {
-                if (getOnSearchRequested() != null) {
-                    getOnSearchRequested().run();
-                    event.consume();
+                default -> {
                 }
             }
         });
@@ -230,23 +220,6 @@ public class XmlCodeEditor extends StackPane {
     }
 
     // --- Öffentliche API für den Editor ---
-
-    /**
-     * Setzt die Aktion, die bei Strg+F ausgeführt werden soll.
-     * @param value Die auszuführende Aktion (Runnable).
-     */
-    public final void setOnSearchRequested(Runnable value) {
-        onSearchRequested.set(value);
-    }
-
-    public final Runnable getOnSearchRequested() {
-        return onSearchRequested.get();
-    }
-
-    public final ObjectProperty<Runnable> onSearchRequestedProperty() {
-        return onSearchRequested;
-    }
-
     public void moveUp() {
         codeArea.moveTo(0);
         codeArea.showParagraphAtTop(0);
