@@ -33,6 +33,7 @@ application {
     // -Djavafx.verbose=true
     applicationDefaultJvmArgs = listOf(
         "-Djavafx.css.dump.lookup.errors=true",
+        "--enable-native-access=javafx.graphics",
         // Erlaubt FXML, auf interne JavaFX-Klassen zuzugreifen, um Reflection-Warnungen zu vermeiden
         "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
         "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",

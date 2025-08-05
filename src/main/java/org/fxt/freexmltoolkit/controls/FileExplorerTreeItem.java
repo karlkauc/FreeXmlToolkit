@@ -29,7 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-public class FileExplorerTreeItem<T> extends TreeItem<T> {
+public class FileExplorerTreeItem extends TreeItem<Path> {
 
     private static final Logger logger = LogManager.getLogger(FileExplorerTreeItem.class);
     private boolean isLeaf;
@@ -42,19 +42,18 @@ public class FileExplorerTreeItem<T> extends TreeItem<T> {
 
     private final List<String> allowedExtensions;
 
-
-    public FileExplorerTreeItem(T value) {
+    public FileExplorerTreeItem(Path value) {
         this(value, null);
     }
 
-    public FileExplorerTreeItem(T value, List<String> allowedExtensions) {
+    public FileExplorerTreeItem(Path value, List<String> allowedExtensions) {
         super(value);
         this.allowedExtensions = allowedExtensions;
     }
 
     public long getSubdirectoryCount() {
         if (this.subdirectoryCount == -1) { // Nur beim ersten Mal berechnen
-            Path path = (Path) getValue();
+            Path path = getValue();
             if (Files.isDirectory(path)) {
                 try (var stream = Files.list(path)) {
                     // Zähle nur die Elemente im Stream, die Verzeichnisse sind.
@@ -71,7 +70,7 @@ public class FileExplorerTreeItem<T> extends TreeItem<T> {
     }
 
     @Override
-    public ObservableList<TreeItem<T>> getChildren() {
+    public ObservableList<TreeItem<Path>> getChildren() {
         if (isFirstTimeChildren) {
             isFirstTimeChildren = false;
             super.getChildren().setAll(buildChildren(this));
@@ -83,7 +82,7 @@ public class FileExplorerTreeItem<T> extends TreeItem<T> {
     public boolean isLeaf() {
         if (isFirstTimeLeaf) {
             isFirstTimeLeaf = false;
-            Path path = (Path) getValue();
+            Path path = getValue();
 
             if (Files.isRegularFile(path)) {
                 isLeaf = true;
@@ -114,11 +113,11 @@ public class FileExplorerTreeItem<T> extends TreeItem<T> {
         return isLeaf;
     }
 
-    private ObservableList<TreeItem<T>> buildChildren(TreeItem<T> treeItem) {
-        Path path = (Path) treeItem.getValue();
+    private ObservableList<TreeItem<Path>> buildChildren(TreeItem<Path> treeItem) {
+        Path path = treeItem.getValue();
         if (path != null && Files.isDirectory(path)) {
             try {
-                var children = javafx.collections.FXCollections.<TreeItem<T>>observableArrayList();
+                var children = javafx.collections.FXCollections.<TreeItem<Path>>observableArrayList();
                 try (var stream = Files.list(path)) {
                     stream
                             // Wir filtern den Stream, bevor wir die Elemente verarbeiten.
@@ -141,7 +140,7 @@ public class FileExplorerTreeItem<T> extends TreeItem<T> {
                                 return p1.getFileName().toString().compareToIgnoreCase(p2.getFileName().toString());
                             })
                             // KORREKTUR: Wir übergeben die Filterliste an die Kind-Elemente weiter.
-                            .forEach(p -> children.add(new FileExplorerTreeItem<>((T) p, this.allowedExtensions)));
+                            .forEach(p -> children.add(new FileExplorerTreeItem(p, this.allowedExtensions)));
                 }
                 return children;
             } catch (IOException e) {

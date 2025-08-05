@@ -57,7 +57,7 @@ public class FileExplorer extends VBox {
     private final StringProperty displayText = new SimpleStringProperty();
     private Path selectedFile;
     private List<String> allowedFileExtensions;
-    private FileExplorerTreeItem<Path> root;
+    private FileExplorerTreeItem root;
 
     /**
      * Constructs a FileExplorer instance and initializes the UI components.
@@ -81,7 +81,7 @@ public class FileExplorer extends VBox {
             this.root.getChildren().clear();
             for (File file : File.listRoots()) {
                 // Erstelle die Laufwerks-Knoten mit der jetzt vorhandenen Filterliste.
-                this.root.getChildren().add(new FileExplorerTreeItem<>(file.toPath(), this.allowedFileExtensions));
+                this.root.getChildren().add(new FileExplorerTreeItem(file.toPath(), this.allowedFileExtensions));
             }
         }
     }
@@ -140,7 +140,7 @@ public class FileExplorer extends VBox {
                             ((FontIcon) getGraphic()).setIconLiteral("fa-folder-open-o");
                         }
 
-                        if (genericTreeItem instanceof FileExplorerTreeItem<Path> customTreeItem) {
+                        if (genericTreeItem instanceof FileExplorerTreeItem customTreeItem) {
                             long count = customTreeItem.getSubdirectoryCount();
                             if (count > 0) {
                                 getStyleClass().add("has-subdirectories");
@@ -159,7 +159,7 @@ public class FileExplorer extends VBox {
         ));
 
         String hostName = getHostName();
-        this.root = new FileExplorerTreeItem<>(Paths.get(hostName)) {
+        this.root = new FileExplorerTreeItem(Paths.get(hostName)) {
             @Override
             public boolean isLeaf() {
                 return false;
@@ -168,7 +168,7 @@ public class FileExplorer extends VBox {
         this.root.setExpanded(true);
 
         for (File file : File.listRoots()) {
-            this.root.getChildren().add(new FileExplorerTreeItem<>(file.toPath(), this.allowedFileExtensions));
+            this.root.getChildren().add(new FileExplorerTreeItem(file.toPath(), this.allowedFileExtensions));
         }
 
         fileTreeView.setRoot(this.root);
