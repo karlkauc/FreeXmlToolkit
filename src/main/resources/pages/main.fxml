@@ -27,7 +27,7 @@
 <?import org.kordamp.ikonli.javafx.*?>
 <AnchorPane prefHeight="800.0" prefWidth="1400.0"
 
-            stylesheets="@../css/modern-theme.css"
+            stylesheets="@../css/fxt-theme.css"
             xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.MainController">
 

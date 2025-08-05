@@ -1,0 +1,588 @@
+/*!
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2025.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+/*
+ * FreeXMLToolkit - Universal Toolkit for XML
+ * Copyright (c) Karl Kauc 2023.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+.tagmark {
+  -fx-fill: rgb(0, 0, 255);
+}
+
+.anytag {
+  -fx-fill: rgb(128, 0, 0);
+}
+
+.paren {
+  -fx-fill: firebrick;
+  -fx-font-weight: bold;
+}
+
+.attribute {
+  -fx-fill: darkviolet;
+}
+
+.avalue {
+  -fx-fill: black;
+}
+
+.comment {
+  -fx-fill: teal;
+}
+
+/* line Number */
+.lineno {
+  -fx-background-color: #e3e3e3;
+}
+
+/* defaults */
+.code-area {
+  -fx-font-family: monospace;
+}
+
+/*
+ * Style für den TreeTableView im FileExplorer, um Plus/Minus-Symbole anzuzeigen.
+ */
+/*
+ * Richtet die Spaltenüberschriften linksbündig aus.
+ */
+.tree-table-view .column-header .label {
+  -fx-alignment: center-left;
+}
+
+/*
+ * Schritt 1: Standardmäßig ist der Pfeil unsichtbar.
+ * Er wird für alle aufklappbaren Knoten gerendert, aber wir verstecken ihn.
+ */
+.tree-table-view .tree-disclosure-node .arrow {
+  -fx-background-color: transparent;
+  -fx-shape: " "; /* Leere Form, um sicherzugehen, dass nichts gezeichnet wird */
+}
+
+/*
+ * Schritt 2: NUR für Zellen mit unserer speziellen Klasse .has-subdirectories
+ * machen wir das Symbol sichtbar und stylen es.
+ */
+.tree-table-view .tree-table-row-cell.has-subdirectories .tree-disclosure-node .arrow {
+  -fx-background-color: -fx-text-base-color; /* Farbe wiederherstellen */
+  -fx-padding: 4px; /* Abstand wiederherstellen */
+}
+
+/*
+ * Schritt 3: Wir definieren das Minus-Symbol für aufgeklappte Zeilen,
+ * die unsere Klasse haben.
+ */
+.tree-table-view .tree-table-row-cell.has-subdirectories:expanded .tree-disclosure-node .arrow {
+  /* Wir zeichnen eine einfache horizontale Linie. */
+  -fx-shape: "M 0 3.5 L 8 3.5 L 8 4.5 L 0 4.5 Z";
+}
+
+/*
+ * Schritt 4: Wir definieren das Plus-Symbol für geschlossene Zeilen,
+ * die unsere Klasse haben.
+ */
+.tree-table-view .tree-table-row-cell.has-subdirectories:not(:expanded) .tree-disclosure-node .arrow {
+  /* Wir zeichnen ein Kreuz. */
+  -fx-shape: "M 0 3.5 L 8 3.5 L 8 4.5 L 0 4.5 Z M 3.5 0 L 4.5 0 L 4.5 8 L 3.5 8 Z";
+}
+
+/* =================================================================
+   Modernes, professionelles Theme für das FreeXMLToolkit
+   ================================================================= */
+.h1 {
+  -fx-font-family: Roboto;
+  -fx-font-size: 4em;
+}
+
+.h2 {
+  -fx-font-family: Roboto;
+  -fx-font-weight: bold;
+  -fx-font-size: 1.5em;
+  -fx-padding: 0 0 5px 0;
+}
+
+.h3 {
+  -fx-font-family: Roboto;
+  -fx-font-weight: bold;
+  -fx-font-size: 1.1em;
+}
+
+.bottom_line {
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2A9D8F 0%, #264653 100%);
+  -fx-pref-height: 20;
+  -fx-max-height: 20;
+  -fx-min-height: 20;
+}
+
+.menu_box {
+  -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #fdeec5 0%, #fc9040 100%);
+  -fx-pref-width: 150;
+  -fx-font-weight: bold;
+}
+
+/* =================================================================
+   Allgemeine Steuerelemente
+   ================================================================= */
+.button {
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #ffffff, #f0f2f5);
+  -fx-text-fill: #24292f;
+  -fx-padding: 5px 15px;
+  -fx-font-weight: bold;
+  -fx-cursor: hand;
+  -fx-border-color: #d0d7de;
+  -fx-border-width: 1px;
+  -fx-background-radius: 4px;
+  -fx-border-radius: 6px;
+}
+
+.button:hover {
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #ffffff, #e9ecef);
+}
+
+.button:pressed {
+  -fx-background-color: #e9ecef;
+  -fx-background-insets: 1 0 0 0; /* Simuliert das Hineindrücken */
+  -fx-padding: 6px 15px 4px 15px; /* Verschiebt den Text um 1px nach unten */
+}
+
+.menu_button {
+  -fx-pref-height: 50;
+  -fx-min-width: 200;
+  -fx-pref-width: 200;
+  -fx-max-width: 200;
+  -fx-alignment: baseline-left;
+  -fx-text-fill: #24292f;
+  -fx-padding: 5px 15px;
+  -fx-font-weight: bold;
+  -fx-background-color: transparent;
+  -fx-border-width: 0px;
+}
+
+.menu_button:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.menu_button:pressed {
+  -fx-background-color: #e9ecef;
+}
+
+.button:default {
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2b8aff, #0969da);
+  -fx-text-fill: white;
+  -fx-border-color: #0550ae; /* Dunklerer Blauton für den Rand */
+}
+
+.button:default:hover {
+  -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3c9aff, #0a5ccb);
+}
+
+.button:default:pressed {
+  -fx-background-color: #0a5ccb;
+  -fx-background-insets: 1 0 0 0;
+  -fx-padding: 6px 15px 4px 15px;
+}
+
+.label {
+  -fx-text-fill: #24292f;
+}
+
+.text-field, .text-area {
+  -fx-background-color: #ffffff;
+  -fx-background-insets: 0;
+  -fx-background-radius: 6px;
+  -fx-prompt-text-fill: #8c959f;
+}
+
+.text-field:focused, .text-area:focused {
+  -fx-border-color: #0969da;
+  -fx-effect: dropshadow(gaussian, rgba(9, 105, 218, 0.3), 5, 0, 0, 0);
+}
+
+.code-area {
+  -fx-background-color: #ffffff;
+}
+
+.code-area .paragraph-box:has-caret {
+  -fx-background-color: #f6f8fa;
+}
+
+/* =================================================================
+   Tab-Pane (für den Editor)
+   ================================================================= */
+.tab-pane {
+  -fx-tab-min-height: 20px;
+  -fx-tab-max-height: 20px;
+}
+
+.tab-pane .tab-header-area {
+  -fx-background-color: #f6f8fa;
+  -fx-padding: 0 0 0 5px;
+}
+
+.tab-pane .tab {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+  -fx-border-width: 0 0 2px 0;
+  -fx-padding: 8px 12px;
+  -fx-background-insets: 0;
+}
+
+.tab-pane .tab:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.tab-pane .tab:selected {
+  -fx-background-color: #f5f5f5;
+  -fx-border-color: #0969da;
+  -fx-font-weight: bold;
+}
+
+.tab-pane .tab:selected .tab-label {
+  -fx-text-fill: #24292f;
+}
+
+.tab-pane .tab .tab-label {
+  -fx-text-fill: #57606a;
+}
+
+.tab-pane > .tab-content-area {
+  -fx-background-color: #f5f5f5;
+  -fx-padding: 0;
+}
+
+/* =================================================================
+   Listen und Bäume (TreeView, ListView)
+   ================================================================= */
+.tree-cell, .list-cell {
+  -fx-padding: 8px 12px;
+  -fx-background-color: transparent;
+  -fx-text-fill: #24292f;
+}
+
+.tree-cell:hover, .list-cell:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.tree-cell:selected, .list-cell:selected {
+  -fx-background-color: #0969da;
+  -fx-text-fill: white;
+}
+
+.tree-cell:selected:focused, .list-cell:selected:focused {
+  -fx-background-color: #0969da;
+}
+
+.tree-cell > .tree-disclosure-node > .arrow {
+  -fx-background-color: #57606a;
+}
+
+.tree-cell:selected > .tree-disclosure-node > .arrow {
+  -fx-background-color: white;
+}
+
+/* =================================================================
+   Menüs (MenuBar, ContextMenu)
+   ================================================================= */
+.menu-bar {
+  -fx-background-color: #f5f5f5;
+  -fx-border-width: 0 0 1px 0;
+  -fx-border-color: #e1e4e8;
+  -fx-padding: 2px 5px;
+}
+
+.menu-button:hover, .menu-button:focused, .menu-button:showing {
+  -fx-background-color: #e9ecef;
+}
+
+.context-menu {
+  -fx-background-color: #f5f5f5;
+  -fx-background-insets: 0;
+  -fx-padding: 5px;
+  -fx-border-color: #d0d7de;
+  -fx-border-radius: 6px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 10, 0, 0, 2);
+}
+
+.menu-item {
+  -fx-padding: 8px 12px;
+}
+
+.menu-item:focused {
+  -fx-background-color: #0969da;
+}
+
+.menu-item:focused .label {
+  -fx-text-fill: white;
+}
+
+/* =================================================================
+   Scroll- und Split-Panes
+   ================================================================= */
+.scroll-pane {
+  -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical, .scroll-bar:horizontal {
+  -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+  -fx-background-insets: 2px;
+  -fx-background-radius: 8px;
+}
+
+.scroll-bar .thumb:hover {
+  -fx-background-color: #57606a;
+}
+
+.split-pane:horizontal > .split-pane-divider {
+  -fx-border-color: transparent;
+  -fx-background-color: #e1e4e8;
+  -fx-padding: 0 1px;
+}
+
+.split-pane:vertical > .split-pane-divider {
+  -fx-border-color: transparent;
+  -fx-background-color: #e1e4e8;
+  -fx-padding: 1px 0;
+}
+
+/* =================================================================
+   Karten-Layout (für Formulare und gruppierte Inhalte)
+   ================================================================= */
+.card {
+  -fx-background-color: #f5f5f5;
+  -fx-border-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-radius: 6px;
+  -fx-background-radius: 6px;
+  -fx-padding: 20px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 2);
+}
+
+.card-title {
+  -fx-font-size: 1.2em;
+  -fx-font-weight: bold;
+  -fx-text-fill: #24292f;
+  -fx-padding: 0 0 10px 0;
+}
+
+/* =================================================================
+   Modernes Layout für die XML-Baumansicht (SimpleNodeElement)
+   ================================================================= */
+.simple-node-element {
+  -fx-padding: 0 0 0 5px;
+}
+
+.children-container {
+  -fx-padding: 2px 0 2px 20px;
+  -fx-border-color: #e1e4e8 transparent transparent transparent;
+  -fx-border-width: 1px;
+  -fx-border-style: solid;
+  -fx-spacing: 4px;
+}
+
+.element-box {
+  -fx-padding: 4px;
+  -fx-alignment: center-left;
+  -fx-background-radius: 6px;
+  -fx-cursor: hand;
+}
+
+.element-box:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.node-label-complex {
+  -fx-font-size: 1.05em;
+  -fx-font-weight: bold;
+  -fx-text-fill: #24292f;
+}
+
+.node-count-label {
+  -fx-font-size: 0.9em;
+  -fx-text-fill: #57606a;
+  -fx-padding: 0 0 0 5px;
+}
+
+.tree-toggle-button {
+  -fx-background-color: transparent;
+  -fx-min-width: 18px;
+  -fx-min-height: 18px;
+  -fx-max-width: 18px;
+  -fx-max-height: 18px;
+  -fx-padding: 0;
+  -fx-background-radius: 100px;
+}
+
+.tree-toggle-button:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.tree-toggle-button .icon {
+  -fx-min-width: 8px;
+  -fx-min-height: 8px;
+  -fx-max-width: 8px;
+  -fx-max-height: 8px;
+  -fx-background-color: #57606a;
+}
+
+.tree-toggle-button:hover .icon {
+  -fx-background-color: #24292f;
+}
+
+.icon.toggle-expand {
+  -fx-shape: "M 0 0 L 8 4 L 0 8 Z";
+}
+
+.icon.toggle-collapse {
+  -fx-shape: "M 0 0 L 8 0 L 4 8 Z";
+}
+
+.xml-tree-text {
+  -fx-background-color: #f5f5f5;
+  -fx-padding: 8px;
+  -fx-border-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-radius: 6px;
+  -fx-background-radius: 6px;
+  -fx-hgap: 10px;
+  -fx-vgap: 4px;
+}
+
+.node-name-box, .attribute-box {
+  -fx-alignment: center-left;
+  -fx-text-fill: #57606a;
+  -fx-font-weight: bold;
+}
+
+.attribute-box .label {
+  -fx-text-fill: #0550ae;
+}
+
+.node-value-box, .attribute-value-box {
+  -fx-alignment: center-left;
+  -fx-text-fill: #24292f;
+  -fx-background-radius: 4px;
+  -fx-padding: 2px 5px;
+}
+
+.node-value-box:hover, .attribute-value-box:hover {
+  -fx-background-color: #0969da;
+  -fx-cursor: hand;
+}
+
+.node-value-box:hover .label,
+.attribute-value-box:hover .label {
+  -fx-text-fill: white;
+}
+
+.children-container {
+  -fx-padding: 2px 0 2px 0;
+  -fx-border-color: #e1e4e8 transparent transparent transparent;
+  -fx-border-width: 1px;
+  -fx-border-style: solid;
+  -fx-spacing: 4px;
+}
+
+.collapse-bar {
+  -fx-min-width: 20px;
+  -fx-max-width: 20px;
+  -fx-background-color: transparent;
+  -fx-cursor: hand;
+  -fx-border-color: transparent #e1e4e8 transparent transparent;
+  -fx-border-width: 1px;
+  -fx-border-style: solid;
+}
+
+.collapse-bar:hover {
+  -fx-background-color: #e9ecef;
+}
+
+.xml-tree-comment {
+  -fx-text-fill: #8c959f;
+  -fx-font-style: italic;
+  -fx-padding: 2px 5px;
+}
+
+/* =================================================================
+   XML Code Editor - Erweiterungen
+   ================================================================= */
+.table-grid {
+  -fx-hgap: 1px;
+  -fx-vgap: 1px;
+  -fx-background-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-style: solid;
+  -fx-border-radius: 6px;
+  -fx-background-radius: 6px;
+  -fx-padding: 1px;
+}
+
+.table-header {
+  -fx-background-color: #f6f8fa;
+  -fx-font-weight: bold;
+  -fx-padding: 6px 8px;
+  -fx-text-fill: #24292f;
+  -fx-alignment: center-left;
+}
+
+.table-cell {
+  -fx-background-color: #ffffff;
+  -fx-padding: 6px 8px;
+  -fx-alignment: center-left;
+}
+
+.table-cell:hover {
+  -fx-background-color: #f6f8fa;
+}
+
+.search-highlight {
+  -fx-fill: black;
+  -fx-background-color: #ffdd00;
+}
+
+.diagnostic-error {
+  -fx-underline: true;
+  -fx-stroke: red;
+  -fx-stroke-type: outside;
+  -fx-stroke-width: 1;
+  -fx-stroke-dash-array: 1 2;
+}
+
+.diagnostic-warning {
+  -fx-underline: true;
+  -fx-stroke: orange;
+  -fx-stroke-type: outside;
+  -fx-stroke-width: 1;
+  -fx-stroke-dash-array: 1 2;
+}
+
+/*# sourceMappingURL=fxt-theme.css.map */
