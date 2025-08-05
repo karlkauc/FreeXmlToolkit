@@ -171,63 +171,44 @@ public class XmlCodeEditor extends StackPane {
             }
 
             boolean isFoldable = foldingRegions.containsKey(lineIndex);
-
-            // Wir verwenden unseren eigenen Zustandsspeicher statt einer Bibliotheksmethode.
             boolean isFolded = foldedLines.contains(lineIndex);
 
-            // KORREKTUR: Wir verwenden Region, aber mit den korrekten Style-Klassen
-            // und ohne fest codierte Farben, damit das CSS-Styling funktioniert.
+            // Icon erstellen
             Region foldingIndicator = new Region();
-            foldingIndicator.getStyleClass().add("folding-indicator"); // Korrekte Basis-Klasse
-            foldingIndicator.setPrefSize(12, 12);
-            // Wichtig: min/max-Size setzen, damit die Region nicht schrumpft/wächst.
-            foldingIndicator.setMinSize(12, 12);
-            foldingIndicator.setMaxSize(12, 12);
+            foldingIndicator.getStyleClass().add("icon");
 
-
-            // CSS-Klassen für den Zustand (ausgeklappt/eingeklappt) setzen
             if (isFolded) {
-                foldingIndicator.getStyleClass().add("collapsed"); // Korrekte Zustands-Klasse
+                foldingIndicator.getStyleClass().add("toggle-expand");
             } else {
-                foldingIndicator.getStyleClass().add("expanded"); // Korrekte Zustands-Klasse
+                foldingIndicator.getStyleClass().add("toggle-collapse");
             }
 
-            // Klick-Logik
-            foldingIndicator.setOnMouseClicked(e -> {
-                // Bei großen Textblöcken kann das Falten die UI blockieren.
-                // Wir ändern den Cursor, um dem Benutzer Feedback zu geben, dass die Anwendung arbeitet.
+            // Erstelle einen Wrapper für das Icon, um die CSS-Struktur aus SimpleNodeElement nachzubilden.
+            StackPane iconWrapper = new StackPane(foldingIndicator);
+            iconWrapper.getStyleClass().add("tree-toggle-button");
+
+            // Klick-Logik auf den Wrapper anwenden
+            iconWrapper.setOnMouseClicked(e -> {
                 if (getScene() != null) {
                     getScene().setCursor(Cursor.WAIT);
                 }
-
-                // Wir verwenden Platform.runLater, damit die UI Zeit hat, den Cursor zu aktualisieren,
-                // bevor die blockierende Operation startet.
                 Platform.runLater(() -> {
                     try {
-                        // Erneut auf Gültigkeit prüfen, falls sich der Text in der Zwischenzeit geändert hat
                         if (lineIndex >= codeArea.getParagraphs().size()) {
                             return;
                         }
-
-                        // Den Zustand immer frisch aus unserem eigenen Set abfragen und aktualisieren
                         if (foldedLines.contains(lineIndex)) {
                             codeArea.unfoldParagraphs(lineIndex);
-                            foldedLines.remove(lineIndex); // Zustand aktualisieren
+                            foldedLines.remove(lineIndex);
                         } else {
                             Integer endLine = foldingRegions.get(lineIndex);
                             if (endLine != null) {
                                 codeArea.foldParagraphs(lineIndex, endLine);
-                                foldedLines.add(lineIndex); // Zustand aktualisieren
+                                foldedLines.add(lineIndex);
                             }
                         }
-
-                        // KORREKTUR: Erzwingt eine sofortige Neuzeichnung aller Gutter-Grafiken.
-                        // Dies synchronisiert den visuellen Zustand der Icons mit unserem internen Zustand.
                         codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
-
                     } finally {
-                        // Den Cursor im finally-Block zurücksetzen, um sicherzustellen,
-                        // dass er auch bei einem Fehler wieder normal wird.
                         if (getScene() != null) {
                             getScene().setCursor(Cursor.DEFAULT);
                         }
@@ -235,16 +216,13 @@ public class XmlCodeEditor extends StackPane {
                 });
             });
 
-            // Zeilennummer-Grafik holen
             Node lineNumberNode = LineNumberFactory.get(codeArea).apply(lineIndex);
-
-            // Zeilennummer und Falt-Symbol in einer HBox kombinieren
-            HBox hbox = new HBox(lineNumberNode, foldingIndicator);
+            HBox hbox = new HBox(lineNumberNode, iconWrapper);
             hbox.setAlignment(Pos.BASELINE_LEFT);
             hbox.setSpacing(5);
 
-            // Das Symbol ist nur sichtbar, wenn die Zeile faltbar ist.
-            foldingIndicator.setVisible(isFoldable);
+            // Der Wrapper (und damit das Symbol) ist nur sichtbar, wenn die Zeile faltbar ist.
+            iconWrapper.setVisible(isFoldable);
 
             return hbox;
         };

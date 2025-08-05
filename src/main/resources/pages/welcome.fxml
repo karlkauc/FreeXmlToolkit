@@ -22,7 +22,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
-<AnchorPane stylesheets="@../css/app.css" xmlns="http://javafx.com/javafx/11.0.14-internal"
+<AnchorPane xmlns="http://javafx.com/javafx/11.0.14-internal"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.WelcomeController">
     <children>
         <VBox spacing="20.0" styleClass="my_container">

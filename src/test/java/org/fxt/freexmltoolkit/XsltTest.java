@@ -29,7 +29,6 @@ import java.io.StringWriter;
 
 public class XsltTest {
 
-
     @Test
     void testTransform() {
         File inputXslt = new File("C:\\Data\\TEMP\\2023-03-07_XSLT_TEST\\test.xslt");

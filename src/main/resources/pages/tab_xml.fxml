@@ -7,7 +7,6 @@
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
-      stylesheets="@../css/app.css"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <HBox>
         <HBox styleClass="xml">

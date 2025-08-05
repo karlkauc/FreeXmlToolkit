@@ -20,34 +20,24 @@
    Modernes, professionelles Theme für das FreeXMLToolkit
    ================================================================= */
 
-/* :root - Hier werden alle zentralen Variablen definiert (Farben, Radien, etc.)
- * Das Ändern einer Variable hier wirkt sich auf das gesamte Theme aus.
- * -------------------------------------------------------------------------- */
 .root {
-    /* Farbpalette */
-    -fx-primary-accent: #0969da; /* Ein kräftiges Blau für Akzente und Auswahl */
-    -fx-primary-accent-hover: #0a5ccb;
-    -fx-primary-accent-text: white;
+    -fx-font-family-sans: "Segoe UI", "Roboto", "Helvetica Neue", "Arial", sans-serif;
 
-    -fx-background-color: #f6f8fa; /* Sehr heller, fast weißer Hintergrund */
-    -fx-control-background: #f5f5f5; /* Hintergrund für die meisten Steuerelemente */
-    -fx-control-inner-background: #ffffff; /* Hintergrund für Eingabefelder */
+    -fx-color-primary-accent: #0969da;
+    -fx-color-primary-accent-hover: #0a5ccb;
+    -fx-color-primary-accent-text: white;
+    -fx-color-background: #f6f8fa;
+    -fx-color-control-background: #f5f5f5;
+    -fx-color-control-inner-background: #ffffff;
+    -fx-color-text: #24292f;
+    -fx-color-text-secondary: #57606a;
+    -fx-color-text-muted: #8c959f;
+    -fx-color-border: #d0d7de;
+    -fx-color-border-focused: #0969da;
+    -fx-color-border-subtle: #e1e4e8;
 
-    -fx-text-color: #24292f; /* Dunkles Grau für primären Text */
-    -fx-text-color-secondary: #57606a; /* Helleres Grau für sekundären Text */
-    -fx-text-color-muted: #8c959f; /* Sehr helles Grau für Hinweise */
-
-    -fx-border-color: #d0d7de; /* Standard-Randfarbe */
-    -fx-border-color-focused: -fx-primary-accent; /* Randfarbe bei Fokus */
-    -fx-border-color-subtle: #e1e4e8; /* Feinere Trennlinien */
-
-    /* Schriftart und Größen */
-    -fx-font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-family: -fx-font-family-sans;
     -fx-font-size: 14px;
-    -fx-font-size-small: 12px;
-
-    /* Abmessungen */
-    -fx-border-radius: 6px;
     -fx-padding: 0px;
 }
 
@@ -87,22 +77,25 @@
    ================================================================= */
 
 .button {
-    /* Weißer Hintergrund für besseren Kontrast zum hellgrauen App-Hintergrund */
-    -fx-background-color: -fx-control-background;
-    -fx-text-fill: -fx-text-color;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, -fx-color-control-inner-background, #f0f2f5);
+    -fx-text-fill: -fx-color-text;
     -fx-padding: 5px 15px;
     -fx-font-weight: bold;
-    -fx-cursor: hand; /* Zeigt einen Hand-Cursor beim Überfahren für bessere Usability */
+    -fx-cursor: hand;
+    -fx-border-color: -fx-color-border;
+    -fx-border-width: 1px;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 6px;
 }
 
-/* Fügt einen Hover-Effekt hinzu, damit der Button auf die Maus reagiert */
 .button:hover {
-    -fx-background-color: #f0f2f5; /* Ein sehr heller Grauton beim Hover */
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #ffffff, #e9ecef);
 }
 
-/* Fügt einen Pressed-Effekt für visuelles Feedback beim Klicken hinzu */
 .button:pressed {
-    -fx-background-color: #e9ecef; /* Ein etwas dunklerer Ton beim Drücken */
+    -fx-background-color: #e9ecef;
+    -fx-background-insets: 1 0 0 0; /* Simuliert das Hineindrücken */
+    -fx-padding: 6px 15px 4px 15px; /* Verschiebt den Text um 1px nach unten */
 }
 
 .menu_button {
@@ -111,10 +104,11 @@
     -fx-pref-width: 200;
     -fx-max-width: 200;
     -fx-alignment: baseline-left;
-    -fx-text-fill: -fx-text-color;
+    -fx-text-fill: -fx-color-text;
     -fx-padding: 5px 15px;
     -fx-font-weight: bold;
     -fx-background-color: transparent;
+    -fx-border-width: 0px;
 }
 
 .menu_button:hover {
@@ -125,34 +119,38 @@
     -fx-background-color: #e9ecef;
 }
 
-/* Primärer Button-Stil */
 .button:default {
-    -fx-background-color: -fx-primary-accent;
-    -fx-text-fill: -fx-primary-accent-text;
-    -fx-border-color: transparent;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2b8aff, -fx-color-primary-accent);
+    -fx-text-fill: -fx-color-primary-accent-text;
+    -fx-border-color: #0550ae; /* Dunklerer Blauton für den Rand */
 }
 
 .button:default:hover {
-    -fx-background-color: -fx-primary-accent-hover;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3c9aff, -fx-color-primary-accent-hover);
+}
+
+.button:default:pressed {
+    -fx-background-color: -fx-color-primary-accent-hover;
+    -fx-background-insets: 1 0 0 0;
+    -fx-padding: 6px 15px 4px 15px;
 }
 
 .label {
-    -fx-text-fill: -fx-text-color;
+    -fx-text-fill: -fx-color-text;
 }
 
 .text-field, .text-area {
-    -fx-background-color: -fx-control-inner-background;
+    -fx-background-color: -fx-color-control-inner-background;
     -fx-background-insets: 0;
-    -fx-background-radius: -fx-border-radius;
-    -fx-prompt-text-fill: -fx-text-color-muted;
+    -fx-background-radius: 6px;
+    -fx-prompt-text-fill: -fx-color-text-muted;
 }
 
 .text-field:focused, .text-area:focused {
-    -fx-border-color: -fx-border-color-focused;
+    -fx-border-color: -fx-color-border-focused;
     -fx-effect: dropshadow(gaussian, rgba(9, 105, 218, 0.3), 5, 0, 0, 0);
 }
 
-/* Speziell für CodeArea (RichTextFX) */
 .code-area {
     -fx-background-color: #ffffff;
 }
@@ -171,7 +169,7 @@
 }
 
 .tab-pane .tab-header-area {
-    -fx-background-color: -fx-background-color;
+    -fx-background-color: -fx-color-background;
     -fx-padding: 0 0 0 5px;
 }
 
@@ -188,21 +186,21 @@
 }
 
 .tab-pane .tab:selected {
-    -fx-background-color: -fx-control-background;
-    -fx-border-color: -fx-primary-accent;
+    -fx-background-color: -fx-color-control-background;
+    -fx-border-color: -fx-color-primary-accent;
     -fx-font-weight: bold;
 }
 
 .tab-pane .tab:selected .tab-label {
-    -fx-text-fill: -fx-text-color;
+    -fx-text-fill: -fx-color-text;
 }
 
 .tab-pane .tab .tab-label {
-    -fx-text-fill: -fx-text-color-secondary;
+    -fx-text-fill: -fx-color-text-secondary;
 }
 
 .tab-pane > .tab-content-area {
-    -fx-background-color: -fx-control-background;
+    -fx-background-color: -fx-color-control-background;
     -fx-padding: 0;
 }
 
@@ -210,18 +208,12 @@
    Listen und Bäume (TreeView, ListView)
    ================================================================= */
 .tree-view, .list-view {
-    /*
-      -fx-background-color: -fx-control-background;
-        -fx-border-color: -fx-border-color;
-        -fx-border-radius: -fx-border-radius;
-        -fx-background-radius: -fx-border-radius;
-     */
 }
 
 .tree-cell, .list-cell {
     -fx-padding: 8px 12px;
     -fx-background-color: transparent;
-    -fx-text-fill: -fx-text-color;
+    -fx-text-fill: -fx-color-text;
 }
 
 .tree-cell:hover, .list-cell:hover {
@@ -229,20 +221,19 @@
 }
 
 .tree-cell:selected, .list-cell:selected {
-    -fx-background-color: -fx-primary-accent;
-    -fx-text-fill: -fx-primary-accent-text;
+    -fx-background-color: -fx-color-primary-accent;
+    -fx-text-fill: -fx-color-primary-accent-text;
 }
 
 .tree-cell:selected:focused, .list-cell:selected:focused {
-    -fx-background-color: -fx-primary-accent;
+    -fx-background-color: -fx-color-primary-accent;
 }
 
-/* Pfeil im TreeView */
 .tree-cell > .tree-disclosure-node > .arrow {
-    -fx-background-color: -fx-text-color-secondary;
+    -fx-background-color: -fx-color-text-secondary;
 }
 .tree-cell:selected > .tree-disclosure-node > .arrow {
-    -fx-background-color: -fx-primary-accent-text;
+    -fx-background-color: -fx-color-primary-accent-text;
 }
 
 /* =================================================================
@@ -250,14 +241,9 @@
    ================================================================= */
 
 .menu-bar {
-    /* Setzt einen sauberen, weißen Hintergrund, um sich vom Rest abzuheben */
-    -fx-background-color: -fx-control-background; /* -> #ffffff */
-
-    /* Fügt eine feine Trennlinie am unteren Rand hinzu, um die Abgrenzung zu verdeutlichen */
+    -fx-background-color: -fx-color-control-background;
     -fx-border-width: 0 0 1px 0;
-    -fx-border-color: -fx-border-color-subtle; /* -> #e1e4e8 */
-
-    /* Optional: Ein leichter Padding für mehr Luftigkeit */
+    -fx-border-color: -fx-color-border-subtle;
     -fx-padding: 2px 5px;
 }
 
@@ -266,12 +252,11 @@
 }
 
 .context-menu {
-    -fx-background-color: -fx-control-background;
+    -fx-background-color: -fx-color-control-background;
     -fx-background-insets: 0;
     -fx-padding: 5px;
-    -fx-border-color: -fx-border-color;
-    -fx-border-radius: -fx-border-radius;
-    /* -fx-background-radius: -fx-border-radius; */
+    -fx-border-color: -fx-color-border;
+    -fx-border-radius: 6px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);
 }
 
@@ -280,11 +265,11 @@
 }
 
 .menu-item:focused {
-    -fx-background-color: -fx-primary-accent;
+    -fx-background-color: -fx-color-primary-accent;
 }
 
 .menu-item:focused .label {
-    -fx-text-fill: -fx-primary-accent-text;
+    -fx-text-fill: -fx-color-primary-accent-text;
 }
 
 /* =================================================================
@@ -305,18 +290,18 @@
 }
 
 .scroll-bar .thumb:hover {
-    -fx-background-color: -fx-text-color-secondary;
+    -fx-background-color: -fx-color-text-secondary;
 }
 
 .split-pane:horizontal > .split-pane-divider {
     -fx-border-color: transparent;
-    -fx-background-color: -fx-border-color-subtle;
+    -fx-background-color: -fx-color-border-subtle;
     -fx-padding: 0 1px;
 }
 
 .split-pane:vertical > .split-pane-divider {
     -fx-border-color: transparent;
-    -fx-background-color: -fx-border-color-subtle;
+    -fx-background-color: -fx-color-border-subtle;
     -fx-padding: 1px 0;
 }
 
@@ -325,19 +310,19 @@
    ================================================================= */
 
 .card {
-    -fx-background-color: -fx-control-background;
-    -fx-border-color: -fx-border-color-subtle;
+    -fx-background-color: -fx-color-control-background;
+    -fx-border-color: -fx-color-border-subtle;
     -fx-border-width: 1px;
-    -fx-border-radius: -fx-border-radius;
-    -fx-background-radius: -fx-border-radius;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
     -fx-padding: 20px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);
 }
 
 .card-title {
-    -fx-font-size: 1.2em; /* 1.2 * 14px = 16.8px */
+    -fx-font-size: 1.2em;
     -fx-font-weight: bold;
-    -fx-text-fill: -fx-text-color;
+    -fx-text-fill: -fx-color-text;
     -fx-padding: 0 0 10px 0;
 }
 
@@ -345,25 +330,22 @@
    Modernes Layout für die XML-Baumansicht (SimpleNodeElement)
    ================================================================= */
 
-/* Basis-Container für ein XML-Element. Kein eigener Rand, da die Kinder die Ränder definieren. */
 .simple-node-element {
     -fx-padding: 0 0 0 5px;
 }
 
-/* Container für Kind-Elemente (sorgt für die Einrückung und die vertikale Linie) */
 .children-container {
-    -fx-padding: 2px 0 2px 20px; /* Einrückung links */
-    -fx-border-color: -fx-border-color-subtle transparent transparent transparent;
+    -fx-padding: 2px 0 2px 20px;
+    -fx-border-color: -fx-color-border-subtle transparent transparent transparent;
     -fx-border-width: 1px;
     -fx-border-style: solid;
-    -fx-spacing: 4px; /* Abstand zwischen den Kind-Elementen */
+    -fx-spacing: 4px;
 }
 
-/* Header-Zeile für aufklappbare Elemente */
 .element-box {
     -fx-padding: 4px;
     -fx-alignment: center-left;
-    -fx-background-radius: -fx-border-radius;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
 }
 
@@ -371,21 +353,18 @@
     -fx-background-color: #e9ecef;
 }
 
-/* Label für den Namen eines komplexen Knotens */
 .node-label-complex {
-    -fx-font-size: 1.05em; /* Etwas größer als normaler Text */
+    -fx-font-size: 1.05em;
     -fx-font-weight: bold;
-    -fx-text-fill: -fx-text-color;
+    -fx-text-fill: -fx-color-text;
 }
 
-/* Label für die Anzahl der Kinder */
 .node-count-label {
-    -fx-font-size: 0.9em; /* Etwas kleiner */
-    -fx-text-fill: -fx-text-color-secondary;
+    -fx-font-size: 0.9em;
+    -fx-text-fill: -fx-color-text-secondary;
     -fx-padding: 0 0 0 5px;
 }
 
-/* Der Toggle-Button, der das SVG-Icon enthält */
 .tree-toggle-button {
     -fx-background-color: transparent;
     -fx-min-width: 18px;
@@ -393,108 +372,95 @@
     -fx-max-width: 18px;
     -fx-max-height: 18px;
     -fx-padding: 0;
-    -fx-background-radius: 100px; /* Macht den Hover-Effekt rund */
+    -fx-background-radius: 100px;
 }
 
 .tree-toggle-button:hover {
-    -fx-background-color: #e9ecef; /* Hintergrund-Hover auf dem Button */
+    -fx-background-color: #e9ecef;
 }
 
-/* Das Icon selbst, das als Grafik im Button sitzt */
 .tree-toggle-button .icon {
     -fx-min-width: 8px;
     -fx-min-height: 8px;
     -fx-max-width: 8px;
     -fx-max-height: 8px;
-    -fx-background-color: -fx-text-color-secondary;
+    -fx-background-color: -fx-color-text-secondary;
 }
 
 .tree-toggle-button:hover .icon {
-    -fx-background-color: -fx-text-color; /* Icon wird beim Hover dunkler */
+    -fx-background-color: -fx-color-text;
 }
 
-/* Form des Icons via SVG-Pfad. Wird auf das .icon-Element angewendet. */
 .icon.toggle-expand {
-    /* SVG-Pfad für einen Pfeil nach rechts (eingeklappt) */
     -fx-shape: "M 0 0 L 8 4 L 0 8 Z";
 }
 
 .icon.toggle-collapse {
-    /* SVG-Pfad für einen Pfeil nach unten (ausgeklappt) */
     -fx-shape: "M 0 0 L 8 0 L 4 8 Z";
 }
 
-/* Styling für einfache Text-Knoten (<tag>wert</tag>) und deren Attribute */
 .xml-tree-text {
-    -fx-background-color: -fx-control-background;
+    -fx-background-color: -fx-color-control-background;
     -fx-padding: 8px;
-    -fx-border-color: -fx-border-color-subtle;
+    -fx-border-color: -fx-color-border-subtle;
     -fx-border-width: 1px;
-    -fx-border-radius: -fx-border-radius;
-    -fx-background-radius: -fx-border-radius;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
     -fx-hgap: 10px;
     -fx-vgap: 4px;
 }
 
-/* Box für den Namen eines Elements oder Attributs */
 .node-name-box, .attribute-box {
     -fx-alignment: center-left;
-    -fx-text-fill: -fx-text-color-secondary;
+    -fx-text-fill: -fx-color-text-secondary;
     -fx-font-weight: bold;
 }
 
 .attribute-box .label {
-    -fx-text-fill: #0550ae; /* Spezifisches Blau für Attribute, um sie hervorzuheben */
+    -fx-text-fill: #0550ae;
 }
 
-/* Box für den Wert eines Elements oder Attributs */
 .node-value-box, .attribute-value-box {
     -fx-alignment: center-left;
-    -fx-text-fill: -fx-text-color;
+    -fx-text-fill: -fx-color-text;
     -fx-background-radius: 4px;
     -fx-padding: 2px 5px;
 }
 
 .node-value-box:hover, .attribute-value-box:hover {
-    -fx-background-color: -fx-primary-accent;
+    -fx-background-color: -fx-color-primary-accent;
     -fx-cursor: hand;
 }
 
 .node-value-box:hover .label,
 .attribute-value-box:hover .label {
-    -fx-text-fill: -fx-primary-accent-text;
+    -fx-text-fill: -fx-color-primary-accent-text;
 }
 
-/* Container für Kind-Elemente (sorgt für die Einrückung und die vertikale Linie) */
 .children-container {
-    /* WICHTIG: Die linke Einrückung wird entfernt, da sie jetzt von der collapse-bar übernommen wird */
     -fx-padding: 2px 0 2px 0;
-    -fx-border-color: -fx-border-color-subtle transparent transparent transparent;
+    -fx-border-color: -fx-color-border-subtle transparent transparent transparent;
     -fx-border-width: 1px;
     -fx-border-style: solid;
-    -fx-spacing: 4px; /* Abstand zwischen den Kind-Elementen */
+    -fx-spacing: 4px;
 }
 
-/* NEU: Die seitliche, klickbare Leiste zum Einklappen */
 .collapse-bar {
-    -fx-min-width: 20px; /* Breite, die der alten Einrückung entspricht */
+    -fx-min-width: 20px;
     -fx-max-width: 20px;
-    -fx-background-color: transparent; /* Standardmäßig unsichtbar */
-    -fx-cursor: hand; /* Zeigt an, dass man hier klicken kann */
-    /* Zeichnet eine Linie auf der rechten Seite, die sich mit der Linie des children-container verbindet */
-    -fx-border-color: transparent -fx-border-color-subtle transparent transparent;
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-border-color: transparent -fx-color-border-subtle transparent transparent;
     -fx-border-width: 1px;
     -fx-border-style: solid;
 }
 
 .collapse-bar:hover {
-    /* Heller Hintergrund beim Überfahren, um die Klickbarkeit zu verdeutlichen */
     -fx-background-color: #e9ecef;
 }
 
-/* Kommentar-Styling */
 .xml-tree-comment {
-    -fx-text-fill: -fx-text-color-muted;
+    -fx-text-fill: -fx-color-text-muted;
     -fx-font-style: italic;
     -fx-padding: 2px 5px;
 }
@@ -503,56 +469,26 @@
    XML Code Editor - Erweiterungen
    ================================================================= */
 
-/* Stil für den Falt-Indikator im Gutter */
-.folding-indicator {
-    /* Setzt den Hintergrund explizit auf transparent.
-     * Dies ist ein wichtiger Schritt, da JavaFX manchmal einen definierten
-     * Hintergrund benötigt, um den Stroke (die Umrandung) einer Form zu zeichnen. */
-    -fx-background-color: transparent;
-    /* Ein vertikaler Farbverlauf von dunkelgrau zu hellgrau für die Linien des Symbols */
-    -fx-stroke: linear-gradient(from 0% 0% to 0% 100%, #555555, #aaaaaa);
-    -fx-stroke-width: 1.5; /* Eine dünne, aber klare Linie */
-    -fx-cursor: hand;
-}
-
-.folding-indicator:hover {
-    /* Beim Hover wird der Farbverlauf durch eine kräftigere, einheitliche Farbe ersetzt */
-    -fx-stroke: -fx-text-color;
-}
-
-/* SVG-Pfade für feine Winkel (Chevrons) statt gefüllter Dreiecke */
-.folding-indicator.expanded {
-    /* Ein nach unten zeigender Winkel (v) */
-    -fx-shape: "M 2 4 L 6 8 L 10 4";
-}
-
-/* SVG-Pfad für ein nach rechts zeigendes Dreieck (eingeklappt) */
-.folding-indicator.collapsed {
-    /* Ein nach rechts zeigender Winkel (>) */
-    -fx-shape: "M 4 2 L 8 6 L 4 10";
-}
-
-/* Tabellen-Styling für wiederholende Elemente */
 .table-grid {
     -fx-hgap: 1px;
     -fx-vgap: 1px;
-    -fx-background-color: -fx-border-color-subtle;
-    -fx-border: 1px solid -fx-border-color-subtle;
-    -fx-border-radius: -fx-border-radius;
-    -fx-background-radius: -fx-border-radius;
-    -fx-padding: 1px; /* Wichtig, damit der äußere Rand sichtbar ist */
+    -fx-background-color: -fx-color-border-subtle;
+    -fx-border: 1px solid #e1e4e8;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 1px;
 }
 
 .table-header {
-    -fx-background-color: #f6f8fa; /* Etwas dunkler als der Zellhintergrund */
+    -fx-background-color: #f6f8fa;
     -fx-font-weight: bold;
     -fx-padding: 6px 8px;
-    -fx-text-fill: -fx-text-color;
+    -fx-text-fill: -fx-color-text;
     -fx-alignment: center-left;
 }
 
 .table-cell {
-    -fx-background-color: -fx-control-inner-background; /* Weißer Hintergrund für Zellen */
+    -fx-background-color: -fx-color-control-inner-background;
     -fx-padding: 6px 8px;
     -fx-alignment: center-left;
 }
@@ -561,15 +497,10 @@
     -fx-background-color: #f6f8fa;
 }
 
-/* XML Suche */
 .search-highlight {
     -fx-fill: black;
-    -fx-background-color: #ffdd00; /* Ein leuchtendes Gelb */
+    -fx-background-color: #ffdd00;
 }
-
-/*
- * Stylesheet for the XML Editor Highlighting in FreeXmlToolkit
- */
 
 .tagmark {
     -fx-fill: rgb(0, 0, 255);
@@ -596,20 +527,16 @@
     -fx-fill: teal;
 }
 
-/* line Number */
 .lineno {
     -fx-background-color: #f0f2f5;
 }
 
-/* defaults */
 .code-area {
     -fx-font-family: monospace;
 }
 
-/* Stile für LSP-Diagnosen */
 .diagnostic-error {
     -fx-underline: true;
-    /* Für einen Wellen-Effekt (komplexer, aber schöner) */
     -fx-stroke: red;
     -fx-stroke-type: outside;
     -fx-stroke-width: 1;

@@ -22,18 +22,21 @@ plugins {
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.github.ben-manes.versions") version "0.52.0"
-    id("edu.sc.seis.launch4j") version "3.0.6"
-    id("org.beryx.jlink") version "3.0.1"
+    id("edu.sc.seis.launch4j") version "3.0.7"
+    id("org.beryx.jlink") version "3.1.2"
 }
 
 application {
     mainClass.set("org.fxt.freexmltoolkit.FxtGui")
     // mainClass.set("org.fxt.freexmltoolkit.GuiTest")
     applicationName = "FreeXmlToolkit"
+    // -Djavafx.verbose=true
     applicationDefaultJvmArgs = listOf(
         "-Djavafx.css.dump.lookup.errors=true",
-        "--enable-native-access=javafx.graphics",
-        "-Djavafx.verbose=true"
+        // Erlaubt FXML, auf interne JavaFX-Klassen zuzugreifen, um Reflection-Warnungen zu vermeiden
+        "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
+        "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",
+        "--add-opens=javafx.base/javafx.beans.property=javafx.fxml"
     )
 }
 
@@ -43,6 +46,17 @@ configurations.all {
         cacheDynamicVersionsFor(15, "MINUTES")
     }
     exclude(group = "xml-apis", module = "xml-apis")
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs("src/main/resources")
+            // Schließt das node_modules-Verzeichnis vom Kopiervorgang aus
+            exclude("scss/node_modules/**")
+            exclude("tailwindXsdDocumentation/node_modules/**")
+        }
+    }
 }
 
 group = "org.fxt"
@@ -69,7 +83,7 @@ javafx {
 
 dependencies {
     // XSLT
-    implementation("net.sf.saxon:Saxon-HE:12.7")
+    implementation("net.sf.saxon:Saxon-HE:12.8")
 
     // XML Bindings
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
@@ -87,7 +101,7 @@ dependencies {
     // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
 
     // Style
-    implementation("io.github.mkpaz:atlantafx-base:2.0.1")
+    implementation("io.github.mkpaz:atlantafx-base:2.1.0")
 
     // Richtext
     implementation("org.fxmisc.richtext:richtextfx:0.11.5")
@@ -104,7 +118,7 @@ dependencies {
     // Lemminx
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.31.0")
-    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.40.0.M0")
+    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.40.0.M2")
     implementation("org.controlsfx:controlsfx:11.2.2")
 
     // FOP & PDF Anzeige
@@ -121,10 +135,10 @@ dependencies {
     implementation("org.apache.poi:poi-ooxml:5.4.1")
 
     // Misc
-    implementation("org.apache.commons:commons-lang3:3.17.0")
-    implementation("commons-io:commons-io:2.19.0")
-    implementation("org.apache.commons:commons-text:1.13.1")
-    implementation("commons-validator:commons-validator:1.9.0")
+    implementation("org.apache.commons:commons-lang3:3.18.0")
+    implementation("commons-io:commons-io:2.20.0")
+    implementation("org.apache.commons:commons-text:1.14.0")
+    implementation("commons-validator:commons-validator:1.10.0")
 
     // CSS reload
     implementation("fr.brouillard.oss:cssfx:11.5.1")
@@ -258,4 +272,32 @@ jlink {
             // installDir = "home/${System.getProperty('user.name')}/.local/share/IhreAnwendung"
         }
     }
+}
+
+
+/*
+tasks.register<Exec>("npmBuild") {
+    workingDir = file("src/main/resources/scss")
+    // Stellt die plattformübergreifende Ausführung sicher (Windows/Linux/macOS)
+    commandLine = if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
+        listOf("cmd", "/c", "npm", "run", "build")
+    } else {
+        listOf("npm", "run", "build")
+    }
+}
+
+// Behandelt Duplikate und stellt die Build-Reihenfolge sicher
+tasks.named<Copy>("processResources") {
+    dependsOn(tasks.named("npmBuild"))
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+// Erzwingt einen 'clean' vor jedem 'run', um Dateisperren zu verhindern
+tasks.named("run") {
+    dependsOn(tasks.named("clean"))
+}
+ */
+
+tasks.named<Copy>("processResources") {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }

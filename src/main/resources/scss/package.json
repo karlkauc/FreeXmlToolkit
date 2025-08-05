@@ -1,8 +1,13 @@
 {
+  "scripts": {
+    "build": "tailwindcss -i ./input.css -o ../css/output.css"
+  },
   "dependencies": {
-    "bootstrap": "^5.3.5",
-    "bootstrap-icons": "^1.11.3",
     "prism-js-fold": "^1.0.1",
-    "prismjs": "^1.30.0"
+    "prismjs": "^1.30.0",
+    "@tailwindcss/cli": "^4.1.11"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.1.11"
   }
 }

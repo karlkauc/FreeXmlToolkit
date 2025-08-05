@@ -152,9 +152,11 @@ public class FileExplorer extends VBox {
             }
         });
 
-        fileTreeView.getColumns().addAll(fileNameColumn,
+        fileTreeView.getColumns().addAll(List.of(
+                fileNameColumn,
                 createColumn("File Extension", this::getFileExtension),
-                createColumn("File Size", this::getFileSize));
+                createColumn("File Size", this::getFileSize)
+        ));
 
         String hostName = getHostName();
         this.root = new FileExplorerTreeItem<>(Paths.get(hostName)) {

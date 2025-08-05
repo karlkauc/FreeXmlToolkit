@@ -115,44 +115,58 @@ public class GenerateXsdHtmlDocumentationTest {
 
         // --- 2. Eingebetteten HTTP-Server starten ---
         int port = 8080;
+        // startHttpServer(outputFilePath, port);
+        // openUrlInBrowser("http://localhost:" + port + "/index.html");
+    }
 
-        // KORREKTUR: Der SimpleFileServer benötigt einen absoluten Pfad.
+    /**
+     * Startet einen einfachen, eingebetteten HTTP-Dateiserver.
+     *
+     * @param docRootPath Das Stammverzeichnis, aus dem die Dateien bereitgestellt werden sollen.
+     * @param port        Der Port, auf dem der Server lauschen soll.
+     * @return Die gestartete HttpServer-Instanz.
+     * @throws IOException wenn der Server nicht gestartet werden kann.
+     */
+    private HttpServer startHttpServer(Path docRootPath, int port) throws IOException {
+        // Der SimpleFileServer benötigt einen absoluten Pfad.
         // Wir wandeln den relativen Pfad in einen absoluten um und normalisieren ihn.
-        Path docRootPath = outputFilePath.toAbsolutePath().normalize();
-        File docRoot = docRootPath.toFile();
+        Path absoluteDocRoot = docRootPath.toAbsolutePath().normalize();
+        File docRootFile = absoluteDocRoot.toFile();
 
         // Erstellt einen einfachen Dateiserver, der den Inhalt des docRoot-Verzeichnisses bereitstellt.
         // Diese Funktionalität ist seit JDK 18 standardmäßig verfügbar.
         HttpServer server = SimpleFileServer.createFileServer(
                 new InetSocketAddress(port),
-                docRootPath, // Verwende den jetzt absoluten Pfad
+                absoluteDocRoot, // Verwende den jetzt absoluten Pfad
                 SimpleFileServer.OutputLevel.INFO
         );
         server.start();
 
         logger.info("====================================================================");
         logger.info("HTTP-Server gestartet auf http://localhost:{}", port);
-        logger.info("Das Stammverzeichnis ist: {}", docRoot.getAbsolutePath());
+        logger.info("Das Stammverzeichnis ist: {}", docRootFile.getAbsolutePath());
         logger.info("Stoppen Sie den Test in Ihrer IDE, um den Server zu beenden.");
         logger.info("====================================================================");
 
+        return server;
+    }
 
-        // --- 3. Browser mit der Server-URL öffnen ---
-        String url = "http://localhost:" + port + "/index.html";
+    /**
+     * Versucht, die angegebene URL im Standard-Desktop-Browser zu öffnen.
+     *
+     * @param url Die zu öffnende URL.
+     */
+    private void openUrlInBrowser(String url) {
         try {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 Desktop.getDesktop().browse(new java.net.URI(url));
+                logger.info("Browser geöffnet mit URL: {}", url);
             } else {
                 logger.warn("Konnte den Browser nicht automatisch öffnen. Bitte öffnen Sie manuell: {}", url);
             }
         } catch (Exception e) {
             logger.error("Fehler beim Öffnen des Browsers.", e);
         }
-
-        // --- 4. Den Test-Thread (und damit den Server) am Leben halten ---
-        // Der Server läuft in einem Hintergrund-Thread. Dieser Haupt-Thread muss blockiert werden,
-        // damit der Test nicht sofort endet und der Server heruntergefahren wird.
-        Thread.sleep(Long.MAX_VALUE);
     }
 
     @Test
