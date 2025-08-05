@@ -128,6 +128,23 @@ public class MainController {
             xsdController.shutdown();
         }
 
+        // Fährt die ExecutorServices herunter. Dies ist entscheidend, um Thread-Leaks zu verhindern.
+        logger.info("Fahre ExecutorServices herunter...");
+        scheduler.shutdownNow();
+        service.shutdownNow();
+        try {
+            // Warten Sie kurz, um den Executoren Zeit zum Beenden zu geben.
+            if (!scheduler.awaitTermination(1, TimeUnit.SECONDS)) {
+                logger.warn("Scheduler-Dienst wurde nicht innerhalb von 1 Sekunde beendet.");
+            }
+            if (!service.awaitTermination(1, TimeUnit.SECONDS)) {
+                logger.warn("Service-Dienst wurde nicht innerhalb von 1 Sekunde beendet.");
+            }
+        } catch (InterruptedException e) {
+            logger.error("Warten auf das Herunterfahren der Dienste wurde unterbrochen.", e);
+            Thread.currentThread().interrupt(); // Setzt das Interrupted-Flag erneut.
+        }
+
         logger.info("Aufräumarbeiten abgeschlossen. Anwendung wird geschlossen.");
     }
 

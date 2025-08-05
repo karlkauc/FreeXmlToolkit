@@ -1,6 +1,6 @@
 package org.fxt.freexmltoolkit.controls;
 
-import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -189,32 +189,72 @@ public class XmlCodeEditor extends StackPane {
 
             // Klick-Logik auf den Wrapper anwenden
             iconWrapper.setOnMouseClicked(e -> {
-                if (getScene() != null) {
-                    getScene().setCursor(Cursor.WAIT);
-                }
-                Platform.runLater(() -> {
+                // Toggling a fold can be slow. We use a Task to manage the process,
+                // ensuring the UI remains responsive and the cursor provides feedback.
+                // The actual UI modification MUST happen on the JavaFX Application Thread.
+
+                // 1. Define the operation in a Task. The 'call' method runs in the background
+                //    and should prepare everything needed for the UI update.
+                Task<Boolean> foldingTask = new Task<>() {
+                    @Override
+                    protected Boolean call() {
+                        // This runs in the background.
+                        // We are NOT modifying the UI here.
+                        // We are just returning whether we are about to fold or unfold.
+                        return !foldedLines.contains(lineIndex);
+                    }
+                };
+
+                // 2. Set up handlers for the task's lifecycle, which run on the JAT.
+                foldingTask.setOnRunning(event -> {
+                    if (getScene() != null) {
+                        getScene().setCursor(Cursor.WAIT);
+                    }
+                });
+
+                foldingTask.setOnSucceeded(event -> {
+                    // This runs on the JAT after 'call' is complete.
                     try {
-                        if (lineIndex >= codeArea.getParagraphs().size()) {
-                            return;
-                        }
-                        if (foldedLines.contains(lineIndex)) {
-                            codeArea.unfoldParagraphs(lineIndex);
-                            foldedLines.remove(lineIndex);
-                        } else {
+                        boolean shouldFold = foldingTask.get(); // Get the result from the background task
+
+                        // --- PERFORM UI MODIFICATION ON JAT ---
+                        if (shouldFold) {
                             Integer endLine = foldingRegions.get(lineIndex);
                             if (endLine != null) {
                                 codeArea.foldParagraphs(lineIndex, endLine);
                                 foldedLines.add(lineIndex);
                             }
+                        } else {
+                            codeArea.unfoldParagraphs(lineIndex);
+                            foldedLines.remove(lineIndex);
                         }
-                        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
+                        // --- END OF UI MODIFICATION ---
+
+                    } catch (Exception ex) {
+                        // Handle exceptions from the task
+                        ex.printStackTrace();
                     } finally {
+                        // Always clean up the UI
+                        // Redraw the gutter to update all line numbers and folding icons
+                        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
                         if (getScene() != null) {
                             getScene().setCursor(Cursor.DEFAULT);
                         }
                     }
                 });
+
+                foldingTask.setOnFailed(event -> {
+                    // Handle failures and clean up the UI
+                    if (getScene() != null) {
+                        getScene().setCursor(Cursor.DEFAULT);
+                    }
+                    foldingTask.getException().printStackTrace();
+                });
+
+                // 3. Start the task on a new thread.
+                new Thread(foldingTask).start();
             });
+
 
             Node lineNumberNode = LineNumberFactory.get(codeArea).apply(lineIndex);
             HBox hbox = new HBox(lineNumberNode, iconWrapper);
