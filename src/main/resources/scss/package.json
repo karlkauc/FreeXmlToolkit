@@ -1,13 +1,12 @@
 {
   "scripts": {
-    "build": "tailwindcss -i ./input.css -o ../css/output.css"
+    "build": "sass input.scss ../css/fxt-theme.css --no-charset"
   },
   "dependencies": {
     "prism-js-fold": "^1.0.1",
-    "prismjs": "^1.30.0",
-    "@tailwindcss/cli": "^4.1.11"
+    "prismjs": "^1.30.0"
   },
   "devDependencies": {
-    "tailwindcss": "^4.1.11"
+    "sass": "^1.77.2"
   }
 }
