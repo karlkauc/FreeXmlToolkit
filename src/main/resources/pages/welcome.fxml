@@ -23,12 +23,17 @@
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
 <AnchorPane xmlns="http://javafx.com/javafx/11.0.14-internal"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.WelcomeController">
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.fxt.freexmltoolkit.controller.WelcomeController"
+            AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+            AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
     <children>
-        <VBox spacing="20.0" styleClass="my_container">
+        <VBox spacing="20.0" styleClass="my_container"
+              AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+              AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
             <children>
                 <!-- Header Area -->
-                <HBox VBox.vgrow="ALWAYS" alignment="CENTER">
+                <HBox VBox.vgrow="NEVER" alignment="CENTER">
                     <Label styleClass="h1" text="Welcome to FreeXmlToolkit!"/>
                 </HBox>
                 <VBox spacing="5.0">

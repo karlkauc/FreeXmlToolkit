@@ -126,6 +126,24 @@
   -fx-background-color: $color-background;
 }
 
+
+/* =================================================================
+   Welcome Page
+   ================================================================= */
+.my_container {
+  -fx-background-color: #f5f5f5;
+}
+
+.feature-box {
+  -fx-background-color: #ffffff;
+  -fx-border-color: #e1e4e8;
+  -fx-border-width: 1px;
+  -fx-border-radius: 6px;
+  -fx-background-radius: 6px;
+  -fx-padding: 15px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 5, 0, 0, 1);
+}
+
 /* =================================================================
    Tab-Pane (für den Editor)
    ================================================================= */
@@ -295,7 +313,7 @@
 }
 
 /* =================================================================
-   Modernes Layout für die XML-Baumansicht (SimpleNodeElement)
+   Modernes Layout für die XML-Baumansicht (XmlGraphicEditor)
    ================================================================= */
 
 .simple-node-element {

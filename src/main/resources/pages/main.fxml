@@ -98,7 +98,7 @@
             </HBox>
         </bottom>
         <left>
-            <VBox fx:id="leftMenu" styleClass="menu_box" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0">
+            <VBox fx:id="leftMenu" styleClass="menu_box" AnchorPane.bottomAnchor="0" AnchorPane.topAnchor="0" alignment="CENTER">
                 <VBox style="-fx-padding: 5px" alignment="CENTER" onMouseClicked="#toggleMenuBar">
                     <ImageView fx:id="logoImageView" fitHeight="75" fitWidth="100" pickOnBounds="true"
                                preserveRatio="true">
@@ -109,7 +109,7 @@
                 </VBox>
                 <BorderPane VBox.vgrow="ALWAYS">
                     <top>
-                        <VBox BorderPane.alignment="CENTER">
+                        <VBox BorderPane.alignment="CENTER" alignment="CENTER">
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="XML Editor" fx:id="xml">
                                 <graphic>
@@ -151,7 +151,7 @@
                         </VBox>
                     </top>
                     <bottom>
-                        <VBox>
+                        <VBox alignment="CENTER">
                             <Button fx:id="help" mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="Help" VBox.vgrow="ALWAYS">
                                 <graphic>
@@ -175,8 +175,9 @@
             </VBox>
         </left>
         <center>
-            <AnchorPane fx:id="contentPane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-                        AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+            <AnchorPane fx:id="contentPane"
+                        AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+                        AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
         </center>
     </BorderPane>
 </AnchorPane>
