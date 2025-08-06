@@ -261,6 +261,11 @@ public class FopController {
 
                 if (createdPdf != null && createdPdf.exists()) {
                     logger.debug("Written {} bytes in File {}", createdPdf.length(), createdPdf.getAbsoluteFile());
+                    Platform.runLater(() -> {
+                        renderPdf(createdPdf);
+                        progressIndicator.setProgress(1.0);
+                        progressIndicator.setVisible(false);
+                    });
                 } else {
                     logger.warn("PDF File does not exist after creation attempt.");
                     Platform.runLater(() -> progressIndicator.setVisible(false));

@@ -36,6 +36,9 @@
         <Logger name="org.apache.poi" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
+        <Logger name="org.apache.fop" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
         <Logger name="org.thymeleaf" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
