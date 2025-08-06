@@ -125,8 +125,26 @@ public class XsdDocumentationHtmlService {
         try {
             Files.writeString(Paths.get(outputFileName), result, StandardCharsets.UTF_8);
             logger.info("Written {} bytes in File '{}'", new File(outputFileName).length(), outputFileName);
+            copyXsdFileToOutput(xsdDocumentationData.getXsdFilePath());
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void copyXsdFileToOutput(String xsdFilePath) {
+        if (xsdFilePath == null || xsdFilePath.isEmpty()) {
+            logger.warn("XSD file path is not available, cannot copy file.");
+            return;
+        }
+        try {
+            File sourceFile = new File(xsdFilePath);
+            File destinationFile = new File(outputDirectory, sourceFile.getName());
+            Files.copy(sourceFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            logger.info("Copied XSD file to: {}", destinationFile.getAbsolutePath());
+        } catch (IOException e) {
+            logger.error("Could not copy XSD file '{}' to output directory.", xsdFilePath, e);
+            // Optionally rethrow as a runtime exception if this is a critical failure
+            // throw new RuntimeException("Could not copy XSD file", e);
         }
     }
 

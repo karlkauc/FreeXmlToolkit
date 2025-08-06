@@ -94,7 +94,9 @@
             </div>
             <div class="flex flex-col">
                 <dt class="text-sm font-medium text-slate-500">Filename</dt>
-                <dd class="mt-1 text-slate-900" th:utext="${filename}">filename.xsd</dd>
+                <dd class="mt-1 text-slate-900">
+                    <a th:href="${filename}" th:text="${filename}" class="text-sky-600 hover:text-sky-800 hover:underline" download>filename.xsd</a>
+                </dd>
             </div>
             <div class="flex flex-col">
                 <dt class="text-sm font-medium text-slate-500">Root Element</dt>
@@ -147,7 +149,7 @@
                     <div class="flex flex-col space-y-2">
                         <!-- NEU: Iteriert über eine Liste von XsdExtendedElement-Objekten -->
                         <a th:each="xsdElement : ${xsdGlobalElements}"
-                           th:href="${'details/' + xsdElement.pageName}"
+                           th:href="@{'details/' + ${xsdElement.pageName}}"
                            th:text="${xsdElement.elementName}"
                            class="text-sky-600 hover:text-sky-800 hover:underline">Name
                         </a>
@@ -157,7 +159,7 @@
                     <div class="flex flex-col space-y-2">
                         <!-- NEU: Iteriert über eine Liste von DOM-Knoten und nutzt eine Hilfsmethode für den Namen -->
                         <a th:each="xsdComplexTypeNode : ${xsdComplexTypes}"
-                           th:href="${'complexTypes/' + this.getAttributeValue(xsdComplexTypeNode, 'name') + '.html'}"
+                           th:href="@{'complexTypes/' + ${this.getAttributeValue(xsdComplexTypeNode, 'name')} + '.html'}"
                            th:text="${this.getAttributeValue(xsdComplexTypeNode, 'name')}"
                            class="text-sky-600 hover:text-sky-800 hover:underline">LINK</a>
                     </div>
@@ -166,7 +168,7 @@
                     <div class="flex flex-col space-y-2">
                         <!-- NEU: Iteriert über eine Liste von DOM-Knoten und nutzt eine Hilfsmethode für den Namen -->
                         <a th:each="xsdSimpleTypeNode : ${xsdSimpleTypes}"
-                           th:href="${'simpleTypes/' + this.getAttributeValue(xsdSimpleTypeNode, 'name') + '.html'}"
+                           th:href="@{'simpleTypes/' + ${this.getAttributeValue(xsdSimpleTypeNode, 'name')} + '.html'}"
                            th:text="${this.getAttributeValue(xsdSimpleTypeNode, 'name')}"
                            class="text-sky-600 hover:text-sky-800 hover:underline">LINK</a>
                     </div>

@@ -95,8 +95,8 @@ public class MainController {
     @FXML
     public void initialize() {
         scheduler.scheduleAtFixedRate(this::updateMemoryUsage, 1, 2, TimeUnit.SECONDS);
-        exit.setOnAction(e -> System.exit(0));
-        menuItemExit.setOnAction(e -> System.exit(0));
+        exit.setOnAction(e -> Platform.exit());
+        menuItemExit.setOnAction(e -> Platform.exit());
         loadLastOpenFiles();
         loadPageFromPath("/pages/welcome.fxml");
     }
