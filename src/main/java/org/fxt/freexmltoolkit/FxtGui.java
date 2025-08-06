@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit;
 
 import fr.brouillard.oss.cssfx.CSSFX;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -81,6 +82,11 @@ public class FxtGui extends Application {
 
             primaryStage.setScene(scene);
             primaryStage.setMaximized(true);
+
+            primaryStage.setOnCloseRequest(t -> {
+                Platform.exit();
+                System.exit(0);
+            });
 
             primaryStage.show();
         } catch (IOException e) {

@@ -57,22 +57,22 @@
             </VBox>
             <Separator orientation="VERTICAL" />
         </HBox>
-        <HBox styleClass="xml">
+        <HBox styleClass="xml" spacing="5">
             <Separator orientation="VERTICAL" />
             <Button fx:id="validateSchema" contentDisplay="TOP" onAction="#validateSchema" styleClass="big_button" text="validate Schema" ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconLiteral="win10-checked" />
                 </graphic>
             </Button>
+            <VBox alignment="CENTER_LEFT" spacing="5">
+                <Label fx:id="schemaValidationStatus" text="Schema status: Unknown" />
+                <Button fx:id="selectSchemaButton" text="Select XSD Schema" onAction="#selectSchemaFile" visible="false" />
+                <CheckBox fx:id="continuousValidation" text="Continuous validation" />
+            </VBox>
         </HBox>
         <HBox fx:id="test" styleClass="xml" visible="false">
             <Separator orientation="VERTICAL" />
             <Button contentDisplay="TOP" onAction="#test" styleClass="big_button" text="test" ButtonBar.buttonData="RIGHT">
-                <graphic>
-                    <FontIcon iconLiteral="win10-checked" />
-                </graphic>
-            </Button>
-            <Button contentDisplay="TOP" onAction="#print" styleClass="big_button" text="print" ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconLiteral="win10-checked" />
                 </graphic>
@@ -134,7 +134,7 @@
                 </HBox>
             </TitledPane>
         </SplitPane>
-        <!-- <TextArea fx:id="textAreaTemp" text="asfd"/> -->
+        <!-- <TextArea fx:id="textAreaTemp" text="asfd" /> -->
     </SplitPane>
 
 </VBox>
