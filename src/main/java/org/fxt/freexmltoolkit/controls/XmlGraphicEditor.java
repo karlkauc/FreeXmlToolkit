@@ -22,13 +22,13 @@ import java.util.stream.IntStream;
  * Styles are managed via an external CSS file.
  * This version is refactored for a more modern look and better performance.
  */
-public class SimpleNodeElement extends VBox {
+public class XmlGraphicEditor extends VBox {
 
-    private static final Logger logger = LogManager.getLogger(SimpleNodeElement.class);
+    private static final Logger logger = LogManager.getLogger(XmlGraphicEditor.class);
 
     private final XmlEditor xmlEditor;
 
-    public SimpleNodeElement(Node node, XmlEditor caller) {
+    public XmlGraphicEditor(Node node, XmlEditor caller) {
         this.xmlEditor = caller;
         // Dem Wurzelelement wird eine CSS-Klasse für gezieltes Styling zugewiesen.
         this.getStyleClass().add("simple-node-element");
@@ -195,7 +195,7 @@ public class SimpleNodeElement extends VBox {
                     if (shouldBeTable(subNode)) {
                         childrenContainer.getChildren().add(createTable(subNode));
                     } else {
-                        childrenContainer.getChildren().add(new SimpleNodeElement(subNode, xmlEditor));
+                        childrenContainer.getChildren().add(new XmlGraphicEditor(subNode, xmlEditor));
                     }
                 }
                 contentWrapper.setVisible(true);
@@ -362,7 +362,7 @@ public class SimpleNodeElement extends VBox {
             cellPane = new StackPane(contentLabel);
         } else {
             // Verschachtelte komplexe Knoten in einer Tabelle
-            cellPane = new StackPane(new SimpleNodeElement(oneNode, xmlEditor));
+            cellPane = new StackPane(new XmlGraphicEditor(oneNode, xmlEditor));
         }
         cellPane.getStyleClass().add("table-cell");
         gridPane.add(cellPane, colPos, row);

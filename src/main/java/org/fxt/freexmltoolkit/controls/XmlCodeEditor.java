@@ -183,7 +183,7 @@ public class XmlCodeEditor extends StackPane {
                 foldingIndicator.getStyleClass().add("toggle-collapse");
             }
 
-            // Erstelle einen Wrapper für das Icon, um die CSS-Struktur aus SimpleNodeElement nachzubilden.
+            // Erstelle einen Wrapper für das Icon, um die CSS-Struktur aus XmlGraphicEditor nachzubilden.
             StackPane iconWrapper = new StackPane(foldingIndicator);
             iconWrapper.getStyleClass().add("tree-toggle-button");
 

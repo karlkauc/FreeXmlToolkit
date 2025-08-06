@@ -521,7 +521,7 @@ public class XmlEditor extends Tab {
             pane.setContent(vBox);
 
             if (document != null) {
-                var simpleNodeElement = new SimpleNodeElement(document, this);
+                var simpleNodeElement = new XmlGraphicEditor(document, this);
                 VBox.setVgrow(simpleNodeElement, Priority.ALWAYS);
                 vBox.getChildren().add(simpleNodeElement);
             }
