@@ -24,6 +24,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
@@ -56,6 +57,7 @@ public class FxtGui extends Application {
     @Override
     public void start(Stage primaryStage) {
         startWatch.start();
+        loadFonts();
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/main.fxml"));
@@ -93,6 +95,22 @@ public class FxtGui extends Application {
             logger.error(e.getMessage());
         }
     }
+
+    private void loadFonts() {
+        String[] fonts = {
+                "Roboto-Regular", "Roboto-Bold", "Roboto-Italic", "Roboto-Light",
+                "Roboto-Thin", "Roboto-Medium", "Roboto-Black", "Roboto-BoldItalic",
+                "Roboto-LightItalic", "Roboto-MediumItalic", "Roboto-ThinItalic", "Roboto-BlackItalic"
+        };
+        for (String font : fonts) {
+            try {
+                Font.loadFont(getClass().getResourceAsStream("/css/fonts/" + font + ".ttf"), 10);
+            } catch (Exception e) {
+                logger.warn("Could not load font: {}.ttf", font, e);
+            }
+        }
+    }
+
 
     @Override
     public void stop() {

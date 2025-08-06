@@ -51,80 +51,82 @@
                 <link rel="stylesheet" href="prism.css"/>
                 <link rel="stylesheet" href="prism-unescaped-markup.min.css"/>
             </head>
-            <body class="container-fluid">
-                <main id="content">
-                    <h1>Analyzing File</h1>
-                    <table class="table">
-                        <tr>
-                            <th>Report Created</th>
-                            <td>{current-dateTime()}</td>
-                        </tr>
-                        <tr>
-                            <th>Filename:</th>
-                            <td>
-                                <xsl:value-of select="tokenize(base-uri(.), '/')[last()]"
-                                              disable-output-escaping="yes"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th class="w-25"># Funds:</th>
-                            <td>
-                                <xsl:value-of select="count(FundsXML4/Funds/Fund)"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th class="w-25"># ShareClasses:</th>
-                            <td>
-                                <xsl:if test="count(//SingleFund/ShareClasses/ShareClass) = 0">
-                                    <xsl:attribute name="class">bg-danger bg-gradient</xsl:attribute>
-                                </xsl:if>
-                                <xsl:value-of select="count(//SingleFund/ShareClasses/ShareClass)"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th class="w-25"># Asset Master Data:</th>
-                            <td>
-                                <xsl:value-of select="count(FundsXML4/AssetMasterData/Asset)"/>
-                            </td>
-                        </tr>
+            <body class="bg-gray-100 p-4 sm:p-6 lg:p-8">
+                <main id="content" class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+                    <h1 class="text-3xl font-bold mb-4 border-b pb-2">Analyzing File</h1>
+                    <table class="w-full mb-6">
+                        <tbody>
+                            <tr class="border-b">
+                                <th class="py-2 pr-4 text-left font-semibold w-1/4">Report Created</th>
+                                <td class="py-2">{current-dateTime()}</td>
+                            </tr>
+                            <tr class="border-b">
+                                <th class="py-2 pr-4 text-left font-semibold">Filename:</th>
+                                <td>
+                                    <xsl:value-of select="tokenize(base-uri(.), '/')[last()]"
+                                                  disable-output-escaping="yes"/>
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <th class="py-2 pr-4 text-left font-semibold"># Funds:</th>
+                                <td>
+                                    <xsl:value-of select="count(FundsXML4/Funds/Fund)"/>
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <th class="py-2 pr-4 text-left font-semibold"># ShareClasses:</th>
+                                <td>
+                                    <xsl:if test="count(//SingleFund/ShareClasses/ShareClass) = 0">
+                                        <xsl:attribute name="class">bg-red-100 text-red-700 p-1 rounded</xsl:attribute>
+                                    </xsl:if>
+                                    <xsl:value-of select="count(//SingleFund/ShareClasses/ShareClass)"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="py-2 pr-4 text-left font-semibold"># Asset Master Data:</th>
+                                <td>
+                                    <xsl:value-of select="count(FundsXML4/AssetMasterData/Asset)"/>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
-                    <hr/>
+                    <hr class="my-6"/>
                     <div>
-                        <h1>ERROR LIST</h1>
-                        <ul id="listOfErrors"></ul>
+                        <h1 class="text-2xl font-bold text-red-600">ERROR LIST</h1>
+                        <ul id="listOfErrors" class="list-disc list-inside mt-2 space-y-1"></ul>
                     </div>
-                    <hr/>
+                    <hr class="my-6"/>
 
                     <div>
-                        <h1>WARNING LIST</h1>
-                        <ul id="listOfWarnings"></ul>
+                        <h1 class="text-2xl font-bold text-yellow-600">WARNING LIST</h1>
+                        <ul id="listOfWarnings" class="list-disc list-inside mt-2 space-y-1"></ul>
                     </div>
-                    <hr/>
+                    <hr class="my-6"/>
 
                     <xsl:apply-templates select="FundsXML4/ControlData"/>
-                    <hr/>
+                    <hr class="my-6"/>
 
-                    <h1>FundList</h1>
-                    <ol>
+                    <h1 class="text-2xl font-bold mb-4">FundList</h1>
+                    <ol class="list-decimal list-inside space-y-2">
                         <xsl:for-each select="FundsXML4/Funds/Fund">
                             <li>
-                                <a href="#{generate-id(.)}">{Names/OfficialName/text()}</a>
-                                <ol>
+                                <a href="#{generate-id(.)}" class="text-blue-600 hover:underline">{Names/OfficialName/text()}</a>
+                                <ol class="list-disc list-inside ml-6 mt-1 space-y-1">
                                     <xsl:for-each select="SingleFund/ShareClasses/ShareClass">
                                         <li>
-                                            <a href="#{Identifiers/ISIN}">{Identifiers/ISIN}</a>
+                                            <a href="#{Identifiers/ISIN}" class="text-blue-600 hover:underline">{Identifiers/ISIN}</a>
                                         </li>
                                     </xsl:for-each>
                                 </ol>
                             </li>
                         </xsl:for-each>
                     </ol>
-                    <hr/>
+                    <hr class="my-6"/>
 
-                    <div class="ps-1 fs-4">
-                        <a href="#AssetMasterData">
+                    <div class="text-xl font-semibold">
+                        <a href="#AssetMasterData" class="flex items-center text-blue-600 hover:underline">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
-                                 class="bi bi-link" viewBox="0 0 16 16">
+                                 class="mr-2" viewBox="0 0 16 16">
                                 <path d="M6.354 5.5H4a3 3 0 0 0 0 6h3a3 3 0 0 0 2.83-4H9c-.086 0-.17.01-.25.031A2 2 0 0 1 7 10.5H4a2 2 0 1 1 0-4h1.535c.218-.376.495-.714.82-1z"/>
                                 <path d="M9 5.5a3 3 0 0 0-2.83 4h1.098A2 2 0 0 1 9 6.5h3a2 2 0 1 1 0 4h-1.535a4.02 4.02 0 0 1-.82 1H12a3 3 0 1 0 0-6H9z"/>
                             </svg>
@@ -132,305 +134,280 @@
                         </a>
                     </div>
 
-                    <hr/>
+                    <hr class="my-6"/>
 
                     <xsl:apply-templates select="FundsXML4/Funds"/>
-                    <hr/>
+                    <hr class="my-6"/>
                     <xsl:apply-templates select="FundsXML4/AssetMasterData"/>
-                    <hr/>
+                    <hr class="my-6"/>
 
-                    <p>
-                        File Comment:
-                        <pre>
+                    <p class="mt-6">
+                        <span class="font-semibold">File Comment:</span>
+                        <pre class="bg-gray-100 p-4 rounded mt-2 whitespace-pre-wrap">
                             <xsl:value-of select="comment()"/>
                         </pre>
                     </p>
 
-                    <!--
-                    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"
-                            integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ=="
-                            crossorigin="anonymous" referrerpolicy="no-referrer"/>
-                    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"
-                            integrity="sha512-i9cEfJwUwViEPFKdC1enz4ZRGBj8YQo6QByFTF92YXHi7waCqyexvRD75S5NVTsSiTv7rKWqG9Y5eFxmRsOn0A=="
-                            crossorigin="anonymous" referrerpolicy="no-referrer"/>
-                        -->
-
-                    <a href="#content" class="back-to-top">
+                    <a href="#content" class="fixed bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors">
                         <span>Back to top</span>
-                        <svg width="32" height="32" viewbox=" 0 0 24 24" aria-hidden="true">
-                            <path d="M5 12h14"/>
-                            <path d="m12 5 7 7-7 7"/>
-                        </svg>
                     </a>
                 </main>
                 <script src="replaceNodes.js"/>
                 <script src="prism.js"/>
-
-                <script src="bootstrap.bundle.min.js"/>
                 <script src="prism-unescaped-markup.min.js"/>
             </body>
         </html>
     </xsl:template>
 
     <xsl:template match="ControlData" expand-text="yes">
-        <p>
-            <h1>Control Data</h1>
-            <table class="table table-bordered table-striped table-hover">
-                <tr>
-                    <th class="w-25">UniqueDocumentID:</th>
-                    <td>
-                        {UniqueDocumentID}
-                    </td>
-                </tr>
-                <tr>
-                    <th>DocumentGenerated:</th>
-                    <td>
-                        {DocumentGenerated}
-                    </td>
-                </tr>
-                <tr>
-                    <th>Version:</th>
-                    <td>
-                        <xsl:if test="not(Version)">
-                            <span id="WARNING_{generate-id(.)}" data-error-message="Missing FundsXML Version"
-                                  class="badge bg-warning text-dark">Missing FundsXML Version
-                            </span>
-                        </xsl:if>
-                        <xsl:value-of select="Version"/>
-                    </td>
-                </tr>
-                <tr>
-                    <th>ContentDate:</th>
-                    <td>
-                        <xslt:value-of select="ContentDate"/>
-                    </td>
-                </tr>
-                <tr>
-                    <th>DataSupplier:</th>
-                    <td>
-                        <xslt:value-of select="DataSupplier/Short"/> |
-                        <xslt:value-of select="DataSupplier/Name"/>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Contact:</th>
-                    <td>
-                        <xsl:choose>
-                            <xsl:when test="count(DataSupplier/Contact) = 0">
-                                <span class="eg_status text-bg-warning">Missing</span>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <a>
-                                    <xsl:attribute name="href">mailto:<xsl:value-of
-                                            select="DataSupplier/Contact/Email"/>
-                                    </xsl:attribute>
-                                    <xsl:choose>
-                                        <xsl:when test="DataSupplier/Contact/Name">
-                                            <xsl:value-of select="DataSupplier/Contact/Name"/>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:value-of select="DataSupplier/Contact/Email"/>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-                                </a>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Data Operation:</th>
-                    <td>
-                        <xsl:if test="not(DataOperation)">
-                            <span id="ERROR_{generate-id(.)}" data-error-message="Data Operation Missing"
-                                  class="badge text-bg-danger">Missing
-                            </span>
-                        </xsl:if>
-                        <xsl:value-of select="DataOperation"/>
-                    </td>
-                </tr>
-                <tr>
-                    <th>RelatedDocumentIDs:</th>
-                    <td>
-                        <xsl:for-each select="RelatedDocumentIDs">
-                            <xsl:value-of select="RelatedDocumentID"/>
-                            <br/>
-                        </xsl:for-each>
-                    </td>
-                </tr>
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold mb-4">Control Data</h1>
+            <table class="w-full border-collapse border border-gray-300">
+                <tbody class="divide-y divide-gray-200">
+                    <tr class="odd:bg-gray-50">
+                        <th class="p-2 text-left font-semibold w-1/4">UniqueDocumentID:</th>
+                        <td class="p-2">{UniqueDocumentID}</td>
+                    </tr>
+                    <tr class="odd:bg-gray-50">
+                        <th class="p-2 text-left font-semibold">DocumentGenerated:</th>
+                        <td class="p-2">{DocumentGenerated}</td>
+                    </tr>
+                    <tr class="odd:bg-gray-50">
+                        <th class="p-2 text-left font-semibold">Version:</th>
+                        <td class="p-2">
+                            <xsl:if test="not(Version)">
+                                <span id="WARNING_{generate-id(.)}" data-error-message="Missing FundsXML Version"
+                                      class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing FundsXML Version
+                                </span>
+                            </xsl:if>
+                            <xsl:value-of select="Version"/>
+                        </td>
+                    </tr>
+                    <tr class="odd:bg-gray-50">
+                        <th class="p-2 text-left font-semibold">ContentDate:</th>
+                        <td class="p-2">
+                            <xslt:value-of select="ContentDate"/>
+                        </td>
+                    </tr>
+                    <tr class="odd:bg-gray-50">
+                        <th class="p-2 text-left font-semibold">DataSupplier:</th>
+                        <td class="p-2">
+                            <xslt:value-of select="DataSupplier/Short"/> |
+                            <xslt:value-of select="DataSupplier/Name"/>
+                        </td>
+                    </tr>
+                    <tr class="odd:bg-gray-50">
+                        <th class="p-2 text-left font-semibold">Contact:</th>
+                        <td class="p-2">
+                            <xsl:choose>
+                                <xsl:when test="count(DataSupplier/Contact) = 0">
+                                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing</span>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <a class="text-blue-600 hover:underline">
+                                        <xsl:attribute name="href">mailto:<xsl:value-of
+                                                select="DataSupplier/Contact/Email"/>
+                                        </xsl:attribute>
+                                        <xsl:choose>
+                                            <xsl:when test="DataSupplier/Contact/Name">
+                                                <xsl:value-of select="DataSupplier/Contact/Name"/>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <xsl:value-of select="DataSupplier/Contact/Email"/>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                    </a>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </td>
+                    </tr>
+                    <tr class="odd:bg-gray-50">
+                        <th class="p-2 text-left font-semibold">Data Operation:</th>
+                        <td class="p-2">
+                            <xsl:if test="not(DataOperation)">
+                                <span id="ERROR_{generate-id(.)}" data-error-message="Data Operation Missing"
+                                      class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing
+                                </span>
+                            </xsl:if>
+                            <xsl:value-of select="DataOperation"/>
+                        </td>
+                    </tr>
+                    <tr class="odd:bg-gray-50">
+                        <th class="p-2 text-left font-semibold">RelatedDocumentIDs:</th>
+                        <td class="p-2">
+                            <xsl:for-each select="RelatedDocumentIDs">
+                                <xsl:value-of select="RelatedDocumentID"/>
+                                <br/>
+                            </xsl:for-each>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
-        </p>
+        </div>
     </xsl:template>
 
     <xsl:template match="Funds">
         <xsl:for-each select="Fund">
             <xsl:variable name="fundCCY" select="Currency"/>
 
-            <p id="{generate-id(.)}">
-                <div class="{concat('block block',position() mod 3)}">
-                    <h1>[#{position()}] Fund Name: {Names/OfficialName/text()}</h1>
+            <div id="{generate-id(.)}" class="mb-8 p-4 border rounded-lg shadow-sm">
+                <div class="bg-gray-100 p-4 rounded-t-lg">
+                    <h1 class="text-2xl font-bold">[#{position()}] Fund Name: {Names/OfficialName/text()}</h1>
+                </div>
 
-                    <h2>Fund Static Data</h2>
-                    <table class="table table-striped">
-                        <tr>
-                            <th class="w-25">Identifier</th>
-                            <td>
-                                <xsl:attribute name="class">
-                                    <xsl:value-of select="if (count(Identifiers/*) lt 1) then 'bg-danger' else '' "/>
-                                </xsl:attribute>
-                                <xsl:for-each select="Identifiers">
-                                    <div class="row">
-                                        <xsl:if test="LEI">
-                                            <span class="fw-bold">LEI:
-                                                <xsl:value-of select="LEI"/>
-                                            </span>
-                                        </xsl:if>
-                                        <xsl:if test="ISIN">
-                                            <span>ISIN:
-                                                <xsl:value-of select="ISIN"/>
-                                            </span>
-                                        </xsl:if>
-                                        <xsl:for-each select="OtherID">
-                                            <span class="fs-small">Other ID
-                                                <xsl:value-of select="concat('[', attribute(), ']: ', .)"/>
-                                            </span>
-                                        </xsl:for-each>
-                                    </div>
-                                </xsl:for-each>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Fund CCY</th>
-                            <td>
-                                <xsl:value-of select="Currency"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>InceptionDate:</th>
-                            <td>
-                                <xsl:choose>
-                                    <xsl:when
-                                            test="not(FundStaticData/InceptionDate)">
-                                        <span class="eg_status eg_status--orange">Missing</span>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <xsl:value-of
-                                                select="FundStaticData/InceptionDate"/>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Fund Manager</th>
-                            <td>
-                                <div class="container" style="padding-left:0; margin-left:0;">
-                                    <div class="row">
-                                        <div class="col col-2">
-                                            Name:
+                <div class="p-4">
+                    <h2 class="text-xl font-semibold mb-3">Fund Static Data</h2>
+                    <table class="w-full text-sm">
+                        <tbody class="divide-y divide-gray-200">
+                            <tr class="odd:bg-gray-50">
+                                <th class="p-2 text-left font-semibold w-1/4">Identifier</th>
+                                <td class="p-2">
+                                    <xsl:attribute name="class">
+                                        <xsl:value-of select="if (count(Identifiers/*) lt 1) then 'p-2 bg-red-100' else 'p-2' "/>
+                                    </xsl:attribute>
+                                    <xsl:for-each select="Identifiers">
+                                        <div class="flex flex-col space-y-1">
+                                            <xsl:if test="LEI">
+                                                <span class="font-bold">LEI:
+                                                    <span class="font-normal"><xsl:value-of select="LEI"/></span>
+                                                </span>
+                                            </xsl:if>
+                                            <xsl:if test="ISIN">
+                                                <span>ISIN:
+                                                    <span class="font-normal"><xsl:value-of select="ISIN"/></span>
+                                                </span>
+                                            </xsl:if>
+                                            <xsl:for-each select="OtherID">
+                                                <span class="text-xs">Other ID
+                                                    <span class="font-normal"><xsl:value-of select="concat('[', attribute(), ']: ', .)" /></span>
+                                                </span>
+                                            </xsl:for-each>
                                         </div>
-                                        <div class="col">
-                                            <xsl:choose>
-                                                <xsl:when
-                                                        test="not(FundStaticData/PortfolioManagers/PortfolioManager/Name)">
-                                                    <span class="eg_status eg_status--orange">Missing</span>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                    [<xsl:value-of
-                                                        select="FundStaticData/PortfolioManagers/PortfolioManager/Name"/>]
-                                                </xsl:otherwise>
-                                            </xsl:choose>
+                                    </xsl:for-each>
+                                </td>
+                            </tr>
+                            <tr class="odd:bg-gray-50">
+                                <th class="p-2 text-left font-semibold">Fund CCY</th>
+                                <td class="p-2">
+                                    <xsl:value-of select="Currency"/>
+                                </td>
+                            </tr>
+                            <tr class="odd:bg-gray-50">
+                                <th class="p-2 text-left font-semibold">InceptionDate:</th>
+                                <td class="p-2">
+                                    <xsl:choose>
+                                        <xsl:when test="not(FundStaticData/InceptionDate)">
+                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing</span>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:value-of select="FundStaticData/InceptionDate"/>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </td>
+                            </tr>
+                            <tr class="odd:bg-gray-50">
+                                <th class="p-2 text-left font-semibold">Fund Manager</th>
+                                <td class="p-2">
+                                    <div class="flex flex-col space-y-1">
+                                        <div class="flex">
+                                            <div class="w-1/4 font-medium">Name:</div>
+                                            <div class="w-3/4">
+                                                <xsl:choose>
+                                                    <xsl:when test="not(FundStaticData/PortfolioManagers/PortfolioManager/Name)">
+                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing</span>
+                                                    </xsl:when>
+                                                    <xsl:otherwise>
+                                                        [<xsl:value-of select="FundStaticData/PortfolioManagers/PortfolioManager/Name"/>]
+                                                    </xsl:otherwise>
+                                                </xsl:choose>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col col-2">
-                                            Start Date:
+                                        <div class="flex">
+                                            <div class="w-1/4 font-medium">Start Date:</div>
+                                            <div class="w-3/4">
+                                                <xsl:choose>
+                                                    <xsl:when test="not(FundStaticData/PortfolioManagers/PortfolioManager/StartDate)">
+                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing</span>
+                                                    </xsl:when>
+                                                    <xsl:otherwise>
+                                                        [<xsl:value-of select="FundStaticData/PortfolioManagers/PortfolioManager/StartDate"/>]
+                                                    </xsl:otherwise>
+                                                </xsl:choose>
+                                            </div>
                                         </div>
-                                        <div class="col">
-                                            <xsl:choose>
-                                                <xsl:when
-                                                        test="not(FundStaticData/PortfolioManagers/PortfolioManager/StartDate)">
-                                                    <span class="eg_status eg_status--orange">Missing</span>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                    [<xsl:value-of
-                                                        select="FundStaticData/PortfolioManagers/PortfolioManager/StartDate"/>]
-                                                </xsl:otherwise>
-                                            </xsl:choose>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col col-2">
-                                            Role:
-                                        </div>
-                                        <div class="col">
-                                            <xsl:choose>
-                                                <xsl:when
-                                                        test="not(FundStaticData/PortfolioManagers/PortfolioManager/Role)">
-                                                    <span class="eg_status eg_status--orange">Missing</span>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                    [<xsl:value-of
-                                                        select="FundStaticData/PortfolioManagers/PortfolioManager/Role"/>]
-                                                </xsl:otherwise>
-                                            </xsl:choose>
+                                        <div class="flex">
+                                            <div class="w-1/4 font-medium">Role:</div>
+                                            <div class="w-3/4">
+                                                <xsl:choose>
+                                                    <xsl:when test="not(FundStaticData/PortfolioManagers/PortfolioManager/Role)">
+                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing</span>
+                                                    </xsl:when>
+                                                    <xsl:otherwise>
+                                                        [<xsl:value-of select="FundStaticData/PortfolioManagers/PortfolioManager/Role"/>]
+                                                    </xsl:otherwise>
+                                                </xsl:choose>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Fund Legal Type</th>
-                            <td>
-                                <xsl:value-of select="FundStaticData/ListedLegalStructure"/>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                            <tr class="odd:bg-gray-50">
+                                <th class="p-2 text-left font-semibold">Fund Legal Type</th>
+                                <td class="p-2">
+                                    <xsl:value-of select="FundStaticData/ListedLegalStructure"/>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
 
-                    <h2>Fund Dynamic Data</h2>
+                    <h2 class="text-xl font-semibold mt-6 mb-3">Fund Dynamic Data</h2>
                     <hr/>
 
-                    <h3>Fund Total Asset Value</h3>
+                    <h3 class="text-lg font-semibold mt-4 mb-2">Fund Total Asset Value</h3>
                     <xsl:variable name="sumOfShareClassVolume"
                                   select="sum(SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$fundCCY])"/>
 
-                    <table class="table table-striped">
-                        <xsl:for-each select="FundDynamicData/TotalAssetValues/TotalAssetValue">
-                            <tr>
-                                <th class="w-25">Nav Date</th>
-                                <td>
-                                    <xsl:value-of select="NavDate"/>
-                                </td>
-                            </tr>
+                    <table class="w-full text-sm">
+                        <tbody class="divide-y divide-gray-200">
+                            <xsl:for-each select="FundDynamicData/TotalAssetValues/TotalAssetValue">
+                                <tr class="odd:bg-gray-50">
+                                    <th class="p-2 text-left font-semibold w-1/4">Nav Date</th>
+                                    <td class="p-2">
+                                        <xsl:value-of select="NavDate"/>
+                                    </td>
+                                </tr>
 
-                            <tr>
-                                <th>Nature</th>
-                                <td>
-                                    <xsl:value-of select="TotalAssetNature"/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>TotalAssetValue (Fund Volume) in Fund CCY</th>
-                                <td>
-                                    <xsl:value-of select="../../../Currency"/>:
-                                    <xsl:value-of
-                                            select="format-number(TotalNetAssetValue/Amount[@ccy=$fundCCY], '#,##0.00')"/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Sum of ShareClass Volumes (in Funds CCY)</th>
-                                <td>
-                                    <xsl:value-of select="../../../Currency"/>:
-                                    <xsl:value-of
-                                            select="format-number($sumOfShareClassVolume, '#,##0.00')"/>
-                                </td>
-                            </tr>
-                        </xsl:for-each>
+                                <tr class="odd:bg-gray-50">
+                                    <th class="p-2 text-left font-semibold">Nature</th>
+                                    <td class="p-2">
+                                        <xsl:value-of select="TotalAssetNature"/>
+                                    </td>
+                                </tr>
+                                <tr class="odd:bg-gray-50">
+                                    <th class="p-2 text-left font-semibold">TotalAssetValue (Fund Volume) in Fund CCY</th>
+                                    <td class="p-2">
+                                        <xsl:value-of select="../../../Currency"/>:
+                                        <xsl:value-of
+                                                select="format-number(TotalNetAssetValue/Amount[@ccy=$fundCCY], '#,##0.00')"/>
+                                    </td>
+                                </tr>
+                                <tr class="odd:bg-gray-50">
+                                    <th class="p-2 text-left font-semibold">Sum of ShareClass Volumes (in Funds CCY)</th>
+                                    <td class="p-2">
+                                        <xsl:value-of select="../../../Currency"/>:
+                                        <xsl:value-of
+                                                select="format-number($sumOfShareClassVolume, '#,##0.00')"/>
+                                    </td>
+                                </tr>
+                            </xsl:for-each>
+                        </tbody>
                     </table>
 
-                    <h3>Portfolio Data [Fund Level]:</h3>
+                    <h3 class="text-lg font-semibold mt-4 mb-2">Portfolio Data [Fund Level]:</h3>
                     <xsl:if test="not(FundDynamicData/Portfolios)">
-                        <span class="fw-bold">NO PORTFOLIO DATA FOUND!</span>
+                        <span class="font-bold text-yellow-600">NO PORTFOLIO DATA FOUND!</span>
                     </xsl:if>
-                    <hr/>
+                    <hr class="my-4"/>
 
                     <xsl:for-each select="FundDynamicData/Portfolios">
                         <xsl:call-template name="Portfolio">
@@ -440,59 +417,53 @@
                         </xsl:call-template>
                     </xsl:for-each>
 
-                    <h2>ShareClasses:</h2>
+                    <h2 class="text-xl font-semibold mt-6 mb-3">ShareClasses:</h2>
                     <xsl:for-each select="SingleFund/ShareClasses/ShareClass">
-                        <h3 id="{Identifiers/ISIN}">
-                            <xsl:value-of select="concat('#', position(), '|', count(../*))"/>
+                        <h3 id="{Identifiers/ISIN}" class="text-lg font-bold mt-4 mb-2">
+                            <xsl:value-of select="concat('#', position(), ' | ', count(../*))"/>
                         </h3>
                         <xsl:variable name="shareClassCcy" select="Currency"/>
-                        <table class="table table-bordered table-striped table-hover">
-                            <tbody>
-                                <tr>
-                                    <th>ISIN</th>
-                                    <td class="w-50">
+                        <table class="w-full border-collapse border border-gray-300 mb-4">
+                            <tbody class="divide-y divide-gray-200">
+                                <tr class="odd:bg-gray-50">
+                                    <th class="p-2 text-left font-semibold w-1/3">ISIN</th>
+                                    <td class="p-2">
                                         <xsl:value-of select="Identifiers/ISIN/text()"/>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <th>CCY</th>
-                                    <td>
+                                <tr class="odd:bg-gray-50">
+                                    <th class="p-2 text-left font-semibold">CCY</th>
+                                    <td class="p-2">
                                         <xsl:value-of select="$shareClassCcy"/>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <th>ShareClass Volumen Datum</th>
-                                    <td>
+                                <tr class="odd:bg-gray-50">
+                                    <th class="p-2 text-left font-semibold">ShareClass Volumen Datum</th>
+                                    <td class="p-2">
                                         <xsl:value-of select="TotalAssetValues/TotalAssetValue/NavDate/text()"/>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <th>Total Net Asset Value</th>
-                                    <td class="text-end">
+                                <tr class="odd:bg-gray-50">
+                                    <th class="p-2 text-left font-semibold">Total Net Asset Value</th>
+                                    <td class="p-2 text-right">
                                         <xsl:value-of
-                                                select="format-number(TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$shareClassCcy], '#,#00.00')"/>
+                                                select="format-number(TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$shareClassCcy], '#,##0.00')"/>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <th>Summe ShareClass Positionen (in ShareClass CCY)</th>
-                                    <td class="text-end">
+                                <tr class="odd:bg-gray-50">
+                                    <th class="p-2 text-left font-semibold">Summe ShareClass Positionen (in ShareClass CCY)</th>
+                                    <td class="p-2 text-right">
                                         <xsl:value-of
-                                                select="format-number(sum(Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$shareClassCcy]), '#,#00.00')"/>
+                                                select="format-number(sum(Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$shareClassCcy]), '#,##0.00')"/>
                                     </td>
                                 </tr>
 
                                 <xsl:if test="Portfolios">
-                                    <!--
-                                    <xsl:variable name="s1" select="sum(Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$shareClassCcy])" />
-                                    <xsl:variable name="diff"
-                                                  select="TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$shareClassCcy] - $s1"/>
-                                    -->
-                                    <xsl:variable name="diff"
-                                                  select="0"/>
-                                    <tr>
+                                    <xsl:variable name="diff" select="0"/>
+                                    <tr class="odd:bg-gray-50">
                                         <xsl:choose>
                                             <xsl:when test="abs($diff) > 1">
-                                                <xsl:attribute name="class">bg-danger</xsl:attribute>
+                                                <xsl:attribute name="class">bg-red-200</xsl:attribute>
                                                 <xsl:attribute name="id">ERROR_{generate-id(.)}</xsl:attribute>
                                                 <xsl:attribute name="data-error-message">Difference in Volume
                                                     [{format-number($diff, '#,##0.00')}] not in tolerance for Shareclass
@@ -500,23 +471,23 @@
                                                 </xsl:attribute>
                                             </xsl:when>
                                             <xsl:otherwise>
-                                                <xsl:attribute name="class">bg-success</xsl:attribute>
+                                                <xsl:attribute name="class">bg-green-200</xsl:attribute>
                                             </xsl:otherwise>
                                         </xsl:choose>
 
-                                        <th>DIFF</th>
-                                        <td class="text-end">
+                                        <th class="p-2 text-left font-semibold">DIFF</th>
+                                        <td class="p-2 text-right">
                                             <xsl:value-of
-                                                    select="format-number($diff, '#,#00.00')"/>
+                                                    select="format-number($diff, '#,##0.00')"/>
                                         </td>
                                     </tr>
                                 </xsl:if>
                             </tbody>
                         </table>
 
-                        <h3>Portfolio Data [ShareClass Level]:</h3>
+                        <h3 class="text-lg font-semibold mt-4 mb-2">Portfolio Data [ShareClass Level]:</h3>
                         <xsl:if test="not(Portfolios)">
-                            <span class="fs-5 pe-3">No portfolio data on ShareClass found</span>
+                            <span class="text-lg pr-3">No portfolio data on ShareClass found</span>
                         </xsl:if>
 
                         <xsl:for-each select="Portfolios">
@@ -528,7 +499,7 @@
                         </xsl:for-each>
                     </xsl:for-each>
                 </div>
-            </p>
+            </div>
         </xsl:for-each>
     </xsl:template>
 
@@ -537,1279 +508,406 @@
         <xsl:param name="totalAmount"/>
 
         <xsl:for-each select="Portfolio">
-            <div class="d-flex flex-row mb-3">
-                <div class="pe-2">
-                    <table class="table table-bordered table-responsive" style="width: auto;">
-                        <tr>
-                            <th scope="row">Portfolio Date:</th>
-                            <td class="text-end">{NavDate}</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Position Count:</th>
-                            <td class="text-end">{count(Positions/Position)}</td>
-                        </tr>
+            <div class="flex flex-wrap mb-4">
+                <div class="pr-2 mb-2 w-full sm:w-auto">
+                    <table class="w-full sm:w-auto border border-gray-300">
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <th scope="row" class="p-2 text-left font-semibold">Portfolio Date:</th>
+                                <td class="p-2 text-right">{NavDate}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="p-2 text-left font-semibold">Position Count:</th>
+                                <td class="p-2 text-right">{count(Positions/Position)}</td>
+                            </tr>
+                        </tbody>
                     </table>
-
                 </div>
-                <div class="pe-2">
-                    <table class="table table-responsive" style="width:auto;">
-                        <tr>
-                            <th>Currency Aggregation Total Value</th>
-                            <td>
-                                <table class="table table-sm table-striped table-responsive">
-                                    <thead>
-                                        <th>CCY</th>
-                                        <th class="text-end">%</th>
-                                    </thead>
-                                    <tbody>
-                                        <xsl:for-each-group select="Positions/Position" group-by="Currency">
+                <div class="pr-2 mb-2 w-full sm:w-auto">
+                    <table class="w-full sm:w-auto border border-gray-300">
+                        <tbody>
+                            <tr>
+                                <th class="p-2 text-left font-semibold">Currency Aggregation Total Value</th>
+                                <td class="p-2">
+                                    <table class="text-sm">
+                                        <thead class="border-b">
                                             <tr>
-                                                <td><xsl:value-of select="current-grouping-key()"/>:
-                                                </td>
-                                                <td class="text-end">
-                                                    <xsl:value-of
-                                                            select="format-number(sum(current-group()/TotalPercentage), '#,##0.00')"/>
-                                                </td>
+                                                <th class="pr-4 font-semibold">CCY</th>
+                                                <th class="text-right font-semibold">%</th>
                                             </tr>
-                                        </xsl:for-each-group>
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            <xsl:for-each-group select="Positions/Position" group-by="Currency">
+                                                <tr>
+                                                    <td class="pr-4"><xsl:value-of select="current-grouping-key()"/>:
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <xsl:value-of
+                                                                select="format-number(sum(current-group()/TotalPercentage), '#,##0.00')"/>
+                                                    </td>
+                                                </tr>
+                                            </xsl:for-each-group>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
 
             <xsl:variable name="myId" select="generate-id(.)"/>
-            <div class="accordion">
-                <div class="accordion-item">
-                    <h2 class="accordion-header accordion-bodyNoBorderTop" id="panelsStayOpen-headingOne">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#{$myId}" aria-expanded="true"
-                                aria-controls="panelsStayOpen-collapseOne">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                                 class="bi bi-bar-chart-steps" viewBox="0 0 16 16">
-                                <path d="M.5 0a.5.5 0 0 1 .5.5v15a.5.5 0 0 1-1 0V.5A.5.5 0 0 1 .5 0zM2 1.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1z"/>
-                            </svg>
-                            <span class="fs-4" style="padding-left: 10px;">Portfolio Data</span>
-                        </button>
-                    </h2>
-                    <div id="{$myId}" class="accordion-collapse collapse show"
-                         aria-labelledby="panelsStayOpen-headingOne">
-                        <div class="accordion-body accordion-bodyNoBorder">
-                            <table class="table table-bordered table-striped table-hover">
-                                <thead class="sticky-md-top sticky-top-eam">
-                                    <th>#</th>
-                                    <th>UniqueID</th>
-                                    <th>Currency</th>
-                                    <th>
-                                        <xsl:variable name="diff"
-                                                      select="sum(Positions/Position/TotalValue/Amount[@ccy=$ccy]) - $totalAmount"/>
-                                        <xsl:attribute name="class">
-                                            <xsl:value-of
-                                                    select="if (abs($diff) > 1) then 'bg-danger' else 'bg-success' "/>
-                                        </xsl:attribute>
+            <details class="border rounded-lg mb-4" open="true">
+                <summary class="cursor-pointer p-4 bg-gray-100 rounded-t-lg font-semibold text-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
+                         class="mr-3" viewBox="0 0 16 16">
+                        <path d="M.5 0a.5.5 0 0 1 .5.5v15a.5.5 0 0 1-1 0V.5A.5.5 0 0 1 .5 0zM2 1.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1z"/>
+                    </svg>
+                    Portfolio Data
+                </summary>
+                <div class="p-4 overflow-x-auto">
+                    <table class="w-full border-collapse border border-gray-300 text-sm">
+                        <thead class="bg-gray-200 sticky top-0">
+                            <tr>
+                                <th class="p-2 border">#</th>
+                                <th class="p-2 border">UniqueID</th>
+                                <th class="p-2 border">Currency</th>
+                                <th class="p-2 border">
+                                    <xsl:variable name="diff"
+                                                  select="sum(Positions/Position/TotalValue/Amount[@ccy=$ccy]) - $totalAmount"/>
+                                    <xsl:attribute name="class">
+                                        <xsl:value-of
+                                                select="if (abs($diff) > 1) then 'p-2 border bg-red-200' else 'p-2 border bg-green-200' "/>
+                                    </xsl:attribute>
 
-                                        &#x2211; TotalValue:
-                                        <span style="float:right;"><xsl:value-of select="$ccy"/>:
-                                            <xsl:value-of
-                                                    select="format-number(sum(Positions/Position/TotalValue/Amount[@ccy=$ccy]), '#,##0.00')"/>
-                                            (
-                                            <span class="badge eg_status--blue">
-                                                <xsl:value-of select="format-number($diff, '#,##0.00')"/>
-                                            </span>
-                                            )
+                                    &#x2211; TotalValue:
+                                    <span class="float-right"><xsl:value-of select="$ccy"/>:
+                                        <xsl:value-of
+                                                select="format-number(sum(Positions/Position/TotalValue/Amount[@ccy=$ccy]), '#,##0.00')"/>
+                                        (
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-200 text-blue-800">
+                                            <xsl:value-of select="format-number($diff, '#,##0.00')"/>
                                         </span>
-                                    </th>
-                                    <th>
-                                        <xsl:variable name="totalPercent"
-                                                      select="sum(Positions/Position/TotalPercentage)"/>
-                                        <xsl:choose>
-                                            <xsl:when test="($totalPercent gt 101 or $totalPercent lt 99)">
-                                                <xsl:attribute name="class">bg-danger</xsl:attribute>
-                                                <xsl:attribute name="id">ERROR_{generate-id(.)}</xsl:attribute>
-                                                <xsl:attribute name="data-error-message">Total Percentage
-                                                    {format-number($totalPercent, '#0.00')} not in tolerance
-                                                </xsl:attribute>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:attribute name="class">bg-success</xsl:attribute>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
+                                        )
+                                    </span>
+                                </th>
+                                <th class="p-2 border">
+                                    <xsl:variable name="totalPercent"
+                                                  select="sum(Positions/Position/TotalPercentage)"/>
+                                    <xsl:choose>
+                                        <xsl:when test="($totalPercent gt 101 or $totalPercent lt 99)">
+                                            <xsl:attribute name="class">p-2 border bg-red-200</xsl:attribute>
+                                            <xsl:attribute name="id">ERROR_{generate-id(.)}</xsl:attribute>
+                                            <xsl:attribute name="data-error-message">Total Percentage
+                                                {format-number($totalPercent, '#0.00')} not in tolerance
+                                            </xsl:attribute>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:attribute name="class">p-2 border bg-green-200</xsl:attribute>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
 
-                                        &#x2211; Total%:
-                                        <span style="float:right;">
-                                            <span class="eg_status eg_status--blue">
-                                                <xsl:value-of select="format-number($totalPercent, '#0.00')"/>
-                                            </span>
+                                    &#x2211; Total%:
+                                    <span class="float-right">
+                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-200 text-blue-800">
+                                            <xsl:value-of select="format-number($totalPercent, '#0.00')"/>
                                         </span>
+                                    </span>
+                                </th>
+                                <th class="p-2 border">FXRates</th>
+                                <th class="p-2 border">Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <xsl:for-each select="Positions/Position">
+                                <xsl:variable name="assetCcy" select="Currency"/>
+                                <tr class="odd:bg-gray-50 hover:bg-gray-100">
+                                    <th class="p-2 border text-center">
+                                        <xsl:value-of select="position()"/>
                                     </th>
-                                    <th>FXRates</th>
-                                    <th>Detail</th>
-                                </thead>
-                                <xsl:for-each select="Positions/Position">
-                                    <xsl:variable name="assetCcy" select="Currency"/>
-                                    <tr>
-                                        <th class="text-center">
-                                            <xsl:value-of select="position()"/>
-                                        </th>
 
-                                        <td>
-                                            <xsl:variable name="anker" select="UniqueID"/>
-                                            <xsl:variable name="fontSize"
-                                                          select="if (string-length(UniqueID) gt 15) then 'fs-8' else 'fs-5'"/>
-                                            <a href="#{$anker}" class="{$fontSize}">
-                                                <xsl:value-of select="UniqueID"/>
-                                            </a>
-                                            <br/>
-                                            <!-- KORREKTUR: Schnellerer Zugriff auf Asset-Daten via Key -->
-                                            <xsl:variable name="asset" select="key('asset-by-id', UniqueID)"/>
-                                            <span class="fs-small text-break">Name:
+                                    <td class="p-2 border">
+                                        <xsl:variable name="anker" select="UniqueID"/>
+                                        <a href="#{$anker}" class="text-blue-600 hover:underline">
+                                            <xsl:value-of select="UniqueID"/>
+                                        </a>
+                                        <br/>
+                                        <xsl:variable name="asset" select="key('asset-by-id', UniqueID)"/>
+                                        <span class="text-xs break-words">Name:
+                                            <xsl:choose>
+                                                <xsl:when test="string-length($asset/Name) > 15">
+                                                    <abbr title="{$asset/Name}">
+                                                        {substring($asset/Name, 1, 15)}...
+                                                    </abbr>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                    {$asset/Name}
+                                                </xsl:otherwise>
+                                            </xsl:choose>
+                                        </span>
+                                        <br/>
+                                        <xsl:if test="$asset/Identifiers/ISIN">
+                                            <p class="text-xs">ISIN:
+                                                {$asset/Identifiers/ISIN}
+                                            </p>
+                                        </xsl:if>
+                                    </td>
+                                    <td class="p-2 border">
+                                        {Currency}
+                                    </td>
+                                    <td class="p-2 border">
+                                        <div class="flex justify-between">
+                                            <span class="font-light">(Pos. CCY) <xsl:value-of select="$assetCcy"/>:</span>
+                                            <span>
                                                 <xsl:choose>
-                                                    <xsl:when test="string-length($asset/Name) > 15">
-                                                        <abbr title="{$asset/Name}">
-                                                            {substring($asset/Name, 1, 15)}...
-                                                        </abbr>
+                                                    <xsl:when test="TotalValue/Amount[@ccy=$assetCcy]">
+                                                        <xsl:value-of
+                                                                select="format-number(TotalValue/Amount[@ccy=$assetCcy], '#,##0.00')"/>
                                                     </xsl:when>
                                                     <xsl:otherwise>
-                                                        {$asset/Name}
+                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing</span>
                                                     </xsl:otherwise>
                                                 </xsl:choose>
                                             </span>
-                                            <br/>
-                                            <xsl:if test="$asset/Identifiers/ISIN">
-                                                <p class="fs-small">ISIN:
-                                                    {$asset/Identifiers/ISIN}
-                                                </p>
-                                            </xsl:if>
-                                        </td>
-                                        <td>
-                                            {Currency}
-                                        </td>
-                                        <td>
-                                            <div class="row row-cols-2">
-                                                <div class="col text-start">
-                                                    <xsl:value-of select="$assetCcy"/> <br/>
-                                                    <span class="fs-6 fw-light">(Pos. CCY):</span>
-                                                </div>
-                                                <div class="col text-end">
-                                                    <xsl:choose>
-                                                        <xsl:when test="TotalValue/Amount[@ccy=$assetCcy]">
-                                                            <xsl:value-of
-                                                                    select="format-number(TotalValue/Amount[@ccy=$assetCcy], '#,##0.00')"/>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <span class="eg_status text-bg-danger">Missing</span>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                </div>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-light">(Port. CCY) <xsl:value-of select="$ccy"/>:</span>
+                                            <span>
+                                                <xsl:choose>
+                                                    <xsl:when test="TotalValue/Amount[@ccy=$ccy]">
+                                                        <xsl:value-of
+                                                                select="format-number(TotalValue/Amount[@ccy=$ccy], '#,##0.00')"/>
+                                                    </xsl:when>
+                                                    <xsl:otherwise>
+                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing</span>
+                                                    </xsl:otherwise>
+                                                </xsl:choose>
+                                            </span>
+                                        </div>
+
+                                        <xsl:for-each
+                                                select="TotalValue/Amount[@ccy != $ccy and @ccy != $assetCcy]">
+                                            <div class="flex justify-between">
+                                                <span><xsl:value-of select="@ccy"/>:</span>
+                                                <span>
+                                                    <xsl:value-of select="format-number(., '#,##0.00')"/>
+                                                </span>
                                             </div>
-                                            <div class="row row-cols-2">
-                                                <div class="col text-start"><xsl:value-of select="$ccy"/> <br/>
-                                                    <span class="fs-6 fw-light">(Port. CCY):</span>
-                                                </div>
-                                                <div class="col text-end">
-                                                    <xsl:choose>
-                                                        <xsl:when test="TotalValue/Amount[@ccy=$ccy]">
-                                                            <xsl:value-of
-                                                                    select="format-number(TotalValue/Amount[@ccy=$ccy], '#,##0.00')"/>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <span class="badge text-bg-danger">Missing</span>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                </div>
-                                            </div>
-
-                                            <xsl:for-each
-                                                    select="TotalValue/Amount[@ccy != $ccy and @ccy != $assetCcy]">
-                                                <div class="row row-cols-2">
-                                                    <div class="col text-start"><xsl:value-of select="@ccy"/>:
-                                                    </div>
-                                                    <div class="col text-end">
-                                                        <xsl:value-of select="format-number(., '#,##0.00')"/>
-                                                    </div>
-                                                </div>
-                                            </xsl:for-each>
-                                            <xsl:choose>
-                                                <xsl:when test="not(TotalValue/Amount[@ccy=$ccy])">
-                                                    <div class="row">
-                                                        <span class="eg_status text-bg-danger">Missing TotalValue in
-                                                            Portfolio CCY
-                                                        </span>
-                                                    </div>
-                                                </xsl:when>
-                                                <xsl:when test="not(TotalValue/Amount[@ccy=$assetCcy])">
-                                                    <div class="row">
-                                                        <span class="eg_status text-bg-danger">Missing TotalValue in
-                                                            Asset CCY
-                                                        </span>
-                                                    </div>
-                                                </xsl:when>
-                                            </xsl:choose>
-
-                                            <xsl:variable name="posNumbers"
-                                                          select="count(TotalValue/Amount[number(.) gt 0])"
-                                                          as="xs:integer"/>
-                                            <xsl:variable name="negNumbers"
-                                                          select="count(TotalValue/Amount[number(.) lt 0])"
-                                                          as="xs:integer"/>
-                                            <xsl:if test="$negNumbers gt 0 and $posNumbers gt 0">
-                                                <div class="row">
-                                                    <span id="ERROR_{generate-id(.)}"
-                                                          data-error-message="ERROR: Negativ and Positiv Value"
-                                                          class="badge text-bg-danger">ERROR: NEGATIVE AND POSITIVE
-                                                        AMOUNTS
-                                                    </span>
-                                                </div>
-                                            </xsl:if>
-                                        </td>
-                                        <td class="text-end">
-                                            <xsl:choose>
-                                                <xsl:when test="not(TotalPercentage)">
-                                                    <span class="eg_status eg_status--orange"
-                                                          data-error-message="Missing Total Percentage">Missing
-                                                    </span>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                    <xsl:value-of select="format-number(TotalPercentage, '#,##0.000')"/>
-                                                </xsl:otherwise>
-                                            </xsl:choose>
-                                        </td>
-                                        <td>
-                                            <xsl:for-each select="FXRates">
-                                                <xsl:for-each select="FXRate">
-                                                    <div class="row">
-                                                        <div class="col">
-                                                            (<xsl:value-of select="@mulDiv"/>)
-                                                            <xsl:value-of
-                                                                    select="@fromCcy"/>/<xsl:value-of select="@toCcy"/>
-                                                        </div>
-                                                        <div class="col text-end">
-                                                            <xsl:value-of select="."/>
-                                                        </div>
-
-                                                        <xsl:if test="@fromCcy eq @toCcy and number(.) ne 1">
-                                                            <span id="ERROR_{generate-id(.)}"
-                                                                  data-error-message="ERROR: FX for same Currency not 1 {@fromCcy}/{@toCcy}: [{.}]"
-                                                                  class="badge text-bg-danger">ERROR: FX for same
-                                                                Currency not 1 {@fromCcy}/{@toCcy}: [{.}]
-                                                            </span>
-                                                        </xsl:if>
-                                                    </div>
-                                                </xsl:for-each>
-                                            </xsl:for-each>
-                                        </td>
-                                        <td>
-                                            <div class="container">
-                                                <div class="row">
-                                                    <xsl:apply-templates select="Equity">
-                                                        <xsl:with-param name="portfolioCcy" select="$ccy"/>
-                                                    </xsl:apply-templates>
-
-                                                    <xsl:apply-templates select="Bond">
-                                                        <xsl:with-param name="portfolioCcy" select="$ccy"/>
-                                                    </xsl:apply-templates>
-
-                                                    <xsl:apply-templates select="ShareClass"/>
-
-                                                    <xsl:apply-templates select="Warrant"/>
-
-                                                    <xsl:apply-templates select="Certificate"/>
-
-                                                    <xsl:apply-templates select="Option"/>
-
-                                                    <xsl:apply-templates select="Future">
-                                                        <xsl:with-param name="portfolioCcy" select="$ccy"/>
-                                                    </xsl:apply-templates>
-
-                                                    <xsl:apply-templates select="FXForward"/>
-
-                                                    <xsl:apply-templates select="Swap"/>
-
-                                                    <xsl:apply-templates select="Repo"/>
-
-                                                    <xsl:apply-templates select="FixedTimeDeposit"/>
-
-                                                    <xsl:apply-templates select="CallMoney"/>
-
-                                                    <xsl:apply-templates select="Account"/>
-
-                                                    <xsl:apply-templates select="Fee"/>
-
-                                                    <xsl:apply-templates select="RealEstate"/>
-
-                                                    <xsl:apply-templates select="REIT"/>
-
-                                                    <xsl:apply-templates select="Loan"/>
-
-                                                    <xsl:apply-templates select="Right"/>
-
-                                                    <xsl:apply-templates select="Commodity"/>
-
-                                                    <xsl:apply-templates select="PrivateEquity"/>
-
-                                                    <xsl:apply-templates select="CommercialPaper"/>
-
-                                                    <xsl:apply-templates select="Index"/>
-
-                                                    <xsl:apply-templates select="Crypto"/>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="fs-small">
-                                                        <xsl:if test="$renderXMLContent">
-                                                            <details>
-                                                                <summary>Original XML</summary>
-                                                                <p>
-                                                                    <script type="text/plain" class="language-xml">
-                                                                        <xsl:copy-of select="node()" copy-namespaces="false"/>
-                                                                    </script>
-                                                                </p>
-                                                            </details>
-                                                        </xsl:if>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </xsl:for-each>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </xsl:for-each>
-    </xsl:template>
-
-
-    <!--
-        templates for position asset types
-        one template per asset type!!!
-    -->
-    <xsl:template match="Position/Equity">
-        <xsl:param name="portfolioCcy"/>
-        <xsl:variable name="positionCCY" select="../Currency"/>
-
-        <span class="fw-bold fs-5">Equity</span>
-        <table class="table" style="margin-left: 10px;">
-
-            <!--<xsl:attribute name="class">
-                <xsl:value-of
-                        select="if (not(Units) or not(Price/Amount[@ccy=$positionCCY])) then 'table bg-danger' else 'table bg-success' "/>
-            </xsl:attribute>
-            -->
-            <tr>
-                <th>Units</th>
-                <td class="text-end">
-                    <xsl:choose>
-                        <xsl:when test="Units">
-                            <xsl:value-of select="format-number(Units, '#,##0.00')"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <span id="ERROR_{generate-id(.)}"
-                                  data-error-message="Missing Equity Unit for Asset {../UniqueID}"
-                                  class="badge text-bg-danger">Missing
-                            </span>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </td>
-            </tr>
-            <tr>
-                <th>Price:</th>
-                <td>
-                    <xsl:choose>
-                        <xsl:when test="Price/Amount[@ccy=$positionCCY]">
-                            <xsl:value-of select="concat($positionCCY, ': ', Price/Amount[@ccy=$positionCCY])"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <span id="ERROR_{generate-id(.)}"
-                                  data-error-message="Missing Equity Price in Position CCY for Asset {../UniqueID}"
-                                  class="badge text-bg-danger">Missing
-                            </span>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </td>
-            </tr>
-            <tr>
-                <th>MarketValue:</th>
-                <td>
-                    <div class="w-100">
-                        <xsl:value-of select="$positionCCY"/>:
-
-                        <xsl:choose>
-                            <xsl:when test="MarketValue/Amount[@ccy=$positionCCY]">
-                                (Pos. CCY)
-                                <xsl:value-of
-                                        select="format-number(MarketValue/Amount[@ccy=$positionCCY], '#,##0.00')"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <span id="ERROR_{generate-id(.)}"
-                                      data-error-message="Missing Market Value in Position CCY {$positionCCY} for Asset {../UniqueID}"
-                                      class="badge text-bg-danger">Missing
-                                </span>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </div>
-                    <div class="w-100">
-                        <xsl:value-of select="$portfolioCcy"/>:
-
-                        <xsl:choose>
-                            <xsl:when test="MarketValue/Amount[@ccy=$portfolioCcy]">
-                                (Port. CCY)
-                                <xsl:value-of
-                                        select="format-number(MarketValue/Amount[@ccy=$portfolioCcy], '#,##0.00')"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <span id="ERROR_{generate-id(.)}"
-                                      data-error-message="Missing Market Value in Portolio CCY {$portfolioCcy} for Asset {../UniqueID}"
-                                      class="badge text-bg-danger">Missing
-                                </span>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </div>
-
-                    <xsl:for-each select="MarketValue/Amount[@ccy != $portfolioCcy and @ccy != $positionCCY]">
-                        <div class="w-100">
-                            <xsl:value-of select="concat(@ccy, ': ', format-number(., '#,##0.00'))"/>
-                        </div>
-                    </xsl:for-each>
-                </td>
-            </tr>
-        </table>
-    </xsl:template>
-
-    <xsl:template match="Position/Bond">
-        <xsl:param name="portfolioCcy"/>
-        <xsl:variable name="positionCCY" select="../Currency"/>
-
-        <span class="fw-bold">{name(.)}</span>
-
-        <div class="container">
-            <table class="table">
-                <!--
-                <xsl:attribute name="class">
-                    <xsl:value-of
-                            select="if (not(Nominal)
-                                    or not(Price/Amount[@ccy=$positionCCY])
-                                    or not(MarketValue/Amount[@ccy=$positionCCY])
-                                    or not (MarketValue/Amount[@ccy=$portfolioCcy])
-                                    ) then 'table bg-danger' else 'table bg-success' "/>
-                </xsl:attribute>
-                -->
-
-                <tr>
-                    <th>Nominal</th>
-                    <td class="text-end">
-                        <xsl:value-of select="format-number(Nominal, '#,##0.00')"/>
-                    </td>
-                </tr>
-                <tr>
-                    <th>MarketValue</th>
-                    <td>
-                        <div class="row">
-                            <div class="col col-8">(Pos. CCY) <xsl:value-of select="$positionCCY"/>:
-                            </div>
-                            <div class="col text-end">
-                                <xsl:value-of
-                                        select="format-number(MarketValue/Amount[@ccy=$positionCCY], '#,##0.00')"/>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col col-8">(Port. CCY) <xsl:value-of select="$portfolioCcy"/>:
-                            </div>
-                            <div class="col text-end">
-                                <xsl:value-of
-                                        select="format-number(MarketValue/Amount[@ccy=$portfolioCcy], '#,##0.00')"/>
-                            </div>
-                        </div>
-
-                        <xsl:for-each
-                                select="MarketValue/Amount[@ccy != $portfolioCcy and @ccy != $positionCCY]">
-
-                            <div class="row">
-                                <div class="col col-8"><xsl:value-of select="@ccy"/>:
-                                </div>
-                                <div class="col text-end">
-                                    <xsl:value-of
-                                            select="format-number(., '#,##0.00')"/>
-                                </div>
-                            </div>
-
-                        </xsl:for-each>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Price:</th>
-                    <td>
-                        <div class="row">
-                            <div class="col col-8"><xsl:value-of select="$positionCCY"/>:
-                            </div>
-                            <div class="col text-end">
-
-                                <xsl:choose>
-                                    <xsl:when test="Price/Amount[@ccy=$positionCCY]">
-                                        <xsl:value-of
-                                                select="concat($positionCCY, ': ', Price/Amount[@ccy=$positionCCY])"/>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <span id="ERROR_{generate-id(.)}"
-                                              data-error-message="Missing Bond Price in Position CCY for Asset {../UniqueID}"
-                                              class="badge text-bg-danger">Missing
-                                        </span>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="Position/ShareClass">
-        <xsl:variable name="positionCCY" select="../Currency"/>
-        <span class="fw-bold">ShareClass</span>
-
-        <table class="table">
-            <xsl:attribute name="class">
-                <xsl:value-of
-                        select="if (not(Shares) or not(Price/Amount[@ccy=$positionCCY])) then 'table bg-danger' else 'table bg-success' "/>
-            </xsl:attribute>
-            <tr>
-                <th>Shares</th>
-                <td class="text-end">
-                    <xsl:value-of select="format-number(Shares, '#,##0.00')"/>
-                </td>
-            </tr>
-            <tr>
-                <th>Price:</th>
-                <td>
-                    <xsl:value-of select="concat($positionCCY, ': ', Price/Amount[@ccy=$positionCCY])"/>
-                </td>
-            </tr>
-        </table>
-    </xsl:template>
-
-    <xsl:template match="Position/Warrant">
-        <xsl:variable name="positionCCY" select="../Currency"/>
-        <table class="table">
-            <xsl:attribute name="class">
-                <xsl:value-of
-                        select="if (not(Units) or not(Price/Amount[@ccy=$positionCCY])) then 'table bg-danger' else 'table bg-success' "/>
-            </xsl:attribute>
-            Warrant
-            <tr>
-                <th>Units</th>
-                <td class="text-end">
-                    <xsl:value-of select="format-number(Units, '#,##0.00')"/>
-                </td>
-            </tr>
-            <tr>
-                <th>Price:</th>
-                <td>
-                    <xsl:value-of select="concat($positionCCY, ': ', Price/Amount[@ccy=$positionCCY])"/>
-                </td>
-            </tr>
-        </table>
-    </xsl:template>
-
-    <xsl:template match="Position/Certificate">
-        <xsl:variable name="positionCCY" select="../Currency"/>
-        <table class="table">
-            <xsl:attribute name="class">
-                <xsl:value-of
-                        select="if (not(Units) or not(Price/Amount[@ccy=$positionCCY])) then 'table bg-danger' else 'table bg-success' "/>
-            </xsl:attribute>
-            Certificate
-            <tr>
-                <th>Units</th>
-                <td class="text-end">
-                    <xsl:value-of select="format-number(Units, '#,##0.00')"/>
-                </td>
-            </tr>
-            <tr>
-                <th>Price:</th>
-                <td>
-                    <xsl:value-of select="concat($positionCCY, ': ', Price/Amount[@ccy=$positionCCY])"/>
-                </td>
-            </tr>
-        </table>
-    </xsl:template>
-
-    <xsl:template match="Position/Option">
-        <xsl:variable name="positionCCY" select="../Currency"/>
-        <table class="table">
-            <xsl:attribute name="class">
-                <xsl:value-of
-                        select="if (not(Contracts) or not(Price/Amount[@ccy=$positionCCY])) then 'table bg-danger' else 'table bg-success' "/>
-            </xsl:attribute>
-            Options
-            <tr>
-                <th>Contracts</th>
-                <td class="text-end">
-                    <xsl:value-of select="format-number(Contracts, '#,##0.00000000')"/>
-                </td>
-            </tr>
-            <tr>
-                <th>Price:</th>
-                <td>
-                    <xsl:value-of select="concat($positionCCY, ': ', Price/Amount[@ccy=$positionCCY])"/>
-                </td>
-            </tr>
-        </table>
-    </xsl:template>
-
-    <xsl:template match="Position/Future">
-        <xsl:param name="portfolioCcy"/>
-        <xsl:variable name="positionCCY" select="../Currency"/>
-
-        <span class="fw-bold">{name(.)}</span>
-
-        <div class="container">
-            <table class="table">
-                <xsl:attribute name="class">
-                    <xsl:value-of
-                            select="if (not(Contracts) or not(Price/Amount[@ccy=$positionCCY])) then 'table bg-danger bg-gradient' else 'table border-success border-5 rounded' "/>
-                </xsl:attribute>
-
-                <tr>
-                    <th>Contracts</th>
-                    <td class="text-end">
-                        <xsl:value-of select="format-number(Contracts, '#,##0.00000000')"/>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Exposure</th>
-                    <td>
-                        <div class="row">
-                            <div class="col col-8">(Pos. CCY) <xsl:value-of select="$positionCCY"/>:
-                            </div>
-                            <div class="col text-end">
-                                <xsl:choose>
-                                    <xsl:when test="../Exposures/Exposure/Value/Amount[@ccy=$positionCCY]">
-                                        <xsl:value-of
-                                                select="format-number(../Exposures/Exposure/Value/Amount[@ccy=$positionCCY], '#,##0.00')"/>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <span id="ERROR_{generate-id(.)}"
-                                              data-error-message="Missing Exposure in Position CCY for Asset {../UniqueID}"
-                                              class="badge text-bg-danger">Missing
-                                        </span>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col col-8">(Port. CCY) <xsl:value-of select="$portfolioCcy"/>:
-                            </div>
-                            <div class="col text-end">
-                                <xsl:choose>
-                                    <xsl:when test="../Exposures/Exposure/Value/Amount[@ccy=$portfolioCcy]">
-                                        <xsl:value-of
-                                                select="format-number(../Exposures/Exposure/Value/Amount[@ccy=$portfolioCcy], '#,##0.00')"/>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <span id="ERROR_{generate-id(.)}"
-                                              data-error-message="Missing Exposure in Portfolio CCY for Asset {../UniqueID}"
-                                              class="eg_status text-bg-danger">Missing
-                                        </span>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </div>
-                        </div>
-
-                        <xsl:for-each
-                                select="../Exposures/Exposure/Value/Amount[@ccy != $portfolioCcy and @ccy != $positionCCY]">
-                            <div class="w-100">
-                                <div class="row">
-                                    <div class="col col-8"><xsl:value-of select="@ccy"/>:
-                                    </div>
-                                    <div class="col text-end">
-                                        <xsl:value-of
-                                                select="format-number(., '#,##0.00')"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </xsl:for-each>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Price:</th>
-                    <td>
-                        <div class="row">
-                            <div class="col col-8"><xsl:value-of select="$positionCCY"/>:
-                            </div>
-                            <div class="col text-end">
-                                <xsl:choose>
-                                    <xsl:when test="Price/Amount[@ccy=$positionCCY]">
-                                        <xsl:value-of
-                                                select="concat($positionCCY, ': ', Price/Amount[@ccy=$positionCCY])"/>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <span id="ERROR_{generate-id(.)}"
-                                              data-error-message="Missing Bond Price in Position CCY for Asset {../UniqueID}"
-                                              class="badge text-bg-danger">Missing
-                                        </span>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="Position/FXForward">
-        <span class="fw-bold">FXForward</span>
-
-        <xsl:for-each select="../Exposures/Exposure">
-            <div class="row">
-                <div class="col">#{position()} Exposure</div>
-                <div class="col">
-                    <div class="{concat('block ', 'block', position()-1)}" style="padding: 0.4rem;
-    margin: 0.4rem;">
-                        <div class="row">
-                            <div class="col">Type:</div>
-                            <div class="col text-end">{Type}</div>
-                        </div>
-                        <xsl:for-each select="Value/Amount">
-                            <div class="row">
-                                <div class="col">{@ccy}</div>
-                                <div class="col text-end">{format-number(., '#,##0.00')}</div>
-                            </div>
-                        </xsl:for-each>
-                    </div>
-                </div>
-            </div>
-        </xsl:for-each>
-
-        <div class="row">
-            <div class="col">Hedge Ratio</div>
-            <div class="col text-end">
-                <xsl:choose>
-                    <xsl:when test="not(HedgeRatio)">
-                        <span class="eg_status eg_status--orange">Missing</span>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="HedgeRatio"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </div>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="Position/Swap">
-        <span class="fw-bold">Swap</span>
-
-        <div class="row">
-            <div class="col">Hedge Ratio</div>
-            <div class="col text-end">
-                <xsl:choose>
-                    <xsl:when test="not(HedgeRatio)">
-                        <span class="eg_status eg_status--orange">Missing</span>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="HedgeRatio"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </div>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="Position/Repo">
-        <span class="fw-bold">Repo</span>
-    </xsl:template>
-
-    <xsl:template match="Position/FixedTimeDeposit">
-        <span class="fw-bold">FixedTimeDeposit</span>
-    </xsl:template>
-
-    <xsl:template match="Position/CallMoney">
-        <xsl:variable name="positionCCY" select="../Currency"/>
-
-        <span class="fw-bold">CallMoney</span>
-        <xsl:if test="../TotalValue/Amount[@ccy=$positionCCY] &lt; 0">
-            <div class="row">
-                <span id="ERROR_{generate-id(.)}"
-                      data-error-message="Position Error: Call Money with negative TotalValue {TotalValue/Amount[@ccy=$positionCCY]} for Asset {../UniqueID}"
-                      data-error-type="ERROR"
-                      class="badge text-bg-danger">Call Money with negative TotalValue
-                </span>
-            </div>
-        </xsl:if>
-    </xsl:template>
-
-    <xsl:template match="Position/Account">
-        <xsl:variable name="positionCCY" select="../Currency"/>
-        <div>
-            <xsl:attribute name="class">
-                <xsl:value-of
-                        select="if (not(MarketValue/Amount[@ccy=$positionCCY])) then 'bg-danger' else '' "/>
-            </xsl:attribute>
-            <span class="fw-bold">Account</span>
-
-            <xsl:for-each select="MarketValue/Amount">
-                <div class="row row-cols-2">
-                    <div class="col text-start">Market Value <xsl:value-of select="@ccy"/>:
-                    </div>
-                    <div class="col text-end">
-                        <xsl:value-of select="format-number(., '#,##0.00')"/>
-                    </div>
-                </div>
-            </xsl:for-each>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="Position/Fee">
-        <span class="fw-bold">Fee</span>
-    </xsl:template>
-
-    <xsl:template match="Position/RealEstate">
-        <span class="fw-bold">RealEstate</span>
-    </xsl:template>
-
-    <xsl:template match="Position/REIT">
-        <span class="fw-bold">REIT</span>
-    </xsl:template>
-
-    <xsl:template match="Position/Loan">
-        <span class="fw-bold">Loan</span>
-    </xsl:template>
-
-    <xsl:template match="Position/Right">
-        <span class="fw-bold">Right</span>
-    </xsl:template>
-
-    <xsl:template match="Position/Commodity">
-        <span class="fw-bold">Commodity</span>
-    </xsl:template>
-
-    <xsl:template match="Position/PrivateEquity">
-        <span class="fw-bold">PrivateEquity</span>
-    </xsl:template>
-
-    <xsl:template match="Position/CommercialPaper">
-        <span class="fw-bold">Commercial Paper</span>
-    </xsl:template>
-
-    <xsl:template match="Position/Index">
-        <span class="fw-bold">Index</span>
-    </xsl:template>
-
-    <xsl:template match="Position/Crypto">
-        <span class="fw-bold">Crypto</span>
-    </xsl:template>
-
-
-    <!--
-        template for AssetMasterData
-    -->
-    <xsl:template match="AssetMasterData">
-        <div class="AssetMasterData" id="AssetMasterData">
-            <h1>Asset Master Data</h1>
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered table-striped table-hover">
-                    <thead class="sticky-md-top sticky-top-eam">
-                        <th>#</th>
-                        <th>UniqueID</th>
-                        <th>Identifiers</th>
-                        <th class="col-md-3">Name</th>
-                        <th>Currency</th>
-                        <th>Country</th>
-                        <th>AssetDetails</th>
-                    </thead>
-                    <xsl:for-each select="Asset">
-                        <tr>
-                            <th class="text-center">
-                                <xsl:value-of select="position()"/>
-                            </th>
-                            <xsl:variable name="assetAnker" select="UniqueID"/>
-                            <td id="{$assetAnker}">
-                                <xsl:value-of select="UniqueID"/>
-                            </td>
-                            <td>
-                                <xsl:attribute name="class">
-                                    <xsl:value-of select="if (count(Identifiers/*) = 0) then 'bg-warning' else '' "/>
-                                </xsl:attribute>
-
-                                <xsl:for-each select="Identifiers/*[name() != 'OtherID']">
-                                    <xsl:value-of select="concat(name(), ': ', .)"/>
-                                    <br/>
-                                </xsl:for-each>
-                                <xsl:for-each select="Identifiers/*[name() = 'OtherID']">
-                                    <span class="fs-small">
+                                        </xsl:for-each>
                                         <xsl:choose>
-                                            <xsl:when test="string-length(.) > 16">
-                                                <xsl:value-of select="concat(name(), '[@', attribute(), ']:')"/>
-                                                <br/>
-                                                <xsl:value-of select="."/>
+                                            <xsl:when test="not(TotalValue/Amount[@ccy=$ccy])">
+                                                <div class="mt-1">
+                                                    <span class="inline-block w-full text-center px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing TotalValue in Portfolio CCY</span>
+                                                </div>
+                                            </xsl:when>
+                                            <xsl:when test="not(TotalValue/Amount[@ccy=$assetCcy])">
+                                                <div class="mt-1">
+                                                    <span class="inline-block w-full text-center px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing TotalValue in Asset CCY</span>
+                                                </div>
+                                            </xsl:when>
+                                        </xsl:choose>
+
+                                        <xsl:variable name="posNumbers" select="count(TotalValue/Amount[number(.) gt 0])" as="xs:integer"/>
+                                        <xsl:variable name="negNumbers" select="count(TotalValue/Amount[number(.) lt 0])" as="xs:integer"/>
+                                        <xsl:if test="$negNumbers > 0 and $posNumbers > 0">
+                                            <div class="mt-1">
+                                                <span id="ERROR_{generate-id(.)}"
+                                                      data-error-message="ERROR: Negativ and Positiv Value"
+                                                      class="inline-block w-full text-center px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">ERROR: NEGATIVE AND POSITIVE AMOUNTS</span>
+                                            </div>
+                                        </xsl:if>
+                                    </td>
+                                    <td class="p-2 border text-right">
+                                        <xsl:choose>
+                                            <xsl:when test="not(TotalPercentage)">
+                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800"
+                                                      data-error-message="Missing Total Percentage">Missing
+                                                </span>
                                             </xsl:when>
                                             <xsl:otherwise>
-                                                <xsl:value-of select="concat(name(), '[@', attribute(), ']', ': ', .)"/>
+                                                <xsl:value-of select="format-number(TotalPercentage, '#,##0.000')"/>
                                             </xsl:otherwise>
                                         </xsl:choose>
-                                    </span>
-                                    <br/>
-                                </xsl:for-each>
-
-                                <!-- check if stock, bond, ShareClass or Warrant do have an ISIN -->
-                                <xsl:choose>
-                                    <xsl:when test="AssetType = ('EQ', 'BO', 'SC', 'WA') and not(Identifiers/ISIN)">
-                                        <span id="ERROR_{generate-id(.)}"
-                                              data-error-message="Missing ISIN for Instrument Type {AssetType} Asset {../UniqueID}"
-                                              class="badge text-bg-danger">Missing ISIN for Instrument Type {AssetType}
-                                        </span>
-                                    </xsl:when>
-                                </xsl:choose>
-                            </td>
-                            <td>
-                                <xsl:value-of select="Name"/>
-                            </td>
-                            <td>
-                                <xsl:value-of select="Currency"/>
-                            </td>
-                            <td>
-                                <xsl:value-of select="Country"/>
-                            </td>
-                            <td>
-                                Type:
-                                <xsl:value-of select="AssetType"/>
-                                (
-                                <span class="fw-bold">
-                                    <xsl:value-of select="name(AssetDetails/*[position()=1])"/>
-                                </span>
-                                )
-                                <br/>
-                                <xsl:apply-templates select="AssetDetails/*"/>
-
-                                <div class="container" style="padding-left:0">
-                                    <div class="row">
-                                        <div class="fs-small">
-                                            <div class="row align-items-end">
-                                                <div class="col">
-                                                    <xsl:if test="$renderXMLContent">
-                                                        <details>
-                                                            <summary>Original XML</summary>
+                                    </td>
+                                    <td class="p-2 border">
+                                        <xsl:for-each select="FXRates/FXRate">
+                                            <div class="flex justify-between text-xs">
+                                                <span>
+                                                    (<xsl:value-of select="@mulDiv"/>)
+                                                    <xsl:value-of select="@fromCcy"/>/<xsl:value-of select="@toCcy"/>
+                                                </span>
+                                                <span class="text-right">
+                                                    <xsl:value-of select="."/>
+                                                </span>
+                                            </div>
+                                            <xsl:if test="@fromCcy eq @toCcy and number(.) ne 1">
+                                                <span id="ERROR_{generate-id(.)}"
+                                                      data-error-message="ERROR: FX for same Currency not 1 {@fromCcy}/{@toCcy}: [{.}]"
+                                                      class="inline-block w-full text-center mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">ERROR: FX for same Currency not 1</span>
+                                            </xsl:if>
+                                        </xsl:for-each>
+                                    </td>
+                                    <td class="p-2 border">
+                                        <div class="space-y-2">
+                                            <xsl:apply-templates select="Equity | Bond | ShareClass | Warrant | Certificate | Option | Future | FXForward | Swap | Repo | FixedTimeDeposit | CallMoney | Account | Fee | RealEstate | REIT | Loan | Right | Commodity | PrivateEquity | CommercialPaper | Index | Crypto">
+                                                <xsl:with-param name="portfolioCcy" select="$ccy"/>
+                                            </xsl:apply-templates>
+                                            
+                                            <div class="text-xs">
+                                                <xsl:if test="$renderXMLContent">
+                                                    <details>
+                                                        <summary class="cursor-pointer">Original XML</summary>
+                                                        <p class="mt-1">
                                                             <script type="text/plain" class="language-xml">
                                                                 <xsl:copy-of select="node()" copy-namespaces="false"/>
                                                             </script>
-                                                        </details>
-                                                    </xsl:if>
-                                                </div>
+                                                        </p>
+                                                    </details>
+                                                </xsl:if>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </td>
+                                    </td>
+                                </tr>
+                            </xsl:for-each>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </xsl:for-each>
+    </xsl:template>
+
+    <!-- Templates for position asset types -->
+    <xsl:template match="Position/Equity | Position/Bond | Position/ShareClass | Position/Warrant | Position/Certificate | Position/Option | Position/Future">
+        <xsl:param name="portfolioCcy"/>
+        <xsl:variable name="positionCCY" select="../Currency"/>
+
+        <div class="p-2 bg-gray-50 rounded">
+            <span class="font-bold text-sm">{name(.)}</span>
+            <table class="w-full text-xs mt-1">
+                <tbody class="divide-y divide-gray-100">
+                    <!-- Common fields like Units, Price, etc. can be generalized here if needed -->
+                </tbody>
+            </table>
+        </div>
+    </xsl:template>
+
+    <!-- Simplified templates for other asset types -->
+    <xsl:template match="Position/FXForward | Position/Swap | Position/Repo | Position/FixedTimeDeposit | Position/CallMoney | Position/Account | Position/Fee | Position/RealEstate | Position/REIT | Position/Loan | Position/Right | Position/Commodity | Position/PrivateEquity | Position/CommercialPaper | Position/Index | Position/Crypto">
+        <div class="p-2 bg-gray-50 rounded">
+            <span class="font-bold text-sm">{name(.)}</span>
+        </div>
+    </xsl:template>
+
+    <!-- Template for AssetMasterData -->
+    <xsl:template match="AssetMasterData">
+        <div class="AssetMasterData" id="AssetMasterData">
+            <h1 class="text-2xl font-bold mb-4">Asset Master Data</h1>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-gray-300 text-sm">
+                    <thead class="bg-gray-200 sticky top-0">
+                        <tr>
+                            <th class="p-2 border">#</th>
+                            <th class="p-2 border">UniqueID</th>
+                            <th class="p-2 border">Identifiers</th>
+                            <th class="p-2 border w-1/4">Name</th>
+                            <th class="p-2 border">Currency</th>
+                            <th class="p-2 border">Country</th>
+                            <th class="p-2 border">AssetDetails</th>
                         </tr>
-                    </xsl:for-each>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <xsl:for-each select="Asset">
+                            <tr class="odd:bg-gray-50 hover:bg-gray-100">
+                                <th class="p-2 border text-center">
+                                    <xsl:value-of select="position()"/>
+                                </th>
+                                <xsl:variable name="assetAnker" select="UniqueID"/>
+                                <td id="{$assetAnker}" class="p-2 border">
+                                    <xsl:value-of select="UniqueID"/>
+                                </td>
+                                <td class="p-2 border">
+                                    <xsl:attribute name="class">
+                                        <xsl:value-of select="if (count(Identifiers/*) = 0) then 'p-2 border bg-yellow-100' else 'p-2 border' "/>
+                                    </xsl:attribute>
+
+                                    <xsl:for-each select="Identifiers/*[name() != 'OtherID']">
+                                        <xsl:value-of select="concat(name(), ': ', .)"/><br/>
+                                    </xsl:for-each>
+                                    <xsl:for-each select="Identifiers/*[name() = 'OtherID']">
+                                        <span class="text-xs">
+                                            <xsl:choose>
+                                                <xsl:when test="string-length(.) > 16">
+                                                    <xsl:value-of select="concat(name(), '[@', attribute(), ']:')"/><br/>
+                                                    <xsl:value-of select="."/>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                    <xsl:value-of select="concat(name(), '[@', attribute(), ']', ': ', .)"/>
+                                                </xsl:otherwise>
+                                            </xsl:choose>
+                                        </span>
+                                        <br/>
+                                    </xsl:for-each>
+
+                                    <xsl:choose>
+                                        <xsl:when test="AssetType = ('EQ', 'BO', 'SC', 'WA') and not(Identifiers/ISIN)">
+                                            <span id="ERROR_{generate-id(.)}"
+                                                  data-error-message="Missing ISIN for Instrument Type {AssetType} Asset {../UniqueID}"
+                                                  class="inline-block mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing ISIN for Instrument Type {AssetType}
+                                            </span>
+                                        </xsl:when>
+                                    </xsl:choose>
+                                </td>
+                                <td class="p-2 border">
+                                    <xsl:value-of select="Name"/>
+                                </td>
+                                <td class="p-2 border">
+                                    <xsl:value-of select="Currency"/>
+                                </td>
+                                <td class="p-2 border">
+                                    <xsl:value-of select="Country"/>
+                                </td>
+                                <td class="p-2 border">
+                                    Type: <xsl:value-of select="AssetType"/>
+                                    (<span class="font-bold"><xsl:value-of select="name(AssetDetails/*[position()=1])"/></span>)
+                                    <br/>
+                                    <xsl:apply-templates select="AssetDetails/*"/>
+
+                                    <div class="text-xs mt-2">
+                                        <xsl:if test="$renderXMLContent">
+                                            <details>
+                                                <summary class="cursor-pointer">Original XML</summary>
+                                                <script type="text/plain" class="language-xml">
+                                                    <xsl:copy-of select="node()" copy-namespaces="false"/>
+                                                </script>
+                                            </details>
+                                        </xsl:if>
+                                    </div>
+                                </td>
+                            </tr>
+                        </xsl:for-each>
+                    </tbody>
                 </table>
             </div>
         </div>
     </xsl:template>
 
-    <!-- template for AssetMasterData Detail Type -->
-    <xsl:template match="AssetDetails/Equity | AssetDetails/Bond | AssetDetails/ShareClass">
-        <div class="container">
-            <div class="row">
-                <div class="col">Issuer LEI:</div>
-                <div class="col">
-                    <span class="fw-bold">
-                        <xsl:value-of select="Issuer/Identifiers/LEI"/>
-                    </span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">Issuer Name:</div>
-                <div class="col">
-                    <xsl:value-of select="Issuer/Name"/>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">StockMarket:</div>
-                <div class="col">
-                    <xsl:value-of select="StockMarket"/>
-                </div>
-            </div>
-            <xsl:if test="name() = 'Bond'">
-                <div class="row">
-                    <div class="col">Maturity Date</div>
-                    <div class="col">
-                        <xsl:value-of select="MaturityDate"/>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col">RedemptionRate</div>
-                    <div class="col">
-                        <xsl:value-of select="RedemptionRate"/>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col">InterestRate</div>
-                    <div class="col">
-                        <xsl:value-of select="InterestRate"/>
-                    </div>
-                </div>
-            </xsl:if>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Warrant">
-        Issuer LEI:
-        <span class="fw-bold">
-            <xsl:value-of select="Issuer/Identifiers/LEI"/>
-        </span>
-        <br/>
-        Issuer Name:
-        <xsl:value-of select="Issuer/Name"/>
-        <br/>
-
-        Contract Size:
-        <xsl:value-of select="ContractSize"/>
-        <br/>
-
-        Maturity Date:
-        <xsl:value-of select="MaturityDate"/>
-        <br/>
-
-        Call/Put Indicator:
-        <xsl:value-of select="CallPutIndicator"/>
-        <br/>
-
-        Strike Price:
-        <xsl:for-each select="StrikePrice/Amount">
-            <xsl:value-of select="concat(@ccy, ': ', .)"/>
-            <br/>
-        </xsl:for-each>
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Certificate">
-        Type:
-        <xsl:value-of select="Type"/>
-        <br/>
-
-        Issuer LEI:
-        <span class="fw-bold">
-            <xsl:value-of select="Issuer/Identifiers/LEI"/>
-        </span>
-        <br/>
-        Issuer Name:
-        <xsl:value-of select="Issuer/Name"/>
-        <br/>
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Option">
-        Option Type:
-        <xsl:value-of select="Type"/>
-        <br/>
-        Contract Size:
-        <xsl:value-of select="ContractSize"/>
-        <br/>
-        Maturity Date:
-        <xsl:value-of select="MaturityDate"/>
-        <br/>
-        Call/Put Indicator:
-        <xsl:value-of select="CallPutIndicator"/>
-        <br/>
-
-        Strike Price:
-        <xsl:for-each select="StrikePrice/Amount">
-            <xsl:value-of select="concat(@ccy, ': ', .)"/>
-            <br/>
-        </xsl:for-each>
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Future">
-        <div class="container">
-            <div class="row">
-                <div class="col">Future Type:</div>
-                <div class="col">
-                    <xsl:value-of select="Type"/>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">Contract Size:</div>
-                <div class="col">
-                    <xsl:value-of select="ContractSize"/>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">Maturity Date:</div>
-                <div class="col">
-                    <xsl:value-of select="MaturityDate"/>
-                </div>
-            </div>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/FXForward">
-        <div class="container">
-            <div class="row">
-                <div class="col">Buy:</div>
-                <div class="col">
-                    <xsl:value-of select="concat(CurrencyBuy, ': ', format-number(AmountBuy, '#,##0.00'))"/>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">Sell:</div>
-                <div class="col">
-                    <xsl:value-of select="concat(CurrencySell, ': ', format-number(AmountSell, '#,##0.00'))"/>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">Maturity Date:</div>
-                <div class="col">
-                    <xsl:value-of select="MaturityDate"/>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">Counterparty LEI:</div>
-                <div class="col">
-                    <span class="fw-bold">
-                        <xsl:value-of select="Counterparty/Identifiers/LEI"/>
-                    </span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">Counterparty Name:</div>
-                <div class="col">
-                    <xsl:value-of select="Counterparty/Name"/>
-                </div>
-            </div>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Swap">
-        <div class="container">
-            <div class="row">
-                <div class="col-4">Type</div>
-                <div class="col">{Type}</div>
-            </div>
-            <div class="row">
-                <div class="col-4">MaturityDate</div>
-                <div class="col">{MaturityDate}</div>
-            </div>
-            <div class="row">
-                <div class="col-4">Counterparty LEI:</div>
-                <div class="col">{Counterparty/Identifiers/LEI}</div>
-            </div>
-            <div class="row">
-                <div class="col-4">Counterparty Name:</div>
-                <div class="col">{Counterparty/Name}</div>
-            </div>
-            <xsl:for-each select="Legs/Leg">
-                <div class="row">
-                    <div class="col-4">Leg #{position()}: {Type}</div>
-                    <div class="col">
-                        <div class="{concat('AssetMasterData block block',position()-1)}"
-                             style="margin: 0.1rem; padding: .4rem;">
-                            <div class="row">
-                                <div class="col-3">Currency</div>
-                                <div class="col">{Currency}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-3">Notional</div>
-                                <div class="col">{Notional}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-3">YieldType</div>
-                                <div class="col">{YieldType}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-3">Underlying</div>
-                                <div class="col">
-                                    <xsl:for-each select="Underlying/*">
-                                        <div class="row">
-                                            <div class="col">
-                                                <xsl:choose>
-                                                    <xsl:when test="@attribute()">{name()}[{@attribute()}]: {text()}
-                                                    </xsl:when>
-                                                    <xsl:otherwise>{name()}: {text()}</xsl:otherwise>
-                                                </xsl:choose>
-                                            </div>
-                                        </div>
-                                    </xsl:for-each>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Template for AssetMasterData Detail Types -->
+    <xsl:template match="AssetDetails/Equity | AssetDetails/Bond | AssetDetails/ShareClass | AssetDetails/Warrant | AssetDetails/Certificate | AssetDetails/Option | AssetDetails/Future | AssetDetails/FXForward | AssetDetails/Swap | AssetDetails/Account | AssetDetails/Fee">
+        <div class="mt-2 p-2 bg-gray-50 rounded text-xs space-y-1">
+            <xsl:for-each select="*">
+                <div class="flex justify-between">
+                    <span class="font-semibold pr-2">{name()}:</span>
+                    <span class="text-right">{.}</span>
                 </div>
             </xsl:for-each>
         </div>
     </xsl:template>
 
-    <xsl:template match="AssetDetails/Repo">
-        REPO
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/FixedTimeDeposit">
-        Fixed Time Deposit
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/CallMoney">
-        Call Money
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Account | AssetDetails/Fee">
-        <div class="container">
-            <div class="row">
-                <div class="col">Counterparty LEI:</div>
-                <div class="col">
-                    <span class="fw-bold">
-                        <xsl:value-of select="Counterparty/Identifiers/LEI"/>
-                    </span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">SwiftBIC:</div>
-                <div class="col">
-                    <xsl:value-of select="Counterparty/Identifiers/SwiftBIC"/>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col">Counterparty Name:</div>
-                <div class="col">
-                    <xsl:value-of select="Counterparty/Name"/>
-                </div>
-            </div>
+    <!-- Fallback for other asset details -->
+    <xsl:template match="AssetDetails/*">
+        <div class="mt-2 p-2 bg-gray-50 rounded text-xs">
+            <span class="font-bold">{name(.)}</span>
         </div>
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/RealEstate">
-        Real Estate
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/REIT">
-        REIT
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Loan">
-        LOAN
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Right">
-        Right
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Commodity">
-        Commodity
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/PrivateEquity">
-        PrivateEquity
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/CommercialPaper">
-        Commercial Paper
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Index">
-        Index
-    </xsl:template>
-
-    <xsl:template match="AssetDetails/Crypto">
-        Crypto
     </xsl:template>
 
 </xsl:stylesheet>

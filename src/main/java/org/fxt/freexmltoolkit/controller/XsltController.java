@@ -36,7 +36,6 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.FileExplorer;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
-import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 
@@ -200,7 +199,7 @@ public class XsltController {
                     Paths.get(outputDir.getAbsolutePath(), "prism.css"),
                     StandardCopyOption.REPLACE_EXISTING);
             Files.copy(
-                    Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/freeXmlToolkit.css")),
+                    Objects.requireNonNull(getClass().getResourceAsStream("/xsdDocumentation/assets/freexmltoolkit-docs.css")),
                     Paths.get(outputDir.getAbsolutePath(), "freeXmlToolkit.css"),
                     StandardCopyOption.REPLACE_EXISTING);
             Files.copy(

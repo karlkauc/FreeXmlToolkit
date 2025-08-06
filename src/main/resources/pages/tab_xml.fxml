@@ -10,29 +10,29 @@
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlController">
     <HBox>
         <HBox styleClass="xml">
-            <Button fx:id="newFile" contentDisplay="TOP" onAction="#newFilePressed" styleClass="big_button" text="_new File">
+            <Button fx:id="newFile" contentDisplay="TOP" onAction="#newFilePressed" text="_new File">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-file-earmark" />
                 </graphic>
             </Button>
-            <Button fx:id="openFile" contentDisplay="TOP" onAction="#openFile" styleClass="big_button" text="_open File">
+            <Button fx:id="openFile" contentDisplay="TOP" onAction="#openFile" text="_open File">
                 <graphic>
                     <FontIcon iconColor="black" iconLiteral="bi-folder2-open" />
                 </graphic>
             </Button>
-            <Button fx:id="saveFile" contentDisplay="TOP" onAction="#saveFile" styleClass="big_button" text="_save File">
+            <Button fx:id="saveFile" contentDisplay="TOP" onAction="#saveFile" text="_save File">
                 <graphic>
                     <FontIcon iconLiteral="bi-hdd" />
                 </graphic>
             </Button>
 
-            <Button fx:id="prettyPrint" contentDisplay="TOP" onAction="#prettifyingXmlText" styleClass="big_button" text="_format Text" ButtonBar.buttonData="RIGHT">
+            <Button fx:id="prettyPrint" contentDisplay="TOP" onAction="#prettifyingXmlText" text="_format Text" ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconColor="darkorange" iconLiteral="fth-align-center" />
                 </graphic>
             </Button>
 
-            <Button fx:id="minifyButton" contentDisplay="TOP" onAction="#minifyXmlText" styleClass="big_button" text="_minify Text" ButtonBar.buttonData="RIGHT">
+            <Button fx:id="minifyButton" contentDisplay="TOP" onAction="#minifyXmlText" text="_minify Text" ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconColor="#b2ae22" iconLiteral="fth-crop" />
                 </graphic>
@@ -59,7 +59,7 @@
         </HBox>
         <HBox styleClass="xml" spacing="5">
             <Separator orientation="VERTICAL" />
-            <Button fx:id="validateSchema" contentDisplay="TOP" onAction="#validateSchema" styleClass="big_button" text="validate Schema" ButtonBar.buttonData="RIGHT">
+            <Button fx:id="validateSchema" contentDisplay="TOP" onAction="#validateSchema" text="validate Schema" ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconLiteral="win10-checked" />
                 </graphic>
@@ -72,7 +72,7 @@
         </HBox>
         <HBox fx:id="test" styleClass="xml" visible="false">
             <Separator orientation="VERTICAL" />
-            <Button contentDisplay="TOP" onAction="#test" styleClass="big_button" text="test" ButtonBar.buttonData="RIGHT">
+            <Button contentDisplay="TOP" onAction="#test" text="test" ButtonBar.buttonData="RIGHT">
                 <graphic>
                     <FontIcon iconLiteral="win10-checked" />
                 </graphic>

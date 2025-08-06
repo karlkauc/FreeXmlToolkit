@@ -270,6 +270,8 @@
 
 .tab-pane .tab .tab-label {
   -fx-text-fill: #57606a;
+  -fx-font-smoothing-type: gray;
+  -fx-font-size: 1.2em;
 }
 
 .tab-pane > .tab-content-area {

@@ -182,6 +182,8 @@
 
 .tab-pane .tab .tab-label {
   -fx-text-fill: $color-text-secondary;
+  -fx-font-smoothing-type: gray;
+  -fx-font-size: 1.2em;
 }
 
 .tab-pane > .tab-content-area {

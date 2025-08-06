@@ -1,4 +1,5 @@
 @source "../xsdDocumentation/**/*.html";
+@source "release/examples/xslt/Check_FundsXML_File.xslt";
 
 @font-face {
     font-family: "Inter";
