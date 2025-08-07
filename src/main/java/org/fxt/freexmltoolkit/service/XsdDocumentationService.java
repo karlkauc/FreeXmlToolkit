@@ -74,6 +74,7 @@ public class XsdDocumentationService {
     private TaskProgressListener progressListener;
     private final XsdSampleDataGenerator xsdSampleDataGenerator = new XsdSampleDataGenerator();
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
+    XsdDocumentationSvgService xsdDocumentationSvgService = new XsdDocumentationSvgService();
 
     // DOM/XPath related fields
     private XPath xpath;
@@ -131,11 +132,15 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.setDocumentationData(xsdDocumentationData);
         xsdDocumentationHtmlService.setXsdDocumentationService(this);
 
+        xsdDocumentationSvgService.setOutputDirectory(outputDirectory);
+        xsdDocumentationSvgService.setDocumentationData(xsdDocumentationData);
+
         // Der ImageService wird jetzt hier zentral initialisiert, damit er für die Vorerstellung bereit ist.
         xsdDocumentationHtmlService.xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
 
         executeAndTrack("Copying resources", xsdDocumentationHtmlService::copyResources);
         executeAndTrack("Generating root page", xsdDocumentationHtmlService::generateRootPage);
+        executeAndTrack("Generating SVG page", xsdDocumentationSvgService::generateSvgPage);
         executeAndTrack("Generating list of complex types", xsdDocumentationHtmlService::generateComplexTypesListPage);
         executeAndTrack("Generating list of simple types", xsdDocumentationHtmlService::generateSimpleTypesListPage);
         executeAndTrack("Generating data dictionary", xsdDocumentationHtmlService::generateDataDictionaryPage);

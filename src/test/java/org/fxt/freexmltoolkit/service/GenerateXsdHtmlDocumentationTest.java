@@ -115,8 +115,9 @@ public class GenerateXsdHtmlDocumentationTest {
 
         // --- 2. Eingebetteten HTTP-Server starten ---
         int port = 8080;
-        // startHttpServer(outputFilePath, port);
-        // openUrlInBrowser("http://localhost:" + port + "/index.html");
+        startHttpServer(outputFilePath, port);
+        openUrlInBrowser("http://localhost:" + port + "/index.html");
+        Thread.sleep(Integer.MAX_VALUE);
     }
 
     /**
@@ -125,9 +126,8 @@ public class GenerateXsdHtmlDocumentationTest {
      * @param docRootPath Das Stammverzeichnis, aus dem die Dateien bereitgestellt werden sollen.
      * @param port        Der Port, auf dem der Server lauschen soll.
      * @return Die gestartete HttpServer-Instanz.
-     * @throws IOException wenn der Server nicht gestartet werden kann.
      */
-    private HttpServer startHttpServer(Path docRootPath, int port) throws IOException {
+    private HttpServer startHttpServer(Path docRootPath, int port) {
         // Der SimpleFileServer benötigt einen absoluten Pfad.
         // Wir wandeln den relativen Pfad in einen absoluten um und normalisieren ihn.
         Path absoluteDocRoot = docRootPath.toAbsolutePath().normalize();
@@ -137,7 +137,7 @@ public class GenerateXsdHtmlDocumentationTest {
         // Diese Funktionalität ist seit JDK 18 standardmäßig verfügbar.
         HttpServer server = SimpleFileServer.createFileServer(
                 new InetSocketAddress(port),
-                absoluteDocRoot, // Verwende den jetzt absoluten Pfad
+                absoluteDocRoot,
                 SimpleFileServer.OutputLevel.INFO
         );
         server.start();
