@@ -89,6 +89,7 @@ public class XmlServiceImpl implements XmlService {
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     Transformer transform;
     XsltExecutable stylesheet;
+    private File cachedXsltFile = null; // Added for caching compiled stylesheet
     File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
     DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder;
@@ -215,19 +216,42 @@ public class XmlServiceImpl implements XmlService {
     public void setCurrentXsltFile(File currentXsltFile) {
         this.currentXsltFile = currentXsltFile;
 
+        // Add caching logic here
+        if (currentXsltFile != null && !currentXsltFile.equals(this.cachedXsltFile)) {
+            try {
+                this.stylesheet = compiler.compile(new StreamSource(currentXsltFile));
+                this.cachedXsltFile = currentXsltFile;
+                logger.debug("XSLT stylesheet compiled and cached: {}", currentXsltFile.getAbsolutePath());
+            } catch (SaxonApiException e) {
+                logger.error("Failed to compile XSLT stylesheet: {}", e.getMessage());
+                this.stylesheet = null; // Invalidate cached stylesheet on error
+                this.cachedXsltFile = null;
+                throw new RuntimeException("Failed to compile XSLT stylesheet", e);
+            }
+        } else if (currentXsltFile == null) {
+            this.stylesheet = null;
+            this.cachedXsltFile = null;
+        }
+
         // output methode ermitteln!!
         try {
-            FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
-            final var builder = builderFactory.newDocumentBuilder();
-            final var xmlDocument = builder.parse(fileIS);
+            if (this.currentXsltFile != null) { // Ensure file is not null before trying to read
+                FileInputStream fileIS = new FileInputStream(this.currentXsltFile);
+                final var builder = builderFactory.newDocumentBuilder();
+                final var xmlDocument = builder.parse(fileIS);
 
-            final String expression = "/stylesheet/output/@method";
-            final XPath xPath = XPathFactory.newInstance().newXPath();
-            final var nodeList = (NodeList) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODESET);
+                final String expression = "/stylesheet/output/@method";
+                final XPath xPath = XPathFactory.newInstance().newXPath();
+                final var nodeList = (NodeList) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODESET);
 
-            if (nodeList != null && nodeList.getLength() != 0) {
-                logger.debug("Output Method: {}", nodeList.item(0).getNodeValue());
-                this.xsltOutputMethod = nodeList.item(0).getNodeValue();
+                if (nodeList != null && nodeList.getLength() != 0) {
+                    logger.debug("Output Method: {}", nodeList.item(0).getNodeValue());
+                    this.xsltOutputMethod = nodeList.item(0).getNodeValue();
+                } else {
+                    this.xsltOutputMethod = null; // Reset if no method found
+                }
+            } else {
+                this.xsltOutputMethod = null; // Reset if no XSLT file
             }
         } catch (XPathExpressionException e) {
             logger.error("Could not detect output Method.");
@@ -289,20 +313,33 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public String performXsltTransformation() {
+        if (this.stylesheet == null) {
+            throw new IllegalStateException("XSLT stylesheet not set or failed to compile. Call setCurrentXsltFile first.");
+        }
+        if (getCurrentXmlFile() == null || !getCurrentXmlFile().exists()) {
+            throw new IllegalStateException("XML file not set or does not exist.");
+        }
+
         try {
-            stylesheet = compiler.compile(new StreamSource(getCurrentXsltFile()));
             sw = new StringWriter();
             Serializer out = processor.newSerializer();
-            out.setOutputProperty(Serializer.Property.METHOD, "html");
+
+            // Use the detected output method, default to "html" if not found
+            if (this.xsltOutputMethod != null && !this.xsltOutputMethod.isEmpty()) {
+                out.setOutputProperty(Serializer.Property.METHOD, this.xsltOutputMethod);
+            } else {
+                out.setOutputProperty(Serializer.Property.METHOD, "html"); // Default to html
+            }
             out.setOutputProperty(Serializer.Property.INDENT, "yes");
             out.setOutputWriter(sw);
 
-            transformer = stylesheet.load30();
+            transformer = stylesheet.load30(); // Reuse compiled stylesheet
             transformer.transform(new StreamSource(getCurrentXmlFile()), out);
 
             return sw.toString();
         } catch (SaxonApiException e) {
-            throw new RuntimeException(e);
+            logger.error("Error during XSLT transformation: {}", e.getMessage());
+            throw new RuntimeException("Error during XSLT transformation", e);
         }
     }
 
@@ -745,7 +782,7 @@ public class XmlServiceImpl implements XmlService {
                 possibleSchemaLocation = root.getAttribute("xsi:schemaLocation");
                 if (possibleSchemaLocation.contains(" ")) {
                     // e.g. xsi:schemaLocation="http://www.fundsxml.org/XMLSchema/3.0.6 FundsXML3.0.6.xsd"
-                    String[] splitStr = possibleSchemaLocation.split("\\s+");
+                    String[] splitStr = possibleSchemaLocation.split("\s+");
                     String possibleFileName = splitStr[1];
                     String possibleFilePath = this.currentXmlFile.getParent() + "/" + possibleFileName;
                     if (new File(possibleFilePath).exists()) {
@@ -990,7 +1027,7 @@ public class XmlServiceImpl implements XmlService {
         }
 
         // First, try to find the node as a descendant of the current context. This handles inline definitions.
-        return ".//*[local-name()='" + nodeKind + "' and @name='" + elementName + "']";
+        return "(.//*[local-name()='" + nodeKind + "' and @name='" + elementName + "'])";
     }
 
     private void writeDocumentToFile(Document doc, File file) throws TransformerException {

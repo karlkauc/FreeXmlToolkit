@@ -228,11 +228,12 @@ public class XsltController {
 
     @FXML
     private void test() {
-        xmlFile = Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml").toFile();
-        xsltFile = Paths.get("release/examples/xslt/Check_FundsXML_File.xslt").toFile();
+        String baseDir = System.getProperty("user.dir");
+        xmlFile = Paths.get(baseDir, "release/examples/xml/FundsXML_422_Bond_Fund.xml").toFile();
+        xsltFile = Paths.get(baseDir, "release/examples/xslt/Check_FundsXML_File.xslt").toFile();
 
-        xmlFileExplorer.setSelectedFile(xmlFile.toPath());
-        xsltFileExplorer.setSelectedFile(xsltFile.toPath());
+        xmlFileExplorer.selectFile(xmlFile);
+        xsltFileExplorer.selectFile(xsltFile);
 
         if (xmlService != null) {
             xmlService.setCurrentXmlFile(xmlFile);

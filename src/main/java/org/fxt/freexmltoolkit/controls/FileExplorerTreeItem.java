@@ -51,6 +51,47 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
         this.allowedExtensions = allowedExtensions;
     }
 
+    /**
+     * Expands the tree view down to the specified target path and returns the corresponding TreeItem.
+     * This method ensures that all parent directories of the target path are expanded.
+     *
+     * @param path The full path of the item to find and reveal.
+     * @return The TreeItem for the specified path, or null if not found.
+     */
+    public TreeItem<Path> expandAndFind(Path path) {
+        // 1. Check if the target path is a descendant of the current item's path. If not, we can stop.
+        if (!path.startsWith(getValue())) {
+            return null;
+        }
+
+        // 2. If this is the exact item, we found it.
+        if (getValue().equals(path)) {
+            return this;
+        }
+
+        // 3. If it's a directory, we need to expand it and search its children.
+        if (Files.isDirectory(getValue())) {
+            // Ensure children are loaded for the lazy-loading mechanism by calling getChildren().
+            getChildren();
+
+            // Recursively search in the children.
+            for (TreeItem<Path> child : super.getChildren()) {
+                if (child instanceof FileExplorerTreeItem) {
+                    TreeItem<Path> foundItem = ((FileExplorerTreeItem) child).expandAndFind(path);
+                    if (foundItem != null) {
+                        // If a descendant was found, expand the current node and return the found item.
+                        this.setExpanded(true);
+                        return foundItem;
+                    }
+                }
+            }
+        }
+
+        // 4. Not found in any child branch or it's a leaf that doesn't match.
+        return null;
+    }
+
+
     public long getSubdirectoryCount() {
         if (this.subdirectoryCount == -1) { // Nur beim ersten Mal berechnen
             Path path = getValue();

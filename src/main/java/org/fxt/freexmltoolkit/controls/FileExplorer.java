@@ -34,7 +34,6 @@ import org.apache.logging.log4j.Logger;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -245,70 +244,49 @@ public class FileExplorer extends VBox {
     }
 
     /**
+     * Selects the given file in the file explorer view.
+     * The tree will be expanded to show the file.
+     *
+     * @param file The file to select.
+     */
+    public void selectFile(File file) {
+        if (file != null) {
+            selectPath(file.toPath());
+        }
+    }
+
+    /**
      * Finds and selects the given path in the tree, expanding nodes as necessary.
+     * This now delegates the search and expansion logic to the root TreeItem.
      *
      * @param path The path to select.
      */
     public void selectPath(Path path) {
-        if (path == null || fileTreeView.getRoot() == null) {
+        if (path == null || this.root == null) {
             return;
         }
-        // If it's a file, navigate to the parent directory
-        // so the file becomes visible in the tree before being selected.
-        Path pathToExpand = Files.isDirectory(path) ? path : path.getParent();
-        if (pathToExpand == null) return;
 
-        TreeItem<Path> item = findItemByPath(fileTreeView.getRoot(), pathToExpand);
-        if (item != null) {
-            // We need to ensure the target node (or its parent) is loaded.
-            item.setExpanded(true);
-            Platform.runLater(() -> {
-                // Now find the actual target (file or folder)
-                TreeItem<Path> targetItem = findItemByPath(fileTreeView.getRoot(), path);
-                if (targetItem != null) {
-                    fileTreeView.getSelectionModel().select(targetItem);
-                    int rowIndex = fileTreeView.getRow(targetItem);
-                    if (rowIndex >= 0) {
-                        fileTreeView.scrollTo(rowIndex);
+        // The root is a dummy node (hostname). We need to start the search from its children (the drive roots).
+        for (TreeItem<Path> driveRoot : this.root.getChildren()) {
+            if (driveRoot instanceof FileExplorerTreeItem) {
+                // Check if the path is on this drive
+                if (path.startsWith(driveRoot.getValue())) {
+                    TreeItem<Path> targetItem = ((FileExplorerTreeItem) driveRoot).expandAndFind(path);
+                    if (targetItem != null) {
+                        // Once the item is found, we select it and scroll to it on the FX thread.
+                        Platform.runLater(() -> {
+                            fileTreeView.getSelectionModel().select(targetItem);
+                            int rowIndex = fileTreeView.getRow(targetItem);
+                            if (rowIndex >= 0) {
+                                fileTreeView.scrollTo(rowIndex);
+                            }
+                        });
+                        return; // Found it, no need to check other drives
                     }
                 }
-            });
-        }
-    }
-
-    private TreeItem<Path> findItemByPath(TreeItem<Path> root, Path path) {
-        Path rootOfPath = path.getRoot();
-        if (rootOfPath == null) return null;
-
-        for (TreeItem<Path> fsRootItem : root.getChildren()) {
-            if (fsRootItem.getValue().equals(rootOfPath)) {
-                return findRecursive(fsRootItem, path);
             }
         }
-        return null;
-    }
-
-    private TreeItem<Path> findRecursive(TreeItem<Path> currentItem, Path targetPath) {
-        try {
-            if (currentItem.getValue() != null && Files.isSameFile(currentItem.getValue(), targetPath)) {
-                return currentItem;
-            }
-        } catch (IOException e) {
-            if (currentItem.getValue() != null && currentItem.getValue().equals(targetPath)) {
-                return currentItem;
-            }
-        }
-
-        if (targetPath.startsWith(currentItem.getValue())) {
-            currentItem.setExpanded(true);
-            for (TreeItem<Path> child : currentItem.getChildren()) {
-                TreeItem<Path> found = findRecursive(child, targetPath);
-                if (found != null) {
-                    return found;
-                }
-            }
-        }
-        return null;
+        logger.warn("Could not find path in tree: {}", path);
     }
 
     private void handleDragOver(javafx.scene.input.DragEvent event) {
