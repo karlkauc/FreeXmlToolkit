@@ -44,11 +44,11 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -161,6 +161,9 @@ public class XsdDocumentationService {
         this.useMarkdownRenderer = useMarkdownRenderer;
         initializeXmlTools();
 
+        // NEU: Remote-Schemas herunterladen und Pfade auf lokale Dateien umschreiben
+        downloadRemoteSchemas();
+
         // Parse the main XSD file
         String xsdContent = Files.readString(new File(xsdFilePath).toPath(), StandardCharsets.UTF_8);
         this.doc = parseXsdContent(xsdContent);
@@ -180,6 +183,88 @@ public class XsdDocumentationService {
 
         // Build the type usage map after traversal
         buildTypeUsageMap();
+    }
+
+    /**
+     * Scans the main XSD and its dependencies recursively for remote schema locations,
+     * downloads them, and rewrites the schemaLocation attributes to point to the local files.
+     * This makes the entire schema set self-contained.
+     *
+     * @throws Exception if parsing or network operations fail.
+     */
+    private void downloadRemoteSchemas() throws Exception {
+        Path baseDirectory = new File(this.xsdFilePath).toPath().getParent();
+        if (baseDirectory == null) {
+            baseDirectory = new File(".").toPath(); // Fallback to current directory
+        }
+
+        Queue<Path> filesToProcess = new LinkedList<>();
+        filesToProcess.add(new File(this.xsdFilePath).toPath());
+
+        Set<String> processedUrls = new HashSet<>();
+
+        while (!filesToProcess.isEmpty()) {
+            Path currentFile = filesToProcess.poll();
+            if (!Files.exists(currentFile)) continue;
+
+            logger.debug("Scanning for remote schemas in: {}", currentFile);
+            Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
+            NodeList nodes = (NodeList) xpath.evaluate("//xs:import[@schemaLocation] | //xs:include[@schemaLocation]", document, XPathConstants.NODESET);
+            boolean modified = false;
+
+            for (int i = 0; i < nodes.getLength(); i++) {
+                Element element = (Element) nodes.item(i);
+                String location = element.getAttribute("schemaLocation");
+
+                if (isRemote(location)) {
+                    String fileName = getFileNameFromUrl(location);
+                    if (fileName.isEmpty()) {
+                        logger.warn("Could not determine filename from URL, skipping: {}", location);
+                        continue;
+                    }
+
+                    // Rewrite path even if already processed, to ensure consistency
+                    if (!element.getAttribute("schemaLocation").equals(fileName)) {
+                        element.setAttribute("schemaLocation", fileName);
+                        modified = true;
+                    }
+
+                    if (processedUrls.contains(location)) continue; // Already downloaded
+
+                    try {
+                        Path localPath = baseDirectory.resolve(fileName);
+
+                        if (Files.exists(localPath)) {
+                            logger.info("Skipping download, file already exists locally: {}", localPath);
+                        } else {
+                            logger.info("Downloading remote schema from {} to {}", location, localPath);
+                            try (InputStream in = new URI(location).toURL().openStream()) {
+                                Files.copy(in, localPath);
+                            }
+                        }
+
+                        // The downloaded file is NOT queued for further scanning.
+                        processedUrls.add(location);
+                    } catch (Exception e) {
+                        logger.error("Failed to download or process remote schema: {}", location, e);
+                        // Optional: Inform user via progress listener
+                    }
+                }
+            }
+
+            if (modified) {
+                logger.info("Rewriting schema file with updated local paths: {}", currentFile);
+                try (Writer writer = Files.newBufferedWriter(currentFile, StandardCharsets.UTF_8)) {
+                    TransformerFactory factory = TransformerFactory.newInstance();
+                    factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                    Transformer transformer = factory.newTransformer();
+                    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+                    transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+                    transformer.transform(new DOMSource(document), new StreamResult(writer));
+                }
+            }
+        }
     }
 
     private void traverseNode(Node node, String currentXPath, String parentXPath, int level, Set<Node> visitedOnPath) {
@@ -772,5 +857,25 @@ public class XsdDocumentationService {
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
                 .replace("'", "&apos;");
+    }
+
+    private boolean isRemote(String location) {
+        if (location == null || location.isBlank()) {
+            return false;
+        }
+        String loc = location.toLowerCase();
+        return loc.startsWith("http://") || loc.startsWith("https://") || loc.startsWith("ftp://");
+    }
+
+    private String getFileNameFromUrl(String urlString) {
+        try {
+            URI uri = new URI(urlString);
+            String path = uri.getPath();
+            if (path == null || path.isEmpty() || path.equals("/")) return "";
+            return new File(path).getName();
+        } catch (Exception e) {
+            logger.warn("Could not parse URL to get filename: {}", urlString, e);
+            return "";
+        }
     }
 }
