@@ -2,13 +2,13 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Side;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,7 +21,6 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.TwoDimensional;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
-import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -32,11 +31,11 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -44,7 +43,7 @@ import javax.xml.validation.Validator;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
@@ -65,7 +64,6 @@ public class XmlEditor extends Tab {
 
     private final static Logger logger = LogManager.getLogger(XmlEditor.class);
 
-
     File xmlFile;
     File xsdFile;
 
@@ -75,25 +73,22 @@ public class XmlEditor extends Tab {
     Document document;
     XmlService xmlService = new XmlServiceImpl();
 
-    // NEU: Referenz zum MainController für die LSP-Kommunikation
     private MainController mainController;
     private LanguageServer serverProxy;
 
-    // NEU: UI-Elemente für die Hover-Informationen
     private PopOver hoverPopOver;
     private final Label popOverLabel = new Label();
-    // NEU: Timer, um Anfragen zu verzögern (Debouncing)
     private final PauseTransition hoverDelay = new PauseTransition(Duration.millis(500));
 
-    // --- NEU: Such- und Ersetzen-Funktionalität ---
     private SearchReplaceController searchController;
     private PopOver searchPopOver;
-    private final int lastSearchIndex = 0;
 
-    private enum SearchMode {SEARCH, REPLACE}
-
-    private XmlEditorSidebarController sidebarController;
-
+    // --- Sidebar UI Components ---
+    private TextField xsdPathField;
+    private Label validationStatusLabel;
+    private CheckBox continuousValidationCheckBox;
+    private TextField xpathField;
+    private ListView<String> childElementsListView;
 
     public XmlEditor() {
         init();
@@ -108,9 +103,6 @@ public class XmlEditor extends Tab {
         this.mainController = mainController;
     }
 
-    /**
-     * Setter, um den Server-Proxy direkt zu übergeben.
-     */
     public void setLanguageServer(LanguageServer serverProxy) {
         this.serverProxy = serverProxy;
     }
@@ -119,255 +111,249 @@ public class XmlEditor extends Tab {
         try {
             db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             transformer = transformerFactory.newTransformer();
-        } catch (ParserConfigurationException e) {
-            logger.warn("Error parsing XML file: {}", e.getMessage());
-        } catch (TransformerConfigurationException e) {
+        } catch (ParserConfigurationException | TransformerConfigurationException e) {
             throw new RuntimeException(e);
         }
 
         TabPane tabPane = new TabPane();
-
-        xml.setGraphic(new FontIcon("bi-code-slash:20"));
-        graphic.setGraphic(new FontIcon("bi-columns-gap:20"));
-
         tabPane.setSide(Side.LEFT);
         tabPane.getTabs().addAll(xml, graphic);
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
+        xml.setGraphic(new FontIcon("bi-code-slash:20"));
+        graphic.setGraphic(new FontIcon("bi-columns-gap:20"));
+
         xml.setOnSelectionChanged(e -> {
-            if (xml.isSelected()) {
-                logger.debug("XML tab selected. View is already up-to-date.");
-            } else {
-                logger.debug("refresh Graphic view");
+            if (!xml.isSelected()) {
                 try {
                     if (!codeArea.getText().isEmpty()) {
                         document = db.parse(new ByteArrayInputStream(codeArea.getText().getBytes(StandardCharsets.UTF_8)));
                         refreshGraphicView();
                     }
                 } catch (SAXException | IOException ex) {
-                    logger.info("Could not create graphic view, likely due to invalid XML: {}", ex.getMessage());
                     graphic.setContent(new Label("Invalid XML. Cannot display graphic view."));
                 }
             }
         });
 
-        // Initialisierung des PopOver und des Timers
+        setupHover();
+        setupSearchAndReplace();
+
+        xml.setContent(xmlCodeEditor);
+        this.setText(DEFAULT_FILE_NAME);
+        this.setClosable(true);
+
+        // --- Create Sidebar Programmatically ---
+        TitledPane sidebar = createSidebar();
+
+        // --- Create Main Layout ---
+        SplitPane splitPane = new SplitPane();
+        splitPane.getItems().addAll(tabPane, sidebar);
+        splitPane.setDividerPositions(0.8); // Initial position
+
+        this.setContent(splitPane);
+
+        // Store the last divider position before collapsing
+        final double[] lastDividerPosition = {splitPane.getDividerPositions()[0]};
+
+        // Keep track of the divider position when the user moves it, but only when the sidebar is expanded.
+        splitPane.getDividers().get(0).positionProperty().addListener((obs, oldPos, newPos) -> {
+            if (sidebar.isExpanded()) {
+                lastDividerPosition[0] = newPos.doubleValue();
+            }
+        });
+
+        // Add a listener to the TitledPane's expanded property to move the divider
+        sidebar.expandedProperty().addListener((obs, wasExpanded, isExpanded) -> {
+            if (isExpanded) {
+                splitPane.setDividerPositions(lastDividerPosition[0]);
+            } else {
+                splitPane.setDividerPositions(1.0);
+            }
+        });
+
+        // --- Add Listeners ---
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            if (continuousValidationCheckBox.isSelected()) {
+                validateXml();
+            }
+        });
+
+        codeArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> updateCursorInformation());
+    }
+
+    private TitledPane createSidebar() {
+        // --- Sidebar Content Pane ---
+        VBox sidebarContent = new VBox(10);
+        sidebarContent.setPadding(new Insets(10));
+
+        // --- XSD Section ---
+        xsdPathField = new TextField();
+        xsdPathField.setPromptText("XSD Schema");
+        HBox.setHgrow(xsdPathField, Priority.ALWAYS);
+        Button changeXsdButton = new Button("...");
+        changeXsdButton.setOnAction(event -> selectXsdFile());
+        HBox xsdFileBox = new HBox(5, xsdPathField, changeXsdButton);
+        validationStatusLabel = new Label("Validation status: Unknown");
+        continuousValidationCheckBox = new CheckBox("Continuous validation");
+        VBox xsdBox = new VBox(5, xsdFileBox, validationStatusLabel, continuousValidationCheckBox);
+        TitledPane xsdPane = new TitledPane("XSD Schema", xsdBox);
+        xsdPane.setCollapsible(false);
+
+        // --- Cursor Section ---
+        xpathField = new TextField();
+        xpathField.setEditable(false);
+        VBox cursorBox = new VBox(5, new Label("XPath:"), xpathField);
+        TitledPane cursorPane = new TitledPane("Cursor Information", cursorBox);
+        cursorPane.setCollapsible(false);
+
+        // --- Child Elements Section ---
+        childElementsListView = new ListView<>();
+        TitledPane childElementsPane = new TitledPane("Possible Child Elements", childElementsListView);
+        childElementsPane.setCollapsible(false);
+        VBox.setVgrow(childElementsPane, Priority.ALWAYS);
+
+        sidebarContent.getChildren().addAll(xsdPane, cursorPane, childElementsPane);
+
+        // Wrap the entire sidebar content in a TitledPane
+        TitledPane sidebarPane = new TitledPane("Tools", sidebarContent);
+        sidebarPane.setAnimated(true); // Use smooth animation for collapse/expand
+        sidebarPane.setExpanded(true); // Start expanded
+
+        return sidebarPane;
+    }
+
+    private void selectXsdFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select XSD Schema");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Files", "*.xsd"));
+        File selectedFile = fileChooser.showOpenDialog(this.getContent().getScene().getWindow());
+        if (selectedFile != null) {
+            setXsdFile(selectedFile);
+        }
+    }
+
+    private void setupHover() {
         popOverLabel.setWrapText(true);
         popOverLabel.setStyle("-fx-padding: 8px; -fx-font-family: 'monospaced';");
         hoverPopOver = new PopOver(popOverLabel);
         hoverPopOver.setDetachable(false);
         hoverPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
         hoverDelay.setOnFinished(e -> triggerLspHover());
+    }
 
-        // NEU: Tastenkürzel für Suchen und Ersetzen direkt hier hinzufügen
+    private void setupSearchAndReplace() {
         codeArea.setOnKeyPressed(event -> {
             if (event.isControlDown()) {
                 switch (event.getCode()) {
-                    case F -> {
-                        showSearchPopup(SearchMode.SEARCH);
-                        event.consume();
-                    }
-                    case R -> {
-                        showSearchPopup(SearchMode.REPLACE);
-                        event.consume();
-                    }
+                    case F -> showSearchPopup(true);
+                    case R -> showSearchPopup(false);
                 }
+                event.consume();
             }
         });
 
-        // NEU: Such-Popup initialisieren
         try {
-            initializeSearchPopup();
+            // This could also be created programmatically if we want to remove all FXML dependencies
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/pages/controls/SearchReplaceControl.fxml"));
+            Pane searchPane = loader.load();
+            searchController = loader.getController();
+            searchController.setXmlCodeEditor(this.xmlCodeEditor);
+
+            searchPopOver = new PopOver(searchPane);
+            searchPopOver.setDetachable(false);
+            searchPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
+            searchPopOver.setTitle("Find/Replace");
         } catch (IOException e) {
             logger.error("Failed to initialize search popup.", e);
-            throw new RuntimeException(e);
         }
+    }
 
-        xml.setContent(xmlCodeEditor);
-
-        this.setText(DEFAULT_FILE_NAME);
-        this.setClosable(true);
-        this.setOnCloseRequest(eh -> logger.debug("Close Event"));
-
-        // Create SplitPane
-        SplitPane splitPane = new SplitPane();
-        splitPane.setDividerPositions(0.75); // Adjust divider position as needed
-
-        // Load sidebar
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/controls/XmlEditorSidebar.fxml"));
-            VBox sidebar = loader.load();
-            sidebarController = loader.getController();
-            sidebarController.setXmlEditor(this);
-            splitPane.getItems().addAll(tabPane, sidebar);
-        } catch (IOException e) {
-            logger.error("Failed to load sidebar", e);
-            splitPane.getItems().add(tabPane);
-        }
-
-
-        this.setContent(splitPane);
-
-        // Listener for continuous validation
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (sidebarController != null && sidebarController.isContinuousValidationSelected()) {
-                validateXml();
-            }
-        });
-
-        // Listener for cursor position changes
-        codeArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
-            updateCursorInformation();
-        });
+    private void showSearchPopup(boolean isSearch) {
+        if (searchPopOver == null) return;
+        searchController.selectTab(isSearch ? searchController.getSearchTab() : searchController.getReplaceTab());
+        searchPopOver.show(codeArea, -5);
+        searchController.focusFindField();
     }
 
     private void updateCursorInformation() {
-        if (sidebarController == null) return;
-
         String text = codeArea.getText();
         int caretPosition = codeArea.getCaretPosition();
-
-        // Simplified method to find current element name
-        String currentElementName = findCurrentElement(text, caretPosition);
-        sidebarController.setXPath(currentElementName != null ? "Current element: " + currentElementName : "No element selected");
-
-        // Placeholder for possible child elements
-        sidebarController.setPossibleChildElements(Collections.singletonList("Child element detection not yet implemented."));
+        String xpath = getCurrentXPath(text, caretPosition);
+        xpathField.setText(xpath);
+        childElementsListView.getItems().setAll(Collections.singletonList("Child element detection not yet implemented."));
     }
 
-    private String findCurrentElement(String text, int position) {
+    private String getCurrentXPath(String text, int position) {
+        Deque<String> elementStack = new ArrayDeque<>();
         try {
-            int startTag = text.lastIndexOf('<', position - 1);
-            if (startTag == -1) return null;
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            XMLStreamReader reader = factory.createXMLStreamReader(new StringReader(text.substring(0, position)));
 
-            int endTag = text.indexOf('>', startTag);
-            if (endTag == -1 || endTag < position) {
-                // We might be inside a tag definition, let's find the start of the tag name
-                String tagContent = text.substring(startTag + 1);
-                if (tagContent.startsWith("/") || tagContent.startsWith("?") || tagContent.startsWith("!")) {
-                    return null; // Closing tag, processing instruction, or comment
+            while (reader.hasNext()) {
+                int event = reader.next();
+                if (event == XMLStreamReader.START_ELEMENT) {
+                    elementStack.push(reader.getLocalName());
+                } else if (event == XMLStreamReader.END_ELEMENT) {
+                    if (!elementStack.isEmpty()) {
+                        elementStack.pop();
+                    }
                 }
-                String[] parts = tagContent.split("[ >]+");
-                return parts[0];
             }
-
-            // Find the corresponding closing tag to ensure we are inside an element
-            String tagName = text.substring(startTag + 1, endTag).split("[ >]")[0];
-            if (tagName.isEmpty() || tagName.startsWith("/") || tagName.startsWith("?") || tagName.startsWith("!")) {
-                return null;
-            }
-
-            int nextStartTag = text.indexOf('<', startTag + 1);
-            int closingTag = text.indexOf("</" + tagName, position);
-
-            if (closingTag != -1 && (nextStartTag == -1 || closingTag < nextStartTag)) {
-                return tagName;
-            }
-
-            return findCurrentElement(text, startTag);
+            // Reverse the stack for correct order
+            Deque<String> reversedStack = new ArrayDeque<>();
+            elementStack.forEach(reversedStack::push);
+            return "/" + String.join("/", reversedStack);
         } catch (Exception e) {
-            logger.debug("Could not determine current element: {}", e.getMessage());
-            return null;
+            return "Invalid XML structure";
         }
     }
 
-
     public void setXsdFile(File xsdFile) {
         this.xsdFile = xsdFile;
+        if (xsdPathField != null) {
+            xsdPathField.setText(xsdFile.getAbsolutePath());
+        }
         validateXml();
     }
 
     public void validateXml() {
         if (xsdFile == null) {
-            sidebarController.setValidationStatus("No XSD selected");
+            validationStatusLabel.setText("Validation status: No XSD selected");
             return;
         }
-
         try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             Schema schema = factory.newSchema(new StreamSource(xsdFile));
             Validator validator = schema.newValidator();
             validator.validate(new StreamSource(new ByteArrayInputStream(codeArea.getText().getBytes(StandardCharsets.UTF_8))));
-            sidebarController.setValidationStatus("Valid");
+            validationStatusLabel.setText("Validation status: Valid");
         } catch (SAXException | IOException e) {
-            sidebarController.setValidationStatus("Invalid: " + e.getMessage());
+            validationStatusLabel.setText("Validation status: Invalid");
         }
     }
 
-    /**
-     * Lädt die FXML für das Such-Popup und konfiguriert es.
-     */
-    private void initializeSearchPopup() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/controls/SearchReplaceControl.fxml"));
-        Pane searchPane = loader.load();
-        searchController = loader.getController();
-        searchController.setXmlCodeEditor(this.xmlCodeEditor);
-
-        searchPopOver = new PopOver(searchPane);
-        searchPopOver.setDetachable(false);
-        searchPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
-        searchPopOver.setTitle("Find/Replace");
-    }
-
-    /**
-     * Zeigt das Such-Popup an und wählt den richtigen Tab aus.
-     */
-    private void showSearchPopup(SearchMode mode) {
-        if (searchPopOver == null) return;
-
-        if (mode == SearchMode.SEARCH) {
-            searchController.selectTab(searchController.getSearchTab());
-        } else {
-            searchController.selectTab(searchController.getReplaceTab());
-        }
-
-        searchPopOver.show(codeArea, -5);
-        searchController.focusFindField();
-    }
-
-    /**
-     * NEU: Wird vom MainController aufgerufen, um diesen Editor über neue Diagnosen zu informieren.
-     */
     public void updateDiagnostics(List<Diagnostic> diagnostics) {
         this.currentDiagnostics = new ArrayList<>(diagnostics);
-        applyStyles(); // Wende die neuen Stile (Unterstreichungen) an.
+        applyStyles();
     }
 
-    /**
-     * NEU: Kombiniert Syntax-Highlighting und Diagnose-Highlighting.
-     * Diese Methode wird jetzt immer aufgerufen, wenn sich der Text oder die Diagnosen ändern.
-     */
     private void applyStyles() {
-        if (codeArea.getText().length() >= MAX_SIZE_FOR_FORMATTING) {
-            return;
-        }
+        if (codeArea.getText().length() >= MAX_SIZE_FOR_FORMATTING) return;
         StyleSpans<Collection<String>> syntaxHighlighting = XmlCodeEditor.computeHighlighting(codeArea.getText());
-
-        // Überlagere sie mit den Diagnose-Stilen
-        codeArea.setStyleSpans(0, syntaxHighlighting
-                .overlay(computeDiagnosticStyles(), (syntaxStyles, diagnosticStyles) -> {
-                    // Wenn ein Diagnose-Stil vorhanden ist, hat er Vorrang.
-                    return diagnosticStyles.isEmpty() ? syntaxStyles : diagnosticStyles;
-                }));
+        codeArea.setStyleSpans(0, syntaxHighlighting.overlay(computeDiagnosticStyles(), (syntax, diagnostic) -> diagnostic.isEmpty() ? syntax : diagnostic));
     }
 
-    /**
-     * NEU: Erstellt die StyleSpans für die Diagnose-Unterstreichungen.
-     */
     private StyleSpans<Collection<String>> computeDiagnosticStyles() {
         if (currentDiagnostics.isEmpty()) {
             return StyleSpans.singleton(Collections.emptyList(), codeArea.getLength());
         }
-
         StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
         int lastKwEnd = 0;
-
         for (Diagnostic diagnostic : currentDiagnostics) {
             Range range = diagnostic.getRange();
-            // Konvertiere LSP-Position (Zeile/Spalte) in einen flachen Index im Text.
             int start = codeArea.position(range.getStart().getLine(), range.getStart().getCharacter()).toOffset();
             int end = codeArea.position(range.getEnd().getLine(), range.getEnd().getCharacter()).toOffset();
-
             if (start < end) {
                 spansBuilder.add(Collections.emptyList(), start - lastKwEnd);
                 String styleClass = getStyleClassFor(diagnostic.getSeverity());
@@ -379,150 +365,47 @@ public class XmlEditor extends Tab {
         return spansBuilder.create();
     }
 
-    /**
-     * NEU: Hilfsmethode, um die richtige CSS-Klasse für den Schweregrad zu finden.
-     */
     private String getStyleClassFor(DiagnosticSeverity severity) {
-        if (severity == null) return "diagnostic-warning"; // Fallback
+        if (severity == null) return "diagnostic-warning";
         return switch (severity) {
             case Error -> "diagnostic-error";
             case Warning -> "diagnostic-warning";
-            // Weitere Fälle wie Information oder Hint können hier hinzugefügt werden.
             default -> "diagnostic-warning";
         };
     }
 
-    /**
-     * NEU: Findet eine Diagnose an einer bestimmten Textposition.
-     */
-    private Optional<Diagnostic> findDiagnosticAt(int position) {
-        return currentDiagnostics.stream().filter(d -> {
-            int start = codeArea.position(d.getRange().getStart().getLine(), d.getRange().getStart().getCharacter()).toOffset();
-            int end = codeArea.position(d.getRange().getEnd().getLine(), d.getRange().getEnd().getCharacter()).toOffset();
-            return position >= start && position <= end;
-        }).findFirst();
-    }
-
-    /**
-     * NEU: Hilfsmethode, um das PopOver anzuzeigen.
-     */
-    private void showPopOver() {
-        Point2D screenPos = codeArea.localToScreen(codeArea.getCaretBounds().get().getMaxX(), codeArea.getCaretBounds().get().getMaxY());
-        hoverPopOver.show(codeArea.getScene().getWindow(), screenPos.getX(), screenPos.getY() + 5);
-    }
-
-    /**
-     * Löst die LSP-Anfrage für Hover-Informationen aus.
-     * Diese Version verarbeitet die Antwort direkt und modern.
-     */
     private void triggerLspHover() {
-        if (this.serverProxy == null || xmlFile == null) {
-            logger.trace("LSP Hover: Server or file not available.");
-            return;
-        }
+        if (this.serverProxy == null || xmlFile == null) return;
 
         int caretPosition = codeArea.getCaretPosition();
         var lineColumn = codeArea.offsetToPosition(caretPosition, TwoDimensional.Bias.Forward);
-
         TextDocumentIdentifier textDocumentIdentifier = new TextDocumentIdentifier(xmlFile.toURI().toString());
         Position position = new Position(lineColumn.getMajor(), lineColumn.getMinor());
         HoverParams hoverParams = new HoverParams(textDocumentIdentifier, position);
 
-        logger.debug("Requesting hover info for {} at [{},{}]", xmlFile.getName(), position.getLine(), position.getCharacter());
-
         CompletableFuture<Hover> hoverFuture = this.serverProxy.getTextDocumentService().hover(hoverParams);
         hoverFuture.thenAcceptAsync(hover -> {
-            if (hover == null || hover.getContents() == null) {
-                return;
-            }
-
-            // Fall 1 (bevorzugt): Die Antwort ist moderner MarkupContent.
-            if (hover.getContents().isRight()) {
-                String hoverText = hover.getContents().getRight().getValue();
-                if (!hoverText.isBlank()) {
-                    Platform.runLater(() -> {
-                        popOverLabel.setText(hoverText);
-                        showPopOver();
-                    });
+            if (hover != null && hover.getContents() != null) {
+                if (hover.getContents().isRight()) {
+                    String hoverText = hover.getContents().getRight().getValue();
+                    if (!hoverText.isBlank()) {
+                        Platform.runLater(() -> {
+                            popOverLabel.setText(hoverText);
+                            showPopOver();
+                        });
+                    }
                 }
             }
-
-            // Fall 2 (veraltet): Die Antwort ist eine Liste von MarkedString.
-            if (hover.getContents().isLeft()) {
-                /*
-                List<Either<String, org.eclipse.lsp4j.MarkedString>> legacyItems = hover.getContents().getLeft();
-                String hoverText = legacyItems.stream()
-                        .map(this::formatLegacyHoverItem)
-                        .collect(Collectors.joining("\n\n---\n\n"));
-
-                if (!hoverText.isBlank()) {
-                    Platform.runLater(() -> {
-                        popOverLabel.setText(hoverText);
-                        showPopOver();
-                    });
-                }
-                 */
-            }
-
         }).exceptionally(ex -> {
             logger.error("LSP hover request failed.", ex);
             return null;
         });
     }
 
-    /*
-    private String extractHoverContent(Either<List<Either<String, org.eclipse.lsp4j.MarkedString>>, org.eclipse.lsp4j.MarkupContent> contents) {
-        if (contents == null) {
-            return "";
-        }
-
-        // Moderner Ansatz (bevorzugt): Der Server sendet direkt MarkupContent.
-        if (contents.isRight()) {
-            org.eclipse.lsp4j.MarkupContent markupContent = contents.getRight();
-            return (markupContent != null) ? markupContent.getValue() : "";
-        }
-
-        // Veralteter Ansatz: Der Server sendet eine Liste. Wir wandeln sie in einen String um.
-        if (contents.isLeft()) {
-            return contents.getLeft().stream()
-                    .map(this::formatLegacyHoverItem) // Jedes Element an eine Hilfsmethode übergeben
-                    .collect(Collectors.joining("\n\n---\n\n")); // Ergebnisse mit einem sichtbaren Trenner verbinden
-        }
-
-        return "";
+    private void showPopOver() {
+        Point2D screenPos = codeArea.localToScreen(codeArea.getCaretBounds().get().getMaxX(), codeArea.getCaretBounds().get().getMaxY());
+        hoverPopOver.show(codeArea.getScene().getWindow(), screenPos.getX(), screenPos.getY() + 5);
     }
-     */
-
-    /*
-     * Hilfsmethode, um ein einzelnes Element aus der veralteten Hover-Liste zu formatieren.
-     *
-     * @param item Ein Either, das entweder einen String oder ein MarkedString enthält.
-     * @return Der formatierte String-Inhalt.
-     */
-    /*
-    private String formatLegacyHoverItem(Either<String, org.eclipse.lsp4j.MarkedString> item) {
-        // Fall 1: Das Element ist ein einfacher String.
-        if (item.isLeft()) {
-            return item.getLeft();
-        }
-
-        // Fall 2: Das Element ist ein (veraltetes) MarkedString.
-        if (item.isRight()) {
-            org.eclipse.lsp4j.MarkedString markedString = item.getRight();
-            String language = markedString.getLanguage();
-            String value = markedString.getValue();
-
-            if (language != null && !language.isEmpty()) {
-                return "TEST";
-            }
-
-            // Wenn eine Sprache angegeben ist, formatieren wir es als Markdown-Code-Block.
-            return language + "\n" + value + "\n";
-        }
-
-        return ""; // Should not be reached
-    }
-     */
 
     public File getXmlFile() {
         return xmlFile;
@@ -531,129 +414,61 @@ public class XmlEditor extends Tab {
     public void setXmlFile(File xmlFile) {
         this.xmlFile = xmlFile;
         this.setText(xmlFile.getName());
-    }
+        refreshTextView();
 
-    public XmlService getXmlService() {
-        return xmlService;
-    }
-
-    public void refresh() {
-        if (this.xmlFile != null && this.xmlFile.exists()) {
-            // 1. Textansicht direkt aus der Datei laden. Dies ist die primäre und robusteste Aktion.
-            refreshTextView();
-
-            // 2. Versuchen, das Dokument für die grafische Ansicht zu parsen.
-            //    Dies kann fehlschlagen, beeinträchtigt aber nicht die Textansicht.
-            //    Die grafische Ansicht wird bei Auswahl des Tabs ohnehin neu generiert,
-            //    aber wir können es hier schon mal versuchen.
-            try {
-                xmlService.setCurrentXmlFile(this.xmlFile);
-                this.document = xmlService.getXmlDocument();
-                // Die grafische Ansicht wird bei Bedarf beim Tab-Wechsel aktualisiert,
-                // daher ist ein direkter Aufruf von refreshGraphicView() hier nicht zwingend.
-            } catch (Exception e) {
-                logger.warn("XML-Dokument konnte für die grafische Ansicht nicht initial geparst werden: {}", e.getMessage());
-                this.document = null;
+        xmlService.setCurrentXmlFile(xmlFile);
+        if (xmlService.loadSchemaFromXMLFile()) {
+            File loadedXsdFile = xmlService.getCurrentXsdFile();
+            if (loadedXsdFile != null) {
+                setXsdFile(loadedXsdFile);
             }
         }
     }
 
-    /**
-     * Aktualisiert die Textansicht, indem das aktuelle, im Speicher befindliche
-     * DOM-Dokument serialisiert wird. Dies wird verwendet, nachdem Änderungen
-     * in der grafischen Ansicht vorgenommen wurden.
-     */
-    public void refreshTextViewFromDom() {
-        if (document == null) {
-            logger.warn("Attempted to refresh text view from DOM, but document is null.");
-            return;
-        }
-        String xmlContent = getDocumentAsString();
-        if (xmlContent != null) {
-            // Der textProperty-Listener in XmlCodeEditor löst nur das Syntax-Highlighting aus,
-            // was hier korrekt und erwünscht ist.
-            codeArea.clear();
-            codeArea.replaceText(xmlContent);
-        }
+    public void refresh() {
+        refreshTextView();
+        refreshGraphicView();
     }
 
-    void refreshTextView() {
+    public void refreshTextView() {
         if (xmlFile == null || !xmlFile.exists()) {
             codeArea.clear();
             return;
         }
-
         try {
-            // Lese den Dateiinhalt direkt aus der Datei, anstatt vom geparsten Dokument.
-            // Das stellt sicher, dass der Inhalt auch bei ungültigem XML angezeigt wird.
             final String content = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
             codeArea.replaceText(content);
-            // Das Syntax-Highlighting wird automatisch über den Listener der textProperty ausgelöst.
         } catch (IOException e) {
-            logger.error("Konnte Datei für Textansicht nicht lesen: {}", xmlFile.getAbsolutePath(), e);
-            codeArea.replaceText("Fehler: Konnte Datei nicht lesen.\n" + e.getMessage());
-        }
-    }
-
-    public Document getDocument() {
-        return this.document;
-    }
-
-    public String getDocumentAsString() {
-        if (document == null) {
-            return null;
-        }
-        try {
-
-            StringWriter stringWriter = new StringWriter();
-            transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
-            return stringWriter.toString();
-        } catch (Exception e) {
-            logger.error("Fehler bei der Konvertierung des Dokuments in einen String: {}", e.getMessage());
-            return null;
+            codeArea.replaceText("Error: Could not read file.\n" + e.getMessage());
         }
     }
 
     private void refreshGraphicView() {
         try {
-            BackgroundFill backgroundFill = new BackgroundFill(
-                    Color.rgb(200, 200, 50, 0.5),
-                    new CornerRadii(5),
-                    new Insets(5)
-            );
-
-            ScrollPane pane = new ScrollPane();
-            pane.setBackground(new Background(backgroundFill));
             VBox vBox = new VBox();
             vBox.setPadding(new Insets(3));
-            pane.setContent(vBox);
-
             if (document != null) {
                 var simpleNodeElement = new XmlGraphicEditor(document, this);
                 VBox.setVgrow(simpleNodeElement, Priority.ALWAYS);
                 vBox.getChildren().add(simpleNodeElement);
             }
+            ScrollPane pane = new ScrollPane(vBox);
+            pane.setBackground(new Background(new BackgroundFill(Color.rgb(200, 200, 50, 0.5), new CornerRadii(5), new Insets(5))));
             this.graphic.setContent(pane);
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
     }
 
-    // --- NEUE Such- und Ersetzen-Methoden ---
-
-    public void find(String text, boolean forward) {
-        xmlCodeEditor.find(text, forward);
-    }
-
-    public void replace(String findText, String replaceText) {
-        xmlCodeEditor.replace(findText, replaceText);
-    }
-
-    public void replaceAll(String findText, String replaceText) {
-        xmlCodeEditor.replaceAll(findText, replaceText);
-    }
-
     public XmlCodeEditor getXmlCodeEditor() {
         return xmlCodeEditor;
+    }
+
+    public XmlService getXmlService() {
+        return xmlService;
+    }
+
+    public void refreshTextViewFromDom() {
+        refresh();
     }
 }

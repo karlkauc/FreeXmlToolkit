@@ -2,8 +2,10 @@ package org.fxt.freexmltoolkit.controller.controls;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
 
@@ -27,7 +29,17 @@ public class XmlEditorSidebarController {
     @FXML
     private ListView<String> childElementsListView;
 
+    @FXML
+    private Button toggleSidebarButton;
+
+    @FXML
+    private VBox sidebarContent;
+
     private XmlEditor xmlEditor;
+
+    private String xsdPath;
+
+    private boolean sidebarVisible = true;
 
     public void setXmlEditor(XmlEditor xmlEditor) {
         this.xmlEditor = xmlEditor;
@@ -53,6 +65,20 @@ public class XmlEditorSidebarController {
         });
     }
 
+    @FXML
+    private void toggleSidebar() {
+        sidebarVisible = !sidebarVisible;
+        sidebarContent.setVisible(sidebarVisible);
+        sidebarContent.setManaged(sidebarVisible);
+
+        FontIcon icon = (FontIcon) toggleSidebarButton.getGraphic();
+        if (sidebarVisible) {
+            icon.setIconLiteral("bi-arrow-right-square:20");
+        } else {
+            icon.setIconLiteral("bi-arrow-left-square:20");
+        }
+    }
+
     public void setValidationStatus(String status) {
         validationStatusLabel.setText("Validation status: " + status);
     }
@@ -67,5 +93,8 @@ public class XmlEditorSidebarController {
 
     public boolean isContinuousValidationSelected() {
         return continuousValidationCheckBox.isSelected();
+    }
+
+    public void setXsdPath(String absolutePath) {
     }
 }
