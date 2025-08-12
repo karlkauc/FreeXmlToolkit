@@ -23,11 +23,13 @@ import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
+import org.fxt.freexmltoolkit.service.XsdDocumentationService;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -36,10 +38,9 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -72,6 +73,7 @@ public class XmlEditor extends Tab {
     DocumentBuilder db;
     Document document;
     XmlService xmlService = new XmlServiceImpl();
+    XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
 
     private MainController mainController;
     private LanguageServer serverProxy;
@@ -190,11 +192,13 @@ public class XmlEditor extends Tab {
         // --- XSD Section ---
         xsdPathField = new TextField();
         xsdPathField.setPromptText("XSD Schema");
+        xsdPathField.setEditable(false); // Make it read-only to show current schema
         HBox.setHgrow(xsdPathField, Priority.ALWAYS);
         Button changeXsdButton = new Button("...");
         changeXsdButton.setOnAction(event -> selectXsdFile());
         HBox xsdFileBox = new HBox(5, xsdPathField, changeXsdButton);
         validationStatusLabel = new Label("Validation status: Unknown");
+        validationStatusLabel.setWrapText(true);
         continuousValidationCheckBox = new CheckBox("Continuous validation");
         VBox xsdBox = new VBox(5, xsdFileBox, validationStatusLabel, continuousValidationCheckBox);
         TitledPane xsdPane = new TitledPane("XSD Schema", xsdBox);
@@ -209,6 +213,7 @@ public class XmlEditor extends Tab {
 
         // --- Child Elements Section ---
         childElementsListView = new ListView<>();
+        childElementsListView.setPrefHeight(150);
         TitledPane childElementsPane = new TitledPane("Possible Child Elements", childElementsListView);
         childElementsPane.setCollapsible(false);
         VBox.setVgrow(childElementsPane, Priority.ALWAYS);
@@ -227,6 +232,12 @@ public class XmlEditor extends Tab {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select XSD Schema");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Files", "*.xsd"));
+
+        // Set initial directory to the same as the XML file if available
+        if (xmlFile != null && xmlFile.getParentFile() != null) {
+            fileChooser.setInitialDirectory(xmlFile.getParentFile());
+        }
+        
         File selectedFile = fileChooser.showOpenDialog(this.getContent().getScene().getWindow());
         if (selectedFile != null) {
             setXsdFile(selectedFile);
@@ -281,19 +292,25 @@ public class XmlEditor extends Tab {
         int caretPosition = codeArea.getCaretPosition();
         String xpath = getCurrentXPath(text, caretPosition);
         xpathField.setText(xpath);
-        childElementsListView.getItems().setAll(Collections.singletonList("Child element detection not yet implemented."));
+
+        // Update child elements based on current position
+        updateChildElements(xpath);
     }
 
-    private String getCurrentXPath(String text, int position) {
+    public String getCurrentXPath(String text, int position) {
         Deque<String> elementStack = new ArrayDeque<>();
         try {
             XMLInputFactory factory = XMLInputFactory.newInstance();
+            factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
             XMLStreamReader reader = factory.createXMLStreamReader(new StringReader(text.substring(0, position)));
 
             while (reader.hasNext()) {
                 int event = reader.next();
                 if (event == XMLStreamReader.START_ELEMENT) {
-                    elementStack.push(reader.getLocalName());
+                    String localName = reader.getLocalName();
+                    String prefix = reader.getPrefix();
+                    String elementName = (prefix != null && !prefix.isEmpty()) ? prefix + ":" + localName : localName;
+                    elementStack.push(elementName);
                 } else if (event == XMLStreamReader.END_ELEMENT) {
                     if (!elementStack.isEmpty()) {
                         elementStack.pop();
@@ -305,14 +322,207 @@ public class XmlEditor extends Tab {
             elementStack.forEach(reversedStack::push);
             return "/" + String.join("/", reversedStack);
         } catch (Exception e) {
+            logger.debug("Error parsing XML for XPath: {}", e.getMessage());
             return "Invalid XML structure";
         }
+    }
+
+    private void updateChildElements(String xpath) {
+        if (xsdFile == null || xpath == null || xpath.equals("Invalid XML structure")) {
+            childElementsListView.getItems().setAll(Collections.singletonList("No XSD schema loaded or invalid XPath"));
+            return;
+        }
+
+        try {
+            // Get the current element name from XPath
+            String[] pathParts = xpath.split("/");
+            if (pathParts.length == 0) {
+                childElementsListView.getItems().setAll(Collections.singletonList("No element selected"));
+                return;
+            }
+
+            String currentElementName = pathParts[pathParts.length - 1];
+            if (currentElementName.isEmpty()) {
+                childElementsListView.getItems().setAll(Collections.singletonList("No element selected"));
+                return;
+            }
+
+            // Find the element in XSD and get its children
+            List<String> childElements = getChildElementsFromXsd(currentElementName);
+            if (childElements.isEmpty()) {
+                childElementsListView.getItems().setAll(Collections.singletonList("No child elements found for: " + currentElementName));
+            } else {
+                childElementsListView.getItems().setAll(childElements);
+            }
+        } catch (Exception e) {
+            logger.error("Error getting child elements", e);
+            childElementsListView.getItems().setAll(Collections.singletonList("Error: " + e.getMessage()));
+        }
+    }
+
+    public List<String> getChildElementsFromXsd(String elementName) {
+        List<String> childElements = new ArrayList<>();
+
+        try {
+            // Parse the XSD file
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document xsdDoc = builder.parse(xsdFile);
+
+            // Find the element definition - try with and without namespace
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            xpath.setNamespaceContext(new javax.xml.namespace.NamespaceContext() {
+                @Override
+                public String getNamespaceURI(String prefix) {
+                    if ("xs".equals(prefix)) {
+                        return "http://www.w3.org/2001/XMLSchema";
+                    }
+                    return null;
+                }
+
+                @Override
+                public String getPrefix(String uri) {
+                    if ("http://www.w3.org/2001/XMLSchema".equals(uri)) {
+                        return "xs";
+                    }
+                    return null;
+                }
+
+                @Override
+                public java.util.Iterator<String> getPrefixes(String uri) {
+                    return java.util.Collections.singletonList("xs").iterator();
+                }
+            });
+
+            // Remove namespace prefix if present
+            String cleanElementName = elementName;
+            if (elementName.contains(":")) {
+                cleanElementName = elementName.split(":")[1];
+            }
+
+            // Try to find the element definition
+            String elementQuery = "//xs:element[@name='" + cleanElementName + "']";
+            Node elementNode = (Node) xpath.evaluate(elementQuery, xsdDoc, XPathConstants.NODE);
+
+            if (elementNode == null) {
+                // Try without namespace prefix
+                elementQuery = "//element[@name='" + cleanElementName + "']";
+                elementNode = (Node) xpath.evaluate(elementQuery, xsdDoc, XPathConstants.NODE);
+            }
+
+            if (elementNode == null) {
+                return childElements;
+            }
+
+            // Get the type of the element
+            String typeName = elementNode.getAttributes().getNamedItem("type") != null ?
+                    elementNode.getAttributes().getNamedItem("type").getNodeValue() : null;
+
+            Node typeDefinition = null;
+            if (typeName != null) {
+                // Remove namespace prefix if present
+                if (typeName.contains(":")) {
+                    typeName = typeName.split(":")[1];
+                }
+
+                // Find the complex type definition
+                String typeQuery = "//xs:complexType[@name='" + typeName + "']";
+                typeDefinition = (Node) xpath.evaluate(typeQuery, xsdDoc, XPathConstants.NODE);
+
+                if (typeDefinition == null) {
+                    // Try without namespace prefix
+                    typeQuery = "//complexType[@name='" + typeName + "']";
+                    typeDefinition = (Node) xpath.evaluate(typeQuery, xsdDoc, XPathConstants.NODE);
+                }
+            } else {
+                // Check for inline complex type
+                NodeList complexTypes = elementNode.getChildNodes();
+                for (int i = 0; i < complexTypes.getLength(); i++) {
+                    Node child = complexTypes.item(i);
+                    if (child.getNodeType() == Node.ELEMENT_NODE &&
+                            ("complexType".equals(child.getLocalName()) || "xs:complexType".equals(child.getNodeName()))) {
+                        typeDefinition = child;
+                        break;
+                    }
+                }
+            }
+
+            if (typeDefinition != null) {
+                // Find sequence, choice, or all elements
+                NodeList children = typeDefinition.getChildNodes();
+                for (int i = 0; i < children.getLength(); i++) {
+                    Node child = children.item(i);
+                    if (child.getNodeType() == Node.ELEMENT_NODE) {
+                        String localName = child.getLocalName();
+                        if (localName == null) {
+                            // Try to get from nodeName
+                            String nodeName = child.getNodeName();
+                            if (nodeName.contains(":")) {
+                                localName = nodeName.split(":")[1];
+                            } else {
+                                localName = nodeName;
+                            }
+                        }
+
+                        if ("sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName)) {
+                            // Get all element children
+                            NodeList elementChildren = child.getChildNodes();
+                            for (int j = 0; j < elementChildren.getLength(); j++) {
+                                Node elementChild = elementChildren.item(j);
+                                if (elementChild.getNodeType() == Node.ELEMENT_NODE) {
+                                    String elementLocalName = elementChild.getLocalName();
+                                    if (elementLocalName == null) {
+                                        String elementNodeName = elementChild.getNodeName();
+                                        if (elementNodeName.contains(":")) {
+                                            elementLocalName = elementNodeName.split(":")[1];
+                                        } else {
+                                            elementLocalName = elementNodeName;
+                                        }
+                                    }
+
+                                    if ("element".equals(elementLocalName)) {
+                                        String childName = elementChild.getAttributes().getNamedItem("name") != null ?
+                                                elementChild.getAttributes().getNamedItem("name").getNodeValue() : null;
+                                        if (childName != null) {
+                                            String minOccurs = elementChild.getAttributes().getNamedItem("minOccurs") != null ?
+                                                    elementChild.getAttributes().getNamedItem("minOccurs").getNodeValue() : "1";
+                                            String maxOccurs = elementChild.getAttributes().getNamedItem("maxOccurs") != null ?
+                                                    elementChild.getAttributes().getNamedItem("maxOccurs").getNodeValue() : "1";
+
+                                            String occurrence = "";
+                                            if ("0".equals(minOccurs) && "1".equals(maxOccurs)) {
+                                                occurrence = " (optional)";
+                                            } else if ("unbounded".equals(maxOccurs)) {
+                                                occurrence = " (0..*)";
+                                            } else if (!"1".equals(minOccurs) || !"1".equals(maxOccurs)) {
+                                                occurrence = " (" + minOccurs + ".." + maxOccurs + ")";
+                                            }
+
+                                            childElements.add(childName + occurrence);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error parsing XSD for child elements", e);
+        }
+
+        return childElements;
+    }
+
+    public File getXsdFile() {
+        return xsdFile;
     }
 
     public void setXsdFile(File xsdFile) {
         this.xsdFile = xsdFile;
         if (xsdPathField != null) {
-            xsdPathField.setText(xsdFile.getAbsolutePath());
+            xsdPathField.setText(xsdFile != null ? xsdFile.getAbsolutePath() : "No XSD schema selected");
         }
         validateXml();
     }
@@ -320,16 +530,38 @@ public class XmlEditor extends Tab {
     public void validateXml() {
         if (xsdFile == null) {
             validationStatusLabel.setText("Validation status: No XSD selected");
+            validationStatusLabel.setStyle("-fx-text-fill: orange;");
             return;
         }
+
         try {
-            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = factory.newSchema(new StreamSource(xsdFile));
-            Validator validator = schema.newValidator();
-            validator.validate(new StreamSource(new ByteArrayInputStream(codeArea.getText().getBytes(StandardCharsets.UTF_8))));
-            validationStatusLabel.setText("Validation status: Valid");
-        } catch (SAXException | IOException e) {
-            validationStatusLabel.setText("Validation status: Invalid");
+            String xmlContent = codeArea.getText();
+            if (xmlContent == null || xmlContent.trim().isEmpty()) {
+                validationStatusLabel.setText("Validation status: No XML content");
+                validationStatusLabel.setStyle("-fx-text-fill: orange;");
+                return;
+            }
+
+            // Use the XmlService for validation
+            List<org.xml.sax.SAXParseException> errors = xmlService.validateText(xmlContent, xsdFile);
+
+            if (errors == null || errors.isEmpty()) {
+                validationStatusLabel.setText("Validation status: ✓ Valid");
+                validationStatusLabel.setStyle("-fx-text-fill: green;");
+            } else {
+                String errorMessage = "Validation status: ✗ Invalid (" + errors.size() + " error(s))";
+                if (errors.size() == 1) {
+                    errorMessage += "\n" + errors.get(0).getMessage();
+                } else {
+                    errorMessage += "\nFirst error: " + errors.get(0).getMessage();
+                }
+                validationStatusLabel.setText(errorMessage);
+                validationStatusLabel.setStyle("-fx-text-fill: red;");
+            }
+        } catch (Exception e) {
+            validationStatusLabel.setText("Validation status: Error during validation");
+            validationStatusLabel.setStyle("-fx-text-fill: red;");
+            logger.error("Error during XML validation", e);
         }
     }
 
@@ -417,11 +649,27 @@ public class XmlEditor extends Tab {
         refreshTextView();
 
         xmlService.setCurrentXmlFile(xmlFile);
+
+        // Try to automatically load XSD schema from XML file
         if (xmlService.loadSchemaFromXMLFile()) {
             File loadedXsdFile = xmlService.getCurrentXsdFile();
             if (loadedXsdFile != null) {
                 setXsdFile(loadedXsdFile);
+            } else {
+                // If no XSD was found, clear the XSD field
+                if (xsdPathField != null) {
+                    xsdPathField.setText("No XSD schema found in XML");
+                }
+                validationStatusLabel.setText("Validation status: No XSD schema found");
+                validationStatusLabel.setStyle("-fx-text-fill: orange;");
             }
+        } else {
+            // If no XSD was found, clear the XSD field
+            if (xsdPathField != null) {
+                xsdPathField.setText("No XSD schema found in XML");
+            }
+            validationStatusLabel.setText("Validation status: No XSD schema found");
+            validationStatusLabel.setStyle("-fx-text-fill: orange;");
         }
     }
 

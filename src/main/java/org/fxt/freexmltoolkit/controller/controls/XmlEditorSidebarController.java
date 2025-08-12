@@ -96,5 +96,27 @@ public class XmlEditorSidebarController {
     }
 
     public void setXsdPath(String absolutePath) {
+        this.xsdPath = absolutePath;
+        if (xsdPathField != null) {
+            xsdPathField.setText(absolutePath != null ? absolutePath : "No XSD schema selected");
+        }
+    }
+
+    // Additional methods for better integration
+    public void updateValidationStatus(String status, String color) {
+        validationStatusLabel.setText("Validation status: " + status);
+        validationStatusLabel.setStyle("-fx-text-fill: " + color + ";");
+    }
+
+    public void setXsdPathField(String path) {
+        if (xsdPathField != null) {
+            xsdPathField.setText(path != null ? path : "No XSD schema selected");
+        }
+    }
+
+    public void setContinuousValidation(boolean selected) {
+        if (continuousValidationCheckBox != null) {
+            continuousValidationCheckBox.setSelected(selected);
+        }
     }
 }

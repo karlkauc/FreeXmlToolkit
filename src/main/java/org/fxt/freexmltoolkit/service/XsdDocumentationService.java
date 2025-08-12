@@ -162,15 +162,15 @@ public class XsdDocumentationService {
         this.useMarkdownRenderer = useMarkdownRenderer;
         initializeXmlTools();
 
-        // Remote-Schemas herunterladen und Pfade auf lokale Dateien umschreiben
-        downloadRemoteSchemas();
+        // Process all schemas (including xs:include and xs:import)
+        processAllSchemas();
 
         // Parse the main XSD file
         String xsdContent = Files.readString(new File(xsdFilePath).toPath(), StandardCharsets.UTF_8);
         this.doc = parseXsdContent(xsdContent);
 
-        // Initialize caches for global definitions
-        initializeCaches(this.doc);
+        // Initialize caches for global definitions from all processed schemas
+        initializeCachesFromAllSchemas();
 
         // Populate XsdDocumentationData
         populateDocumentationData();
@@ -187,13 +187,10 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Scans the main XSD and its dependencies recursively for remote schema locations,
-     * downloads them, and rewrites the schemaLocation attributes to point to the local files.
-     * This makes the entire schema set self-contained.
-     *
-     * @throws Exception if parsing or network operations fail.
+     * Processes all schemas including xs:include and xs:import elements.
+     * This method downloads remote schemas and processes local includes.
      */
-    private void downloadRemoteSchemas() throws Exception {
+    private void processAllSchemas() throws Exception {
         Path baseDirectory = new File(this.xsdFilePath).toPath().getParent();
         if (baseDirectory == null) {
             baseDirectory = new File(".").toPath(); // Fallback to current directory
@@ -202,20 +199,46 @@ public class XsdDocumentationService {
         Queue<Path> filesToProcess = new LinkedList<>();
         filesToProcess.add(new File(this.xsdFilePath).toPath());
 
+        Set<String> processedFiles = new HashSet<>();
         Set<String> processedUrls = new HashSet<>();
 
         while (!filesToProcess.isEmpty()) {
             Path currentFile = filesToProcess.poll();
             if (!Files.exists(currentFile)) continue;
 
-            logger.debug("Scanning for remote schemas in: {}", currentFile);
+            String currentFilePath = currentFile.toAbsolutePath().toString();
+            if (processedFiles.contains(currentFilePath)) continue;
+            processedFiles.add(currentFilePath);
+
+            logger.debug("Processing schema file: {}", currentFile);
             Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
-            NodeList nodes = (NodeList) xpath.evaluate("//xs:import[@schemaLocation] | //xs:include[@schemaLocation]", document, XPathConstants.NODESET);
+
+            // Process both xs:include and xs:import elements
+            NodeList includeNodes = (NodeList) xpath.evaluate("//xs:include[@schemaLocation]", document, XPathConstants.NODESET);
+            NodeList importNodes = (NodeList) xpath.evaluate("//xs:import[@schemaLocation]", document, XPathConstants.NODESET);
+            
             boolean modified = false;
 
-            for (int i = 0; i < nodes.getLength(); i++) {
-                Element element = (Element) nodes.item(i);
-                String location = element.getAttribute("schemaLocation");
+            // Process xs:include elements (local files)
+            for (int i = 0; i < includeNodes.getLength(); i++) {
+                Element includeElement = (Element) includeNodes.item(i);
+                String location = includeElement.getAttribute("schemaLocation");
+
+                if (location != null && !location.isEmpty()) {
+                    Path includedFile = baseDirectory.resolve(location);
+                    if (Files.exists(includedFile)) {
+                        logger.debug("Found local include: {}", includedFile);
+                        filesToProcess.add(includedFile);
+                    } else {
+                        logger.warn("Included file not found: {}", includedFile);
+                    }
+                }
+            }
+
+            // Process xs:import elements (remote files)
+            for (int i = 0; i < importNodes.getLength(); i++) {
+                Element importElement = (Element) importNodes.item(i);
+                String location = importElement.getAttribute("schemaLocation");
 
                 if (isRemote(location)) {
                     String fileName = getFileNameFromUrl(location);
@@ -225,8 +248,8 @@ public class XsdDocumentationService {
                     }
 
                     // Rewrite path even if already processed, to ensure consistency
-                    if (!element.getAttribute("schemaLocation").equals(fileName)) {
-                        element.setAttribute("schemaLocation", fileName);
+                    if (!importElement.getAttribute("schemaLocation").equals(fileName)) {
+                        importElement.setAttribute("schemaLocation", fileName);
                         modified = true;
                     }
 
@@ -244,11 +267,20 @@ public class XsdDocumentationService {
                             }
                         }
 
-                        // The downloaded file is NOT queued for further scanning.
+                        // Add the downloaded file to the processing queue
+                        filesToProcess.add(localPath);
                         processedUrls.add(location);
                     } catch (Exception e) {
                         logger.error("Failed to download or process remote schema: {}", location, e);
-                        // Optional: Inform user via progress listener
+                    }
+                } else if (location != null && !location.isEmpty()) {
+                    // Handle local imports
+                    Path importedFile = baseDirectory.resolve(location);
+                    if (Files.exists(importedFile)) {
+                        logger.debug("Found local import: {}", importedFile);
+                        filesToProcess.add(importedFile);
+                    } else {
+                        logger.warn("Imported file not found: {}", importedFile);
                     }
                 }
             }
@@ -263,6 +295,62 @@ public class XsdDocumentationService {
                     transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
                     transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
                     transformer.transform(new DOMSource(document), new StreamResult(writer));
+                }
+            }
+        }
+    }
+
+    /**
+     * Initialize caches for global definitions from all processed schema files.
+     */
+    private void initializeCachesFromAllSchemas() throws Exception {
+        Path baseDirectory = new File(this.xsdFilePath).toPath().getParent();
+        if (baseDirectory == null) {
+            baseDirectory = new File(".").toPath();
+        }
+
+        // Start with the main schema file
+        Queue<Path> filesToProcess = new LinkedList<>();
+        filesToProcess.add(new File(this.xsdFilePath).toPath());
+        Set<String> processedFiles = new HashSet<>();
+
+        while (!filesToProcess.isEmpty()) {
+            Path currentFile = filesToProcess.poll();
+            if (!Files.exists(currentFile)) continue;
+
+            String currentFilePath = currentFile.toAbsolutePath().toString();
+            if (processedFiles.contains(currentFilePath)) continue;
+            processedFiles.add(currentFilePath);
+
+            logger.debug("Initializing caches from: {}", currentFile);
+            Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
+
+            // Initialize caches for this document
+            initializeCaches(document);
+
+            // Find and queue included/imported files
+            NodeList includeNodes = (NodeList) xpath.evaluate("//xs:include[@schemaLocation]", document, XPathConstants.NODESET);
+            NodeList importNodes = (NodeList) xpath.evaluate("//xs:import[@schemaLocation]", document, XPathConstants.NODESET);
+
+            for (int i = 0; i < includeNodes.getLength(); i++) {
+                Element includeElement = (Element) includeNodes.item(i);
+                String location = includeElement.getAttribute("schemaLocation");
+                if (location != null && !location.isEmpty()) {
+                    Path includedFile = baseDirectory.resolve(location);
+                    if (Files.exists(includedFile)) {
+                        filesToProcess.add(includedFile);
+                    }
+                }
+            }
+
+            for (int i = 0; i < importNodes.getLength(); i++) {
+                Element importElement = (Element) importNodes.item(i);
+                String location = importElement.getAttribute("schemaLocation");
+                if (location != null && !location.isEmpty() && !isRemote(location)) {
+                    Path importedFile = baseDirectory.resolve(location);
+                    if (Files.exists(importedFile)) {
+                        filesToProcess.add(importedFile);
+                    }
                 }
             }
         }
@@ -523,20 +611,31 @@ public class XsdDocumentationService {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-
+        factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        
         DocumentBuilder builder = factory.newDocumentBuilder();
         return builder.parse(new InputSource(new StringReader(xsdContent)));
     }
 
     private void initializeCaches(Document doc) throws Exception {
-        elementMap = findAndCacheGlobalDefs(doc, "element");
-        complexTypeMap = findAndCacheGlobalDefs(doc, "complexType");
-        simpleTypeMap = findAndCacheGlobalDefs(doc, "simpleType");
-        groupMap = findAndCacheGlobalDefs(doc, "group");
-        attributeGroupMap = findAndCacheGlobalDefs(doc, "attributeGroup");
+        // Initialize maps if they don't exist yet
+        if (elementMap == null) elementMap = new HashMap<>();
+        if (complexTypeMap == null) complexTypeMap = new HashMap<>();
+        if (simpleTypeMap == null) simpleTypeMap = new HashMap<>();
+        if (groupMap == null) groupMap = new HashMap<>();
+        if (attributeGroupMap == null) attributeGroupMap = new HashMap<>();
+
+        // Accumulate definitions from this document
+        elementMap.putAll(findAndCacheGlobalDefs(doc, "element"));
+        complexTypeMap.putAll(findAndCacheGlobalDefs(doc, "complexType"));
+        simpleTypeMap.putAll(findAndCacheGlobalDefs(doc, "simpleType"));
+        groupMap.putAll(findAndCacheGlobalDefs(doc, "group"));
+        attributeGroupMap.putAll(findAndCacheGlobalDefs(doc, "attributeGroup"));
     }
 
     private void populateDocumentationData() throws Exception {
+        // Use the main schema file for basic metadata
         Element schemaElement = doc.getDocumentElement();
         xsdDocumentationData.setTargetNamespace(getAttributeValue(schemaElement, "targetNamespace"));
         xsdDocumentationData.setVersion(getAttributeValue(schemaElement, "version"));
@@ -546,7 +645,9 @@ public class XsdDocumentationService {
         xsdDocumentationData.setAttributeFormDefault(getAttributeValue(schemaElement, "attributeFormDefault", "unqualified"));
         xsdDocumentationData.setElementFormDefault(getAttributeValue(schemaElement, "elementFormDefault", "unqualified"));
 
+        // Get global elements from the main schema
         xsdDocumentationData.setGlobalElements(nodeListToList((NodeList) xpath.evaluate("/xs:schema/xs:element[@name]", doc, XPathConstants.NODESET)));
+
         // Die Listen der globalen Typen erstellen und alphabetisch nach Namen sortieren.
         List<Node> complexTypes = new ArrayList<>(complexTypeMap.values());
         complexTypes.sort(Comparator.comparing(node -> getAttributeValue(node, "name")));
@@ -556,8 +657,10 @@ public class XsdDocumentationService {
         simpleTypes.sort(Comparator.comparing(node -> getAttributeValue(node, "name")));
         xsdDocumentationData.setGlobalSimpleTypes(simpleTypes);
 
-        // Extract namespaces
+        // Extract namespaces from all processed schemas
         Map<String, String> nsMap = new HashMap<>();
+
+        // Start with the main schema
         var attributes = schemaElement.getAttributes();
         for (int i = 0; i < attributes.getLength(); i++) {
             Node attr = attributes.item(i);
@@ -565,6 +668,66 @@ public class XsdDocumentationService {
                 nsMap.put(attr.getLocalName(), attr.getNodeValue());
             }
         }
+
+        // Add namespaces from included schemas
+        Path baseDirectory = new File(this.xsdFilePath).toPath().getParent();
+        if (baseDirectory != null) {
+            Queue<Path> filesToProcess = new LinkedList<>();
+            filesToProcess.add(new File(this.xsdFilePath).toPath());
+            Set<String> processedFiles = new HashSet<>();
+
+            while (!filesToProcess.isEmpty()) {
+                Path currentFile = filesToProcess.poll();
+                if (!Files.exists(currentFile)) continue;
+
+                String currentFilePath = currentFile.toAbsolutePath().toString();
+                if (processedFiles.contains(currentFilePath)) continue;
+                processedFiles.add(currentFilePath);
+
+                Document document = parseXsdContent(Files.readString(currentFile, StandardCharsets.UTF_8));
+                Element currentSchemaElement = document.getDocumentElement();
+
+                // Add namespaces from this schema
+                var currentAttributes = currentSchemaElement.getAttributes();
+                for (int i = 0; i < currentAttributes.getLength(); i++) {
+                    Node attr = currentAttributes.item(i);
+                    if (attr.getNodeName().startsWith("xmlns:")) {
+                        String prefix = attr.getLocalName();
+                        String uri = attr.getNodeValue();
+                        if (!nsMap.containsKey(prefix)) {
+                            nsMap.put(prefix, uri);
+                        }
+                    }
+                }
+
+                // Find and queue included/imported files
+                NodeList includeNodes = (NodeList) xpath.evaluate("//xs:include[@schemaLocation]", document, XPathConstants.NODESET);
+                NodeList importNodes = (NodeList) xpath.evaluate("//xs:import[@schemaLocation]", document, XPathConstants.NODESET);
+
+                for (int i = 0; i < includeNodes.getLength(); i++) {
+                    Element includeElement = (Element) includeNodes.item(i);
+                    String location = includeElement.getAttribute("schemaLocation");
+                    if (location != null && !location.isEmpty()) {
+                        Path includedFile = baseDirectory.resolve(location);
+                        if (Files.exists(includedFile)) {
+                            filesToProcess.add(includedFile);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < importNodes.getLength(); i++) {
+                    Element importElement = (Element) importNodes.item(i);
+                    String location = importElement.getAttribute("schemaLocation");
+                    if (location != null && !location.isEmpty() && !isRemote(location)) {
+                        Path importedFile = baseDirectory.resolve(location);
+                        if (Files.exists(importedFile)) {
+                            filesToProcess.add(importedFile);
+                        }
+                    }
+                }
+            }
+        }
+        
         xsdDocumentationData.setNamespaces(nsMap);
     }
 
