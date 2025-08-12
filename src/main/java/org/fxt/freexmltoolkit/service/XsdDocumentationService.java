@@ -79,6 +79,7 @@ public class XsdDocumentationService {
     // DOM/XPath related fields
     private XPath xpath;
     private Document doc;
+    private Map<String, Node> elementMap = new HashMap<>();
     private Map<String, Node> complexTypeMap = new HashMap<>();
     private Map<String, Node> simpleTypeMap = new HashMap<>();
     private Map<String, Node> groupMap = new HashMap<>();
@@ -233,6 +234,18 @@ public class XsdDocumentationService {
         boolean isAttribute = "attribute".equals(node.getLocalName());
         String name = getAttributeValue(node, "name");
         extendedElem.setElementName(isAttribute ? "@" + name : name);
+
+        // NEU: Die Herkunft des Namespace aus dem vom Flattener gesetzten Attribut auslesen.
+        String sourceNamespace = getAttributeValue(node, "fxt:sourceNamespace");
+        if (sourceNamespace != null && !sourceNamespace.isBlank()) {
+            extendedElem.setSourceNamespace(sourceNamespace);
+            // Den zugehörigen Prefix für die Anzeige finden.
+            xsdDocumentationData.getNamespaces().entrySet().stream()
+                    .filter(entry -> sourceNamespace.equals(entry.getValue()))
+                    .map(Map.Entry::getKey)
+                    .findFirst()
+                    .ifPresent(extendedElem::setSourceNamespacePrefix);
+        }
 
         // Add to parent's children list
         if (parentXPath != null && xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
@@ -431,6 +444,7 @@ public class XsdDocumentationService {
     }
 
     private void initializeCaches(Document doc) throws Exception {
+        elementMap = findAndCacheGlobalDefs(doc, "element");
         complexTypeMap = findAndCacheGlobalDefs(doc, "complexType");
         simpleTypeMap = findAndCacheGlobalDefs(doc, "simpleType");
         groupMap = findAndCacheGlobalDefs(doc, "group");
@@ -655,6 +669,7 @@ public class XsdDocumentationService {
         return switch (localName) {
             case "group" -> groupMap.get(cleanRef);
             case "attributeGroup" -> attributeGroupMap.get(cleanRef);
+            case "element" -> elementMap.get(cleanRef);
             // Note: element references are handled in the main traversal logic
             // by looking up in the global element map, but this could be centralized here too.
             default -> null;
@@ -663,6 +678,7 @@ public class XsdDocumentationService {
 
     private Map<String, Node> findAndCacheGlobalDefs(Document doc, String tagName) throws Exception {
         Map<String, Node> map = new HashMap<>();
+        // Find global definitions directly under the schema root
         NodeList nodes = (NodeList) xpath.evaluate("/xs:schema/xs:" + tagName + "[@name]", doc, XPathConstants.NODESET);
         for (int i = 0; i < nodes.getLength(); i++) {
             Node node = nodes.item(i);
@@ -671,6 +687,7 @@ public class XsdDocumentationService {
                 map.put(name, node);
             }
         }
+        logger.debug("Cached {} global definitions for tag <{}>", map.size(), tagName);
         return map;
     }
 

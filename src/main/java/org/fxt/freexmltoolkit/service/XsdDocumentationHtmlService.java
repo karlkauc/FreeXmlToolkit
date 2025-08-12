@@ -88,14 +88,49 @@ public class XsdDocumentationHtmlService {
             return;
         }
 
-        Node rootElementNode = xsdDocumentationData.getGlobalElements().getFirst();
-        final String rootElementName = getAttributeValue(rootElementNode, "name");
-        final XsdExtendedElement rootExtendedElement = xsdDocumentationData.getExtendedXsdElementMap().get("/" + rootElementName);
+        // Die Liste der globalen Elemente aus der Map aller Elemente filtern.
+        // Globale Elemente sind solche auf Level 0.
+        List<XsdExtendedElement> globalElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> e.getLevel() == 0)
+                .sorted((e1, e2) -> {
+                    boolean e1IsNative = e1.getSourceNamespace() == null;
+                    boolean e2IsNative = e2.getSourceNamespace() == null;
+
+                    // Native Elemente (die zum targetNamespace gehören) kommen zuerst.
+                    if (e1IsNative != e2IsNative) {
+                        return e1IsNative ? -1 : 1;
+                    }
+
+                    // Wenn beide nativ sind, nach der ursprünglichen Reihenfolge sortieren.
+                    if (e1IsNative) {
+                        return Integer.compare(e1.getCounter(), e2.getCounter());
+                    }
+
+                    // Wenn beide importiert sind, zuerst nach Namespace, dann nach Name sortieren.
+                    int nsCompare = e1.getSourceNamespace().compareTo(e2.getSourceNamespace());
+                    if (nsCompare != 0) {
+                        return nsCompare;
+                    }
+                    return e1.getElementName().compareTo(e2.getElementName());
+                })
+                .collect(Collectors.toList());
+
+        // Das Wurzelelement ist das erste globale Element, das zum targetNamespace des Schemas gehört.
+        // Dies vermeidet, dass ein importiertes Element als Wurzelelement ausgewählt wird.
+        XsdExtendedElement rootExtendedElement = globalElements.stream()
+                .filter(e -> e.getSourceNamespace() == null || e.getSourceNamespace().equals(xsdDocumentationData.getTargetNamespace()))
+                .findFirst()
+                .orElse(globalElements.isEmpty() ? null : globalElements.getFirst()); // Fallback auf das erste Element
+
+        if (rootExtendedElement == null) {
+            logger.error("Could not determine a root element. Aborting root page generation.");
+            return;
+        }
 
         var context = new Context();
         context.setVariable("date", LocalDate.now());
         context.setVariable("filename", Paths.get(xsdDocumentationData.getXsdFilePath()).getFileName().toString());
-        context.setVariable("rootElementName", rootElementName);
+        context.setVariable("rootElementName", rootExtendedElement.getElementName());
         context.setVariable("version", xsdDocumentationData.getVersion());
         context.setVariable("rootElement", rootExtendedElement); // Pass the XsdExtendedElement
         context.setVariable("xsdComplexTypes", xsdDocumentationData.getGlobalComplexTypes());
@@ -104,13 +139,6 @@ public class XsdDocumentationHtmlService {
         context.setVariable("targetNamespace", xsdDocumentationData.getTargetNamespace());
         context.setVariable("rootElementLink", "details/" + rootExtendedElement.getPageName());
         context.setVariable("this", this);
-
-        // NEU: Die Liste der globalen Elemente aus der Map aller Elemente filtern.
-        // Globale Elemente sind solche auf Level 0.
-        List<XsdExtendedElement> globalElements = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
-                .filter(e -> e.getLevel() == 0)
-                .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
-                .collect(Collectors.toList());
 
         // NEU: Die Variablen für das Template setzen.
         context.setVariable("xsdGlobalElements", globalElements);

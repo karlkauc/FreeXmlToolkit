@@ -120,6 +120,36 @@ public class GenerateXsdHtmlDocumentationTest {
         Thread.sleep(Integer.MAX_VALUE);
     }
 
+    @Test
+    void generateHtmlDocFromFlattenedXsd() throws Exception {
+        // --- 1. XSD-Datei flatten ---
+        logger.info("Starting to flatten the XSD file...");
+        final var flattenerService = new XsdFlattenerService();
+        final var sourceXsdFile = new File(XML_LATEST_XSD);
+        // Erstellt eine temporäre Datei für die geflattete XSD
+        final var flattenedXsdFile = new File("output/FundsXML4_flattened.xsd");
+        flattenedXsdFile.getParentFile().mkdirs(); // Stellt sicher, dass das Ausgabeverzeichnis existiert
+
+        flattenerService.flatten(sourceXsdFile, flattenedXsdFile);
+        logger.info("XSD file flattened successfully to: {}", flattenedXsdFile.getAbsolutePath());
+
+
+        // --- 2. Konfiguration und Generierung der Dokumentation aus der geflatteten Datei ---
+        final var outputFilePath = Paths.get("../FundsXML_Documentation_Flattened");
+
+        this.xsdDocumentationService.setXsdFilePath(flattenedXsdFile.getAbsolutePath());
+        this.xsdDocumentationService.setUseMarkdownRenderer(true);
+        this.xsdDocumentationService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
+        this.xsdDocumentationService.setParallelProcessing(true);
+        this.xsdDocumentationService.generateXsdDocumentation(outputFilePath.toFile());
+
+        // --- 3. Eingebetteten HTTP-Server starten ---
+        int port = 8081; // Anderen Port verwenden, um Konflikte zu vermeiden
+        startHttpServer(outputFilePath, port);
+        openUrlInBrowser("http://localhost:" + port + "/index.html");
+        Thread.sleep(Integer.MAX_VALUE);
+    }
+
     /**
      * Startet einen einfachen, eingebetteten HTTP-Dateiserver.
      *

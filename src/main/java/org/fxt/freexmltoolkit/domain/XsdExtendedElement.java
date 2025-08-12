@@ -66,6 +66,26 @@ public class XsdExtendedElement implements Serializable {
     private final transient HtmlRenderer renderer;
     private Boolean useMarkdownRenderer = true;
 
+    // Namespace
+    private String sourceNamespace;
+    private String sourceNamespacePrefix;
+
+    public void setSourceNamespace(String sourceNamespace) {
+        this.sourceNamespace = sourceNamespace;
+    }
+
+    public String getSourceNamespace() {
+        return sourceNamespace;
+    }
+
+    public void setSourceNamespacePrefix(String sourceNamespacePrefix) {
+        this.sourceNamespacePrefix = sourceNamespacePrefix;
+    }
+
+    public String getSourceNamespacePrefix() {
+        return sourceNamespacePrefix;
+    }
+
     // Helper records for structured data
     public record DocumentationInfo(String lang, String content) implements Serializable {
         @Serial

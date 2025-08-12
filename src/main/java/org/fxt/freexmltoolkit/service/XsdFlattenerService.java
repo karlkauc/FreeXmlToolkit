@@ -14,6 +14,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.StringWriter;
+import java.net.URI;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -24,6 +25,7 @@ import java.nio.file.StandardOpenOption;
 public class XsdFlattenerService {
 
     private static final String XML_SCHEMA_NS = "http://www.w3.org/2001/XMLSchema";
+    private static final String FXT_INTERNAL_NS = "http://www.freexmltoolkit.org/ns/internal";
 
     /**
      * Flattens an XSD file by resolving all its <xs:include> directives.
@@ -41,9 +43,10 @@ public class XsdFlattenerService {
 
         Document mainDoc = builder.parse(sourceXsd);
         Element schemaRoot = mainDoc.getDocumentElement();
+        schemaRoot.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:fxt", FXT_INTERNAL_NS);
 
         // Repeatedly process includes until none are left. This handles nested includes.
-        while (processIncludes(schemaRoot, sourceXsd.getParentFile(), builder)) ;
+        while (processNextDirective(schemaRoot, sourceXsd.getParent(), builder)) ;
 
         // Convert the modified DOM document back to a string
         String flattenedContent = toXmlString(mainDoc);
@@ -55,53 +58,82 @@ public class XsdFlattenerService {
     }
 
     /**
-     * Finds and processes one level of <xs:include> elements within a schema root.
+     * Finds and processes the next <xs:include> or <xs:import> element.
+     * It prioritizes <xs:include> over <xs:import>.
      *
      * @param schemaRoot The <xs:schema> root element.
-     * @param baseDir    The base directory for resolving relative schema locations.
+     * @param basePath   The base path for resolving relative schema locations.
      * @param builder    The DocumentBuilder to parse included files.
-     * @return true if includes were found and processed, false otherwise.
+     * @return true if a directive was found and processed, false otherwise.
      * @throws Exception on parsing errors.
      */
-    private boolean processIncludes(Element schemaRoot, File baseDir, DocumentBuilder builder) throws Exception {
+    private boolean processNextDirective(Element schemaRoot, String basePath, DocumentBuilder builder) throws Exception {
         NodeList includeNodes = schemaRoot.getElementsByTagNameNS(XML_SCHEMA_NS, "include");
-        if (includeNodes.getLength() == 0) {
-            return false; // No more includes to process
+        NodeList importNodes = schemaRoot.getElementsByTagNameNS(XML_SCHEMA_NS, "import");
+
+        Element directiveElement;
+        boolean isImport = false;
+        if (includeNodes.getLength() > 0) {
+            directiveElement = (Element) includeNodes.item(0);
+        } else if (importNodes.getLength() > 0) {
+            directiveElement = (Element) importNodes.item(0);
+            isImport = true;
+        } else {
+            return false; // No more includes or imports to process
         }
 
-        // Process the first found include element. The while-loop in the public method will re-run this.
-        Element includeElement = (Element) includeNodes.item(0);
-        String location = includeElement.getAttribute("schemaLocation");
+        String location = directiveElement.getAttribute("schemaLocation");
         if (location.isBlank()) {
             // If location is missing, just remove the tag and continue.
-            schemaRoot.removeChild(includeElement);
+            schemaRoot.removeChild(directiveElement);
             return true;
         }
 
-        File includedFile = new File(baseDir, location);
-        if (!includedFile.exists()) {
-            throw new Exception("Included XSD file not found: " + includedFile.getAbsolutePath());
+        Document includedDoc;
+        try {
+            // builder.parse() can handle both file paths and URLs
+            if (location.startsWith("http://") || location.startsWith("https://")) {
+                // Try to find a local copy first to avoid network requests
+                String fileName = new File(URI.create(location).toURL().getPath()).getName();
+                File localCopy = new File(basePath, fileName);
+
+                if (localCopy.exists()) {
+                    // Use the local copy if it exists
+                    includedDoc = builder.parse(localCopy);
+                } else {
+                    // Otherwise, download from the remote location
+                    includedDoc = builder.parse(location);
+                }
+            } else {
+                // Resolve relative file paths against the base path of the parent XSD
+                File includedFile = new File(basePath, location).getCanonicalFile();
+                includedDoc = builder.parse(includedFile);
+            }
+        } catch (Exception e) {
+            throw new Exception("Failed to parse included/imported XSD from location: " + location, e);
         }
 
-        // Parse the included document
-        Document includedDoc = builder.parse(includedFile);
         Element includedSchemaRoot = includedDoc.getDocumentElement();
+
+        // Get the targetNamespace of the file being processed to track its origin
+        String sourceNs = includedSchemaRoot.getAttribute("targetNamespace");
 
         // Import all top-level elements from the included schema into the main document
         NodeList childrenToImport = includedSchemaRoot.getChildNodes();
         for (int i = 0; i < childrenToImport.getLength(); i++) {
             Node child = childrenToImport.item(i);
-            // We only care about element nodes (like <xs:complexType>, <xs:simpleType>, etc.)
             if (child.getNodeType() == Node.ELEMENT_NODE) {
-                // Import the node into the main document's context
                 Node importedNode = schemaRoot.getOwnerDocument().importNode(child, true);
-                // Insert the imported node *before* the <xs:include> tag
-                schemaRoot.insertBefore(importedNode, includeElement);
+                // NEU: Wenn es sich um einen Import handelt, fügen wir ein Attribut hinzu, um die Herkunft zu verfolgen.
+                if (isImport && !sourceNs.isBlank() && importedNode instanceof Element) {
+                    ((Element) importedNode).setAttributeNS(FXT_INTERNAL_NS, "fxt:sourceNamespace", sourceNs);
+                }
+                schemaRoot.insertBefore(importedNode, directiveElement);
             }
         }
 
-        // Finally, remove the processed <xs:include> element
-        schemaRoot.removeChild(includeElement);
+        // Finally, remove the processed <xs:include> or <xs:import> element
+        schemaRoot.removeChild(directiveElement);
 
         return true; // Indicates that an include was processed
     }
