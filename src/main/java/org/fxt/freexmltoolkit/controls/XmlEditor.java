@@ -259,6 +259,8 @@ public class XmlEditor extends Tab {
                 switch (event.getCode()) {
                     case F -> showSearchPopup(true);
                     case R -> showSearchPopup(false);
+                    default -> {
+                    } // Handle all other key codes
                 }
                 event.consume();
             }
