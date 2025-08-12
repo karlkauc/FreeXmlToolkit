@@ -6,10 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Side;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -24,12 +21,14 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.TwoDimensional;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
+import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
 import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -38,6 +37,10 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +67,7 @@ public class XmlEditor extends Tab {
 
 
     File xmlFile;
+    File xsdFile;
 
     TransformerFactory transformerFactory = TransformerFactory.newInstance();
     Transformer transformer;
@@ -87,6 +91,8 @@ public class XmlEditor extends Tab {
     private final int lastSearchIndex = 0;
 
     private enum SearchMode {SEARCH, REPLACE}
+
+    private XmlEditorSidebarController sidebarController;
 
 
     public XmlEditor() {
@@ -183,7 +189,109 @@ public class XmlEditor extends Tab {
         this.setClosable(true);
         this.setOnCloseRequest(eh -> logger.debug("Close Event"));
 
-        this.setContent(tabPane);
+        // Create SplitPane
+        SplitPane splitPane = new SplitPane();
+        splitPane.setDividerPositions(0.75); // Adjust divider position as needed
+
+        // Load sidebar
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/controls/XmlEditorSidebar.fxml"));
+            VBox sidebar = loader.load();
+            sidebarController = loader.getController();
+            sidebarController.setXmlEditor(this);
+            splitPane.getItems().addAll(tabPane, sidebar);
+        } catch (IOException e) {
+            logger.error("Failed to load sidebar", e);
+            splitPane.getItems().add(tabPane);
+        }
+
+
+        this.setContent(splitPane);
+
+        // Listener for continuous validation
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            if (sidebarController != null && sidebarController.isContinuousValidationSelected()) {
+                validateXml();
+            }
+        });
+
+        // Listener for cursor position changes
+        codeArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
+            updateCursorInformation();
+        });
+    }
+
+    private void updateCursorInformation() {
+        if (sidebarController == null) return;
+
+        String text = codeArea.getText();
+        int caretPosition = codeArea.getCaretPosition();
+
+        // Simplified method to find current element name
+        String currentElementName = findCurrentElement(text, caretPosition);
+        sidebarController.setXPath(currentElementName != null ? "Current element: " + currentElementName : "No element selected");
+
+        // Placeholder for possible child elements
+        sidebarController.setPossibleChildElements(Collections.singletonList("Child element detection not yet implemented."));
+    }
+
+    private String findCurrentElement(String text, int position) {
+        try {
+            int startTag = text.lastIndexOf('<', position - 1);
+            if (startTag == -1) return null;
+
+            int endTag = text.indexOf('>', startTag);
+            if (endTag == -1 || endTag < position) {
+                // We might be inside a tag definition, let's find the start of the tag name
+                String tagContent = text.substring(startTag + 1);
+                if (tagContent.startsWith("/") || tagContent.startsWith("?") || tagContent.startsWith("!")) {
+                    return null; // Closing tag, processing instruction, or comment
+                }
+                String[] parts = tagContent.split("[ >]+");
+                return parts[0];
+            }
+
+            // Find the corresponding closing tag to ensure we are inside an element
+            String tagName = text.substring(startTag + 1, endTag).split("[ >]")[0];
+            if (tagName.isEmpty() || tagName.startsWith("/") || tagName.startsWith("?") || tagName.startsWith("!")) {
+                return null;
+            }
+
+            int nextStartTag = text.indexOf('<', startTag + 1);
+            int closingTag = text.indexOf("</" + tagName, position);
+
+            if (closingTag != -1 && (nextStartTag == -1 || closingTag < nextStartTag)) {
+                return tagName;
+            }
+
+            return findCurrentElement(text, startTag);
+        } catch (Exception e) {
+            logger.debug("Could not determine current element: {}", e.getMessage());
+            return null;
+        }
+    }
+
+
+    public void setXsdFile(File xsdFile) {
+        this.xsdFile = xsdFile;
+        validateXml();
+    }
+
+    public void validateXml() {
+        if (xsdFile == null) {
+            sidebarController.setValidationStatus("No XSD selected");
+            return;
+        }
+
+        try {
+            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            Schema schema = factory.newSchema(new StreamSource(xsdFile));
+            Validator validator = schema.newValidator();
+            validator.validate(new StreamSource(new ByteArrayInputStream(codeArea.getText().getBytes(StandardCharsets.UTF_8))));
+            sidebarController.setValidationStatus("Valid");
+        } catch (SAXException | IOException e) {
+            sidebarController.setValidationStatus("Invalid: " + e.getMessage());
+        }
     }
 
     /**

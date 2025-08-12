@@ -162,7 +162,7 @@ public class XsdDocumentationService {
         this.useMarkdownRenderer = useMarkdownRenderer;
         initializeXmlTools();
 
-        // NEU: Remote-Schemas herunterladen und Pfade auf lokale Dateien umschreiben
+        // Remote-Schemas herunterladen und Pfade auf lokale Dateien umschreiben
         downloadRemoteSchemas();
 
         // Parse the main XSD file

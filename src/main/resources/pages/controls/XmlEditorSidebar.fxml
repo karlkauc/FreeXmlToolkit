@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController"
+      spacing="10" prefWidth="300">
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
+
+    <TitledPane text="XSD Schema" collapsible="false">
+        <VBox spacing="5">
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <TextField fx:id="xsdPathField" HBox.hgrow="ALWAYS" promptText="XSD Schema"/>
+                <Button fx:id="changeXsdButton" text="..."/>
+            </HBox>
+            <Label fx:id="validationStatusLabel" text="Validation status: Unknown"/>
+            <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"/>
+        </VBox>
+    </TitledPane>
+
+    <TitledPane text="Cursor Information" collapsible="false">
+        <VBox spacing="5">
+            <Label text="XPath:"/>
+            <TextField fx:id="xpathField" editable="false"/>
+        </VBox>
+    </TitledPane>
+
+    <TitledPane text="Possible Child Elements" collapsible="false" VBox.vgrow="ALWAYS">
+        <ListView fx:id="childElementsListView"/>
+    </TitledPane>
+
+</VBox>
