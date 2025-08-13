@@ -963,6 +963,13 @@ public class XmlController {
         // 6. Lade den Inhalt der Datei in die UI.
         currentEditor.refresh();
 
+        // Cursor und Ansicht an den Anfang setzen, nachdem die UI-Änderungen verarbeitet wurden.
+        XmlEditor finalCurrentEditor = currentEditor;
+        Platform.runLater(() -> {
+            if (finalCurrentEditor.getXmlCodeEditor() != null) {
+                finalCurrentEditor.getXmlCodeEditor().moveUp();
+            }
+        });
         // 7. Führe Folgeaktionen aus, die vom geladenen Inhalt abhängen.
         validateSchema();
 
