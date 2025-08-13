@@ -8,7 +8,7 @@
 Whether you're a business professional, developer, or just someone who needs to work with XML documents, this toolkit
 provides everything you need in one convenient application.
 
-![FreeXmlToolkit Application](docs/app.png)
+![FreeXmlToolkit Application](docs/img/app.png)
 
 ## 🎯 What is FreeXmlToolkit?
 
@@ -168,6 +168,7 @@ cd FreeXmlToolkit
 
 ### **Documentation**
 
+- **Official Documentation**: For a complete feature guide, check out the [official documentation](https://karlkauc.github.io/FreeXmlToolkit/).
 - **User Guide**: Check the [Wiki](https://github.com/karlkauc/FreeXmlToolkit/wiki) for detailed instructions
 - **Examples**: Look in the `examples/` folder for sample files and templates
 - **Built-in Help**: Use the Help tab within the application

@@ -2,8 +2,6 @@
 
 This part of the application provides a suite of tools for working with XML Schemas (XSD). These tools help you understand, document, and use XSD files effectively.
 
-![Screenshot of XSD Controller](img/xsd-controller.png)
-
 ## 1. XSD Viewer
 
 The XSD Viewer is the central feature for exploring and editing your schemas. It has two main views:
@@ -13,6 +11,8 @@ The XSD Viewer is the central feature for exploring and editing your schemas. It
 - **Documentation Editor:** You can directly add or edit the main documentation and technical Javadoc-style comments for the entire schema right from the graphical view. Your changes can be saved back to the XSD file.
 - **Example Value Editor:** For specific elements in the tree, you can add and save example values. This is useful for documenting how the data should look.
 - **Metadata Display:** Key information like the schema's target namespace and version is clearly displayed.
+
+![Screenshot of XSD Controller](img/xsd-editor-graphic.png)
 
 ### Text View
 - **Full Code Editor:** Provides a complete text editor for viewing and editing the raw source code of the XSD file.
@@ -29,6 +29,8 @@ This powerful feature automatically creates user-friendly HTML documentation fro
     - Optionally render documentation written in Markdown for richer formatting.
 - **Live Preview:** After generating the documentation, you can launch a live preview in a new tab directly within the application. This starts a local web server to display the HTML files.
 - **Easy Access:** A button allows you to directly open the folder containing the generated documentation files.
+
+![Screenshot of XSD Controller](img/xsd-documentation.png)
 
 ### Adding Technical Documentation (XsdDocInfo)
 

@@ -8,7 +8,7 @@ You provide an XML file and its corresponding XSD schema. The tool then compares
 
 ## Key Features
 
-![Screenshot of XSD Validation Controller](img/xsd-validation-controller.png)
+![Screenshot of XSD Validation Controller](img/xsd-validation.png)
 
 ### File Input
 -   **Load XML and XSD Files:** You can load your files by clicking buttons to open a file dialog or by simply dragging and dropping them from your computer onto the designated areas.

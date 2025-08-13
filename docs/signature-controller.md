@@ -2,7 +2,9 @@
 
 This part of the application provides tools for creating digital signatures for your XML files. A digital signature acts like a tamper-proof seal, ensuring that the document is authentic and has not been altered since it was signed.
 
-![Screenshot of Signature Controller](img/signature-controller.png)
+![Screenshot of Signature Controller](img/signature-sign.png)
+
+![Screenshot of Signature Controller](img/signature-validation.png)
 
 ## 1. Create a New Certificate
 

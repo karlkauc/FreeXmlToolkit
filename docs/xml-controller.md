@@ -4,7 +4,9 @@ The XML Editor is the core feature of the Free XML Toolkit. It provides a powerf
 
 ## Key Features
 
-![Screenshot of XML Controller](img/xml-controller.png)
+![Screenshot of XML Controller](img/xml-editor-text.png)
+
+![Screenshot of XML Controller](img/xml-editor-graphic.png)
 
 ### File Management
 - **Open & Save:** Easily open existing XML files from your computer or save your work. The application remembers the last directory you used, making it convenient to access your files.

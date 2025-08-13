@@ -13,7 +13,7 @@ The tool applies the rules from the XSLT file to the XML file and generates an o
 
 ## Key Features
 
-![Screenshot of XSLT Controller](img/xslt-controller.png)
+![Screenshot of XSLT Controller](img/xslt-factsheet.png)
 
 ### File Selection
 -   **File Explorers:** Two dedicated file explorer panes are provided, one for selecting your XML source file and another for selecting your XSLT stylesheet.

@@ -13,7 +13,7 @@ The tool takes your XML data, applies the rules from the XSL-FO stylesheet, and 
 
 ## Key Features
 
-![Screenshot of FOP Controller](img/fop-controller.png)
+![Screenshot of FOP Controller](img/fop-pdf.png)
 
 ### File Input
 - **Select XML and XSL Files:** You can click buttons to open a file dialog and choose your XML data file and your XSL-FO stylesheet.
