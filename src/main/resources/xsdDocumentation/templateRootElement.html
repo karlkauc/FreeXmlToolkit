@@ -23,11 +23,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="'XSD Documentation for \'' + ${rootElementName} + '\''">XSD Documentation</title>
 
-    <!--
-    <link rel="preconnect" href="https://rsms.me/">
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
-    -->
-
     <!-- Generated Tailwind CSS -->
     <link href="assets/freexmltoolkit-docs.css" rel="stylesheet">
     <!-- PrismJS for Syntax Highlighting -->
@@ -188,6 +183,35 @@
     </div>
 
 </main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const params = new URLSearchParams(window.location.search);
+        const xpathToFind = params.get('xpath');
+
+        if (xpathToFind) {
+            const searchIndexPath = document.body.dataset.searchIndexPath;
+            fetch(searchIndexPath)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(searchIndex => {
+                    const foundItem = searchIndex.find(item => item.xpath === xpathToFind);
+                    if (foundItem && foundItem.url) {
+                        window.location.href = foundItem.url;
+                    } else {
+                        console.warn(`XPath "${xpathToFind}" not found in search index.`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching or processing search index:', error);
+                });
+        }
+    });
+</script>
 
 <!-- The search script will now fetch the search_index.json file externally
      using the path provided in the body's data-search-index-path attribute. -->
