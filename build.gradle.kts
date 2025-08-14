@@ -22,8 +22,8 @@ plugins {
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.github.ben-manes.versions") version "0.52.0"
-    id("edu.sc.seis.launch4j") version "3.0.7"
-    id("org.beryx.jlink") version "3.1.2"
+    id("edu.sc.seis.launch4j") version "4.0.0"
+    id("org.beryx.jlink") version "3.1.3"
 }
 
 application {
@@ -180,7 +180,6 @@ tasks {
 tasks.jar {
     exclude("**/*.txt")
 }
-
 
 tasks.test {
     useJUnitPlatform()

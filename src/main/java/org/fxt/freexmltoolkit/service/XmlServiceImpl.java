@@ -343,8 +343,6 @@ public class XmlServiceImpl implements XmlService {
         }
     }
 
-    // Fügen Sie diese neue private Methode zu Ihrer XmlServiceImpl-Klasse hinzu.
-
     /**
      * Eine private Hilfsmethode, die ausschließlich die Wohlgeformtheit eines XML-Strings prüft.
      * Sie verwendet einen Standard-Parser mit deaktivierter Validierung, um zuverlässige Ergebnisse zu gewährleisten.
@@ -397,22 +395,49 @@ public class XmlServiceImpl implements XmlService {
         return exceptions;
     }
 
+    /**
+     * Checks if the given file is a valid W3C XML Schema.
+     * @param schemaFile The XSD file to check.
+     * @return true if the schema is valid, false otherwise.
+     */
+    private boolean isSchemaValid(File schemaFile) {
+        if (schemaFile == null || !schemaFile.exists()) {
+            return false;
+        }
+        try {
+            // Attempt to create a schema object. If this fails, the schema is not valid.
+            factory.newSchema(new StreamSource(schemaFile));
+            return true;
+        } catch (SAXException e) {
+            // This exception indicates that the schema itself is invalid.
+            logger.warn("The provided schema file '{}' is not a valid W3C XML Schema. Reason: {}", schemaFile.getAbsolutePath(), e.getMessage());
+            return false;
+        }
+    }
 
-    // Ersetzen Sie die bestehende validateText-Methode durch diese Version.
     @Override
     public List<SAXParseException> validateText(String xmlString, File schemaFile) {
-        // KORREKTUR: Wenn kein Schema angegeben ist, führen wir eine reine Wohlgeformtheitsprüfung durch.
-        // Dies ist zuverlässiger, als einen Validator von einem leeren Schema-Objekt zu verwenden.
+        final List<SAXParseException> exceptions = new LinkedList<>();
+
+        // If no schema is provided, only check for well-formedness.
         if (schemaFile == null) {
             return checkWellFormednessOnly(xmlString);
         }
 
-        // Die bestehende Logik für die Schema-Validierung bleibt erhalten.
-        final List<SAXParseException> exceptions = new LinkedList<>();
+        // NEW: First, check if the schema itself is valid.
+        if (!isSchemaValid(schemaFile)) {
+            logger.warn("Schema validation skipped because the schema file is invalid: {}", schemaFile.getAbsolutePath());
+            // Add a custom error to inform the user about the invalid schema.
+            exceptions.add(new SAXParseException("Schema is invalid or unreadable. XML validation was not performed.", null));
+            // As a fallback, at least check if the XML itself is well-formed.
+            exceptions.addAll(checkWellFormednessOnly(xmlString));
+            return exceptions;
+        }
+
+        // If the schema is valid, proceed with the validation of the XML against the schema.
         try {
             logger.debug("Validating against schema: {}", schemaFile.getAbsolutePath());
             Schema schemaToUse = factory.newSchema(new StreamSource(schemaFile));
-
             Validator localValidator = schemaToUse.newValidator();
 
             localValidator.setErrorHandler(new ErrorHandler() {
@@ -432,19 +457,19 @@ public class XmlServiceImpl implements XmlService {
                 }
             });
 
-            // Die validate-Methode prüft auf Wohlgeformtheit und, falls ein Schema geladen ist, auf Schemavalidität.
+            // The validate method checks for well-formedness and, if a schema is loaded, for schema validity.
             StreamSource xmlStreamSource = new StreamSource(new StringReader(xmlString));
             localValidator.validate(xmlStreamSource);
 
             return exceptions;
 
         } catch (SAXException | IOException e) {
-            // Eine SAXException hier ist oft ein fataler Parsing-Fehler (z.B. nicht wohlgeformt).
-            // Wir fügen sie zur Fehlerliste hinzu, um sie dem Benutzer zu melden.
+            // A SAXException here is often a fatal parsing error (e.g., not well-formed).
+            // We add it to the error list to report it to the user.
             if (e instanceof SAXParseException) {
                 exceptions.add((SAXParseException) e);
             } else {
-                // Für andere Systemfehler erstellen wir eine synthetische Exception.
+                // For other system errors, create a synthetic exception.
                 logger.error("Unexpected system error during validation", e);
                 exceptions.add(new SAXParseException("System error during validation: " + e.getMessage(), null));
             }
