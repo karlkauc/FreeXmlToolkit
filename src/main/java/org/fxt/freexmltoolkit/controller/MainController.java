@@ -331,6 +331,11 @@ public class MainController {
                 logger.debug("set Signature Controller");
                 signatureController.setParentController(this);
             }
+            case HelpController helpController -> {
+                logger.debug("set Help Controller");
+                // helpController.setParentController(this);
+                // no need to set the main controller
+            }
             case null, default -> {
                 if (controller != null) {
                     logger.error("no valid controller found: {}", controller.getClass());

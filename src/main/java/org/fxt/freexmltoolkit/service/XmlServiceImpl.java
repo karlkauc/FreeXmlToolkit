@@ -268,6 +268,17 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public void setCurrentXsdFile(File xsdFile) {
+        // If the provided file is null, reset the schema-related-state.
+        if (xsdFile == null) {
+            this.currentXsdFile = null;
+            this.schema = null;
+            this.rootElement = null;
+            this.targetNamespace = null;
+            logger.debug("Current XSD file has been reset.");
+            return; // Exit the method
+        }
+
+        // If the file is not null, proceed with loading it.
         this.currentXsdFile = xsdFile;
 
         try {
@@ -281,11 +292,16 @@ public class XmlServiceImpl implements XmlService {
 
             this.rootElement = document.getDocumentElement();
             this.targetNamespace = rootElement.getAttribute("targetNamespace");
-        } catch (SAXException | IOException | ParserConfigurationException e) {
-            logger.error("Could not set current XSD File: {}", xsdFile.getAbsolutePath());
-            logger.error(e.getMessage());
-        }
+            logger.debug("Successfully set and parsed XSD file: {}", xsdFile.getAbsolutePath());
 
+        } catch (SAXException | IOException | ParserConfigurationException e) {
+            logger.error("Could not set current XSD File: {}", xsdFile.getAbsolutePath(), e);
+            // Also reset state on failure to ensure consistency
+            this.currentXsdFile = null;
+            this.schema = null;
+            this.rootElement = null;
+            this.targetNamespace = null;
+        }
     }
 
     @Override
@@ -411,6 +427,26 @@ public class XmlServiceImpl implements XmlService {
         } catch (SAXException e) {
             // This exception indicates that the schema itself is invalid.
             logger.warn("The provided schema file '{}' is not a valid W3C XML Schema. Reason: {}", schemaFile.getAbsolutePath(), e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Checks if the given string content is a valid W3C XML Schema.
+     * @param schemaContent The XSD content as a string.
+     * @return true if the schema is valid, false otherwise.
+     */
+    private boolean isSchemaValid(String schemaContent) {
+        if (schemaContent == null || schemaContent.isBlank()) {
+            return false;
+        }
+        try {
+            // Attempt to create a schema object from a string. If this fails, the schema is not valid.
+            factory.newSchema(new StreamSource(new StringReader(schemaContent)));
+            return true;
+        } catch (SAXException e) {
+            // This exception indicates that the schema itself is invalid.
+            logger.warn("The provided schema content is not a valid W3C XML Schema. Reason: {}", e.getMessage());
             return false;
         }
     }
@@ -771,13 +807,19 @@ public class XmlServiceImpl implements XmlService {
 
                             try {
                                 String textContent = connectionService.getTextContentFromURL(new URI(possibleSchemaLocation.get()));
-                                Files.write(pathNew, textContent.getBytes());
-                                logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());
-                                this.currentXsdFile = new File(pathNew.toUri());
-
-                                return true;
+                                // NEU: Schema-Inhalt vor dem Speichern validieren
+                                if (isSchemaValid(textContent)) {
+                                    Files.write(pathNew, textContent.getBytes());
+                                    logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());
+                                    this.setCurrentXsdFile(new File(pathNew.toUri()));
+                                    this.remoteXsdLocation = possibleSchemaLocation.get();
+                                    return true;
+                                } else {
+                                    logger.error("Downloaded schema from {} is not valid and will not be saved.", possibleSchemaLocation.get());
+                                    return false;
+                                }
                             } catch (Exception e) {
-                                logger.error(e.getMessage());
+                                logger.error("Failed to download or process schema from {}: {}", possibleSchemaLocation.get(), e.getMessage());
                                 return false;
                             }
                         }

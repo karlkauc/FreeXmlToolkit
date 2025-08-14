@@ -55,7 +55,7 @@ public class PropertiesServiceImpl implements PropertiesService {
     public Properties loadProperties() {
         try (FileInputStream fis = new FileInputStream(propertiesFile)) {
             properties.load(fis);
-            logger.debug("Loaded Properties: {}", properties);
+            logger.debug("Loaded Properties '{}': {}", propertiesFile.getAbsolutePath(), properties);
         } catch (IOException e) {
             logger.warn("No properties found!");
         }
@@ -98,6 +98,9 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("usageDuration", "0");
         properties.setProperty("useSystemTempFolder", "true");
         properties.setProperty("version", "20241209");
+        properties.setProperty("manualProxy", "false");
+        properties.setProperty("useSystemProxy", "true");
+        properties.setProperty("ssl.trustAllCerts", "false");
 
         try (FileOutputStream fos = new FileOutputStream(FREE_XML_TOOLKIT_PROPERTIES)) {
             properties.store(fos, null);
