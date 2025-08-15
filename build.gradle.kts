@@ -190,18 +190,35 @@ tasks.test {
     }
 }
 
-// Erstellen des image Verzeichnisses
+// Bereinigen und Erstellen des image Verzeichnisses
 tasks.register("createImageDirectory") {
-    description = "Erstellt das image Verzeichnis"
+    description = "Bereinigt und erstellt das image Verzeichnis"
+
+    doLast {
+        val imageDir = layout.buildDirectory.dir("image").get().asFile
+        if (imageDir.exists()) {
+            imageDir.deleteRecursively()
+        }
+        imageDir.mkdirs()
+    }
+}
+
+// Bereinigen des dist Verzeichnisses
+tasks.register("cleanDistDirectory") {
+    description = "Bereinigt das dist Verzeichnis"
     
     doLast {
-        layout.buildDirectory.dir("image").get().asFile.mkdirs()
+        val distDir = layout.buildDirectory.dir("dist").get().asFile
+        if (distDir.exists()) {
+            distDir.deleteRecursively()
+        }
+        distDir.mkdirs()
     }
 }
 
 // Kopieren der zusätzlichen Dateien für die Distribution
 tasks.register<Copy>("copyDistributionFiles") {
-    dependsOn("jar", "createImageDirectory")
+    dependsOn("jar", "createImageDirectory", "cleanDistDirectory")
     description = "Kopiert zusätzliche Dateien für die Distribution"
 
     from("${projectDir}/release/examples")
@@ -263,13 +280,23 @@ tasks.register<Exec>("createWindowsExecutable") {
         "--win-dir-chooser",
         "--win-per-user-install",
         "--win-menu-group", "FreeXmlToolkit",
+        "--win-banner-image", "${projectDir}/release/win-banner.png",
+        "--win-dialog-image", "${projectDir}/release/win-dialog.png",
+        "--win-install-dir-chooser",
+        "--win-help-url", "https://github.com/your-repo/FreeXmlToolkit",
+        "--win-update-url", "https://github.com/your-repo/FreeXmlToolkit/releases",
+        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
+        "--java-options", "--enable-native-access=javafx.graphics",
+        "--java-options", "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
+        "--java-options", "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",
+        "--java-options", "--add-opens=javafx.base/javafx.beans.property=javafx.fxml",
         "--dest", "dist"
     )
 }
 
 // macOS App Bundle (ohne Admin-Rechte)
 tasks.register<Exec>("createMacOSExecutable") {
-    dependsOn("jar", "copyDistributionFiles")
+    dependsOn("jar", "copyDistributionFiles", "cleanDistDirectory")
     description = "Erstellt macOS App Bundle für benutzerbezogene Installation"
 
     workingDir = layout.buildDirectory.get().asFile
@@ -309,6 +336,11 @@ tasks.register<Exec>("createLinuxExecutable") {
         "--linux-app-category", "Development",
         "--linux-menu-group", "Development",
         "--linux-shortcut",
+        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
+        "--java-options", "--enable-native-access=javafx.graphics",
+        "--java-options", "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
+        "--java-options", "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",
+        "--java-options", "--add-opens=javafx.base/javafx.beans.property=javafx.fxml",
         "--dest", "dist"
     )
 }
@@ -334,6 +366,11 @@ tasks.register<Exec>("createLinuxDebPackage") {
         "--linux-shortcut",
         "--linux-deb-maintainer", "karl.kauc@example.com",
         "--install-dir", "/opt/FreeXmlToolkit",
+        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
+        "--java-options", "--enable-native-access=javafx.graphics",
+        "--java-options", "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
+        "--java-options", "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",
+        "--java-options", "--add-opens=javafx.base/javafx.beans.property=javafx.fxml",
         "--dest", "dist"
     )
 }
@@ -359,15 +396,48 @@ tasks.register<Exec>("createLinuxRpmPackage") {
         "--linux-shortcut",
         "--linux-rpm-license-type", "Apache-2.0",
         "--install-dir", "/opt/FreeXmlToolkit",
+        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
+        "--java-options", "--enable-native-access=javafx.graphics",
+        "--java-options", "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
+        "--java-options", "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",
+        "--java-options", "--add-opens=javafx.base/javafx.beans.property=javafx.fxml",
         "--dest", "dist"
     )
+}
+
+// Task zum Anpassen der macOS .cfg Datei
+tasks.register("fixMacOSConfig") {
+    dependsOn("createMacOSExecutable")
+    description = "Passt die macOS .cfg Datei mit JavaFX-Optionen an"
+
+    doLast {
+        val appDir = layout.buildDirectory.dir("dist/FreeXmlToolkit.app/Contents/app").get().asFile
+        val cfgFile = File(appDir, "FreeXmlToolkit.cfg")
+
+        if (cfgFile.exists()) {
+            val content = cfgFile.readText()
+            val newContent = content + """
+                
+                -Djavafx.css.dump.lookup.errors=true
+                --enable-native-access=javafx.graphics
+                --add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml
+                --add-opens=javafx.controls/javafx.scene.control=javafx.fxml
+                --add-opens=javafx.base/javafx.beans.property=javafx.fxml
+            """.trimIndent()
+
+            cfgFile.writeText(newContent)
+            println("MacOS .cfg Datei erfolgreich angepasst")
+        } else {
+            println("Warnung: FreeXmlToolkit.cfg nicht gefunden in ${appDir}")
+        }
+    }
 }
 
 // Aktualisierte createAllExecutables Task
 tasks.named("createAllExecutables") {
     dependsOn(
         "createWindowsExecutable",
-        "createMacOSExecutable",
+        "fixMacOSConfig",
         "createLinuxExecutable",
         "createLinuxDebPackage",
         "createLinuxRpmPackage"
