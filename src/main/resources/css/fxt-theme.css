@@ -506,14 +506,6 @@
   -fx-text-fill: white;
 }
 
-.children-container {
-  -fx-padding: 2px 0 2px 0;
-  -fx-border-color: #e1e4e8 transparent transparent transparent;
-  -fx-border-width: 1px;
-  -fx-border-style: solid;
-  -fx-spacing: 4px;
-}
-
 .collapse-bar {
   -fx-min-width: 20px;
   -fx-max-width: 20px;
@@ -531,7 +523,10 @@
 .xml-tree-comment {
   -fx-text-fill: #8c959f;
   -fx-font-style: italic;
-  -fx-padding: 2px 5px;
+    -fx-padding: 5px 10px;
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
 }
 
 /* =================================================================

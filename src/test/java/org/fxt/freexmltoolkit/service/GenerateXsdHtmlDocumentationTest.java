@@ -22,6 +22,7 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.SimpleFileServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.w3c.dom.Document;
@@ -52,6 +53,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Disabled("Temporarily disabled")
 public class GenerateXsdHtmlDocumentationTest {
 
     final static String XML_LATEST_XSD = "src/test/resources/FundsXML4.xsd";

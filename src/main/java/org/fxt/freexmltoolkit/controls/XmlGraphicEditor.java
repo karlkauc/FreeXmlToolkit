@@ -140,6 +140,11 @@ public class XmlGraphicEditor extends VBox {
      * Refactored method to handle complex nodes with a more efficient expand/collapse logic.
      */
     private void addComplexNode(Node subNode) {
+        // Container für das gesamte Element (Parent + Children)
+        VBox elementContainer = new VBox();
+        elementContainer.getStyleClass().add("element-container");
+        elementContainer.setAlignment(Pos.TOP_CENTER);
+        
         // 1. Der Header für den aufklappbaren Bereich
         HBox headerBox = new HBox(5);
         headerBox.getStyleClass().add("element-box");

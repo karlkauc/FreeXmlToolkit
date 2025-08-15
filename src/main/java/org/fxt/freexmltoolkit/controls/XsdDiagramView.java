@@ -94,7 +94,7 @@ public class XsdDiagramView {
 
         VBox diagramContainer = new VBox();
         diagramContainer.setPadding(new Insets(10));
-        diagramContainer.setAlignment(Pos.TOP_LEFT);
+        diagramContainer.setAlignment(Pos.TOP_CENTER); // Root-Node zentrieren
         Node rootNodeView = createNodeView(rootNode);
         diagramContainer.getChildren().add(rootNodeView);
 
@@ -151,11 +151,25 @@ public class XsdDiagramView {
         elementInfoContainer.setPadding(new Insets(5));
         elementInfoContainer.setStyle("-fx-border-color: #d0d0d0; -fx-border-width: 0 1px 0 0; -fx-border-style: dotted; -fx-padding: 5;");
 
+        // Kinder in Attribute und Strukturelemente aufteilen
+        List<XsdNodeInfo> attributes = node.children().stream()
+                .filter(c -> c.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE)
+                .toList();
+        List<XsdNodeInfo> structuralChildren = node.children().stream()
+                .filter(c -> c.nodeType() != XsdNodeInfo.NodeType.ATTRIBUTE)
+                .collect(Collectors.toList());
+
+        // Wenn strukturelle Kinder vorhanden sind, das Element vertikal mittig ausrichten
+        if (!structuralChildren.isEmpty()) {
+            elementInfoContainer.setAlignment(Pos.CENTER_LEFT); // Vertikal mittig, horizontal linksbündig
+        }
+
         // Rechter Teil: Container für strukturelle Kinder (sequence, choice)
         VBox structuralChildrenContainer = new VBox(5);
         structuralChildrenContainer.setPadding(new Insets(0, 0, 0, 10));
         structuralChildrenContainer.setVisible(false);
         structuralChildrenContainer.setManaged(false);
+        structuralChildrenContainer.setAlignment(Pos.TOP_LEFT); // Kinder linksbündig
 
         // --- Linken Teil befüllen (elementInfoContainer) ---
         HBox nameAndToggleRow = new HBox(5);
@@ -179,14 +193,6 @@ public class XsdDiagramView {
             docLabel.setMaxWidth(350);
             elementInfoContainer.getChildren().add(docLabel);
         }
-
-        // Kinder in Attribute und Strukturelemente aufteilen
-        List<XsdNodeInfo> attributes = node.children().stream()
-                .filter(c -> c.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE)
-                .toList();
-        List<XsdNodeInfo> structuralChildren = node.children().stream()
-                .filter(c -> c.nodeType() != XsdNodeInfo.NodeType.ATTRIBUTE)
-                .collect(Collectors.toList());
 
         // Attribute direkt zum linken Container hinzufügen
         if (!attributes.isEmpty()) {
@@ -238,8 +244,9 @@ public class XsdDiagramView {
         HBox mainContainer = new HBox(10);
         mainContainer.setAlignment(Pos.TOP_LEFT);
 
-        // Linker Teil: Das "SEQUENCE" oder "CHOICE" Label
+        // Linker Teil: Das "SEQUENCE" oder "CHOICE" Label - vertikal mittig
         VBox titleContainer = new VBox();
+        titleContainer.setAlignment(Pos.CENTER_LEFT); // Vertikal mittig, horizontal linksbündig
         HBox titleRow = new HBox(5);
         titleRow.setAlignment(Pos.CENTER_LEFT);
         titleRow.setStyle(style);
@@ -255,6 +262,7 @@ public class XsdDiagramView {
         childrenVBox.setPadding(new Insets(0, 0, 5, 20));
         childrenVBox.setVisible(false);
         childrenVBox.setManaged(false);
+        childrenVBox.setAlignment(Pos.TOP_LEFT); // Kinder linksbündig
         childrenVBox.setStyle("-fx-border-color: #e0e0e0; -fx-border-width: 0 0 0 1px; -fx-border-style: solid;");
 
         if (!node.children().isEmpty()) {

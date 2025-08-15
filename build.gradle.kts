@@ -169,6 +169,9 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     testImplementation("org.mockito:mockito-core:5.18.0")
+    testImplementation("org.testfx:testfx-core:4.0.17")
+    testImplementation("org.testfx:testfx-junit5:4.0.17")
+    testImplementation("org.testfx:openjfx-monocle:jdk-12.0.1+2")
 }
 
 tasks {
