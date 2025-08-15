@@ -22,8 +22,6 @@ plugins {
     application
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.github.ben-manes.versions") version "0.52.0"
-    id("edu.sc.seis.launch4j") version "4.0.0"
-    id("org.beryx.jlink") version "3.1.3"
 }
 
 application {
@@ -192,50 +190,37 @@ tasks.test {
     }
 }
 
-tasks.withType<edu.sc.seis.launch4j.tasks.DefaultLaunch4jTask> {
-    dependsOn("clean")
-
-    outfile = "FreeXMLToolkit.exe"
-    mainClassName = "org.fxt.freexmltoolkit.FxtGui"
-    headerType = "gui" // gui / console
-    icon = "${projectDir}/release/logo.ico"
-    // maxHeapSize = 2048
-    copyright = System.getProperty("user.name")
-
-    outputDir = "FreeXMLToolkit"
-
-    bundledJrePath = "jre"
-    requires64Bit = true
-    jreMinVersion = "23"
-
+// Erstellen des image Verzeichnisses
+tasks.register("createImageDirectory") {
+    description = "Erstellt das image Verzeichnis"
+    
     doLast {
-        println("Copy JDK...")
-        copy {
-            from(zipTree("release/jdk/jre-23-full.zip"))
-            into(layout.buildDirectory.dir("/FreeXMLToolkit/jre"))
-        }
-        println("Copy additional files...")
-        copy {
-            from(projectDir.path + "/release/examples")
-            into(layout.buildDirectory.dir("/FreeXMLToolkit/examples"))
-        }
-        copy {
-            from(projectDir.path + "/release/log4j2.xml")
-            from(projectDir.path + "/release/FreeXMLToolkit.properties")
-            into(layout.buildDirectory.dir("FreeXMLToolkit"))
-        }
+        layout.buildDirectory.dir("image").get().asFile.mkdirs()
     }
 }
 
+// Kopieren der zusätzlichen Dateien für die Distribution
+tasks.register<Copy>("copyDistributionFiles") {
+    dependsOn("jar", "createImageDirectory")
+    description = "Kopiert zusätzliche Dateien für die Distribution"
+
+    from("${projectDir}/release/examples")
+    from("${projectDir}/release/log4j2.xml")
+    from("${projectDir}/release/FreeXMLToolkit.properties")
+    from(tasks.jar) {
+        rename { "FreeXmlToolkit.jar" }
+    }
+    into(layout.buildDirectory.dir("image"))
+}
+
 tasks.register<Zip>("packageDistribution") {
-    dependsOn("createAllExecutables")
+    dependsOn("createAllExecutables", "copyDistributionFiles")
 
     archiveFileName.set("FreeXMLToolkit.zip")
     destinationDirectory.set(layout.buildDirectory.get())
 
-    val tree: ConfigurableFileTree = fileTree(layout.buildDirectory.get())
-    tree.include("FreeXMLToolkit/**")
-    from(tree)
+    from(layout.buildDirectory.dir("dist"))
+    from(layout.buildDirectory.dir("image"))
 }
 
 idea {
@@ -245,36 +230,148 @@ idea {
     }
 }
 
-jlink {
-    options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
-    launcher {
-        name = "FreeXmlToolkit"
-    }
-    jarExclude("", "**/LICENSE*", "**/NOTICE*", "**/README*")
+// JLink-Konfiguration entfernt - verwenden stattdessen direktes JAR
 
-    jpackage {
-        // Allgemeine Optionen für alle Betriebssysteme
-        vendor = "Karl Kauc"
-        appVersion = "1.0.0"
+// Native Executables für alle Betriebssysteme
+tasks.register("createAllExecutables") {
+    dependsOn("jar", "copyDistributionFiles")
+    description = "Erstellt native Executables für alle unterstützten Betriebssysteme"
 
-        // Betriebssystem-spezifische Konfiguration
-        if (org.gradle.internal.os.OperatingSystem.current().isWindows) {
-            installerType = "exe"
-            installerOptions
-            installerOptions = listOf("--win-menu", "--win-shortcut")
-            // Installiert standardmäßig in das Benutzerverzeichnis %LOCALAPPDATA%\<Anwendungsname>
-        } else if (org.gradle.internal.os.OperatingSystem.current().isMacOsX) {
-            installerType = "dmg"
-            // Installiert in /Applications, was auf macOS oft ohne Admin-Rechte möglich ist
-            // Für eine rein benutzerbezogene Installation:
-            // installDir = '~/Applications'
-        } else if (org.gradle.internal.os.OperatingSystem.current().isLinux) {
-            installerType = "deb" // oder 'rpm'
-            // Installiert standardmäßig in /opt, was Admin-Rechte erfordert.
-            // Daher setzen wir das Installationsverzeichnis auf ein Benutzerverzeichnis:
-            // installDir = "home/${System.getProperty('user.name')}/.local/share/IhreAnwendung"
-        }
+    doLast {
+        println("Native Executables werden erstellt...")
     }
+}
+
+// Windows Executable (ohne Admin-Rechte)
+tasks.register<Exec>("createWindowsExecutable") {
+    dependsOn("jar", "copyDistributionFiles")
+    description = "Erstellt Windows Executable für benutzerbezogene Installation"
+
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "exe",
+        "--vendor", "Karl Kauc",
+        "--app-version", "1.0.0",
+        "--icon", "${projectDir}/release/logo.ico",
+        "--win-menu",
+        "--win-shortcut",
+        "--win-dir-chooser",
+        "--win-per-user-install",
+        "--win-menu-group", "FreeXmlToolkit",
+        "--dest", "dist"
+    )
+}
+
+// macOS App Bundle (ohne Admin-Rechte)
+tasks.register<Exec>("createMacOSExecutable") {
+    dependsOn("jar", "copyDistributionFiles")
+    description = "Erstellt macOS App Bundle für benutzerbezogene Installation"
+
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "dmg",
+        "--vendor", "Karl Kauc",
+        "--app-version", "1.0.0",
+        "--icon", "${projectDir}/release/logo.icns",
+        "--mac-package-name", "FreeXmlToolkit",
+        "--mac-package-identifier", "org.fxt.freexmltoolkit",
+        "--mac-package-signing-prefix", "org.fxt.freexmltoolkit",
+        "--dest", "dist"
+    )
+}
+
+// Linux AppImage (ohne Admin-Rechte)
+tasks.register<Exec>("createLinuxExecutable") {
+    dependsOn("jar", "copyDistributionFiles")
+    description = "Erstellt Linux AppImage für benutzerbezogene Installation"
+
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "app-image",
+        "--vendor", "Karl Kauc",
+        "--app-version", "1.0.0",
+        "--icon", "${projectDir}/release/logo.ico",
+        "--linux-app-category", "Development",
+        "--linux-menu-group", "Development",
+        "--linux-shortcut",
+        "--dest", "dist"
+    )
+}
+
+// Linux DEB Package (benutzerbezogene Installation)
+tasks.register<Exec>("createLinuxDebPackage") {
+    dependsOn("jar", "copyDistributionFiles")
+    description = "Erstellt Linux DEB Package für benutzerbezogene Installation"
+
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "deb",
+        "--vendor", "Karl Kauc",
+        "--app-version", "1.0.0",
+        "--icon", "${projectDir}/release/logo.ico",
+        "--linux-app-category", "Development",
+        "--linux-menu-group", "Development",
+        "--linux-shortcut",
+        "--linux-deb-maintainer", "karl.kauc@example.com",
+        "--install-dir", "/opt/FreeXmlToolkit",
+        "--dest", "dist"
+    )
+}
+
+// Linux RPM Package (benutzerbezogene Installation)
+tasks.register<Exec>("createLinuxRpmPackage") {
+    dependsOn("jar", "copyDistributionFiles")
+    description = "Erstellt Linux RPM Package für benutzerbezogene Installation"
+
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "rpm",
+        "--vendor", "Karl Kauc",
+        "--app-version", "1.0.0",
+        "--icon", "${projectDir}/release/logo.ico",
+        "--linux-app-category", "Development",
+        "--linux-menu-group", "Development",
+        "--linux-shortcut",
+        "--linux-rpm-license-type", "Apache-2.0",
+        "--install-dir", "/opt/FreeXmlToolkit",
+        "--dest", "dist"
+    )
+}
+
+// Aktualisierte createAllExecutables Task
+tasks.named("createAllExecutables") {
+    dependsOn(
+        "createWindowsExecutable",
+        "createMacOSExecutable",
+        "createLinuxExecutable",
+        "createLinuxDebPackage",
+        "createLinuxRpmPackage"
+    )
 }
 
 
