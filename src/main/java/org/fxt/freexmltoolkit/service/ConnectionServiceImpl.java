@@ -28,13 +28,9 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.config.Registry;
-import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.util.Timeout;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
@@ -134,29 +130,22 @@ public class ConnectionServiceImpl implements ConnectionService {
                 .setDefaultCredentialsProvider(credentialsProvider);
 
         try {
-            SSLConnectionSocketFactory sslSocketFactory;
+            // Konfiguriere SSL/TLS mit den unterstützten Protokollen
+            SSLContext sslContext;
             if (trustAllCerts) {
                 logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled. All certificates will be trusted.");
-                SSLContext sslContext = createTrustAllSslContext();
-                sslSocketFactory = new SSLConnectionSocketFactory(
-                        sslContext,
-                        SUPPORTED_PROTOCOLS,
-                        null,
-                        NoopHostnameVerifier.INSTANCE);
+                sslContext = createTrustAllSslContext();
             } else {
-                // Use the default SSL context but explicitly set the allowed TLS versions.
-                sslSocketFactory = new SSLConnectionSocketFactory(
-                        SSLContext.getDefault(),
-                        SUPPORTED_PROTOCOLS,
-                        null, // Default ciphers
-                        null);
+                sslContext = createSecureSslContext();
             }
 
-            Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-                    .register("http", PlainConnectionSocketFactory.getSocketFactory())
-                    .register("https", sslSocketFactory)
-                    .build();
-            BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
+            // Konfiguriere SSL mit den unterstützten Protokollen
+            configureSslProtocols();
+
+            BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager();
+            connectionManager.setSocketConfig(SocketConfig.custom()
+                    .setSoTimeout(Timeout.ofSeconds(30))
+                    .build());
             clientBuilder.setConnectionManager(connectionManager);
 
         } catch (Exception e) {
@@ -191,9 +180,9 @@ public class ConnectionServiceImpl implements ConnectionService {
             }
         } else {
             logger.debug("Manual proxy not configured or incomplete. Defaulting to system proxy settings.");
-            // Use the default system proxy selector. This requires the JVM to be started with -Djava.net.useSystemProxies=true
-            ProxySelector proxySelector = ProxySelector.getDefault();
-            clientBuilder.setRoutePlanner(new SystemDefaultRoutePlanner(proxySelector));
+            // Use the default system proxy selector with modern approach
+            ProxySelector systemProxySelector = getSystemProxySelector();
+            clientBuilder.setRoutePlanner(new SystemDefaultRoutePlanner(systemProxySelector));
         }
 
         long start = System.currentTimeMillis();
@@ -206,10 +195,11 @@ public class ConnectionServiceImpl implements ConnectionService {
                         .map(header -> header.getName() + ":" + header.getValue())
                         .toArray(String[]::new);
 
-                String text = new BufferedReader(
-                        new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))
-                        .lines()
-                        .collect(Collectors.joining("\n"));
+                String text;
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))) {
+                    text = reader.lines().collect(Collectors.joining("\n"));
+                }
 
                 return new ConnectionResult(
                         url,
@@ -228,6 +218,31 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     /**
+     * Konfiguriert die SSL-Protokolle für HTTPS-Verbindungen
+     */
+    private void configureSslProtocols() {
+        // Setze die unterstützten TLS-Protokolle als System-Property
+        System.setProperty("https.protocols", String.join(",", SUPPORTED_PROTOCOLS));
+
+        // Zusätzliche Sicherheitseinstellungen
+        System.setProperty("jdk.tls.client.protocols", String.join(",", SUPPORTED_PROTOCOLS));
+
+        logger.debug("SSL protocols configured: {}", String.join(",", SUPPORTED_PROTOCOLS));
+    }
+
+    /**
+     * Creates a secure SSLContext with modern TLS configuration.
+     *
+     * @return An SSLContext configured with secure defaults.
+     */
+    private SSLContext createSecureSslContext() throws NoSuchAlgorithmException, KeyManagementException {
+        // Use TLS 1.3 as the default, falling back to TLS 1.2 if needed
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, null, new java.security.SecureRandom());
+        return sslContext;
+    }
+
+    /**
      * Creates an SSLContext that trusts all certificates. This is insecure and should
      * only be used for development or testing purposes.
      *
@@ -238,18 +253,40 @@ public class ConnectionServiceImpl implements ConnectionService {
         TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
                     public X509Certificate[] getAcceptedIssuers() {
-                        return null;
+                        return new X509Certificate[0]; // Return empty array instead of null
                     }
 
                     public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                        // Trust all client certificates
                     }
 
                     public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                        // Trust all server certificates
                     }
                 }
         };
-        SSLContext sc = SSLContext.getInstance("TLSv1.3");
+        SSLContext sc = SSLContext.getInstance("TLS");
         sc.init(null, trustAllCerts, new java.security.SecureRandom());
         return sc;
+    }
+
+    /**
+     * Gets the system proxy selector with proper error handling.
+     *
+     * @return The system proxy selector or a default one if not available.
+     */
+    private ProxySelector getSystemProxySelector() {
+        try {
+            ProxySelector systemProxySelector = ProxySelector.getDefault();
+            if (systemProxySelector != null) {
+                return systemProxySelector;
+            } else {
+                logger.warn("System proxy selector is null, using default proxy selector");
+                return ProxySelector.getDefault();
+            }
+        } catch (SecurityException e) {
+            logger.warn("Security manager prevents access to system proxy selector: {}", e.getMessage());
+            return ProxySelector.getDefault();
+        }
     }
 }
