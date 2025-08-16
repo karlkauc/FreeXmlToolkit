@@ -406,9 +406,9 @@ tasks.register<Exec>("createMacOSExecutable") {
     )
 }
 
-tasks.register<Exec>("createLinuxExecutable") {
+tasks.register<Exec>("createLinuxDeb") {
     dependsOn("copyDistributionFiles", "createLinuxRuntimeImage")
-    description = "Erstellt Linux AppImage für benutzerbezogene Installation"
+    description = "Erstellt ein .deb-Paket für Debian-basierte Linux-Distributionen"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
     workingDir = layout.buildDirectory.get().asFile
     commandLine(
@@ -417,10 +417,36 @@ tasks.register<Exec>("createLinuxExecutable") {
         "--name", "FreeXmlToolkit",
         "--main-jar", "FreeXmlToolkit.jar",
         "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "app-image",
+        "--type", "deb",
         "--vendor", "Karl Kauc",
         "--app-version", version,
         "--icon", project.projectDir.resolve("release/logo.ico"),
+        "--linux-package-name", "freexmltoolkit",
+        "--linux-deb-maintainer", "karl.kauc@gmail.com",
+        "--linux-app-category", "Development",
+        "--dest", "dist",
+        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
+        "--java-options", "--enable-preview"
+    )
+}
+
+tasks.register<Exec>("createLinuxRpm") {
+    dependsOn("copyDistributionFiles", "createLinuxRuntimeImage")
+    description = "Erstellt ein .rpm-Paket für Red Hat-basierte Linux-Distributionen"
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "rpm",
+        "--vendor", "Karl Kauc",
+        "--app-version", version,
+        "--icon", project.projectDir.resolve("release/logo.ico"),
+        "--linux-package-name", "freexmltoolkit",
+        "--linux-rpm-license-type", "Apache 2.0",
         "--linux-app-category", "Development",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
@@ -429,5 +455,5 @@ tasks.register<Exec>("createLinuxExecutable") {
 }
 
 tasks.named("createAllExecutables") {
-    dependsOn("createWindowsExecutable", "createMacOSExecutable", "createLinuxExecutable")
+    dependsOn("createWindowsExecutable", "createMacOSExecutable", "createLinuxDeb", "createLinuxRpm")
 }

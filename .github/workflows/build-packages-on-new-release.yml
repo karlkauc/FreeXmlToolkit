@@ -1,0 +1,45 @@
+name: Build and Release Executables
+
+# Dieser Workflow wird bei jedem neuen Release gestartet
+on:
+  release:
+    types: [ created ]
+
+jobs:
+  build:
+    # Definiere eine Build-Matrix, um den Job auf verschiedenen Betriebssystemen auszuführen
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+
+    # Der Job wird auf dem in der Matrix definierten Betriebssystem ausgeführt
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Schritt 1: Code auschecken
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Schritt 2: Java Development Kit (JDK) einrichten
+      # Stelle sicher, dass du eine JDK-Version wählst, die jpackage enthält (JDK 14+)
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '23' # Ändere dies auf deine benötigte JDK-Version
+          distribution: 'temurin' # Oder eine andere Distribution wie 'zulu', 'corretto'
+
+      # Schritt 3: Gradle Wrapper ausführbar machen (wichtig für Linux/macOS)
+      - name: Make Gradle wrapper executable
+        if: runner.os != 'Windows'
+        run: chmod +x ./gradlew
+
+      # Schritt 4: Führe den Gradle-Task aus
+      # Ersetze 'jpackage' mit dem genauen Namen deines Gradle-Tasks
+      - name: Build with Gradle
+        run: ./gradlew createAllExecutables
+
+      # Schritt 5: Lade alle erstellten Artefakte mit dem GitHub CLI hoch
+      - name: Upload Release Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.event.release.tag_name }} build/dist/*
