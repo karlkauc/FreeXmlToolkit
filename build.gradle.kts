@@ -47,7 +47,7 @@ javafx {
 }
 
 application {
-    mainClass.set("org.fxt.freexmltoolkit.Launcher")
+    mainClass.set("org.fxt.freexmltoolkit.FxtGui")
 }
 
 dependencies {
@@ -119,27 +119,29 @@ tasks.jar {
     archiveClassifier.set("")
     archiveVersion.set("")
     manifest {
+        // Class-Path dynamisch aus runtimeClasspath erzeugen, referenziert lib/<jar>
+        val cp = configurations.runtimeClasspath.get()
+            .files
+            .filter { it.name.endsWith(".jar") }
+            .sortedBy { it.name }
+            .joinToString(" ") { "lib/${it.name}" }
+
         attributes(
-            "Main-Class" to "org.fxt.freexmltoolkit.Launcher",
+            "Main-Class" to "org.fxt.freexmltoolkit.FxtGui",
             "Implementation-Title" to "FreeXmlToolkit",
             "Implementation-Version" to project.version,
-            "Implementation-Vendor" to "Karl Kauc"
+            "Implementation-Vendor" to "Karl Kauc",
+            "Class-Path" to cp
         )
     }
 
-    // Include all dependencies in the JAR
-    from(configurations.runtimeClasspath.map { config ->
-        config.map { if (it.isDirectory) it else project.zipTree(it) }
-    })
-
+    // Kein Fat-JAR bauen
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    // Exclude signature files to avoid conflicts
     exclude("META-INF/*.RSA", "META-INF/*.DSA", "META-INF/*.SF")
 }
 
 tasks.withType<JavaExec> {
-    mainClass.set("org.fxt.freexmltoolkit.Launcher")
+    mainClass.set("org.fxt.freexmltoolkit.FxtGui")
 }
 
 tasks.test {
@@ -169,13 +171,23 @@ tasks.register("cleanDistDirectory") {
 tasks.register<Copy>("copyDistributionFiles") {
     dependsOn("jar", "createImageDirectory", "cleanDistDirectory")
     description = "Kopiert zusätzliche Dateien für die Distribution"
+
+    // Zielverzeichnis fix als File
+    into(layout.buildDirectory.dir("image").get().asFile)
+
     from(project.projectDir.resolve("release/examples"))
     from(project.projectDir.resolve("release/log4j2.xml"))
     from(project.projectDir.resolve("release/FreeXMLToolkit.properties"))
+
+    // Haupt-JAR umbenannt ablegen (liegt im image-Root)
     from(tasks.jar) {
         rename { "FreeXmlToolkit.jar" }
     }
-    into(layout.buildDirectory.dir("image"))
+
+    // Laufzeit-Abhängigkeiten (inkl. JavaFX) unter image/lib
+    from(configurations.runtimeClasspath) {
+        into("lib")
+    }
 }
 
 tasks.register<Zip>("packageDistribution") {
@@ -198,8 +210,152 @@ tasks.register("createAllExecutables") {
     description = "Erstellt native Executables für alle unterstützten Betriebssysteme"
 }
 
+tasks.register<Exec>("createWindowsRuntimeImage") {
+    description = "Erstellt ein benutzerdefiniertes Runtime-Image mit JavaFX-Modulen (Windows)"
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
+
+    val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
+    val javaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
+    val jdkJmods = File(javaHome, "jmods")
+    val javafxJmodsDir = project.rootDir.resolve("jmods/javafx-jmods-21.0.8-win")
+
+    doFirst {
+        if (!jdkJmods.exists()) {
+            throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
+        }
+        if (!javafxJmodsDir.exists()) {
+            throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
+        }
+        runtimeDir.deleteRecursively()
+    }
+
+    workingDir = layout.buildDirectory.get().asFile
+    val modulePath = listOf(jdkJmods.absolutePath, javafxJmodsDir.absolutePath).joinToString(File.pathSeparator)
+    val modules = listOf(
+        "java.base",
+        "java.logging",
+        "java.xml",
+        "java.desktop",
+        "jdk.unsupported",
+        "jdk.crypto.ec",
+        "java.sql",
+        "java.naming",
+        "java.scripting",
+        "javafx.controls",
+        "javafx.fxml",
+        "javafx.web",
+        "javafx.swing"
+    ).joinToString(",")
+
+    commandLine(
+        "jlink",
+        "--module-path", modulePath,
+        "--add-modules", modules,
+        "--strip-debug",
+        "--no-header-files",
+        "--no-man-pages",
+        "--compress", "2",
+        "--output", runtimeDir.absolutePath
+    )
+}
+tasks.register<Exec>("createMacRuntimeImage") {
+    description = "Erstellt ein benutzerdefiniertes Runtime-Image mit JavaFX-Modulen (macOS)"
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
+
+    val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
+    val javaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
+    val jdkJmods = File(javaHome, "jmods")
+    val javafxJmodsDir = project.rootDir.resolve("jmods/javafx-jmods-21.0.8-osx")
+
+    doFirst {
+        if (!jdkJmods.exists()) {
+            throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
+        }
+        if (!javafxJmodsDir.exists()) {
+            throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
+        }
+        runtimeDir.deleteRecursively()
+    }
+
+    workingDir = layout.buildDirectory.get().asFile
+    val modulePath = listOf(jdkJmods.absolutePath, javafxJmodsDir.absolutePath).joinToString(File.pathSeparator)
+    val modules = listOf(
+        "java.base",
+        "java.logging",
+        "java.xml",
+        "java.desktop",
+        "jdk.unsupported",
+        "jdk.crypto.ec",
+        "java.sql",
+        "java.naming",
+        "java.scripting",
+        "javafx.controls",
+        "javafx.fxml",
+        "javafx.web",
+        "javafx.swing"
+    ).joinToString(",")
+
+    commandLine(
+        "jlink",
+        "--module-path", modulePath,
+        "--add-modules", modules,
+        "--strip-debug",
+        "--no-header-files",
+        "--no-man-pages",
+        "--compress", "2",
+        "--output", runtimeDir.absolutePath
+    )
+}
+tasks.register<Exec>("createLinuxRuntimeImage") {
+    description = "Erstellt ein benutzerdefiniertes Runtime-Image mit JavaFX-Modulen (Linux)"
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
+
+    val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
+    val javaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
+    val jdkJmods = File(javaHome, "jmods")
+    val javafxJmodsDir = project.rootDir.resolve("jmods/javafx-jmods-21.0.8-linux")
+
+    doFirst {
+        if (!jdkJmods.exists()) {
+            throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
+        }
+        if (!javafxJmodsDir.exists()) {
+            throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
+        }
+        runtimeDir.deleteRecursively()
+    }
+
+    workingDir = layout.buildDirectory.get().asFile
+    val modulePath = listOf(jdkJmods.absolutePath, javafxJmodsDir.absolutePath).joinToString(File.pathSeparator)
+    val modules = listOf(
+        "java.base",
+        "java.logging",
+        "java.xml",
+        "java.desktop",
+        "jdk.unsupported",
+        "jdk.crypto.ec",
+        "java.sql",
+        "java.naming",
+        "java.scripting",
+        "javafx.controls",
+        "javafx.fxml",
+        "javafx.web",
+        "javafx.swing"
+    ).joinToString(",")
+
+    commandLine(
+        "jlink",
+        "--module-path", modulePath,
+        "--add-modules", modules,
+        "--strip-debug",
+        "--no-header-files",
+        "--no-man-pages",
+        "--compress", "2",
+        "--output", runtimeDir.absolutePath
+    )
+}
 tasks.register<Exec>("createWindowsExecutable") {
-    dependsOn("copyDistributionFiles")
+    dependsOn("copyDistributionFiles", "createWindowsRuntimeImage")
     description = "Erstellt Windows Executable für benutzerbezogene Installation"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
     workingDir = layout.buildDirectory.get().asFile
@@ -208,7 +364,7 @@ tasks.register<Exec>("createWindowsExecutable") {
         "--input", "image",
         "--name", "FreeXmlToolkit",
         "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.Launcher",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
         "--type", "exe",
         "--vendor", "Karl Kauc",
         "--app-version", version,
@@ -217,12 +373,16 @@ tasks.register<Exec>("createWindowsExecutable") {
         "--win-shortcut",
         "--win-dir-chooser",
         "--win-per-user-install",
-        "--win-menu-group", "FreeXmlToolkit"
+        "--win-menu-group", "FreeXmlToolkit",
+        "--dest", "dist",
+        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
+        "--java-options", "--enable-preview"
+        // , "--win-console"
     )
 }
 
 tasks.register<Exec>("createMacOSExecutable") {
-    dependsOn("copyDistributionFiles")
+    dependsOn("copyDistributionFiles", "createMacRuntimeImage")
     description = "Erstellt macOS App Bundle für benutzerbezogene Installation"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
     workingDir = layout.buildDirectory.get().asFile
@@ -231,7 +391,7 @@ tasks.register<Exec>("createMacOSExecutable") {
         "--input", "image",
         "--name", "FreeXmlToolkit",
         "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.Launcher",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
         "--type", "dmg",
         "--vendor", "Karl Kauc",
         "--app-version", version,
@@ -239,12 +399,14 @@ tasks.register<Exec>("createMacOSExecutable") {
         "--mac-package-name", "FreeXmlToolkit",
         "--mac-package-identifier", "org.fxt.freexmltoolkit",
         "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--dest", "dist"
+        "--java-options", "--enable-preview",
+        "--dest", "dist",
+        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
     )
 }
 
 tasks.register<Exec>("createLinuxExecutable") {
-    dependsOn("copyDistributionFiles")
+    dependsOn("copyDistributionFiles", "createLinuxRuntimeImage")
     description = "Erstellt Linux AppImage für benutzerbezogene Installation"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
     workingDir = layout.buildDirectory.get().asFile
@@ -253,12 +415,15 @@ tasks.register<Exec>("createLinuxExecutable") {
         "--input", "image",
         "--name", "FreeXmlToolkit",
         "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.Launcher",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
         "--type", "app-image",
         "--vendor", "Karl Kauc",
         "--app-version", version,
         "--icon", project.projectDir.resolve("release/logo.ico"),
-        "--linux-app-category", "Development"
+        "--linux-app-category", "Development",
+        "--dest", "dist",
+        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
+        "--java-options", "--enable-preview"
     )
 }
 
