@@ -18,154 +18,81 @@
 
 plugins {
     java
-    idea
     application
+    idea
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.github.ben-manes.versions") version "0.52.0"
 }
 
-application {
-    mainClass.set("org.fxt.freexmltoolkit.FxtGui")
-    // mainClass.set("org.fxt.freexmltoolkit.GuiTest")
-    applicationName = "FreeXmlToolkit"
-    // -Djavafx.verbose=true
-    applicationDefaultJvmArgs = listOf(
-        "-Djavafx.css.dump.lookup.errors=true",
-        "--enable-native-access=javafx.graphics",
-        // Erlaubt FXML, auf interne JavaFX-Klassen zuzugreifen, um Reflection-Warnungen zu vermeiden
-        "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
-        "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",
-        "--add-opens=javafx.base/javafx.beans.property=javafx.fxml"
-    )
-}
-
-configurations.all {
-    resolutionStrategy {
-        cacheChangingModulesFor(15, "MINUTES")
-        cacheDynamicVersionsFor(15, "MINUTES")
-    }
-    exclude(group = "xml-apis", module = "xml-apis")
-}
-
-sourceSets {
-    main {
-        resources {
-            srcDirs("src/main/resources")
-            // Schließt das node_modules-Verzeichnis vom Kopiervorgang aus
-            exclude("scss/node_modules/**")
-            exclude("tailwindXsdDocumentation/node_modules/**")
-        }
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(23))
     }
 }
 
-group = "org.fxt"
 version = "1.0.0"
+group = "org.fxt"
 
 repositories {
     mavenCentral()
     gradlePluginPortal()
-    maven {
-        url = uri("https://repo.eclipse.org/content/groups/releases/")
-    }
-    maven {
-        url = uri("https://repo.eclipse.org/content/repositories/lemminx-releases/")
-    }
-    maven {
-        url = uri("https://maven.bestsolution.at/efxclipse-releases/")
-    }
+    maven { url = uri("https://repo.eclipse.org/content/groups/releases/") }
+    maven { url = uri("https://repo.eclipse.org/content/repositories/lemminx-releases/") }
+    maven { url = uri("https://maven.bestsolution.at/efxclipse-releases/") }
 }
 
 javafx {
-    version = "24.0.1"
+    version = "23.0.2"
     modules("javafx.controls", "javafx.fxml", "javafx.web", "javafx.swing")
 }
 
+application {
+    mainClass.set("org.fxt.freexmltoolkit.Launcher")
+}
+
 dependencies {
-    // XSLT
     implementation("net.sf.saxon:Saxon-HE:12.8")
-
-    // XML Bindings
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
-
-    // Serialization
     implementation("com.google.code.gson:gson:2.13.1")
-
-    // Icons
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-win10-pack:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-feather-pack:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-coreui-pack:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-fontawesome-pack:12.4.0")
-    // https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html
-
-    // Style
     implementation("io.github.mkpaz:atlantafx-base:2.1.0")
-
-    // Richtext
     implementation("org.fxmisc.richtext:richtextfx:0.11.5")
-
-    // Logging
-    implementation("org.apache.logging.log4j:log4j-api:3.0.0-beta2")
-    implementation("org.apache.logging.log4j:log4j-core:3.0.0-beta2")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:3.0.0-beta2")
-
-    //  Certificate & XML Signature
+    implementation("org.apache.logging.log4j:log4j-api:2.24.1")
+    implementation("org.apache.logging.log4j:log4j-core:2.24.1")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.24.1")
     implementation("org.apache.santuario:xmlsec:4.0.4")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.81")
-
-    // Lemminx
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
     implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.31.0")
     implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.40.0.M2")
     implementation("org.controlsfx:controlsfx:11.2.2")
-
-    // FOP & PDF Anzeige
     implementation("org.apache.xmlgraphics:fop:2.11")
     implementation("org.apache.pdfbox:pdfbox:3.0.5")
-
-    // SVG Graphic
     implementation("org.apache.xmlgraphics:batik-svggen:1.19")
     implementation("org.apache.xmlgraphics:batik-all:1.19")
     implementation("org.apache.xmlgraphics:batik-transcoder:1.19")
-
-    // Create Office Documents
     implementation("org.apache.poi:poi:5.4.1")
     implementation("org.apache.poi:poi-ooxml:5.4.1")
-
-    // Misc
     implementation("org.apache.commons:commons-lang3:3.18.0")
     implementation("commons-io:commons-io:2.20.0")
     implementation("org.apache.commons:commons-text:1.14.0")
     implementation("commons-validator:commons-validator:1.10.0")
-
-    // CSS reload
     implementation("fr.brouillard.oss:cssfx:11.5.1")
-
-    // HTML Template XSD Documentation
     implementation("org.thymeleaf:thymeleaf:3.1.3.RELEASE")
-
-    // markdown renderer
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
-
-    // Update
     implementation("jakarta.activation:jakarta.activation-api:2.1.3")
-
-    // debugging
-    // implementation("io.github.palexdev:scenicview:17.0.2")
-
-    // http connection with NTLM Proxy Auth
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.4")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.5")
-
-    // pattern for example data
     implementation("com.github.mifmif:generex:1.0.2")
     implementation("com.github.curious-odd-man:rgxgen:3.0")
-
     testImplementation(platform("org.junit:junit-bom:5.13.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
     testImplementation("org.mockito:mockito-core:5.18.0")
     testImplementation("org.testfx:testfx-core:4.0.17")
     testImplementation("org.testfx:testfx-junit5:4.0.17")
@@ -175,11 +102,44 @@ dependencies {
 tasks {
     withType<JavaCompile> {
         options.compilerArgs.add("-Xlint:deprecation")
+        options.compilerArgs.add("--enable-preview")
+    }
+
+    withType<Test> {
+        jvmArgs("--enable-preview")
+    }
+
+    withType<JavaExec> {
+        jvmArgs("--enable-preview")
     }
 }
 
 tasks.jar {
-    exclude("**/*.txt")
+    archiveBaseName.set("FreeXmlToolkit")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+    manifest {
+        attributes(
+            "Main-Class" to "org.fxt.freexmltoolkit.Launcher",
+            "Implementation-Title" to "FreeXmlToolkit",
+            "Implementation-Version" to project.version,
+            "Implementation-Vendor" to "Karl Kauc"
+        )
+    }
+
+    // Include all dependencies in the JAR
+    from(configurations.runtimeClasspath.map { config ->
+        config.map { if (it.isDirectory) it else project.zipTree(it) }
+    })
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // Exclude signature files to avoid conflicts
+    exclude("META-INF/*.RSA", "META-INF/*.DSA", "META-INF/*.SF")
+}
+
+tasks.withType<JavaExec> {
+    mainClass.set("org.fxt.freexmltoolkit.Launcher")
 }
 
 tasks.test {
@@ -190,40 +150,28 @@ tasks.test {
     }
 }
 
-// Bereinigen und Erstellen des image Verzeichnisses
 tasks.register("createImageDirectory") {
     description = "Bereinigt und erstellt das image Verzeichnis"
-
     doLast {
-        val imageDir = layout.buildDirectory.dir("image").get().asFile
-        if (imageDir.exists()) {
-            imageDir.deleteRecursively()
-        }
-        imageDir.mkdirs()
+        delete(layout.buildDirectory.dir("image"))
+        mkdir(layout.buildDirectory.dir("image"))
     }
 }
 
-// Bereinigen des dist Verzeichnisses
 tasks.register("cleanDistDirectory") {
     description = "Bereinigt das dist Verzeichnis"
-    
     doLast {
-        val distDir = layout.buildDirectory.dir("dist").get().asFile
-        if (distDir.exists()) {
-            distDir.deleteRecursively()
-        }
-        distDir.mkdirs()
+        delete(layout.buildDirectory.dir("dist"))
+        mkdir(layout.buildDirectory.dir("dist"))
     }
 }
 
-// Kopieren der zusätzlichen Dateien für die Distribution
 tasks.register<Copy>("copyDistributionFiles") {
     dependsOn("jar", "createImageDirectory", "cleanDistDirectory")
     description = "Kopiert zusätzliche Dateien für die Distribution"
-
-    from("${projectDir}/release/examples")
-    from("${projectDir}/release/log4j2.xml")
-    from("${projectDir}/release/FreeXMLToolkit.properties")
+    from(project.projectDir.resolve("release/examples"))
+    from(project.projectDir.resolve("release/log4j2.xml"))
+    from(project.projectDir.resolve("release/FreeXMLToolkit.properties"))
     from(tasks.jar) {
         rename { "FreeXmlToolkit.jar" }
     }
@@ -232,10 +180,8 @@ tasks.register<Copy>("copyDistributionFiles") {
 
 tasks.register<Zip>("packageDistribution") {
     dependsOn("createAllExecutables", "copyDistributionFiles")
-
     archiveFileName.set("FreeXMLToolkit.zip")
     destinationDirectory.set(layout.buildDirectory.get())
-
     from(layout.buildDirectory.dir("dist"))
     from(layout.buildDirectory.dir("image"))
 }
@@ -247,227 +193,75 @@ idea {
     }
 }
 
-// JLink-Konfiguration entfernt - verwenden stattdessen direktes JAR
-
-// Native Executables für alle Betriebssysteme
 tasks.register("createAllExecutables") {
-    dependsOn("jar", "copyDistributionFiles")
+    dependsOn("copyDistributionFiles")
     description = "Erstellt native Executables für alle unterstützten Betriebssysteme"
-
-    doLast {
-        println("Native Executables werden erstellt...")
-    }
 }
 
-// Windows Executable (ohne Admin-Rechte)
 tasks.register<Exec>("createWindowsExecutable") {
-    dependsOn("jar", "copyDistributionFiles")
+    dependsOn("copyDistributionFiles")
     description = "Erstellt Windows Executable für benutzerbezogene Installation"
-
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
     workingDir = layout.buildDirectory.get().asFile
     commandLine(
         "jpackage",
         "--input", "image",
         "--name", "FreeXmlToolkit",
         "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--main-class", "org.fxt.freexmltoolkit.Launcher",
         "--type", "exe",
         "--vendor", "Karl Kauc",
-        "--app-version", "1.0.0",
-        "--icon", "${projectDir}/release/logo.ico",
+        "--app-version", version,
+        "--icon", project.projectDir.resolve("release/logo.ico"),
         "--win-menu",
         "--win-shortcut",
         "--win-dir-chooser",
         "--win-per-user-install",
-        "--win-menu-group", "FreeXmlToolkit",
-        "--win-banner-image", "${projectDir}/release/win-banner.png",
-        "--win-dialog-image", "${projectDir}/release/win-dialog.png",
-        "--win-install-dir-chooser",
-        "--win-help-url", "https://github.com/your-repo/FreeXmlToolkit",
-        "--win-update-url", "https://github.com/your-repo/FreeXmlToolkit/releases",
-        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--java-options", "--enable-native-access=javafx.graphics",
-        "--java-options", "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
-        "--java-options", "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",
-        "--java-options", "--add-opens=javafx.base/javafx.beans.property=javafx.fxml",
-        "--dest", "dist"
+        "--win-menu-group", "FreeXmlToolkit"
     )
 }
 
-// macOS App Bundle (ohne Admin-Rechte)
 tasks.register<Exec>("createMacOSExecutable") {
-    dependsOn("jar", "copyDistributionFiles", "cleanDistDirectory")
+    dependsOn("copyDistributionFiles")
     description = "Erstellt macOS App Bundle für benutzerbezogene Installation"
-
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
     workingDir = layout.buildDirectory.get().asFile
     commandLine(
         "jpackage",
         "--input", "image",
         "--name", "FreeXmlToolkit",
         "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--main-class", "org.fxt.freexmltoolkit.Launcher",
         "--type", "dmg",
         "--vendor", "Karl Kauc",
-        "--app-version", "1.0.0",
-        "--icon", "${projectDir}/release/logo.icns",
+        "--app-version", version,
+        "--icon", project.projectDir.resolve("release/logo.icns"),
         "--mac-package-name", "FreeXmlToolkit",
         "--mac-package-identifier", "org.fxt.freexmltoolkit",
-        "--mac-package-signing-prefix", "org.fxt.freexmltoolkit",
+        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
         "--dest", "dist"
     )
 }
 
-// Linux AppImage (ohne Admin-Rechte)
 tasks.register<Exec>("createLinuxExecutable") {
-    dependsOn("jar", "copyDistributionFiles")
+    dependsOn("copyDistributionFiles")
     description = "Erstellt Linux AppImage für benutzerbezogene Installation"
-
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
     workingDir = layout.buildDirectory.get().asFile
     commandLine(
         "jpackage",
         "--input", "image",
         "--name", "FreeXmlToolkit",
         "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--main-class", "org.fxt.freexmltoolkit.Launcher",
         "--type", "app-image",
         "--vendor", "Karl Kauc",
-        "--app-version", "1.0.0",
-        "--icon", "${projectDir}/release/logo.ico",
-        "--linux-app-category", "Development",
-        "--linux-menu-group", "Development",
-        "--linux-shortcut",
-        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--java-options", "--enable-native-access=javafx.graphics",
-        "--java-options", "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
-        "--java-options", "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",
-        "--java-options", "--add-opens=javafx.base/javafx.beans.property=javafx.fxml",
-        "--dest", "dist"
+        "--app-version", version,
+        "--icon", project.projectDir.resolve("release/logo.ico"),
+        "--linux-app-category", "Development"
     )
 }
 
-// Linux DEB Package (benutzerbezogene Installation)
-tasks.register<Exec>("createLinuxDebPackage") {
-    dependsOn("jar", "copyDistributionFiles")
-    description = "Erstellt Linux DEB Package für benutzerbezogene Installation"
-
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "deb",
-        "--vendor", "Karl Kauc",
-        "--app-version", "1.0.0",
-        "--icon", "${projectDir}/release/logo.ico",
-        "--linux-app-category", "Development",
-        "--linux-menu-group", "Development",
-        "--linux-shortcut",
-        "--linux-deb-maintainer", "karl.kauc@example.com",
-        "--install-dir", "/opt/FreeXmlToolkit",
-        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--java-options", "--enable-native-access=javafx.graphics",
-        "--java-options", "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
-        "--java-options", "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",
-        "--java-options", "--add-opens=javafx.base/javafx.beans.property=javafx.fxml",
-        "--dest", "dist"
-    )
-}
-
-// Linux RPM Package (benutzerbezogene Installation)
-tasks.register<Exec>("createLinuxRpmPackage") {
-    dependsOn("jar", "copyDistributionFiles")
-    description = "Erstellt Linux RPM Package für benutzerbezogene Installation"
-
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "rpm",
-        "--vendor", "Karl Kauc",
-        "--app-version", "1.0.0",
-        "--icon", "${projectDir}/release/logo.ico",
-        "--linux-app-category", "Development",
-        "--linux-menu-group", "Development",
-        "--linux-shortcut",
-        "--linux-rpm-license-type", "Apache-2.0",
-        "--install-dir", "/opt/FreeXmlToolkit",
-        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--java-options", "--enable-native-access=javafx.graphics",
-        "--java-options", "--add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml",
-        "--java-options", "--add-opens=javafx.controls/javafx.scene.control=javafx.fxml",
-        "--java-options", "--add-opens=javafx.base/javafx.beans.property=javafx.fxml",
-        "--dest", "dist"
-    )
-}
-
-// Task zum Anpassen der macOS .cfg Datei
-tasks.register("fixMacOSConfig") {
-    dependsOn("createMacOSExecutable")
-    description = "Passt die macOS .cfg Datei mit JavaFX-Optionen an"
-
-    doLast {
-        val appDir = layout.buildDirectory.dir("dist/FreeXmlToolkit.app/Contents/app").get().asFile
-        val cfgFile = File(appDir, "FreeXmlToolkit.cfg")
-
-        if (cfgFile.exists()) {
-            val content = cfgFile.readText()
-            val newContent = content + """
-                
-                -Djavafx.css.dump.lookup.errors=true
-                --enable-native-access=javafx.graphics
-                --add-opens=javafx.graphics/javafx.scene.layout=javafx.fxml
-                --add-opens=javafx.controls/javafx.scene.control=javafx.fxml
-                --add-opens=javafx.base/javafx.beans.property=javafx.fxml
-            """.trimIndent()
-
-            cfgFile.writeText(newContent)
-            println("MacOS .cfg Datei erfolgreich angepasst")
-        } else {
-            println("Warnung: FreeXmlToolkit.cfg nicht gefunden in ${appDir}")
-        }
-    }
-}
-
-// Aktualisierte createAllExecutables Task
 tasks.named("createAllExecutables") {
-    dependsOn(
-        "createWindowsExecutable",
-        "fixMacOSConfig",
-        "createLinuxExecutable",
-        "createLinuxDebPackage",
-        "createLinuxRpmPackage"
-    )
-}
-
-
-/*
-tasks.register<Exec>("npmBuild") {
-    workingDir = file("src/main/resources/scss")
-    // Stellt die plattformübergreifende Ausführung sicher (Windows/Linux/macOS)
-    commandLine = if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
-        listOf("cmd", "/c", "npm", "run", "build")
-    } else {
-        listOf("npm", "run", "build")
-    }
-}
-
-// Behandelt Duplikate und stellt die Build-Reihenfolge sicher
-tasks.named<Copy>("processResources") {
-    dependsOn(tasks.named("npmBuild"))
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
-
-// Erzwingt einen 'clean' vor jedem 'run', um Dateisperren zu verhindern
-tasks.named("run") {
-    dependsOn(tasks.named("clean"))
-}
- */
-
-tasks.named<Copy>("processResources") {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    dependsOn("createWindowsExecutable", "createMacOSExecutable", "createLinuxExecutable")
 }
