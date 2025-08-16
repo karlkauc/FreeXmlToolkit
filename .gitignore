@@ -85,3 +85,22 @@ gradle.properties
 
 /**/config.properties*
 /src/main/resources/scss/node_modules/
+/**/.DS_Store
+
+/**/node_modules/
+
+FreeXmlToolkit.properties
+
+/**/FreeXmlToolkit/build/
+
+.idea/VCS.xml
+/**/build/
+/**/bin/
+/**/dist/
+/**/target/
+/**/out/
+/**/logs/
+
+/**/gradle.properties
+
+.vscode/

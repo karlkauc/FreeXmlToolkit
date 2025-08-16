@@ -10,6 +10,16 @@ This guide provides a comprehensive overview of the application's features to he
 
 ![Screenshot of the main application window](img/app.png)
 
+## Installation
+
+FreeXmlToolkit is designed to be easy to install and use:
+
+- **Windows**: No administrator rights required for installation - standard installation process
+- **macOS**: Standard installation process, no special permissions needed
+- **Linux**: Standard installation process, no system-level privileges required
+
+The application can be installed in any directory on your system.
+
 ## Features
 
 Click on any feature below to learn more about it:

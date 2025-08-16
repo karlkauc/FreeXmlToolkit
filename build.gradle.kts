@@ -135,7 +135,6 @@ tasks.jar {
         )
     }
 
-    // Kein Fat-JAR bauen
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     exclude("META-INF/*.RSA", "META-INF/*.DSA", "META-INF/*.SF")
 }
@@ -254,7 +253,7 @@ tasks.register<Exec>("createWindowsRuntimeImage") {
         "--strip-debug",
         "--no-header-files",
         "--no-man-pages",
-        "--compress", "2",
+        "--compress", "zip-6",
         "--output", runtimeDir.absolutePath
     )
 }
@@ -302,7 +301,7 @@ tasks.register<Exec>("createMacRuntimeImage") {
         "--strip-debug",
         "--no-header-files",
         "--no-man-pages",
-        "--compress", "2",
+        "--compress", "zip-6",
         "--output", runtimeDir.absolutePath
     )
 }
@@ -350,7 +349,7 @@ tasks.register<Exec>("createLinuxRuntimeImage") {
         "--strip-debug",
         "--no-header-files",
         "--no-man-pages",
-        "--compress", "2",
+        "--compress", "zip-6",
         "--output", runtimeDir.absolutePath
     )
 }
@@ -374,6 +373,8 @@ tasks.register<Exec>("createWindowsExecutable") {
         "--win-dir-chooser",
         "--win-per-user-install",
         "--win-menu-group", "FreeXmlToolkit",
+        // "--win-banner-image", "${projectDir}/release/win-banner.png",
+        // "--win-dialog-image", "${projectDir}/release/win-dialog.png",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
         "--java-options", "--enable-preview"

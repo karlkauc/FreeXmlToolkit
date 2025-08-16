@@ -110,10 +110,13 @@ Completely free to use, modify, and distribute. No hidden costs or licensing fee
 1. Go to the [Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases)
 2. Download the latest version for your operating system
 3. Extract the ZIP file to a folder on your computer
-4. Run the application:
-    - **Windows**: Double-click `FreeXmlToolkit.exe`
-    - **Mac**: Double-click the `.app` file
-    - **Linux**: Run `./FreeXmlToolkit` in terminal
+4. Install and run the application:
+    - **Windows**: Run the installer (no administrator rights required)
+    - **Mac**: Install the `.app` file
+    - **Linux**: Install and run the application
+
+**Note**: FreeXmlToolkit is designed to be user-friendly. On Windows, you don't need administrator privileges to install
+the application - standard installation process without elevated permissions required!
 
 ### **Option 2: Build from Source Code**
 
