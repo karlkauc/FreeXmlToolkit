@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://example.com/demo">
+    <header>
+        <title>Context-Sensitive IntelliSense Demo</title>
+        <navigation>
+            <menu id="main-menu">
+                <menuItem>
+                    <label>Home</label>
+                    <link>/home</link>
+                </menuItem>
+                <menuItem>
+                    <label>About</label>
+                    <link>/about</link>
+                </menuItem>
+            </menu>
+        </navigation>
+    </header>
+
+    <body>
+        <section id="introduction">
+            <h1>IntelliSense Features</h1>
+            <p>This document demonstrates context-sensitive IntelliSense functionality.</p>
+            <p>When you type &lt; inside different elements, you'll see different suggestions:</p>
+            <ul>
+                <li>Inside &lt;body&gt;: section, article, aside</li>
+                <li>Inside &lt;section&gt;: h1, h2, h3, p, ul, ol</li>
+                <li>Inside &lt;ul&gt;: li</li>
+            </ul>
+        </section>
+
+        <article id="features">
+            <h2>Key Features</h2>
+            <p>Context-sensitive element suggestions based on XSD schema.</p>
+            <p>Automatic tag closing when typing &gt;.</p>
+            <ol>
+                <li>Type &lt; to trigger IntelliSense</li>
+                <li>Use ↑/↓ to navigate suggestions</li>
+                <li>Press ENTER to select an element</li>
+                <li>Type &gt; to auto-close the tag</li>
+            </ol>
+        </article>
+
+        <aside>
+            <h2>Tips</h2>
+            <p>Make sure to load the corresponding XSD schema for best results.</p>
+            <ul>
+                <li>Load XSD file in the XML Editor</li>
+                <li>Element names are automatically extracted</li>
+                <li>Context is determined by current cursor position</li>
+            </ul>
+        </aside>
+    </body>
+
+    <footer>
+        <copyright>© 2024 FreeXMLToolkit Demo</copyright>
+        <links>
+            <link>
+                <text>Documentation</text>
+                <url>/docs</url>
+            </link>
+            <link>
+                <text>Support</text>
+                <url>/support</url>
+            </link>
+        </links>
+    </footer>
+</document>

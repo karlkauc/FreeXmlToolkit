@@ -21,11 +21,10 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.TwoDimensional;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
-import org.fxt.freexmltoolkit.service.XmlService;
-import org.fxt.freexmltoolkit.service.XmlServiceImpl;
-import org.fxt.freexmltoolkit.service.XsdDocumentationService;
+import org.fxt.freexmltoolkit.service.*;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -69,6 +68,7 @@ public class XmlEditor extends Tab {
 
     File xmlFile;
     File xsdFile;
+    File schematronFile;
 
     TransformerFactory transformerFactory = TransformerFactory.newInstance();
     Transformer transformer;
@@ -76,6 +76,7 @@ public class XmlEditor extends Tab {
     Document document;
     XmlService xmlService = new XmlServiceImpl();
     XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
+    SchematronService schematronService = new SchematronServiceImpl();
 
     private MainController mainController;
     private LanguageServer serverProxy;
@@ -125,6 +126,10 @@ public class XmlEditor extends Tab {
 
     public void setLanguageServer(LanguageServer serverProxy) {
         this.serverProxy = serverProxy;
+        // Also pass the LanguageServer to the XmlCodeEditor for IntelliSense
+        if (xmlCodeEditor != null) {
+            xmlCodeEditor.setLanguageServer(serverProxy);
+        }
     }
 
     private void init() {
@@ -241,6 +246,21 @@ public class XmlEditor extends Tab {
         TitledPane xsdPane = new TitledPane("XSD Schema", xsdBox);
         xsdPane.setCollapsible(false);
 
+        // --- Schematron Section ---
+        TextField schematronPathField = new TextField();
+        schematronPathField.setPromptText("Schematron Rules");
+        schematronPathField.setEditable(false);
+        HBox.setHgrow(schematronPathField, Priority.ALWAYS);
+        Button changeSchematronButton = new Button("...");
+        changeSchematronButton.setOnAction(event -> selectSchematronFile());
+        HBox schematronFileBox = new HBox(5, schematronPathField, changeSchematronButton);
+        Label schematronValidationStatusLabel = new Label("Schematron validation status: Unknown");
+        schematronValidationStatusLabel.setWrapText(true);
+        CheckBox continuousSchematronValidationCheckBox = new CheckBox("Continuous Schematron validation");
+        VBox schematronBox = new VBox(5, schematronFileBox, schematronValidationStatusLabel, continuousSchematronValidationCheckBox);
+        TitledPane schematronPane = new TitledPane("Schematron Rules", schematronBox);
+        schematronPane.setCollapsible(false);
+
         // --- Cursor Section ---
         xpathField = new TextField();
         xpathField.setEditable(false);
@@ -285,8 +305,8 @@ public class XmlEditor extends Tab {
         childElementsPane.setCollapsible(false);
         VBox.setVgrow(childElementsPane, Priority.ALWAYS);
 
-        // Add sections in the desired order: XSD Schema first, then cursor info, documentation, examples, and child elements
-        sidebarContent.getChildren().addAll(xsdPane, cursorPane, documentationPane, exampleValuesPane, childElementsPane);
+        // Add sections in the desired order: XSD Schema first, then Schematron, then cursor info, documentation, examples, and child elements
+        sidebarContent.getChildren().addAll(xsdPane, schematronPane, cursorPane, documentationPane, exampleValuesPane, childElementsPane);
 
         // --- Assemble Sidebar ---
         sidebarContainer.getChildren().addAll(toggleButton, sidebarContent);
@@ -574,6 +594,22 @@ public class XmlEditor extends Tab {
         File selectedFile = fileChooser.showOpenDialog(this.getContent().getScene().getWindow());
         if (selectedFile != null) {
             setXsdFile(selectedFile);
+        }
+    }
+
+    private void selectSchematronFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Schematron Rules");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Schematron Files", "*.sch", "*.xslt", "*.xsl"));
+
+        // Set initial directory to the same as the XML file if available
+        if (xmlFile != null && xmlFile.getParentFile() != null) {
+            fileChooser.setInitialDirectory(xmlFile.getParentFile());
+        }
+
+        File selectedFile = fileChooser.showOpenDialog(this.getContent().getScene().getWindow());
+        if (selectedFile != null) {
+            setSchematronFile(selectedFile);
         }
     }
 
@@ -963,7 +999,22 @@ public class XmlEditor extends Tab {
         if (xsdPathField != null) {
             xsdPathField.setText(xsdFile != null ? xsdFile.getAbsolutePath() : "No XSD schema selected");
         }
+
+        // Extract element names from XSD and update IntelliSense
+        if (xsdFile != null) {
+            List<String> elementNames = extractElementNamesFromXsd(xsdFile);
+            Map<String, List<String>> contextElementNames = extractContextElementNamesFromXsd(xsdFile);
+            xmlCodeEditor.setAvailableElementNames(elementNames);
+            xmlCodeEditor.setContextElementNames(contextElementNames);
+        }
+        
         validateXml();
+    }
+
+    public void setSchematronFile(File schematronFile) {
+        this.schematronFile = schematronFile;
+        // Update the UI field if it exists (we'll need to make it accessible)
+        validateSchematron();
     }
 
     public void validateXml() {
@@ -1002,6 +1053,205 @@ public class XmlEditor extends Tab {
             validationStatusLabel.setStyle("-fx-text-fill: red;");
             logger.error("Error during XML validation", e);
         }
+    }
+
+    public void validateSchematron() {
+        if (schematronFile == null) {
+            // Update the UI field if it exists
+            return;
+        }
+
+        try {
+            String xmlContent = codeArea.getText();
+            if (xmlContent == null || xmlContent.trim().isEmpty()) {
+                return;
+            }
+
+            // Use the SchematronService for validation
+            List<SchematronService.SchematronValidationError> errors = schematronService.validateXml(xmlContent, schematronFile);
+
+            if (errors == null || errors.isEmpty()) {
+                logger.debug("Schematron validation: ✓ Valid");
+            } else {
+                logger.debug("Schematron validation: ✗ Invalid (" + errors.size() + " error(s))");
+                for (SchematronService.SchematronValidationError error : errors) {
+                    logger.debug("Schematron error: {} at line {}, column {}",
+                            error.message(), error.lineNumber(), error.columnNumber());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error during Schematron validation", e);
+        }
+    }
+
+    /**
+     * Extracts element names from an XSD file for IntelliSense completion.
+     *
+     * @param xsdFile The XSD file to extract element names from
+     * @return List of element names found in the XSD
+     */
+    private List<String> extractElementNamesFromXsd(File xsdFile) {
+        List<String> elementNames = new ArrayList<>();
+
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(xsdFile);
+
+            // Find all element definitions
+            NodeList elementNodes = document.getElementsByTagName("xs:element");
+            for (int i = 0; i < elementNodes.getLength(); i++) {
+                Element element = (Element) elementNodes.item(i);
+                String name = element.getAttribute("name");
+                if (name != null && !name.isEmpty()) {
+                    elementNames.add(name);
+                }
+            }
+
+            // Also find elements in other namespaces
+            NodeList allElements = document.getElementsByTagName("*");
+            for (int i = 0; i < allElements.getLength(); i++) {
+                Element element = (Element) allElements.item(i);
+                if (element.getTagName().endsWith(":element")) {
+                    String name = element.getAttribute("name");
+                    if (name != null && !name.isEmpty() && !elementNames.contains(name)) {
+                        elementNames.add(name);
+                    }
+                }
+            }
+
+            logger.debug("Extracted {} element names from XSD: {}", elementNames.size(), elementNames);
+
+        } catch (Exception e) {
+            logger.error("Error extracting element names from XSD: {}", xsdFile.getAbsolutePath(), e);
+            // Add some default element names as fallback
+            elementNames.addAll(Arrays.asList("root", "element", "item", "data", "content"));
+        }
+
+        return elementNames;
+    }
+
+    /**
+     * Extracts context-sensitive element names (parent-child relationships) from an XSD file.
+     *
+     * @param xsdFile The XSD file to extract context information from
+     * @return Map of parent element names to their child element names
+     */
+    private Map<String, List<String>> extractContextElementNamesFromXsd(File xsdFile) {
+        Map<String, List<String>> contextElementNames = new HashMap<>();
+
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(xsdFile);
+
+            // Find all complex types that define element structures
+            NodeList complexTypes = document.getElementsByTagName("xs:complexType");
+            for (int i = 0; i < complexTypes.getLength(); i++) {
+                Element complexType = (Element) complexTypes.item(i);
+                String typeName = complexType.getAttribute("name");
+
+                if (typeName != null && !typeName.isEmpty()) {
+                    // Find child elements within this complex type
+                    List<String> childElements = new ArrayList<>();
+
+                    // Look for sequence, choice, or all elements
+                    NodeList sequences = complexType.getElementsByTagName("xs:sequence");
+                    NodeList choices = complexType.getElementsByTagName("xs:choice");
+                    NodeList alls = complexType.getElementsByTagName("xs:all");
+
+                    // Process sequences
+                    for (int j = 0; j < sequences.getLength(); j++) {
+                        Element sequence = (Element) sequences.item(j);
+                        NodeList elements = sequence.getElementsByTagName("xs:element");
+                        for (int k = 0; k < elements.getLength(); k++) {
+                            Element element = (Element) elements.item(k);
+                            String elementName = element.getAttribute("name");
+                            if (elementName != null && !elementName.isEmpty()) {
+                                childElements.add(elementName);
+                            }
+                        }
+                    }
+
+                    // Process choices
+                    for (int j = 0; j < choices.getLength(); j++) {
+                        Element choice = (Element) choices.item(j);
+                        NodeList elements = choice.getElementsByTagName("xs:element");
+                        for (int k = 0; k < elements.getLength(); k++) {
+                            Element element = (Element) elements.item(k);
+                            String elementName = element.getAttribute("name");
+                            if (elementName != null && !elementName.isEmpty()) {
+                                childElements.add(elementName);
+                            }
+                        }
+                    }
+
+                    // Process alls
+                    for (int j = 0; j < alls.getLength(); j++) {
+                        Element all = (Element) alls.item(j);
+                        NodeList elements = all.getElementsByTagName("xs:element");
+                        for (int k = 0; k < elements.getLength(); k++) {
+                            Element element = (Element) elements.item(k);
+                            String elementName = element.getAttribute("name");
+                            if (elementName != null && !elementName.isEmpty()) {
+                                childElements.add(elementName);
+                            }
+                        }
+                    }
+
+                    if (!childElements.isEmpty()) {
+                        contextElementNames.put(typeName, childElements);
+                    }
+                }
+            }
+
+            // Also find direct element definitions and their relationships
+            NodeList allElements = document.getElementsByTagName("xs:element");
+            for (int i = 0; i < allElements.getLength(); i++) {
+                Element element = (Element) allElements.item(i);
+                String elementName = element.getAttribute("name");
+                String elementType = element.getAttribute("type");
+
+                if (elementName != null && !elementName.isEmpty() && elementType != null && !elementType.isEmpty()) {
+                    // If this element has a type, check if we have child elements for that type
+                    String typeName = elementType;
+                    if (typeName.startsWith("xs:")) {
+                        // Skip built-in types
+                        continue;
+                    }
+
+                    List<String> childElements = contextElementNames.get(typeName);
+                    if (childElements != null && !childElements.isEmpty()) {
+                        contextElementNames.put(elementName, new ArrayList<>(childElements));
+                    }
+                }
+            }
+
+            // Add root-level elements
+            List<String> rootElements = new ArrayList<>();
+            for (int i = 0; i < allElements.getLength(); i++) {
+                Element element = (Element) allElements.item(i);
+                String elementName = element.getAttribute("name");
+                if (elementName != null && !elementName.isEmpty()) {
+                    rootElements.add(elementName);
+                }
+            }
+            if (!rootElements.isEmpty()) {
+                contextElementNames.put("root", rootElements);
+            }
+
+            logger.debug("Extracted context element names: {}", contextElementNames);
+
+        } catch (Exception e) {
+            logger.error("Error extracting context element names from XSD: {}", xsdFile.getAbsolutePath(), e);
+            // Add some default context as fallback
+            contextElementNames.put("root", Arrays.asList("root", "element", "item", "data"));
+            contextElementNames.put("root", Arrays.asList("child", "subelement", "content"));
+        }
+
+        return contextElementNames;
     }
 
     public void updateDiagnostics(List<Diagnostic> diagnostics) {

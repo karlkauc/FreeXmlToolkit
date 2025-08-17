@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <element id="valid_id">This is valid content</element>
+    <element id="another_valid">Another valid element</element>
+    <element id="123_invalid">This element has an invalid ID (starts with number)</element>
+    <element>This element has no ID attribute</element>
+    <element id="too_long_content">This element has content that is way too long and should exceed the 100 character
+        limit that is defined in the Schematron rules for validation testing purposes
+    </element>
+    <element id="empty_element"></element>
+    <nested>This nested element is not inside an element</nested>
+</root>
