@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://example.com/demo"
+           xmlns="http://example.com/demo"
+           elementFormDefault="qualified">
+
+    <!-- Root element -->
+    <xs:element name="document" type="DocumentType"/>
+
+    <!-- Document type with header, body, and footer -->
+    <xs:complexType name="DocumentType">
+        <xs:sequence>
+            <xs:element name="header" type="HeaderType"/>
+            <xs:element name="body" type="BodyType"/>
+            <xs:element name="footer" type="FooterType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Header type with title and navigation -->
+    <xs:complexType name="HeaderType">
+        <xs:sequence>
+            <xs:element name="title" type="xs:string"/>
+            <xs:element name="navigation" type="NavigationType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Navigation type with menu items -->
+    <xs:complexType name="NavigationType">
+        <xs:sequence>
+            <xs:element name="menu" type="MenuType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Menu type with menu items -->
+    <xs:complexType name="MenuType">
+        <xs:sequence>
+            <xs:element name="menuItem" type="MenuItemType" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- Menu item type -->
+    <xs:complexType name="MenuItemType">
+        <xs:sequence>
+            <xs:element name="label" type="xs:string"/>
+            <xs:element name="link" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Body type with sections -->
+    <xs:complexType name="BodyType">
+        <xs:sequence>
+            <xs:element name="section" type="SectionType" maxOccurs="unbounded"/>
+            <xs:element name="article" type="ArticleType" maxOccurs="unbounded"/>
+            <xs:element name="aside" type="AsideType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Section type with headings and paragraphs -->
+    <xs:complexType name="SectionType">
+        <xs:sequence>
+            <xs:element name="h1" type="xs:string" minOccurs="0"/>
+            <xs:element name="h2" type="xs:string" minOccurs="0"/>
+            <xs:element name="h3" type="xs:string" minOccurs="0"/>
+            <xs:element name="p" type="xs:string" maxOccurs="unbounded"/>
+            <xs:element name="ul" type="ListType" minOccurs="0"/>
+            <xs:element name="ol" type="ListType" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- Article type similar to section -->
+    <xs:complexType name="ArticleType">
+        <xs:sequence>
+            <xs:element name="h1" type="xs:string" minOccurs="0"/>
+            <xs:element name="h2" type="xs:string" minOccurs="0"/>
+            <xs:element name="h3" type="xs:string" minOccurs="0"/>
+            <xs:element name="p" type="xs:string" maxOccurs="unbounded"/>
+            <xs:element name="ul" type="ListType" minOccurs="0"/>
+            <xs:element name="ol" type="ListType" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- Aside type for sidebar content -->
+    <xs:complexType name="AsideType">
+        <xs:sequence>
+            <xs:element name="h2" type="xs:string" minOccurs="0"/>
+            <xs:element name="p" type="xs:string" maxOccurs="unbounded"/>
+            <xs:element name="ul" type="ListType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- List type with list items -->
+    <xs:complexType name="ListType">
+        <xs:sequence>
+            <xs:element name="li" type="xs:string" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Footer type with copyright and links -->
+    <xs:complexType name="FooterType">
+        <xs:sequence>
+            <xs:element name="copyright" type="xs:string"/>
+            <xs:element name="links" type="LinksType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Links type with link items -->
+    <xs:complexType name="LinksType">
+        <xs:sequence>
+            <xs:element name="link" type="LinkType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Link type -->
+    <xs:complexType name="LinkType">
+        <xs:sequence>
+            <xs:element name="text" type="xs:string"/>
+            <xs:element name="url" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

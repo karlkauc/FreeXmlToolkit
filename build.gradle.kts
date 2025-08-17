@@ -26,7 +26,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(23))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
@@ -42,7 +42,7 @@ repositories {
 }
 
 javafx {
-    version = "23.0.2"
+    version = "21.0.8"
     modules("javafx.controls", "javafx.fxml", "javafx.web", "javafx.swing")
 }
 
@@ -454,6 +454,195 @@ tasks.register<Exec>("createLinuxRpm") {
     )
 }
 
+tasks.register<Exec>("createLinuxAppImage") {
+    dependsOn("copyDistributionFiles", "createLinuxRuntimeImage")
+    description = "Erstellt ein AppImage für Linux-Distributionen"
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "app-image",
+        "--vendor", "Karl Kauc",
+        "--app-version", version,
+        "--icon", project.projectDir.resolve("release/logo.ico"),
+        "--linux-app-category", "Development",
+        "--dest", "dist",
+        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
+        "--java-options", "--enable-preview"
+    )
+}
+
+tasks.register<Exec>("createLinuxTar") {
+    dependsOn("copyDistributionFiles", "createLinuxRuntimeImage")
+    description = "Erstellt ein tar.gz Archiv für Linux"
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "tgz",
+        "--vendor", "Karl Kauc",
+        "--app-version", version,
+        "--icon", project.projectDir.resolve("release/logo.ico"),
+        "--linux-app-category", "Development",
+        "--dest", "dist",
+        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
+        "--java-options", "--enable-preview"
+    )
+}
+
+tasks.register<Exec>("createMacOSPkg") {
+    dependsOn("copyDistributionFiles", "createMacRuntimeImage")
+    description = "Erstellt ein .pkg Installer für macOS"
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "pkg",
+        "--vendor", "Karl Kauc",
+        "--app-version", version,
+        "--icon", project.projectDir.resolve("release/logo.icns"),
+        "--mac-package-name", "FreeXmlToolkit",
+        "--mac-package-identifier", "org.fxt.freexmltoolkit",
+        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
+        "--java-options", "--enable-preview",
+        "--dest", "dist",
+        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
+    )
+}
+
+tasks.register<Exec>("createMacOSAppImage") {
+    dependsOn("copyDistributionFiles", "createMacRuntimeImage")
+    description = "Erstellt ein App Bundle für macOS (ohne Installer)"
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "app-image",
+        "--vendor", "Karl Kauc",
+        "--app-version", version,
+        "--icon", project.projectDir.resolve("release/logo.icns"),
+        "--mac-package-name", "FreeXmlToolkit",
+        "--mac-package-identifier", "org.fxt.freexmltoolkit",
+        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
+        "--java-options", "--enable-preview",
+        "--dest", "dist",
+        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
+    )
+}
+
+tasks.register<Exec>("createWindowsMsi") {
+    dependsOn("copyDistributionFiles", "createWindowsRuntimeImage")
+    description = "Erstellt Windows MSI Installer für systemweite Installation"
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "msi",
+        "--vendor", "Karl Kauc",
+        "--app-version", version,
+        "--icon", project.projectDir.resolve("release/logo.ico"),
+        "--win-menu",
+        "--win-shortcut",
+        "--win-dir-chooser",
+        "--win-menu-group", "FreeXmlToolkit",
+        "--dest", "dist",
+        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
+        "--java-options", "--enable-preview"
+    )
+}
+
+tasks.register<Exec>("createWindowsAppImage") {
+    dependsOn("copyDistributionFiles", "createWindowsRuntimeImage")
+    description = "Erstellt Windows App Image (ohne Installer)"
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
+    workingDir = layout.buildDirectory.get().asFile
+    commandLine(
+        "jpackage",
+        "--input", "image",
+        "--name", "FreeXmlToolkit",
+        "--main-jar", "FreeXmlToolkit.jar",
+        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
+        "--type", "app-image",
+        "--vendor", "Karl Kauc",
+        "--app-version", version,
+        "--icon", project.projectDir.resolve("release/logo.ico"),
+        "--dest", "dist",
+        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
+        "--java-options", "--enable-preview"
+    )
+}
+
 tasks.named("createAllExecutables") {
-    dependsOn("createWindowsExecutable", "createMacOSExecutable", "createLinuxDeb", "createLinuxRpm")
+    dependsOn(
+        "createWindowsExecutable",
+        "createWindowsMsi",
+        "createWindowsAppImage",
+        "createMacOSExecutable",
+        "createMacOSPkg",
+        "createMacOSAppImage",
+        "createLinuxDeb",
+        "createLinuxRpm",
+        "createLinuxAppImage",
+        "createLinuxTar"
+    )
+}
+
+// Convenience tasks for platform-specific packages
+tasks.register("createWindowsPackages") {
+    description = "Erstellt alle Windows-Pakete (exe, msi, app-image)"
+    dependsOn("createWindowsExecutable", "createWindowsMsi", "createWindowsAppImage")
+}
+
+tasks.register("createMacOSPackages") {
+    description = "Erstellt alle macOS-Pakete (dmg, pkg, app-image)"
+    dependsOn("createMacOSExecutable", "createMacOSPkg", "createMacOSAppImage")
+}
+
+tasks.register("createLinuxPackages") {
+    description = "Erstellt alle Linux-Pakete (deb, rpm, app-image, tar.gz)"
+    dependsOn("createLinuxDeb", "createLinuxRpm", "createLinuxAppImage", "createLinuxTar")
+}
+
+// Task to create only installers (no app-images)
+tasks.register("createAllInstallers") {
+    description = "Erstellt alle Installer-Pakete (exe, msi, dmg, pkg, deb, rpm)"
+    dependsOn(
+        "createWindowsExecutable",
+        "createWindowsMsi",
+        "createMacOSExecutable",
+        "createMacOSPkg",
+        "createLinuxDeb",
+        "createLinuxRpm"
+    )
+}
+
+// Task to create only app-images (portable versions)
+tasks.register("createAllAppImages") {
+    description = "Erstellt alle App-Image-Pakete (portable Versionen)"
+    dependsOn(
+        "createWindowsAppImage",
+        "createMacOSAppImage",
+        "createLinuxAppImage",
+        "createLinuxTar"
+    )
 }
