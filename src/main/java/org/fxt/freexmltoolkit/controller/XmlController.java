@@ -175,7 +175,14 @@ public class XmlController {
         XmlEditor xmlEditor = new XmlEditor(file); // Behalten Sie Ihren Konstruktor bei
         xmlEditor.setMainController(this.mainController); // Übergeben Sie den Controller
 
-        xmlEditor.setLanguageServer(this.serverProxy);
+        // CRITICAL: Ensure LSP server is available and properly set
+        if (this.serverProxy != null) {
+            logger.debug("✅ Setting Language Server for XML Editor (serverProxy available)");
+            xmlEditor.setLanguageServer(this.serverProxy);
+        } else {
+            logger.warn("⚠️  LSP serverProxy is null - IntelliSense will not work!");
+        }
+        
         xmlEditor.refresh();
 
         // Füge einen Listener hinzu, der den Server über Textänderungen informiert.
@@ -319,6 +326,20 @@ public class XmlController {
         // GEÄNDERT: Übergibt 'this' (den XmlController) an den Client.
         this.lspClient = new MyLspClient(this);
 
+        // Start the XML server asynchronously BEFORE creating the launcher
+        CompletableFuture<Void> serverFuture = CompletableFuture.runAsync(() -> {
+            try {
+                logger.debug("🔥 Starting XML Language Server...");
+                XMLServerLauncher.launch(serverInputStream, serverOutputStream);
+            } catch (Exception e) {
+                logger.error("Failed to start XML Language Server", e);
+                throw new RuntimeException(e);
+            }
+        }, lspExecutor);
+
+        // Give the server a moment to start
+        Thread.sleep(500);
+
         Launcher<LanguageServer> launcher = new LSPLauncher.Builder<LanguageServer>()
                 .setLocalService(lspClient)
                 .setRemoteInterface(LanguageServer.class)
@@ -331,18 +352,27 @@ public class XmlController {
         lspClient.connect(serverProxy);
         this.clientListening = launcher.startListening();
 
-        XMLServerLauncher.launch(serverInputStream, serverOutputStream);
-        logger.debug("🚀 Server und Client gestartet und verbunden (Owner: XmlController).");
+        logger.debug("🚀 LSP Client started and connected (Owner: XmlController).");
 
+        // Initialize the server
         InitializeParams initParams = new InitializeParams();
         initParams.setProcessId((int) ProcessHandle.current().pid());
         WorkspaceFolder workspaceFolder = new WorkspaceFolder(Paths.get(".").toUri().toString(), "lemminx-project");
         initParams.setWorkspaceFolders(Collections.singletonList(workspaceFolder));
 
-        logger.debug("🤝 Sende 'initialize' Anfrage...");
-        serverProxy.initialize(initParams).get();
-        serverProxy.initialized(new InitializedParams());
-        logger.debug("...Initialisierung abgeschlossen.");
+        logger.debug("🤝 Sending 'initialize' request...");
+        try {
+            InitializeResult result = serverProxy.initialize(initParams).get(10, TimeUnit.SECONDS);
+            serverProxy.initialized(new InitializedParams());
+            logger.debug("✅ LSP Server initialization completed successfully.");
+            logger.debug("   Server capabilities: {}", result.getCapabilities());
+        } catch (TimeoutException e) {
+            logger.error("❌ LSP Server initialization timed out", e);
+            throw new RuntimeException("LSP Server initialization timed out", e);
+        } catch (Exception e) {
+            logger.error("❌ LSP Server initialization failed", e);
+            throw new RuntimeException("LSP Server initialization failed", e);
+        }
     }
 
     /**
@@ -377,17 +407,24 @@ public class XmlController {
 
     private void notifyLspServerFileOpened(File file, String content) {
         if (this.serverProxy == null) {
-            logger.warn("LSP Server not available. Cannot send 'didOpen' notification.");
+            logger.warn("❌ LSP Server not available. Cannot send 'didOpen' notification for {}", file != null ? file.getName() : "null file");
+            return;
+        }
+
+        if (file == null) {
+            logger.warn("❌ Cannot send 'didOpen' notification - file is null");
             return;
         }
 
         try {
+            String uri = file.toURI().toString();
+            
             // 1. Erstelle ein TextDocumentItem mit allen notwendigen Informationen
             TextDocumentItem textDocumentItem = new TextDocumentItem(
-                    file.toURI().toString(), // LSP verwendet URIs zur Identifikation
+                    uri,                     // LSP verwendet URIs zur Identifikation
                     "xml",                   // Die Sprach-ID
                     1,                       // Version 1, da es das erste Öffnen ist
-                    content                  // Der vollständige Inhalt der Datei
+                    content != null ? content : ""  // Der vollständige Inhalt der Datei
             );
 
             // 2. Verpacke das Item in die 'didOpen'-Parameter
@@ -398,14 +435,18 @@ public class XmlController {
             this.serverProxy.getTextDocumentService().didOpen(params);
 
             // Initialisiere die Version für dieses Dokument
-            documentVersions.put(file.toURI().toString(), 1);
+            documentVersions.put(uri, 1);
 
-            requestFoldingRanges(getCurrentXmlEditor());
+            // Request folding ranges for the current editor
+            XmlEditor currentEditor = getCurrentXmlEditor();
+            if (currentEditor != null) {
+                requestFoldingRanges(currentEditor);
+            }
 
-            logger.info("✅ Sent 'didOpen' notification for {} to LSP server.", file.getName());
+            logger.info("✅ Sent 'didOpen' notification for {} to LSP server (URI: {})", file.getName(), uri);
 
         } catch (Exception e) {
-            logger.error("Failed to send 'didOpen' notification to LSP server.", e);
+            logger.error("❌ Failed to send 'didOpen' notification to LSP server for {}", file.getName(), e);
         }
     }
 
@@ -741,26 +782,37 @@ public class XmlController {
      * @param editor Der Editor, dessen Inhalt sich geändert hat.
      */
     private void notifyLspServerFileChanged(XmlEditor editor) {
-        if (serverProxy == null || editor == null || editor.getXmlFile() == null) {
+        if (serverProxy == null) {
+            logger.debug("⚠️  LSP Server not available for didChange notification");
             return;
         }
-        File file = editor.getXmlFile();
-        String uri = file.toURI().toString();
-        String content = editor.getXmlCodeEditor().getCodeArea().getText();
 
-        // Version für dieses Dokument erhöhen
-        int version = documentVersions.compute(uri, (k, v) -> (v == null) ? 1 : v + 1);
+        if (editor == null || editor.getXmlFile() == null) {
+            logger.debug("⚠️  Editor or file is null for didChange notification");
+            return;
+        }
 
-        VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(uri, version);
-        // Wir senden den kompletten neuen Text. Das ist einfacher als inkrementelle Änderungen.
-        TextDocumentContentChangeEvent changeEvent = new TextDocumentContentChangeEvent(content);
-        DidChangeTextDocumentParams params = new DidChangeTextDocumentParams(identifier, Collections.singletonList(changeEvent));
+        try {
+            File file = editor.getXmlFile();
+            String uri = file.toURI().toString();
+            String content = editor.getXmlCodeEditor().getCodeArea().getText();
 
-        serverProxy.getTextDocumentService().didChange(params);
-        logger.debug("Sent 'didChange' (v{}) notification for {}", version, file.getName());
+            // Version für dieses Dokument erhöhen
+            int version = documentVersions.compute(uri, (k, v) -> (v == null) ? 1 : v + 1);
 
-        // Nach einer Änderung müssen die Falt-Bereiche neu angefordert werden.
-        requestFoldingRanges(editor);
+            VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(uri, version);
+            // Wir senden den kompletten neuen Text. Das ist einfacher als inkrementelle Änderungen.
+            TextDocumentContentChangeEvent changeEvent = new TextDocumentContentChangeEvent(content != null ? content : "");
+            DidChangeTextDocumentParams params = new DidChangeTextDocumentParams(identifier, Collections.singletonList(changeEvent));
+
+            serverProxy.getTextDocumentService().didChange(params);
+            logger.debug("📝 Sent 'didChange' (v{}) notification for {}", version, file.getName());
+
+            // Nach einer Änderung müssen die Falt-Bereiche neu angefordert werden.
+            requestFoldingRanges(editor);
+        } catch (Exception e) {
+            logger.error("❌ Failed to send 'didChange' notification", e);
+        }
     }
 
     /**

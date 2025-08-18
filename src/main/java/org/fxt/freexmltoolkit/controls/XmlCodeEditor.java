@@ -56,6 +56,9 @@ public class XmlCodeEditor extends StackPane {
     // Document URI for LSP requests
     private String documentUri;
 
+    // Document version for LSP synchronization
+    private int documentVersion = 1;
+
     // Reference to parent XmlEditor for accessing schema information
     private Object parentXmlEditor;
 
@@ -65,6 +68,7 @@ public class XmlCodeEditor extends StackPane {
     private List<String> availableElementNames = new ArrayList<>();
     private Map<String, List<String>> contextElementNames = new HashMap<>();
     private int popupStartPosition = -1;
+    private boolean isElementCompletionContext = false; // Track if we're completing elements or attributes
 
     // --- Syntax Highlighting Patterns (aus XmlEditor verschoben) ---
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
@@ -85,7 +89,9 @@ public class XmlCodeEditor extends StackPane {
     }
 
     public void setLanguageServer(LanguageServer languageServer) {
+        System.out.println("DEBUG: XmlCodeEditor.setLanguageServer called with: " + (languageServer != null ? "valid server" : "null"));
         this.languageServer = languageServer;
+        System.out.println("DEBUG: XmlCodeEditor.languageServer is now: " + (this.languageServer != null ? "set" : "null"));
     }
 
     /**
@@ -95,6 +101,15 @@ public class XmlCodeEditor extends StackPane {
      */
     public void setDocumentUri(String documentUri) {
         this.documentUri = documentUri;
+    }
+
+    /**
+     * Gets the current document URI.
+     *
+     * @return The URI of the current document
+     */
+    public String getDocumentUri() {
+        return this.documentUri;
     }
 
     /**
@@ -128,8 +143,18 @@ public class XmlCodeEditor extends StackPane {
     private void initialize() {
         codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
 
+        // Text change listener for syntax highlighting and LSP synchronization
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            // Apply syntax highlighting
             codeArea.setStyleSpans(0, computeHighlighting(newText));
+
+            // Send textDocument/didChange notification to LSP server (as per requirements)
+            // This implements the "textChanged-Event meines Editors" requirement
+            if (languageServer != null && documentUri != null && !oldText.equals(newText)) {
+                javafx.application.Platform.runLater(() -> {
+                    sendDidChangeNotification(newText);
+                });
+            }
         });
 
         setupEventHandlers();
@@ -179,11 +204,6 @@ public class XmlCodeEditor extends StackPane {
         // IntelliSense: Tab completion and auto-closing tags
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()) {
-                case LESS -> {
-                    if (handleIntelliSenseTrigger(event)) {
-                        event.consume();
-                    }
-                }
                 case TAB -> {
                     if (handleTabCompletion(event)) {
                         event.consume();
@@ -204,13 +224,30 @@ public class XmlCodeEditor extends StackPane {
                     }
                 }
                 case ENTER -> {
-                    if (intelliSensePopup.isShowing()) {
+                    System.out.println("DEBUG: ENTER key pressed in CodeArea");
+                    if (intelliSensePopup != null && intelliSensePopup.isShowing()) {
+                        System.out.println("DEBUG: IntelliSense popup is showing - calling selectCompletionItem()");
                         selectCompletionItem();
                         event.consume();
+                    } else {
+                        System.out.println("DEBUG: IntelliSense popup not showing - normal ENTER behavior");
                     }
                 }
                 default -> {
                 }
+            }
+        });
+
+        // IntelliSense: Handle typed characters for completion triggers
+        codeArea.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            String character = event.getCharacter();
+            if (character != null && !character.isEmpty()) {
+                System.out.println("DEBUG: KEY_TYPED event - character: '" + character + "' (code: " + (int) character.charAt(0) + ")");
+                if (handleIntelliSenseTrigger(event)) {
+                    System.out.println("DEBUG: IntelliSense trigger handled for: " + character);
+                }
+            } else {
+                System.out.println("DEBUG: KEY_TYPED event - character is null or empty");
             }
         });
     }
@@ -247,9 +284,40 @@ public class XmlCodeEditor extends StackPane {
                 selectCompletionItem();
             }
         });
-    }
 
-    // --- NEUE Such- und Ersetzen-Methoden (von XmlEditor hierher verschoben) ---
+        // Add key event handler directly to the completion list view
+        completionListView.setOnKeyPressed(event -> {
+            System.out.println("DEBUG: ListView KeyPressed: " + event.getCode());
+            switch (event.getCode()) {
+                case ENTER -> {
+                    System.out.println("DEBUG: ENTER pressed in ListView - calling selectCompletionItem()");
+                    selectCompletionItem();
+                    event.consume();
+                }
+                case ESCAPE -> {
+                    System.out.println("DEBUG: ESCAPE pressed in ListView - hiding popup");
+                    hideIntelliSensePopup();
+                    event.consume();
+                }
+                case UP, DOWN -> {
+                    // Let ListView handle navigation naturally
+                    System.out.println("DEBUG: Navigation key in ListView: " + event.getCode());
+                }
+                default -> {
+                    // For all other keys, try to pass them back to the CodeArea
+                    System.out.println("DEBUG: Other key in ListView: " + event.getCode() + " - passing to CodeArea");
+                    codeArea.fireEvent(event);
+                    event.consume();
+                }
+            }
+        });
+
+        // Ensure the popup scene doesn't steal focus from the main window
+        intelliSensePopup.getScene().setOnKeyPressed(event -> {
+            System.out.println("DEBUG: Scene KeyPressed: " + event.getCode());
+            completionListView.fireEvent(event);
+        });
+    }
 
     public void find(String text, boolean forward) {
         if (text == null || text.isEmpty()) {
@@ -311,14 +379,11 @@ public class XmlCodeEditor extends StackPane {
         lineNumber.setAlignment(Pos.CENTER_RIGHT);
 
         // Styling für nahtlose Darstellung ohne Abstände
+        // Grauer Hintergrund
+        // Kein Border
+        // Links und rechts 3px Padding
         lineNumber.setStyle(
-                "-fx-text-fill: #666666; " +
-                        "-fx-font-family: monospace; " +
-                        "-fx-font-size: " + fontSize + "px; " +
-                        "-fx-background-color: #f0f0f0; " + // Grauer Hintergrund
-                        "-fx-border-width: 0; " +           // Kein Border
-                        "-fx-padding: 0 3 0 3; " +          // Links und rechts 3px Padding
-                        "-fx-spacing: 0;"                   // Kein Spacing
+                STR."-fx-text-fill: #666666; -fx-font-family: monospace; -fx-font-size: \{fontSize}px; -fx-background-color: #f0f0f0; -fx-border-width: 0; -fx-padding: 0 3 0 3; -fx-spacing: 0;"                   // Kein Spacing
         );
 
         return lineNumber;
@@ -579,27 +644,95 @@ public class XmlCodeEditor extends StackPane {
     }
 
     /**
-     * Handles IntelliSense trigger when "<" is typed.
+     * Handles IntelliSense trigger when "<" is typed or space for attributes.
+     * Implementation based on requirements: trigger completion after opening a tag "<" or adding space for attributes.
+     * Note: This method is called AFTER the character has been typed (KEY_TYPED event).
      *
      * @param event The key event
      * @return true if the event was handled, false otherwise
      */
     private boolean handleIntelliSenseTrigger(KeyEvent event) {
         try {
-            // Insert the "<" character first
-            codeArea.insertText(codeArea.getCaretPosition(), "<");
+            String character = event.getCharacter();
+            System.out.println("DEBUG: handleIntelliSenseTrigger called with character: '" + character + "'");
 
-            // Store the position where we started (after the '<')
-            popupStartPosition = codeArea.getCaretPosition();
+            // Handle "<" trigger for element completion
+            if ("<".equals(character)) {
+                System.out.println("DEBUG: Detected < character, triggering element completion");
 
-            // Show the IntelliSense popup (with slight delay to ensure text is processed)
-            javafx.application.Platform.runLater(() -> {
-                showIntelliSensePopup();
-            });
+                // Store the current position (after the '<' character)
+                popupStartPosition = codeArea.getCaretPosition();
+                isElementCompletionContext = true; // Mark as element completion
+                System.out.println("DEBUG: Set popupStartPosition to: " + popupStartPosition + " (after <), isElementCompletionContext = true");
 
-            return true; // Consume the event since we handled it
+                // Show the IntelliSense popup with slight delay to ensure the character is processed
+                javafx.application.Platform.runLater(() -> {
+                    System.out.println("DEBUG: Calling requestCompletionsFromLSP for element completion");
+                    requestCompletionsFromLSP();
+                });
+
+                return true; // Event was handled
+            }
+
+            // Handle space trigger for attribute completion (inside XML tags)
+            if (" ".equals(character)) {
+                System.out.println("DEBUG: Detected space character, checking if inside XML tag");
+                if (isInsideXmlTag()) {
+                    System.out.println("DEBUG: Inside XML tag, triggering attribute completion");
+
+                    // Store the current position (after the space)
+                    popupStartPosition = codeArea.getCaretPosition();
+                    isElementCompletionContext = false; // Mark as attribute completion
+
+                    // Show attribute completions with slight delay
+                    javafx.application.Platform.runLater(() -> {
+                        System.out.println("DEBUG: Calling requestCompletionsFromLSP for attribute completion");
+                        requestCompletionsFromLSP();
+                    });
+
+                    return true; // Event was handled
+                } else {
+                    System.out.println("DEBUG: Not inside XML tag, no completion triggered");
+                }
+            }
+
         } catch (Exception e) {
             System.err.println("Error during IntelliSense trigger: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the cursor is currently inside an XML tag (for attribute completion).
+     * This enables attribute IntelliSense when the user types a space inside a tag.
+     *
+     * @return true if cursor is inside a tag
+     */
+    private boolean isInsideXmlTag() {
+        try {
+            int caretPosition = codeArea.getCaretPosition();
+            String text = codeArea.getText();
+
+            if (caretPosition <= 0 || caretPosition > text.length()) {
+                return false;
+            }
+
+            // Look backwards from cursor to find the last "<" or ">"
+            int lastOpenTag = text.lastIndexOf('<', caretPosition - 1);
+            int lastCloseTag = text.lastIndexOf('>', caretPosition - 1);
+
+            // We're inside a tag if the last "<" is more recent than the last ">"
+            // and we haven't encountered a self-closing tag or end tag
+            if (lastOpenTag > lastCloseTag && lastOpenTag < caretPosition) {
+                // Check if it's not a closing tag (</...)
+                return lastOpenTag + 1 < text.length() && text.charAt(lastOpenTag + 1) != '/';
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            System.err.println("Error checking if inside XML tag: " + e.getMessage());
             return false;
         }
     }
@@ -716,6 +849,7 @@ public class XmlCodeEditor extends StackPane {
 
     /**
      * Ensures the current document content is synchronized with the LSP server.
+     * Implementation based on requirements: Send textDocument/didOpen, didChange, and didClose as needed.
      * This is crucial for getting accurate completion suggestions.
      */
     private void ensureDocumentSynchronized() {
@@ -725,27 +859,11 @@ public class XmlCodeEditor extends StackPane {
             // For untitled documents, we need to send a didOpen notification first
             if (documentUri.startsWith("untitled:")) {
                 System.out.println("DEBUG: Sending didOpen for untitled document");
-                org.eclipse.lsp4j.TextDocumentItem textDocument = new org.eclipse.lsp4j.TextDocumentItem(
-                        documentUri, "xml", 1, content);
-
-                org.eclipse.lsp4j.DidOpenTextDocumentParams openParams =
-                        new org.eclipse.lsp4j.DidOpenTextDocumentParams(textDocument);
-
-                languageServer.getTextDocumentService().didOpen(openParams);
+                sendDidOpenNotification(content);
             } else {
-                // For file-based documents, send a didChange notification
+                // For file-based documents, send a didChange notification with full synchronization
                 System.out.println("DEBUG: Sending didChange for file document");
-                org.eclipse.lsp4j.VersionedTextDocumentIdentifier identifier =
-                        new org.eclipse.lsp4j.VersionedTextDocumentIdentifier(documentUri, 1);
-
-                org.eclipse.lsp4j.TextDocumentContentChangeEvent changeEvent =
-                        new org.eclipse.lsp4j.TextDocumentContentChangeEvent(content);
-
-                org.eclipse.lsp4j.DidChangeTextDocumentParams params =
-                        new org.eclipse.lsp4j.DidChangeTextDocumentParams(identifier,
-                                java.util.Collections.singletonList(changeEvent));
-
-                languageServer.getTextDocumentService().didChange(params);
+                sendDidChangeNotification(content);
             }
 
             System.out.println("DEBUG: Document synchronized with LSP server");
@@ -757,9 +875,95 @@ public class XmlCodeEditor extends StackPane {
     }
 
     /**
+     * Sends textDocument/didOpen notification to the LSP server.
+     * Based on requirements: Send when an XML file is loaded.
+     *
+     * @param content The document content
+     */
+    public void sendDidOpenNotification(String content) {
+        if (languageServer == null) return;
+
+        try {
+            org.eclipse.lsp4j.TextDocumentItem textDocument = new org.eclipse.lsp4j.TextDocumentItem(
+                    documentUri, "xml", documentVersion++, content);
+
+            org.eclipse.lsp4j.DidOpenTextDocumentParams openParams =
+                    new org.eclipse.lsp4j.DidOpenTextDocumentParams(textDocument);
+
+            languageServer.getTextDocumentService().didOpen(openParams);
+            System.out.println("DEBUG: textDocument/didOpen sent for " + documentUri);
+
+        } catch (Exception e) {
+            System.err.println("ERROR: Failed to send didOpen notification: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Sends textDocument/didChange notification to the LSP server.
+     * Based on requirements: Send at every text change with full synchronization.
+     *
+     * @param content The updated document content
+     */
+    private void sendDidChangeNotification(String content) {
+        if (languageServer == null) return;
+
+        try {
+            org.eclipse.lsp4j.VersionedTextDocumentIdentifier identifier =
+                    new org.eclipse.lsp4j.VersionedTextDocumentIdentifier(documentUri, documentVersion++);
+
+            // Full synchronization (as mentioned in requirements as fallback)
+            org.eclipse.lsp4j.TextDocumentContentChangeEvent changeEvent =
+                    new org.eclipse.lsp4j.TextDocumentContentChangeEvent(content);
+
+            org.eclipse.lsp4j.DidChangeTextDocumentParams params =
+                    new org.eclipse.lsp4j.DidChangeTextDocumentParams(identifier,
+                            java.util.Collections.singletonList(changeEvent));
+
+            languageServer.getTextDocumentService().didChange(params);
+            System.out.println("DEBUG: textDocument/didChange sent for " + documentUri + " (version " + (documentVersion - 1) + ")");
+
+        } catch (Exception e) {
+            System.err.println("ERROR: Failed to send didChange notification: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Sends textDocument/didClose notification to the LSP server.
+     * Based on requirements: Send when the file is closed.
+     */
+    public void sendDidCloseNotification() {
+        if (languageServer == null) return;
+
+        try {
+            org.eclipse.lsp4j.TextDocumentIdentifier identifier =
+                    new org.eclipse.lsp4j.TextDocumentIdentifier(documentUri);
+
+            org.eclipse.lsp4j.DidCloseTextDocumentParams params =
+                    new org.eclipse.lsp4j.DidCloseTextDocumentParams(identifier);
+
+            languageServer.getTextDocumentService().didClose(params);
+            System.out.println("DEBUG: textDocument/didClose sent for " + documentUri);
+
+        } catch (Exception e) {
+            System.err.println("ERROR: Failed to send didClose notification: " + e.getMessage());
+        }
+    }
+
+    /**
      * Requests completions from the Language Server based on the current cursor position.
      */
     private void requestCompletionsFromLSP() {
+        System.out.println("DEBUG: requestCompletionsFromLSP called");
+        System.out.println("DEBUG: languageServer is null: " + (languageServer == null));
+        System.out.println("DEBUG: documentUri: " + documentUri);
+
+        // Check if LSP server is available
+        if (languageServer == null) {
+            System.out.println("DEBUG: No language server available, falling back to manual completion");
+            showManualIntelliSensePopup();
+            return;
+        }
+        
         try {
             int caretPosition = codeArea.getCaretPosition();
             String text = codeArea.getText();
@@ -886,7 +1090,17 @@ public class XmlCodeEditor extends StackPane {
                 var screenPos = codeArea.localToScreen(caretBounds.getMinX(), caretBounds.getMaxY());
                 intelliSensePopup.setX(screenPos.getX());
                 intelliSensePopup.setY(screenPos.getY());
+
+                // Show popup but ensure CodeArea keeps focus
                 intelliSensePopup.show();
+
+                // Critical: Keep focus on CodeArea so keyboard events work
+                javafx.application.Platform.runLater(() -> {
+                    codeArea.requestFocus();
+                    System.out.println("DEBUG: Focus returned to CodeArea after popup show");
+                });
+
+                System.out.println("DEBUG: IntelliSense popup shown at cursor position");
             }
         }
     }
@@ -1018,17 +1232,68 @@ public class XmlCodeEditor extends StackPane {
     }
 
     /**
-     * Selects the currently highlighted completion item.
+     * Selects the currently highlighted completion item and creates complete XML tags.
      */
     private void selectCompletionItem() {
         String selectedItem = completionListView.getSelectionModel().getSelectedItem();
+        System.out.println("DEBUG: selectCompletionItem called with selectedItem: '" + selectedItem + "'");
+        System.out.println("DEBUG: popupStartPosition: " + popupStartPosition);
+        
         if (selectedItem != null && popupStartPosition >= 0) {
-            // Replace the content from popupStartPosition to current position
+            // Remove any existing partial input between popupStartPosition and current position
             int currentPosition = codeArea.getCaretPosition();
-            codeArea.replaceText(popupStartPosition, currentPosition, selectedItem);
+            System.out.println("DEBUG: currentPosition: " + currentPosition);
 
-            // Move cursor to the end of the inserted text
-            codeArea.moveTo(popupStartPosition + selectedItem.length());
+            // Use the context flag set during trigger detection
+            System.out.println("DEBUG: isElementCompletionContext: " + isElementCompletionContext);
+
+            if (isElementCompletionContext) {
+                // Replace the content from the "<" to current position with complete XML element
+                String tagName = selectedItem.trim();
+
+                // Create complete XML element with opening and closing tags (including the "<")
+                String completeElement = "<" + tagName + "></" + tagName + ">";
+
+                // SAFER APPROACH: Only replace from the "<" character onwards, ensure we don't touch previous content
+                int startPosition = popupStartPosition - 1; // Position of the "<" character
+
+                // Safety check: make sure we're actually at a "<" character
+                if (startPosition >= 0 && startPosition < codeArea.getLength()) {
+                    String charAtStart = codeArea.getText(startPosition, startPosition + 1);
+                    if (!charAtStart.equals("<")) {
+                        System.out.println("DEBUG: WARNING - Expected '<' at position " + startPosition + " but found '" + charAtStart + "'");
+                        // Fallback: search backwards for the "<"
+                        for (int i = startPosition; i >= Math.max(0, startPosition - 5); i--) {
+                            if (i < codeArea.getLength() && codeArea.getText(i, i + 1).equals("<")) {
+                                startPosition = i;
+                                System.out.println("DEBUG: Found '<' at corrected position: " + startPosition);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Debug: Show what we're replacing
+                String textBeingReplaced = "";
+                if (startPosition >= 0 && currentPosition <= codeArea.getLength()) {
+                    textBeingReplaced = codeArea.getText(startPosition, currentPosition);
+                }
+                System.out.println("DEBUG: Replacing text from pos " + startPosition + " to " + currentPosition + ": '" + textBeingReplaced + "'");
+
+                codeArea.replaceText(startPosition, currentPosition, completeElement);
+
+                // Position cursor BETWEEN the opening and closing tags
+                int cursorPosition = startPosition + tagName.length() + 2; // After "<tagname>"
+                codeArea.moveTo(cursorPosition);
+
+                System.out.println("DEBUG: Created complete XML element: " + completeElement);
+                System.out.println("DEBUG: Cursor positioned at: " + cursorPosition);
+            } else {
+                // For attribute completions or other contexts, just insert the selected item
+                System.out.println("DEBUG: Not element completion - inserting selectedItem only");
+                codeArea.replaceText(popupStartPosition, currentPosition, selectedItem);
+                codeArea.moveTo(popupStartPosition + selectedItem.length());
+            }
 
             // Hide the popup
             hideIntelliSensePopup();

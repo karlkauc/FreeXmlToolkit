@@ -121,11 +121,24 @@ public class XmlEditor extends Tab {
     }
 
     public void setLanguageServer(LanguageServer serverProxy) {
+        System.out.println("DEBUG: XmlEditor.setLanguageServer called with: " + (serverProxy != null ? "valid server" : "null"));
         this.serverProxy = serverProxy;
         // Also pass the LanguageServer to the XmlCodeEditor for IntelliSense
         if (xmlCodeEditor != null) {
+            System.out.println("DEBUG: Passing language server to XmlCodeEditor");
             xmlCodeEditor.setLanguageServer(serverProxy);
             xmlCodeEditor.setParentXmlEditor(this); // Set reference for schema access
+
+            // If we have a document URI, send didOpen notification
+            String documentUri = xmlCodeEditor.getDocumentUri();
+            if (serverProxy != null && documentUri != null && !documentUri.isEmpty()) {
+                System.out.println("DEBUG: Sending initial didOpen notification for: " + documentUri);
+                Platform.runLater(() -> {
+                    xmlCodeEditor.sendDidOpenNotification(codeArea.getText());
+                });
+            }
+        } else {
+            System.out.println("DEBUG: xmlCodeEditor is null, cannot set language server");
         }
     }
 
