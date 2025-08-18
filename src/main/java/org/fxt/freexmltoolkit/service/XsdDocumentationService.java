@@ -420,9 +420,12 @@ public class XsdDocumentationService {
                     .ifPresent(extendedElem::setSourceNamespacePrefix);
         }
 
-        // Add to parent's children list
+        // Add to parent's children list (only if not already added)
         if (parentXPath != null && xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
-            xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren().add(currentXPath);
+            List<String> parentChildren = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren();
+            if (!parentChildren.contains(currentXPath)) {
+                parentChildren.add(currentXPath);
+            }
         }
         xsdDocumentationData.getExtendedXsdElementMap().put(currentXPath, extendedElem);
 
@@ -449,6 +452,11 @@ public class XsdDocumentationService {
                 // Handle complex content (sequence, choice, extension, etc.)
                 processComplexContent(contentModel, currentXPath, level, visitedOnPath);
             }
+
+            // Additionally process attributes that are defined directly on the complexType
+            // (i.e., siblings of <sequence>/<choice>), which are not inside the content model.
+            Node attributeContext = (typeDefinitionNode != null) ? typeDefinitionNode : node;
+            processAttributes(attributeContext, currentXPath, level, visitedOnPath);
         }
 
         // Process restrictions
@@ -460,10 +468,47 @@ public class XsdDocumentationService {
             }
         }
 
+        // Prefer fixed/default values where present (especially for attributes)
+        String fixedValue = getAttributeValue(node, "fixed");
+        String defaultValue = getAttributeValue(node, "default");
+
         // Final steps
         extendedElem.setSourceCode(nodeToString(node));
 
-        extendedElem.setSampleData(xsdSampleDataGenerator.generate(extendedElem));
+        if (fixedValue != null) {
+            extendedElem.setSampleData(fixedValue);
+        } else if (defaultValue != null) {
+            extendedElem.setSampleData(defaultValue);
+        } else {
+            extendedElem.setSampleData(xsdSampleDataGenerator.generate(extendedElem));
+        }
+    }
+
+    /**
+     * Processes attributes that are declared directly under a complexType (outside of sequence/choice/all).
+     */
+    private void processAttributes(Node contextNode, String parentXPath, int level, Set<Node> visitedOnPath) {
+        if (contextNode == null) return;
+
+        for (Node child : getDirectChildElements(contextNode)) {
+            String localName = child.getLocalName();
+            if (!"attribute".equals(localName)) continue;
+
+            String childName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
+            if (childName == null || childName.isBlank()) continue;
+
+            String childXPath = parentXPath + "/@" + childName;
+
+            // Ensure attributes are added as children to the parent element (deduped)
+            if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
+                List<String> parentChildren = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren();
+                if (!parentChildren.contains(childXPath)) {
+                    parentChildren.add(childXPath);
+                }
+            }
+
+            traverseNode(child, childXPath, parentXPath, level + 1, visitedOnPath);
+        }
     }
 
     private void processComplexContent(Node contentNode, String parentXPath, int level, Set<Node> visitedOnPath) {
@@ -488,6 +533,13 @@ public class XsdDocumentationService {
             String childXPath;
             if ("attribute".equals(child.getLocalName())) {
                 childXPath = parentXPath + "/@" + childName;
+                // Ensure attributes are added as children of the parent element (only if not already added)
+                if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
+                    List<String> parentChildren = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath).getChildren();
+                    if (!parentChildren.contains(childXPath)) {
+                        parentChildren.add(childXPath);
+                    }
+                }
             } else if ("element".equals(child.getLocalName())) {
                 childXPath = parentXPath + "/" + childName;
             } else {
@@ -548,7 +600,7 @@ public class XsdDocumentationService {
             String indent = "\t".repeat(indentLevel);
             sb.append(indent).append("<").append(element.getElementName());
 
-            // Separate children into attributes and elements
+            // Find all attributes for this element by searching for elements with @ prefix in the children
             List<XsdExtendedElement> attributes = element.getChildren().stream()
                     .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
                     .filter(Objects::nonNull)
@@ -563,13 +615,17 @@ public class XsdDocumentationService {
 
             // Render attributes
             for (XsdExtendedElement attr : attributes) {
-                if (mandatoryOnly && !attr.isMandatory()) continue;
+                // Include attribute if mandatory, or if it has a fixed/default value even when mandatoryOnly is true
+                String fixedOrDefault = getAttributeValue(attr.getCurrentNode(), "fixed", getAttributeValue(attr.getCurrentNode(), "default", null));
+                if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) continue;
                 String attrName = attr.getElementName().substring(1);
-                String attrValue = attr.getSampleData() != null ? attr.getSampleData() : "";
+                String attrValue = (fixedOrDefault != null)
+                        ? fixedOrDefault
+                        : (attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
                 sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
             }
 
-            String sampleData = element.getSampleData() != null ? element.getSampleData() : "";
+            String sampleData = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
             if (childElements.isEmpty() && sampleData.isEmpty()) {
                 sb.append("/>\n"); // Self-closing tag
             } else {
