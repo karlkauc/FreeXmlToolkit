@@ -104,3 +104,6 @@ FreeXmlToolkit.properties
 /**/gradle.properties
 
 .vscode/
+
+output
+
