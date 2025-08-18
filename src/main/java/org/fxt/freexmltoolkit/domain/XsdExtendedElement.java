@@ -174,9 +174,21 @@ public class XsdExtendedElement implements Serializable {
 
         // Add all other facets
         restrictionInfo.facets().forEach((key, values) -> {
-            // Join the list of values into a single string (e.g., "A, B, C")
-            String combinedValue = String.join(", ", values);
-            stringWriter.append(capitalize(key)).append(": ").append(combinedValue).append(lineBreak);
+            if ("enumeration".equals(key)) {
+                // Special handling for enumeration - format as HTML unordered list
+                stringWriter.append(capitalize(key)).append(": ");
+                stringWriter.append("<ul class=\"list-disc list-inside space-y-1\">");
+                for (String value : values) {
+                    stringWriter.append("<li><code class=\"font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md\">")
+                            .append(escapeHtml(value))
+                            .append("</code></li>");
+                }
+                stringWriter.append("</ul>");
+            } else {
+                // Join the list of values into a single string (e.g., "A, B, C")
+                String combinedValue = String.join(", ", values);
+                stringWriter.append(capitalize(key)).append(": ").append(combinedValue).append(lineBreak);
+            }
         });
 
         return stringWriter.toString();
@@ -185,6 +197,15 @@ public class XsdExtendedElement implements Serializable {
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) return str;
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    private String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
     }
 
     public boolean isMandatory() {
