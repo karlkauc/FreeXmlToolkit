@@ -38,7 +38,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Key Controller Responsibilities
 - **MainController**: Application lifecycle, navigation, memory monitoring, ExecutorService coordination
-- **XmlController**: Multi-tab XML editing, validation, XPath/XQuery execution, LSP integration
+- **XmlController**: Multi-tab XML editing, validation, XPath/XQuery execution, LSP integration,
+  IntelliSense/Auto-completion
 - **XsdController**: XSD visualization, documentation generation, schema flattening, sample data generation
 - **XsltController**: XSLT transformations, multi-format output rendering
 - **SignatureController**: XML digital signature creation and validation

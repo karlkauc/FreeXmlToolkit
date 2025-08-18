@@ -49,29 +49,27 @@ constraints defined in Schematron files.
 
 ### Overview
 
-The XML Editor now includes IntelliSense features to enhance the editing experience with intelligent code completion and
-auto-closing tags.
+The XML Editor includes advanced IntelliSense features that provide schema-aware code completion and intelligent editing
+assistance based on loaded XSD schemas.
 
 ### Features
 
-- **Tab Completion**: Use Tab key to complete XML element names (LSP integration pending)
+- **Schema-Aware Completion**: Smart code completion that suggests only valid XML elements based on your XSD schema
+  context
+- **Context-Sensitive Suggestions**: Element suggestions are filtered based on the current XML position and parent
+  elements
 - **Auto-closing Tags**: Automatically insert closing tags when opening new XML elements
-- **LSP Integration**: Language Server Protocol integration for advanced code completion
 - **Self-closing Tag Support**: Proper handling of self-closing tags (br, img, input, etc.)
+- **Real-time Schema Validation**: Integration with loaded XSD schemas for accurate completion suggestions
 
 ### Usage
 
-1. **Auto-closing Tags**: When you type `<element>`, the editor automatically adds `</element>` and positions the cursor
+1. **Schema-Aware Completion**: When you type `<` in the XML editor, a completion popup appears showing only the valid
+   child elements for the current context
+2. **Auto-closing Tags**: When you type `<element>`, the editor automatically adds `</element>` and positions the cursor
    between the tags
-2. **Tab Completion**: Press Tab to trigger code completion (currently logs to console, full LSP integration in
-   progress)
-3. **Self-closing Tags**: Tags like `<br>`, `<img>`, `<input>` are not auto-closed as they are self-closing
-
-### Supported Self-closing Tags
-
-- `br`, `hr`, `img`, `input`, `meta`, `link`
-- `area`, `base`, `col`, `embed`, `source`
-- `track`, `wbr`, `param`, `keygen`, `command`
+3. **Context Navigation**: Use arrow keys to navigate through completion suggestions, Enter to select, or Escape to
+   dismiss
 
 ### Example Usage
 
@@ -81,6 +79,76 @@ auto-closing tags.
 
 <!-- Type: <br> -->
 <!-- Result: <br> (no auto-closing for self-closing tags) -->
+
+<!-- Type: < inside <FundsXML4><ControlData> -->
+<!-- Result: Shows only valid child elements like UniqueDocumentID, DocumentGenerated, etc. -->
+```
+
+## Grid Editor Mode
+
+### Overview
+
+The XML Editor features a dual-mode interface that allows you to edit XML files both as text and as structured data in a
+grid format.
+
+### Features
+
+- **Table-like Interface**: Edit XML data in a spreadsheet-like grid for easier data management
+- **Structured Data Editing**: Perfect for XML files with repetitive data structures
+- **Visual Data Manipulation**: Add, edit, and delete XML elements through an intuitive grid interface
+- **Seamless Mode Switching**: Switch between text and grid modes without losing data
+
+### Usage
+
+1. Open an XML file in the XML Editor
+2. Switch to the "Grid" tab to view the structured data interface
+3. Edit data directly in the grid cells
+4. Switch back to "XML" tab to see the updated XML text
+5. Changes in either mode are reflected in both views
+
+## Code Folding
+
+### Overview
+
+The XML Editor includes code folding functionality that allows you to collapse and expand sections of XML for better
+navigation in large files.
+
+### Features
+
+- **Hierarchical Folding**: Collapse XML elements and their children
+- **Visual Indicators**: Clear visual markers show foldable regions
+- **Keyboard Support**: Use keyboard shortcuts to fold/unfold sections
+- **Language Server Integration**: Advanced folding ranges provided by the XML Language Server
+
+### Usage
+
+1. **Visual Folding**: Click the fold/unfold icons in the editor gutter next to XML elements
+2. **Keyboard Shortcuts**: Use standard folding shortcuts (implementation may vary by platform)
+3. **Nested Folding**: Fold parent elements to hide all child content, or fold individual child elements
+4. **Persistent State**: Folding state is maintained while editing the document
+
+## Graphical Tree View
+
+### Overview
+
+The XML Editor provides a visual tree representation of XML structure alongside the text editor for enhanced editing
+capabilities.
+
+### Features
+
+- **Interactive Tree Navigation**: Browse XML structure as an expandable tree
+- **Dual-Pane Editing**: Text editor and tree view work together seamlessly
+- **Visual Structure Understanding**: Quickly understand complex XML hierarchies
+- **Point-and-Click Editing**: Select and edit XML nodes directly from the tree view
+
+### Usage
+
+1. Open an XML file in the XML Editor
+2. The tree view appears alongside the text editor
+3. Click on tree nodes to navigate to corresponding XML elements in the text
+4. Expand and collapse tree nodes to explore XML structure
+5. Use the tree view to understand document hierarchy at a glance
+
 ```
 
 ## Technical Implementation
@@ -102,10 +170,19 @@ auto-closing tags.
 
 ```
 XmlEditor
-├── XmlCodeEditor (IntelliSense)
-│   ├── Tab Completion
+├── XmlCodeEditor (Text Editing)
+│ ├── Schema-Aware IntelliSense
+│ ├── Code Folding
 │   ├── Auto-closing Tags
-│   └── LSP Integration
+│ └── Syntax Highlighting
+├── XmlGraphicEditor (Grid Mode)
+│ ├── Table-like Interface
+│ ├── Structured Data Editing
+│ └── Data Manipulation
+├── Tree View (Graphical)
+│ ├── Interactive Navigation
+│ ├── Visual Structure
+│ └── Click-to-Edit
 ├── SchematronService (Validation)
 │   ├── File Validation
 │   ├── Error Processing
@@ -148,9 +225,21 @@ XmlEditor
 
 ### Known Limitations
 
+#### Schema Support
+
+- **DTD (Document Type Definition)**: Not supported - only XSD and Schematron schemas are supported
+- **RelaxNG**: Not supported - only XSD and Schematron schemas are supported
+
+#### Current Implementation Status
 - Schematron compilation is currently a placeholder (requires full XSLT transformation pipeline)
-- Tab completion currently logs to console (full LSP integration pending)
-- Error highlighting in editor not yet implemented
+- Error highlighting in editor not yet implemented for all validation types
+
+#### Supported Schema Formats
+
+- ✅ **XSD (XML Schema Definition)**: Full support with IntelliSense integration
+- ✅ **Schematron**: Business rules validation support
+- ❌ **DTD**: Not supported
+- ❌ **RelaxNG**: Not supported
 
 ## Examples
 

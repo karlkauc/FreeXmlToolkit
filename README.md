@@ -21,6 +21,10 @@ as your personal XML assistant that helps you work smarter, not harder.
 ### 📝 **Smart XML Editor**
 
 - **Write and Edit XML**: A modern, user-friendly text editor specifically designed for XML files
+- **Grid Editor Mode**: Edit XML files as structured data in a table-like grid interface for easier data management
+- **IntelliSense/Auto-Completion**: Smart code completion that suggests only valid XML elements based on your XSD schema
+- **Code Folding**: Collapse and expand XML sections for better navigation in large files
+- **Graphical Tree View**: Visual tree representation and editing of XML structure alongside the text editor
 - **Real-time Help**: The editor highlights errors as you type and suggests fixes
 - **Auto-Formatting**: Clean up messy XML files with one click - automatically organizes and indents your code
 - **Syntax Highlighting**: Different colors for different parts of your XML make it easy to read and understand
@@ -95,6 +99,18 @@ Works on Windows, Mac, and Linux - use it on whatever computer you prefer.
 ### **Free and Open Source**
 
 Completely free to use, modify, and distribute. No hidden costs or licensing fees.
+
+## ⚠️ Current Limitations
+
+While FreeXmlToolkit is powerful and comprehensive, there are some schema formats that are not currently supported:
+
+- **DTD (Document Type Definition)**: Classic XML schema format - not supported
+- **RelaxNG**: Alternative XML schema language - not supported
+
+**Supported Schema Formats:**
+
+- ✅ **XSD (XML Schema Definition)**: Full support for W3C XML Schema
+- ✅ **Schematron**: Business rules and constraint validation
 
 ## 📋 System Requirements
 
