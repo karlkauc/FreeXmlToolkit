@@ -16,7 +16,7 @@
 
         <!-- LINKE SEITE: Alle Ihre bisherigen Steuerelemente -->
         <AnchorPane>
-            <ScrollPane fitToWidth="true" style="-fx-background-color: -fx-background-color;"
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;"
                         AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                         AnchorPane.topAnchor="0.0">
                 <VBox spacing="20" style="-fx-padding: 20;">

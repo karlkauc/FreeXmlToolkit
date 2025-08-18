@@ -53,9 +53,9 @@
             </VBox>
         </TitledPane>
 
-        <TitledPane text="Element Documentation" collapsible="true" expanded="false">
+        <TitledPane text="Node Documentation" collapsible="true" expanded="false">
             <TextArea fx:id="documentationTextArea" prefRowCount="4" editable="false" wrapText="true"
-                      promptText="Element documentation will appear here..."/>
+                      promptText="Node documentation will appear here..."/>
         </TitledPane>
 
         <TitledPane text="Example Values" collapsible="true" expanded="false">
