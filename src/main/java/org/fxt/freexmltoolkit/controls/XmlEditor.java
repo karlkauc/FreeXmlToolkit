@@ -572,7 +572,7 @@ public class XmlEditor extends Tab {
 
     /**
      * Determines the XPath of the element at the current cursor position.
-     * Uses a more robust approach that handles malformed XML gracefully.
+     * Uses the same robust stack-based approach as element name extraction.
      *
      * @param text The XML text content
      * @param position The current cursor position
@@ -583,45 +583,175 @@ public class XmlEditor extends Tab {
             return "No XML content";
         }
 
-        Deque<String> elementStack = new ArrayDeque<>();
         try {
-            // First try with XMLStreamReader for well-formed XML
-            XMLInputFactory factory = XMLInputFactory.newInstance();
-            factory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
-            XMLStreamReader reader = factory.createXMLStreamReader(new StringReader(text.substring(0, position)));
+            // Use the same stack-based approach as extractElementNameFromPosition
+            Deque<String> elementStack = buildElementStackToPosition(text, position);
 
-            while (reader.hasNext()) {
-                int event = reader.next();
-                if (event == XMLStreamReader.START_ELEMENT) {
-                    String localName = reader.getLocalName();
-                    String prefix = reader.getPrefix();
-                    String elementName = (prefix != null && !prefix.isEmpty()) ? prefix + ":" + localName : localName;
-                    elementStack.push(elementName);
-                } else if (event == XMLStreamReader.END_ELEMENT) {
-                    if (!elementStack.isEmpty()) {
-                        elementStack.pop();
-                    }
+            // Always try to get the root element name
+            String rootElementName = extractRootElementName(text);
+
+            if (elementStack.isEmpty()) {
+                // If no nested elements, show root element or indicate we're at root level
+                return rootElementName != null ? "/" + rootElementName : "/";
+            }
+
+            // Build XPath from stack (stack is in reverse order)
+            List<String> pathElements = new ArrayList<>();
+            elementStack.descendingIterator().forEachRemaining(pathElements::add);
+
+            // Always include root element at the beginning if we found one
+            if (rootElementName != null) {
+                // Check if root element is already first in path, if not add it
+                if (pathElements.isEmpty() || !pathElements.get(0).equals(rootElementName)) {
+                    pathElements.add(0, rootElementName);
                 }
             }
-            
-            // Reverse the stack for correct order
-            Deque<String> reversedStack = new ArrayDeque<>();
-            elementStack.forEach(reversedStack::push);
-            String xpath = "/" + String.join("/", reversedStack);
 
-            // Return root element if we're at the beginning
-            if (xpath.equals("/")) {
-                return "Root element";
-            }
-
+            String xpath = pathElements.isEmpty() ? "/" : "/" + String.join("/", pathElements);
             return xpath;
 
         } catch (Exception e) {
-            logger.debug("XMLStreamReader failed, trying manual parsing: {}", e.getMessage());
-
-            // Fallback: manual parsing for malformed XML
+            logger.debug("Stack-based XPath failed, trying fallback: {}", e.getMessage());
+            // Fallback to manual parsing
             return getCurrentXPathManual(text, position);
         }
+    }
+
+    /**
+     * Builds a stack of elements from the beginning of the text to the cursor position.
+     * This is the same logic used in extractElementNameFromPosition but returns the full stack.
+     *
+     * @param text          The XML text content
+     * @param caretPosition The cursor position
+     * @return A stack of element names (top of stack = innermost element)
+     */
+    private Deque<String> buildElementStackToPosition(String text, int caretPosition) {
+        Deque<String> elementStack = new ArrayDeque<>();
+
+        if (text == null || text.isEmpty() || caretPosition < 0 || caretPosition > text.length()) {
+            return elementStack;
+        }
+
+        try {
+            String textToCursor = text.substring(0, caretPosition);
+
+            // Pattern for opening tags
+            java.util.regex.Pattern openTagPattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^/>]*(?<!/)>");
+            // Pattern for closing tags  
+            java.util.regex.Pattern closeTagPattern = java.util.regex.Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\\s*>");
+            // Pattern for self-closing tags
+            java.util.regex.Pattern selfClosingPattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^>]*/>");
+
+            // Find all tags in order
+            List<TagMatch> tags = new ArrayList<>();
+
+            // Find opening tags
+            java.util.regex.Matcher openMatcher = openTagPattern.matcher(textToCursor);
+            while (openMatcher.find()) {
+                tags.add(new TagMatch(openMatcher.start(), openMatcher.group(1), TagType.OPEN));
+            }
+
+            // Find closing tags
+            java.util.regex.Matcher closeMatcher = closeTagPattern.matcher(textToCursor);
+            while (closeMatcher.find()) {
+                tags.add(new TagMatch(closeMatcher.start(), closeMatcher.group(1), TagType.CLOSE));
+            }
+
+            // Find self-closing tags
+            java.util.regex.Matcher selfClosingMatcher = selfClosingPattern.matcher(textToCursor);
+            while (selfClosingMatcher.find()) {
+                tags.add(new TagMatch(selfClosingMatcher.start(), selfClosingMatcher.group(1), TagType.SELF_CLOSING));
+            }
+
+            // Sort tags by position
+            tags.sort(java.util.Comparator.comparingInt(t -> t.position));
+
+            // Process tags to build element stack
+            for (TagMatch tag : tags) {
+                switch (tag.type) {
+                    case OPEN -> elementStack.push(tag.name);
+                    case CLOSE -> {
+                        // Remove matching opening tag from stack
+                        if (!elementStack.isEmpty() && elementStack.peek().equals(tag.name)) {
+                            elementStack.pop();
+                        }
+                    }
+                    case SELF_CLOSING -> {
+                        // Self-closing tags don't affect the stack for XPath
+                        // but we might want to include them in some cases
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            logger.debug("Error building element stack to position: {}", e.getMessage());
+        }
+
+        return elementStack;
+    }
+
+    /**
+     * Extracts the root element name from the XML text.
+     *
+     * @param text The XML text content
+     * @return The name of the root element, or null if not found
+     */
+    private String extractRootElementName(String text) {
+        if (text == null || text.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // Step by step approach to find the root element
+
+            // First, remove XML declaration if present
+            String workingText = text;
+            java.util.regex.Pattern xmlDeclPattern = java.util.regex.Pattern.compile(
+                    "^\\s*<\\?xml[^>]*>\\s*", java.util.regex.Pattern.DOTALL
+            );
+            workingText = xmlDeclPattern.matcher(workingText).replaceFirst("");
+
+            // Remove any comments at the beginning
+            java.util.regex.Pattern commentPattern = java.util.regex.Pattern.compile(
+                    "^\\s*<!--.*?-->\\s*", java.util.regex.Pattern.DOTALL
+            );
+            while (commentPattern.matcher(workingText).find()) {
+                workingText = commentPattern.matcher(workingText).replaceFirst("");
+            }
+
+            // Remove any processing instructions
+            java.util.regex.Pattern piPattern = java.util.regex.Pattern.compile(
+                    "^\\s*<\\?.*?\\?>\\s*", java.util.regex.Pattern.DOTALL
+            );
+            while (piPattern.matcher(workingText).find()) {
+                workingText = piPattern.matcher(workingText).replaceFirst("");
+            }
+
+            // Now find the first element tag
+            java.util.regex.Pattern rootElementPattern = java.util.regex.Pattern.compile(
+                    "^\\s*<([a-zA-Z][a-zA-Z0-9_:]*)[\\s>]"
+            );
+            java.util.regex.Matcher matcher = rootElementPattern.matcher(workingText);
+
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+
+            // Fallback: find any element tag at the beginning
+            java.util.regex.Pattern fallbackPattern = java.util.regex.Pattern.compile(
+                    "<([a-zA-Z][a-zA-Z0-9_:]*)[\\s>/]"
+            );
+            matcher = fallbackPattern.matcher(text);
+
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+            
+        } catch (Exception e) {
+            logger.debug("Error extracting root element name: {}", e.getMessage());
+        }
+
+        return null;
     }
 
     /**
@@ -664,15 +794,22 @@ public class XmlEditor extends Tab {
                 }
             }
 
-            // Build XPath
+            // Build XPath with root element
+            String rootElementName = extractRootElementName(text);
             Deque<String> reversedStack = new ArrayDeque<>();
             elementStack.forEach(reversedStack::push);
-            String xpath = "/" + String.join("/", reversedStack);
 
-            if (xpath.equals("/")) {
-                return "Root element";
+            List<String> pathElements = new ArrayList<>(reversedStack);
+
+            // Always include root element at the beginning if we found one
+            if (rootElementName != null) {
+                // Check if root element is already first in path, if not add it
+                if (pathElements.isEmpty() || !pathElements.get(0).equals(rootElementName)) {
+                    pathElements.add(0, rootElementName);
+                }
             }
 
+            String xpath = pathElements.isEmpty() ? "/" : "/" + String.join("/", pathElements);
             return xpath;
             
         } catch (Exception e) {
@@ -1384,57 +1521,9 @@ public class XmlEditor extends Tab {
         }
 
         try {
-            // Build a stack of open elements by parsing from beginning to cursor position
-            Deque<String> elementStack = new ArrayDeque<>();
-            String textToCursor = text.substring(0, caretPosition);
-
-            // Pattern for opening tags
-            java.util.regex.Pattern openTagPattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^/>]*(?<!/)>");
-            // Pattern for closing tags  
-            java.util.regex.Pattern closeTagPattern = java.util.regex.Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\\s*>");
-            // Pattern for self-closing tags
-            java.util.regex.Pattern selfClosingPattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^>]*/>");
-
-            // Find all tags in order
-            List<TagMatch> tags = new ArrayList<>();
-
-            // Find opening tags
-            java.util.regex.Matcher openMatcher = openTagPattern.matcher(textToCursor);
-            while (openMatcher.find()) {
-                tags.add(new TagMatch(openMatcher.start(), openMatcher.group(1), TagType.OPEN));
-            }
-
-            // Find closing tags
-            java.util.regex.Matcher closeMatcher = closeTagPattern.matcher(textToCursor);
-            while (closeMatcher.find()) {
-                tags.add(new TagMatch(closeMatcher.start(), closeMatcher.group(1), TagType.CLOSE));
-            }
-
-            // Find self-closing tags
-            java.util.regex.Matcher selfClosingMatcher = selfClosingPattern.matcher(textToCursor);
-            while (selfClosingMatcher.find()) {
-                tags.add(new TagMatch(selfClosingMatcher.start(), selfClosingMatcher.group(1), TagType.SELF_CLOSING));
-            }
-
-            // Sort tags by position
-            tags.sort(java.util.Comparator.comparingInt(t -> t.position));
-
-            // Process tags to build element stack
-            for (TagMatch tag : tags) {
-                switch (tag.type) {
-                    case OPEN -> elementStack.push(tag.name);
-                    case CLOSE -> {
-                        // Remove matching opening tag from stack
-                        if (!elementStack.isEmpty() && elementStack.peek().equals(tag.name)) {
-                            elementStack.pop();
-                        }
-                    }
-                    case SELF_CLOSING -> {
-                        // Self-closing tags don't affect the stack
-                    }
-                }
-            }
-
+            // Use the shared element stack building logic
+            Deque<String> elementStack = buildElementStackToPosition(text, caretPosition);
+            
             // The current element is the top of the stack
             if (!elementStack.isEmpty()) {
                 return elementStack.peek();
