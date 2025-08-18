@@ -104,6 +104,11 @@ public class XmlEditor extends Tab {
 
     public XmlEditor() {
         init();
+        // Set a temporary URI for new documents and parent reference
+        if (xmlCodeEditor != null) {
+            xmlCodeEditor.setDocumentUri("untitled:" + System.nanoTime() + ".xml");
+            xmlCodeEditor.setParentXmlEditor(this);
+        }
     }
 
     public XmlEditor(File file) {
@@ -120,6 +125,7 @@ public class XmlEditor extends Tab {
         // Also pass the LanguageServer to the XmlCodeEditor for IntelliSense
         if (xmlCodeEditor != null) {
             xmlCodeEditor.setLanguageServer(serverProxy);
+            xmlCodeEditor.setParentXmlEditor(this); // Set reference for schema access
         }
     }
 
@@ -1808,6 +1814,12 @@ public class XmlEditor extends Tab {
         refreshTextView();
 
         xmlService.setCurrentXmlFile(xmlFile);
+
+        // Set the document URI for LSP completion requests and parent reference
+        if (xmlCodeEditor != null && xmlFile != null) {
+            xmlCodeEditor.setDocumentUri(xmlFile.toURI().toString());
+            xmlCodeEditor.setParentXmlEditor(this);
+        }
 
         // Try to automatically load XSD schema from XML file
         if (xmlService.loadSchemaFromXMLFile()) {

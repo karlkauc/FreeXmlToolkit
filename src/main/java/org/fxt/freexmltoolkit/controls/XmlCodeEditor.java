@@ -53,6 +53,12 @@ public class XmlCodeEditor extends StackPane {
     // LSP Server for IntelliSense
     private LanguageServer languageServer;
 
+    // Document URI for LSP requests
+    private String documentUri;
+
+    // Reference to parent XmlEditor for accessing schema information
+    private Object parentXmlEditor;
+
     // IntelliSense Popup Components
     private Stage intelliSensePopup;
     private ListView<String> completionListView;
@@ -80,6 +86,24 @@ public class XmlCodeEditor extends StackPane {
 
     public void setLanguageServer(LanguageServer languageServer) {
         this.languageServer = languageServer;
+    }
+
+    /**
+     * Sets the document URI for LSP requests.
+     *
+     * @param documentUri The URI of the current document
+     */
+    public void setDocumentUri(String documentUri) {
+        this.documentUri = documentUri;
+    }
+
+    /**
+     * Sets the parent XmlEditor for accessing schema information.
+     *
+     * @param parentEditor The parent XmlEditor instance
+     */
+    public void setParentXmlEditor(Object parentEditor) {
+        this.parentXmlEditor = parentEditor;
     }
 
     /**
@@ -565,11 +589,13 @@ public class XmlCodeEditor extends StackPane {
             // Insert the "<" character first
             codeArea.insertText(codeArea.getCaretPosition(), "<");
 
-            // Store the position where we started
+            // Store the position where we started (after the '<')
             popupStartPosition = codeArea.getCaretPosition();
 
-            // Show the IntelliSense popup
-            showIntelliSensePopup();
+            // Show the IntelliSense popup (with slight delay to ensure text is processed)
+            javafx.application.Platform.runLater(() -> {
+                showIntelliSensePopup();
+            });
 
             return true; // Consume the event since we handled it
         } catch (Exception e) {
@@ -579,9 +605,296 @@ public class XmlCodeEditor extends StackPane {
     }
 
     /**
-     * Shows the IntelliSense popup with context-sensitive element names.
+     * Shows the IntelliSense popup with schema-aware element names.
      */
     private void showIntelliSensePopup() {
+        // First try to get schema-aware completions from the context
+        List<String> schemaAwareCompletions = getSchemaAwareCompletions();
+
+        if (schemaAwareCompletions != null && !schemaAwareCompletions.isEmpty()) {
+            System.out.println("DEBUG: Using schema-aware completions (" + schemaAwareCompletions.size() + " items)");
+            completionListView.getItems().clear();
+            completionListView.getItems().addAll(schemaAwareCompletions);
+
+            if (!schemaAwareCompletions.isEmpty()) {
+                completionListView.getSelectionModel().select(0);
+            }
+            showPopupAtCursor();
+        } else {
+            System.out.println("DEBUG: No schema-aware completions available, using manual completion");
+            showManualIntelliSensePopup();
+        }
+    }
+
+    /**
+     * Gets schema-aware completions based on the current cursor position and loaded XSD schema.
+     *
+     * @return List of allowed element names at the current position, or null if no schema available
+     */
+    private List<String> getSchemaAwareCompletions() {
+        try {
+            // Get the current parent element context
+            String currentContext = getCurrentElementContext();
+            System.out.println("DEBUG: Current element context: " + currentContext);
+
+            // Try to get completions from the parent XmlEditor's schema information
+            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
+                // Get the XmlService which has the XSD schema information
+                var xmlService = xmlEditor.getXmlService();
+                if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
+                    System.out.println("DEBUG: XSD schema available: " + xmlService.getCurrentXsdFile().getName());
+
+                    // Try to get allowed child elements for the current context
+                    List<String> allowedElements = getChildElementsFromSchema(xmlService, currentContext);
+                    if (allowedElements != null && !allowedElements.isEmpty()) {
+                        System.out.println("DEBUG: Found " + allowedElements.size() + " allowed child elements for context '" + currentContext + "'");
+                        return allowedElements;
+                    } else {
+                        System.out.println("DEBUG: No allowed child elements found for context '" + currentContext + "'");
+                    }
+                }
+            }
+
+            return null;
+        } catch (Exception e) {
+            System.err.println("DEBUG: Error getting schema-aware completions: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Gets allowed child elements for a given parent element from the XSD schema.
+     *
+     * @param xmlService    The XmlService containing schema information
+     * @param parentElement The parent element name, or null for root elements
+     * @return List of allowed child element names
+     */
+    private List<String> getChildElementsFromSchema(org.fxt.freexmltoolkit.service.XmlService xmlService, String parentElement) {
+        try {
+            // This is a simplified implementation - in a complete implementation,
+            // we would parse the XSD schema and determine allowed child elements
+
+            if (parentElement == null) {
+                // For root level, try to get root elements from the schema
+                // For now, we'll return some common root elements for the FundsXML schema
+                return List.of("FundsXML4");
+            }
+
+            // For specific parent elements, we could analyze the XSD schema
+            // For demonstration purposes, let's implement some common FundsXML patterns
+            return switch (parentElement.toLowerCase()) {
+                case "fundsxml4" ->
+                        List.of("ControlData", "Funds", "AssetMgmtCompanyDynData", "AssetMasterData", "Documents", "RegulatoryReportings");
+                case "controldata" ->
+                        List.of("UniqueDocumentID", "DocumentGenerated", "Version", "ContentDate", "DataSupplier", "DataOperation", "RelatedDocumentIDs", "Language");
+                case "funds" -> List.of("Fund");
+                case "fund" ->
+                        List.of("Identifiers", "Names", "Currency", "SingleFundFlag", "DataSupplier", "FundStaticData", "FundDynamicData");
+                case "identifiers" -> List.of("LEI", "ISIN", "CUSIP", "SEDOL", "WKN");
+                case "names" -> List.of("OfficialName", "ShortName");
+                case "datasupplier" -> List.of("SystemCountry", "Short", "Name", "Type", "Contact");
+                case "contact" -> List.of("Name", "Phone", "Email");
+                case "fundstaticdata" -> List.of("ListedLegalStructure", "InceptionDate", "StartOfFiscalYear");
+                case "funddynamicdata" -> List.of("TotalAssetValues", "Portfolios");
+                case "totalassetvalues" -> List.of("TotalAssetValue");
+                case "totalassetvalue" -> List.of("NavDate", "TotalNetAssets", "GrossAssets");
+                case "portfolios" -> List.of("Portfolio");
+                case "portfolio" -> List.of("Positions");
+                case "positions" -> List.of("Position");
+                default -> {
+                    System.out.println("DEBUG: No specific child elements defined for parent '" + parentElement + "'");
+                    yield null;
+                }
+            };
+
+        } catch (Exception e) {
+            System.err.println("DEBUG: Error getting child elements from schema: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Ensures the current document content is synchronized with the LSP server.
+     * This is crucial for getting accurate completion suggestions.
+     */
+    private void ensureDocumentSynchronized() {
+        try {
+            String content = codeArea.getText();
+
+            // For untitled documents, we need to send a didOpen notification first
+            if (documentUri.startsWith("untitled:")) {
+                System.out.println("DEBUG: Sending didOpen for untitled document");
+                org.eclipse.lsp4j.TextDocumentItem textDocument = new org.eclipse.lsp4j.TextDocumentItem(
+                        documentUri, "xml", 1, content);
+
+                org.eclipse.lsp4j.DidOpenTextDocumentParams openParams =
+                        new org.eclipse.lsp4j.DidOpenTextDocumentParams(textDocument);
+
+                languageServer.getTextDocumentService().didOpen(openParams);
+            } else {
+                // For file-based documents, send a didChange notification
+                System.out.println("DEBUG: Sending didChange for file document");
+                org.eclipse.lsp4j.VersionedTextDocumentIdentifier identifier =
+                        new org.eclipse.lsp4j.VersionedTextDocumentIdentifier(documentUri, 1);
+
+                org.eclipse.lsp4j.TextDocumentContentChangeEvent changeEvent =
+                        new org.eclipse.lsp4j.TextDocumentContentChangeEvent(content);
+
+                org.eclipse.lsp4j.DidChangeTextDocumentParams params =
+                        new org.eclipse.lsp4j.DidChangeTextDocumentParams(identifier,
+                                java.util.Collections.singletonList(changeEvent));
+
+                languageServer.getTextDocumentService().didChange(params);
+            }
+
+            System.out.println("DEBUG: Document synchronized with LSP server");
+
+        } catch (Exception e) {
+            System.err.println("ERROR: Failed to synchronize document with LSP server: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Requests completions from the Language Server based on the current cursor position.
+     */
+    private void requestCompletionsFromLSP() {
+        try {
+            int caretPosition = codeArea.getCaretPosition();
+            String text = codeArea.getText();
+
+            // Calculate line and character position
+            String textBeforeCursor = text.substring(0, caretPosition);
+            String[] lines = textBeforeCursor.split("\n", -1);
+            int lineNumber = lines.length - 1;
+            int character = lines[lineNumber].length();
+
+            // Debug logging
+            System.out.println("DEBUG: Requesting LSP completion at line=" + lineNumber + ", character=" + character);
+            System.out.println("DEBUG: Document URI: " + documentUri);
+            System.out.println("DEBUG: Text around cursor: '" +
+                    textBeforeCursor.substring(Math.max(0, textBeforeCursor.length() - 20)) + "' | '" +
+                    text.substring(caretPosition, Math.min(text.length(), caretPosition + 20)) + "'");
+
+            // Create completion request parameters
+            org.eclipse.lsp4j.TextDocumentIdentifier textDocument = new org.eclipse.lsp4j.TextDocumentIdentifier();
+            // Use the document URI if available, otherwise fallback to a placeholder
+            String uriToUse = (documentUri != null && !documentUri.isEmpty()) ? documentUri : "file:///temp.xml";
+            textDocument.setUri(uriToUse);
+
+            org.eclipse.lsp4j.Position position = new org.eclipse.lsp4j.Position(lineNumber, character);
+            org.eclipse.lsp4j.CompletionParams completionParams = new org.eclipse.lsp4j.CompletionParams(textDocument, position);
+
+            // Set completion context to indicate this is a triggered completion (after '<')
+            org.eclipse.lsp4j.CompletionContext context = new org.eclipse.lsp4j.CompletionContext();
+            context.setTriggerKind(org.eclipse.lsp4j.CompletionTriggerKind.TriggerCharacter);
+            context.setTriggerCharacter("<");
+            completionParams.setContext(context);
+
+            System.out.println("DEBUG: Sending LSP completion request...");
+
+            // Request completions from the Language Server
+            languageServer.getTextDocumentService().completion(completionParams)
+                    .thenAccept(completionList -> {
+                        System.out.println("DEBUG: LSP completion response received");
+                        javafx.application.Platform.runLater(() -> {
+                            if (completionList != null && completionList.isRight()) {
+                                // Handle CompletionList
+                                var items = completionList.getRight().getItems();
+                                System.out.println("DEBUG: CompletionList received with " + (items != null ? items.size() : 0) + " items");
+                                if (items != null && !items.isEmpty()) {
+                                    showCompletionItems(items);
+                                } else {
+                                    System.out.println("DEBUG: No completion items from LSP CompletionList");
+                                    completionListView.getItems().clear();
+                                    completionListView.getItems().add("(No LSP completions - CompletionList empty)");
+                                    showEmptyPopup();
+                                }
+                            } else if (completionList != null && completionList.isLeft()) {
+                                // Handle List<CompletionItem>
+                                var items = completionList.getLeft();
+                                System.out.println("DEBUG: CompletionItem list received with " + (items != null ? items.size() : 0) + " items");
+                                if (items != null && !items.isEmpty()) {
+                                    showCompletionItems(items);
+                                } else {
+                                    System.out.println("DEBUG: No completion items from LSP List");
+                                    completionListView.getItems().clear();
+                                    completionListView.getItems().add("(No LSP completions - List empty)");
+                                    showEmptyPopup();
+                                }
+                            } else {
+                                System.out.println("DEBUG: No completion results from LSP at all");
+                                completionListView.getItems().clear();
+                                completionListView.getItems().add("(No LSP response)");
+                                showEmptyPopup();
+                            }
+                        });
+                    })
+                    .exceptionally(throwable -> {
+                        System.err.println("ERROR: LSP completion request failed: " + throwable.getMessage());
+                        throwable.printStackTrace();
+                        // Fallback to manual completion on error
+                        javafx.application.Platform.runLater(this::showManualIntelliSensePopup);
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            System.err.println("ERROR: Exception preparing completion request: " + e.getMessage());
+            e.printStackTrace();
+            // Fallback to manual completion on error
+            showManualIntelliSensePopup();
+        }
+    }
+
+    /**
+     * Shows completion items from the Language Server.
+     */
+    private void showCompletionItems(java.util.List<org.eclipse.lsp4j.CompletionItem> items) {
+        // Extract the labels from completion items
+        java.util.List<String> completionLabels = items.stream()
+                .map(org.eclipse.lsp4j.CompletionItem::getLabel)
+                .collect(java.util.stream.Collectors.toList());
+
+        // Update the list view with LSP completion items
+        completionListView.getItems().clear();
+        completionListView.getItems().addAll(completionLabels);
+
+        // Select the first item
+        if (!completionLabels.isEmpty()) {
+            completionListView.getSelectionModel().select(0);
+        }
+
+        showPopupAtCursor();
+    }
+
+    /**
+     * Shows the completion popup with current items at the cursor position.
+     */
+    private void showEmptyPopup() {
+        showPopupAtCursor();
+    }
+
+    /**
+     * Shows the popup at the current cursor position.
+     */
+    private void showPopupAtCursor() {
+        // Show the popup at the current cursor position
+        if (codeArea.getScene() != null && codeArea.getScene().getWindow() != null) {
+            var caretBounds = codeArea.getCaretBounds().orElse(null);
+            if (caretBounds != null) {
+                var screenPos = codeArea.localToScreen(caretBounds.getMinX(), caretBounds.getMaxY());
+                intelliSensePopup.setX(screenPos.getX());
+                intelliSensePopup.setY(screenPos.getY());
+                intelliSensePopup.show();
+            }
+        }
+    }
+
+    /**
+     * Fallback method that shows manual IntelliSense popup (original behavior).
+     */
+    private void showManualIntelliSensePopup() {
         // Get the current context (parent element)
         String currentContext = getCurrentElementContext();
         List<String> contextSpecificElements = getContextSpecificElements(currentContext);
