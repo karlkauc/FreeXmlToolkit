@@ -57,19 +57,6 @@
             </VBox>
             <Separator orientation="VERTICAL" />
         </HBox>
-        <HBox styleClass="xml" spacing="5">
-            <Separator orientation="VERTICAL" />
-            <Button fx:id="validateSchema" contentDisplay="TOP" onAction="#validateSchema" text="validate Schema" ButtonBar.buttonData="RIGHT">
-                <graphic>
-                    <FontIcon iconLiteral="win10-checked" />
-                </graphic>
-            </Button>
-            <VBox alignment="CENTER_LEFT" spacing="5">
-                <Label fx:id="schemaValidationStatus" text="Schema status: Unknown" />
-                <Button fx:id="selectSchemaButton" text="Select XSD Schema" onAction="#selectSchemaFile" visible="false" />
-                <CheckBox fx:id="continuousValidation" text="Continuous validation" />
-            </VBox>
-        </HBox>
         <HBox fx:id="test" styleClass="xml" visible="false">
             <Separator orientation="VERTICAL" />
             <Button contentDisplay="TOP" onAction="#test" text="test" ButtonBar.buttonData="RIGHT">
@@ -77,16 +64,6 @@
                     <FontIcon iconLiteral="win10-checked" />
                 </graphic>
             </Button>
-        </HBox>
-        <HBox>
-            <padding>
-                <Insets left="10.0" />
-            </padding>
-            <VBox alignment="CENTER_LEFT" spacing="2.0">
-                <Label text="Notification:" />
-                <Label fx:id="schemaValidText" text="xxx" />
-                <ProgressIndicator fx:id="operationProgressBar" visible="false" />
-            </VBox>
         </HBox>
     </HBox>
 

@@ -26,7 +26,6 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -55,8 +54,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +76,7 @@ public class XmlController {
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     @FXML
-    Button openFile, saveFile, prettyPrint, newFile, validateSchema, runXpathQuery, minifyButton;
+    Button openFile, saveFile, prettyPrint, newFile, runXpathQuery, minifyButton;
 
     @FXML
     StackPane stackPaneXPath, stackPaneXQuery;
@@ -92,18 +89,7 @@ public class XmlController {
     @FXML
     HBox test;
 
-    @FXML
-    Label schemaValidText;
 
-    // New UI elements for schema validation
-    @FXML
-    private Label schemaValidationStatus;
-    @FXML
-    private Button selectSchemaButton;
-    @FXML
-    private CheckBox continuousValidation;
-
-    private File selectedSchemaFile;
 
 
     @FXML
@@ -118,8 +104,6 @@ public class XmlController {
     @FXML
     XmlEditor emptyXmlEditor;
 
-    @FXML
-    private ProgressIndicator operationProgressBar;
 
     // --- LSP Server Felder ---
     private LanguageServer serverProxy;
@@ -140,7 +124,6 @@ public class XmlController {
     @FXML
     private void initialize() {
         logger.debug("Bin im xmlController init");
-        schemaValidText.setText("");
 
         codeAreaXpath.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXpath));
         virtualizedScrollPaneXpath = new VirtualizedScrollPane<>(codeAreaXpath);
@@ -185,11 +168,6 @@ public class XmlController {
         xmlFilesPane.setOnDragDropped(this::handleFileDroppedEvent);
 
         // Add listener for continuous validation
-        continuousValidation.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
-            if (isSelected) {
-                validateSchema(); // Trigger validation once when checkbox is selected
-            }
-        });
     }
 
     private void createAndAddXmlTab(File file) {
@@ -204,9 +182,6 @@ public class XmlController {
         // Dies ist entscheidend für aktuelle Diagnosen und Falt-Bereiche.
         xmlEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
             notifyLspServerFileChanged(xmlEditor);
-            if (continuousValidation.isSelected()) {
-                validateSchema();
-            }
         });
 
         xmlFilesPane.getTabs().add(xmlEditor);
@@ -216,9 +191,6 @@ public class XmlController {
             mainController.addFileToRecentFiles(file);
             notifyLspServerFileOpened(file, xmlEditor.codeArea.getText());
         }
-        // Reset validation state for the new tab
-        resetValidationState();
-        validateSchema();
     }
 
     @FXML
@@ -506,10 +478,8 @@ public class XmlController {
         XmlService service = currentEditor.getXmlService();
 
         // Schema-Datei für die Validierung bestimmen.
-        // Priorität 1: Die explizite Auswahl des Benutzers.
-        File schemaToUse = selectedSchemaFile;
-
-        // Priorität 2: Wenn nichts ausgewählt ist, das vom Service erkannte Schema verwenden.
+        // Verwende das vom Service erkannte Schema.
+        File schemaToUse = null;
         if (schemaToUse == null) {
             schemaToUse = service.getCurrentXsdFile();
         }
@@ -584,7 +554,6 @@ public class XmlController {
         try {
             Files.writeString(targetFile.toPath(), content, StandardCharsets.UTF_8);
             logger.info("Datei erfolgreich gespeichert: {}", targetFile.getAbsolutePath());
-            schemaValidText.setText("Datei '" + targetFile.getName() + "' gespeichert (" + targetFile.length() + " Bytes).");
         } catch (IOException e) {
             logger.error("Fehler beim Schreiben der Datei: {}", targetFile.getAbsolutePath(), e);
             new Alert(Alert.AlertType.ERROR, "Konnte Datei nicht speichern:\n" + e.getMessage()).showAndWait();
@@ -600,7 +569,6 @@ public class XmlController {
 
         // Die Operation wird in einen Hintergrund-Thread ausgelagert, um die UI nicht zu blockieren.
         minifyButton.setDisable(true);
-        operationProgressBar.setVisible(true);
 
         Task<String> minifyTask = new Task<>() {
             @Override
@@ -617,14 +585,12 @@ public class XmlController {
                 currentCodeArea.replaceText(0, 0, minifiedString);
             }
             minifyButton.setDisable(false);
-            operationProgressBar.setVisible(false);
         });
 
         minifyTask.setOnFailed(event -> {
             logger.error("Failed to minify XML", minifyTask.getException());
             new Alert(Alert.AlertType.ERROR, "Could not minify XML: " + minifyTask.getException().getMessage()).showAndWait();
             minifyButton.setDisable(false);
-            operationProgressBar.setVisible(false);
         });
 
         formattingExecutor.submit(minifyTask);
@@ -662,102 +628,6 @@ public class XmlController {
         });
 
         formattingExecutor.submit(formatTask);
-    }
-
-    @FXML
-    private void validateSchema() {
-        logger.debug("Validate Schema button pressed or called");
-        XmlEditor currentEditor = getCurrentXmlEditor();
-        if (currentEditor == null) {
-            schemaValidationStatus.setText("No active editor.");
-            return;
-        }
-
-        CodeArea currentCodeArea = getCurrentCodeArea();
-        if (currentCodeArea == null || currentCodeArea.getText().isBlank()) {
-            schemaValidationStatus.setText("No XML content to validate.");
-            return;
-        }
-
-        XmlService xmlService = currentEditor.getXmlService();
-        String xmlContent = currentCodeArea.getText();
-
-        // Determine which schema to use
-        File schemaToUse = selectedSchemaFile;
-        if (schemaToUse == null) {
-            xmlService.loadSchemaFromXMLFile(); // Try to find schema in XML
-            schemaToUse = xmlService.getCurrentXsdFile();
-        }
-
-        // Update UI based on schema availability
-        if (schemaToUse == null) {
-            schemaValidationStatus.setText("Schema status: No XSD schema found.");
-            selectSchemaButton.setVisible(true);
-            return; // Stop if no schema is available
-        } else {
-            schemaValidationStatus.setText("Schema status: Using " + schemaToUse.getName());
-            selectSchemaButton.setVisible(false);
-        }
-
-        // Perform validation
-        List<SAXParseException> errors = xmlService.validateText(xmlContent, schemaToUse);
-
-        // Display results
-        if (errors != null && !errors.isEmpty()) {
-            String errorMsg = errors.size() + " validation error(s). First: " + errors.get(0).getMessage();
-            schemaValidationStatus.setText("Schema status: Invalid. " + errorMsg);
-            schemaValidationStatus.setStyle("-fx-text-fill: red;");
-
-            // Optionally show a detailed alert
-            if (!continuousValidation.isSelected()) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.getDialogPane().setMaxHeight(Region.USE_PREF_SIZE);
-                alert.setTitle(errors.size() + " validation Errors");
-                StringBuilder temp = new StringBuilder();
-                for (SAXParseException error : errors) {
-                    temp.append(error.getMessage()).append(System.lineSeparator());
-                }
-                alert.setContentText(temp.toString());
-                alert.showAndWait();
-            }
-
-        } else {
-            schemaValidationStatus.setText("Schema status: Valid (" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")) + ")");
-            schemaValidationStatus.setStyle("-fx-text-fill: green;");
-        }
-    }
-
-    @FXML
-    private void selectSchemaFile() {
-        FileChooser xsdFileChooser = new FileChooser();
-        xsdFileChooser.setTitle("Select XSD Schema File");
-        xsdFileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Files (*.xsd)", "*.xsd"));
-        String lastDirString = propertiesService.getLastOpenDirectory();
-        if (lastDirString != null) {
-            File lastDir = new File(lastDirString);
-            if (lastDir.exists() && lastDir.isDirectory()) {
-                xsdFileChooser.setInitialDirectory(lastDir);
-            }
-        }
-
-        File selectedFile = xsdFileChooser.showOpenDialog(xmlFilesPane.getScene().getWindow());
-
-        if (selectedFile != null) {
-            this.selectedSchemaFile = selectedFile;
-            logger.info("User selected XSD schema: {}", selectedFile.getAbsolutePath());
-            if (selectedFile.getParentFile() != null) {
-                propertiesService.setLastOpenDirectory(selectedFile.getParentFile().getAbsolutePath());
-            }
-            validateSchema(); // Re-validate with the new schema
-        }
-    }
-
-    private void resetValidationState() {
-        selectedSchemaFile = null;
-        schemaValidationStatus.setText("Schema status: Unknown");
-        schemaValidationStatus.setStyle("-fx-text-fill: black;");
-        selectSchemaButton.setVisible(false);
-        // continuousValidation.setSelected(false); // Optional: decide if this should be reset
     }
 
 
@@ -971,7 +841,6 @@ public class XmlController {
             }
         });
         // 7. Führe Folgeaktionen aus, die vom geladenen Inhalt abhängen.
-        validateSchema();
 
         CodeArea codeArea = getCurrentCodeArea();
         if (codeArea != null) {

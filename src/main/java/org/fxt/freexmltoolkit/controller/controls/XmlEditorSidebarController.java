@@ -2,10 +2,10 @@ package org.fxt.freexmltoolkit.controller.controls;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
 
@@ -27,7 +27,31 @@ public class XmlEditorSidebarController {
     private TextField xpathField;
 
     @FXML
+    private TextField elementNameField;
+
+    @FXML
+    private TextField elementTypeField;
+
+    @FXML
+    private TextArea documentationTextArea;
+
+    @FXML
+    private ListView<String> exampleValuesListView;
+
+    @FXML
     private ListView<String> childElementsListView;
+
+    @FXML
+    private TextField schematronPathField;
+
+    @FXML
+    private Button changeSchematronButton;
+
+    @FXML
+    private Label schematronValidationStatusLabel;
+
+    @FXML
+    private CheckBox continuousSchematronValidationCheckBox;
 
     @FXML
     private Button toggleSidebarButton;
@@ -41,6 +65,9 @@ public class XmlEditorSidebarController {
 
     private boolean sidebarVisible = true;
 
+    private VBox sidebarContainer; // Reference to the main container
+    private double expandedWidth = 300; // Store the expanded width
+
     public void setXmlEditor(XmlEditor xmlEditor) {
         this.xmlEditor = xmlEditor;
     }
@@ -51,16 +78,49 @@ public class XmlEditorSidebarController {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select XSD Schema");
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Files", "*.xsd"));
+
+            // Set initial directory to the same as the XML file if available
+            if (xmlEditor != null && xmlEditor.getXmlFile() != null && xmlEditor.getXmlFile().getParentFile() != null) {
+                fileChooser.setInitialDirectory(xmlEditor.getXmlFile().getParentFile());
+            }
+            
             File selectedFile = fileChooser.showOpenDialog(changeXsdButton.getScene().getWindow());
             if (selectedFile != null) {
                 xsdPathField.setText(selectedFile.getAbsolutePath());
-                xmlEditor.setXsdFile(selectedFile);
+                if (xmlEditor != null) {
+                    xmlEditor.setXsdFile(selectedFile);
+                }
+            }
+        });
+
+        changeSchematronButton.setOnAction(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Schematron Rules");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Schematron Files", "*.sch", "*.xslt", "*.xsl"));
+
+            // Set initial directory to the same as the XML file if available
+            if (xmlEditor != null && xmlEditor.getXmlFile() != null && xmlEditor.getXmlFile().getParentFile() != null) {
+                fileChooser.setInitialDirectory(xmlEditor.getXmlFile().getParentFile());
+            }
+
+            File selectedFile = fileChooser.showOpenDialog(changeSchematronButton.getScene().getWindow());
+            if (selectedFile != null) {
+                schematronPathField.setText(selectedFile.getAbsolutePath());
+                if (xmlEditor != null) {
+                    xmlEditor.setSchematronFile(selectedFile);
+                }
             }
         });
 
         continuousValidationCheckBox.setOnAction(event -> {
-            if (continuousValidationCheckBox.isSelected()) {
+            if (continuousValidationCheckBox.isSelected() && xmlEditor != null) {
                 xmlEditor.validateXml();
+            }
+        });
+
+        continuousSchematronValidationCheckBox.setOnAction(event -> {
+            if (continuousSchematronValidationCheckBox.isSelected() && xmlEditor != null) {
+                xmlEditor.validateSchematron();
             }
         });
     }
@@ -68,14 +128,39 @@ public class XmlEditorSidebarController {
     @FXML
     private void toggleSidebar() {
         sidebarVisible = !sidebarVisible;
-        sidebarContent.setVisible(sidebarVisible);
-        sidebarContent.setManaged(sidebarVisible);
 
-        FontIcon icon = (FontIcon) toggleSidebarButton.getGraphic();
         if (sidebarVisible) {
-            icon.setIconLiteral("bi-arrow-right-square:20");
+            // Expand sidebar
+            sidebarContent.setVisible(true);
+            sidebarContent.setManaged(true);
+
+            if (sidebarContainer != null) {
+                sidebarContainer.setPrefWidth(expandedWidth);
+                sidebarContainer.setMinWidth(250);
+                sidebarContainer.setMaxWidth(400);
+            }
+
+            // Reset toggle button width when expanded
+            toggleSidebarButton.setPrefWidth(Region.USE_COMPUTED_SIZE);
+            toggleSidebarButton.setMinWidth(Region.USE_COMPUTED_SIZE);
+
+            toggleSidebarButton.setText("◀");
         } else {
-            icon.setIconLiteral("bi-arrow-left-square:20");
+            // Collapse sidebar - minimize to just the toggle button width
+            sidebarContent.setVisible(false);
+            sidebarContent.setManaged(false);
+
+            if (sidebarContainer != null) {
+                sidebarContainer.setPrefWidth(32); // Minimal width for just the toggle button
+                sidebarContainer.setMinWidth(32);
+                sidebarContainer.setMaxWidth(32);
+            }
+
+            // Make toggle button take minimal space when collapsed
+            toggleSidebarButton.setPrefWidth(30);
+            toggleSidebarButton.setMinWidth(30);
+
+            toggleSidebarButton.setText("▶");
         }
     }
 
@@ -108,9 +193,22 @@ public class XmlEditorSidebarController {
         validationStatusLabel.setStyle("-fx-text-fill: " + color + ";");
     }
 
+    public void updateSchematronValidationStatus(String status, String color) {
+        if (schematronValidationStatusLabel != null) {
+            schematronValidationStatusLabel.setText("Schematron validation status: " + status);
+            schematronValidationStatusLabel.setStyle("-fx-text-fill: " + color + ";");
+        }
+    }
+
     public void setXsdPathField(String path) {
         if (xsdPathField != null) {
             xsdPathField.setText(path != null ? path : "No XSD schema selected");
+        }
+    }
+
+    public void setSchematronPathField(String path) {
+        if (schematronPathField != null) {
+            schematronPathField.setText(path != null ? path : "No Schematron rules selected");
         }
     }
 
@@ -118,5 +216,51 @@ public class XmlEditorSidebarController {
         if (continuousValidationCheckBox != null) {
             continuousValidationCheckBox.setSelected(selected);
         }
+    }
+
+    public void setContinuousSchematronValidation(boolean selected) {
+        if (continuousSchematronValidationCheckBox != null) {
+            continuousSchematronValidationCheckBox.setSelected(selected);
+        }
+    }
+
+    // Method to set the sidebar container reference from XmlEditor
+    public void setSidebarContainer(VBox container) {
+        this.sidebarContainer = container;
+        if (container != null) {
+            this.expandedWidth = container.getPrefWidth();
+        }
+    }
+
+    public void setElementName(String elementName) {
+        if (elementNameField != null) {
+            elementNameField.setText(elementName != null ? elementName : "");
+        }
+    }
+
+    public void setElementType(String elementType) {
+        if (elementTypeField != null) {
+            elementTypeField.setText(elementType != null ? elementType : "");
+        }
+    }
+
+    public void setDocumentation(String documentation) {
+        if (documentationTextArea != null) {
+            documentationTextArea.setText(documentation != null ? documentation : "");
+        }
+    }
+
+    public void setExampleValues(java.util.List<String> exampleValues) {
+        if (exampleValuesListView != null) {
+            if (exampleValues != null && !exampleValues.isEmpty()) {
+                exampleValuesListView.getItems().setAll(exampleValues);
+            } else {
+                exampleValuesListView.getItems().setAll("No example values available");
+            }
+        }
+    }
+
+    public boolean isContinuousSchematronValidationSelected() {
+        return continuousSchematronValidationCheckBox != null && continuousSchematronValidationCheckBox.isSelected();
     }
 }

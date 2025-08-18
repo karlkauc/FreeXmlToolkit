@@ -8,7 +8,6 @@ import javafx.geometry.Side;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +20,7 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.TwoDimensional;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
+import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
 import org.fxt.freexmltoolkit.service.*;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
@@ -88,18 +88,9 @@ public class XmlEditor extends Tab {
     private SearchReplaceController searchController;
     private PopOver searchPopOver;
 
-    // --- Sidebar UI Components ---
-    private TextField xsdPathField;
-    private Label validationStatusLabel;
-    private CheckBox continuousValidationCheckBox;
-    private TextField xpathField;
-    private TextField elementNameField;
-    private TextField elementTypeField;
-    private ListView<String> childElementsListView;
-    private TextArea documentationTextArea;
-    private ListView<String> exampleValuesListView;
+    // --- Sidebar Components ---
+    private XmlEditorSidebarController sidebarController;
     private SplitPane splitPane;
-    private final double expandedDividerPosition = -1; // Store the expanded position for toggle functionality
 
     /**
          * Data class to hold element information.
@@ -183,22 +174,22 @@ public class XmlEditor extends Tab {
         this.setClosable(true);
 
         // --- Create Main Layout ---
-        SplitPane splitPane = new SplitPane();
+        splitPane = new SplitPane();
         splitPane.setDividerPositions(0.8); // Initial position
 
-        // Store reference to splitPane for sidebar toggle functionality
-        this.splitPane = splitPane;
-
-        // --- Create Sidebar Programmatically ---
-        VBox sidebar = createSidebar(splitPane);
+        // --- Load Sidebar from FXML ---
+        VBox sidebar = loadSidebar();
 
         splitPane.getItems().addAll(tabPane, sidebar);
         this.setContent(splitPane);
 
         // --- Add Listeners ---
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (continuousValidationCheckBox.isSelected()) {
+            if (sidebarController != null && sidebarController.isContinuousValidationSelected()) {
                 validateXml();
+            }
+            if (sidebarController != null && sidebarController.isContinuousSchematronValidationSelected()) {
+                validateSchematron();
             }
         });
 
@@ -206,112 +197,25 @@ public class XmlEditor extends Tab {
     }
 
     /**
-     * Creates a sidebar with collapsible functionality that spans the full height of the screen.
-     * The sidebar contains XSD schema information, cursor information, and child elements.
+     * Loads the sidebar from FXML and initializes the controller.
      *
-     * @param splitPane The SplitPane that contains the sidebar for proper toggle functionality
-     * @return VBox containing the sidebar with toggle functionality
+     * @return VBox containing the sidebar loaded from FXML
      */
-    private VBox createSidebar(SplitPane splitPane) {
-        // --- Main Sidebar Container ---
-        VBox sidebarContainer = new VBox();
-        sidebarContainer.setStyle("-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 0 1px;");
-        sidebarContainer.setPrefWidth(300);
-        sidebarContainer.setMinWidth(250);
-        sidebarContainer.setMaxWidth(400);
-
-        // --- Toggle Button for Collapse/Expand ---
-        Button toggleButton = new Button("◀");
-        toggleButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 5px 10px; -fx-background-color: #6c757d; -fx-text-fill: white; -fx-border-radius: 0; -fx-background-radius: 0;");
-        toggleButton.setMaxWidth(Double.MAX_VALUE);
-        toggleButton.setOnAction(event -> toggleSidebar(sidebarContainer, toggleButton, splitPane));
-
-        // --- Sidebar Content Pane ---
-        VBox sidebarContent = new VBox(10);
-        sidebarContent.setPadding(new Insets(10));
-        VBox.setVgrow(sidebarContent, Priority.ALWAYS);
-
-        // --- XSD Section ---
-        xsdPathField = new TextField();
-        xsdPathField.setPromptText("XSD Schema");
-        xsdPathField.setEditable(false); // Make it read-only to show current schema
-        HBox.setHgrow(xsdPathField, Priority.ALWAYS);
-        Button changeXsdButton = new Button("...");
-        changeXsdButton.setOnAction(event -> selectXsdFile());
-        HBox xsdFileBox = new HBox(5, xsdPathField, changeXsdButton);
-        validationStatusLabel = new Label("Validation status: Unknown");
-        validationStatusLabel.setWrapText(true);
-        continuousValidationCheckBox = new CheckBox("Continuous validation");
-        VBox xsdBox = new VBox(5, xsdFileBox, validationStatusLabel, continuousValidationCheckBox);
-        TitledPane xsdPane = new TitledPane("XSD Schema", xsdBox);
-        xsdPane.setCollapsible(false);
-
-        // --- Schematron Section ---
-        TextField schematronPathField = new TextField();
-        schematronPathField.setPromptText("Schematron Rules");
-        schematronPathField.setEditable(false);
-        HBox.setHgrow(schematronPathField, Priority.ALWAYS);
-        Button changeSchematronButton = new Button("...");
-        changeSchematronButton.setOnAction(event -> selectSchematronFile());
-        HBox schematronFileBox = new HBox(5, schematronPathField, changeSchematronButton);
-        Label schematronValidationStatusLabel = new Label("Schematron validation status: Unknown");
-        schematronValidationStatusLabel.setWrapText(true);
-        CheckBox continuousSchematronValidationCheckBox = new CheckBox("Continuous Schematron validation");
-        VBox schematronBox = new VBox(5, schematronFileBox, schematronValidationStatusLabel, continuousSchematronValidationCheckBox);
-        TitledPane schematronPane = new TitledPane("Schematron Rules", schematronBox);
-        schematronPane.setCollapsible(false);
-
-        // --- Cursor Section ---
-        xpathField = new TextField();
-        xpathField.setEditable(false);
-        xpathField.setPromptText("XPath will appear here...");
-
-        elementNameField = new TextField();
-        elementNameField.setEditable(false);
-        elementNameField.setPromptText("Element name will appear here...");
-
-        elementTypeField = new TextField();
-        elementTypeField.setEditable(false);
-        elementTypeField.setPromptText("Element type will appear here...");
-
-        VBox cursorBox = new VBox(5,
-                new Label("XPath:"), xpathField,
-                new Label("Element Name:"), elementNameField,
-                new Label("Element Type:"), elementTypeField
-        );
-        TitledPane cursorPane = new TitledPane("Cursor Information", cursorBox);
-        cursorPane.setCollapsible(false);
-
-        // --- Documentation Section ---
-        documentationTextArea = new TextArea();
-        documentationTextArea.setPrefHeight(100);
-        documentationTextArea.setEditable(false);
-        documentationTextArea.setWrapText(true);
-        documentationTextArea.setPromptText("Element documentation will appear here...");
-        TitledPane documentationPane = new TitledPane("Element Documentation", documentationTextArea);
-        documentationPane.setCollapsible(false);
-
-        // --- Example Values Section ---
-        exampleValuesListView = new ListView<>();
-        exampleValuesListView.setPrefHeight(100);
-        exampleValuesListView.setPlaceholder(new Label("Example values will appear here..."));
-        TitledPane exampleValuesPane = new TitledPane("Example Values", exampleValuesListView);
-        exampleValuesPane.setCollapsible(false);
-
-        // --- Child Elements Section ---
-        childElementsListView = new ListView<>();
-        childElementsListView.setPrefHeight(150);
-        TitledPane childElementsPane = new TitledPane("Possible Child Elements", childElementsListView);
-        childElementsPane.setCollapsible(false);
-        VBox.setVgrow(childElementsPane, Priority.ALWAYS);
-
-        // Add sections in the desired order: XSD Schema first, then Schematron, then cursor info, documentation, examples, and child elements
-        sidebarContent.getChildren().addAll(xsdPane, schematronPane, cursorPane, documentationPane, exampleValuesPane, childElementsPane);
-
-        // --- Assemble Sidebar ---
-        sidebarContainer.getChildren().addAll(toggleButton, sidebarContent);
-
-        return sidebarContainer;
+    private VBox loadSidebar() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/pages/controls/XmlEditorSidebar.fxml"));
+            VBox sidebar = loader.load();
+            sidebarController = loader.getController();
+            sidebarController.setXmlEditor(this);
+            sidebarController.setSidebarContainer(sidebar); // Pass the container reference
+            return sidebar;
+        } catch (IOException e) {
+            logger.error("Failed to load sidebar FXML", e);
+            // Fallback: create a simple error message
+            VBox errorBox = new VBox();
+            errorBox.getChildren().add(new Label("Error loading sidebar: " + e.getMessage()));
+            return errorBox;
+        }
     }
 
     /**
@@ -554,64 +458,7 @@ public class XmlEditor extends Tab {
         return new ElementInfo("Unable to determine", "Unknown");
     }
 
-    /**
-     * Toggles the sidebar visibility by adjusting its width.
-     * When collapsed, the sidebar is minimized to show only the toggle button.
-     *
-     * @param sidebarContainer The sidebar container to toggle
-     * @param toggleButton     The toggle button that controls the sidebar
-     * @param splitPane        The SplitPane that contains the sidebar
-     */
-    private void toggleSidebar(VBox sidebarContainer, Button toggleButton, SplitPane splitPane) {
-        // Check if sidebar is collapsed by looking at its width
-        boolean isCollapsed = sidebarContainer.getPrefWidth() <= 50;
 
-        if (isCollapsed) {
-            // Expand sidebar - restore original width
-            sidebarContainer.setPrefWidth(300);
-            sidebarContainer.setMinWidth(250);
-            sidebarContainer.setMaxWidth(400);
-            toggleButton.setText("◀");
-        } else {
-            // Collapse sidebar - minimize to button width only
-            sidebarContainer.setPrefWidth(30);
-            sidebarContainer.setMinWidth(30);
-            sidebarContainer.setMaxWidth(30);
-            toggleButton.setText("▶");
-        }
-    }
-
-    private void selectXsdFile() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select XSD Schema");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Files", "*.xsd"));
-
-        // Set initial directory to the same as the XML file if available
-        if (xmlFile != null && xmlFile.getParentFile() != null) {
-            fileChooser.setInitialDirectory(xmlFile.getParentFile());
-        }
-        
-        File selectedFile = fileChooser.showOpenDialog(this.getContent().getScene().getWindow());
-        if (selectedFile != null) {
-            setXsdFile(selectedFile);
-        }
-    }
-
-    private void selectSchematronFile() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Schematron Rules");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Schematron Files", "*.sch", "*.xslt", "*.xsl"));
-
-        // Set initial directory to the same as the XML file if available
-        if (xmlFile != null && xmlFile.getParentFile() != null) {
-            fileChooser.setInitialDirectory(xmlFile.getParentFile());
-        }
-
-        File selectedFile = fileChooser.showOpenDialog(this.getContent().getScene().getWindow());
-        if (selectedFile != null) {
-            setSchematronFile(selectedFile);
-        }
-    }
 
     private void setupHover() {
         popOverLabel.setWrapText(true);
@@ -663,15 +510,17 @@ public class XmlEditor extends Tab {
      * Uses LSP server to get comprehensive information about the current element.
      */
     private void updateCursorInformation() {
+        if (sidebarController == null) return;
+        
         String text = codeArea.getText();
         int caretPosition = codeArea.getCaretPosition();
         String xpath = getCurrentXPath(text, caretPosition);
-        xpathField.setText(xpath);
+        sidebarController.setXPath(xpath);
 
         // Extract element name and type from current position
         ElementInfo elementInfo = getElementInfoAtPosition(text, caretPosition);
-        elementNameField.setText(elementInfo.name);
-        elementTypeField.setText(elementInfo.type);
+        sidebarController.setElementName(elementInfo.name);
+        sidebarController.setElementType(elementInfo.type);
 
         // Update child elements based on current position
         updateChildElements(xpath);
@@ -802,9 +651,11 @@ public class XmlEditor extends Tab {
      * @param xpath The current XPath to find child elements for
      */
     private void updateChildElements(String xpath) {
+        if (sidebarController == null) return;
+        
         if (xsdFile == null || xpath == null || xpath.equals("Invalid XML structure") ||
                 xpath.equals("No XML content") || xpath.equals("Unable to determine XPath")) {
-            childElementsListView.getItems().setAll(Collections.singletonList("No XSD schema loaded or invalid XPath"));
+            sidebarController.setPossibleChildElements(Collections.singletonList("No XSD schema loaded or invalid XPath"));
             return;
         }
 
@@ -812,26 +663,26 @@ public class XmlEditor extends Tab {
             // Get the current element name from XPath
             String[] pathParts = xpath.split("/");
             if (pathParts.length == 0) {
-                childElementsListView.getItems().setAll(Collections.singletonList("No element selected"));
+                sidebarController.setPossibleChildElements(Collections.singletonList("No element selected"));
                 return;
             }
 
             String currentElementName = pathParts[pathParts.length - 1];
             if (currentElementName.isEmpty()) {
-                childElementsListView.getItems().setAll(Collections.singletonList("No element selected"));
+                sidebarController.setPossibleChildElements(Collections.singletonList("No element selected"));
                 return;
             }
 
             // Find the element in XSD and get its children
             List<String> childElements = getChildElementsFromXsd(currentElementName);
             if (childElements.isEmpty()) {
-                childElementsListView.getItems().setAll(Collections.singletonList("No child elements found for: " + currentElementName));
+                sidebarController.setPossibleChildElements(Collections.singletonList("No child elements found for: " + currentElementName));
             } else {
-                childElementsListView.getItems().setAll(childElements);
+                sidebarController.setPossibleChildElements(childElements);
             }
         } catch (Exception e) {
             logger.error("Error getting child elements", e);
-            childElementsListView.getItems().setAll(Collections.singletonList("Error: " + e.getMessage()));
+            sidebarController.setPossibleChildElements(Collections.singletonList("Error: " + e.getMessage()));
         }
     }
 
@@ -996,8 +847,8 @@ public class XmlEditor extends Tab {
 
     public void setXsdFile(File xsdFile) {
         this.xsdFile = xsdFile;
-        if (xsdPathField != null) {
-            xsdPathField.setText(xsdFile != null ? xsdFile.getAbsolutePath() : "No XSD schema selected");
+        if (sidebarController != null) {
+            sidebarController.setXsdPathField(xsdFile != null ? xsdFile.getAbsolutePath() : "No XSD schema selected");
         }
 
         // Extract element names from XSD and update IntelliSense
@@ -1013,22 +864,24 @@ public class XmlEditor extends Tab {
 
     public void setSchematronFile(File schematronFile) {
         this.schematronFile = schematronFile;
-        // Update the UI field if it exists (we'll need to make it accessible)
+        if (sidebarController != null) {
+            sidebarController.setSchematronPathField(schematronFile != null ? schematronFile.getAbsolutePath() : "No Schematron rules selected");
+        }
         validateSchematron();
     }
 
     public void validateXml() {
+        if (sidebarController == null) return;
+        
         if (xsdFile == null) {
-            validationStatusLabel.setText("Validation status: No XSD selected");
-            validationStatusLabel.setStyle("-fx-text-fill: orange;");
+            sidebarController.updateValidationStatus("No XSD selected", "orange");
             return;
         }
 
         try {
             String xmlContent = codeArea.getText();
             if (xmlContent == null || xmlContent.trim().isEmpty()) {
-                validationStatusLabel.setText("Validation status: No XML content");
-                validationStatusLabel.setStyle("-fx-text-fill: orange;");
+                sidebarController.updateValidationStatus("No XML content", "orange");
                 return;
             }
 
@@ -1036,34 +889,35 @@ public class XmlEditor extends Tab {
             List<org.xml.sax.SAXParseException> errors = xmlService.validateText(xmlContent, xsdFile);
 
             if (errors == null || errors.isEmpty()) {
-                validationStatusLabel.setText("Validation status: ✓ Valid");
-                validationStatusLabel.setStyle("-fx-text-fill: green;");
+                sidebarController.updateValidationStatus("✓ Valid", "green");
             } else {
-                String errorMessage = "Validation status: ✗ Invalid (" + errors.size() + " error(s))";
+                String errorMessage = "✗ Invalid (" + errors.size() + " error(s))";
                 if (errors.size() == 1) {
                     errorMessage += "\n" + errors.get(0).getMessage();
                 } else {
                     errorMessage += "\nFirst error: " + errors.get(0).getMessage();
                 }
-                validationStatusLabel.setText(errorMessage);
-                validationStatusLabel.setStyle("-fx-text-fill: red;");
+                sidebarController.setValidationStatus(errorMessage);
+                sidebarController.updateValidationStatus(errorMessage, "red");
             }
         } catch (Exception e) {
-            validationStatusLabel.setText("Validation status: Error during validation");
-            validationStatusLabel.setStyle("-fx-text-fill: red;");
+            sidebarController.updateValidationStatus("Error during validation", "red");
             logger.error("Error during XML validation", e);
         }
     }
 
     public void validateSchematron() {
+        if (sidebarController == null) return;
+        
         if (schematronFile == null) {
-            // Update the UI field if it exists
+            sidebarController.updateSchematronValidationStatus("No Schematron rules selected", "orange");
             return;
         }
 
         try {
             String xmlContent = codeArea.getText();
             if (xmlContent == null || xmlContent.trim().isEmpty()) {
+                sidebarController.updateSchematronValidationStatus("No XML content", "orange");
                 return;
             }
 
@@ -1071,8 +925,15 @@ public class XmlEditor extends Tab {
             List<SchematronService.SchematronValidationError> errors = schematronService.validateXml(xmlContent, schematronFile);
 
             if (errors == null || errors.isEmpty()) {
-                logger.debug("Schematron validation: ✓ Valid");
+                sidebarController.updateSchematronValidationStatus("✓ Valid", "green");
             } else {
+                String errorMessage = "✗ Invalid (" + errors.size() + " error(s))";
+                if (errors.size() == 1) {
+                    errorMessage += "\n" + errors.get(0).message();
+                } else {
+                    errorMessage += "\nFirst error: " + errors.get(0).message();
+                }
+                sidebarController.updateSchematronValidationStatus(errorMessage, "red");
                 logger.debug("Schematron validation: ✗ Invalid (" + errors.size() + " error(s))");
                 for (SchematronService.SchematronValidationError error : errors) {
                     logger.debug("Schematron error: {} at line {}, column {}",
@@ -1080,6 +941,7 @@ public class XmlEditor extends Tab {
                 }
             }
         } catch (Exception e) {
+            sidebarController.updateSchematronValidationStatus("Error during validation", "red");
             logger.error("Error during Schematron validation", e);
         }
     }
@@ -1379,8 +1241,8 @@ public class XmlEditor extends Tab {
      * @param documentation The documentation text to display
      */
     private void updateDocumentationDisplay(String documentation) {
-        if (documentationTextArea != null) {
-            documentationTextArea.setText(documentation);
+        if (sidebarController != null) {
+            sidebarController.setDocumentation(documentation);
         }
     }
 
@@ -1390,8 +1252,8 @@ public class XmlEditor extends Tab {
      * @param exampleValues The list of example values to display
      */
     private void updateExampleValuesDisplay(List<String> exampleValues) {
-        if (exampleValuesListView != null) {
-            exampleValuesListView.getItems().setAll(exampleValues);
+        if (sidebarController != null) {
+            sidebarController.setExampleValues(exampleValues);
         }
     }
 
@@ -1401,11 +1263,11 @@ public class XmlEditor extends Tab {
      * @param xpath The current XPath to find example values for
      */
     private void updateExampleValuesFromXsd(String xpath) {
+        if (sidebarController == null) return;
+        
         if (xsdFile == null || xpath == null || xpath.equals("Invalid XML structure") ||
                 xpath.equals("No XML content") || xpath.equals("Unable to determine XPath")) {
-            if (exampleValuesListView != null) {
-                exampleValuesListView.getItems().setAll(Collections.singletonList("No XSD schema loaded"));
-            }
+            sidebarController.setExampleValues(Collections.singletonList("No XSD schema loaded"));
             return;
         }
 
@@ -1413,36 +1275,26 @@ public class XmlEditor extends Tab {
             // Get the current element name from XPath
             String[] pathParts = xpath.split("/");
             if (pathParts.length == 0) {
-                if (exampleValuesListView != null) {
-                    exampleValuesListView.getItems().setAll(Collections.singletonList("No element selected"));
-                }
+                sidebarController.setExampleValues(Collections.singletonList("No element selected"));
                 return;
             }
 
             String currentElementName = pathParts[pathParts.length - 1];
             if (currentElementName.isEmpty()) {
-                if (exampleValuesListView != null) {
-                    exampleValuesListView.getItems().setAll(Collections.singletonList("No element selected"));
-                }
+                sidebarController.setExampleValues(Collections.singletonList("No element selected"));
                 return;
             }
 
             // Extract example values from XSD
             List<String> exampleValues = getExampleValuesFromXsd(currentElementName);
             if (exampleValues.isEmpty()) {
-                if (exampleValuesListView != null) {
-                    exampleValuesListView.getItems().setAll(Collections.singletonList("No example values found for: " + currentElementName));
-                }
+                sidebarController.setExampleValues(Collections.singletonList("No example values found for: " + currentElementName));
             } else {
-                if (exampleValuesListView != null) {
-                    exampleValuesListView.getItems().setAll(exampleValues);
-                }
+                sidebarController.setExampleValues(exampleValues);
             }
         } catch (Exception e) {
             logger.error("Error getting example values", e);
-            if (exampleValuesListView != null) {
-                exampleValuesListView.getItems().setAll(Collections.singletonList("Error: " + e.getMessage()));
-            }
+            sidebarController.setExampleValues(Collections.singletonList("Error: " + e.getMessage()));
         }
     }
 
@@ -1568,19 +1420,17 @@ public class XmlEditor extends Tab {
                 setXsdFile(loadedXsdFile);
             } else {
                 // If no XSD was found, clear the XSD field
-                if (xsdPathField != null) {
-                    xsdPathField.setText("No XSD schema found in XML");
+                if (sidebarController != null) {
+                    sidebarController.setXsdPathField("No XSD schema found in XML");
+                    sidebarController.updateValidationStatus("No XSD schema found", "orange");
                 }
-                validationStatusLabel.setText("Validation status: No XSD schema found");
-                validationStatusLabel.setStyle("-fx-text-fill: orange;");
             }
         } else {
             // If no XSD was found, clear the XSD field
-            if (xsdPathField != null) {
-                xsdPathField.setText("No XSD schema found in XML");
+            if (sidebarController != null) {
+                sidebarController.setXsdPathField("No XSD schema found in XML");
+                sidebarController.updateValidationStatus("No XSD schema found", "orange");
             }
-            validationStatusLabel.setText("Validation status: No XSD schema found");
-            validationStatusLabel.setStyle("-fx-text-fill: orange;");
         }
     }
 
