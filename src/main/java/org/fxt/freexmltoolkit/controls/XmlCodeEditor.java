@@ -20,7 +20,6 @@ import org.eclipse.lsp4j.FoldingRange;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
-import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 
@@ -275,13 +274,45 @@ public class XmlCodeEditor extends StackPane {
     }
 
     /**
+     * Erstellt eine kompakte Zeilennummer ohne Abstände.
+     */
+    private Node createCompactLineNumber(int lineIndex) {
+        Label lineNumber = new Label(String.valueOf(lineIndex + 1));
+        lineNumber.getStyleClass().add("lineno");
+
+        // Alle Abstände entfernen
+        lineNumber.setPadding(Insets.EMPTY); // Kein Padding
+        lineNumber.setMinWidth(30); // Kompakte Breite
+        lineNumber.setMaxHeight(Double.MAX_VALUE); // Nimmt die volle Zeilenhöhe ein
+        lineNumber.setAlignment(Pos.CENTER_RIGHT);
+
+        // Styling für nahtlose Darstellung ohne Abstände
+        lineNumber.setStyle(
+                "-fx-text-fill: #666666; " +
+                        "-fx-font-family: monospace; " +
+                        "-fx-font-size: " + fontSize + "px; " +
+                        "-fx-background-color: #f0f0f0; " + // Grauer Hintergrund
+                        "-fx-border-width: 0; " +           // Kein Border
+                        "-fx-padding: 0 3 0 3; " +          // Links und rechts 3px Padding
+                        "-fx-spacing: 0;"                   // Kein Spacing
+        );
+
+        return lineNumber;
+    }
+
+    /**
      * Erstellt eine Factory, die für jede Zeile eine Grafik (Zeilennummer + Falt-Symbol) erzeugt.
      */
     private IntFunction<Node> createParagraphGraphicFactory() {
         return lineIndex -> {
             // Sicherheitsprüfung, da die Factory während Textänderungen aufgerufen werden kann
             if (lineIndex >= codeArea.getParagraphs().size()) {
-                return new HBox(LineNumberFactory.get(codeArea).apply(lineIndex));
+                HBox fallbackHBox = new HBox(createCompactLineNumber(lineIndex));
+                fallbackHBox.setSpacing(0); // Entferne Abstände auch im Fallback
+                fallbackHBox.setPadding(Insets.EMPTY); // Kein Padding
+                fallbackHBox.setAlignment(Pos.TOP_LEFT); // TOP_LEFT für nahtlose Ausrichtung
+                fallbackHBox.setFillHeight(true); // Volle Höhe ausfüllen
+                return fallbackHBox;
             }
 
             boolean isFoldable = foldingRegions.containsKey(lineIndex);
@@ -370,10 +401,12 @@ public class XmlCodeEditor extends StackPane {
             });
 
 
-            Node lineNumberNode = LineNumberFactory.get(codeArea).apply(lineIndex);
+            Node lineNumberNode = createCompactLineNumber(lineIndex);
             HBox hbox = new HBox(lineNumberNode, iconWrapper);
-            hbox.setAlignment(Pos.BASELINE_LEFT);
-            hbox.setSpacing(5);
+            hbox.setAlignment(Pos.TOP_LEFT); // TOP_LEFT für nahtlose Ausrichtung
+            hbox.setSpacing(0); // Entferne Abstände zwischen Zeilennummer und Folding-Icons
+            hbox.setPadding(Insets.EMPTY); // Kein Padding in der HBox
+            hbox.setFillHeight(true); // Volle Höhe ausfüllen
 
             // Der Wrapper (und damit das Symbol) ist nur sichtbar, wenn die Zeile faltbar ist.
             iconWrapper.setVisible(isFoldable);
