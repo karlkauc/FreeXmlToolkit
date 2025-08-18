@@ -46,8 +46,8 @@
             <VBox spacing="5">
                 <Label text="XPath:"/>
                 <TextField fx:id="xpathField" editable="false" promptText="XPath will appear here..."/>
-                <Label text="Element Name:"/>
-                <TextField fx:id="elementNameField" editable="false" promptText="Element name will appear here..."/>
+                <Label text="Node Name:"/>
+                <TextField fx:id="elementNameField" editable="false" promptText="Node name will appear here..."/>
                 <Label text="Element Type:"/>
                 <TextField fx:id="elementTypeField" editable="false" promptText="Element type will appear here..."/>
             </VBox>

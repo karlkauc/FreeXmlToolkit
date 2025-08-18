@@ -231,44 +231,70 @@ public class XmlEditor extends Tab {
         }
 
         try {
-            // Try to find the current element using XMLStreamReader
+            // Use the improved element name extraction
+            String elementName = extractElementNameFromPosition(position);
+            if (!"Unknown".equals(elementName)) {
+                String elementType = determineXsdElementType(elementName);
+                return new ElementInfo(elementName, elementType);
+            }
+
+            // Fallback: try XMLStreamReader approach but find the innermost element
             XMLInputFactory factory = XMLInputFactory.newInstance();
             XMLStreamReader reader = factory.createXMLStreamReader(new StringReader(text));
 
-            String currentElementName = null;
+            Deque<String> elementStack = new ArrayDeque<>();
+            String resultElementName = null;
 
             while (reader.hasNext()) {
                 int event = reader.next();
 
                 if (event == XMLStreamConstants.START_ELEMENT) {
-                    currentElementName = reader.getLocalName();
+                    String localName = reader.getLocalName();
+                    elementStack.push(localName);
 
-                    // Check if we're at or near the current position
+                    // Check if we've passed the cursor position
                     if (reader.getLocation() != null) {
                         int elementStart = reader.getLocation().getCharacterOffset();
-                        if (elementStart <= position) {
-                            // We found the element at the cursor position
+                        if (elementStart > position) {
+                            // We've gone past the cursor, so the current element is what we want
+                            if (!elementStack.isEmpty()) {
+                                elementStack.pop(); // Remove the element we just added
+                                if (!elementStack.isEmpty()) {
+                                    resultElementName = elementStack.peek();
+                                }
+                            }
                             break;
                         }
                     }
                 } else if (event == XMLStreamConstants.END_ELEMENT) {
-                    currentElementName = null;
+                    if (!elementStack.isEmpty()) {
+                        String endElementName = reader.getLocalName();
+                        if (elementStack.peek().equals(endElementName)) {
+                            elementStack.pop();
+                        }
+                    }
                 }
             }
 
             reader.close();
 
-            if (currentElementName != null) {
-                // Get XSD type information for this element
-                String elementType = determineXsdElementType(currentElementName);
-                return new ElementInfo(currentElementName, elementType);
+            if (resultElementName != null) {
+                String elementType = determineXsdElementType(resultElementName);
+                return new ElementInfo(resultElementName, elementType);
+            }
+
+            // If we still don't have a result but have elements in stack, use the top one
+            if (!elementStack.isEmpty()) {
+                String topElement = elementStack.peek();
+                String elementType = determineXsdElementType(topElement);
+                return new ElementInfo(topElement, elementType);
             }
 
         } catch (Exception e) {
             logger.debug("Error parsing XML for element info: {}", e.getMessage());
         }
 
-        // Fallback: try to extract element name from manual parsing
+        // Final fallback: try to extract element name from manual parsing
         return getElementInfoManual(text, position);
     }
 
@@ -339,7 +365,12 @@ public class XmlEditor extends Tab {
 
                     // Check if it's a built-in type
                     if (isBuiltInType(typeName)) {
-                        return "xs:" + typeName;
+                        // Remove namespace prefix if present to avoid duplication
+                        String cleanTypeName = typeName;
+                        if (typeName.contains(":")) {
+                            cleanTypeName = typeName.split(":")[1];
+                        }
+                        return "xs:" + cleanTypeName;
                     }
 
                     // Check if it's a simpleType
@@ -517,10 +548,15 @@ public class XmlEditor extends Tab {
         String xpath = getCurrentXPath(text, caretPosition);
         sidebarController.setXPath(xpath);
 
-        // Extract element name and type from current position
-        ElementInfo elementInfo = getElementInfoAtPosition(text, caretPosition);
-        sidebarController.setElementName(elementInfo.name);
-        sidebarController.setElementType(elementInfo.type);
+        // Use LSP server for better element information if available
+        if (serverProxy != null && xmlFile != null) {
+            updateElementInfoFromLsp(caretPosition);
+        } else {
+            // Fallback to manual parsing
+            ElementInfo elementInfo = getElementInfoAtPosition(text, caretPosition);
+            sidebarController.setElementName(elementInfo.name);
+            sidebarController.setElementType(elementInfo.type);
+        }
 
         // Update child elements based on current position
         updateChildElements(xpath);
@@ -1183,6 +1219,277 @@ public class XmlEditor extends Tab {
             logger.error("LSP hover request failed.", ex);
             return null;
         });
+    }
+
+    /**
+     * Updates element information using LSP server for better accuracy.
+     * This method tries to get the current element name and type from the LSP server.
+     *
+     * @param caretPosition The current cursor position
+     */
+    private void updateElementInfoFromLsp(int caretPosition) {
+        try {
+            var lineColumn = codeArea.offsetToPosition(caretPosition, TwoDimensional.Bias.Forward);
+            TextDocumentIdentifier textDocumentIdentifier = new TextDocumentIdentifier(xmlFile.toURI().toString());
+            Position position = new Position(lineColumn.getMajor(), lineColumn.getMinor());
+
+            // Use hover to get element information
+            HoverParams hoverParams = new HoverParams(textDocumentIdentifier, position);
+            CompletableFuture<Hover> hoverFuture = serverProxy.getTextDocumentService().hover(hoverParams);
+
+            hoverFuture.thenAcceptAsync(hover -> {
+                Platform.runLater(() -> {
+                    String elementName = "Unknown";
+                    String elementType = "Unknown";
+
+                    if (hover != null && hover.getContents() != null) {
+                        String hoverContent = "";
+
+                        if (hover.getContents().isRight()) {
+                            hoverContent = hover.getContents().getRight().getValue();
+                        } else if (hover.getContents().isLeft()) {
+                            hoverContent = hover.getContents().getLeft().stream()
+                                    .map(Object::toString)
+                                    .collect(java.util.stream.Collectors.joining("\n"));
+                        }
+
+                        // Parse element name and type from hover content
+                        ElementInfo parsedInfo = parseElementInfoFromHover(hoverContent, caretPosition);
+                        elementName = parsedInfo.name;
+                        elementType = parsedInfo.type;
+                    }
+
+                    // If LSP didn't provide useful information, fall back to manual parsing
+                    if ("Unknown".equals(elementName) || elementName.isEmpty()) {
+                        ElementInfo fallbackInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
+                        elementName = fallbackInfo.name;
+                        elementType = fallbackInfo.type;
+                    }
+
+                    // Update sidebar
+                    sidebarController.setElementName(elementName);
+                    sidebarController.setElementType(elementType);
+                });
+            }).exceptionally(ex -> {
+                logger.debug("LSP element info request failed, using fallback: {}", ex.getMessage());
+                // Fallback to manual parsing
+                Platform.runLater(() -> {
+                    ElementInfo elementInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
+                    sidebarController.setElementName(elementInfo.name);
+                    sidebarController.setElementType(elementInfo.type);
+                });
+                return null;
+            });
+
+        } catch (Exception e) {
+            logger.debug("Error getting element info from LSP: {}", e.getMessage());
+            // Fallback to manual parsing
+            ElementInfo elementInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
+            sidebarController.setElementName(elementInfo.name);
+            sidebarController.setElementType(elementInfo.type);
+        }
+    }
+
+    /**
+     * Parses element information from LSP hover content.
+     *
+     * @param hoverContent  The hover content from LSP
+     * @param caretPosition The current cursor position for fallback parsing
+     * @return ElementInfo with parsed name and type
+     */
+    private ElementInfo parseElementInfoFromHover(String hoverContent, int caretPosition) {
+        if (hoverContent == null || hoverContent.trim().isEmpty()) {
+            return new ElementInfo("Unknown", "Unknown");
+        }
+
+        String elementName = "Unknown";
+        String elementType = "Unknown";
+
+        try {
+            // Look for element name patterns in hover content
+            // LSP might provide information like "Element: elementName" or similar
+            String[] lines = hoverContent.split("\n");
+
+            for (String line : lines) {
+                line = line.trim();
+
+                // Try different patterns that LSP might use
+                if (line.startsWith("Element:") || line.startsWith("element:")) {
+                    elementName = extractElementName(line);
+                } else if (line.contains("<") && line.contains(">")) {
+                    // Look for XML tag patterns like "<elementName>"
+                    elementName = extractElementFromTag(line);
+                }
+
+                // Try to extract type information
+                if (line.contains("type:") || line.contains("Type:")) {
+                    elementType = extractTypeInfo(line);
+                }
+            }
+
+            // If we still don't have a good element name, try to extract from current position
+            if ("Unknown".equals(elementName)) {
+                elementName = extractElementNameFromPosition(caretPosition);
+            }
+
+        } catch (Exception e) {
+            logger.debug("Error parsing hover content: {}", e.getMessage());
+        }
+
+        return new ElementInfo(elementName, elementType);
+    }
+
+    /**
+     * Extracts element name from a line like "Element: elementName" or "element: elementName"
+     */
+    private String extractElementName(String line) {
+        String[] parts = line.split(":", 2);
+        if (parts.length > 1) {
+            return parts[1].trim();
+        }
+        return "Unknown";
+    }
+
+    /**
+     * Extracts element name from XML tag in hover content
+     */
+    private String extractElementFromTag(String line) {
+        java.util.regex.Pattern tagPattern = java.util.regex.Pattern.compile("</?(\\w+:?\\w*)");
+        java.util.regex.Matcher matcher = tagPattern.matcher(line);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "Unknown";
+    }
+
+    /**
+     * Extracts type information from hover content
+     */
+    private String extractTypeInfo(String line) {
+        String[] parts = line.split(":", 2);
+        if (parts.length > 1) {
+            return parts[1].trim();
+        }
+        return "Unknown";
+    }
+
+    /**
+     * Extracts element name by analyzing the text around the cursor position.
+     * This method finds the innermost/current XML node, not just the root element.
+     */
+    private String extractElementNameFromPosition(int caretPosition) {
+        String text = codeArea.getText();
+        if (text == null || text.isEmpty() || caretPosition < 0 || caretPosition > text.length()) {
+            return "Unknown";
+        }
+
+        try {
+            // Build a stack of open elements by parsing from beginning to cursor position
+            Deque<String> elementStack = new ArrayDeque<>();
+            String textToCursor = text.substring(0, caretPosition);
+
+            // Pattern for opening tags
+            java.util.regex.Pattern openTagPattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^/>]*(?<!/)>");
+            // Pattern for closing tags  
+            java.util.regex.Pattern closeTagPattern = java.util.regex.Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\\s*>");
+            // Pattern for self-closing tags
+            java.util.regex.Pattern selfClosingPattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^>]*/>");
+
+            // Find all tags in order
+            List<TagMatch> tags = new ArrayList<>();
+
+            // Find opening tags
+            java.util.regex.Matcher openMatcher = openTagPattern.matcher(textToCursor);
+            while (openMatcher.find()) {
+                tags.add(new TagMatch(openMatcher.start(), openMatcher.group(1), TagType.OPEN));
+            }
+
+            // Find closing tags
+            java.util.regex.Matcher closeMatcher = closeTagPattern.matcher(textToCursor);
+            while (closeMatcher.find()) {
+                tags.add(new TagMatch(closeMatcher.start(), closeMatcher.group(1), TagType.CLOSE));
+            }
+
+            // Find self-closing tags
+            java.util.regex.Matcher selfClosingMatcher = selfClosingPattern.matcher(textToCursor);
+            while (selfClosingMatcher.find()) {
+                tags.add(new TagMatch(selfClosingMatcher.start(), selfClosingMatcher.group(1), TagType.SELF_CLOSING));
+            }
+
+            // Sort tags by position
+            tags.sort(java.util.Comparator.comparingInt(t -> t.position));
+
+            // Process tags to build element stack
+            for (TagMatch tag : tags) {
+                switch (tag.type) {
+                    case OPEN -> elementStack.push(tag.name);
+                    case CLOSE -> {
+                        // Remove matching opening tag from stack
+                        if (!elementStack.isEmpty() && elementStack.peek().equals(tag.name)) {
+                            elementStack.pop();
+                        }
+                    }
+                    case SELF_CLOSING -> {
+                        // Self-closing tags don't affect the stack
+                    }
+                }
+            }
+
+            // The current element is the top of the stack
+            if (!elementStack.isEmpty()) {
+                return elementStack.peek();
+            }
+
+            // If stack is empty, check if we're directly within a tag
+            return findElementAtCursorPosition(text, caretPosition);
+
+        } catch (Exception e) {
+            logger.debug("Error extracting element name from position: {}", e.getMessage());
+        }
+
+        return "Unknown";
+    }
+
+    /**
+     * Helper method to find if cursor is directly within an XML tag.
+     */
+    private String findElementAtCursorPosition(String text, int caretPosition) {
+        try {
+            // Look in a small window around the cursor
+            int windowStart = Math.max(0, caretPosition - 100);
+            int windowEnd = Math.min(text.length(), caretPosition + 100);
+            String window = text.substring(windowStart, windowEnd);
+            int relativePos = caretPosition - windowStart;
+
+            // Find tags that contain the cursor position
+            java.util.regex.Pattern tagPattern = java.util.regex.Pattern.compile("<(/?)([a-zA-Z][a-zA-Z0-9_:]*)[^>]*>");
+            java.util.regex.Matcher matcher = tagPattern.matcher(window);
+
+            while (matcher.find()) {
+                int tagStart = matcher.start();
+                int tagEnd = matcher.end();
+
+                // Check if cursor is within this tag
+                if (relativePos >= tagStart && relativePos <= tagEnd) {
+                    return matcher.group(2); // Return element name
+                }
+            }
+
+        } catch (Exception e) {
+            logger.debug("Error finding element at cursor position: {}", e.getMessage());
+        }
+
+        return "Unknown";
+    }
+
+    /**
+     * Helper class for tracking XML tags during parsing.
+     */
+    private record TagMatch(int position, String name, TagType type) {
+    }
+
+    private enum TagType {
+        OPEN, CLOSE, SELF_CLOSING
     }
 
     /**
