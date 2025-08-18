@@ -23,7 +23,7 @@
  * machen wir das Symbol sichtbar und stylen es.
  */
 .tree-table-view .tree-table-row-cell.has-subdirectories .tree-disclosure-node .arrow {
-    -fx-background-color: -fx-text-base-color; /* Farbe wiederherstellen */
+    -fx-background-color: #24292f; /* Direkte Farbe ohne CSS-Lookup */
     -fx-padding: 4px; /* Abstand wiederherstellen */
 }
 

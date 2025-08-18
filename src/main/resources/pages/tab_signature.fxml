@@ -19,7 +19,7 @@
                 <FontIcon iconLiteral="bi-info-circle" iconSize="16"/>
             </graphic>
             <content>
-                <ScrollPane fitToWidth="true" style="-fx-background-color: -fx-background-color;">
+                <ScrollPane fitToWidth="true">
                     <VBox spacing="20" style="-fx-padding: 20;">
                         <Label styleClass="h2" text="How to Use the Signature Tool"/>
                         <Label wrapText="true"
@@ -67,7 +67,7 @@
                 <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/>
             </graphic>
             <content>
-                <ScrollPane fitToWidth="true" style="-fx-background-color: -fx-background-color;">
+                <ScrollPane fitToWidth="true">
                     <VBox spacing="20" style="-fx-padding: 20;">
 
                         <!-- Karte 1: Distinguished Name (DN) Details -->
@@ -146,7 +146,7 @@
                 <FontIcon iconLiteral="bi-pencil-square" iconSize="16"/>
             </graphic>
             <content>
-                <ScrollPane fitToWidth="true" style="-fx-background-color: -fx-background-color;">
+                <ScrollPane fitToWidth="true">
                     <VBox spacing="20" style="-fx-padding: 20;">
 
                         <!-- Karte 1: Eingabedateien -->
@@ -234,7 +234,7 @@
                 <FontIcon iconLiteral="bi-patch-check" iconSize="16"/>
             </graphic>
             <content>
-                <ScrollPane fitToWidth="true" style="-fx-background-color: -fx-background-color;">
+                <ScrollPane fitToWidth="true">
                     <VBox spacing="20" style="-fx-padding: 20;">
 
                         <!-- Karte 1: Eingabedatei -->

@@ -356,12 +356,13 @@
 }
 
 .scroll-bar .thumb {
+    -fx-background-color: #c1c1c1; /* Explizite Farbe hinzugefügt, um Endlosschleife zu verhindern */
   -fx-background-insets: 2px;
   -fx-background-radius: 8px;
 }
 
 .scroll-bar .thumb:hover {
-  -fx-background-color: #57606a;
+    -fx-background-color: #a8a8a8;
 }
 
 .split-pane:horizontal > .split-pane-divider {
@@ -581,5 +582,3 @@
   -fx-stroke-width: 1;
   -fx-stroke-dash-array: 1 2;
 }
-
-/*# sourceMappingURL=fxt-theme.css.map */
