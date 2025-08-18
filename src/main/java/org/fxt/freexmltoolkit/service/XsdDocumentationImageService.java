@@ -466,8 +466,11 @@ public class XsdDocumentationImageService {
             actualHeight += boxPadding * 2 + totalContentHeight + margin * 2;
         }
 
-        // Finalisiere SVG-Größe mit symmetrischem Layout
-        var imageHeight = Math.max(docHeightTotal, actualHeight);
+        // Berechne die Gesamthöhe des Root-Elements inkl. Dokumentation
+        double rootElementTotalHeight = rootStartY + (boxPadding * 2 + rootElementHeight) + docHeightTotal;
+        
+        // Finalisiere SVG-Größe mit symmetrischem Layout - berücksichtigt sowohl Root- als auch Kind-Elemente
+        var imageHeight = Math.max(rootElementTotalHeight, actualHeight);
         svgRoot.setAttribute("height", String.valueOf(imageHeight + margin * 2));
         svgRoot.setAttribute("width", String.valueOf(finalRightStartX + boxPadding * 2 + maxChildWidth + margin * 3));
         svgRoot.setAttribute("style", "background-color: " + COLOR_BG);
