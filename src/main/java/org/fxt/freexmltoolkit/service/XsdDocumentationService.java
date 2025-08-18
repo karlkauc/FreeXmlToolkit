@@ -41,6 +41,11 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
@@ -569,9 +574,105 @@ public class XsdDocumentationService {
         }
 
         StringBuilder xmlBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        XsdExtendedElement root = rootElements.getFirst();
-        buildXmlElement(xmlBuilder, root, mandatoryOnly, maxOccurrences, 0);
+        
+        // Add schema reference (supports namespaced and no-namespace schemas)
+        String targetNamespace = xsdDocumentationData.getTargetNamespace();
+        String schemaLocationUri = new File(xsdFilePath).toURI().toString();
+
+        String rootName = rootElements.getFirst().getElementName();
+        xmlBuilder.append("<").append(rootName)
+                 .append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+
+        if (targetNamespace != null && !targetNamespace.isBlank()) {
+            // Default namespace and schemaLocation pair (namespace + absolute file URI)
+            xmlBuilder.append(" xmlns=\"").append(targetNamespace).append("\"")
+                     .append(" xsi:schemaLocation=\"")
+                     .append(targetNamespace).append(" ")
+                     .append(schemaLocationUri)
+                     .append("\"");
+        } else {
+            // No namespace schema
+            xmlBuilder.append(" xsi:noNamespaceSchemaLocation=\"")
+                     .append(schemaLocationUri)
+                     .append("\"");
+        }
+
+        xmlBuilder.append(">\n");
+
+        // Build the content without the root element tags
+        buildXmlElementContent(xmlBuilder, rootElements.getFirst(), mandatoryOnly, maxOccurrences, 1);
+
+        xmlBuilder.append("</").append(rootName).append(">\n");
+        
         return xmlBuilder.toString();
+    }
+
+    /**
+     * Validates the generated XML against the XSD schema.
+     * @param xmlContent The XML content to validate
+     * @return Validation result with success status and any error messages
+     */
+    public ValidationResult validateXmlAgainstSchema(String xmlContent) {
+        try {
+            // Create schema factory
+            SchemaFactory factory = SchemaFactory.newInstance(javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            
+            // Load the schema
+            Source schemaSource = new StreamSource(new File(xsdFilePath));
+            Schema schema = factory.newSchema(schemaSource);
+            
+            // Create validator
+            Validator validator = schema.newValidator();
+            
+            // Create error handler to collect validation errors
+            StringBuilder errorMessages = new StringBuilder();
+            validator.setErrorHandler(new org.xml.sax.ErrorHandler() {
+                @Override
+                public void warning(org.xml.sax.SAXParseException exception) {
+                    errorMessages.append("Warning: ").append(exception.getMessage()).append("\n");
+                }
+                
+                @Override
+                public void error(org.xml.sax.SAXParseException exception) {
+                    errorMessages.append("Error: ").append(exception.getMessage()).append("\n");
+                }
+                
+                @Override
+                public void fatalError(org.xml.sax.SAXParseException exception) {
+                    errorMessages.append("Fatal Error: ").append(exception.getMessage()).append("\n");
+                }
+            });
+            
+            // Validate the XML
+            Source xmlSource = new StreamSource(new StringReader(xmlContent));
+            validator.validate(xmlSource);
+            
+            return new ValidationResult(true, errorMessages.toString());
+            
+        } catch (Exception e) {
+            return new ValidationResult(false, "Validation failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Result of XML validation against XSD schema.
+     */
+    public static class ValidationResult {
+        private final boolean isValid;
+        private final String message;
+        
+        public ValidationResult(boolean isValid, String message) {
+            this.isValid = isValid;
+            this.message = message;
+        }
+        
+        public boolean isValid() {
+            return isValid;
+        }
+        
+        public String getMessage() {
+            return message;
+        }
     }
 
     private void buildXmlElement(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
@@ -636,6 +737,79 @@ public class XsdDocumentationService {
                     sb.append("\n");
                     for (XsdExtendedElement childElement : childElements) {
                         buildXmlElement(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel + 1);
+                    }
+                    sb.append(indent);
+                }
+                sb.append("</").append(element.getElementName()).append(">\n");
+            }
+        }
+    }
+
+    /**
+     * Builds XML element content without the root element tags (for schema-referenced XML).
+     */
+    private void buildXmlElementContent(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
+        if (element == null || (mandatoryOnly && !element.isMandatory())) {
+            return;
+        }
+        if (element.getElementName().startsWith("@")) {
+            return; // Attributes are handled by their parent
+        }
+
+        String maxOccurs = getAttributeValue(element.getCurrentNode(), "maxOccurs", "1");
+        int repeatCount = 1;
+        if (!"1".equals(maxOccurs)) {
+            if ("unbounded".equalsIgnoreCase(maxOccurs)) {
+                repeatCount = maxOccurrences;
+            } else {
+                try {
+                    repeatCount = Math.min(Integer.parseInt(maxOccurs), maxOccurrences);
+                } catch (NumberFormatException e) {
+                    repeatCount = 1;
+                }
+            }
+        }
+
+        for (int i = 0; i < repeatCount; i++) {
+            String indent = "\t".repeat(indentLevel);
+            sb.append(indent).append("<").append(element.getElementName());
+
+            // Find all attributes for this element by searching for elements with @ prefix in the children
+            List<XsdExtendedElement> attributes = element.getChildren().stream()
+                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> e.getElementName().startsWith("@"))
+                    .toList();
+
+            List<XsdExtendedElement> childElements = element.getChildren().stream()
+                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                    .filter(Objects::nonNull)
+                    .filter(e -> !e.getElementName().startsWith("@"))
+                    .toList();
+
+            // Render attributes
+            for (XsdExtendedElement attr : attributes) {
+                // Include attribute if mandatory, or if it has a fixed/default value even when mandatoryOnly is true
+                String fixedOrDefault = getAttributeValue(attr.getCurrentNode(), "fixed", getAttributeValue(attr.getCurrentNode(), "default", null));
+                if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null) continue;
+                String attrName = attr.getElementName().substring(1);
+                String attrValue = (fixedOrDefault != null)
+                        ? fixedOrDefault
+                        : (attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
+                sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
+            }
+
+            String sampleData = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
+            if (childElements.isEmpty() && sampleData.isEmpty()) {
+                sb.append("/>\n"); // Self-closing tag
+            } else {
+                sb.append(">");
+                sb.append(escapeXml(sampleData));
+
+                if (!childElements.isEmpty()) {
+                    sb.append("\n");
+                    for (XsdExtendedElement childElement : childElements) {
+                        buildXmlElementContent(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel + 1);
                     }
                     sb.append(indent);
                 }

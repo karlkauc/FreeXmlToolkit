@@ -23,6 +23,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
 <?import org.fxmisc.richtext.CodeArea?>
+<?import org.fxmisc.flowless.VirtualizedScrollPane?>
 <?import org.fxt.freexmltoolkit.controls.XmlCodeEditor?>
 <?import org.kordamp.ikonli.javafx.*?>
 <?import java.lang.String?>
@@ -394,12 +395,12 @@
                 </VBox>
 
                 <StackPane VBox.vgrow="ALWAYS">
-                    <!-- GEÄNDERT: CodeArea in ScrollPane eingebettet -->
-                    <ScrollPane fitToHeight="true" fitToWidth="true">
+                    <!-- RichTextFX: VirtualizedScrollPane für Scrollbalken -->
+                    <VirtualizedScrollPane>
                         <content>
-                            <CodeArea fx:id="sampleDataTextArea"/>
+                            <CodeArea fx:id="sampleDataTextArea" prefWidth="800" prefHeight="600"/>
                         </content>
-                    </ScrollPane>
+                    </VirtualizedScrollPane>
                     <ProgressIndicator fx:id="progressSampleData" maxWidth="80" maxHeight="80" visible="false"/>
                 </StackPane>
             </VBox>
@@ -457,12 +458,12 @@
                 </VBox>
 
                 <StackPane VBox.vgrow="ALWAYS">
-                    <!-- GEÄNDERT: CodeArea in ScrollPane eingebettet -->
-                    <ScrollPane fitToHeight="true" fitToWidth="true">
+                    <!-- RichTextFX: VirtualizedScrollPane für Scrollbalken -->
+                    <VirtualizedScrollPane>
                         <content>
-                            <CodeArea fx:id="flattenedXsdTextArea" editable="false"/>
+                            <CodeArea fx:id="flattenedXsdTextArea" editable="false" prefWidth="800" prefHeight="600"/>
                         </content>
-                    </ScrollPane>
+                    </VirtualizedScrollPane>
                     <ProgressIndicator fx:id="flattenProgress" maxWidth="80" maxHeight="80" visible="false"/>
                 </StackPane>
             </VBox>

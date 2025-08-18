@@ -771,7 +771,43 @@ public class XsdController {
             sampleDataTextArea.replaceText(resultXml);
             sampleDataTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(resultXml));
 
-            statusText.setText("Sample XML generated successfully.");
+            // Validate the generated XML against the XSD schema
+            Task<XsdDocumentationService.ValidationResult> validationTask = new Task<>() {
+                @Override
+                protected XsdDocumentationService.ValidationResult call() throws Exception {
+                    XsdDocumentationService docService = new XsdDocumentationService();
+                    docService.setXsdFilePath(xsdFile.getAbsolutePath());
+                    return docService.validateXmlAgainstSchema(resultXml);
+                }
+            };
+
+            validationTask.setOnSucceeded(validationEvent -> {
+                XsdDocumentationService.ValidationResult result = validationTask.getValue();
+                if (result.isValid()) {
+                    statusText.setText("Sample XML generated and validated successfully.");
+                    if (!result.getMessage().isEmpty()) {
+                        logger.info("Validation warnings: " + result.getMessage());
+                    }
+                } else {
+                    statusText.setText("Sample XML generated but validation failed.");
+                    logger.warn("XML validation failed: " + result.getMessage());
+                    // Show validation error in a dialog
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("XML Validation Warning");
+                        alert.setHeaderText("Generated XML does not fully conform to the XSD schema");
+                        alert.setContentText("The generated XML may have validation issues:\n\n" + result.getMessage());
+                        alert.showAndWait();
+                    });
+                }
+            });
+
+            validationTask.setOnFailed(validationEvent -> {
+                logger.error("Validation task failed", validationTask.getException());
+                statusText.setText("Sample XML generated but validation could not be performed.");
+            });
+
+            executorService.submit(validationTask);
 
             // Optional: Save to file if a path is provided
             String outputPath = outputXmlPath.getText();
