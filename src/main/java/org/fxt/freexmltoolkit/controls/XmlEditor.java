@@ -1089,14 +1089,14 @@ public class XmlEditor extends Tab {
         if (sidebarController == null) return;
         
         if (schematronFile == null) {
-            sidebarController.updateSchematronValidationStatus("No Schematron rules selected", "orange");
+            sidebarController.updateSchematronValidationStatus("No Schematron rules selected", "orange", null);
             return;
         }
 
         try {
             String xmlContent = codeArea.getText();
             if (xmlContent == null || xmlContent.trim().isEmpty()) {
-                sidebarController.updateSchematronValidationStatus("No XML content", "orange");
+                sidebarController.updateSchematronValidationStatus("No XML content", "orange", null);
                 return;
             }
 
@@ -1104,23 +1104,23 @@ public class XmlEditor extends Tab {
             List<SchematronService.SchematronValidationError> errors = schematronService.validateXml(xmlContent, schematronFile);
 
             if (errors == null || errors.isEmpty()) {
-                sidebarController.updateSchematronValidationStatus("✓ Valid", "green");
+                sidebarController.updateSchematronValidationStatus("✓ Valid", "green", null);
             } else {
-                String errorMessage = "✗ Invalid (" + errors.size() + " error(s))";
-                if (errors.size() == 1) {
-                    errorMessage += "\n" + errors.get(0).message();
-                } else {
-                    errorMessage += "\nFirst error: " + errors.get(0).message();
-                }
-                sidebarController.updateSchematronValidationStatus(errorMessage, "red");
-                logger.debug("Schematron validation: ✗ Invalid (" + errors.size() + " error(s))");
+                // Create a short summary for the label
+                String shortMessage = String.format("✗ Invalid (%d error%s)",
+                        errors.size(), errors.size() == 1 ? "" : "s");
+
+                // Use the new method that stores the error details and shows the details button
+                sidebarController.updateSchematronValidationStatus(shortMessage, "red", errors);
+
+                logger.info("Schematron validation: ✗ Invalid ({} error(s))", errors.size());
                 for (SchematronService.SchematronValidationError error : errors) {
-                    logger.debug("Schematron error: {} at line {}, column {}",
-                            error.message(), error.lineNumber(), error.columnNumber());
+                    logger.info("Schematron error: {} at line {}, column {} (Rule: {})",
+                            error.message(), error.lineNumber(), error.columnNumber(), error.ruleId());
                 }
             }
         } catch (Exception e) {
-            sidebarController.updateSchematronValidationStatus("Error during validation", "red");
+            sidebarController.updateSchematronValidationStatus("Error during validation", "red", null);
             logger.error("Error during Schematron validation", e);
         }
     }

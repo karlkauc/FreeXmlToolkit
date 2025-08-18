@@ -5,11 +5,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -125,33 +129,27 @@ public class SchematronServiceImpl implements SchematronService {
         }
 
         try {
-            // Compile the Schematron to XSLT
+            // Try XSLT-based validation first
             XsltExecutable schematronXslt = compileSchematronToXslt(schematronFile);
-            if (schematronXslt == null) {
-                errors.add(new SchematronValidationError(
-                        "Failed to compile Schematron file: " + schematronFile.getAbsolutePath(),
-                        null,
-                        null,
-                        0,
-                        0,
-                        "error"
-                ));
-                return errors;
+            if (schematronXslt != null) {
+                // Transform XML using the compiled Schematron XSLT
+                XsltTransformer transformer = schematronXslt.load();
+                transformer.setSource(new StreamSource(xmlFile));
+
+                StringWriter resultWriter = new StringWriter();
+                Serializer serializer = processor.newSerializer(resultWriter);
+                transformer.setDestination(serializer);
+
+                transformer.transform();
+
+                // Parse the SVRL result and extract validation errors
+                String svrlResult = resultWriter.toString();
+                processSvrlResult(svrlResult, errors);
+            } else {
+                // Fallback to direct validation if XSLT compilation fails
+                logger.info("Using fallback direct validation for Schematron file: {}", schematronFile.getAbsolutePath());
+                validateDirectly(xmlFile, schematronFile, errors);
             }
-
-            // Transform XML using the compiled Schematron XSLT
-            XsltTransformer transformer = schematronXslt.load();
-            transformer.setSource(new StreamSource(xmlFile));
-
-            StringWriter resultWriter = new StringWriter();
-            Serializer serializer = processor.newSerializer(resultWriter);
-            transformer.setDestination(serializer);
-
-            transformer.transform();
-
-            // Parse the SVRL result and extract validation errors
-            String svrlResult = resultWriter.toString();
-            processSvrlResult(svrlResult, errors);
 
         } catch (Exception e) {
             logger.error("Error during Schematron validation", e);
@@ -196,27 +194,218 @@ public class SchematronServiceImpl implements SchematronService {
 
     /**
      * Compiles a Schematron file to XSLT for validation.
+     * This is a simplified implementation that parses basic Schematron rules directly.
      *
      * @param schematronFile The Schematron file to compile
      * @return The compiled XSLT executable or null if compilation fails
      */
     private XsltExecutable compileSchematronToXslt(File schematronFile) {
         try {
-            // For now, we'll use a simplified approach
-            // In a full implementation, you would need to download and use the standard Schematron XSLT files
-            // to compile the Schematron to XSLT
+            // For a simplified implementation, we'll parse the Schematron file directly
+            // and create a simple XSLT that validates the rules
+            String schematronXslt = generateValidationXsltFromSchematron(schematronFile);
 
-            // This is a placeholder - in a real implementation, you would:
-            // 1. Download the standard Schematron XSLT files
-            // 2. Apply the DSDL include transformation
-            // 3. Apply the abstract expand transformation  
-            // 4. Apply the SVRL transformation
+            if (schematronXslt != null) {
+                StreamSource source = new StreamSource(new ByteArrayInputStream(schematronXslt.getBytes(StandardCharsets.UTF_8)));
+                return compiler.compile(source);
+            }
 
-            logger.warn("Schematron compilation not fully implemented. Using placeholder.");
+            logger.warn("Could not generate XSLT from Schematron file: {}", schematronFile.getAbsolutePath());
             return null;
 
         } catch (Exception e) {
             logger.error("Error compiling Schematron to XSLT", e);
+            return null;
+        }
+    }
+
+    /**
+     * Direct validation fallback method that validates XML against Schematron rules
+     * without using XSLT transformation.
+     *
+     * @param xmlFile        The XML file to validate
+     * @param schematronFile The Schematron file containing rules
+     * @param errors         List to collect validation errors
+     */
+    private void validateDirectly(File xmlFile, File schematronFile, List<SchematronValidationError> errors) {
+        try {
+            // Parse the XML document
+            DocumentBuilderFactory xmlFactory = DocumentBuilderFactory.newInstance();
+            xmlFactory.setNamespaceAware(true);
+            DocumentBuilder xmlBuilder = xmlFactory.newDocumentBuilder();
+            Document xmlDoc = xmlBuilder.parse(xmlFile);
+
+            // Parse the Schematron document
+            DocumentBuilderFactory schFactory = DocumentBuilderFactory.newInstance();
+            schFactory.setNamespaceAware(true);
+            DocumentBuilder schBuilder = schFactory.newDocumentBuilder();
+            Document schDoc = schBuilder.parse(schematronFile);
+
+            // Create XPath evaluator
+            XPath xpath = XPathFactory.newInstance().newXPath();
+
+            // Find all patterns
+            NodeList patterns = schDoc.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "pattern");
+            if (patterns.getLength() == 0) {
+                patterns = schDoc.getElementsByTagName("pattern");
+            }
+
+            for (int i = 0; i < patterns.getLength(); i++) {
+                Element pattern = (Element) patterns.item(i);
+                String patternId = pattern.getAttribute("id");
+
+                // Find all rules in this pattern
+                NodeList rules = pattern.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "rule");
+                if (rules.getLength() == 0) {
+                    rules = pattern.getElementsByTagName("rule");
+                }
+
+                for (int j = 0; j < rules.getLength(); j++) {
+                    Element rule = (Element) rules.item(j);
+                    String context = rule.getAttribute("context");
+
+                    if (context != null && !context.isEmpty()) {
+                        try {
+                            // Find all nodes that match the context
+                            NodeList contextNodes = (NodeList) xpath.evaluate(context, xmlDoc, XPathConstants.NODESET);
+
+                            // Check assertions for each context node
+                            NodeList assertions = rule.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "assert");
+                            if (assertions.getLength() == 0) {
+                                assertions = rule.getElementsByTagName("assert");
+                            }
+
+                            for (int k = 0; k < assertions.getLength(); k++) {
+                                Element assertion = (Element) assertions.item(k);
+                                String test = assertion.getAttribute("test");
+                                String message = assertion.getTextContent();
+                                String assertId = assertion.getAttribute("id");
+
+                                if (test != null && !test.isEmpty()) {
+                                    // Test the assertion against each context node
+                                    for (int l = 0; l < contextNodes.getLength(); l++) {
+                                        Node contextNode = contextNodes.item(l);
+                                        try {
+                                            Boolean result = (Boolean) xpath.evaluate(test, contextNode, XPathConstants.BOOLEAN);
+                                            if (result == null || !result) {
+                                                // Assertion failed
+                                                errors.add(new SchematronValidationError(
+                                                        message != null && !message.trim().isEmpty() ? message : "Assertion failed: " + test,
+                                                        assertId != null && !assertId.isEmpty() ? assertId : test,
+                                                        context,
+                                                        0, // Line number not available in direct validation
+                                                        0, // Column number not available in direct validation
+                                                        "error"
+                                                ));
+                                            }
+                                        } catch (Exception e) {
+                                            logger.debug("Error evaluating assertion '{}' on context '{}': {}", test, context, e.getMessage());
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            logger.debug("Error evaluating context '{}': {}", context, e.getMessage());
+                        }
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error in direct Schematron validation", e);
+            errors.add(new SchematronValidationError(
+                    "Direct validation error: " + e.getMessage(),
+                    null,
+                    null,
+                    0,
+                    0,
+                    "error"
+            ));
+        }
+    }
+
+    /**
+     * Generates a simple XSLT from a Schematron file for basic validation.
+     * This simplified implementation parses basic Schematron patterns, rules, and assertions.
+     *
+     * @param schematronFile The Schematron file to parse
+     * @return XSLT string for validation or null if parsing fails
+     */
+    private String generateValidationXsltFromSchematron(File schematronFile) {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document schematronDoc = builder.parse(schematronFile);
+
+            StringBuilder xslt = new StringBuilder();
+            xslt.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            xslt.append("<xsl:stylesheet version=\"2.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" ");
+            xslt.append("xmlns:svrl=\"http://purl.oclc.org/dsdl/svrl\">\n");
+            xslt.append("<xsl:output method=\"xml\" indent=\"yes\"/>\n");
+            xslt.append("<xsl:template match=\"/\">\n");
+            xslt.append("<svrl:schematron-output>\n");
+
+            // Parse Schematron patterns and rules
+            NodeList patterns = schematronDoc.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "pattern");
+            if (patterns.getLength() == 0) {
+                // Try without namespace for compatibility
+                patterns = schematronDoc.getElementsByTagName("pattern");
+            }
+
+            logger.debug("Found {} patterns in Schematron file", patterns.getLength());
+            for (int i = 0; i < patterns.getLength(); i++) {
+                Element pattern = (Element) patterns.item(i);
+                String patternId = pattern.getAttribute("id");
+
+                NodeList rules = pattern.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "rule");
+                if (rules.getLength() == 0) {
+                    rules = pattern.getElementsByTagName("rule");
+                }
+                for (int j = 0; j < rules.getLength(); j++) {
+                    Element rule = (Element) rules.item(j);
+                    String context = rule.getAttribute("context");
+
+                    if (context != null && !context.isEmpty()) {
+                        xslt.append("<xsl:for-each select=\"").append(escapeXml(context)).append("\">\n");
+
+                        NodeList assertions = rule.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "assert");
+                        if (assertions.getLength() == 0) {
+                            assertions = rule.getElementsByTagName("assert");
+                        }
+                        for (int k = 0; k < assertions.getLength(); k++) {
+                            Element assertion = (Element) assertions.item(k);
+                            String test = assertion.getAttribute("test");
+                            String message = assertion.getTextContent();
+                            String assertId = assertion.getAttribute("id");
+
+                            if (test != null && !test.isEmpty()) {
+                                xslt.append("<xsl:if test=\"not(").append(escapeXml(test)).append(")\">\n");
+                                xslt.append("<svrl:failed-assert test=\"").append(escapeXml(test)).append("\" ");
+                                xslt.append("location=\"{generate-id(.)}\"");
+                                if (assertId != null && !assertId.isEmpty()) {
+                                    xslt.append(" id=\"").append(assertId).append("\"");
+                                }
+                                xslt.append(">\n");
+                                xslt.append("<svrl:text>").append(escapeXml(message != null ? message : "Assertion failed")).append("</svrl:text>\n");
+                                xslt.append("</svrl:failed-assert>\n");
+                                xslt.append("</xsl:if>\n");
+                            }
+                        }
+
+                        xslt.append("</xsl:for-each>\n");
+                    }
+                }
+            }
+
+            xslt.append("</svrl:schematron-output>\n");
+            xslt.append("</xsl:template>\n");
+            xslt.append("</xsl:stylesheet>");
+
+            return xslt.toString();
+
+        } catch (Exception e) {
+            logger.error("Error parsing Schematron file: {}", schematronFile.getAbsolutePath(), e);
             return null;
         }
     }
@@ -295,6 +484,23 @@ public class SchematronServiceImpl implements SchematronService {
             return child.getTextContent();
         }
         return null;
+    }
+
+    /**
+     * Escapes XML special characters for use in XML attributes and content.
+     *
+     * @param text The text to escape
+     * @return The escaped text
+     */
+    private String escapeXml(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
     }
 
     /**

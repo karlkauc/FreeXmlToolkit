@@ -36,8 +36,13 @@
                                editable="false"/>
                     <Button fx:id="changeSchematronButton" text="..."/>
                 </HBox>
-                <Label fx:id="schematronValidationStatusLabel" text="Schematron validation status: Unknown"
-                       wrapText="true"/>
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <Label fx:id="schematronValidationStatusLabel" text="Schematron validation status: Unknown"
+                           wrapText="true" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="schematronDetailsButton" text="Details" visible="false"
+                            onAction="#showSchematronDetails" prefWidth="60" maxHeight="20" minHeight="20"
+                            style="-fx-font-size: 10px;"/>
+                </HBox>
                 <CheckBox fx:id="continuousSchematronValidationCheckBox" text="Continuous Schematron validation"/>
             </VBox>
         </TitledPane>
