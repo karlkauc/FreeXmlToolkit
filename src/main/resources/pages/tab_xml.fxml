@@ -40,20 +40,32 @@
 
             <Separator orientation="VERTICAL" />
             <VBox>
-                <Button onAction="#moveUp">
+                <Button onAction="#moveUp" prefWidth="28.0" prefHeight="24.0" maxWidth="28.0" maxHeight="24.0"
+                        minWidth="28.0" minHeight="24.0">
                     <graphic>
                         <FontIcon iconLiteral="bi-arrow-bar-up" />
                     </graphic>
                 </Button>
-                <Button onAction="#moveDown">
+                <Button onAction="#moveDown" prefWidth="28.0" prefHeight="24.0" maxWidth="28.0" maxHeight="24.0"
+                        minWidth="28.0" minHeight="24.0">
                     <graphic>
                         <FontIcon iconLiteral="bi-arrow-bar-down" />
                     </graphic>
                 </Button>
             </VBox>
             <VBox>
-                <Button onAction="#increaseFontSize" text="+" />
-                <Button onAction="#decreaseFontSize" text="-" />
+                <Button onAction="#increaseFontSize" prefWidth="28.0" prefHeight="24.0" maxWidth="28.0" maxHeight="24.0"
+                        minWidth="28.0" minHeight="24.0">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-plus"/>
+                    </graphic>
+                </Button>
+                <Button onAction="#decreaseFontSize" prefWidth="28.0" prefHeight="24.0" maxWidth="28.0" maxHeight="24.0"
+                        minWidth="28.0" minHeight="24.0">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-dash"/>
+                    </graphic>
+                </Button>
             </VBox>
             <Separator orientation="VERTICAL" />
         </HBox>
