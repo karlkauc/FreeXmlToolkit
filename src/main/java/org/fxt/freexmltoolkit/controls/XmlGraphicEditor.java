@@ -433,9 +433,13 @@ public class XmlGraphicEditor extends VBox {
 
         ContextMenu contextMenu = new ContextMenu();
 
-        MenuItem addChildMenuItem = new MenuItem("Add Child to: " + domNode.getNodeName());
-        addChildMenuItem.setGraphic(createIcon("ADD_CHILD"));
-        addChildMenuItem.setOnAction(e -> addChildNodeToSpecificParent(domNode));
+        // "Add Child" nur anzeigen, wenn der Knoten Kind-Elemente haben kann
+        if (canHaveChildren(domNode)) {
+            MenuItem addChildMenuItem = new MenuItem("Add Child to: " + domNode.getNodeName());
+            addChildMenuItem.setGraphic(createIcon("ADD_CHILD"));
+            addChildMenuItem.setOnAction(e -> addChildNodeToSpecificParent(domNode));
+            contextMenu.getItems().add(addChildMenuItem);
+        }
 
         MenuItem addSiblingAfterMenuItem = new MenuItem("Add Sibling After");
         addSiblingAfterMenuItem.setGraphic(createIcon("ADD_AFTER"));
@@ -450,7 +454,6 @@ public class XmlGraphicEditor extends VBox {
         deleteMenuItem.setOnAction(e -> deleteNode(domNode));
 
         contextMenu.getItems().addAll(
-                addChildMenuItem,
                 addSiblingAfterMenuItem,
                 addSiblingBeforeMenuItem,
                 new SeparatorMenuItem(),
@@ -469,6 +472,28 @@ public class XmlGraphicEditor extends VBox {
             // Wichtig: Event konsumieren, damit es nicht weiter nach oben bubbelt
             e.consume();
         });
+    }
+
+    /**
+     * Prüft, ob ein DOM-Knoten Textinhalt hat.
+     * Ein Knoten hat Textinhalt, wenn er genau ein Text-Kind hat.
+     */
+    private boolean hasTextContent(Node node) {
+        if (node.getNodeType() != Node.ELEMENT_NODE) {
+            return false;
+        }
+
+        // Prüfe, ob der Knoten genau ein Text-Kind hat
+        return node.getChildNodes().getLength() == 1 &&
+                node.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE;
+    }
+
+    /**
+     * Prüft, ob ein DOM-Knoten Kind-Elemente haben kann.
+     * Ein Knoten kann Kinder haben, wenn er keinen Textinhalt hat.
+     */
+    private boolean canHaveChildren(Node node) {
+        return !hasTextContent(node);
     }
 
     private void setupDragAndDrop(VBox elementContainer, Node domNode) {
@@ -521,12 +546,16 @@ public class XmlGraphicEditor extends VBox {
                 try {
                     Document doc = parentNode.getOwnerDocument();
                     Element newElement = doc.createElement(elementName.trim());
+
+                    // Füge einen leeren Text-Knoten hinzu, damit das Element sofort editierbar ist
+                    newElement.appendChild(doc.createTextNode(""));
+                    
                     parentNode.appendChild(newElement);
 
-                    // UI aktualisieren - wir müssen die gesamte Ansicht neu laden
-                    refreshWholeView();
+                    // Intelligente UI-Aktualisierung anstelle einer vollständigen Neuerstellung
+                    updateUIAfterNodeAddition(parentNode, newElement);
 
-                    logger.info("New child element '{}' added to '{}'", elementName, parentNode.getNodeName());
+                    logger.info("New child element '{}' added to '{}' with empty text content", elementName, parentNode.getNodeName());
                 } catch (Exception e) {
                     showErrorDialog("Error adding element", e.getMessage());
                 }
@@ -548,6 +577,9 @@ public class XmlGraphicEditor extends VBox {
                         Document doc = siblingNode.getOwnerDocument();
                         Element newElement = doc.createElement(elementName.trim());
 
+                        // Füge einen leeren Text-Knoten hinzu, damit das Element sofort editierbar ist
+                        newElement.appendChild(doc.createTextNode(""));
+
                         if (after) {
                             Node nextSibling = siblingNode.getNextSibling();
                             if (nextSibling != null) {
@@ -559,10 +591,10 @@ public class XmlGraphicEditor extends VBox {
                             parentNode.insertBefore(newElement, siblingNode);
                         }
 
-                        // UI aktualisieren
-                        refreshWholeView();
+                        // Intelligente UI-Aktualisierung anstelle einer vollständigen Neuerstellung
+                        updateUIAfterNodeAddition(parentNode, newElement);
 
-                        logger.info("New sibling element '{}' added {} '{}'",
+                        logger.info("New sibling element '{}' added {} '{}' with empty text content",
                                 elementName, after ? "after" : "before", siblingNode.getNodeName());
                     }
                 } catch (Exception e) {
@@ -627,6 +659,7 @@ public class XmlGraphicEditor extends VBox {
             addChildNodes(currentDomNode);
         }
     }
+
 
     private void moveNodeToNewParent(Node newParentNode, String sourceNodeName) {
         // Vereinfachte Implementierung - in einer echten Anwendung würde man
@@ -773,5 +806,112 @@ public class XmlGraphicEditor extends VBox {
         circle.setFill(Color.LIGHTGRAY);
         circle.setStroke(Color.GRAY);
         return circle;
+    }
+
+    /**
+     * Aktualisiert die UI intelligent nach dem Hinzufügen eines neuen Knotens,
+     * anstatt die gesamte UI neu aufzubauen.
+     */
+    private void updateUIAfterNodeAddition(Node parentNode, Element newElement) {
+        // Aktualisiere die Textansicht des Editors
+        this.xmlEditor.refreshTextViewFromDom();
+
+        // Finde das UI-Element für den Parent-Knoten und füge das neue Element hinzu
+        addNewNodeToUI(parentNode, newElement);
+    }
+
+    /**
+     * Fügt einen neuen Knoten zur UI hinzu, ohne die gesamte UI neu aufzubauen.
+     */
+    private void addNewNodeToUI(Node parentNode, Element newElement) {
+        // Durchlaufe alle UI-Elemente und finde das entsprechende Parent-Element
+        for (javafx.scene.Node child : this.getChildren()) {
+            if (child instanceof GridPane gridPane) {
+                // Prüfe, ob dieses GridPane zum Parent-Knoten gehört
+                if (isGridPaneForNode(gridPane, parentNode)) {
+                    // Füge das neue Element zur UI hinzu
+                    addNewElementToGridPane(gridPane, newElement);
+                    return;
+                }
+            } else if (child instanceof VBox vbox) {
+                // Rekursiv durch komplexe Knoten gehen
+                if (addNewNodeToVBox(vbox, parentNode, newElement)) {
+                    return;
+                }
+            }
+        }
+
+        // Falls wir das Parent-Element nicht finden, machen wir eine vollständige Neuerstellung
+        logger.warn("Could not find parent UI element for node: {}. Performing full refresh.", parentNode.getNodeName());
+        refreshWholeView();
+    }
+
+    private boolean isGridPaneForNode(GridPane gridPane, Node node) {
+        // Diese Methode prüft, ob ein GridPane zu einem bestimmten DOM-Knoten gehört
+        // Das ist komplex, da wir keine direkte Referenz haben
+        // Für jetzt verwenden wir eine einfache Heuristik
+
+        // Prüfe, ob das GridPane ein Label mit dem Knotennamen enthält
+        for (javafx.scene.Node gridChild : gridPane.getChildren()) {
+            if (gridChild instanceof HBox hbox) {
+                for (javafx.scene.Node hboxChild : hbox.getChildren()) {
+                    if (hboxChild instanceof Label label) {
+                        if (hbox.getStyleClass().contains("node-name-box") &&
+                                label.getText().equals(node.getNodeName())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private void addNewElementToGridPane(GridPane gridPane, Element newElement) {
+        // Erstelle ein neues UI-Element für den neuen Knoten
+        var nodeName = new Label(newElement.getNodeName());
+        var nodeValue = new Label(""); // Leerer Text für neue Elemente
+
+        nodeName.setWrapText(false);
+        nodeValue.setWrapText(true);
+
+        nodeName.setTooltip(new Tooltip(newElement.getNodeName()));
+        nodeValue.setTooltip(new Tooltip(""));
+
+        // WICHTIG: Event-Handler für das neue Label setzen
+        nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, newElement));
+
+        var nodeNameBox = new HBox(nodeName);
+        nodeNameBox.getStyleClass().add("node-name-box");
+
+        var nodeValueBox = new HBox(nodeValue);
+        nodeValueBox.getStyleClass().add("node-value-box");
+
+        // Füge das neue Element zur nächsten Zeile hinzu
+        int nextRow = gridPane.getRowCount();
+        gridPane.add(nodeNameBox, 0, nextRow);
+        gridPane.add(nodeValueBox, 1, nextRow);
+
+        // Kontextmenü für das neue Element hinzufügen
+        setupContextMenu(gridPane, newElement);
+
+        logger.debug("Added new element '{}' to UI at row {}", newElement.getNodeName(), nextRow);
+    }
+
+    private boolean addNewNodeToVBox(VBox vbox, Node parentNode, Element newElement) {
+        // Durchlaufe alle Kinder der VBox
+        for (javafx.scene.Node vboxChild : vbox.getChildren()) {
+            if (vboxChild instanceof GridPane gridPane) {
+                if (isGridPaneForNode(gridPane, parentNode)) {
+                    addNewElementToGridPane(gridPane, newElement);
+                    return true;
+                }
+            } else if (vboxChild instanceof VBox childVbox) {
+                if (addNewNodeToVBox(childVbox, parentNode, newElement)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
