@@ -592,11 +592,31 @@ tasks.register<Exec>("createWindowsAppImage") {
     )
 }
 
+tasks.register<Zip>("zipWindowsAppImage") {
+    description = "Zippt das erstellte Windows App Image und löscht das Originalverzeichnis."
+    dependsOn(tasks.named("createWindowsAppImage"))
+
+    val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit")
+    from(sourceDirProvider)
+    archiveFileName.set("FreeXmlToolkit-windows-app-image-$version.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("dist"))
+
+    // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
+    onlyIf { sourceDirProvider.get().asFile.exists() }
+
+    // Nach dem Zippen das Originalverzeichnis löschen
+    doLast {
+        val sourceDir = sourceDirProvider.get().asFile
+        logger.lifecycle("Lösche originales AppImage-Verzeichnis nach dem Zippen: ${sourceDir.path}")
+        sourceDir.deleteRecursively()
+    }
+}
+
 tasks.named("createAllExecutables") {
     dependsOn(
         "createWindowsExecutable",
         "createWindowsMsi",
-        "createWindowsAppImage",
+        "zipWindowsAppImage",
         "createMacOSExecutable",
         "createMacOSPkg",
         "createMacOSAppImage",
@@ -610,7 +630,7 @@ tasks.named("createAllExecutables") {
 // Convenience tasks for platform-specific packages
 tasks.register("createWindowsPackages") {
     description = "Erstellt alle Windows-Pakete (exe, msi, app-image)"
-    dependsOn("createWindowsExecutable", "createWindowsMsi", "createWindowsAppImage")
+    dependsOn("createWindowsExecutable", "createWindowsMsi", "zipWindowsAppImage")
 }
 
 tasks.register("createMacOSPackages") {
@@ -640,7 +660,7 @@ tasks.register("createAllInstallers") {
 tasks.register("createAllAppImages") {
     description = "Erstellt alle App-Image-Pakete (portable Versionen)"
     dependsOn(
-        "createWindowsAppImage",
+        "zipWindowsAppImage",
         "createMacOSAppImage",
         "createLinuxAppImage",
         "createLinuxTar"
