@@ -115,7 +115,6 @@ While FreeXmlToolkit is powerful and comprehensive, there are some schema format
 ## 📋 System Requirements
 
 - **Operating System**: Windows 10/11, macOS 10.15+, or Linux
-- **Java**: Java 24 or higher (included in the download)
 - **Memory**: 4GB RAM minimum (8GB recommended)
 - **Storage**: 500MB free disk space
 
