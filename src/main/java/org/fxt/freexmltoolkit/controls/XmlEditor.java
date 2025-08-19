@@ -1778,7 +1778,47 @@ public class XmlEditor extends Tab {
                     if (annotation.getNodeType() == Node.ELEMENT_NODE &&
                             ("annotation".equals(annotation.getLocalName()) || "xs:annotation".equals(annotation.getNodeName()))) {
 
-                        // Look for documentation with example values
+                        // Look for appinfo elements with Altova example values
+                        NodeList appInfos = annotation.getChildNodes();
+                        for (int j = 0; j < appInfos.getLength(); j++) {
+                            Node appInfo = appInfos.item(j);
+                            if (appInfo.getNodeType() == Node.ELEMENT_NODE &&
+                                    ("appinfo".equals(appInfo.getLocalName()) || "xs:appinfo".equals(appInfo.getNodeName()))) {
+
+                                // Look for Altova exampleValues
+                                NodeList appInfoChildren = appInfo.getChildNodes();
+                                for (int k = 0; k < appInfoChildren.getLength(); k++) {
+                                    Node appInfoChild = appInfoChildren.item(k);
+                                    if (appInfoChild.getNodeType() == Node.ELEMENT_NODE &&
+                                            "http://www.altova.com/xml-schema-extensions".equals(appInfoChild.getNamespaceURI()) &&
+                                            "exampleValues".equals(appInfoChild.getLocalName())) {
+
+                                        // Extract individual example values
+                                        NodeList examples = appInfoChild.getChildNodes();
+                                        for (int l = 0; l < examples.getLength(); l++) {
+                                            Node exampleNode = examples.item(l);
+                                            if (exampleNode.getNodeType() == Node.ELEMENT_NODE &&
+                                                    "http://www.altova.com/xml-schema-extensions".equals(exampleNode.getNamespaceURI()) &&
+                                                    "example".equals(exampleNode.getLocalName())) {
+
+                                                // Get the value attribute
+                                                if (exampleNode.hasAttributes()) {
+                                                    Node valueAttr = exampleNode.getAttributes().getNamedItem("value");
+                                                    if (valueAttr != null) {
+                                                        String value = valueAttr.getNodeValue();
+                                                        if (value != null && !value.trim().isEmpty()) {
+                                                            exampleValues.add(value);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Also look for documentation with example values (legacy support)
                         NodeList docs = annotation.getChildNodes();
                         for (int j = 0; j < docs.getLength(); j++) {
                             Node doc = docs.item(j);
