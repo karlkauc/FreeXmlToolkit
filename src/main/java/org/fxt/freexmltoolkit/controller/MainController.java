@@ -76,6 +76,9 @@ public class MainController {
     Menu lastOpenFilesMenu;
 
     @FXML
+    CheckMenuItem xmlEditorSidebarMenuItem;
+
+    @FXML
     Label menuText1, menuText2;
 
     @FXML
@@ -98,7 +101,21 @@ public class MainController {
         exit.setOnAction(e -> Platform.exit());
         menuItemExit.setOnAction(e -> Platform.exit());
         loadLastOpenFiles();
+        loadXmlEditorSidebarPreference();
         loadPageFromPath("/pages/welcome.fxml");
+    }
+
+    private void loadXmlEditorSidebarPreference() {
+        // Load preference - default is visible (true)
+        String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
+        boolean isVisible = sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
+
+        // Set the menu item state
+        if (xmlEditorSidebarMenuItem != null) {
+            xmlEditorSidebarMenuItem.setSelected(isVisible);
+        }
+
+        logger.debug("Loaded XML Editor Sidebar preference: {}", isVisible);
     }
 
     private void updateMemoryUsage() {
@@ -417,6 +434,53 @@ public class MainController {
             button.getStyleClass().remove("menu_button");
             button.getStyleClass().remove("menu_button_collapsed");
             button.getStyleClass().add(styleClass);
+        }
+    }
+
+    @FXML
+    private void toggleXmlEditorSidebar() {
+        boolean isVisible = xmlEditorSidebarMenuItem.isSelected();
+        logger.debug("Toggle XML Editor Sidebar: {}", isVisible);
+
+        // Save preference
+        propertiesService.set("xmlEditorSidebar.visible", String.valueOf(isVisible));
+
+        // Apply to current XML controller if available
+        if (xmlController != null) {
+            xmlController.setXmlEditorSidebarVisible(isVisible);
+        }
+    }
+
+    /**
+     * Gets the current sidebar visibility setting from preferences.
+     *
+     * @return true if sidebar should be visible, false otherwise
+     */
+    public boolean isXmlEditorSidebarVisible() {
+        String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
+        return sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
+    }
+
+    /**
+     * Toggles XML Editor Sidebar visibility from the sidebar button.
+     * This method synchronizes the menu state and applies the global toggle.
+     *
+     * @param visible true to show the sidebar, false to hide it
+     */
+    public void toggleXmlEditorSidebarFromSidebar(boolean visible) {
+        logger.debug("Toggle XML Editor Sidebar from sidebar button: {}", visible);
+
+        // Update the menu checkbox to reflect the new state
+        if (xmlEditorSidebarMenuItem != null) {
+            xmlEditorSidebarMenuItem.setSelected(visible);
+        }
+
+        // Save preference
+        propertiesService.set("xmlEditorSidebar.visible", String.valueOf(visible));
+
+        // Apply to current XML controller if available
+        if (xmlController != null) {
+            xmlController.setXmlEditorSidebarVisible(visible);
         }
     }
 }

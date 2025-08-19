@@ -183,4 +183,17 @@ public class PropertiesServiceImpl implements PropertiesService {
             saveProperties(properties);
         }
     }
+
+    @Override
+    public String get(String key) {
+        return properties.getProperty(key);
+    }
+
+    @Override
+    public void set(String key, String value) {
+        if (key != null && value != null) {
+            properties.setProperty(key, value);
+            saveProperties(properties);
+        }
+    }
 }

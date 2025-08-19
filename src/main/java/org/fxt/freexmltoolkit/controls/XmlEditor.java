@@ -118,6 +118,14 @@ public class XmlEditor extends Tab {
 
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
+
+        // Also set the MainController reference in the sidebar controller if it's already initialized
+        if (sidebarController != null) {
+            sidebarController.setMainController(mainController);
+            logger.debug("✅ Updated MainController reference in XmlEditorSidebarController");
+        } else {
+            logger.debug("⚠️ SidebarController not yet initialized, MainController will be set later");
+        }
     }
 
     public void setLanguageServer(LanguageServer serverProxy) {
@@ -227,6 +235,14 @@ public class XmlEditor extends Tab {
             sidebarController = loader.getController();
             sidebarController.setXmlEditor(this);
             sidebarController.setSidebarContainer(sidebar); // Pass the container reference
+
+            // Pass MainController reference if available
+            if (mainController != null) {
+                sidebarController.setMainController(mainController);
+                logger.debug("✅ Set MainController reference during sidebar initialization");
+            } else {
+                logger.debug("⚠️ MainController not available during sidebar initialization");
+            }
             return sidebar;
         } catch (IOException e) {
             logger.error("Failed to load sidebar FXML", e);
@@ -1974,6 +1990,53 @@ public class XmlEditor extends Tab {
             } catch (Exception e) {
                 logger.error("Failed to refresh text view from DOM", e);
             }
+        }
+    }
+
+    // Store the original divider position to restore later
+    private double savedDividerPosition = 0.8;
+
+    /**
+     * Sets the visibility of the XML Editor Sidebar.
+     *
+     * @param visible true to show the sidebar, false to hide it completely
+     */
+    public void setXmlEditorSidebarVisible(boolean visible) {
+        if (splitPane != null && splitPane.getItems().size() > 1) {
+            javafx.scene.Node sidebarNode = splitPane.getItems().get(1); // Sidebar is the second item
+
+            if (visible) {
+                // Show sidebar - restore visibility and divider position
+                sidebarNode.setVisible(true);
+                sidebarNode.setManaged(true);
+
+                // Restore the saved divider position
+                Platform.runLater(() -> {
+                    splitPane.setDividerPositions(savedDividerPosition);
+                    logger.debug("Restored SplitPane divider position to: {}", savedDividerPosition);
+                });
+
+                logger.debug("XML Editor Sidebar shown");
+            } else {
+                // Hide sidebar - save current position and maximize main content
+                if (splitPane.getDividers().size() > 0) {
+                    savedDividerPosition = splitPane.getDividerPositions()[0];
+                    logger.debug("Saved current divider position: {}", savedDividerPosition);
+                }
+
+                sidebarNode.setVisible(false);
+                sidebarNode.setManaged(false);
+
+                // Set divider to give all space to main content
+                Platform.runLater(() -> {
+                    splitPane.setDividerPositions(1.0);
+                    logger.debug("Set SplitPane divider to 1.0 (full width for main content)");
+                });
+
+                logger.debug("XML Editor Sidebar hidden");
+            }
+        } else {
+            logger.warn("SplitPane or sidebar not available - cannot set visibility");
         }
     }
 }

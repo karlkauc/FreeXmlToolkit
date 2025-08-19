@@ -36,4 +36,8 @@ public interface PropertiesService {
     String getLastOpenDirectory();
 
     void setLastOpenDirectory(String path);
+
+    String get(String key);
+
+    void set(String key, String value);
 }

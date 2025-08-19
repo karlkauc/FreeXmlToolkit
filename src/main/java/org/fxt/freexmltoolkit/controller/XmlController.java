@@ -185,6 +185,13 @@ public class XmlController {
         
         xmlEditor.refresh();
 
+        // Apply sidebar visibility setting from preferences
+        if (mainController != null) {
+            boolean sidebarVisible = mainController.isXmlEditorSidebarVisible();
+            xmlEditor.setXmlEditorSidebarVisible(sidebarVisible);
+            logger.debug("Applied sidebar visibility setting to new tab: {}", sidebarVisible);
+        }
+
         // Füge einen Listener hinzu, der den Server über Textänderungen informiert.
         // Dies ist entscheidend für aktuelle Diagnosen und Falt-Bereiche.
         xmlEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
@@ -903,5 +910,23 @@ public class XmlController {
         }
 
         logger.debug("Test file loading complete.");
+    }
+
+    /**
+     * Sets the visibility of the XML Editor Sidebar for all tabs.
+     *
+     * @param visible true to show the sidebar, false to hide it completely
+     */
+    public void setXmlEditorSidebarVisible(boolean visible) {
+        logger.debug("Setting XML Editor Sidebar visibility to: {}", visible);
+
+        // Apply to all existing tabs
+        if (xmlFilesPane != null) {
+            for (Tab tab : xmlFilesPane.getTabs()) {
+                if (tab instanceof XmlEditor xmlEditor) {
+                    xmlEditor.setXmlEditorSidebarVisible(visible);
+                }
+            }
+        }
     }
 }

@@ -61,6 +61,13 @@
                 </Menu>
                 <Menu text="Windows">
                     <MenuItem onAction="#toggleMenuBar" text="Show Menu"/>
+                    <SeparatorMenuItem/>
+                    <CheckMenuItem fx:id="xmlEditorSidebarMenuItem" onAction="#toggleXmlEditorSidebar"
+                                   text="XML Editor Sidebar" selected="true">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-layout-sidebar-inset-reverse" iconSize="16"/>
+                        </graphic>
+                    </CheckMenuItem>
                 </Menu>
                 <Menu text="Settings">
                     <MenuItem text="Test 1"/>

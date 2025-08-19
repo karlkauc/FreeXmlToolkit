@@ -74,12 +74,18 @@ public class XmlEditorSidebarController {
 
     private boolean sidebarVisible = true;
 
+    private org.fxt.freexmltoolkit.controller.MainController mainController;
+
     private VBox sidebarContainer; // Reference to the main container
     private double expandedWidth = 300; // Store the expanded width
     private final List<SchematronService.SchematronValidationError> currentSchematronErrors = new ArrayList<>();
 
     public void setXmlEditor(XmlEditor xmlEditor) {
         this.xmlEditor = xmlEditor;
+    }
+
+    public void setMainController(org.fxt.freexmltoolkit.controller.MainController mainController) {
+        this.mainController = mainController;
     }
 
     @FXML
@@ -137,6 +143,41 @@ public class XmlEditorSidebarController {
 
     @FXML
     private void toggleSidebar() {
+        // Use the global sidebar toggle functionality instead of local minimize/maximize
+        if (mainController != null) {
+            // Get the current state from the main controller's menu
+            boolean currentlyVisible = mainController.isXmlEditorSidebarVisible();
+
+            // Toggle the state through the MainController - this will:
+            // 1. Update the menu CheckMenuItem
+            // 2. Save the preference 
+            // 3. Apply to all XML Editor tabs
+            // 4. Completely hide/show the sidebar (not just minimize)
+            mainController.toggleXmlEditorSidebarFromSidebar(!currentlyVisible);
+        } else {
+            // Alternative approach: Try to find the MainController through the Stage
+            System.out.println("Warning: MainController not available directly - trying alternative approach");
+
+            try {
+                // Get the current stage and find MainController through the window
+                javafx.stage.Window window = toggleSidebarButton.getScene().getWindow();
+                if (window instanceof javafx.stage.Stage stage) {
+                    Object userData = stage.getUserData();
+                    // This is a fallback - in practice, we should ensure MainController is available
+                    // For now, just use local toggle as fallback
+                    toggleSidebarLocal();
+                }
+            } catch (Exception e) {
+                System.out.println("Fallback failed - using local sidebar toggle: " + e.getMessage());
+                toggleSidebarLocal();
+            }
+        }
+    }
+
+    /**
+     * Fallback method for local sidebar toggle (original behavior)
+     */
+    private void toggleSidebarLocal() {
         sidebarVisible = !sidebarVisible;
 
         if (sidebarVisible) {
