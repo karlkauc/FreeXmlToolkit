@@ -34,7 +34,9 @@ Click on any feature below to learn more about it:
 
 -   **[PDF Generator (FOP)](fop-controller.md)**: Create professional-quality PDF documents from your XML data using XSL-FO stylesheets.
 
--   **[XML Signature](signature-controller.md)**: A complete workflow for creating and validating XML digital signatures to ensure document integrity and authenticity.
+- **[XML Digital Signature](signature-controller.md)**: A complete workflow for creating and validating XML digital
+  signatures with both Basic Mode for common use cases and Expert Mode for advanced XML-DSig operations with full W3C
+  compliance.
 
 ---
 

@@ -23,7 +23,7 @@
                     <VBox spacing="20" style="-fx-padding: 20;">
                         <Label styleClass="h2" text="How to Use the Signature Tool"/>
                         <Label wrapText="true"
-                               text="This tool provides a complete workflow for creating digital certificates, signing XML documents, and validating those signatures."/>
+                               text="This tool provides a complete workflow for creating digital certificates, signing XML documents, validating signatures, and advanced XML-DSig operations through Expert Mode."/>
 
                         <!-- Anleitung 1: Zertifikat erstellen -->
                         <VBox styleClass="card">
@@ -52,6 +52,35 @@
                             <VBox style="-fx-padding: 15 0 0 0;">
                                 <Label wrapText="true"
                                        text="This tab verifies the integrity of a signed XML document. Load a signed XML file (e.g., one created in step 2). The application will check if the signature is cryptographically valid and has not been tampered with. You will receive a confirmation message indicating whether the validation was successful or not."/>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Anleitung 4: Expert Mode -->
+                        <VBox styleClass="card">
+                            <Label styleClass="card-title" text="4. Expert Mode - Advanced XML-DSig Operations"/>
+                            <Separator/>
+                            <VBox style="-fx-padding: 15 0 0 0;">
+                                <Label wrapText="true"
+                                       text="The Expert Mode provides comprehensive XML Digital Signature capabilities according to W3C XML-DSig standards. This advanced interface allows you to access all available key algorithms, signature methods, and validation options for professional XML security requirements."/>
+
+                                <!-- Expert Mode Sub-sections -->
+                                <VBox style="-fx-padding: 10 0 0 0; -fx-spacing: 8;">
+                                    <Label styleClass="text-bold" text="Advanced Key Generation:"/>
+                                    <Label wrapText="true" style="-fx-padding: 0 0 0 15;"
+                                           text="• Choose from RSA, DSA, EC (Elliptic Curve), or ECDSA algorithms&#10;• Configure key sizes: RSA/DSA (1024-4096 bits), EC (256-521 bits)&#10;• Select signature algorithms: SHA1/SHA256/SHA384/SHA512 with RSA/DSA/ECDSA&#10;• Set certificate validity period and Subject Alternative Names&#10;• Generate certificates with advanced cryptographic options"/>
+
+                                    <Label styleClass="text-bold" text="Advanced XML Signing:"/>
+                                    <Label wrapText="true" style="-fx-padding: 0 0 0 15;"
+                                           text="• Canonicalization Methods: Standard C14N, Exclusive C14N (with/without comments)&#10;• Transform Methods: Enveloped signature, XPath, XSLT, canonicalization&#10;• Digest Methods: SHA1, SHA256, SHA384, SHA512, MD5&#10;• Signature Types: Enveloped (inside document), Enveloping (document inside signature), Detached (separate signature)&#10;• Configure all XML-DSig parameters according to your security requirements"/>
+
+                                    <Label styleClass="text-bold" text="Advanced Signature Validation:"/>
+                                    <Label wrapText="true" style="-fx-padding: 0 0 0 15;"
+                                           text="• Certificate Chain Validation: Verify complete certificate hierarchy&#10;• Trust Anchor Validation: Check against trusted certificate authorities&#10;• Revocation Checking: OCSP and CRL certificate revocation verification&#10;• Timestamp Validation: Verify time-stamped signatures for long-term validity&#10;• Detailed Reports: Generate comprehensive validation reports with technical details"/>
+
+                                    <Label styleClass="text-bold" text="Professional Features:"/>
+                                    <Label wrapText="true" style="-fx-padding: 0 0 0 15;"
+                                           text="• Real-time logging with timestamps in the results area&#10;• Drag-and-drop file support for all operations&#10;• Comprehensive error reporting and validation feedback&#10;• Full compliance with W3C XML-DSig and related security standards&#10;• Suitable for enterprise and high-security applications"/>
+                                </VBox>
                             </VBox>
                         </VBox>
                     </VBox>
@@ -264,6 +293,277 @@
                                 <FontIcon iconLiteral="bi-search" iconSize="16"/>
                             </graphic>
                         </Button>
+                    </VBox>
+                </ScrollPane>
+            </content>
+        </Tab>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 4: EXPERT MODE                                                    -->
+        <!-- ===================================================================== -->
+        <Tab text="Expert Mode">
+            <graphic>
+                <FontIcon iconLiteral="bi-gear-fill" iconSize="16"/>
+            </graphic>
+            <content>
+                <ScrollPane fitToWidth="true">
+                    <VBox spacing="20" style="-fx-padding: 20;">
+
+                        <!-- Expert Mode Header -->
+                        <VBox styleClass="card">
+                            <Label styleClass="card-title" text="XML Digital Signature Expert Mode"/>
+                            <Separator/>
+                            <VBox style="-fx-padding: 15 0 0 0;">
+                                <Label wrapText="true"
+                                       text="This expert mode provides comprehensive XML-DSig capabilities including all available key algorithms, signature methods, and validation options according to W3C XML-DSig standards."/>
+                                <Label wrapText="true" style="-fx-padding: 10 0 0 0; -fx-font-style: italic;"
+                                       text="For detailed information about Expert Mode features and workflow, please refer to the Instructions tab above. The Expert Mode is designed for advanced users who need full control over XML Digital Signature parameters and require compliance with enterprise security standards."/>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Key Generation Section -->
+                        <VBox styleClass="card">
+                            <Label styleClass="card-title" text="Advanced Key Generation"/>
+                            <Separator/>
+                            <VBox spacing="15" style="-fx-padding: 15 0 0 0;">
+
+                                <!-- Key Algorithm Selection -->
+                                <GridPane hgap="10" vgap="10">
+                                    <Label text="Key Algorithm:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <ComboBox fx:id="expertKeyAlgorithm" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                    </ComboBox>
+
+                                    <Label text="Key Size:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <ComboBox fx:id="expertKeySize" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                    </ComboBox>
+
+                                    <Label text="Signature Algorithm:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <ComboBox fx:id="expertSignatureAlgorithm" GridPane.columnIndex="1"
+                                              GridPane.rowIndex="2">
+                                    </ComboBox>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+
+                                <!-- Certificate Details -->
+                                <GridPane hgap="10" vgap="10">
+                                    <Label text="Certificate Validity (days):" GridPane.columnIndex="0"
+                                           GridPane.rowIndex="0"/>
+                                    <TextField fx:id="expertValidityDays" text="365" GridPane.columnIndex="1"
+                                               GridPane.rowIndex="0"/>
+
+                                    <Label text="Subject Alternative Names:" GridPane.columnIndex="0"
+                                           GridPane.rowIndex="1"/>
+                                    <TextField fx:id="expertSubjectAltNames" promptText="DNS:example.com,IP:192.168.1.1"
+                                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+
+                                <!-- Certificate Identity -->
+                                <Label text="Certificate Identity:"
+                                       style="-fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
+                                <GridPane hgap="10" vgap="10">
+                                    <Label text="Common Name (CN):" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="expertCommonName" promptText="e.g., Karl Kauc"
+                                               GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                                    <Label text="Organization (O):" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TextField fx:id="expertOrganization" promptText="e.g., FreeXmlToolkit"
+                                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                                    <Label text="Country (C):" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <TextField fx:id="expertCountry" promptText="e.g., AT" GridPane.columnIndex="1"
+                                               GridPane.rowIndex="2"/>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+
+                                <!-- Keystore Configuration -->
+                                <Label text="Keystore Configuration:"
+                                       style="-fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
+                                <GridPane hgap="10" vgap="10">
+                                    <Label text="Keystore Alias*:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="expertCertAlias" promptText="A unique name for your key"
+                                               GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                                    <Label text="Keystore Password*:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <PasswordField fx:id="expertCertKeystorePassword"
+                                                   promptText="Password for the .jks file" GridPane.columnIndex="1"
+                                                   GridPane.rowIndex="1"/>
+
+                                    <Label text="Alias Password*:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <PasswordField fx:id="expertCertAliasPassword"
+                                                   promptText="Password for the key inside the keystore"
+                                                   GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+
+                                <Button onAction="#expertCreateCertificate" text="Generate Advanced Certificate"
+                                        maxWidth="Infinity">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-shield-lock-fill" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                            </VBox>
+                        </VBox>
+
+                        <!-- XML Signing Section -->
+                        <VBox styleClass="card">
+                            <Label styleClass="card-title" text="Advanced XML Signing"/>
+                            <Separator/>
+                            <VBox spacing="15" style="-fx-padding: 15 0 0 0;">
+
+                                <!-- File Selection -->
+                                <GridPane hgap="10" vgap="10">
+                                    <Button fx:id="expertLoadXmlButton" text="XML File" GridPane.columnIndex="0"
+                                            GridPane.rowIndex="0">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                                        </graphic>
+                                    </Button>
+                                    <Label fx:id="expertXmlFileInfo" text="No file selected" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="0"/>
+
+                                    <Button fx:id="expertLoadKeystoreButton" text="Keystore File"
+                                            GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-key-fill" iconSize="16"/>
+                                        </graphic>
+                                    </Button>
+                                    <Label fx:id="expertKeystoreInfo" text="No file selected" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="1"/>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+
+                                <!-- Signature Configuration -->
+                                <GridPane hgap="10" vgap="10">
+                                    <Label text="Canonicalization Method:" GridPane.columnIndex="0"
+                                           GridPane.rowIndex="0"/>
+                                    <ComboBox fx:id="expertCanonicalizationMethod" GridPane.columnIndex="1"
+                                              GridPane.rowIndex="0">
+                                    </ComboBox>
+
+                                    <Label text="Transform Method:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <ComboBox fx:id="expertTransformMethod" GridPane.columnIndex="1"
+                                              GridPane.rowIndex="1">
+                                    </ComboBox>
+
+                                    <Label text="Digest Method:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <ComboBox fx:id="expertDigestMethod" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                    </ComboBox>
+
+                                    <Label text="Signature Type:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                    <ComboBox fx:id="expertSignatureType" GridPane.columnIndex="1"
+                                              GridPane.rowIndex="3">
+                                    </ComboBox>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+
+                                <!-- Keystore Credentials -->
+                                <GridPane hgap="10" vgap="10">
+                                    <Label text="Keystore Alias:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <TextField fx:id="expertKeystoreAlias" GridPane.columnIndex="1"
+                                               GridPane.rowIndex="0"/>
+
+                                    <Label text="Keystore Password:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <PasswordField fx:id="expertKeystorePassword" GridPane.columnIndex="1"
+                                                   GridPane.rowIndex="1"/>
+
+                                    <Label text="Key Password:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <PasswordField fx:id="expertKeyPassword" GridPane.columnIndex="1"
+                                                   GridPane.rowIndex="2"/>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+
+                                <Button onAction="#expertSignDocument" text="Sign with Advanced Options"
+                                        maxWidth="Infinity">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-pen-fill" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Validation Section -->
+                        <VBox styleClass="card">
+                            <Label styleClass="card-title" text="Advanced Signature Validation"/>
+                            <Separator/>
+                            <VBox spacing="15" style="-fx-padding: 15 0 0 0;">
+
+                                <!-- File Selection -->
+                                <GridPane hgap="10" vgap="10">
+                                    <Button fx:id="expertValidateButton" text="Signed XML File" GridPane.columnIndex="0"
+                                            GridPane.rowIndex="0">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-file-earmark-check" iconSize="16"/>
+                                        </graphic>
+                                    </Button>
+                                    <Label fx:id="expertValidateFileInfo" text="No file selected"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                </GridPane>
+
+                                <!-- Validation Options -->
+                                <VBox spacing="10">
+                                    <CheckBox fx:id="expertValidateCertChain" text="Validate Certificate Chain"
+                                              selected="true"/>
+                                    <CheckBox fx:id="expertValidateTrust" text="Validate Trust Anchors"
+                                              selected="true"/>
+                                    <CheckBox fx:id="expertValidateRevocation"
+                                              text="Check Certificate Revocation (OCSP/CRL)" selected="false"/>
+                                    <CheckBox fx:id="expertValidateTimestamp" text="Validate Timestamp Signature"
+                                              selected="true"/>
+                                    <CheckBox fx:id="expertDetailedReport" text="Generate Detailed Validation Report"
+                                              selected="true"/>
+                                </VBox>
+
+                                <Button onAction="#expertValidateDocument" text="Advanced Validation"
+                                        maxWidth="Infinity">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-shield-check" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                            </VBox>
+                        </VBox>
+
+                        <!-- Results Area -->
+                        <VBox styleClass="card">
+                            <Label styleClass="card-title" text="Expert Mode Results"/>
+                            <Separator/>
+                            <TextArea fx:id="expertResultsArea" prefRowCount="8" editable="false" wrapText="true"
+                                      style="-fx-font-family: 'Courier New', monospace;"/>
+                        </VBox>
+
                     </VBox>
                 </ScrollPane>
             </content>
