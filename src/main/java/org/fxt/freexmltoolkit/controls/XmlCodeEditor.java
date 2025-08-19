@@ -660,10 +660,10 @@ public class XmlCodeEditor extends StackPane {
             if ("<".equals(character)) {
                 System.out.println("DEBUG: Detected < character, triggering element completion");
 
-                // Store the current position (after the '<' character)
-                popupStartPosition = codeArea.getCaretPosition();
+                // Store the position OF the '<' character (before it was typed)
+                popupStartPosition = codeArea.getCaretPosition() - 1;
                 isElementCompletionContext = true; // Mark as element completion
-                System.out.println("DEBUG: Set popupStartPosition to: " + popupStartPosition + " (after <), isElementCompletionContext = true");
+                System.out.println("DEBUG: Set popupStartPosition to: " + popupStartPosition + " (position of <), isElementCompletionContext = true");
 
                 // Show the IntelliSense popup with slight delay to ensure the character is processed
                 javafx.application.Platform.runLater(() -> {
@@ -1248,46 +1248,40 @@ public class XmlCodeEditor extends StackPane {
             System.out.println("DEBUG: isElementCompletionContext: " + isElementCompletionContext);
 
             if (isElementCompletionContext) {
-                // Replace the content from the "<" to current position with complete XML element
+                // SAFER APPROACH: Find the most recent "<" and replace from there
                 String tagName = selectedItem.trim();
-
-                // Create complete XML element with opening and closing tags (including the "<")
                 String completeElement = "<" + tagName + "></" + tagName + ">";
 
-                // SAFER APPROACH: Only replace from the "<" character onwards, ensure we don't touch previous content
-                int startPosition = popupStartPosition - 1; // Position of the "<" character
+                // Find the position of the most recent "<" character before the current cursor
+                String textToCursor = codeArea.getText(0, currentPosition);
+                int lastBracketPos = textToCursor.lastIndexOf('<');
 
-                // Safety check: make sure we're actually at a "<" character
-                if (startPosition >= 0 && startPosition < codeArea.getLength()) {
-                    String charAtStart = codeArea.getText(startPosition, startPosition + 1);
-                    if (!charAtStart.equals("<")) {
-                        System.out.println("DEBUG: WARNING - Expected '<' at position " + startPosition + " but found '" + charAtStart + "'");
-                        // Fallback: search backwards for the "<"
-                        for (int i = startPosition; i >= Math.max(0, startPosition - 5); i--) {
-                            if (i < codeArea.getLength() && codeArea.getText(i, i + 1).equals("<")) {
-                                startPosition = i;
-                                System.out.println("DEBUG: Found '<' at corrected position: " + startPosition);
-                                break;
-                            }
-                        }
-                    }
+                if (lastBracketPos >= 0) {
+                    // Debug information
+                    String textBeingReplaced = codeArea.getText(lastBracketPos, currentPosition);
+                    String contextBefore = codeArea.getText(Math.max(0, lastBracketPos - 10), lastBracketPos);
+                    String contextAfter = codeArea.getText(currentPosition, Math.min(codeArea.getLength(), currentPosition + 10));
+
+                    System.out.println("DEBUG: Found '<' at position: " + lastBracketPos);
+                    System.out.println("DEBUG: Full context: '" + contextBefore + "[" + textBeingReplaced + "]" + contextAfter + "'");
+                    System.out.println("DEBUG: Replacing from pos " + lastBracketPos + " to " + currentPosition + ": '" + textBeingReplaced + "'");
+                    System.out.println("DEBUG: Will replace with: '" + completeElement + "'");
+
+                    // Replace only from the "<" character to current cursor position
+                    codeArea.replaceText(lastBracketPos, currentPosition, completeElement);
+
+                    // Position cursor between the opening and closing tags
+                    int cursorPosition = lastBracketPos + tagName.length() + 2; // After "<tagname>"
+                    codeArea.moveTo(cursorPosition);
+
+                    System.out.println("DEBUG: Created complete XML element: " + completeElement);
+                    System.out.println("DEBUG: Cursor positioned at: " + cursorPosition);
+                } else {
+                    System.out.println("DEBUG: No '<' found before current position - fallback to simple insertion");
+                    // Fallback: just insert the tag name
+                    codeArea.replaceText(popupStartPosition, currentPosition, selectedItem);
+                    codeArea.moveTo(popupStartPosition + selectedItem.length());
                 }
-
-                // Debug: Show what we're replacing
-                String textBeingReplaced = "";
-                if (startPosition >= 0 && currentPosition <= codeArea.getLength()) {
-                    textBeingReplaced = codeArea.getText(startPosition, currentPosition);
-                }
-                System.out.println("DEBUG: Replacing text from pos " + startPosition + " to " + currentPosition + ": '" + textBeingReplaced + "'");
-
-                codeArea.replaceText(startPosition, currentPosition, completeElement);
-
-                // Position cursor BETWEEN the opening and closing tags
-                int cursorPosition = startPosition + tagName.length() + 2; // After "<tagname>"
-                codeArea.moveTo(cursorPosition);
-
-                System.out.println("DEBUG: Created complete XML element: " + completeElement);
-                System.out.println("DEBUG: Cursor positioned at: " + cursorPosition);
             } else {
                 // For attribute completions or other contexts, just insert the selected item
                 System.out.println("DEBUG: Not element completion - inserting selectedItem only");
