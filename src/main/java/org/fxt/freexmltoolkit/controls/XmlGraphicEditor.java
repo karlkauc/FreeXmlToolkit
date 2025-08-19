@@ -2,15 +2,23 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
+import javafx.scene.Group;
+import javafx.scene.control.*;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Rectangle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import java.util.LinkedHashMap;
@@ -27,15 +35,20 @@ public class XmlGraphicEditor extends VBox {
     private static final Logger logger = LogManager.getLogger(XmlGraphicEditor.class);
 
     private final XmlEditor xmlEditor;
+    private final Node currentDomNode;
 
     public XmlGraphicEditor(Node node, XmlEditor caller) {
         this.xmlEditor = caller;
+        this.currentDomNode = node;
         // Dem Wurzelelement wird eine CSS-Klasse für gezieltes Styling zugewiesen.
         this.getStyleClass().add("simple-node-element");
 
         if (node.hasChildNodes()) {
             addChildNodes(node);
         }
+
+        // KEIN Kontextmenü für die Haupt-VBox, um doppelte Menüs zu vermeiden
+        // Kontextmenüs werden nur für die einzelnen Kinder-Elemente erstellt
     }
 
     private void addChildNodes(Node node) {
@@ -112,6 +125,10 @@ public class XmlGraphicEditor extends VBox {
         final int row = gridPane.getRowCount();
         gridPane.add(nodeNameBox, 0, row);
         gridPane.add(nodeValueBox, 1, row);
+
+        // Kontextmenü für Text-Knoten hinzufügen - nur an das GridPane, um doppelte Menüs zu vermeiden
+        logger.debug("Setting up context menu for text node: {} (Type: {})", subNode.getNodeName(), subNode.getNodeType());
+        setupContextMenu(gridPane, subNode);
 
         this.getChildren().add(gridPane);
     }
@@ -211,7 +228,16 @@ public class XmlGraphicEditor extends VBox {
         });
 
         // 4. Header und den neuen contentWrapper zum Haupt-VBox hinzufügen
-        this.getChildren().addAll(headerBox, contentWrapper);
+        elementContainer.getChildren().addAll(headerBox, contentWrapper);
+
+        // 5. Kontextmenü für das Element hinzufügen
+        logger.debug("Setting up context menu for complex node: {} (Type: {})", subNode.getNodeName(), subNode.getNodeType());
+        setupContextMenu(elementContainer, subNode);
+
+        // 6. Drag & Drop für das Element einrichten
+        setupDragAndDrop(elementContainer, subNode);
+
+        this.getChildren().add(elementContainer);
     }
 
     @NotNull
@@ -397,5 +423,355 @@ public class XmlGraphicEditor extends VBox {
             }
         }
         return elementNodeCount > 1;
+    }
+
+    private void setupContextMenu(javafx.scene.Node uiContainer, Node domNode) {
+        logger.debug("Creating context menu for DOM node: {} (Type: {}, Parent: {})",
+                domNode.getNodeName(),
+                domNode.getNodeType(),
+                domNode.getParentNode() != null ? domNode.getParentNode().getNodeName() : "null");
+
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem addChildMenuItem = new MenuItem("Add Child to: " + domNode.getNodeName());
+        addChildMenuItem.setGraphic(createIcon("ADD_CHILD"));
+        addChildMenuItem.setOnAction(e -> addChildNodeToSpecificParent(domNode));
+
+        MenuItem addSiblingAfterMenuItem = new MenuItem("Add Sibling After");
+        addSiblingAfterMenuItem.setGraphic(createIcon("ADD_AFTER"));
+        addSiblingAfterMenuItem.setOnAction(e -> addSiblingNode(domNode, true));
+
+        MenuItem addSiblingBeforeMenuItem = new MenuItem("Add Sibling Before");
+        addSiblingBeforeMenuItem.setGraphic(createIcon("ADD_BEFORE"));
+        addSiblingBeforeMenuItem.setOnAction(e -> addSiblingNode(domNode, false));
+
+        MenuItem deleteMenuItem = new MenuItem("Delete: " + domNode.getNodeName());
+        deleteMenuItem.setGraphic(createIcon("DELETE"));
+        deleteMenuItem.setOnAction(e -> deleteNode(domNode));
+
+        contextMenu.getItems().addAll(
+                addChildMenuItem,
+                addSiblingAfterMenuItem,
+                addSiblingBeforeMenuItem,
+                new SeparatorMenuItem(),
+                deleteMenuItem
+        );
+
+        uiContainer.setOnContextMenuRequested(e -> {
+            logger.debug("Context menu requested for UI container. DOM node: {}", domNode.getNodeName());
+
+            // Alle anderen Kontextmenüs schließen
+            contextMenu.hide();
+
+            // Unser Menü anzeigen
+            contextMenu.show(uiContainer, e.getScreenX(), e.getScreenY());
+
+            // Wichtig: Event konsumieren, damit es nicht weiter nach oben bubbelt
+            e.consume();
+        });
+    }
+
+    private void setupDragAndDrop(VBox elementContainer, Node domNode) {
+        // Drag-Quelle einrichten - nur für VBox Container (komplexe Knoten)
+        elementContainer.setOnDragDetected(event -> {
+            Dragboard db = elementContainer.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent content = new ClipboardContent();
+            content.putString(domNode.getNodeName() + "||" + System.identityHashCode(domNode));
+            db.setContent(content);
+            event.consume();
+        });
+
+        // Drop-Ziel einrichten
+        elementContainer.setOnDragOver(event -> {
+            if (event.getGestureSource() != elementContainer && event.getDragboard().hasString()) {
+                event.acceptTransferModes(TransferMode.MOVE);
+            }
+            event.consume();
+        });
+
+        elementContainer.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasString()) {
+                String[] data = db.getString().split("\\|\\|");
+                if (data.length == 2) {
+                    String sourceName = data[0];
+                    try {
+                        moveNodeToNewParent(domNode, sourceName);
+                        success = true;
+                    } catch (Exception e) {
+                        logger.error("Fehler beim Verschieben des Knotens", e);
+                        showErrorDialog("Verschieben fehlgeschlagen", e.getMessage());
+                    }
+                }
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
+    }
+
+    private void addChildNodeToSpecificParent(Node parentNode) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add New Node");
+        dialog.setHeaderText("Create new child element for '" + parentNode.getNodeName() + "'");
+        dialog.setContentText("Element Name:");
+
+        dialog.showAndWait().ifPresent(elementName -> {
+            if (!elementName.trim().isEmpty()) {
+                try {
+                    Document doc = parentNode.getOwnerDocument();
+                    Element newElement = doc.createElement(elementName.trim());
+                    parentNode.appendChild(newElement);
+
+                    // UI aktualisieren - wir müssen die gesamte Ansicht neu laden
+                    refreshWholeView();
+
+                    logger.info("New child element '{}' added to '{}'", elementName, parentNode.getNodeName());
+                } catch (Exception e) {
+                    showErrorDialog("Error adding element", e.getMessage());
+                }
+            }
+        });
+    }
+
+    private void addSiblingNode(Node siblingNode, boolean after) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add New Node");
+        dialog.setHeaderText(after ? "Create element after current" : "Create element before current");
+        dialog.setContentText("Element Name:");
+
+        dialog.showAndWait().ifPresent(elementName -> {
+            if (!elementName.trim().isEmpty()) {
+                try {
+                    Node parentNode = siblingNode.getParentNode();
+                    if (parentNode != null) {
+                        Document doc = siblingNode.getOwnerDocument();
+                        Element newElement = doc.createElement(elementName.trim());
+
+                        if (after) {
+                            Node nextSibling = siblingNode.getNextSibling();
+                            if (nextSibling != null) {
+                                parentNode.insertBefore(newElement, nextSibling);
+                            } else {
+                                parentNode.appendChild(newElement);
+                            }
+                        } else {
+                            parentNode.insertBefore(newElement, siblingNode);
+                        }
+
+                        // UI aktualisieren
+                        refreshWholeView();
+
+                        logger.info("New sibling element '{}' added {} '{}'",
+                                elementName, after ? "after" : "before", siblingNode.getNodeName());
+                    }
+                } catch (Exception e) {
+                    showErrorDialog("Error adding element", e.getMessage());
+                }
+            }
+        });
+    }
+
+    private void deleteNode(Node nodeToDelete) {
+        // Debug info about the node to delete
+        logger.info("Deleting node: Name='{}', Type={}, HasParent={}",
+                nodeToDelete.getNodeName(),
+                nodeToDelete.getNodeType(),
+                nodeToDelete.getParentNode() != null);
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Node");
+        alert.setHeaderText("Delete node and all child nodes?");
+        alert.setContentText("Element '" + nodeToDelete.getNodeName() + "' will be permanently deleted.\n" +
+                "Node type: " + getNodeTypeString(nodeToDelete.getNodeType()) + "\n" +
+                "Parent: " + (nodeToDelete.getParentNode() != null ? nodeToDelete.getParentNode().getNodeName() : "null"));
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    Node parentNode = nodeToDelete.getParentNode();
+                    if (parentNode != null) {
+                        parentNode.removeChild(nodeToDelete);
+
+                        // UI aktualisieren
+                        refreshWholeView();
+
+                        logger.info("Element '{}' successfully deleted", nodeToDelete.getNodeName());
+                    }
+                } catch (Exception e) {
+                    showErrorDialog("Error deleting element", e.getMessage());
+                }
+            }
+        });
+    }
+
+    private void refreshWholeView() {
+        // Die gesamte Ansicht neu aufbauen - wir müssen vom Root aus neu laden
+        // da sich die DOM-Struktur geändert hat
+        this.xmlEditor.refreshTextViewFromDom();
+
+        // Den grafischen Editor neu initialisieren
+        // Dazu suchen wir die parent XmlGraphicEditor Instanz
+        findRootEditorAndRefresh();
+    }
+
+    private void findRootEditorAndRefresh() {
+        // Diese Methode würde in einer echten Implementierung
+        // den Root-Editor finden und neu laden
+        // Für jetzt loggen wir nur, dass eine Aktualisierung nötig ist
+        logger.info("DOM structure changed - full UI refresh required");
+
+        // Einfache Lösung: Die aktuelle Instanz neu laden
+        this.getChildren().clear();
+        if (currentDomNode.hasChildNodes()) {
+            addChildNodes(currentDomNode);
+        }
+    }
+
+    private void moveNodeToNewParent(Node newParentNode, String sourceNodeName) {
+        // Vereinfachte Implementierung - in einer echten Anwendung würde man
+        // den zu verschiebenden Knoten anhand der ID finden und verschieben
+        logger.info("Node '{}' would be moved to '{}'", sourceNodeName, newParentNode.getNodeName());
+
+        Alert info = new Alert(Alert.AlertType.INFORMATION);
+        info.setTitle("Move Node");
+        info.setHeaderText(null);
+        info.setContentText("Node '" + sourceNodeName + "' would be moved to '" + newParentNode.getNodeName() + "'.\n" +
+                "(Full implementation requires node reference tracking)");
+        info.showAndWait();
+    }
+
+    private void showErrorDialog(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private String getNodeTypeString(short nodeType) {
+        return switch (nodeType) {
+            case Node.ELEMENT_NODE -> "ELEMENT";
+            case Node.TEXT_NODE -> "TEXT";
+            case Node.COMMENT_NODE -> "COMMENT";
+            case Node.ATTRIBUTE_NODE -> "ATTRIBUTE";
+            case Node.DOCUMENT_NODE -> "DOCUMENT";
+            default -> "OTHER(" + nodeType + ")";
+        };
+    }
+
+    private javafx.scene.Node createIcon(String iconType) {
+        return switch (iconType) {
+            case "ADD_CHILD" -> createAddChildIcon();
+            case "ADD_AFTER" -> createAddAfterIcon();
+            case "ADD_BEFORE" -> createAddBeforeIcon();
+            case "DELETE" -> createDeleteIcon();
+            default -> createDefaultIcon();
+        };
+    }
+
+    private javafx.scene.Node createAddChildIcon() {
+        // Plus icon with downward arrow
+        Group group = new Group();
+
+        // Plus sign
+        Rectangle hLine = new Rectangle(10, 2);
+        hLine.setFill(Color.DARKGREEN);
+        hLine.setX(3);
+        hLine.setY(7);
+
+        Rectangle vLine = new Rectangle(2, 10);
+        vLine.setFill(Color.DARKGREEN);
+        vLine.setX(7);
+        vLine.setY(3);
+
+        // Small arrow pointing down
+        Polygon arrow = new Polygon();
+        arrow.getPoints().addAll(8.0, 14.0,  // top point
+                6.0, 16.0,  // left point
+                10.0, 16.0  // right point
+        );
+        arrow.setFill(Color.DARKGREEN);
+
+        group.getChildren().addAll(hLine, vLine, arrow);
+        return group;
+    }
+
+    private javafx.scene.Node createAddAfterIcon() {
+        // Plus with right arrow
+        Group group = new Group();
+
+        Rectangle hLine = new Rectangle(8, 2);
+        hLine.setFill(Color.DARKBLUE);
+        hLine.setX(2);
+        hLine.setY(7);
+
+        Rectangle vLine = new Rectangle(2, 8);
+        vLine.setFill(Color.DARKBLUE);
+        vLine.setX(5);
+        vLine.setY(4);
+
+        // Arrow pointing right
+        Polygon arrow = new Polygon();
+        arrow.getPoints().addAll(11.0, 8.0,  // left point
+                14.0, 6.0,  // top point
+                14.0, 10.0  // bottom point
+        );
+        arrow.setFill(Color.DARKBLUE);
+
+        group.getChildren().addAll(hLine, vLine, arrow);
+        return group;
+    }
+
+    private javafx.scene.Node createAddBeforeIcon() {
+        // Plus with left arrow
+        Group group = new Group();
+
+        Rectangle hLine = new Rectangle(8, 2);
+        hLine.setFill(Color.DARKBLUE);
+        hLine.setX(6);
+        hLine.setY(7);
+
+        Rectangle vLine = new Rectangle(2, 8);
+        vLine.setFill(Color.DARKBLUE);
+        vLine.setX(9);
+        vLine.setY(4);
+
+        // Arrow pointing left
+        Polygon arrow = new Polygon();
+        arrow.getPoints().addAll(5.0, 8.0,   // right point
+                2.0, 6.0,   // top point
+                2.0, 10.0   // bottom point
+        );
+        arrow.setFill(Color.DARKBLUE);
+
+        group.getChildren().addAll(hLine, vLine, arrow);
+        return group;
+    }
+
+    private javafx.scene.Node createDeleteIcon() {
+        // X icon
+        Group group = new Group();
+
+        // First diagonal line (top-left to bottom-right)
+        Line line1 = new Line(3, 3, 13, 13);
+        line1.setStroke(Color.DARKRED);
+        line1.setStrokeWidth(2);
+
+        // Second diagonal line (top-right to bottom-left)
+        Line line2 = new Line(13, 3, 3, 13);
+        line2.setStroke(Color.DARKRED);
+        line2.setStrokeWidth(2);
+
+        group.getChildren().addAll(line1, line2);
+        return group;
+    }
+
+    private javafx.scene.Node createDefaultIcon() {
+        // Simple circle
+        Circle circle = new Circle(8, 8, 6);
+        circle.setFill(Color.LIGHTGRAY);
+        circle.setStroke(Color.GRAY);
+        return circle;
     }
 }
