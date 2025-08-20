@@ -59,13 +59,7 @@ public class XmlCodeEditor extends VBox {
     // um Probleme mit der Bibliotheks-API zu umgehen.
     private final Set<Integer> foldedLines = new HashSet<>();
 
-    // LSP Server functionality removed
-
-    // Document URI for LSP requests
     private String documentUri;
-
-    // Document version for LSP synchronization
-    private final int documentVersion = 1;
 
     // Reference to parent XmlEditor for accessing schema information
     private Object parentXmlEditor;
@@ -95,8 +89,6 @@ public class XmlCodeEditor extends VBox {
         super();
         initialize();
     }
-
-    // LSP functionality removed
 
     /**
      * Sets the document URI for LSP requests.
@@ -161,11 +153,8 @@ public class XmlCodeEditor extends VBox {
         // Set up basic styling and reset font size
         resetFontSize();
 
-        // Load CSS styles after the component is fully initialized
+        // Apply initial syntax highlighting and folding regions if there's text
         Platform.runLater(() -> {
-            injectCssIntoScene();
-
-            // Apply initial syntax highlighting and folding regions if there's text
             if (codeArea.getText() != null && !codeArea.getText().isEmpty()) {
                 applySyntaxHighlighting(codeArea.getText());
                 updateFoldingRegions(codeArea.getText());
@@ -206,24 +195,6 @@ public class XmlCodeEditor extends VBox {
         System.out.println("=============================");
     }
 
-    /**
-     * Injects CSS styles directly into the Scene when it becomes available.
-     */
-    private void injectCssIntoScene() {
-        // Wait for the scene to be available
-        if (this.getScene() != null) {
-            try {
-                String cssUrl = getClass().getResource("/css/fxt-theme.css").toExternalForm();
-                this.getScene().getStylesheets().add(cssUrl);
-                System.out.println("CSS injected into scene successfully");
-            } catch (Exception e) {
-                System.out.println("Failed to inject CSS into scene: " + e.getMessage());
-            }
-        } else {
-            // If scene is not available yet, schedule it for later
-            Platform.runLater(this::injectCssIntoScene);
-        }
-    }
 
     /**
      * Forces syntax highlighting by directly setting styles on the CodeArea.
@@ -503,11 +474,6 @@ public class XmlCodeEditor extends VBox {
 
             // Force syntax highlighting with debugging
             forceSyntaxHighlighting(currentText);
-
-            // Also ensure CSS is properly loaded
-            Platform.runLater(() -> {
-                injectCssIntoScene();
-            });
 
             System.out.println("DEBUG: Syntax highlighting refresh completed");
         } else {
