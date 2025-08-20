@@ -454,7 +454,10 @@ public class XmlCodeEditor extends StackPane {
                         selectCompletionItem();
                         event.consume();
                     } else {
-                        System.out.println("DEBUG: IntelliSense popup not showing - normal ENTER behavior");
+                        System.out.println("DEBUG: IntelliSense popup not showing - applying intelligent cursor positioning");
+                        if (handleIntelligentEnterKey()) {
+                            event.consume();
+                        }
                     }
                 }
                 default -> {
@@ -1100,11 +1103,40 @@ public class XmlCodeEditor extends StackPane {
 
 
     /**
+     * Checks if an XSD schema is available for IntelliSense.
+     * @return true if XSD schema is available, false otherwise
+     */
+    private boolean isXsdSchemaAvailable() {
+        try {
+            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
+                var xmlService = xmlEditor.getXmlService();
+                if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
+                    System.out.println("DEBUG: XSD schema is available: " + xmlService.getCurrentXsdFile().getName());
+                    return true;
+                }
+            }
+            System.out.println("DEBUG: No XSD schema available for IntelliSense");
+            return false;
+        } catch (Exception e) {
+            System.err.println("DEBUG: Error checking XSD schema availability: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Requests completions - now uses manual completion since LSP is removed.
+     * Only shows IntelliSense if XSD schema is available.
      */
     private void requestCompletionsFromLSP() {
-        System.out.println("DEBUG: Using manual completion (LSP removed)");
-        showManualIntelliSensePopup();
+        System.out.println("DEBUG: IntelliSense requested - checking XSD schema availability");
+
+        // Only show IntelliSense popup if XSD schema is available
+        if (isXsdSchemaAvailable()) {
+            System.out.println("DEBUG: XSD schema available - showing IntelliSense popup");
+            showManualIntelliSensePopup();
+        } else {
+            System.out.println("DEBUG: No XSD schema - IntelliSense popup disabled");
+        }
     }
 
     /**
@@ -1408,5 +1440,237 @@ public class XmlCodeEditor extends StackPane {
         }
 
         return false;
+    }
+
+    /**
+     * Handles intelligent cursor positioning when Enter key is pressed.
+     * Implements two main rules:
+     * 1. After a closing XML tag: maintain indentation of previous element
+     * 2. Between opening and closing tag: indent by 4 spaces more than parent
+     *
+     * @return true if the event was handled and should be consumed, false for normal behavior
+     */
+    private boolean handleIntelligentEnterKey() {
+        try {
+            int caretPosition = codeArea.getCaretPosition();
+            String text = codeArea.getText();
+
+            if (caretPosition <= 0 || caretPosition > text.length()) {
+                return false;
+            }
+
+            // Rule 1: Check if we're directly after a closing XML tag
+            if (isAfterClosingTag(text, caretPosition)) {
+                return handleEnterAfterClosingTag(text, caretPosition);
+            }
+
+            // Rule 2: Check if we're between opening and closing tags
+            if (isBetweenOpeningAndClosingTag(text, caretPosition)) {
+                return handleEnterBetweenTags(text, caretPosition);
+            }
+
+            // No special handling needed
+            return false;
+
+        } catch (Exception e) {
+            System.err.println("Error in intelligent Enter key handling: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Checks if the cursor is positioned directly after a closing XML tag.
+     *
+     * @param text          The text content
+     * @param caretPosition The current cursor position
+     * @return true if cursor is after a closing tag
+     */
+    private boolean isAfterClosingTag(String text, int caretPosition) {
+        // Look backwards from cursor to find the most recent character
+        for (int i = caretPosition - 1; i >= 0; i--) {
+            char ch = text.charAt(i);
+            if (ch == '>') {
+                // Found '>', check if it's a closing tag by looking backwards for '</'
+                return isClosingTagEnding(text, i);
+            } else if (!Character.isWhitespace(ch)) {
+                // Found non-whitespace character that isn't '>'
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if the cursor is between an opening and closing XML tag.
+     *
+     * @param text          The text content
+     * @param caretPosition The current cursor position
+     * @return true if cursor is between opening and closing tags
+     */
+    private boolean isBetweenOpeningAndClosingTag(String text, int caretPosition) {
+        // Look backwards to find opening tag
+        int openingTagEnd = findPreviousOpeningTagEnd(text, caretPosition);
+        if (openingTagEnd == -1) {
+            return false;
+        }
+
+        // Look forwards to find closing tag
+        int closingTagStart = findNextClosingTagStart(text, caretPosition);
+        if (closingTagStart == -1) {
+            return false;
+        }
+
+        // Verify that the tags match and there's no content between them
+        String beforeCursor = text.substring(openingTagEnd, caretPosition).trim();
+        String afterCursor = text.substring(caretPosition, closingTagStart).trim();
+
+        return beforeCursor.isEmpty() && afterCursor.isEmpty();
+    }
+
+    /**
+     * Handles Enter key press after a closing XML tag.
+     * Creates new line with same indentation as the previous element.
+     */
+    private boolean handleEnterAfterClosingTag(String text, int caretPosition) {
+        try {
+            // Find the indentation of the current line
+            int lineStart = findLineStart(text, caretPosition);
+            String currentLine = text.substring(lineStart, caretPosition);
+            String indentation = extractIndentation(currentLine);
+
+            // Insert newline with same indentation
+            String insertText = "\n" + indentation;
+            codeArea.insertText(caretPosition, insertText);
+
+            // Position cursor at end of inserted text
+            codeArea.moveTo(caretPosition + insertText.length());
+
+            System.out.println("DEBUG: Applied Enter after closing tag with indentation: '" + indentation + "'");
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("Error handling Enter after closing tag: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Handles Enter key press between opening and closing XML tags.
+     * Creates new line with additional indentation (4 spaces more than parent).
+     */
+    private boolean handleEnterBetweenTags(String text, int caretPosition) {
+        try {
+            // Find the current line and its indentation
+            int lineStart = findLineStart(text, caretPosition);
+            String currentLine = getLineContainingPosition(text, caretPosition);
+            String baseIndentation = extractIndentation(currentLine);
+
+            // Add 4 spaces of additional indentation
+            String newIndentation = baseIndentation + "    ";
+
+            // Insert newline with increased indentation and another newline with original indentation
+            String insertText = "\n" + newIndentation + "\n" + baseIndentation;
+            codeArea.insertText(caretPosition, insertText);
+
+            // Position cursor at the end of the first inserted line (between the tags)
+            int newPosition = caretPosition + newIndentation.length() + 1; // +1 for first newline
+            codeArea.moveTo(newPosition);
+
+            System.out.println("DEBUG: Applied Enter between tags with indentation: '" + newIndentation + "'");
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("Error handling Enter between tags: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Helper method to check if a '>' character ends a closing tag.
+     */
+    private boolean isClosingTagEnding(String text, int gtPosition) {
+        // Look backwards from '>' to find '</'
+        for (int i = gtPosition - 1; i >= 1; i--) {
+            char ch = text.charAt(i);
+            if (ch == '/' && i > 0 && text.charAt(i - 1) == '<') {
+                return true; // Found '</'
+            } else if (ch == '<') {
+                return false; // Found '<' without preceding '/'
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Finds the position of the end of the previous opening tag.
+     */
+    private int findPreviousOpeningTagEnd(String text, int fromPosition) {
+        for (int i = fromPosition - 1; i >= 0; i--) {
+            if (text.charAt(i) == '>') {
+                // Check if this is an opening tag (not a closing tag or self-closing tag)
+                if (!isClosingTagEnding(text, i) && !isSelfClosingTagEnding(text, i)) {
+                    return i + 1; // Return position after '>'
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Finds the position of the start of the next closing tag.
+     */
+    private int findNextClosingTagStart(String text, int fromPosition) {
+        for (int i = fromPosition; i < text.length() - 1; i++) {
+            if (text.charAt(i) == '<' && text.charAt(i + 1) == '/') {
+                return i; // Return position of '<'
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Checks if a '>' character ends a self-closing tag.
+     */
+    private boolean isSelfClosingTagEnding(String text, int gtPosition) {
+        return gtPosition > 0 && text.charAt(gtPosition - 1) == '/';
+    }
+
+    /**
+     * Finds the start position of the line containing the given position.
+     */
+    private int findLineStart(String text, int position) {
+        for (int i = position - 1; i >= 0; i--) {
+            if (text.charAt(i) == '\n') {
+                return i + 1;
+            }
+        }
+        return 0; // Beginning of text
+    }
+
+    /**
+     * Gets the complete line containing the given position.
+     */
+    private String getLineContainingPosition(String text, int position) {
+        int lineStart = findLineStart(text, position);
+        int lineEnd = text.indexOf('\n', position);
+        if (lineEnd == -1) {
+            lineEnd = text.length();
+        }
+        return text.substring(lineStart, lineEnd);
+    }
+
+    /**
+     * Extracts the indentation (leading whitespace) from a line.
+     */
+    private String extractIndentation(String line) {
+        StringBuilder indentation = new StringBuilder();
+        for (char ch : line.toCharArray()) {
+            if (ch == ' ' || ch == '\t') {
+                indentation.append(ch);
+            } else {
+                break;
+            }
+        }
+        return indentation.toString();
     }
 }

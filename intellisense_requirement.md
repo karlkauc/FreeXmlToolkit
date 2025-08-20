@@ -2,8 +2,7 @@ Rolle: Du bist ein erfahrener Softwareentwickler, spezialisiert auf die Entwickl
 Integration von Language Server Protocols (LSP).
 
 Ziel: Implementiere eine IntelliSense-Funktion für meinen bestehenden XML-Texteditor. Der Editor ist
-in [Gib hier die Programmiersprache/das Framework deines Editors an, z.B. JavaScript mit Monaco Editor, Python mit Tkinter, C# mit WPF, etc.]
-geschrieben. Die Intelligenz soll über einen bereits vorhandenen XML Language Server bereitgestellt werden.
+in Java geschrieben. Die Intelligenz soll über einen bereits vorhandenen XML Language Server bereitgestellt werden.
 
 Vorhandener Code-Kontext:
 Mein Editor hat eine zentrale Klasse 'XmlEditor', die für die Textmanipulation und UI-Events zuständig ist. Die
