@@ -11,10 +11,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -30,17 +27,30 @@ import java.util.regex.Pattern;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 /**
- * A self-contained XML code editor component that extends StackPane.
+ * A self-contained XML code editor component that extends VBox.
  * It includes a CodeArea with line numbers, syntax highlighting logic,
- * and built-in controls for font size and caret movement.
+ * built-in controls for font size and caret movement, and a status line.
  */
-public class XmlCodeEditor extends StackPane {
+public class XmlCodeEditor extends VBox {
 
     private static final int DEFAULT_FONT_SIZE = 11;
     private int fontSize = DEFAULT_FONT_SIZE;
 
     private final CodeArea codeArea = new CodeArea();
     private final VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
+
+    // Status line components
+    private final HBox statusLine = new HBox();
+    private final Label cursorPositionLabel = new Label("Line: 1, Column: 1");
+    private final Label encodingLabel = new Label("UTF-8");
+    private final Label lineSeparatorLabel = new Label("LF");
+    private final Label indentationLabel = new Label("4 spaces");
+
+    // File properties for status line
+    private String currentEncoding = "UTF-8";
+    private String currentLineSeparator = "LF";
+    private int currentIndentationSize = 4;
+    private boolean useSpaces = true;
 
     // Speichert Start- und Endzeilen der faltbaren Bereiche
     private final Map<Integer, Integer> foldingRegions = new HashMap<>();
@@ -140,7 +150,13 @@ public class XmlCodeEditor extends StackPane {
         setupEventHandlers();
         initializeIntelliSensePopup();
 
-        this.getChildren().add(virtualizedScrollPane);
+        // Set up the main layout
+        VBox.setVgrow(virtualizedScrollPane, Priority.ALWAYS);
+
+        this.getChildren().addAll(virtualizedScrollPane, statusLine);
+
+        // Initialize status line
+        initializeStatusLine();
 
         // Set up RichTextFX styling
         setupRichTextFXStyling();
@@ -1672,5 +1688,269 @@ public class XmlCodeEditor extends StackPane {
             }
         }
         return indentation.toString();
+    }
+
+    /**
+     * Initializes the status line at the bottom of the editor.
+     */
+    private void initializeStatusLine() {
+        // Style the status line
+        statusLine.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #ccc; -fx-border-width: 1px 0 0 0; -fx-padding: 5px 10px;");
+        statusLine.setSpacing(20);
+        statusLine.setAlignment(Pos.CENTER_LEFT);
+
+        // Style the labels
+        String labelStyle = "-fx-font-size: 11px; -fx-text-fill: #666;";
+        cursorPositionLabel.setStyle(labelStyle);
+        encodingLabel.setStyle(labelStyle);
+        lineSeparatorLabel.setStyle(labelStyle);
+        indentationLabel.setStyle(labelStyle);
+
+        // Add labels to status line
+        statusLine.getChildren().addAll(
+                cursorPositionLabel,
+                createSeparator(),
+                encodingLabel,
+                createSeparator(),
+                lineSeparatorLabel,
+                createSeparator(),
+                indentationLabel
+        );
+
+        // Set up cursor position tracking
+        setupCursorPositionTracking();
+
+        // Initialize status values
+        updateStatusLine();
+    }
+
+    /**
+     * Creates a visual separator for the status line.
+     */
+    private Label createSeparator() {
+        Label separator = new Label("|");
+        separator.setStyle("-fx-font-size: 11px; -fx-text-fill: #999;");
+        return separator;
+    }
+
+    /**
+     * Sets up cursor position tracking to update the status line.
+     */
+    private void setupCursorPositionTracking() {
+        // Track caret position changes
+        codeArea.caretPositionProperty().addListener((observable, oldValue, newValue) -> {
+            updateCursorPosition();
+        });
+
+        // Track text changes to update indentation info
+        codeArea.textProperty().addListener((observable, oldText, newText) -> {
+            updateIndentationInfo(newText);
+        });
+    }
+
+    /**
+     * Updates the cursor position display in the status line.
+     */
+    private void updateCursorPosition() {
+        try {
+            int caretPosition = codeArea.getCaretPosition();
+
+            // Calculate line and column
+            String text = codeArea.getText();
+            int line = 1;
+            int column = 1;
+
+            for (int i = 0; i < caretPosition && i < text.length(); i++) {
+                if (text.charAt(i) == '\n') {
+                    line++;
+                    column = 1;
+                } else {
+                    column++;
+                }
+            }
+
+            // Capture final variables for lambda
+            final int finalLine = line;
+            final int finalColumn = column;
+
+            // Update the label
+            Platform.runLater(() -> {
+                cursorPositionLabel.setText("Line: " + finalLine + ", Column: " + finalColumn);
+            });
+
+        } catch (Exception e) {
+            System.err.println("Error updating cursor position: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Updates the indentation information based on the current text.
+     */
+    private void updateIndentationInfo(String text) {
+        try {
+            if (text == null || text.isEmpty()) {
+                return;
+            }
+
+            // Analyze indentation patterns in the text
+            int[] indentationCounts = analyzeIndentation(text);
+            int detectedSize = detectIndentationSize(indentationCounts);
+            boolean detectedUseSpaces = detectIndentationType(text);
+
+            if (detectedSize > 0) {
+                currentIndentationSize = detectedSize;
+            }
+            useSpaces = detectedUseSpaces;
+
+            Platform.runLater(() -> {
+                String indentType = useSpaces ? "spaces" : "tabs";
+                indentationLabel.setText(currentIndentationSize + " " + indentType);
+            });
+
+        } catch (Exception e) {
+            System.err.println("Error updating indentation info: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Analyzes the indentation patterns in the text.
+     */
+    private int[] analyzeIndentation(String text) {
+        int[] counts = new int[9]; // Count indentations of size 1-8
+        String[] lines = text.split("\n");
+
+        for (String line : lines) {
+            if (line.trim().isEmpty()) continue;
+
+            int indent = 0;
+            for (char c : line.toCharArray()) {
+                if (c == ' ') {
+                    indent++;
+                } else if (c == '\t') {
+                    indent += 4; // Treat tab as 4 spaces for calculation
+                    break;
+                } else {
+                    break;
+                }
+            }
+
+            // Count common indentation sizes (2, 4, 8)
+            if (indent % 8 == 0 && indent > 0) counts[8]++;
+            else if (indent % 4 == 0 && indent > 0) counts[4]++;
+            else if (indent % 2 == 0 && indent > 0) counts[2]++;
+        }
+
+        return counts;
+    }
+
+    /**
+     * Detects the most likely indentation size based on analysis.
+     */
+    private int detectIndentationSize(int[] counts) {
+        int maxCount = 0;
+        int detectedSize = 4; // Default to 4 spaces
+
+        for (int i = 2; i < counts.length; i++) {
+            if (counts[i] > maxCount) {
+                maxCount = counts[i];
+                detectedSize = i;
+            }
+        }
+
+        return detectedSize;
+    }
+
+    /**
+     * Detects whether the text uses spaces or tabs for indentation.
+     */
+    private boolean detectIndentationType(String text) {
+        int spaceCount = 0;
+        int tabCount = 0;
+        String[] lines = text.split("\n");
+
+        for (String line : lines) {
+            if (line.trim().isEmpty()) continue;
+
+            for (char c : line.toCharArray()) {
+                if (c == ' ') {
+                    spaceCount++;
+                } else if (c == '\t') {
+                    tabCount++;
+                    break;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        return spaceCount >= tabCount; // Default to spaces if equal
+    }
+
+    /**
+     * Updates all status line information.
+     */
+    private void updateStatusLine() {
+        updateCursorPosition();
+        updateFileEncoding();
+        updateLineSeparator();
+        updateIndentationInfo(codeArea.getText());
+    }
+
+    /**
+     * Updates the file encoding display.
+     */
+    private void updateFileEncoding() {
+        Platform.runLater(() -> {
+            encodingLabel.setText(currentEncoding);
+        });
+    }
+
+    /**
+     * Updates the line separator display.
+     */
+    private void updateLineSeparator() {
+        Platform.runLater(() -> {
+            lineSeparatorLabel.setText(currentLineSeparator);
+        });
+    }
+
+    /**
+     * Sets the file encoding for display in the status line.
+     */
+    public void setFileEncoding(String encoding) {
+        if (encoding != null && !encoding.isEmpty()) {
+            this.currentEncoding = encoding;
+            updateFileEncoding();
+        }
+    }
+
+    /**
+     * Sets the line separator type for display in the status line.
+     */
+    public void setLineSeparator(String lineSeparator) {
+        if (lineSeparator != null) {
+            switch (lineSeparator) {
+                case "\n" -> this.currentLineSeparator = "LF";
+                case "\r\n" -> this.currentLineSeparator = "CRLF";
+                case "\r" -> this.currentLineSeparator = "CR";
+                default -> this.currentLineSeparator = "LF";
+            }
+            updateLineSeparator();
+        }
+    }
+
+    /**
+     * Detects and sets the line separator based on the text content.
+     */
+    public void detectAndSetLineSeparator(String text) {
+        if (text == null) return;
+
+        if (text.contains("\r\n")) {
+            setLineSeparator("\r\n");
+        } else if (text.contains("\n")) {
+            setLineSeparator("\n");
+        } else if (text.contains("\r")) {
+            setLineSeparator("\r");
+        }
     }
 }
