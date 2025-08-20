@@ -14,6 +14,8 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
@@ -33,6 +35,7 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
  */
 public class XmlCodeEditor extends VBox {
 
+    private static final Logger logger = LogManager.getLogger(XmlCodeEditor.class);
     private static final int DEFAULT_FONT_SIZE = 11;
     private int fontSize = DEFAULT_FONT_SIZE;
 
@@ -181,27 +184,27 @@ public class XmlCodeEditor extends VBox {
      * Debug method to check CSS loading status.
      */
     public void debugCssStatus() {
-        System.out.println("=== CSS Debug Information ===");
-        System.out.println("CodeArea stylesheets count: " + codeArea.getStylesheets().size());
+        logger.debug("=== CSS Debug Information ===");
+        logger.debug("CodeArea stylesheets count: {}", codeArea.getStylesheets().size());
         for (int i = 0; i < codeArea.getStylesheets().size(); i++) {
-            System.out.println("CodeArea stylesheet " + i + ": " + codeArea.getStylesheets().get(i));
+            logger.debug("CodeArea stylesheet {}: {}", i, codeArea.getStylesheets().get(i));
         }
 
-        System.out.println("Parent container stylesheets count: " + this.getStylesheets().size());
+        logger.debug("Parent container stylesheets count: {}", this.getStylesheets().size());
         for (int i = 0; i < this.getStylesheets().size(); i++) {
-            System.out.println("Parent stylesheet " + i + ": " + this.getStylesheets().get(i));
+            logger.debug("Parent stylesheet {}: {}", i, this.getStylesheets().get(i));
         }
 
         if (this.getScene() != null) {
-            System.out.println("Scene stylesheets count: " + this.getScene().getStylesheets().size());
+            logger.debug("Scene stylesheets count: {}", this.getScene().getStylesheets().size());
             for (int i = 0; i < this.getScene().getStylesheets().size(); i++) {
-                System.out.println("Scene stylesheet " + i + ": " + this.getScene().getStylesheets().get(i));
+                logger.debug("Scene stylesheet {}: {}", i, this.getScene().getStylesheets().get(i));
             }
         }
 
-        System.out.println("Current text: '" + codeArea.getText() + "'");
-        System.out.println("Text length: " + (codeArea.getText() != null ? codeArea.getText().length() : 0));
-        System.out.println("=============================");
+        logger.debug("Current text: '{}'", codeArea.getText());
+        logger.debug("Text length: {}", (codeArea.getText() != null ? codeArea.getText().length() : 0));
+        logger.debug("=============================");
     }
 
 
@@ -221,7 +224,7 @@ public class XmlCodeEditor extends VBox {
         codeArea.requestLayout();
 
 
-        System.out.println("Forced syntax highlighting applied for text length: " + text.length());
+        logger.debug("Forced syntax highlighting applied for text length: {}", text.length());
     }
 
 
@@ -274,11 +277,11 @@ public class XmlCodeEditor extends VBox {
                         }
                     }
 
-                    System.out.println("DEBUG: Updated enumeration elements cache with " + enumerationElements.size() + " elements: " + enumerationElements);
+                    logger.debug("Updated enumeration elements cache with {} elements: {}", enumerationElements.size(), enumerationElements);
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error updating enumeration elements cache: " + e.getMessage());
+            logger.error("Error updating enumeration elements cache: {}", e.getMessage(), e);
         }
     }
 
@@ -303,7 +306,7 @@ public class XmlCodeEditor extends VBox {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error checking enumeration constraint: " + e.getMessage());
+            logger.error("Error checking enumeration constraint: {}", e.getMessage(), e);
         }
         return false;
     }
@@ -369,13 +372,13 @@ public class XmlCodeEditor extends VBox {
                     }
                 }
                 case ENTER -> {
-                    System.out.println("DEBUG: ENTER key pressed in CodeArea");
+                    logger.debug("ENTER key pressed in CodeArea");
                     if (intelliSensePopup != null && intelliSensePopup.isShowing()) {
-                        System.out.println("DEBUG: IntelliSense popup is showing - calling selectCompletionItem()");
+                        logger.debug("IntelliSense popup is showing - calling selectCompletionItem()");
                         selectCompletionItem();
                         event.consume();
                     } else {
-                        System.out.println("DEBUG: IntelliSense popup not showing - applying intelligent cursor positioning");
+                        logger.debug("IntelliSense popup not showing - applying intelligent cursor positioning");
                         if (handleIntelligentEnterKey()) {
                             event.consume();
                         }
@@ -390,19 +393,19 @@ public class XmlCodeEditor extends VBox {
         codeArea.addEventFilter(KeyEvent.KEY_TYPED, event -> {
             String character = event.getCharacter();
             if (character != null && !character.isEmpty()) {
-                System.out.println("DEBUG: KEY_TYPED event - character: '" + character + "' (code: " + (int) character.charAt(0) + ")");
+                logger.debug("KEY_TYPED event - character: '{}' (code: {})", character, (int) character.charAt(0));
                 if (handleIntelliSenseTrigger(event)) {
-                    System.out.println("DEBUG: IntelliSense trigger handled for: " + character);
+                    logger.debug("IntelliSense trigger handled for: {}", character);
                 }
             } else {
-                System.out.println("DEBUG: KEY_TYPED event - character is null or empty");
+                logger.debug("KEY_TYPED event - character is null or empty");
             }
         });
 
         // Handle Ctrl+Space for manual completion (including enumeration completion)
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.isControlDown() && event.getCode() == KeyCode.SPACE) {
-                System.out.println("DEBUG: Ctrl+Space pressed for manual completion");
+                logger.debug("Ctrl+Space pressed for manual completion");
                 if (handleManualCompletion()) {
                     event.consume();
                 }
@@ -445,25 +448,25 @@ public class XmlCodeEditor extends VBox {
 
         // Add key event handler directly to the completion list view
         completionListView.setOnKeyPressed(event -> {
-            System.out.println("DEBUG: ListView KeyPressed: " + event.getCode());
+            logger.debug("ListView KeyPressed: {}", event.getCode());
             switch (event.getCode()) {
                 case ENTER -> {
-                    System.out.println("DEBUG: ENTER pressed in ListView - calling selectCompletionItem()");
+                    logger.debug("ENTER pressed in ListView - calling selectCompletionItem()");
                     selectCompletionItem();
                     event.consume();
                 }
                 case ESCAPE -> {
-                    System.out.println("DEBUG: ESCAPE pressed in ListView - hiding popup");
+                    logger.debug("ESCAPE pressed in ListView - hiding popup");
                     hideIntelliSensePopup();
                     event.consume();
                 }
                 case UP, DOWN -> {
                     // Let ListView handle navigation naturally
-                    System.out.println("DEBUG: Navigation key in ListView: " + event.getCode());
+                    logger.debug("Navigation key in ListView: {}", event.getCode());
                 }
                 default -> {
                     // For all other keys, try to pass them back to the CodeArea
-                    System.out.println("DEBUG: Other key in ListView: " + event.getCode() + " - passing to CodeArea");
+                    logger.debug("Other key in ListView: {} - passing to CodeArea", event.getCode());
                     codeArea.fireEvent(event);
                     event.consume();
                 }
@@ -472,7 +475,7 @@ public class XmlCodeEditor extends VBox {
 
         // Ensure the popup scene doesn't steal focus from the main window
         intelliSensePopup.getScene().setOnKeyPressed(event -> {
-            System.out.println("DEBUG: Scene KeyPressed: " + event.getCode());
+            logger.debug("Scene KeyPressed: {}", event.getCode());
             completionListView.fireEvent(event);
         });
     }
@@ -534,9 +537,9 @@ public class XmlCodeEditor extends VBox {
                 "    <element attribute=\"value\">content</element>\n" +
                 "</root>";
 
-        System.out.println("=== Testing Syntax Highlighting ===");
-        System.out.println("Test XML:");
-        System.out.println(testXml);
+        logger.debug("=== Testing Syntax Highlighting ===");
+        logger.debug("Test XML:");
+        logger.debug("{}", testXml);
 
         // Debug CSS status before test
         debugCssStatus();
@@ -550,7 +553,7 @@ public class XmlCodeEditor extends VBox {
         // Debug CSS status after test
         debugCssStatus();
 
-        System.out.println("=== Test completed ===");
+        logger.debug("=== Test completed ===");
     }
 
     /**
@@ -560,14 +563,14 @@ public class XmlCodeEditor extends VBox {
     public void refreshSyntaxHighlighting() {
         String currentText = codeArea.getText();
         if (currentText != null && !currentText.isEmpty()) {
-            System.out.println("DEBUG: Manually refreshing syntax highlighting for text length: " + currentText.length());
+            logger.debug("Manually refreshing syntax highlighting for text length: {}", currentText.length());
 
             // Force syntax highlighting with debugging
             forceSyntaxHighlighting(currentText);
 
-            System.out.println("DEBUG: Syntax highlighting refresh completed");
+            logger.debug("Syntax highlighting refresh completed");
         } else {
-            System.out.println("DEBUG: No text to highlight");
+            logger.debug("No text to highlight");
         }
     }
 
@@ -578,11 +581,11 @@ public class XmlCodeEditor extends VBox {
     public void refreshFoldingRegions() {
         String currentText = codeArea.getText();
         if (currentText != null && !currentText.isEmpty()) {
-            System.out.println("DEBUG: Manually refreshing folding regions for text length: " + currentText.length());
+            logger.debug("Manually refreshing folding regions for text length: {}", currentText.length());
             updateFoldingRegions(currentText);
-            System.out.println("DEBUG: Found " + foldingRegions.size() + " foldable regions");
+            logger.debug("Found {} foldable regions", foldingRegions.size());
         } else {
-            System.out.println("DEBUG: No text to analyze for folding");
+            logger.debug("No text to analyze for folding");
         }
     }
 
@@ -930,20 +933,20 @@ public class XmlCodeEditor extends VBox {
     private boolean handleIntelliSenseTrigger(KeyEvent event) {
         try {
             String character = event.getCharacter();
-            System.out.println("DEBUG: handleIntelliSenseTrigger called with character: '" + character + "'");
+            logger.debug("handleIntelliSenseTrigger called with character: '{}'", character);
 
             // Handle "<" trigger for element completion
             if ("<".equals(character)) {
-                System.out.println("DEBUG: Detected < character, triggering element completion");
+                logger.debug("Detected < character, triggering element completion");
 
                 // Store the position OF the '<' character (before it was typed)
                 popupStartPosition = codeArea.getCaretPosition() - 1;
                 isElementCompletionContext = true; // Mark as element completion
-                System.out.println("DEBUG: Set popupStartPosition to: " + popupStartPosition + " (position of <), isElementCompletionContext = true");
+                logger.debug("Set popupStartPosition to: {} (position of <), isElementCompletionContext = true", popupStartPosition);
 
                 // Show the IntelliSense popup with slight delay to ensure the character is processed
                 javafx.application.Platform.runLater(() -> {
-                    System.out.println("DEBUG: Calling requestCompletionsFromLSP for element completion");
+                    logger.debug("Calling requestCompletionsFromLSP for element completion");
                     requestCompletionsFromLSP();
                 });
 
@@ -952,9 +955,9 @@ public class XmlCodeEditor extends VBox {
 
             // Handle space trigger for attribute completion (inside XML tags)
             if (" ".equals(character)) {
-                System.out.println("DEBUG: Detected space character, checking if inside XML tag");
+                logger.debug("Detected space character, checking if inside XML tag");
                 if (isInsideXmlTag()) {
-                    System.out.println("DEBUG: Inside XML tag, triggering attribute completion");
+                    logger.debug("Inside XML tag, triggering attribute completion");
 
                     // Store the current position (after the space)
                     popupStartPosition = codeArea.getCaretPosition();
@@ -962,19 +965,18 @@ public class XmlCodeEditor extends VBox {
 
                     // Show attribute completions with slight delay
                     javafx.application.Platform.runLater(() -> {
-                        System.out.println("DEBUG: Calling requestCompletionsFromLSP for attribute completion");
+                        logger.debug("Calling requestCompletionsFromLSP for attribute completion");
                         requestCompletionsFromLSP();
                     });
 
                     return true; // Event was handled
                 } else {
-                    System.out.println("DEBUG: Not inside XML tag, no completion triggered");
+                    logger.debug("Not inside XML tag, no completion triggered");
                 }
             }
 
         } catch (Exception e) {
-            System.err.println("Error during IntelliSense trigger: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error during IntelliSense trigger: {}", e.getMessage(), e);
         }
         return false;
     }
@@ -1008,7 +1010,7 @@ public class XmlCodeEditor extends VBox {
             return false;
 
         } catch (Exception e) {
-            System.err.println("Error checking if inside XML tag: " + e.getMessage());
+            logger.error("Error checking if inside XML tag: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -1021,7 +1023,7 @@ public class XmlCodeEditor extends VBox {
         List<String> schemaAwareCompletions = getSchemaAwareCompletions();
 
         if (schemaAwareCompletions != null && !schemaAwareCompletions.isEmpty()) {
-            System.out.println("DEBUG: Using schema-aware completions (" + schemaAwareCompletions.size() + " items)");
+            logger.debug("Using schema-aware completions ({} items)", schemaAwareCompletions.size());
             completionListView.getItems().clear();
             completionListView.getItems().addAll(schemaAwareCompletions);
 
@@ -1030,7 +1032,7 @@ public class XmlCodeEditor extends VBox {
             }
             showPopupAtCursor();
         } else {
-            System.out.println("DEBUG: No schema-aware completions available, using manual completion");
+            logger.debug("No schema-aware completions available, using manual completion");
             showManualIntelliSensePopup();
         }
     }
@@ -1044,30 +1046,29 @@ public class XmlCodeEditor extends VBox {
         try {
             // Get the current parent element context
             String currentContext = getCurrentElementContext();
-            System.out.println("DEBUG: Current element context: " + currentContext);
+            logger.debug("Current element context: {}", currentContext);
 
             // Try to get completions from the parent XmlEditor's schema information
             if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
                 // Get the XmlService which has the XSD schema information
                 var xmlService = xmlEditor.getXmlService();
                 if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
-                    System.out.println("DEBUG: XSD schema available: " + xmlService.getCurrentXsdFile().getName());
+                    logger.debug("XSD schema available: {}", xmlService.getCurrentXsdFile().getName());
 
                     // Try to get allowed child elements for the current context
                     List<String> allowedElements = getChildElementsFromSchema(xmlService, currentContext);
                     if (allowedElements != null && !allowedElements.isEmpty()) {
-                        System.out.println("DEBUG: Found " + allowedElements.size() + " allowed child elements for context '" + currentContext + "'");
+                        logger.debug("Found {} allowed child elements for context '{}'", allowedElements.size(), currentContext);
                         return allowedElements;
                     } else {
-                        System.out.println("DEBUG: No allowed child elements found for context '" + currentContext + "'");
+                        logger.debug("No allowed child elements found for context '{}'", currentContext);
                     }
                 }
             }
 
             return null;
         } catch (Exception e) {
-            System.err.println("DEBUG: Error getting schema-aware completions: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error getting schema-aware completions: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -1112,13 +1113,13 @@ public class XmlCodeEditor extends VBox {
                 case "portfolio" -> List.of("Positions");
                 case "positions" -> List.of("Position");
                 default -> {
-                    System.out.println("DEBUG: No specific child elements defined for parent '" + parentElement + "'");
+                    logger.debug("No specific child elements defined for parent '{}'", parentElement);
                     yield null;
                 }
             };
 
         } catch (Exception e) {
-            System.err.println("DEBUG: Error getting child elements from schema: " + e.getMessage());
+            logger.error("Error getting child elements from schema: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -1133,14 +1134,14 @@ public class XmlCodeEditor extends VBox {
             if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
                 var xmlService = xmlEditor.getXmlService();
                 if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
-                    System.out.println("DEBUG: XSD schema is available: " + xmlService.getCurrentXsdFile().getName());
+                    logger.debug("XSD schema is available: {}", xmlService.getCurrentXsdFile().getName());
                     return true;
                 }
             }
-            System.out.println("DEBUG: No XSD schema available for IntelliSense");
+            logger.debug("No XSD schema available for IntelliSense");
             return false;
         } catch (Exception e) {
-            System.err.println("DEBUG: Error checking XSD schema availability: " + e.getMessage());
+            logger.error("Error checking XSD schema availability: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -1150,14 +1151,14 @@ public class XmlCodeEditor extends VBox {
      * Only shows IntelliSense if XSD schema is available.
      */
     private void requestCompletionsFromLSP() {
-        System.out.println("DEBUG: IntelliSense requested - checking XSD schema availability");
+        logger.debug("IntelliSense requested - checking XSD schema availability");
 
         // Only show IntelliSense popup if XSD schema is available
         if (isXsdSchemaAvailable()) {
-            System.out.println("DEBUG: XSD schema available - showing IntelliSense popup");
+            logger.debug("XSD schema available - showing IntelliSense popup");
             showManualIntelliSensePopup();
         } else {
-            System.out.println("DEBUG: No XSD schema - IntelliSense popup disabled");
+            logger.debug("No XSD schema - IntelliSense popup disabled");
         }
     }
 
@@ -1186,10 +1187,10 @@ public class XmlCodeEditor extends VBox {
                 // Critical: Keep focus on CodeArea so keyboard events work
                 javafx.application.Platform.runLater(() -> {
                     codeArea.requestFocus();
-                    System.out.println("DEBUG: Focus returned to CodeArea after popup show");
+                    logger.debug("Focus returned to CodeArea after popup show");
                 });
 
-                System.out.println("DEBUG: IntelliSense popup shown at cursor position");
+                logger.debug("IntelliSense popup shown at cursor position");
             }
         }
     }
@@ -1266,7 +1267,7 @@ public class XmlCodeEditor extends VBox {
             return elementStack.isEmpty() ? null : elementStack.peek();
 
         } catch (Exception e) {
-            System.err.println("Error determining current context: " + e.getMessage());
+            logger.error("Error determining current context: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -1325,15 +1326,15 @@ public class XmlCodeEditor extends VBox {
      */
     private void selectCompletionItem() {
         String selectedItem = completionListView.getSelectionModel().getSelectedItem();
-        System.out.println("DEBUG: selectCompletionItem called with selectedItem: '" + selectedItem + "'");
-        System.out.println("DEBUG: popupStartPosition: " + popupStartPosition);
+        logger.debug("selectCompletionItem called with selectedItem: '{}'", selectedItem);
+        logger.debug("popupStartPosition: {}", popupStartPosition);
 
         if (selectedItem != null) {
             // Check if this is enumeration completion
             if (currentElementTextInfo != null) {
                 // Replace the element text content with the selected enumeration value
-                System.out.println("DEBUG: Enumeration completion - replacing text content from " +
-                        currentElementTextInfo.startPosition + " to " + currentElementTextInfo.endPosition);
+                logger.debug("Enumeration completion - replacing text content from {} to {}",
+                        currentElementTextInfo.startPosition, currentElementTextInfo.endPosition);
                 codeArea.replaceText(currentElementTextInfo.startPosition, currentElementTextInfo.endPosition, selectedItem);
                 codeArea.moveTo(currentElementTextInfo.startPosition + selectedItem.length());
 
@@ -1349,10 +1350,10 @@ public class XmlCodeEditor extends VBox {
         if (selectedItem != null && popupStartPosition >= 0) {
             // Remove any existing partial input between popupStartPosition and current position
             int currentPosition = codeArea.getCaretPosition();
-            System.out.println("DEBUG: currentPosition: " + currentPosition);
+            logger.debug("currentPosition: {}", currentPosition);
 
             // Use the context flag set during trigger detection
-            System.out.println("DEBUG: isElementCompletionContext: " + isElementCompletionContext);
+            logger.debug("isElementCompletionContext: {}", isElementCompletionContext);
 
             if (isElementCompletionContext) {
                 // SAFER APPROACH: Find the most recent "<" and replace from there
@@ -1369,10 +1370,10 @@ public class XmlCodeEditor extends VBox {
                     String contextBefore = codeArea.getText(Math.max(0, lastBracketPos - 10), lastBracketPos);
                     String contextAfter = codeArea.getText(currentPosition, Math.min(codeArea.getLength(), currentPosition + 10));
 
-                    System.out.println("DEBUG: Found '<' at position: " + lastBracketPos);
-                    System.out.println("DEBUG: Full context: '" + contextBefore + "[" + textBeingReplaced + "]" + contextAfter + "'");
-                    System.out.println("DEBUG: Replacing from pos " + lastBracketPos + " to " + currentPosition + ": '" + textBeingReplaced + "'");
-                    System.out.println("DEBUG: Will replace with: '" + completeElement + "'");
+                    logger.debug("Found '<' at position: {}", lastBracketPos);
+                    logger.debug("Full context: '{}[{}]{}'", contextBefore, textBeingReplaced, contextAfter);
+                    logger.debug("Replacing from pos {} to {}: '{}'", lastBracketPos, currentPosition, textBeingReplaced);
+                    logger.debug("Will replace with: '{}'", completeElement);
 
                     // Replace only from the "<" character to current cursor position
                     codeArea.replaceText(lastBracketPos, currentPosition, completeElement);
@@ -1381,17 +1382,17 @@ public class XmlCodeEditor extends VBox {
                     int cursorPosition = lastBracketPos + tagName.length() + 2; // After "<tagname>"
                     codeArea.moveTo(cursorPosition);
 
-                    System.out.println("DEBUG: Created complete XML element: " + completeElement);
-                    System.out.println("DEBUG: Cursor positioned at: " + cursorPosition);
+                    logger.debug("Created complete XML element: {}", completeElement);
+                    logger.debug("Cursor positioned at: {}", cursorPosition);
                 } else {
-                    System.out.println("DEBUG: No '<' found before current position - fallback to simple insertion");
+                    logger.debug("No '<' found before current position - fallback to simple insertion");
                     // Fallback: just insert the tag name
                     codeArea.replaceText(popupStartPosition, currentPosition, selectedItem);
                     codeArea.moveTo(popupStartPosition + selectedItem.length());
                 }
             } else {
                 // For attribute completions or other contexts, just insert the selected item
-                System.out.println("DEBUG: Not element completion - inserting selectedItem only");
+                logger.debug("Not element completion - inserting selectedItem only");
                 codeArea.replaceText(popupStartPosition, currentPosition, selectedItem);
                 codeArea.moveTo(popupStartPosition + selectedItem.length());
             }
@@ -1413,24 +1414,23 @@ public class XmlCodeEditor extends VBox {
             // Check if cursor is on element text content
             ElementTextInfo elementTextInfo = getElementTextAtCursor(caretPosition, text);
             if (elementTextInfo != null) {
-                System.out.println("DEBUG: Found element text: " + elementTextInfo.elementName + " = '" + elementTextInfo.textContent + "'");
+                logger.debug("Found element text: {} = '{}'", elementTextInfo.elementName, elementTextInfo.textContent);
 
                 // Get enumeration values for this element
                 List<String> enumerationValues = getEnumerationValues(elementTextInfo.elementName);
                 if (enumerationValues != null && !enumerationValues.isEmpty()) {
-                    System.out.println("DEBUG: Found enumeration values: " + enumerationValues);
+                    logger.debug("Found enumeration values: {}", enumerationValues);
                     showEnumerationCompletion(enumerationValues, elementTextInfo);
                     return true;
                 } else {
-                    System.out.println("DEBUG: No enumeration values found for element: " + elementTextInfo.elementName);
+                    logger.debug("No enumeration values found for element: {}", elementTextInfo.elementName);
                 }
             } else {
-                System.out.println("DEBUG: Cursor is not on element text content");
+                logger.debug("Cursor is not on element text content");
             }
 
         } catch (Exception e) {
-            System.err.println("Error during manual completion: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error during manual completion: {}", e.getMessage(), e);
         }
         return false;
     }
@@ -1532,7 +1532,7 @@ public class XmlCodeEditor extends VBox {
             return new ElementTextInfo(elementName, textContent, textStart, textEnd);
 
         } catch (Exception e) {
-            System.err.println("Error analyzing cursor position: " + e.getMessage());
+            logger.error("Error analyzing cursor position: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -1549,8 +1549,7 @@ public class XmlCodeEditor extends VBox {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error getting enumeration values: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error getting enumeration values: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -1585,8 +1584,7 @@ public class XmlCodeEditor extends VBox {
             }
 
         } catch (Exception e) {
-            System.err.println("Error parsing XSD for enumeration: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error parsing XSD for enumeration: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -1620,7 +1618,7 @@ public class XmlCodeEditor extends VBox {
             }
 
         } catch (Exception e) {
-            System.err.println("Error extracting enumeration values: " + e.getMessage());
+            logger.error("Error extracting enumeration values: {}", e.getMessage(), e);
         }
 
         return values;
@@ -1659,12 +1657,11 @@ public class XmlCodeEditor extends VBox {
                     codeArea.requestFocus();
                 });
 
-                System.out.println("DEBUG: Enumeration completion popup shown with " + enumerationValues.size() + " values");
+                logger.debug("Enumeration completion popup shown with {} values", enumerationValues.size());
             }
 
         } catch (Exception e) {
-            System.err.println("Error showing enumeration completion: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error showing enumeration completion: {}", e.getMessage(), e);
         }
     }
 
@@ -1681,7 +1678,7 @@ public class XmlCodeEditor extends VBox {
         // 1. Request completions from LSP server
         // 2. Show a completion popup
         // 3. Insert the selected completion
-        System.out.println("Tab completion requested - LSP integration pending");
+        logger.debug("Tab completion requested - LSP integration pending");
         return false; // Don't consume the event, allow normal tab behavior
     }
 
@@ -1723,7 +1720,7 @@ public class XmlCodeEditor extends VBox {
 
             return false;
         } catch (Exception e) {
-            System.err.println("Error during auto-closing tag: " + e.getMessage());
+            logger.error("Error during auto-closing tag: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -1780,7 +1777,7 @@ public class XmlCodeEditor extends VBox {
             return false;
 
         } catch (Exception e) {
-            System.err.println("Error in intelligent Enter key handling: " + e.getMessage());
+            logger.error("Error in intelligent Enter key handling: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -1852,11 +1849,11 @@ public class XmlCodeEditor extends VBox {
             // Position cursor at end of inserted text
             codeArea.moveTo(caretPosition + insertText.length());
 
-            System.out.println("DEBUG: Applied Enter after closing tag with indentation: '" + indentation + "'");
+            logger.debug("Applied Enter after closing tag with indentation: '{}'", indentation);
             return true;
 
         } catch (Exception e) {
-            System.err.println("Error handling Enter after closing tag: " + e.getMessage());
+            logger.error("Error handling Enter after closing tag: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -1883,11 +1880,11 @@ public class XmlCodeEditor extends VBox {
             int newPosition = caretPosition + newIndentation.length() + 1; // +1 for first newline
             codeArea.moveTo(newPosition);
 
-            System.out.println("DEBUG: Applied Enter between tags with indentation: '" + newIndentation + "'");
+            logger.debug("Applied Enter between tags with indentation: '{}'", newIndentation);
             return true;
 
         } catch (Exception e) {
-            System.err.println("Error handling Enter between tags: " + e.getMessage());
+            logger.error("Error handling Enter between tags: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -2071,7 +2068,7 @@ public class XmlCodeEditor extends VBox {
             });
 
         } catch (Exception e) {
-            System.err.println("Error updating cursor position: " + e.getMessage());
+            logger.error("Error updating cursor position: {}", e.getMessage(), e);
         }
     }
 
@@ -2100,7 +2097,7 @@ public class XmlCodeEditor extends VBox {
             });
 
         } catch (Exception e) {
-            System.err.println("Error updating indentation info: " + e.getMessage());
+            logger.error("Error updating indentation info: {}", e.getMessage(), e);
         }
     }
 
@@ -2210,7 +2207,7 @@ public class XmlCodeEditor extends VBox {
             });
 
         } catch (Exception e) {
-            System.err.println("Error updating folding regions: " + e.getMessage());
+            logger.error("Error updating folding regions: {}", e.getMessage(), e);
         }
     }
 
