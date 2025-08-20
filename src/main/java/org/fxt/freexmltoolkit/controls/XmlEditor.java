@@ -17,6 +17,7 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
+import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.service.*;
@@ -1161,36 +1162,53 @@ public class XmlEditor extends Tab {
         if (sidebarController == null) return;
         
         if (xsdFile == null) {
-            sidebarController.updateValidationStatus("No XSD selected", "orange");
+            sidebarController.updateValidationStatus("No XSD selected", "orange", null);
             return;
         }
 
         try {
             String xmlContent = codeArea.getText();
             if (xmlContent == null || xmlContent.trim().isEmpty()) {
-                sidebarController.updateValidationStatus("No XML content", "orange");
+                sidebarController.updateValidationStatus("No XML content", "orange", null);
                 return;
             }
 
             // Use the XmlService for validation
-            List<org.xml.sax.SAXParseException> errors = xmlService.validateText(xmlContent, xsdFile);
+            List<org.xml.sax.SAXParseException> saxErrors = xmlService.validateText(xmlContent, xsdFile);
 
-            if (errors == null || errors.isEmpty()) {
-                sidebarController.updateValidationStatus("✓ Valid", "green");
+            if (saxErrors == null || saxErrors.isEmpty()) {
+                sidebarController.updateValidationStatus("✓ Valid", "green", null);
             } else {
-                String errorMessage = "✗ Invalid (" + errors.size() + " error(s))";
-                if (errors.size() == 1) {
-                    errorMessage += "\n" + errors.get(0).getMessage();
-                } else {
-                    errorMessage += "\nFirst error: " + errors.get(0).getMessage();
-                }
-                sidebarController.setValidationStatus(errorMessage);
-                sidebarController.updateValidationStatus(errorMessage, "red");
+                // Convert SAXParseException to ValidationError objects
+                List<ValidationError> validationErrors = saxErrors.stream()
+                        .map(this::convertToValidationError)
+                        .collect(Collectors.toList());
+
+                String errorMessage = "✗ Invalid (" + saxErrors.size() + " error" + (saxErrors.size() == 1 ? "" : "s") + ")";
+                sidebarController.updateValidationStatus(errorMessage, "red", validationErrors);
             }
         } catch (Exception e) {
-            sidebarController.updateValidationStatus("Error during validation", "red");
+            sidebarController.updateValidationStatus("Error during validation", "red", null);
             logger.error("Error during XML validation", e);
         }
+    }
+
+    /**
+     * Converts a SAXParseException to a ValidationError
+     */
+    private ValidationError convertToValidationError(org.xml.sax.SAXParseException saxException) {
+        int lineNumber = saxException.getLineNumber();
+        int columnNumber = saxException.getColumnNumber();
+        String message = saxException.getMessage();
+
+        // Clean up common error message patterns for better readability
+        if (message != null) {
+            // Remove common prefixes that are not useful for end users
+            message = message.replaceAll("^cvc-[^:]*:\\s*", "");
+            message = message.replaceAll("^The content of element '[^']*' is not complete\\.", "Content is incomplete.");
+        }
+
+        return new ValidationError(lineNumber, columnNumber, message, "ERROR");
     }
 
     public void validateSchematron() {

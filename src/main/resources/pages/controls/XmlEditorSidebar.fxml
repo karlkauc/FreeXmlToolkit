@@ -29,6 +29,18 @@
             </VBox>
         </TitledPane>
 
+        <TitledPane text="Validation Errors" collapsible="true" expanded="true" fx:id="validationErrorsPane"
+                    visible="false" managed="false">
+            <VBox spacing="5">
+                <Label fx:id="validationErrorsCountLabel" text="Validation Errors (0)" style="-fx-font-weight: bold;"/>
+                <ListView fx:id="validationErrorsListView" prefHeight="150" maxHeight="200">
+                    <placeholder>
+                        <Label text="No validation errors"/>
+                    </placeholder>
+                </ListView>
+            </VBox>
+        </TitledPane>
+
         <TitledPane text="Schematron Rules" collapsible="true" expanded="false">
             <VBox spacing="5">
                 <HBox spacing="5" alignment="CENTER_LEFT">

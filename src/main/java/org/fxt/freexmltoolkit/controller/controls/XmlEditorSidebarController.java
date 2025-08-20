@@ -8,7 +8,10 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.service.SchematronService;
 
 import java.io.File;
@@ -16,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class XmlEditorSidebarController {
+
+    private static final Logger logger = LogManager.getLogger(XmlEditorSidebarController.class);
 
     @FXML
     private TextField xsdPathField;
@@ -46,6 +51,15 @@ public class XmlEditorSidebarController {
 
     @FXML
     private ListView<String> childElementsListView;
+
+    @FXML
+    private TitledPane validationErrorsPane;
+
+    @FXML
+    private Label validationErrorsCountLabel;
+
+    @FXML
+    private ListView<ValidationError> validationErrorsListView;
 
     @FXML
     private TextField schematronPathField;
@@ -79,6 +93,7 @@ public class XmlEditorSidebarController {
     private VBox sidebarContainer; // Reference to the main container
     private double expandedWidth = 300; // Store the expanded width
     private final List<SchematronService.SchematronValidationError> currentSchematronErrors = new ArrayList<>();
+    private final List<ValidationError> currentValidationErrors = new ArrayList<>();
 
     public void setXmlEditor(XmlEditor xmlEditor) {
         this.xmlEditor = xmlEditor;
@@ -139,6 +154,41 @@ public class XmlEditorSidebarController {
                 xmlEditor.validateSchematron();
             }
         });
+
+        // Setup validation errors ListView with custom cell factory
+        if (validationErrorsListView != null) {
+            validationErrorsListView.setCellFactory(listView -> new ListCell<ValidationError>() {
+                @Override
+                protected void updateItem(ValidationError error, boolean empty) {
+                    super.updateItem(error, empty);
+                    if (empty || error == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(error.getDisplayText());
+                        // Style based on severity
+                        String style = "-fx-text-fill: ";
+                        switch (error.severity().toUpperCase()) {
+                            case "ERROR" -> style += "red";
+                            case "WARNING" -> style += "orange";
+                            case "INFO" -> style += "blue";
+                            default -> style += "black";
+                        }
+                        setStyle(style + "; -fx-padding: 2 5 2 5;");
+                    }
+                }
+            });
+
+            // Add click handler for navigation to error position
+            validationErrorsListView.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) { // Double-click
+                    ValidationError selectedError = validationErrorsListView.getSelectionModel().getSelectedItem();
+                    if (selectedError != null && xmlEditor != null) {
+                        navigateToError(selectedError);
+                    }
+                }
+            });
+        }
     }
 
     @FXML
@@ -403,5 +453,92 @@ public class XmlEditorSidebarController {
         }
 
         detailStage.show();
+    }
+
+    /**
+     * Navigates to the position of a validation error in the XmlCodeEditor
+     */
+    private void navigateToError(ValidationError error) {
+        if (xmlEditor == null || error.lineNumber() <= 0) {
+            return;
+        }
+
+        // Get the XmlCodeEditor from the XmlEditor
+        org.fxt.freexmltoolkit.controls.XmlCodeEditor xmlCodeEditor = xmlEditor.getXmlCodeEditor();
+        if (xmlCodeEditor == null) {
+            return;
+        }
+
+        org.fxmisc.richtext.CodeArea codeArea = xmlCodeEditor.getCodeArea();
+        if (codeArea == null) {
+            return;
+        }
+
+        try {
+            // Convert line/column to position (lines are 1-based in ValidationError, but 0-based in CodeArea)
+            int targetLine = Math.max(0, error.lineNumber() - 1);
+            int targetColumn = Math.max(0, error.columnNumber() - 1);
+
+            // Get the paragraph (line) from the CodeArea
+            if (targetLine < codeArea.getParagraphs().size()) {
+                int lineStartPosition = codeArea.getAbsolutePosition(targetLine, 0);
+                int lineLength = codeArea.getParagraph(targetLine).length();
+                int targetPosition = lineStartPosition + Math.min(targetColumn, lineLength);
+
+                // Move cursor to the error position
+                codeArea.moveTo(targetPosition);
+
+                // Select the position or a small range for visibility
+                if (targetColumn < lineLength) {
+                    // Try to select a word or character at the error position
+                    int selectionEnd = Math.min(targetPosition + 10, lineStartPosition + lineLength);
+                    codeArea.selectRange(targetPosition, selectionEnd);
+                } else {
+                    codeArea.selectRange(targetPosition, targetPosition);
+                }
+
+                // Request focus and scroll to make the position visible
+                codeArea.requestFocus();
+                codeArea.requestFollowCaret();
+            }
+        } catch (Exception e) {
+            logger.error("Error navigating to validation error: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Updates the validation errors display in the sidebar
+     */
+    public void updateValidationErrors(List<ValidationError> errors) {
+        currentValidationErrors.clear();
+        if (errors != null) {
+            currentValidationErrors.addAll(errors);
+        }
+
+        // Update the ListView
+        if (validationErrorsListView != null) {
+            validationErrorsListView.getItems().setAll(currentValidationErrors);
+        }
+
+        // Update the count label
+        if (validationErrorsCountLabel != null) {
+            int errorCount = currentValidationErrors.size();
+            validationErrorsCountLabel.setText("Validation Errors (" + errorCount + ")");
+        }
+
+        // Show/hide the validation errors pane based on whether there are errors
+        if (validationErrorsPane != null) {
+            boolean hasErrors = !currentValidationErrors.isEmpty();
+            validationErrorsPane.setVisible(hasErrors);
+            validationErrorsPane.setManaged(hasErrors);
+        }
+    }
+
+    /**
+     * Enhanced validation status update that also accepts validation errors
+     */
+    public void updateValidationStatus(String status, String color, List<ValidationError> errors) {
+        updateValidationStatus(status, color);
+        updateValidationErrors(errors);
     }
 }
