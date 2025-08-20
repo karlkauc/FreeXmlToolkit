@@ -68,6 +68,12 @@
                             <FontIcon iconLiteral="bi-layout-sidebar-inset-reverse" iconSize="16"/>
                         </graphic>
                     </CheckMenuItem>
+                    <CheckMenuItem fx:id="xpathQueryPaneMenuItem" onAction="#toggleXPathQueryPane"
+                                   text="XPath / XQuery Pane" selected="true">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-search" iconSize="16"/>
+                        </graphic>
+                    </CheckMenuItem>
                 </Menu>
                 <Menu text="Settings">
                     <MenuItem text="Test 1"/>

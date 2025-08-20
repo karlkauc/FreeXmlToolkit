@@ -69,6 +69,13 @@ public class XmlCodeEditor extends VBox {
     private ListView<String> completionListView;
     private List<String> availableElementNames = new ArrayList<>();
     private Map<String, List<String>> contextElementNames = new HashMap<>();
+
+    // Enumeration completion support
+    private ElementTextInfo currentElementTextInfo;
+
+    // Cache for enumeration elements to avoid repeated XSD parsing
+    private final Set<String> enumerationElements = new HashSet<>();
+    private long lastXsdModified = -1;
     private int popupStartPosition = -1;
     private boolean isElementCompletionContext = false; // Track if we're completing elements or attributes
 
@@ -163,6 +170,8 @@ public class XmlCodeEditor extends VBox {
 
         // Text change listener for syntax highlighting
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            // Update enumeration elements cache before highlighting
+            updateEnumerationElementsCache();
             // Apply syntax highlighting using external CSS
             applySyntaxHighlighting(newText);
         });
@@ -205,7 +214,7 @@ public class XmlCodeEditor extends VBox {
         }
 
         // Apply the syntax highlighting using StyleSpans
-        StyleSpans<Collection<String>> highlighting = computeHighlighting(text);
+        StyleSpans<Collection<String>> highlighting = computeHighlightingWithEnumeration(text);
         codeArea.setStyleSpans(0, highlighting);
 
         // Force a repaint of the CodeArea
@@ -226,6 +235,77 @@ public class XmlCodeEditor extends VBox {
 
         // Apply the syntax highlighting using StyleSpans (colors come from external CSS)
         forceSyntaxHighlighting(text);
+    }
+
+    /**
+     * Updates the cache of elements that have enumeration constraints in the XSD.
+     */
+    private void updateEnumerationElementsCache() {
+        try {
+            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
+                var xmlService = xmlEditor.getXmlService();
+                if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
+                    java.io.File xsdFile = xmlService.getCurrentXsdFile();
+
+                    // Check if XSD file has been modified since last cache update
+                    long currentModified = xsdFile.lastModified();
+                    if (currentModified == lastXsdModified) {
+                        return; // Cache is still valid
+                    }
+
+                    // Update cache
+                    enumerationElements.clear();
+                    lastXsdModified = currentModified;
+
+                    // Parse XSD to find all elements with enumeration constraints
+                    javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+                    factory.setNamespaceAware(true);
+                    javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
+                    org.w3c.dom.Document xsdDoc = builder.parse(xsdFile);
+
+                    org.w3c.dom.NodeList elements = xsdDoc.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
+
+                    for (int i = 0; i < elements.getLength(); i++) {
+                        org.w3c.dom.Element element = (org.w3c.dom.Element) elements.item(i);
+                        String name = element.getAttribute("name");
+
+                        if (name != null && !name.isEmpty() && hasEnumerationConstraint(element)) {
+                            enumerationElements.add(name);
+                        }
+                    }
+
+                    System.out.println("DEBUG: Updated enumeration elements cache with " + enumerationElements.size() + " elements: " + enumerationElements);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error updating enumeration elements cache: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Checks if an XSD element has enumeration constraints.
+     */
+    private boolean hasEnumerationConstraint(org.w3c.dom.Element element) {
+        try {
+            org.w3c.dom.NodeList simpleTypes = element.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "simpleType");
+
+            for (int i = 0; i < simpleTypes.getLength(); i++) {
+                org.w3c.dom.Element simpleType = (org.w3c.dom.Element) simpleTypes.item(i);
+                org.w3c.dom.NodeList restrictions = simpleType.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "restriction");
+
+                for (int j = 0; j < restrictions.getLength(); j++) {
+                    org.w3c.dom.Element restriction = (org.w3c.dom.Element) restrictions.item(j);
+                    org.w3c.dom.NodeList enumerations = restriction.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "enumeration");
+
+                    if (enumerations.getLength() > 0) {
+                        return true; // Found enumeration constraints
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error checking enumeration constraint: " + e.getMessage());
+        }
+        return false;
     }
 
 
@@ -316,6 +396,16 @@ public class XmlCodeEditor extends VBox {
                 }
             } else {
                 System.out.println("DEBUG: KEY_TYPED event - character is null or empty");
+            }
+        });
+
+        // Handle Ctrl+Space for manual completion (including enumeration completion)
+        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.SPACE) {
+                System.out.println("DEBUG: Ctrl+Space pressed for manual completion");
+                if (handleManualCompletion()) {
+                    event.consume();
+                }
             }
         });
     }
@@ -680,7 +770,7 @@ public class XmlCodeEditor extends VBox {
      */
     public void searchAndHighlight(String text) {
         // Zuerst das normale Syntax-Highlighting anwenden
-        StyleSpans<Collection<String>> syntaxHighlighting = computeHighlighting(codeArea.getText());
+        StyleSpans<Collection<String>> syntaxHighlighting = computeHighlightingWithEnumeration(codeArea.getText());
 
         if (text == null || text.isBlank()) {
             codeArea.setStyleSpans(0, syntaxHighlighting); // Nur Syntax-Highlighting
@@ -716,11 +806,78 @@ public class XmlCodeEditor extends VBox {
         return codeArea;
     }
 
-    public static StyleSpans<Collection<String>> computeHighlighting(String text) {
+    /**
+     * Computes syntax highlighting with enumeration element indicators.
+     */
+    private StyleSpans<Collection<String>> computeHighlightingWithEnumeration(String text) {
         if (text == null) {
             text = "";
         }
         
+        Matcher matcher = XML_TAG.matcher(text);
+        int lastKwEnd = 0;
+        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+
+        while (matcher.find()) {
+            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
+
+            if (matcher.group("COMMENT") != null) {
+                spansBuilder.add(Collections.singleton("comment"), matcher.end() - matcher.start());
+            } else {
+                if (matcher.group("ELEMENT") != null) {
+                    String attributesText = matcher.group(GROUP_ATTRIBUTES_SECTION);
+                    String elementName = matcher.group(GROUP_ELEMENT_NAME);
+
+                    // Check if this element has enumeration constraints
+                    boolean isEnumerationElement = enumerationElements.contains(elementName);
+
+                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_OPEN_BRACKET) - matcher.start(GROUP_OPEN_BRACKET));
+
+                    // Apply special styling for enumeration elements
+                    if (isEnumerationElement) {
+                        spansBuilder.add(Set.of("anytag", "enumeration"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
+                    } else {
+                        spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
+                    }
+
+                    if (attributesText != null && !attributesText.isEmpty()) {
+                        lastKwEnd = 0;
+
+                        Matcher amatcher = ATTRIBUTES.matcher(attributesText);
+                        while (amatcher.find()) {
+                            spansBuilder.add(Collections.emptyList(), amatcher.start() - lastKwEnd);
+                            spansBuilder.add(Collections.singleton("attribute"), amatcher.end(GROUP_ATTRIBUTE_NAME) - amatcher.start(GROUP_ATTRIBUTE_NAME));
+                            spansBuilder.add(Collections.singleton("tagmark"), amatcher.end(GROUP_EQUAL_SYMBOL) - amatcher.end(GROUP_ATTRIBUTE_NAME));
+                            spansBuilder.add(Collections.singleton("avalue"), amatcher.end(GROUP_ATTRIBUTE_VALUE) - amatcher.end(GROUP_EQUAL_SYMBOL));
+                            lastKwEnd = amatcher.end();
+                        }
+
+                        if (lastKwEnd < attributesText.length()) {
+                            spansBuilder.add(Collections.emptyList(), attributesText.length() - lastKwEnd);
+                        }
+                    }
+
+                    lastKwEnd = matcher.end(GROUP_ATTRIBUTES_SECTION);
+
+                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_CLOSE_BRACKET) - lastKwEnd);
+                }
+            }
+            lastKwEnd = matcher.end();
+        }
+        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
+
+        return spansBuilder.create();
+    }
+
+    /**
+     * Static method for basic XML syntax highlighting without enumeration features.
+     * Used by other components that don't need enumeration highlighting.
+     */
+    public static StyleSpans<Collection<String>> computeHighlighting(String text) {
+        if (text == null) {
+            text = "";
+        }
+
         Matcher matcher = XML_TAG.matcher(text);
         int lastKwEnd = 0;
         StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
@@ -1170,6 +1327,24 @@ public class XmlCodeEditor extends VBox {
         String selectedItem = completionListView.getSelectionModel().getSelectedItem();
         System.out.println("DEBUG: selectCompletionItem called with selectedItem: '" + selectedItem + "'");
         System.out.println("DEBUG: popupStartPosition: " + popupStartPosition);
+
+        if (selectedItem != null) {
+            // Check if this is enumeration completion
+            if (currentElementTextInfo != null) {
+                // Replace the element text content with the selected enumeration value
+                System.out.println("DEBUG: Enumeration completion - replacing text content from " +
+                        currentElementTextInfo.startPosition + " to " + currentElementTextInfo.endPosition);
+                codeArea.replaceText(currentElementTextInfo.startPosition, currentElementTextInfo.endPosition, selectedItem);
+                codeArea.moveTo(currentElementTextInfo.startPosition + selectedItem.length());
+
+                // Clear enumeration context
+                currentElementTextInfo = null;
+
+                // Hide the popup
+                hideIntelliSensePopup();
+                return;
+            }
+        }
         
         if (selectedItem != null && popupStartPosition >= 0) {
             // Remove any existing partial input between popupStartPosition and current position
@@ -1223,6 +1398,273 @@ public class XmlCodeEditor extends VBox {
 
             // Hide the popup
             hideIntelliSensePopup();
+        }
+    }
+
+    /**
+     * Handles manual completion triggered by Ctrl+Space.
+     * Checks if cursor is on element text content with enumeration constraints.
+     */
+    private boolean handleManualCompletion() {
+        try {
+            int caretPosition = codeArea.getCaretPosition();
+            String text = codeArea.getText();
+
+            // Check if cursor is on element text content
+            ElementTextInfo elementTextInfo = getElementTextAtCursor(caretPosition, text);
+            if (elementTextInfo != null) {
+                System.out.println("DEBUG: Found element text: " + elementTextInfo.elementName + " = '" + elementTextInfo.textContent + "'");
+
+                // Get enumeration values for this element
+                List<String> enumerationValues = getEnumerationValues(elementTextInfo.elementName);
+                if (enumerationValues != null && !enumerationValues.isEmpty()) {
+                    System.out.println("DEBUG: Found enumeration values: " + enumerationValues);
+                    showEnumerationCompletion(enumerationValues, elementTextInfo);
+                    return true;
+                } else {
+                    System.out.println("DEBUG: No enumeration values found for element: " + elementTextInfo.elementName);
+                }
+            } else {
+                System.out.println("DEBUG: Cursor is not on element text content");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error during manual completion: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+         * Information about element text content at cursor position.
+         */
+        private record ElementTextInfo(String elementName, String textContent, int startPosition, int endPosition) {
+    }
+
+    /**
+     * Analyzes the cursor position to determine if it's on element text content.
+     * Example: <DataOperation>INITIAL</DataOperation>
+     * ^^^^^ cursor here
+     */
+    private ElementTextInfo getElementTextAtCursor(int caretPosition, String text) {
+        try {
+            // Find the element boundaries around the cursor
+            int beforeCursor = caretPosition - 1;
+            int afterCursor = caretPosition;
+
+            // Look backwards to find opening tag
+            int openTagStart = -1;
+            int openTagEnd = -1;
+            for (int i = beforeCursor; i >= 0; i--) {
+                if (text.charAt(i) == '>') {
+                    openTagEnd = i;
+                    break;
+                } else if (text.charAt(i) == '<') {
+                    // If we hit another < before >, we're not in element text
+                    return null;
+                }
+            }
+
+            if (openTagEnd == -1) return null;
+
+            // Find the start of the opening tag
+            for (int i = openTagEnd; i >= 0; i--) {
+                if (text.charAt(i) == '<') {
+                    openTagStart = i;
+                    break;
+                }
+            }
+
+            if (openTagStart == -1) return null;
+
+            // Look forwards to find closing tag
+            int closeTagStart = -1;
+            int closeTagEnd = -1;
+            for (int i = afterCursor; i < text.length(); i++) {
+                if (text.charAt(i) == '<') {
+                    closeTagStart = i;
+                    break;
+                } else if (text.charAt(i) == '>') {
+                    // If we hit > before <, we're not in element text
+                    return null;
+                }
+            }
+
+            if (closeTagStart == -1) return null;
+
+            // Find the end of the closing tag
+            for (int i = closeTagStart; i < text.length(); i++) {
+                if (text.charAt(i) == '>') {
+                    closeTagEnd = i;
+                    break;
+                }
+            }
+
+            if (closeTagEnd == -1) return null;
+
+            // Extract element name from opening tag
+            String openingTag = text.substring(openTagStart, openTagEnd + 1);
+            Pattern elementPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)");
+            Matcher matcher = elementPattern.matcher(openingTag);
+            if (!matcher.find()) return null;
+
+            String elementName = matcher.group(1);
+
+            // Extract closing tag to verify it matches
+            String closingTag = text.substring(closeTagStart, closeTagEnd + 1);
+            if (!closingTag.equals("</" + elementName + ">")) {
+                return null; // Tags don't match
+            }
+
+            // Extract text content between tags
+            int textStart = openTagEnd + 1;
+            int textEnd = closeTagStart;
+
+            if (textStart >= textEnd) return null; // No text content
+
+            // Check if cursor is within the text content
+            if (caretPosition < textStart || caretPosition > textEnd) {
+                return null;
+            }
+
+            String textContent = text.substring(textStart, textEnd);
+
+            return new ElementTextInfo(elementName, textContent, textStart, textEnd);
+
+        } catch (Exception e) {
+            System.err.println("Error analyzing cursor position: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Retrieves enumeration values for a given element from the XSD schema.
+     */
+    private List<String> getEnumerationValues(String elementName) {
+        try {
+            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
+                var xmlService = xmlEditor.getXmlService();
+                if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
+                    return extractEnumerationFromXsd(xmlService, elementName);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting enumeration values: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Extracts enumeration values from XSD schema for a specific element.
+     */
+    private List<String> extractEnumerationFromXsd(org.fxt.freexmltoolkit.service.XmlService xmlService, String elementName) {
+        try {
+            java.io.File xsdFile = xmlService.getCurrentXsdFile();
+            if (xsdFile == null || !xsdFile.exists()) {
+                return null;
+            }
+
+            // Parse XSD file
+            javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
+            org.w3c.dom.Document xsdDoc = builder.parse(xsdFile);
+
+            // Look for element definition with enumeration
+            org.w3c.dom.NodeList elements = xsdDoc.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
+
+            for (int i = 0; i < elements.getLength(); i++) {
+                org.w3c.dom.Element element = (org.w3c.dom.Element) elements.item(i);
+                String name = element.getAttribute("name");
+
+                if (elementName.equals(name)) {
+                    // Found the element, look for enumeration values
+                    return extractEnumerationValues(element);
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error parsing XSD for enumeration: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Extracts enumeration values from an XSD element definition.
+     */
+    private List<String> extractEnumerationValues(org.w3c.dom.Element element) {
+        List<String> values = new ArrayList<>();
+
+        try {
+            // Look for xs:simpleType > xs:restriction > xs:enumeration
+            org.w3c.dom.NodeList simpleTypes = element.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "simpleType");
+
+            for (int i = 0; i < simpleTypes.getLength(); i++) {
+                org.w3c.dom.Element simpleType = (org.w3c.dom.Element) simpleTypes.item(i);
+                org.w3c.dom.NodeList restrictions = simpleType.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "restriction");
+
+                for (int j = 0; j < restrictions.getLength(); j++) {
+                    org.w3c.dom.Element restriction = (org.w3c.dom.Element) restrictions.item(j);
+                    org.w3c.dom.NodeList enumerations = restriction.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "enumeration");
+
+                    for (int k = 0; k < enumerations.getLength(); k++) {
+                        org.w3c.dom.Element enumeration = (org.w3c.dom.Element) enumerations.item(k);
+                        String value = enumeration.getAttribute("value");
+                        if (value != null && !value.isEmpty()) {
+                            values.add(value);
+                        }
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error extracting enumeration values: " + e.getMessage());
+        }
+
+        return values;
+    }
+
+    /**
+     * Shows enumeration completion popup.
+     */
+    private void showEnumerationCompletion(List<String> enumerationValues, ElementTextInfo elementTextInfo) {
+        try {
+            // Store element text info for later replacement
+            this.currentElementTextInfo = elementTextInfo;
+
+            // Set up completion list
+            completionListView.getItems().clear();
+            completionListView.getItems().addAll(enumerationValues);
+
+            // Select the current value if it exists in the list
+            String currentValue = elementTextInfo.textContent.trim();
+            if (enumerationValues.contains(currentValue)) {
+                completionListView.getSelectionModel().select(currentValue);
+            } else if (!enumerationValues.isEmpty()) {
+                completionListView.getSelectionModel().select(0);
+            }
+
+            // Show popup at cursor position
+            var caretBounds = codeArea.getCaretBounds().orElse(null);
+            if (caretBounds != null) {
+                var screenPos = codeArea.localToScreen(caretBounds.getMinX(), caretBounds.getMaxY());
+                intelliSensePopup.setX(screenPos.getX());
+                intelliSensePopup.setY(screenPos.getY());
+                intelliSensePopup.show();
+
+                // Keep focus on CodeArea
+                javafx.application.Platform.runLater(() -> {
+                    codeArea.requestFocus();
+                });
+
+                System.out.println("DEBUG: Enumeration completion popup shown with " + enumerationValues.size() + " values");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error showing enumeration completion: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

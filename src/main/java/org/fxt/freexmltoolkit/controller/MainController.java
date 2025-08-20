@@ -79,6 +79,9 @@ public class MainController {
     CheckMenuItem xmlEditorSidebarMenuItem;
 
     @FXML
+    CheckMenuItem xpathQueryPaneMenuItem;
+
+    @FXML
     Label menuText1, menuText2;
 
     @FXML
@@ -102,6 +105,7 @@ public class MainController {
         menuItemExit.setOnAction(e -> Platform.exit());
         loadLastOpenFiles();
         loadXmlEditorSidebarPreference();
+        loadXPathQueryPanePreference();
         loadPageFromPath("/pages/welcome.fxml");
     }
 
@@ -116,6 +120,19 @@ public class MainController {
         }
 
         logger.debug("Loaded XML Editor Sidebar preference: {}", isVisible);
+    }
+
+    private void loadXPathQueryPanePreference() {
+        // Load preference - default is visible (true)
+        String paneVisible = propertiesService.get("xpathQueryPane.visible");
+        boolean isVisible = paneVisible == null || Boolean.parseBoolean(paneVisible);
+
+        // Set the menu item state
+        if (xpathQueryPaneMenuItem != null) {
+            xpathQueryPaneMenuItem.setSelected(isVisible);
+        }
+
+        logger.debug("Loaded XPath Query Pane preference: {}", isVisible);
     }
 
     private void updateMemoryUsage() {
@@ -482,5 +499,31 @@ public class MainController {
         if (xmlController != null) {
             xmlController.setXmlEditorSidebarVisible(visible);
         }
+    }
+
+    @FXML
+    private void toggleXPathQueryPane() {
+        boolean isVisible = xpathQueryPaneMenuItem.isSelected();
+        logger.debug("Toggle XPath Query Pane: {}", isVisible);
+
+        // Save preference
+        propertiesService.set("xpathQueryPane.visible", String.valueOf(isVisible));
+
+        // Apply to current XML controller if available
+        if (xmlController != null) {
+            xmlController.setXPathQueryPaneVisible(isVisible);
+        } else {
+            logger.debug("XmlController not yet available - preference saved, will be applied when XML tab is loaded");
+        }
+    }
+
+    /**
+     * Gets the current XPath Query Pane visibility setting from preferences.
+     *
+     * @return true if XPath Query Pane should be visible, false otherwise
+     */
+    public boolean isXPathQueryPaneVisible() {
+        String paneVisible = propertiesService.get("xpathQueryPane.visible");
+        return paneVisible == null || Boolean.parseBoolean(paneVisible);
     }
 }

@@ -41,6 +41,12 @@
     -fx-fill: teal;
 }
 
+.enumeration {
+    -fx-fill: rgb(0, 128, 0);
+    -fx-font-weight: bold;
+    -fx-underline: true;
+}
+
 /* line Number */
 .lineno {
     -fx-background-color: #e3e3e3;

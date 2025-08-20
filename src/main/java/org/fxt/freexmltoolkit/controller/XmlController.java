@@ -21,6 +21,7 @@ package org.fxt.freexmltoolkit.controller;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -90,6 +91,12 @@ public class XmlController {
     TabPane xPathQueryPane, xmlFilesPane;
 
     @FXML
+    TitledPane xPathQueryTitledPane;
+
+    // Reference to the parent SplitPane for dynamic layout management
+    private SplitPane parentVerticalSplitPane;
+
+    @FXML
     TextArea textAreaTemp;
 
     @FXML
@@ -147,6 +154,29 @@ public class XmlController {
         }
 
         reloadXmlText();
+
+        // Initialize parent SplitPane reference for dynamic layout management
+        Platform.runLater(() -> {
+            if (xPathQueryTitledPane != null) {
+                logger.debug("TitledPane found: {}", xPathQueryTitledPane);
+
+                // Find the SplitPane by traversing up the parent hierarchy
+                Node parent = xPathQueryTitledPane.getParent();
+                while (parent != null && !(parent instanceof SplitPane)) {
+                    logger.debug("Current parent: {} (class: {})", parent, parent.getClass());
+                    parent = parent.getParent();
+                }
+
+                if (parent instanceof SplitPane) {
+                    parentVerticalSplitPane = (SplitPane) parent;
+                    logger.debug("Found parent SplitPane: {} - items count: {}", parentVerticalSplitPane, parentVerticalSplitPane.getItems().size());
+                } else {
+                    logger.warn("Could not find SplitPane parent for TitledPane");
+                }
+            } else {
+                logger.warn("xPathQueryTitledPane is null during initialization");
+            }
+        });
 
         xmlFilesPane.setOnDragOver(this::handleFileOverEvent);
         xmlFilesPane.setOnDragExited(this::handleDragExitedEvent);
@@ -297,6 +327,15 @@ public class XmlController {
         this.mainController = parentController;
         // LSP Server initialization removed - using XSD-based implementation
         logger.debug("Using XSD-based implementation instead of LSP Server");
+
+        // Initialize XPath Query Pane visibility based on saved preference
+        if (mainController != null) {
+            boolean xpathPaneVisible = mainController.isXPathQueryPaneVisible();
+            // Use Platform.runLater to ensure UI is fully loaded before applying visibility
+            Platform.runLater(() -> {
+                setXPathQueryPaneVisible(xpathPaneVisible);
+            });
+        }
     }
 
     // LSP server setup method removed - using XSD-based implementation
@@ -669,6 +708,43 @@ public class XmlController {
                     xmlEditor.setXmlEditorSidebarVisible(visible);
                 }
             }
+        }
+    }
+
+    /**
+     * Sets the visibility of the XPath/XQuery TitledPane.
+     * Dynamically adds/removes the TitledPane from the SplitPane for proper layout management.
+     *
+     * @param visible true to show the pane, false to hide it completely
+     */
+    public void setXPathQueryPaneVisible(boolean visible) {
+        logger.debug("Setting XPath Query Pane visibility to: {}", visible);
+        logger.debug("xPathQueryTitledPane is null: {}", xPathQueryTitledPane == null);
+        logger.debug("parentVerticalSplitPane is null: {}", parentVerticalSplitPane == null);
+
+        if (xPathQueryTitledPane != null && parentVerticalSplitPane != null) {
+            logger.debug("Current SplitPane items count: {}", parentVerticalSplitPane.getItems().size());
+            logger.debug("TitledPane currently in SplitPane: {}", parentVerticalSplitPane.getItems().contains(xPathQueryTitledPane));
+
+            if (visible) {
+                // Add the TitledPane back if it's not already present
+                if (!parentVerticalSplitPane.getItems().contains(xPathQueryTitledPane)) {
+                    parentVerticalSplitPane.getItems().add(xPathQueryTitledPane);
+                    // Restore the divider position (0.8 means XmlEditor takes 80% of space)
+                    parentVerticalSplitPane.setDividerPositions(0.8);
+                    logger.debug("Added XPath Query TitledPane back to SplitPane");
+                } else {
+                    logger.debug("TitledPane already present in SplitPane");
+                }
+            } else {
+                // Remove the TitledPane completely from the SplitPane
+                boolean removed = parentVerticalSplitPane.getItems().remove(xPathQueryTitledPane);
+                logger.debug("Removed XPath Query TitledPane from SplitPane: {} - XmlEditor should now take full space", removed);
+            }
+            logger.debug("Final SplitPane items count: {}", parentVerticalSplitPane.getItems().size());
+        } else {
+            logger.warn("Cannot set XPath Query Pane visibility - missing references: xPathQueryTitledPane={}, parentVerticalSplitPane={}",
+                    xPathQueryTitledPane != null, parentVerticalSplitPane != null);
         }
     }
 }

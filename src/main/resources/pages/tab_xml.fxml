@@ -87,7 +87,7 @@
                 <XmlEditor fx:id="emptyXmlEditor"/>
             </TabPane>
 
-            <TitledPane expanded="false" text="XPath / XQuery">
+            <TitledPane fx:id="xPathQueryTitledPane" expanded="false" text="XPath / XQuery">
                 <HBox prefHeight="300">
                     <VBox spacing="5.0">
                         <Button fx:id="runXpathQuery" mnemonicParsing="false" onAction="#runXpathQueryPressed"
@@ -123,7 +123,5 @@
                 </HBox>
             </TitledPane>
         </SplitPane>
-        <!-- <TextArea fx:id="textAreaTemp" text="asfd" /> -->
     </SplitPane>
-
 </VBox>

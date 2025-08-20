@@ -31,6 +31,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Build System**: Gradle with Kotlin DSL
 - **Dependency Management**: Multiple Maven repositories including Eclipse repositories
 - **Testing**: JUnit 5 with TestFX for JavaFX testing
+- **Logging**: Log4j2 for logging errors and debug messages
 
 ### Core Architecture Pattern
 - **MVC Pattern**: Model-View-Controller with Service Layer
@@ -88,7 +89,8 @@ org.fxt.freexmltoolkit/
 - **Error Handling**: Extensive validation with user-friendly error reporting
 
 ### Build Configuration Notes
-- **Java Toolchain**: Configured for Java 21 with preview features enabled
+
+- **Java Toolchain**: Configured for Java 24
 - **Native Packaging**: Complex jpackage setup for Windows/macOS/Linux distribution
 - **JavaFX Modules**: Separate JMOD files for cross-platform native packaging
 - **Runtime Images**: Custom JLink runtime images for each platform
