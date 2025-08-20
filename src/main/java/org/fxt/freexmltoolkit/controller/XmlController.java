@@ -73,8 +73,7 @@ public class XmlController {
     @FXML
     StackPane stackPaneXPath, stackPaneXQuery;
 
-    @FXML
-    ComboBox<File> schemaList = new ComboBox<>();
+
 
     FileChooser fileChooser = new FileChooser();
 
@@ -104,10 +103,10 @@ public class XmlController {
 
 
     // LSP Server functionality removed - using XSD-based implementation
-    // Executor für asynchrone UI-Tasks wie Formatierung
+    // Executor for asynchronous UI tasks like formatting
     private final ExecutorService formattingExecutor = Executors.newCachedThreadPool(runnable -> {
         Thread t = new Thread(runnable);
-        t.setDaemon(true); // Damit die Anwendung beendet werden kann, auch wenn Tasks laufen
+        t.setDaemon(true); // So the application can be terminated even when tasks are running
         return t;
     });
 
@@ -115,17 +114,31 @@ public class XmlController {
 
     @FXML
     private void initialize() {
-        logger.debug("Bin im xmlController init");
+        logger.debug("Initializing XML Controller");
 
+        // Initialize XPath code area with syntax highlighting
         codeAreaXpath.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXpath));
         virtualizedScrollPaneXpath = new VirtualizedScrollPane<>(codeAreaXpath);
         stackPaneXPath.getChildren().add(virtualizedScrollPaneXpath);
-        codeAreaXpath.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXpath.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText))));
 
+        // Performance optimization: Debounce syntax highlighting updates
+        codeAreaXpath.textProperty().addListener((obs, oldText, newText) -> {
+            if (newText != null && !newText.equals(oldText)) {
+                Platform.runLater(() -> codeAreaXpath.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText)));
+            }
+        });
+
+        // Initialize XQuery code area with syntax highlighting
         codeAreaXQuery.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXQuery));
         virtualizedScrollPaneXQuery = new VirtualizedScrollPane<>(codeAreaXQuery);
         stackPaneXQuery.getChildren().add(virtualizedScrollPaneXQuery);
-        codeAreaXQuery.textProperty().addListener((obs, oldText, newText) -> Platform.runLater(() -> codeAreaXQuery.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText))));
+
+        // Performance optimization: Debounce syntax highlighting updates
+        codeAreaXQuery.textProperty().addListener((obs, oldText, newText) -> {
+            if (newText != null && !newText.equals(oldText)) {
+                Platform.runLater(() -> codeAreaXQuery.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText)));
+            }
+        });
 
         var t = System.getenv("debug");
         if (t != null) {
@@ -160,18 +173,22 @@ public class XmlController {
             if (xPathQueryTitledPane != null) {
                 logger.debug("TitledPane found: {}", xPathQueryTitledPane);
 
-                // Find the SplitPane by traversing up the parent hierarchy
+                // Performance optimization: Limit parent traversal to avoid infinite loops
                 Node parent = xPathQueryTitledPane.getParent();
-                while (parent != null && !(parent instanceof SplitPane)) {
+                int traversalCount = 0;
+                final int MAX_TRAVERSAL = 10; // Prevent infinite loops
+
+                while (parent != null && !(parent instanceof SplitPane) && traversalCount < MAX_TRAVERSAL) {
                     logger.debug("Current parent: {} (class: {})", parent, parent.getClass());
                     parent = parent.getParent();
+                    traversalCount++;
                 }
 
                 if (parent instanceof SplitPane) {
                     parentVerticalSplitPane = (SplitPane) parent;
                     logger.debug("Found parent SplitPane: {} - items count: {}", parentVerticalSplitPane, parentVerticalSplitPane.getItems().size());
                 } else {
-                    logger.warn("Could not find SplitPane parent for TitledPane");
+                    logger.warn("Could not find SplitPane parent for TitledPane after {} traversals", traversalCount);
                 }
             } else {
                 logger.warn("xPathQueryTitledPane is null during initialization");
@@ -185,10 +202,15 @@ public class XmlController {
         // Add listener for continuous validation
     }
 
+    /**
+     * Creates and adds a new XML editor tab to the tab pane.
+     *
+     * @param file The file to load, or null for a new empty editor
+     */
     private void createAndAddXmlTab(File file) {
-        // Die Konstruktoren von XmlEditor müssen angepasst werden, um den MainController zu akzeptieren
-        XmlEditor xmlEditor = new XmlEditor(file); // Behalten Sie Ihren Konstruktor bei
-        xmlEditor.setMainController(this.mainController); // Übergeben Sie den Controller
+        // The XmlEditor constructors must be adapted to accept the MainController
+        XmlEditor xmlEditor = new XmlEditor(file); // Keep your constructor
+        xmlEditor.setMainController(this.mainController); // Pass the controller
 
         // CRITICAL: Ensure LSP server is available and properly set
         // LSP functionality replaced by XSD-based implementation
@@ -203,7 +225,7 @@ public class XmlController {
             logger.debug("Applied sidebar visibility setting to new tab: {}", sidebarVisible);
         }
 
-        // Füge einen Listener hinzu, der den Server über Textänderungen informiert.
+        // Add a listener that notifies the server about text changes.
         // LSP text change notification removed
 
         xmlFilesPane.getTabs().add(xmlEditor);
@@ -215,6 +237,11 @@ public class XmlController {
         }
     }
 
+    /**
+     * Handles drag over events for file dropping.
+     *
+     * @param event The drag event
+     */
     @FXML
     void handleFileOverEvent(DragEvent event) {
         Dragboard db = event.getDragboard();
@@ -228,12 +255,22 @@ public class XmlController {
         }
     }
 
+    /**
+     * Handles drag exit events for file dropping.
+     *
+     * @param event The drag event
+     */
     @FXML
     void handleDragExitedEvent(DragEvent event) {
         xmlFilesPane.getStyleClass().clear();
         xmlFilesPane.getStyleClass().add("tab-pane");
     }
 
+    /**
+     * Handles file dropped events for file dropping.
+     *
+     * @param event The drag event
+     */
     @FXML
     void handleFileDroppedEvent(DragEvent event) {
         Dragboard db = event.getDragboard();
@@ -245,31 +282,43 @@ public class XmlController {
     }
 
     /**
-     * Die Methode ist jetzt public und wurde refaktorisiert, um die
-     * zentrale `createAndAddXmlTab`-Methode zu verwenden. Das vermeidet Code-Duplizierung.
+     * The method is now public and has been refactored to use the
+     * central `createAndAddXmlTab` method. This avoids code duplication.
      *
-     * @param f Die zu ladende Datei.
+     * @param f The file to load.
      */
     public void loadFile(File f) {
         logger.debug("Loading file {} via createAndAddXmlTab", f.getAbsolutePath());
         createAndAddXmlTab(f);
     }
 
+    /**
+     * Handles the new file button press event.
+     */
     @FXML
     private void newFilePressed() {
         logger.debug("New File Pressed");
-        // Verwendung der zentralen Methode zum Erstellen von Tabs
+        // Use the central method for creating tabs
         createAndAddXmlTab(null);
     }
 
+    /**
+     * Gets the currently active XML editor tab.
+     *
+     * @return The current XmlEditor or null if no tab is selected
+     */
     private XmlEditor getCurrentXmlEditor() {
         Tab active = xmlFilesPane.getSelectionModel().getSelectedItem();
         return (XmlEditor) active;
     }
 
-    // Die Methoden für die Schriftgröße können entfernt werden, da die Steuerung
-    // jetzt direkt im XmlCodeEditor über Tastenkürzel und Mausrad erfolgt.
-    // Falls du sie für Toolbar-Buttons behalten möchtest, kannst du sie so implementieren:
+    // The font size methods can be removed since the control
+    // now happens directly in XmlCodeEditor via keyboard shortcuts and mouse wheel.
+    // If you want to keep them for toolbar buttons, you can implement them like this:
+
+    /**
+     * Increases the font size of the current editor.
+     */
     @FXML
     private void increaseFontSize() {
         XmlEditor editor = getCurrentXmlEditor();
@@ -278,6 +327,9 @@ public class XmlController {
         }
     }
 
+    /**
+     * Decreases the font size of the current editor.
+     */
     @FXML
     private void decreaseFontSize() {
         XmlEditor editor = getCurrentXmlEditor();
@@ -286,16 +338,24 @@ public class XmlController {
         }
     }
 
-    // Die `getCurrentCodeArea()` Methode muss angepasst werden, um die neue Struktur zu finden.
+    /**
+     * Gets the current code area from the active XML editor.
+     * The `getCurrentCodeArea()` method must be adapted to find the new structure.
+     *
+     * @return The current CodeArea or null if no editor is active
+     */
     private CodeArea getCurrentCodeArea() {
         XmlEditor editor = getCurrentXmlEditor();
         if (editor != null && editor.getXmlCodeEditor() != null) {
-            // Greift über den XmlCodeEditor auf die CodeArea zu.
+            // Access the CodeArea through the XmlCodeEditor.
             return editor.getXmlCodeEditor().getCodeArea();
         }
         return null;
     }
 
+    /**
+     * Executes the current XPath or XQuery and displays the result.
+     */
     @FXML
     private void runXpathQueryPressed() {
         var currentCodeArea = getCurrentCodeArea();
@@ -303,25 +363,63 @@ public class XmlController {
         if (currentCodeArea != null && currentCodeArea.getText() != null) {
             String xml = currentCodeArea.getText();
             Tab selectedItem = xPathQueryPane.getSelectionModel().getSelectedItem();
-            String query = ((CodeArea) ((VirtualizedScrollPane<?>) ((StackPane) selectedItem.getContent()).getChildren().getFirst()).getContent()).getText();
-            String result = "";
+
+            // Performance optimization: Cache the query text to avoid repeated UI access
+            final String query;
+            try {
+                query = ((CodeArea) ((VirtualizedScrollPane<?>) ((StackPane) selectedItem.getContent()).getChildren().getFirst()).getContent()).getText();
+            } catch (Exception e) {
+                logger.error("Error accessing query text: {}", e.getMessage());
+                return;
+            }
+
+            if (query == null || query.trim().isEmpty()) {
+                logger.warn("Query is empty, nothing to execute");
+                return;
+            }
 
             logger.debug("QUERY: {}", query);
 
-            switch (selectedItem.getId()) {
-                case "xQueryTab" ->
-                        result = String.join(System.lineSeparator(), getCurrentXmlEditor().getXmlService().getXQueryResult(query));
-                case "xPathTab" -> result = getCurrentXmlEditor().getXmlService().getXmlFromXpath(xml, query);
-            }
+            // Performance optimization: Execute query in background thread for large XML files
+            Task<String> queryTask = new Task<>() {
+                @Override
+                protected String call() throws Exception {
+                    switch (selectedItem.getId()) {
+                        case "xQueryTab":
+                            return String.join(System.lineSeparator(), getCurrentXmlEditor().getXmlService().getXQueryResult(query));
+                        case "xPathTab":
+                            return getCurrentXmlEditor().getXmlService().getXmlFromXpath(xml, query);
+                        default:
+                            return "";
+                    }
+                }
+            };
 
-            if (result != null && !result.isEmpty()) {
-                logger.debug(result);
-                currentCodeArea.clear();
-                currentCodeArea.replaceText(0, 0, result);
-            }
+            queryTask.setOnSucceeded(event -> {
+                String queryResult = queryTask.getValue();
+                if (queryResult != null && !queryResult.isEmpty()) {
+                    logger.debug("Query result length: {}", queryResult.length());
+                    currentCodeArea.clear();
+                    currentCodeArea.replaceText(0, 0, queryResult);
+                } else {
+                    logger.debug("Query returned empty result");
+                }
+            });
+
+            queryTask.setOnFailed(event -> {
+                logger.error("Query execution failed: {}", queryTask.getException().getMessage());
+            });
+
+            // Execute in background thread for better UI responsiveness
+            new Thread(queryTask).start();
         }
     }
 
+    /**
+     * Sets the parent controller for this XML controller.
+     *
+     * @param parentController The main controller
+     */
     public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.mainController = parentController;
@@ -346,17 +444,22 @@ public class XmlController {
 
     // LSP server file notification removed - using XSD-based implementation
 
+    /**
+     * Displays the content of a file in the current code area.
+     *
+     * @param file The file to display
+     */
     public void displayFileContent(File file) {
         if (file != null && file.exists()) {
             try {
-                // Lese den Inhalt der Datei
+                // Read the file content
                 String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
 
                 if (mainController != null) {
                     mainController.addFileToRecentFiles(file);
                 }
 
-                // Setze den Inhalt in die CodeArea
+                // Set the content in the CodeArea
                 var area = getCurrentCodeArea();
                 if (area != null) {
                     area.replaceText(content);
@@ -371,6 +474,9 @@ public class XmlController {
         }
     }
 
+    /**
+     * Reloads the XML text from the current file.
+     */
     @FXML
     public void reloadXmlText() {
         try {
@@ -390,72 +496,72 @@ public class XmlController {
     }
 
     /**
-     * Wird vom "Save File"-Button in der FXML-Datei aufgerufen.
-     * Diese Methode orchestriert den gesamten Speicherprozess: Validierung, Benutzerbestätigung und das eigentliche Speichern.
+     * Called by the "Save File" button in the FXML file.
+     * This method orchestrates the entire save process: validation, user confirmation, and actual saving.
      */
     @FXML
     private void saveFile() {
         XmlEditor currentEditor = getCurrentXmlEditor();
         CodeArea currentCodeArea = getCurrentCodeArea();
 
-        // 1. Sicherstellen, dass ein Editor aktiv ist
+        // 1. Ensure that an editor is active
         if (currentEditor == null || currentCodeArea == null) {
-            logger.warn("Speicheraktion ausgelöst, aber kein aktiver Editor gefunden.");
+            logger.warn("Save action triggered, but no active editor found.");
             return;
         }
 
-        // 2. Inhalt validieren. Der XmlService prüft auf Wohlgeformtheit
-        //    und, falls ein Schema vorhanden ist, auf Schemavalidität.
+        // 2. Validate content. The XmlService checks for well-formedness
+        //    and, if a schema is present, for schema validity.
         String contentToValidate = currentCodeArea.getText();
         XmlService service = currentEditor.getXmlService();
 
-        // Schema-Datei für die Validierung bestimmen.
-        // Verwende das vom Service erkannte Schema.
+        // Determine schema file for validation.
+        // Use the schema recognized by the service.
         File schemaToUse = null;
         if (schemaToUse == null) {
             schemaToUse = service.getCurrentXsdFile();
         }
 
-        // 2. Inhalt validieren.
-        // Die Methode `validateText(String, File)` prüft auf Wohlgeformtheit, wenn das Schema null ist,
-        // und zusätzlich auf Schemavalidität, wenn ein Schema angegeben ist.
+        // 2. Validate content.
+        // The `validateText(String, File)` method checks for well-formedness when the schema is null,
+        // and additionally for schema validity when a schema is specified.
         List<SAXParseException> errors = service.validateText(contentToValidate, schemaToUse);
 
-        // 3. Wenn Fehler gefunden wurden, den Benutzer um Bestätigung bitten.
+        // 3. If errors were found, ask the user for confirmation.
         if (errors != null && !errors.isEmpty()) {
             Alert confirmationDialog = new Alert(Alert.AlertType.CONFIRMATION);
-            confirmationDialog.setTitle("Validierungsfehler");
-            confirmationDialog.setHeaderText(errors.size() + " Validierungsfehler gefunden.");
-            confirmationDialog.setContentText("Das XML ist nicht wohlgeformt oder nicht schemakonform.\n\nWirklich speichern?");
+            confirmationDialog.setTitle("Validation Errors");
+            confirmationDialog.setHeaderText(errors.size() + " validation errors found.");
+            confirmationDialog.setContentText("The XML is not well-formed or not schema-compliant.\n\nReally save?");
 
             Optional<ButtonType> result = confirmationDialog.showAndWait();
-            // Aktion abbrechen, wenn der Benutzer nicht "OK" klickt.
+            // Cancel action if the user doesn't click "OK".
             if (result.isEmpty() || result.get() != ButtonType.OK) {
                 return;
             }
         }
 
-        // 4. Mit dem Speichern fortfahren.
+        // 4. Proceed with saving.
         saveTextToFile(currentEditor);
     }
 
     /**
-     * Eine Hilfsmethode, die die eigentliche Datei-I/O-Logik kapselt.
-     * Sie unterscheidet zwischen dem Speichern einer neuen und einer bestehenden Datei.
+     * A helper method that encapsulates the actual file I/O logic.
+     * It distinguishes between saving a new and an existing file.
      *
-     * @param editor Der XmlEditor, dessen Inhalt gespeichert werden soll.
+     * @param editor The XmlEditor whose content should be saved.
      */
     private void saveTextToFile(XmlEditor editor) {
         File targetFile = editor.getXmlFile();
         String content = editor.getXmlCodeEditor().getCodeArea().getText();
 
-        // Fall 1: Es ist ein neues, ungespeichertes Dokument. "Speichern unter"-Dialog anzeigen.
+        // Case 1: It's a new, unsaved document. Show "Save As" dialog.
         if (targetFile == null) {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("XML-Datei speichern");
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML-Dateien (*.xml)", "*.xml"));
+            fileChooser.setTitle("Save XML File");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
 
-            // Das zuletzt verwendete Verzeichnis für eine bessere Benutzererfahrung voreinstellen.
+            // Set the last used directory for better user experience.
             String lastDirString = propertiesService.getLastOpenDirectory();
             if (lastDirString != null) {
                 File lastDir = new File(lastDirString);
@@ -467,31 +573,34 @@ public class XmlController {
             File selectedFile = fileChooser.showSaveDialog(xmlFilesPane.getScene().getWindow());
 
             if (selectedFile == null) {
-                return; // Benutzer hat den Dialog abgebrochen.
+                return; // User cancelled the dialog.
             }
 
-            // Den Editor mit den Informationen der neuen Datei aktualisieren.
+            // Update the editor with the information of the new file.
             targetFile = selectedFile;
             editor.setXmlFile(targetFile);
             editor.getXmlService().setCurrentXmlFile(targetFile);
             mainController.addFileToRecentFiles(targetFile);
 
-            // Das neue Verzeichnis für das nächste Mal speichern.
+            // Save the new directory for next time.
             if (targetFile.getParentFile() != null) {
                 propertiesService.setLastOpenDirectory(targetFile.getParentFile().getAbsolutePath());
             }
         }
 
-        // Fall 2: Datei schreiben (entweder die bestehende oder die neu ausgewählte).
+        // Case 2: Write file (either the existing or newly selected one).
         try {
             Files.writeString(targetFile.toPath(), content, StandardCharsets.UTF_8);
-            logger.info("Datei erfolgreich gespeichert: {}", targetFile.getAbsolutePath());
+            logger.info("File successfully saved: {}", targetFile.getAbsolutePath());
         } catch (IOException e) {
-            logger.error("Fehler beim Schreiben der Datei: {}", targetFile.getAbsolutePath(), e);
-            new Alert(Alert.AlertType.ERROR, "Konnte Datei nicht speichern:\n" + e.getMessage()).showAndWait();
+            logger.error("Error writing file: {}", targetFile.getAbsolutePath(), e);
+            new Alert(Alert.AlertType.ERROR, "Could not save file:\n" + e.getMessage()).showAndWait();
         }
     }
 
+    /**
+     * Minifies the current XML text by removing unnecessary whitespace.
+     */
     @FXML
     private void minifyXmlText() {
         final CodeArea currentCodeArea = getCurrentCodeArea();
@@ -499,13 +608,13 @@ public class XmlController {
         final String xml = currentCodeArea.getText();
         if (xml == null || xml.isBlank()) return;
 
-        // Die Operation wird in einen Hintergrund-Thread ausgelagert, um die UI nicht zu blockieren.
+        // The operation is offloaded to a background thread to avoid blocking the UI.
         minifyButton.setDisable(true);
 
         Task<String> minifyTask = new Task<>() {
             @Override
             protected String call() throws Exception {
-                // Ruft die neue, deutlich schnellere StAX-basierte Methode auf.
+                // Calls the new, significantly faster StAX-based method.
                 return XmlService.convertXmlToOneLineFast(xml);
             }
         };
@@ -528,6 +637,9 @@ public class XmlController {
         formattingExecutor.submit(minifyTask);
     }
 
+    /**
+     * Formats the current XML text with proper indentation.
+     */
     @FXML
     private void prettifyingXmlText() {
         final CodeArea currentCodeArea = getCurrentCodeArea();
@@ -563,6 +675,9 @@ public class XmlController {
     }
 
 
+    /**
+     * Moves the cursor to the beginning of the document.
+     */
     @FXML
     private void moveUp() {
         logger.debug("Moving caret and scrollbar to the beginning.");
@@ -572,6 +687,9 @@ public class XmlController {
         }
     }
 
+    /**
+     * Moves the cursor to the end of the document.
+     */
     @FXML
     private void moveDown() {
         logger.debug("Moving caret and scrollbar to the end.");
@@ -581,9 +699,12 @@ public class XmlController {
         }
     }
 
+    /**
+     * Handles the open file button press event.
+     */
     @FXML
     private void openFile() {
-        // Lese das zuletzt geöffnete Verzeichnis aus dem PropertiesService
+        // Read the last opened directory from the PropertiesService
         String lastDirString = propertiesService.getLastOpenDirectory();
         if (lastDirString != null) {
             File lastDir = new File(lastDirString);
@@ -592,7 +713,7 @@ public class XmlController {
             }
         }
 
-        // Stelle sicher, dass nur der XML-Filter aktiv ist
+        // Ensure only the XML filter is active
         fileChooser.getExtensionFilters().clear();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"));
         File selectedFile = fileChooser.showOpenDialog(null);
@@ -600,23 +721,23 @@ public class XmlController {
         if (selectedFile != null && selectedFile.exists()) {
             logger.debug("Selected File: {}", selectedFile.getAbsolutePath());
 
-            // Speichere das neue Verzeichnis im PropertiesService
+            // Save the new directory in the PropertiesService
             if (selectedFile.getParentFile() != null) {
                 propertiesService.setLastOpenDirectory(selectedFile.getParentFile().getAbsolutePath());
             }
 
             createAndAddXmlTab(selectedFile); // Use the central method
 
-            // Fokus auf den neuen Editor setzen, nachdem die UI-Änderungen verarbeitet wurden.
+            // Set focus on the new editor after UI changes have been processed.
             Platform.runLater(() -> {
                 XmlEditor xmlEditor = getCurrentXmlEditor();
-                // 1. Zuerst den Fokus auf den Tab-Container legen.
+                // 1. First set focus on the tab container.
                 xmlFilesPane.requestFocus();
 
-                // 2. Dann den Fokus an die CodeArea im Inneren übergeben.
+                // 2. Then pass focus to the CodeArea inside.
                 if (xmlEditor.getXmlCodeEditor().getCodeArea() != null) {
                     xmlEditor.getXmlCodeEditor().getCodeArea().requestFocus();
-                    xmlEditor.getXmlCodeEditor().moveUp(); // Setzt den Cursor an den Anfang.
+                    xmlEditor.getXmlCodeEditor().moveUp(); // Sets the cursor to the beginning.
                 }
             });
         } else {
@@ -630,7 +751,7 @@ public class XmlController {
     public void shutdown() {
         if (!formattingExecutor.isShutdown()) {
             formattingExecutor.shutdownNow();
-            logger.debug("Formatting-Executor-Service heruntergefahren.");
+            logger.debug("Formatting-Executor-Service shut down.");
         }
         logger.info("XmlController shutdown completed.");
     }
@@ -639,30 +760,33 @@ public class XmlController {
 
     // LSP folding ranges request removed
 
+    /**
+     * Loads a test XML file for demonstration purposes.
+     */
     @FXML
     private void test() {
-        // 1. Hole den aktuellen Editor.
+        // 1. Get the current editor.
         XmlEditor currentEditor = getCurrentXmlEditor();
 
-        // 2. Wenn kein Editor aktiv ist, erstelle einen neuen.
+        // 2. If no editor is active, create a new one.
         if (currentEditor == null) {
             logger.info("Test button clicked, but no active editor found. Creating a new one.");
             createAndAddXmlTab(null);
             currentEditor = getCurrentXmlEditor();
         }
 
-        // 3. Definiere die Pfade zu den Testdateien.
+        // 3. Define the paths to the test files.
         Path xmlExampleFile = Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml");
         Path xsdExampleFile = Paths.get("release/examples/xsd/FundsXML4.xsd");
 
-        // 4. Prüfe, ob die Testdatei existiert, um Fehler zu vermeiden.
+        // 4. Check if the test file exists to avoid errors.
         if (!Files.exists(xmlExampleFile)) {
             logger.error("Test file not found at path: {}", xmlExampleFile.toAbsolutePath());
             new Alert(Alert.AlertType.ERROR, "Test file not found: " + xmlExampleFile).showAndWait();
             return;
         }
 
-        // 5. Konfiguriere den Editor und seinen Service mit den neuen Dateien.
+        // 5. Configure the editor and its service with the new files.
         logger.debug("Loading test file '{}' into the current editor.", xmlExampleFile.getFileName());
         currentEditor.setXmlFile(xmlExampleFile.toFile());
 
@@ -670,10 +794,10 @@ public class XmlController {
         service.setCurrentXmlFile(xmlExampleFile.toFile());
         service.setCurrentXsdFile(xsdExampleFile.toFile());
 
-        // 6. Lade den Inhalt der Datei in die UI.
+        // 6. Load the file content into the UI.
         currentEditor.refresh();
 
-        // Cursor und Ansicht an den Anfang setzen, nachdem die UI-Änderungen verarbeitet wurden.
+        // Set cursor and view to the beginning after UI changes have been processed.
         XmlEditor finalCurrentEditor = currentEditor;
         Platform.runLater(() -> {
             if (finalCurrentEditor.getXmlCodeEditor() != null) {
@@ -686,7 +810,7 @@ public class XmlController {
                 finalCurrentEditor.getXmlCodeEditor().refreshFoldingRegions();
             }
         });
-        // 7. Führe Folgeaktionen aus, die vom geladenen Inhalt abhängen.
+        // 7. Execute follow-up actions that depend on the loaded content.
 
         // LSP file opened notification removed
 

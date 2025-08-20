@@ -55,11 +55,11 @@ public class XmlCodeEditor extends VBox {
     private int currentIndentationSize = 4;
     private boolean useSpaces = true;
 
-    // Speichert Start- und Endzeilen der faltbaren Bereiche
+    // Stores start and end lines of foldable regions
     private final Map<Integer, Integer> foldingRegions = new HashMap<>();
 
-    // Speichert den Zustand der eingeklappten Zeilen manuell,
-    // um Probleme mit der Bibliotheks-API zu umgehen.
+    // Stores the state of folded lines manually
+    // to avoid issues with the library API.
     private final Set<Integer> foldedLines = new HashSet<>();
 
     private String documentUri;
@@ -82,7 +82,12 @@ public class XmlCodeEditor extends VBox {
     private int popupStartPosition = -1;
     private boolean isElementCompletionContext = false; // Track if we're completing elements or attributes
 
-    // --- Syntax Highlighting Patterns (aus XmlEditor verschoben) ---
+    // Performance optimization: Cache compiled patterns
+    private static final Pattern OPEN_TAG_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\\b[^>]*>");
+    private static final Pattern CLOSE_TAG_PATTERN = Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\\s*>");
+    private static final Pattern ELEMENT_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)");
+
+    // --- Syntax Highlighting Patterns (moved from XmlEditor) ---
     private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
             + "|(?<COMMENT><!--[^<>]+-->)");
     private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
@@ -312,9 +317,9 @@ public class XmlCodeEditor extends VBox {
     }
 
 
-    // Der Key-Pressed-Handler wurde um die Strg+F Logik erweitert
+    // The key-pressed handler was extended with Ctrl+F logic
     private void setupEventHandlers() {
-        // Schriftgröße mit Strg + Mausrad ändern
+        // Change font size with Ctrl + mouse wheel
         codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
             if (event.isControlDown()) {
                 if (event.getDeltaY() > 0) {
@@ -326,10 +331,10 @@ public class XmlCodeEditor extends VBox {
             }
         });
 
-        // Handler für Tastenkombinationen
+        // Handler for keyboard shortcuts
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.isControlDown()) {
-                // Schriftgröße mit Strg +/-, Reset mit Strg + 0
+                // Font size with Ctrl +/-, Reset with Ctrl + 0
                 switch (event.getCode()) {
                     case PLUS, ADD -> {
                         increaseFontSize();
@@ -480,6 +485,12 @@ public class XmlCodeEditor extends VBox {
         });
     }
 
+    /**
+     * Finds the next or previous occurrence of the specified text in the editor.
+     *
+     * @param text    The text to search for
+     * @param forward If true, search forward; if false, search backward
+     */
     public void find(String text, boolean forward) {
         if (text == null || text.isEmpty()) {
             return;
@@ -509,6 +520,12 @@ public class XmlCodeEditor extends VBox {
         }
     }
 
+    /**
+     * Replaces the currently selected text if it matches the find text.
+     *
+     * @param findText    The text to find
+     * @param replaceText The text to replace it with
+     */
     public void replace(String findText, String replaceText) {
         if (findText == null || findText.isEmpty()) return;
 
@@ -519,6 +536,12 @@ public class XmlCodeEditor extends VBox {
         find(findText, true);
     }
 
+    /**
+     * Replaces all occurrences of the find text with the replace text.
+     *
+     * @param findText    The text to find
+     * @param replaceText The text to replace it with
+     */
     public void replaceAll(String findText, String replaceText) {
         if (findText == null || findText.isEmpty()) return;
         Pattern pattern = Pattern.compile(Pattern.quote(findText), Pattern.CASE_INSENSITIVE);
@@ -590,48 +613,48 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
-     * Erstellt eine kompakte Zeilennummer ohne Abstände.
+     * Creates a compact line number without spacing.
      */
     private Node createCompactLineNumber(int lineIndex) {
         Label lineNumber = new Label(String.valueOf(lineIndex + 1));
         lineNumber.getStyleClass().add("lineno");
 
-        // Alle Abstände entfernen
-        lineNumber.setPadding(Insets.EMPTY); // Kein Padding
-        lineNumber.setMinWidth(30); // Kompakte Breite
-        lineNumber.setMaxHeight(Double.MAX_VALUE); // Nimmt die volle Zeilenhöhe ein
+        // Remove all spacing
+        lineNumber.setPadding(Insets.EMPTY); // No padding
+        lineNumber.setMinWidth(30); // Compact width
+        lineNumber.setMaxHeight(Double.MAX_VALUE); // Takes full line height
         lineNumber.setAlignment(Pos.CENTER_RIGHT);
 
-        // Styling für nahtlose Darstellung ohne Abstände
-        // Grauer Hintergrund
-        // Kein Border
-        // Links und rechts 3px Padding
+        // Styling for seamless display without spacing
+        // Gray background
+        // No border
+        // 3px padding left and right
         lineNumber.setStyle(
-                "-fx-text-fill: #666666; -fx-font-family: monospace; -fx-font-size: " + fontSize + "px; -fx-background-color: #f0f0f0; -fx-border-width: 0; -fx-padding: 0 3 0 3; -fx-spacing: 0;"                   // Kein Spacing
+                "-fx-text-fill: #666666; -fx-font-family: monospace; -fx-font-size: " + fontSize + "px; -fx-background-color: #f0f0f0; -fx-border-width: 0; -fx-padding: 0 3 0 3; -fx-spacing: 0;"                   // No spacing
         );
 
         return lineNumber;
     }
 
     /**
-     * Erstellt eine Factory, die für jede Zeile eine Grafik (Zeilennummer + Falt-Symbol) erzeugt.
+     * Creates a factory that generates graphics (line number + fold symbol) for each line.
      */
     private IntFunction<Node> createParagraphGraphicFactory() {
         return lineIndex -> {
-            // Sicherheitsprüfung, da die Factory während Textänderungen aufgerufen werden kann
+            // Safety check, as the factory can be called during text changes
             if (lineIndex >= codeArea.getParagraphs().size()) {
                 HBox fallbackHBox = new HBox(createCompactLineNumber(lineIndex));
-                fallbackHBox.setSpacing(0); // Entferne Abstände auch im Fallback
-                fallbackHBox.setPadding(Insets.EMPTY); // Kein Padding
-                fallbackHBox.setAlignment(Pos.TOP_LEFT); // TOP_LEFT für nahtlose Ausrichtung
-                fallbackHBox.setFillHeight(true); // Volle Höhe ausfüllen
+                fallbackHBox.setSpacing(0); // Remove spacing in fallback too
+                fallbackHBox.setPadding(Insets.EMPTY); // No padding
+                fallbackHBox.setAlignment(Pos.TOP_LEFT); // TOP_LEFT for seamless alignment
+                fallbackHBox.setFillHeight(true); // Fill full height
                 return fallbackHBox;
             }
 
             boolean isFoldable = foldingRegions.containsKey(lineIndex);
             boolean isFolded = foldedLines.contains(lineIndex);
 
-            // Icon erstellen
+            // Create icon
             Region foldingIndicator = new Region();
             foldingIndicator.getStyleClass().add("icon");
 
@@ -641,11 +664,11 @@ public class XmlCodeEditor extends VBox {
                 foldingIndicator.getStyleClass().add("toggle-collapse");
             }
 
-            // Erstelle einen Wrapper für das Icon, um die CSS-Struktur aus XmlGraphicEditor nachzubilden.
+            // Create a wrapper for the icon to replicate the CSS structure from XmlGraphicEditor.
             StackPane iconWrapper = new StackPane(foldingIndicator);
             iconWrapper.getStyleClass().add("tree-toggle-button");
 
-            // Klick-Logik auf den Wrapper anwenden
+            // Apply click logic to the wrapper
             iconWrapper.setOnMouseClicked(e -> {
                 // Toggling a fold can be slow. We use a Task to manage the process,
                 // ensuring the UI remains responsive and the cursor provides feedback.
@@ -716,12 +739,12 @@ public class XmlCodeEditor extends VBox {
 
             Node lineNumberNode = createCompactLineNumber(lineIndex);
             HBox hbox = new HBox(lineNumberNode, iconWrapper);
-            hbox.setAlignment(Pos.TOP_LEFT); // TOP_LEFT für nahtlose Ausrichtung
-            hbox.setSpacing(0); // Entferne Abstände zwischen Zeilennummer und Folding-Icons
-            hbox.setPadding(Insets.EMPTY); // Kein Padding in der HBox
-            hbox.setFillHeight(true); // Volle Höhe ausfüllen
+            hbox.setAlignment(Pos.TOP_LEFT); // TOP_LEFT for seamless alignment
+            hbox.setSpacing(0); // Remove spacing between line number and folding icons
+            hbox.setPadding(Insets.EMPTY); // No padding in the HBox
+            hbox.setFillHeight(true); // Fill full height
 
-            // Der Wrapper (und damit das Symbol) ist nur sichtbar, wenn die Zeile faltbar ist.
+            // The wrapper (and thus the symbol) is only visible if the line is foldable.
             iconWrapper.setVisible(isFoldable);
 
             return hbox;
@@ -731,13 +754,20 @@ public class XmlCodeEditor extends VBox {
 
     // LSP folding functionality removed
 
-    // --- Öffentliche API für den Editor ---
+    // --- Public API for the Editor ---
+
+    /**
+     * Moves the cursor to the beginning of the document and scrolls to the top.
+     */
     public void moveUp() {
         codeArea.moveTo(0);
         codeArea.showParagraphAtTop(0);
         codeArea.requestFocus();
     }
 
+    /**
+     * Moves the cursor to the end of the document and scrolls to the bottom.
+     */
     public void moveDown() {
         if (codeArea.getText() != null && !codeArea.getParagraphs().isEmpty()) {
             codeArea.moveTo(codeArea.getLength());
@@ -746,41 +776,55 @@ public class XmlCodeEditor extends VBox {
         }
     }
 
+    /**
+     * Increases the font size by 1 point.
+     */
     public void increaseFontSize() {
         setFontSize(++fontSize);
     }
 
+    /**
+     * Decreases the font size by 1 point (minimum 1).
+     */
     public void decreaseFontSize() {
         if (fontSize > 1) {
             setFontSize(--fontSize);
         }
     }
 
+    /**
+     * Resets the font size to the default value.
+     */
     public void resetFontSize() {
         fontSize = DEFAULT_FONT_SIZE;
         setFontSize(fontSize);
     }
 
+    /**
+     * Sets the font size of the code area.
+     *
+     * @param size The font size in points
+     */
     private void setFontSize(int size) {
         codeArea.setStyle("-fx-font-size: " + size + "pt;");
     }
 
     /**
-     * Sucht nach dem gegebenen Text in der CodeArea, hebt alle Vorkommen hervor
-     * und scrollt zum ersten Treffer.
+     * Searches for the given text in the CodeArea, highlights all occurrences
+     * and scrolls to the first match.
      *
-     * @param text Der zu suchende Text. Wenn null oder leer, wird die Hervorhebung entfernt.
+     * @param text The text to search for. If null or empty, highlighting is removed.
      */
     public void searchAndHighlight(String text) {
-        // Zuerst das normale Syntax-Highlighting anwenden
+        // First apply normal syntax highlighting
         StyleSpans<Collection<String>> syntaxHighlighting = computeHighlightingWithEnumeration(codeArea.getText());
 
         if (text == null || text.isBlank()) {
-            codeArea.setStyleSpans(0, syntaxHighlighting); // Nur Syntax-Highlighting
+            codeArea.setStyleSpans(0, syntaxHighlighting); // Only syntax highlighting
             return;
         }
 
-        // Style für die Such-Hervorhebung erstellen
+        // Create style for search highlighting
         StyleSpansBuilder<Collection<String>> searchSpansBuilder = new StyleSpansBuilder<>();
         Pattern pattern = Pattern.compile(Pattern.quote(text), CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(codeArea.getText());
@@ -793,17 +837,17 @@ public class XmlCodeEditor extends VBox {
         }
         searchSpansBuilder.add(Collections.emptyList(), codeArea.getLength() - lastMatchEnd);
 
-        // Such-Highlighting über das Syntax-Highlighting legen
+        // Overlay search highlighting over syntax highlighting
         codeArea.setStyleSpans(0, syntaxHighlighting.overlay(searchSpansBuilder.create(), (style1, style2) -> {
             return style2.isEmpty() ? style1 : style2;
         }));
     }
 
     /**
-     * Gibt die interne CodeArea-Instanz zurück.
-     * Dies ermöglicht kontrollierten Zugriff von außen, z.B. für Fokus-Management.
+     * Returns the internal CodeArea instance.
+     * This enables controlled access from outside, e.g., for focus management.
      *
-     * @return Die CodeArea-Komponente.
+     * @return The CodeArea component.
      */
     public CodeArea getCodeArea() {
         return codeArea;
@@ -1015,114 +1059,9 @@ public class XmlCodeEditor extends VBox {
         }
     }
 
-    /**
-     * Shows the IntelliSense popup with schema-aware element names.
-     */
-    private void showIntelliSensePopup() {
-        // First try to get schema-aware completions from the context
-        List<String> schemaAwareCompletions = getSchemaAwareCompletions();
 
-        if (schemaAwareCompletions != null && !schemaAwareCompletions.isEmpty()) {
-            logger.debug("Using schema-aware completions ({} items)", schemaAwareCompletions.size());
-            completionListView.getItems().clear();
-            completionListView.getItems().addAll(schemaAwareCompletions);
 
-            if (!schemaAwareCompletions.isEmpty()) {
-                completionListView.getSelectionModel().select(0);
-            }
-            showPopupAtCursor();
-        } else {
-            logger.debug("No schema-aware completions available, using manual completion");
-            showManualIntelliSensePopup();
-        }
-    }
 
-    /**
-     * Gets schema-aware completions based on the current cursor position and loaded XSD schema.
-     *
-     * @return List of allowed element names at the current position, or null if no schema available
-     */
-    private List<String> getSchemaAwareCompletions() {
-        try {
-            // Get the current parent element context
-            String currentContext = getCurrentElementContext();
-            logger.debug("Current element context: {}", currentContext);
-
-            // Try to get completions from the parent XmlEditor's schema information
-            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
-                // Get the XmlService which has the XSD schema information
-                var xmlService = xmlEditor.getXmlService();
-                if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
-                    logger.debug("XSD schema available: {}", xmlService.getCurrentXsdFile().getName());
-
-                    // Try to get allowed child elements for the current context
-                    List<String> allowedElements = getChildElementsFromSchema(xmlService, currentContext);
-                    if (allowedElements != null && !allowedElements.isEmpty()) {
-                        logger.debug("Found {} allowed child elements for context '{}'", allowedElements.size(), currentContext);
-                        return allowedElements;
-                    } else {
-                        logger.debug("No allowed child elements found for context '{}'", currentContext);
-                    }
-                }
-            }
-
-            return null;
-        } catch (Exception e) {
-            logger.error("Error getting schema-aware completions: {}", e.getMessage(), e);
-            return null;
-        }
-    }
-
-    /**
-     * Gets allowed child elements for a given parent element from the XSD schema.
-     *
-     * @param xmlService    The XmlService containing schema information
-     * @param parentElement The parent element name, or null for root elements
-     * @return List of allowed child element names
-     */
-    private List<String> getChildElementsFromSchema(org.fxt.freexmltoolkit.service.XmlService xmlService, String parentElement) {
-        try {
-            // This is a simplified implementation - in a complete implementation,
-            // we would parse the XSD schema and determine allowed child elements
-
-            if (parentElement == null) {
-                // For root level, try to get root elements from the schema
-                // For now, we'll return some common root elements for the FundsXML schema
-                return List.of("FundsXML4");
-            }
-
-            // For specific parent elements, we could analyze the XSD schema
-            // For demonstration purposes, let's implement some common FundsXML patterns
-            return switch (parentElement.toLowerCase()) {
-                case "fundsxml4" ->
-                        List.of("ControlData", "Funds", "AssetMgmtCompanyDynData", "AssetMasterData", "Documents", "RegulatoryReportings");
-                case "controldata" ->
-                        List.of("UniqueDocumentID", "DocumentGenerated", "Version", "ContentDate", "DataSupplier", "DataOperation", "RelatedDocumentIDs", "Language");
-                case "funds" -> List.of("Fund");
-                case "fund" ->
-                        List.of("Identifiers", "Names", "Currency", "SingleFundFlag", "DataSupplier", "FundStaticData", "FundDynamicData");
-                case "identifiers" -> List.of("LEI", "ISIN", "CUSIP", "SEDOL", "WKN");
-                case "names" -> List.of("OfficialName", "ShortName");
-                case "datasupplier" -> List.of("SystemCountry", "Short", "Name", "Type", "Contact");
-                case "contact" -> List.of("Name", "Phone", "Email");
-                case "fundstaticdata" -> List.of("ListedLegalStructure", "InceptionDate", "StartOfFiscalYear");
-                case "funddynamicdata" -> List.of("TotalAssetValues", "Portfolios");
-                case "totalassetvalues" -> List.of("TotalAssetValue");
-                case "totalassetvalue" -> List.of("NavDate", "TotalNetAssets", "GrossAssets");
-                case "portfolios" -> List.of("Portfolio");
-                case "portfolio" -> List.of("Positions");
-                case "positions" -> List.of("Position");
-                default -> {
-                    logger.debug("No specific child elements defined for parent '{}'", parentElement);
-                    yield null;
-                }
-            };
-
-        } catch (Exception e) {
-            logger.error("Error getting child elements from schema: {}", e.getMessage(), e);
-            return null;
-        }
-    }
 
 
     /**
@@ -1162,12 +1101,7 @@ public class XmlCodeEditor extends VBox {
         }
     }
 
-    /**
-     * Shows the completion popup with current items at the cursor position.
-     */
-    private void showEmptyPopup() {
-        showPopupAtCursor();
-    }
+
 
     /**
      * Shows the popup at the current cursor position.
@@ -1244,12 +1178,9 @@ public class XmlCodeEditor extends VBox {
             // Use a stack to track element nesting
             java.util.Stack<String> elementStack = new java.util.Stack<>();
 
-            // Simple regex to find opening and closing tags
-            Pattern openTagPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\\b[^>]*>");
-            Pattern closeTagPattern = Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\\s*>");
-
-            Matcher openMatcher = openTagPattern.matcher(textBeforeCursor);
-            Matcher closeMatcher = closeTagPattern.matcher(textBeforeCursor);
+            // Use cached compiled patterns for better performance
+            Matcher openMatcher = OPEN_TAG_PATTERN.matcher(textBeforeCursor);
+            Matcher closeMatcher = CLOSE_TAG_PATTERN.matcher(textBeforeCursor);
 
             // Process all tags before cursor
             while (openMatcher.find()) {
@@ -1504,8 +1435,7 @@ public class XmlCodeEditor extends VBox {
 
             // Extract element name from opening tag
             String openingTag = text.substring(openTagStart, openTagEnd + 1);
-            Pattern elementPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)");
-            Matcher matcher = elementPattern.matcher(openingTag);
+            Matcher matcher = ELEMENT_PATTERN.matcher(openingTag);
             if (!matcher.find()) return null;
 
             String elementName = matcher.group(1);
@@ -1725,6 +1655,12 @@ public class XmlCodeEditor extends VBox {
         }
     }
 
+    // Performance optimization: Use Set for faster lookups
+    private static final Set<String> SELF_CLOSING_TAGS = Set.of(
+            "br", "hr", "img", "input", "meta", "link", "area", "base", "col", "embed",
+            "source", "track", "wbr", "param", "keygen", "command"
+    );
+
     /**
      * Checks if a tag is a self-closing tag.
      *
@@ -1732,18 +1668,7 @@ public class XmlCodeEditor extends VBox {
      * @return true if it's a self-closing tag, false otherwise
      */
     private boolean isSelfClosingTag(String tagName) {
-        String[] selfClosingTags = {
-                "br", "hr", "img", "input", "meta", "link", "area", "base", "col", "embed",
-                "source", "track", "wbr", "param", "keygen", "command"
-        };
-
-        for (String tag : selfClosingTags) {
-            if (tagName.equalsIgnoreCase(tag)) {
-                return true;
-            }
-        }
-
-        return false;
+        return SELF_CLOSING_TAGS.contains(tagName.toLowerCase());
     }
 
     /**
@@ -2039,17 +1964,23 @@ public class XmlCodeEditor extends VBox {
 
     /**
      * Updates the cursor position display in the status line.
+     * Performance optimized to avoid unnecessary Platform.runLater calls.
      */
     private void updateCursorPosition() {
         try {
             int caretPosition = codeArea.getCaretPosition();
+            String text = codeArea.getText();
+
+            if (text == null) {
+                return;
+            }
 
             // Calculate line and column
-            String text = codeArea.getText();
             int line = 1;
             int column = 1;
+            int length = Math.min(caretPosition, text.length());
 
-            for (int i = 0; i < caretPosition && i < text.length(); i++) {
+            for (int i = 0; i < length; i++) {
                 if (text.charAt(i) == '\n') {
                     line++;
                     column = 1;
@@ -2058,14 +1989,17 @@ public class XmlCodeEditor extends VBox {
                 }
             }
 
-            // Capture final variables for lambda
-            final int finalLine = line;
-            final int finalColumn = column;
-
-            // Update the label
-            Platform.runLater(() -> {
-                cursorPositionLabel.setText("Line: " + finalLine + ", Column: " + finalColumn);
-            });
+            // Only update if we're on the JavaFX Application Thread
+            if (Platform.isFxApplicationThread()) {
+                cursorPositionLabel.setText("Line: " + line + ", Column: " + column);
+            } else {
+                // Capture final variables for lambda
+                final int finalLine = line;
+                final int finalColumn = column;
+                Platform.runLater(() -> {
+                    cursorPositionLabel.setText("Line: " + finalLine + ", Column: " + finalColumn);
+                });
+            }
 
         } catch (Exception e) {
             logger.error("Error updating cursor position: {}", e.getMessage(), e);
@@ -2091,10 +2025,15 @@ public class XmlCodeEditor extends VBox {
             }
             useSpaces = detectedUseSpaces;
 
-            Platform.runLater(() -> {
+            if (Platform.isFxApplicationThread()) {
                 String indentType = useSpaces ? "spaces" : "tabs";
                 indentationLabel.setText(currentIndentationSize + " " + indentType);
-            });
+            } else {
+                Platform.runLater(() -> {
+                    String indentType = useSpaces ? "spaces" : "tabs";
+                    indentationLabel.setText(currentIndentationSize + " " + indentType);
+                });
+            }
 
         } catch (Exception e) {
             logger.error("Error updating indentation info: {}", e.getMessage(), e);
@@ -2103,30 +2042,42 @@ public class XmlCodeEditor extends VBox {
 
     /**
      * Analyzes the indentation patterns in the text.
+     * Performance optimized to avoid repeated string operations.
      */
     private int[] analyzeIndentation(String text) {
         int[] counts = new int[9]; // Count indentations of size 1-8
-        String[] lines = text.split("\n");
+        int length = text.length();
+        int lineStart = 0;
 
-        for (String line : lines) {
-            if (line.trim().isEmpty()) continue;
+        for (int i = 0; i < length; i++) {
+            if (text.charAt(i) == '\n' || i == length - 1) {
+                // Process line from lineStart to i
+                int indent = 0;
+                boolean hasContent = false;
 
-            int indent = 0;
-            for (char c : line.toCharArray()) {
-                if (c == ' ') {
-                    indent++;
-                } else if (c == '\t') {
-                    indent += 4; // Treat tab as 4 spaces for calculation
-                    break;
-                } else {
-                    break;
+                for (int j = lineStart; j < i; j++) {
+                    char c = text.charAt(j);
+                    if (c == ' ') {
+                        indent++;
+                    } else if (c == '\t') {
+                        indent += 4; // Treat tab as 4 spaces for calculation
+                        break;
+                    } else if (!Character.isWhitespace(c)) {
+                        hasContent = true;
+                        break;
+                    }
                 }
-            }
 
-            // Count common indentation sizes (2, 4, 8)
-            if (indent % 8 == 0 && indent > 0) counts[8]++;
-            else if (indent % 4 == 0 && indent > 0) counts[4]++;
-            else if (indent % 2 == 0 && indent > 0) counts[2]++;
+                // Only count lines with content
+                if (hasContent) {
+                    // Count common indentation sizes (2, 4, 8)
+                    if (indent % 8 == 0 && indent > 0) counts[8]++;
+                    else if (indent % 4 == 0 && indent > 0) counts[4]++;
+                    else if (indent % 2 == 0 && indent > 0) counts[2]++;
+                }
+
+                lineStart = i + 1;
+            }
         }
 
         return counts;
@@ -2151,24 +2102,33 @@ public class XmlCodeEditor extends VBox {
 
     /**
      * Detects whether the text uses spaces or tabs for indentation.
+     * Performance optimized to avoid repeated string operations.
      */
     private boolean detectIndentationType(String text) {
         int spaceCount = 0;
         int tabCount = 0;
-        String[] lines = text.split("\n");
+        int length = text.length();
+        int lineStart = 0;
 
-        for (String line : lines) {
-            if (line.trim().isEmpty()) continue;
+        for (int i = 0; i < length; i++) {
+            if (text.charAt(i) == '\n' || i == length - 1) {
+                // Process line from lineStart to i
+                boolean hasContent = false;
 
-            for (char c : line.toCharArray()) {
-                if (c == ' ') {
-                    spaceCount++;
-                } else if (c == '\t') {
-                    tabCount++;
-                    break;
-                } else {
-                    break;
+                for (int j = lineStart; j < i; j++) {
+                    char c = text.charAt(j);
+                    if (c == ' ') {
+                        spaceCount++;
+                    } else if (c == '\t') {
+                        tabCount++;
+                        break;
+                    } else if (!Character.isWhitespace(c)) {
+                        hasContent = true;
+                        break;
+                    }
                 }
+
+                lineStart = i + 1;
             }
         }
 
@@ -2260,20 +2220,30 @@ public class XmlCodeEditor extends VBox {
 
     /**
      * Updates the file encoding display.
+     * Performance optimized to avoid unnecessary Platform.runLater calls.
      */
     private void updateFileEncoding() {
-        Platform.runLater(() -> {
+        if (Platform.isFxApplicationThread()) {
             encodingLabel.setText(currentEncoding);
-        });
+        } else {
+            Platform.runLater(() -> {
+                encodingLabel.setText(currentEncoding);
+            });
+        }
     }
 
     /**
      * Updates the line separator display.
+     * Performance optimized to avoid unnecessary Platform.runLater calls.
      */
     private void updateLineSeparator() {
-        Platform.runLater(() -> {
+        if (Platform.isFxApplicationThread()) {
             lineSeparatorLabel.setText(currentLineSeparator);
-        });
+        } else {
+            Platform.runLater(() -> {
+                lineSeparatorLabel.setText(currentLineSeparator);
+            });
+        }
     }
 
     /**
