@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,8 +17,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.eclipse.lsp4j.FoldingRange;
-import org.eclipse.lsp4j.services.LanguageServer;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
@@ -50,14 +49,13 @@ public class XmlCodeEditor extends StackPane {
     // um Probleme mit der Bibliotheks-API zu umgehen.
     private final Set<Integer> foldedLines = new HashSet<>();
 
-    // LSP Server for IntelliSense
-    private LanguageServer languageServer;
+    // LSP Server functionality removed
 
     // Document URI for LSP requests
     private String documentUri;
 
     // Document version for LSP synchronization
-    private int documentVersion = 1;
+    private final int documentVersion = 1;
 
     // Reference to parent XmlEditor for accessing schema information
     private Object parentXmlEditor;
@@ -88,11 +86,7 @@ public class XmlCodeEditor extends StackPane {
         initialize();
     }
 
-    public void setLanguageServer(LanguageServer languageServer) {
-        System.out.println("DEBUG: XmlCodeEditor.setLanguageServer called with: " + (languageServer != null ? "valid server" : "null"));
-        this.languageServer = languageServer;
-        System.out.println("DEBUG: XmlCodeEditor.languageServer is now: " + (this.languageServer != null ? "set" : "null"));
-    }
+    // LSP functionality removed
 
     /**
      * Sets the document URI for LSP requests.
@@ -143,25 +137,255 @@ public class XmlCodeEditor extends StackPane {
     private void initialize() {
         codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
 
-        // Text change listener for syntax highlighting and LSP synchronization
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            // Apply syntax highlighting
-            codeArea.setStyleSpans(0, computeHighlighting(newText));
-
-            // Send textDocument/didChange notification to LSP server (as per requirements)
-            // This implements the "textChanged-Event meines Editors" requirement
-            if (languageServer != null && documentUri != null && !oldText.equals(newText)) {
-                javafx.application.Platform.runLater(() -> {
-                    sendDidChangeNotification(newText);
-                });
-            }
-        });
-
         setupEventHandlers();
         initializeIntelliSensePopup();
 
         this.getChildren().add(virtualizedScrollPane);
+
+        // Set up RichTextFX styling
+        setupRichTextFXStyling();
         resetFontSize();
+
+        // Load CSS styles after the component is fully initialized
+        Platform.runLater(() -> {
+            loadCssStyles();
+            injectCssIntoScene();
+
+            // Apply initial syntax highlighting if there's text
+            if (codeArea.getText() != null && !codeArea.getText().isEmpty()) {
+                applyInlineSyntaxHighlighting(codeArea.getText());
+            }
+        });
+
+        // Text change listener for syntax highlighting
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            // Apply syntax highlighting with inline styles as fallback
+            applyInlineSyntaxHighlighting(newText);
+        });
+    }
+
+    /**
+     * Debug method to check CSS loading status.
+     */
+    public void debugCssStatus() {
+        System.out.println("=== CSS Debug Information ===");
+        System.out.println("CodeArea stylesheets count: " + codeArea.getStylesheets().size());
+        for (int i = 0; i < codeArea.getStylesheets().size(); i++) {
+            System.out.println("CodeArea stylesheet " + i + ": " + codeArea.getStylesheets().get(i));
+        }
+
+        System.out.println("Parent container stylesheets count: " + this.getStylesheets().size());
+        for (int i = 0; i < this.getStylesheets().size(); i++) {
+            System.out.println("Parent stylesheet " + i + ": " + this.getStylesheets().get(i));
+        }
+
+        if (this.getScene() != null) {
+            System.out.println("Scene stylesheets count: " + this.getScene().getStylesheets().size());
+            for (int i = 0; i < this.getScene().getStylesheets().size(); i++) {
+                System.out.println("Scene stylesheet " + i + ": " + this.getScene().getStylesheets().get(i));
+            }
+        }
+
+        System.out.println("Current text: '" + codeArea.getText() + "'");
+        System.out.println("Text length: " + (codeArea.getText() != null ? codeArea.getText().length() : 0));
+        System.out.println("=============================");
+    }
+
+    /**
+     * Injects CSS styles directly into the Scene when it becomes available.
+     */
+    private void injectCssIntoScene() {
+        // Wait for the scene to be available
+        if (this.getScene() != null) {
+            try {
+                String cssUrl = getClass().getResource("/css/fxt-theme.css").toExternalForm();
+                this.getScene().getStylesheets().add(cssUrl);
+                System.out.println("CSS injected into scene successfully");
+            } catch (Exception e) {
+                System.out.println("Failed to inject CSS into scene: " + e.getMessage());
+                injectInlineCss();
+            }
+        } else {
+            // If scene is not available yet, schedule it for later
+            Platform.runLater(this::injectCssIntoScene);
+        }
+    }
+
+    /**
+     * Forces syntax highlighting by directly setting styles on the CodeArea.
+     */
+    private void forceSyntaxHighlighting(String text) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        // Apply the syntax highlighting using StyleSpans
+        StyleSpans<Collection<String>> highlighting = computeHighlighting(text);
+        codeArea.setStyleSpans(0, highlighting);
+
+        // Force a repaint of the CodeArea
+        codeArea.requestLayout();
+
+        System.out.println("Forced syntax highlighting applied for text length: " + text.length());
+    }
+
+    /**
+     * Applies syntax highlighting with inline styles as a fallback.
+     */
+    private void applyInlineSyntaxHighlighting(String text) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        // Create a simple inline style approach
+        String inlineStyle = "-fx-font-family: monospace; -fx-font-size: " + fontSize + "px; " +
+                "-fx-background-color: white; ";
+
+        // Add specific colors for different XML elements
+        // This is a simplified approach - in a real implementation, you'd use StyleSpans
+        codeArea.setStyle(inlineStyle);
+
+        // Apply the actual syntax highlighting using StyleSpans
+        forceSyntaxHighlighting(text);
+    }
+
+    /**
+     * Sets up RichTextFX styling directly without relying on external CSS.
+     */
+    private void setupRichTextFXStyling() {
+        // Set up the CodeArea with RichTextFX-specific styling
+        codeArea.setStyle("-fx-font-family: monospace; -fx-font-size: " + fontSize + "px; -fx-background-color: white;");
+
+        // Add CSS class for code area
+        codeArea.getStyleClass().add("code-area");
+
+        // Set up the VirtualizedScrollPane
+        virtualizedScrollPane.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-width: 1px;");
+
+        // Ensure the CodeArea is properly configured for syntax highlighting
+        codeArea.setEditable(true);
+        codeArea.setWrapText(false);
+
+        System.out.println("RichTextFX styling applied");
+    }
+
+    /**
+     * Sets up the CodeArea with proper styling for syntax highlighting.
+     */
+    private void setupCodeAreaStyling() {
+        // Set up the CodeArea with proper styling
+        codeArea.setStyle("-fx-font-family: monospace; -fx-font-size: " + fontSize + "px;");
+
+        // Ensure the CodeArea has the proper CSS class
+        codeArea.getStyleClass().add("code-area");
+
+        // Set up the VirtualizedScrollPane styling
+        virtualizedScrollPane.setStyle("-fx-background-color: white;");
+    }
+
+    /**
+     * Injects CSS styles directly into the CodeArea if external CSS loading fails.
+     */
+    private void injectInlineCss() {
+        String inlineCss = """
+                .tagmark {
+                    -fx-fill: rgb(0, 0, 255);
+                }
+                
+                .anytag {
+                    -fx-fill: rgb(128, 0, 0);
+                }
+                
+                .paren {
+                    -fx-fill: firebrick;
+                    -fx-font-weight: bold;
+                }
+                
+                .attribute {
+                    -fx-fill: darkviolet;
+                }
+                
+                .avalue {
+                    -fx-fill: black;
+                }
+                
+                .comment {
+                    -fx-fill: teal;
+                }
+                
+                .lineno {
+                    -fx-background-color: #e3e3e3;
+                }
+                
+                .code-area {
+                    -fx-font-family: monospace;
+                }
+                """;
+
+        codeArea.setStyle(codeArea.getStyle() + inlineCss);
+        System.out.println("Inline CSS injected");
+    }
+
+    /**
+     * Ensures that the CSS styles for syntax highlighting are loaded.
+     */
+    private void loadCssStyles() {
+        try {
+            // Inject CSS styles directly into the CodeArea
+            String cssStyles = """
+                    .tagmark {
+                        -fx-fill: rgb(0, 0, 255);
+                    }
+                    
+                    .anytag {
+                        -fx-fill: rgb(128, 0, 0);
+                    }
+                    
+                    .paren {
+                        -fx-fill: firebrick;
+                        -fx-font-weight: bold;
+                    }
+                    
+                    .attribute {
+                        -fx-fill: darkviolet;
+                    }
+                    
+                    .avalue {
+                        -fx-fill: black;
+                    }
+                    
+                    .comment {
+                        -fx-fill: teal;
+                    }
+                    
+                    .lineno {
+                        -fx-background-color: #e3e3e3;
+                    }
+                    
+                    .code-area {
+                        -fx-font-family: monospace;
+                    }
+                    """;
+
+            // Create a temporary CSS file and load it
+            try {
+                // Try to load from external CSS first
+                String cssUrl = getClass().getResource("/css/fxt-theme.css").toExternalForm();
+                codeArea.getStylesheets().add(cssUrl);
+                this.getStylesheets().add(cssUrl);
+                System.out.println("External CSS loaded successfully");
+            } catch (Exception e) {
+                System.out.println("External CSS not available, using inline styles");
+                // If external CSS fails, use inline styles
+                injectInlineCss();
+            }
+
+        } catch (Exception e) {
+            System.err.println("ERROR: Failed to load CSS styles: " + e.getMessage());
+            e.printStackTrace();
+            // Use inline CSS as fallback
+            injectInlineCss();
+        }
     }
 
     // Der Key-Pressed-Handler wurde um die Strg+F Logik erweitert
@@ -366,6 +590,45 @@ public class XmlCodeEditor extends StackPane {
     }
 
     /**
+     * Test method to verify syntax highlighting is working.
+     * This method loads a simple XML example and applies syntax highlighting.
+     */
+    public void testSyntaxHighlighting() {
+        String testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<!-- This is a test comment -->\n" +
+                "<root>\n" +
+                "    <element attribute=\"value\">content</element>\n" +
+                "</root>";
+
+        System.out.println("=== Testing Syntax Highlighting ===");
+        System.out.println("Test XML:");
+        System.out.println(testXml);
+
+        // Debug CSS status before test
+        debugCssStatus();
+
+        // Set the test content
+        codeArea.replaceText(testXml);
+
+        // Manually trigger syntax highlighting
+        refreshSyntaxHighlighting();
+
+        // Debug CSS status after test
+        debugCssStatus();
+
+        System.out.println("=== Test completed ===");
+    }
+
+    /**
+     * Manually triggers syntax highlighting for the current text content.
+     * This can be used for testing or to force a refresh of the highlighting.
+     */
+    public void refreshSyntaxHighlighting() {
+        String currentText = codeArea.getText();
+        applyInlineSyntaxHighlighting(currentText);
+    }
+
+    /**
      * Erstellt eine kompakte Zeilennummer ohne Abstände.
      */
     private Node createCompactLineNumber(int lineIndex) {
@@ -383,7 +646,7 @@ public class XmlCodeEditor extends StackPane {
         // Kein Border
         // Links und rechts 3px Padding
         lineNumber.setStyle(
-                STR."-fx-text-fill: #666666; -fx-font-family: monospace; -fx-font-size: \{fontSize}px; -fx-background-color: #f0f0f0; -fx-border-width: 0; -fx-padding: 0 3 0 3; -fx-spacing: 0;"                   // Kein Spacing
+                "-fx-text-fill: #666666; -fx-font-family: monospace; -fx-font-size: " + fontSize + "px; -fx-background-color: #f0f0f0; -fx-border-width: 0; -fx-padding: 0 3 0 3; -fx-spacing: 0;"                   // Kein Spacing
         );
 
         return lineNumber;
@@ -505,23 +768,7 @@ public class XmlCodeEditor extends StackPane {
     }
 
 
-    /**
-     * Aktualisiert die Falt-Informationen basierend auf den Daten vom LSP-Server.
-     *
-     * @param ranges Eine Liste von FoldingRange-Objekten.
-     */
-    public void updateFoldingRanges(List<FoldingRange> ranges) {
-        foldingRegions.clear();
-        foldedLines.clear(); // Setzt unseren manuellen Falt-Zustand zurück.
-
-        if (ranges != null) {
-            for (FoldingRange range : ranges) {
-                foldingRegions.put(range.getStartLine(), range.getEndLine());
-            }
-        }
-        // Erzwinge eine Neuzeichnung der Gutter-Grafiken, nachdem die Daten aktualisiert wurden.
-        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
-    }
+    // LSP folding functionality removed
 
     // --- Öffentliche API für den Editor ---
     public void moveUp() {
@@ -602,6 +849,10 @@ public class XmlCodeEditor extends StackPane {
     }
 
     public static StyleSpans<Collection<String>> computeHighlighting(String text) {
+        if (text == null) {
+            text = "";
+        }
+        
         Matcher matcher = XML_TAG.matcher(text);
         int lastKwEnd = 0;
         StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
@@ -847,229 +1098,13 @@ public class XmlCodeEditor extends StackPane {
         }
     }
 
-    /**
-     * Ensures the current document content is synchronized with the LSP server.
-     * Implementation based on requirements: Send textDocument/didOpen, didChange, and didClose as needed.
-     * This is crucial for getting accurate completion suggestions.
-     */
-    private void ensureDocumentSynchronized() {
-        try {
-            String content = codeArea.getText();
-
-            // For untitled documents, we need to send a didOpen notification first
-            if (documentUri.startsWith("untitled:")) {
-                System.out.println("DEBUG: Sending didOpen for untitled document");
-                sendDidOpenNotification(content);
-            } else {
-                // For file-based documents, send a didChange notification with full synchronization
-                System.out.println("DEBUG: Sending didChange for file document");
-                sendDidChangeNotification(content);
-            }
-
-            System.out.println("DEBUG: Document synchronized with LSP server");
-
-        } catch (Exception e) {
-            System.err.println("ERROR: Failed to synchronize document with LSP server: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
 
     /**
-     * Sends textDocument/didOpen notification to the LSP server.
-     * Based on requirements: Send when an XML file is loaded.
-     *
-     * @param content The document content
-     */
-    public void sendDidOpenNotification(String content) {
-        if (languageServer == null) return;
-
-        try {
-            org.eclipse.lsp4j.TextDocumentItem textDocument = new org.eclipse.lsp4j.TextDocumentItem(
-                    documentUri, "xml", documentVersion++, content);
-
-            org.eclipse.lsp4j.DidOpenTextDocumentParams openParams =
-                    new org.eclipse.lsp4j.DidOpenTextDocumentParams(textDocument);
-
-            languageServer.getTextDocumentService().didOpen(openParams);
-            System.out.println("DEBUG: textDocument/didOpen sent for " + documentUri);
-
-        } catch (Exception e) {
-            System.err.println("ERROR: Failed to send didOpen notification: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Sends textDocument/didChange notification to the LSP server.
-     * Based on requirements: Send at every text change with full synchronization.
-     *
-     * @param content The updated document content
-     */
-    private void sendDidChangeNotification(String content) {
-        if (languageServer == null) return;
-
-        try {
-            org.eclipse.lsp4j.VersionedTextDocumentIdentifier identifier =
-                    new org.eclipse.lsp4j.VersionedTextDocumentIdentifier(documentUri, documentVersion++);
-
-            // Full synchronization (as mentioned in requirements as fallback)
-            org.eclipse.lsp4j.TextDocumentContentChangeEvent changeEvent =
-                    new org.eclipse.lsp4j.TextDocumentContentChangeEvent(content);
-
-            org.eclipse.lsp4j.DidChangeTextDocumentParams params =
-                    new org.eclipse.lsp4j.DidChangeTextDocumentParams(identifier,
-                            java.util.Collections.singletonList(changeEvent));
-
-            languageServer.getTextDocumentService().didChange(params);
-            System.out.println("DEBUG: textDocument/didChange sent for " + documentUri + " (version " + (documentVersion - 1) + ")");
-
-        } catch (Exception e) {
-            System.err.println("ERROR: Failed to send didChange notification: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Sends textDocument/didClose notification to the LSP server.
-     * Based on requirements: Send when the file is closed.
-     */
-    public void sendDidCloseNotification() {
-        if (languageServer == null) return;
-
-        try {
-            org.eclipse.lsp4j.TextDocumentIdentifier identifier =
-                    new org.eclipse.lsp4j.TextDocumentIdentifier(documentUri);
-
-            org.eclipse.lsp4j.DidCloseTextDocumentParams params =
-                    new org.eclipse.lsp4j.DidCloseTextDocumentParams(identifier);
-
-            languageServer.getTextDocumentService().didClose(params);
-            System.out.println("DEBUG: textDocument/didClose sent for " + documentUri);
-
-        } catch (Exception e) {
-            System.err.println("ERROR: Failed to send didClose notification: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Requests completions from the Language Server based on the current cursor position.
+     * Requests completions - now uses manual completion since LSP is removed.
      */
     private void requestCompletionsFromLSP() {
-        System.out.println("DEBUG: requestCompletionsFromLSP called");
-        System.out.println("DEBUG: languageServer is null: " + (languageServer == null));
-        System.out.println("DEBUG: documentUri: " + documentUri);
-
-        // Check if LSP server is available
-        if (languageServer == null) {
-            System.out.println("DEBUG: No language server available, falling back to manual completion");
-            showManualIntelliSensePopup();
-            return;
-        }
-        
-        try {
-            int caretPosition = codeArea.getCaretPosition();
-            String text = codeArea.getText();
-
-            // Calculate line and character position
-            String textBeforeCursor = text.substring(0, caretPosition);
-            String[] lines = textBeforeCursor.split("\n", -1);
-            int lineNumber = lines.length - 1;
-            int character = lines[lineNumber].length();
-
-            // Debug logging
-            System.out.println("DEBUG: Requesting LSP completion at line=" + lineNumber + ", character=" + character);
-            System.out.println("DEBUG: Document URI: " + documentUri);
-            System.out.println("DEBUG: Text around cursor: '" +
-                    textBeforeCursor.substring(Math.max(0, textBeforeCursor.length() - 20)) + "' | '" +
-                    text.substring(caretPosition, Math.min(text.length(), caretPosition + 20)) + "'");
-
-            // Create completion request parameters
-            org.eclipse.lsp4j.TextDocumentIdentifier textDocument = new org.eclipse.lsp4j.TextDocumentIdentifier();
-            // Use the document URI if available, otherwise fallback to a placeholder
-            String uriToUse = (documentUri != null && !documentUri.isEmpty()) ? documentUri : "file:///temp.xml";
-            textDocument.setUri(uriToUse);
-
-            org.eclipse.lsp4j.Position position = new org.eclipse.lsp4j.Position(lineNumber, character);
-            org.eclipse.lsp4j.CompletionParams completionParams = new org.eclipse.lsp4j.CompletionParams(textDocument, position);
-
-            // Set completion context to indicate this is a triggered completion (after '<')
-            org.eclipse.lsp4j.CompletionContext context = new org.eclipse.lsp4j.CompletionContext();
-            context.setTriggerKind(org.eclipse.lsp4j.CompletionTriggerKind.TriggerCharacter);
-            context.setTriggerCharacter("<");
-            completionParams.setContext(context);
-
-            System.out.println("DEBUG: Sending LSP completion request...");
-
-            // Request completions from the Language Server
-            languageServer.getTextDocumentService().completion(completionParams)
-                    .thenAccept(completionList -> {
-                        System.out.println("DEBUG: LSP completion response received");
-                        javafx.application.Platform.runLater(() -> {
-                            if (completionList != null && completionList.isRight()) {
-                                // Handle CompletionList
-                                var items = completionList.getRight().getItems();
-                                System.out.println("DEBUG: CompletionList received with " + (items != null ? items.size() : 0) + " items");
-                                if (items != null && !items.isEmpty()) {
-                                    showCompletionItems(items);
-                                } else {
-                                    System.out.println("DEBUG: No completion items from LSP CompletionList");
-                                    completionListView.getItems().clear();
-                                    completionListView.getItems().add("(No LSP completions - CompletionList empty)");
-                                    showEmptyPopup();
-                                }
-                            } else if (completionList != null && completionList.isLeft()) {
-                                // Handle List<CompletionItem>
-                                var items = completionList.getLeft();
-                                System.out.println("DEBUG: CompletionItem list received with " + (items != null ? items.size() : 0) + " items");
-                                if (items != null && !items.isEmpty()) {
-                                    showCompletionItems(items);
-                                } else {
-                                    System.out.println("DEBUG: No completion items from LSP List");
-                                    completionListView.getItems().clear();
-                                    completionListView.getItems().add("(No LSP completions - List empty)");
-                                    showEmptyPopup();
-                                }
-                            } else {
-                                System.out.println("DEBUG: No completion results from LSP at all");
-                                completionListView.getItems().clear();
-                                completionListView.getItems().add("(No LSP response)");
-                                showEmptyPopup();
-                            }
-                        });
-                    })
-                    .exceptionally(throwable -> {
-                        System.err.println("ERROR: LSP completion request failed: " + throwable.getMessage());
-                        throwable.printStackTrace();
-                        // Fallback to manual completion on error
-                        javafx.application.Platform.runLater(this::showManualIntelliSensePopup);
-                        return null;
-                    });
-
-        } catch (Exception e) {
-            System.err.println("ERROR: Exception preparing completion request: " + e.getMessage());
-            e.printStackTrace();
-            // Fallback to manual completion on error
-            showManualIntelliSensePopup();
-        }
-    }
-
-    /**
-     * Shows completion items from the Language Server.
-     */
-    private void showCompletionItems(java.util.List<org.eclipse.lsp4j.CompletionItem> items) {
-        // Extract the labels from completion items
-        java.util.List<String> completionLabels = items.stream()
-                .map(org.eclipse.lsp4j.CompletionItem::getLabel)
-                .collect(java.util.stream.Collectors.toList());
-
-        // Update the list view with LSP completion items
-        completionListView.getItems().clear();
-        completionListView.getItems().addAll(completionLabels);
-
-        // Select the first item
-        if (!completionLabels.isEmpty()) {
-            completionListView.getSelectionModel().select(0);
-        }
-
-        showPopupAtCursor();
+        System.out.println("DEBUG: Using manual completion (LSP removed)");
+        showManualIntelliSensePopup();
     }
 
     /**

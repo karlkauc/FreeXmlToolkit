@@ -90,11 +90,12 @@ class XmlCodeEditorIntelliSenseTest {
     }
 
     @Test
-    void testLanguageServerIntegration() {
+    void testManualCompletionFunctionality() {
         Platform.runLater(() -> {
-            // Test that the LanguageServer can be set
+            // Test that manual completion works (LSP functionality removed)
             assertDoesNotThrow(() -> {
-                xmlCodeEditor.setLanguageServer(null); // Should not throw
+                // Basic editor functionality should work without LSP
+                xmlCodeEditor.getCodeArea().replaceText("<root>");
             });
 
             // Verify the method exists and works

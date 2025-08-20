@@ -191,6 +191,7 @@ public class XmlEditor extends Tab {
         this.setContent(splitPane);
 
         // --- Add Listeners ---
+        // Note: Syntax highlighting is handled by XmlCodeEditor's text listener
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             if (sidebarController != null && sidebarController.isContinuousValidationSelected()) {
                 validateXml();
@@ -2144,6 +2145,27 @@ public class XmlEditor extends Tab {
             }
         } else {
             logger.warn("SplitPane or sidebar not available - cannot set visibility");
+        }
+    }
+
+    /**
+     * Test method to verify syntax highlighting is working in the XML editor.
+     */
+    public void testSyntaxHighlighting() {
+        if (xmlCodeEditor != null) {
+            xmlCodeEditor.testSyntaxHighlighting();
+        }
+    }
+
+    /**
+     * Debug method to check CSS loading in the XML editor.
+     */
+    public void debugCssLoading() {
+        if (xmlCodeEditor != null) {
+            System.out.println("=== Debugging CSS Loading in XmlEditor ===");
+            xmlCodeEditor.debugCssStatus();
+        } else {
+            System.err.println("ERROR: XmlCodeEditor is null");
         }
     }
 }
