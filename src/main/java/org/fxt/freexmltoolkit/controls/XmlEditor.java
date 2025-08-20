@@ -851,7 +851,9 @@ public class XmlEditor extends Tab {
             if (elementInfo != null) {
                 List<String> childElements = elementInfo.getChildren();
                 if (childElements != null && !childElements.isEmpty()) {
-                    sidebarController.setPossibleChildElements(childElements);
+                    // Format child elements to show only names and types, not full XPaths
+                    List<String> formattedChildren = formatChildElementsForDisplay(childElements);
+                    sidebarController.setPossibleChildElements(formattedChildren);
                 } else {
                     sidebarController.setPossibleChildElements(Collections.singletonList("No child elements defined for this element"));
                 }
@@ -861,7 +863,9 @@ public class XmlEditor extends Tab {
                 if (elementName != null) {
                     List<String> childElements = getChildElementsFromXsdByName(elementName);
                     if (!childElements.isEmpty()) {
-                        sidebarController.setPossibleChildElements(childElements);
+                        // Format child elements to show only names and types, not full XPaths
+                        List<String> formattedChildren = formatChildElementsForDisplay(childElements);
+                        sidebarController.setPossibleChildElements(formattedChildren);
                     } else {
                         sidebarController.setPossibleChildElements(Collections.singletonList("No child elements found for: " + elementName));
                     }
@@ -873,6 +877,76 @@ public class XmlEditor extends Tab {
             logger.error("Error getting child elements from XSD documentation data", e);
             sidebarController.setPossibleChildElements(Collections.singletonList("Error: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Formats child element XPaths for display in the sidebar.
+     * Extracts element name and type information instead of showing full XPath.
+     *
+     * @param childElements List of child element XPaths from XsdExtendedElement
+     * @return List of formatted strings with element names and types
+     */
+    private List<String> formatChildElementsForDisplay(List<String> childElements) {
+        List<String> formattedElements = new ArrayList<>();
+
+        for (String childXPath : childElements) {
+            try {
+                // Extract element name from XPath (get the last part after the last '/')
+                String elementName = getElementNameFromXPath(childXPath);
+                if (elementName != null) {
+                    // Try to get type information from the XSD documentation data
+                    String elementType = getElementTypeFromXsdData(childXPath);
+
+                    String displayText;
+                    if (elementType != null && !elementType.isEmpty() && !elementType.equals("xs:string")) {
+                        // Show element name with type if available and not default string type
+                        displayText = elementName + " (" + elementType + ")";
+                    } else {
+                        // Just show element name if no specific type info
+                        displayText = elementName;
+                    }
+
+                    formattedElements.add(displayText);
+                } else {
+                    // Fallback: show the original XPath if we can't parse it
+                    formattedElements.add(childXPath);
+                }
+            } catch (Exception e) {
+                logger.debug("Could not format child element: " + childXPath, e);
+                // Fallback: show the original XPath
+                formattedElements.add(childXPath);
+            }
+        }
+
+        return formattedElements;
+    }
+
+    /**
+     * Gets the element type from XSD documentation data based on XPath.
+     *
+     * @param xpath The XPath of the element
+     * @return The type of the element, or null if not found
+     */
+    private String getElementTypeFromXsdData(String xpath) {
+        try {
+            if (xsdDocumentationData != null && xsdDocumentationData.getExtendedXsdElementMap() != null) {
+                XsdExtendedElement elementInfo = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+                if (elementInfo != null) {
+                    String type = elementInfo.getElementType();
+                    // Clean up common prefixes to make types more readable
+                    if (type != null && type.startsWith("xs:")) {
+                        return type; // Keep xs: prefix as it's standard
+                    } else if (type != null && type.contains(":")) {
+                        // Remove other namespace prefixes for cleaner display
+                        return type.substring(type.lastIndexOf(":") + 1);
+                    }
+                    return type;
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Could not get element type for xpath: " + xpath, e);
+        }
+        return null;
     }
 
     /**

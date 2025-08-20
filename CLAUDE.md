@@ -25,8 +25,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Architecture
 
 ### Technology Stack
-- **Language**: Java 21+ with preview features enabled
-- **UI Framework**: JavaFX 21.0.8 with FXML
+
+- **Language**: Java 24 with preview features enabled
+- **UI Framework**: JavaFX 24 with FXML
 - **Build System**: Gradle with Kotlin DSL
 - **Dependency Management**: Multiple Maven repositories including Eclipse repositories
 - **Testing**: JUnit 5 with TestFX for JavaFX testing
@@ -54,10 +55,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Key Libraries and Integrations
 - **Saxon HE 12.8**: XSLT 3.0 and XQuery processing
-- **Eclipse LemMinX**: XML Language Server for IntelliSense and validation
 - **Apache FOP 2.11**: PDF generation from XSL-FO
 - **BouncyCastle**: Cryptographic operations for digital signatures
-- **AtlantaFX**: Modern JavaFX theme framework
 - **RichTextFX**: Advanced code editor with syntax highlighting
 
 ### Package Structure
@@ -87,7 +86,6 @@ org.fxt.freexmltoolkit/
 - **Memory Management**: Built-in memory monitoring with configurable thresholds
 - **File Encoding**: Comprehensive BOM and encoding detection/handling
 - **Error Handling**: Extensive validation with user-friendly error reporting
-- **LSP Integration**: Real-time XML validation and IntelliSense via Language Server Protocol
 
 ### Build Configuration Notes
 - **Java Toolchain**: Configured for Java 21 with preview features enabled
