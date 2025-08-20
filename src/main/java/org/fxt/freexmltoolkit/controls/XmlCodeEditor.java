@@ -158,25 +158,23 @@ public class XmlCodeEditor extends VBox {
         // Initialize status line
         initializeStatusLine();
 
-        // Set up RichTextFX styling
-        setupRichTextFXStyling();
+        // Set up basic styling and reset font size
         resetFontSize();
 
         // Load CSS styles after the component is fully initialized
         Platform.runLater(() -> {
-            loadCssStyles();
             injectCssIntoScene();
 
             // Apply initial syntax highlighting if there's text
             if (codeArea.getText() != null && !codeArea.getText().isEmpty()) {
-                applyInlineSyntaxHighlighting(codeArea.getText());
+                applySyntaxHighlighting(codeArea.getText());
             }
         });
 
         // Text change listener for syntax highlighting
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            // Apply syntax highlighting with inline styles as fallback
-            applyInlineSyntaxHighlighting(newText);
+            // Apply syntax highlighting using external CSS
+            applySyntaxHighlighting(newText);
         });
     }
 
@@ -219,7 +217,6 @@ public class XmlCodeEditor extends VBox {
                 System.out.println("CSS injected into scene successfully");
             } catch (Exception e) {
                 System.out.println("Failed to inject CSS into scene: " + e.getMessage());
-                injectInlineCss();
             }
         } else {
             // If scene is not available yet, schedule it for later
@@ -242,167 +239,23 @@ public class XmlCodeEditor extends VBox {
         // Force a repaint of the CodeArea
         codeArea.requestLayout();
 
+
         System.out.println("Forced syntax highlighting applied for text length: " + text.length());
     }
 
+
     /**
-     * Applies syntax highlighting with inline styles as a fallback.
+     * Applies syntax highlighting using external CSS only.
      */
-    private void applyInlineSyntaxHighlighting(String text) {
+    private void applySyntaxHighlighting(String text) {
         if (text == null || text.isEmpty()) {
             return;
         }
 
-        // Create a simple inline style approach
-        String inlineStyle = "-fx-font-family: monospace; -fx-font-size: " + fontSize + "px; " +
-                "-fx-background-color: white; ";
-
-        // Add specific colors for different XML elements
-        // This is a simplified approach - in a real implementation, you'd use StyleSpans
-        codeArea.setStyle(inlineStyle);
-
-        // Apply the actual syntax highlighting using StyleSpans
+        // Apply the syntax highlighting using StyleSpans (colors come from external CSS)
         forceSyntaxHighlighting(text);
     }
 
-    /**
-     * Sets up RichTextFX styling directly without relying on external CSS.
-     */
-    private void setupRichTextFXStyling() {
-        // Set up the CodeArea with RichTextFX-specific styling
-        codeArea.setStyle("-fx-font-family: monospace; -fx-font-size: " + fontSize + "px; -fx-background-color: white;");
-
-        // Add CSS class for code area
-        codeArea.getStyleClass().add("code-area");
-
-        // Set up the VirtualizedScrollPane
-        virtualizedScrollPane.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-width: 1px;");
-
-        // Ensure the CodeArea is properly configured for syntax highlighting
-        codeArea.setEditable(true);
-        codeArea.setWrapText(false);
-
-        System.out.println("RichTextFX styling applied");
-    }
-
-    /**
-     * Sets up the CodeArea with proper styling for syntax highlighting.
-     */
-    private void setupCodeAreaStyling() {
-        // Set up the CodeArea with proper styling
-        codeArea.setStyle("-fx-font-family: monospace; -fx-font-size: " + fontSize + "px;");
-
-        // Ensure the CodeArea has the proper CSS class
-        codeArea.getStyleClass().add("code-area");
-
-        // Set up the VirtualizedScrollPane styling
-        virtualizedScrollPane.setStyle("-fx-background-color: white;");
-    }
-
-    /**
-     * Injects CSS styles directly into the CodeArea if external CSS loading fails.
-     */
-    private void injectInlineCss() {
-        String inlineCss = """
-                .tagmark {
-                    -fx-fill: rgb(0, 0, 255);
-                }
-                
-                .anytag {
-                    -fx-fill: rgb(128, 0, 0);
-                }
-                
-                .paren {
-                    -fx-fill: firebrick;
-                    -fx-font-weight: bold;
-                }
-                
-                .attribute {
-                    -fx-fill: darkviolet;
-                }
-                
-                .avalue {
-                    -fx-fill: black;
-                }
-                
-                .comment {
-                    -fx-fill: teal;
-                }
-                
-                .lineno {
-                    -fx-background-color: #e3e3e3;
-                }
-                
-                .code-area {
-                    -fx-font-family: monospace;
-                }
-                """;
-
-        codeArea.setStyle(codeArea.getStyle() + inlineCss);
-        System.out.println("Inline CSS injected");
-    }
-
-    /**
-     * Ensures that the CSS styles for syntax highlighting are loaded.
-     */
-    private void loadCssStyles() {
-        try {
-            // Inject CSS styles directly into the CodeArea
-            String cssStyles = """
-                    .tagmark {
-                        -fx-fill: rgb(0, 0, 255);
-                    }
-                    
-                    .anytag {
-                        -fx-fill: rgb(128, 0, 0);
-                    }
-                    
-                    .paren {
-                        -fx-fill: firebrick;
-                        -fx-font-weight: bold;
-                    }
-                    
-                    .attribute {
-                        -fx-fill: darkviolet;
-                    }
-                    
-                    .avalue {
-                        -fx-fill: black;
-                    }
-                    
-                    .comment {
-                        -fx-fill: teal;
-                    }
-                    
-                    .lineno {
-                        -fx-background-color: #e3e3e3;
-                    }
-                    
-                    .code-area {
-                        -fx-font-family: monospace;
-                    }
-                    """;
-
-            // Create a temporary CSS file and load it
-            try {
-                // Try to load from external CSS first
-                String cssUrl = getClass().getResource("/css/fxt-theme.css").toExternalForm();
-                codeArea.getStylesheets().add(cssUrl);
-                this.getStylesheets().add(cssUrl);
-                System.out.println("External CSS loaded successfully");
-            } catch (Exception e) {
-                System.out.println("External CSS not available, using inline styles");
-                // If external CSS fails, use inline styles
-                injectInlineCss();
-            }
-
-        } catch (Exception e) {
-            System.err.println("ERROR: Failed to load CSS styles: " + e.getMessage());
-            e.printStackTrace();
-            // Use inline CSS as fallback
-            injectInlineCss();
-        }
-    }
 
     // Der Key-Pressed-Handler wurde um die Strg+F Logik erweitert
     private void setupEventHandlers() {
@@ -644,7 +497,21 @@ public class XmlCodeEditor extends VBox {
      */
     public void refreshSyntaxHighlighting() {
         String currentText = codeArea.getText();
-        applyInlineSyntaxHighlighting(currentText);
+        if (currentText != null && !currentText.isEmpty()) {
+            System.out.println("DEBUG: Manually refreshing syntax highlighting for text length: " + currentText.length());
+
+            // Force syntax highlighting with debugging
+            forceSyntaxHighlighting(currentText);
+
+            // Also ensure CSS is properly loaded
+            Platform.runLater(() -> {
+                injectCssIntoScene();
+            });
+
+            System.out.println("DEBUG: Syntax highlighting refresh completed");
+        } else {
+            System.out.println("DEBUG: No text to highlight");
+        }
     }
 
     /**

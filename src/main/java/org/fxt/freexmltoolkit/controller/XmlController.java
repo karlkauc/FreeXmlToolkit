@@ -639,6 +639,9 @@ public class XmlController {
         Platform.runLater(() -> {
             if (finalCurrentEditor.getXmlCodeEditor() != null) {
                 finalCurrentEditor.getXmlCodeEditor().moveUp();
+
+                // Force syntax highlighting refresh
+                finalCurrentEditor.getXmlCodeEditor().refreshSyntaxHighlighting();
             }
         });
         // 7. Führe Folgeaktionen aus, die vom geladenen Inhalt abhängen.
