@@ -165,9 +165,10 @@ public class XmlCodeEditor extends VBox {
         Platform.runLater(() -> {
             injectCssIntoScene();
 
-            // Apply initial syntax highlighting if there's text
+            // Apply initial syntax highlighting and folding regions if there's text
             if (codeArea.getText() != null && !codeArea.getText().isEmpty()) {
                 applySyntaxHighlighting(codeArea.getText());
+                updateFoldingRegions(codeArea.getText());
             }
         });
 
@@ -511,6 +512,21 @@ public class XmlCodeEditor extends VBox {
             System.out.println("DEBUG: Syntax highlighting refresh completed");
         } else {
             System.out.println("DEBUG: No text to highlight");
+        }
+    }
+
+    /**
+     * Manually triggers folding region calculation for the current text content.
+     * This can be used to refresh folding capabilities after loading new content.
+     */
+    public void refreshFoldingRegions() {
+        String currentText = codeArea.getText();
+        if (currentText != null && !currentText.isEmpty()) {
+            System.out.println("DEBUG: Manually refreshing folding regions for text length: " + currentText.length());
+            updateFoldingRegions(currentText);
+            System.out.println("DEBUG: Found " + foldingRegions.size() + " foldable regions");
+        } else {
+            System.out.println("DEBUG: No text to analyze for folding");
         }
     }
 
@@ -1609,9 +1625,10 @@ public class XmlCodeEditor extends VBox {
             updateCursorPosition();
         });
 
-        // Track text changes to update indentation info
+        // Track text changes to update indentation info and folding regions
         codeArea.textProperty().addListener((observable, oldText, newText) -> {
             updateIndentationInfo(newText);
+            updateFoldingRegions(newText);
         });
     }
 
@@ -1761,6 +1778,79 @@ public class XmlCodeEditor extends VBox {
         updateFileEncoding();
         updateLineSeparator();
         updateIndentationInfo(codeArea.getText());
+    }
+
+    /**
+     * Updates the folding regions by analyzing XML structure.
+     */
+    private void updateFoldingRegions(String text) {
+        try {
+            if (text == null || text.isEmpty()) {
+                foldingRegions.clear();
+                return;
+            }
+
+            // Clear existing folding regions
+            foldingRegions.clear();
+
+            // Calculate new folding regions based on XML structure
+            calculateXmlFoldingRegions(text);
+
+            // Update the paragraph graphic factory to reflect new folding regions
+            Platform.runLater(() -> {
+                codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
+            });
+
+        } catch (Exception e) {
+            System.err.println("Error updating folding regions: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Calculates folding regions by parsing XML structure.
+     */
+    private void calculateXmlFoldingRegions(String text) {
+        String[] lines = text.split("\n");
+        Stack<XmlElement> elementStack = new Stack<>();
+
+        for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            String line = lines[lineIndex].trim();
+
+            // Skip empty lines and comments
+            if (line.isEmpty() || line.startsWith("<!--")) {
+                continue;
+            }
+
+            // Find XML tags in the line
+            Pattern tagPattern = Pattern.compile("<(/?)([a-zA-Z][a-zA-Z0-9_:]*)[^>]*(/?)>");
+            Matcher matcher = tagPattern.matcher(line);
+
+            while (matcher.find()) {
+                boolean isClosingTag = !matcher.group(1).isEmpty();
+                String tagName = matcher.group(2);
+                boolean isSelfClosing = !matcher.group(3).isEmpty() || line.contains("/>");
+
+                if (isClosingTag) {
+                    // Handle closing tag
+                    if (!elementStack.isEmpty() && elementStack.peek().name.equals(tagName)) {
+                        XmlElement element = elementStack.pop();
+                        // Only create folding region if element spans multiple lines
+                        if (lineIndex > element.startLine) {
+                            foldingRegions.put(element.startLine, lineIndex);
+                        }
+                    }
+                } else if (!isSelfClosing) {
+                    // Handle opening tag (not self-closing)
+                    elementStack.push(new XmlElement(tagName, lineIndex));
+                }
+            }
+        }
+    }
+
+    /**
+         * Helper class to represent XML elements during folding analysis.
+         */
+        private record XmlElement(String name, int startLine) {
     }
 
     /**

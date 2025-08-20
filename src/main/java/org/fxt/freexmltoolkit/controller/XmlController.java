@@ -642,6 +642,9 @@ public class XmlController {
 
                 // Force syntax highlighting refresh
                 finalCurrentEditor.getXmlCodeEditor().refreshSyntaxHighlighting();
+
+                // Force folding regions refresh
+                finalCurrentEditor.getXmlCodeEditor().refreshFoldingRegions();
             }
         });
         // 7. Führe Folgeaktionen aus, die vom geladenen Inhalt abhängen.
