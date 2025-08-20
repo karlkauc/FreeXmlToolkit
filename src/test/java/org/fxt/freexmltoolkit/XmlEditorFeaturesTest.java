@@ -98,14 +98,15 @@ class XmlEditorFeaturesTest {
     }
 
     @Test
-    void testLanguageServerIntegration() {
+    void testXsdBasedIntegration() {
         Platform.runLater(() -> {
-            // Test that the LanguageServer can be set
+            // Test that XSD-based functionality works without LSP
             assertDoesNotThrow(() -> {
-                xmlEditor.setLanguageServer(null); // Should not throw
+                // LSP functionality replaced by XSD-based implementation
+                xmlEditor.getXsdFile(); // Should not throw
             });
 
-            // Verify the method exists and works
+            // Verify the XmlEditor exists and works without LSP
             assertNotNull(xmlEditor);
         });
     }

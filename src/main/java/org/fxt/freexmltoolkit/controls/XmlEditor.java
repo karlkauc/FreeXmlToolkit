@@ -12,12 +12,8 @@ import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.PopOver;
-import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.services.LanguageServer;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
-import org.fxmisc.richtext.model.TwoDimensional;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
@@ -65,7 +61,6 @@ public class XmlEditor extends Tab {
     private final XmlCodeEditor xmlCodeEditor = new XmlCodeEditor();
     public final CodeArea codeArea = xmlCodeEditor.getCodeArea();
 
-    private List<Diagnostic> currentDiagnostics = new ArrayList<>();
 
     private final static Logger logger = LogManager.getLogger(XmlEditor.class);
 
@@ -85,7 +80,6 @@ public class XmlEditor extends Tab {
     private XsdDocumentationData xsdDocumentationData;
 
     private MainController mainController;
-    private LanguageServer serverProxy;
 
     private PopOver hoverPopOver;
     private final Label popOverLabel = new Label();
@@ -134,27 +128,7 @@ public class XmlEditor extends Tab {
         }
     }
 
-    public void setLanguageServer(LanguageServer serverProxy) {
-        System.out.println("DEBUG: XmlEditor.setLanguageServer called with: " + (serverProxy != null ? "valid server" : "null"));
-        this.serverProxy = serverProxy;
-        // Also pass the LanguageServer to the XmlCodeEditor for IntelliSense
-        if (xmlCodeEditor != null) {
-            System.out.println("DEBUG: Passing language server to XmlCodeEditor");
-            xmlCodeEditor.setLanguageServer(serverProxy);
-            xmlCodeEditor.setParentXmlEditor(this); // Set reference for schema access
-
-            // If we have a document URI, send didOpen notification
-            String documentUri = xmlCodeEditor.getDocumentUri();
-            if (serverProxy != null && documentUri != null && !documentUri.isEmpty()) {
-                System.out.println("DEBUG: Sending initial didOpen notification for: " + documentUri);
-                Platform.runLater(() -> {
-                    xmlCodeEditor.sendDidOpenNotification(codeArea.getText());
-                });
-            }
-        } else {
-            System.out.println("DEBUG: xmlCodeEditor is null, cannot set language server");
-        }
-    }
+    // LSP functionality replaced by XSD-based implementation
 
     private void init() {
         try {
@@ -538,7 +512,7 @@ public class XmlEditor extends Tab {
         hoverPopOver = new PopOver(popOverLabel);
         hoverPopOver.setDetachable(false);
         hoverPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
-        hoverDelay.setOnFinished(e -> triggerLspHover());
+        // Hover functionality removed with LSP
     }
 
     private void setupSearchAndReplace() {
@@ -589,23 +563,14 @@ public class XmlEditor extends Tab {
         String xpath = getCurrentXPath(text, caretPosition);
         sidebarController.setXPath(xpath);
 
-        // Use LSP server for better element information if available
-        if (serverProxy != null && xmlFile != null) {
-            updateElementInfoFromLsp(caretPosition);
-        } else {
-            // Fallback to manual parsing
-            ElementInfo elementInfo = getElementInfoAtPosition(text, caretPosition);
-            sidebarController.setElementName(elementInfo.name);
-            sidebarController.setElementType(elementInfo.type);
-        }
+        // Get element information from XSD documentation data
+        updateElementInfoFromXsd(caretPosition);
 
         // Update child elements based on current position
         updateChildElements(xpath);
 
-        // Get documentation from LSP server and example values from XSD
-        if (serverProxy != null && xmlFile != null) {
-            updateElementDocumentation(caretPosition);
-        }
+        // Update documentation and example values from XSD
+        updateElementDocumentation(caretPosition);
 
         // Update example values based on current XPath
         updateExampleValuesFromXsd(xpath);
@@ -860,44 +825,71 @@ public class XmlEditor extends Tab {
     }
 
     /**
-     * Updates the child elements list based on the current XPath.
+     * Updates the child elements list based on the current XPath using XsdDocumentationData.
      *
      * @param xpath The current XPath to find child elements for
      */
     private void updateChildElements(String xpath) {
         if (sidebarController == null) return;
-        
-        if (xsdFile == null || xpath == null || xpath.equals("Invalid XML structure") ||
+
+        if (xsdDocumentationData == null || xpath == null || xpath.equals("Invalid XML structure") ||
                 xpath.equals("No XML content") || xpath.equals("Unable to determine XPath")) {
-            sidebarController.setPossibleChildElements(Collections.singletonList("No XSD schema loaded or invalid XPath"));
+            sidebarController.setPossibleChildElements(Collections.singletonList("No XSD documentation data loaded or invalid XPath"));
             return;
         }
 
         try {
-            // Get the current element name from XPath
-            String[] pathParts = xpath.split("/");
-            if (pathParts.length == 0) {
-                sidebarController.setPossibleChildElements(Collections.singletonList("No element selected"));
-                return;
+            // Look up the element information in the extendedXsdElementMap
+            XsdExtendedElement elementInfo = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+
+            if (elementInfo == null) {
+                // Try to find a partial match or parent element
+                elementInfo = findBestMatchingElement(xpath);
             }
 
-            String currentElementName = pathParts[pathParts.length - 1];
-            if (currentElementName.isEmpty()) {
-                sidebarController.setPossibleChildElements(Collections.singletonList("No element selected"));
-                return;
-            }
-
-            // Find the element in XSD and get its children
-            List<String> childElements = getChildElementsFromXsd(currentElementName);
-            if (childElements.isEmpty()) {
-                sidebarController.setPossibleChildElements(Collections.singletonList("No child elements found for: " + currentElementName));
+            if (elementInfo != null) {
+                List<String> childElements = elementInfo.getChildren();
+                if (childElements != null && !childElements.isEmpty()) {
+                    sidebarController.setPossibleChildElements(childElements);
+                } else {
+                    sidebarController.setPossibleChildElements(Collections.singletonList("No child elements defined for this element"));
+                }
             } else {
-                sidebarController.setPossibleChildElements(childElements);
+                // Fallback: try to find child elements using element name from xpath
+                String elementName = getElementNameFromXPath(xpath);
+                if (elementName != null) {
+                    List<String> childElements = getChildElementsFromXsdByName(elementName);
+                    if (!childElements.isEmpty()) {
+                        sidebarController.setPossibleChildElements(childElements);
+                    } else {
+                        sidebarController.setPossibleChildElements(Collections.singletonList("No child elements found for: " + elementName));
+                    }
+                } else {
+                    sidebarController.setPossibleChildElements(Collections.singletonList("Element not found in XSD"));
+                }
             }
         } catch (Exception e) {
-            logger.error("Error getting child elements", e);
+            logger.error("Error getting child elements from XSD documentation data", e);
             sidebarController.setPossibleChildElements(Collections.singletonList("Error: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Gets child elements by searching through XSD documentation data by element name.
+     */
+    private List<String> getChildElementsFromXsdByName(String elementName) {
+        if (xsdDocumentationData == null || elementName == null) {
+            return Collections.emptyList();
+        }
+
+        // Search through all elements to find ones with matching name
+        for (XsdExtendedElement element : xsdDocumentationData.getExtendedXsdElementMap().values()) {
+            if (elementName.equals(element.getElementName()) && element.getChildren() != null) {
+                return element.getChildren();
+            }
+        }
+
+        return Collections.emptyList();
     }
 
     public List<String> getChildElementsFromXsd(String elementName) {
@@ -1336,73 +1328,12 @@ public class XmlEditor extends Tab {
         return contextElementNames;
     }
 
-    public void updateDiagnostics(List<Diagnostic> diagnostics) {
-        this.currentDiagnostics = new ArrayList<>(diagnostics);
-        applyStyles();
-    }
+    // LSP diagnostics and hover functionality removed - using XML validation and XSD-based information instead
 
     private void applyStyles() {
         if (codeArea.getText().length() >= MAX_SIZE_FOR_FORMATTING) return;
         StyleSpans<Collection<String>> syntaxHighlighting = XmlCodeEditor.computeHighlighting(codeArea.getText());
-        codeArea.setStyleSpans(0, syntaxHighlighting.overlay(computeDiagnosticStyles(), (syntax, diagnostic) -> diagnostic.isEmpty() ? syntax : diagnostic));
-    }
-
-    private StyleSpans<Collection<String>> computeDiagnosticStyles() {
-        if (currentDiagnostics.isEmpty()) {
-            return StyleSpans.singleton(Collections.emptyList(), codeArea.getLength());
-        }
-        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-        int lastKwEnd = 0;
-        for (Diagnostic diagnostic : currentDiagnostics) {
-            Range range = diagnostic.getRange();
-            int start = codeArea.position(range.getStart().getLine(), range.getStart().getCharacter()).toOffset();
-            int end = codeArea.position(range.getEnd().getLine(), range.getEnd().getCharacter()).toOffset();
-            if (start < end) {
-                spansBuilder.add(Collections.emptyList(), start - lastKwEnd);
-                String styleClass = getStyleClassFor(diagnostic.getSeverity());
-                spansBuilder.add(Collections.singleton(styleClass), end - start);
-                lastKwEnd = end;
-            }
-        }
-        spansBuilder.add(Collections.emptyList(), codeArea.getLength() - lastKwEnd);
-        return spansBuilder.create();
-    }
-
-    private String getStyleClassFor(DiagnosticSeverity severity) {
-        if (severity == null) return "diagnostic-warning";
-        return switch (severity) {
-            case Error -> "diagnostic-error";
-            case Warning -> "diagnostic-warning";
-            default -> "diagnostic-warning";
-        };
-    }
-
-    private void triggerLspHover() {
-        if (this.serverProxy == null || xmlFile == null) return;
-
-        int caretPosition = codeArea.getCaretPosition();
-        var lineColumn = codeArea.offsetToPosition(caretPosition, TwoDimensional.Bias.Forward);
-        TextDocumentIdentifier textDocumentIdentifier = new TextDocumentIdentifier(xmlFile.toURI().toString());
-        Position position = new Position(lineColumn.getMajor(), lineColumn.getMinor());
-        HoverParams hoverParams = new HoverParams(textDocumentIdentifier, position);
-
-        CompletableFuture<Hover> hoverFuture = this.serverProxy.getTextDocumentService().hover(hoverParams);
-        hoverFuture.thenAcceptAsync(hover -> {
-            if (hover != null && hover.getContents() != null) {
-                if (hover.getContents().isRight()) {
-                    String hoverText = hover.getContents().getRight().getValue();
-                    if (!hoverText.isBlank()) {
-                        Platform.runLater(() -> {
-                            popOverLabel.setText(hoverText);
-                            showPopOver();
-                        });
-                    }
-                }
-            }
-        }).exceptionally(ex -> {
-            logger.error("LSP hover request failed.", ex);
-            return null;
-        });
+        codeArea.setStyleSpans(0, syntaxHighlighting);
     }
 
     /**
@@ -1411,62 +1342,35 @@ public class XmlEditor extends Tab {
      *
      * @param caretPosition The current cursor position
      */
-    private void updateElementInfoFromLsp(int caretPosition) {
+    private void updateElementInfoFromXsd(int caretPosition) {
         try {
-            var lineColumn = codeArea.offsetToPosition(caretPosition, TwoDimensional.Bias.Forward);
-            TextDocumentIdentifier textDocumentIdentifier = new TextDocumentIdentifier(xmlFile.toURI().toString());
-            Position position = new Position(lineColumn.getMajor(), lineColumn.getMinor());
+            // Get the current XPath position in the XML
+            String currentXPath = getCurrentXPath(codeArea.getText(), caretPosition);
 
-            // Use hover to get element information
-            HoverParams hoverParams = new HoverParams(textDocumentIdentifier, position);
-            CompletableFuture<Hover> hoverFuture = serverProxy.getTextDocumentService().hover(hoverParams);
+            if (xsdDocumentationData != null && currentXPath != null && !currentXPath.isEmpty()) {
+                // Look up the element information in the extendedXsdElementMap
+                XsdExtendedElement elementInfo = xsdDocumentationData.getExtendedXsdElementMap().get(currentXPath);
 
-            hoverFuture.thenAcceptAsync(hover -> {
-                Platform.runLater(() -> {
-                    String elementName = "Unknown";
-                    String elementType = "Unknown";
+                if (elementInfo == null) {
+                    // Try to find a partial match or parent element
+                    elementInfo = findBestMatchingElement(currentXPath);
+                }
 
-                    if (hover != null && hover.getContents() != null) {
-                        String hoverContent = "";
+                if (elementInfo != null) {
+                    // Update sidebar with XSD-based information
+                    sidebarController.setElementName(elementInfo.getElementName());
+                    sidebarController.setElementType(elementInfo.getElementType() != null ? elementInfo.getElementType() : "");
+                    return;
+                }
+            }
 
-                        if (hover.getContents().isRight()) {
-                            hoverContent = hover.getContents().getRight().getValue();
-                        } else if (hover.getContents().isLeft()) {
-                            hoverContent = hover.getContents().getLeft().stream()
-                                    .map(Object::toString)
-                                    .collect(java.util.stream.Collectors.joining("\n"));
-                        }
-
-                        // Parse element name and type from hover content
-                        ElementInfo parsedInfo = parseElementInfoFromHover(hoverContent, caretPosition);
-                        elementName = parsedInfo.name;
-                        elementType = parsedInfo.type;
-                    }
-
-                    // If LSP didn't provide useful information, fall back to manual parsing
-                    if ("Unknown".equals(elementName) || elementName.isEmpty()) {
-                        ElementInfo fallbackInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
-                        elementName = fallbackInfo.name;
-                        elementType = fallbackInfo.type;
-                    }
-
-                    // Update sidebar
-                    sidebarController.setElementName(elementName);
-                    sidebarController.setElementType(elementType);
-                });
-            }).exceptionally(ex -> {
-                logger.debug("LSP element info request failed, using fallback: {}", ex.getMessage());
-                // Fallback to manual parsing
-                Platform.runLater(() -> {
-                    ElementInfo elementInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
-                    sidebarController.setElementName(elementInfo.name);
-                    sidebarController.setElementType(elementInfo.type);
-                });
-                return null;
-            });
+            // Fallback to manual parsing if XSD data is not available
+            ElementInfo fallbackInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
+            sidebarController.setElementName(fallbackInfo.name);
+            sidebarController.setElementType(fallbackInfo.type);
 
         } catch (Exception e) {
-            logger.debug("Error getting element info from LSP: {}", e.getMessage());
+            logger.debug("Error getting element info from XSD: {}", e.getMessage());
             // Fallback to manual parsing
             ElementInfo elementInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
             sidebarController.setElementName(elementInfo.name);
@@ -1474,88 +1378,6 @@ public class XmlEditor extends Tab {
         }
     }
 
-    /**
-     * Parses element information from LSP hover content.
-     *
-     * @param hoverContent  The hover content from LSP
-     * @param caretPosition The current cursor position for fallback parsing
-     * @return ElementInfo with parsed name and type
-     */
-    private ElementInfo parseElementInfoFromHover(String hoverContent, int caretPosition) {
-        if (hoverContent == null || hoverContent.trim().isEmpty()) {
-            return new ElementInfo("Unknown", "Unknown");
-        }
-
-        String elementName = "Unknown";
-        String elementType = "Unknown";
-
-        try {
-            // Look for element name patterns in hover content
-            // LSP might provide information like "Element: elementName" or similar
-            String[] lines = hoverContent.split("\n");
-
-            for (String line : lines) {
-                line = line.trim();
-
-                // Try different patterns that LSP might use
-                if (line.startsWith("Element:") || line.startsWith("element:")) {
-                    elementName = extractElementName(line);
-                } else if (line.contains("<") && line.contains(">")) {
-                    // Look for XML tag patterns like "<elementName>"
-                    elementName = extractElementFromTag(line);
-                }
-
-                // Try to extract type information
-                if (line.contains("type:") || line.contains("Type:")) {
-                    elementType = extractTypeInfo(line);
-                }
-            }
-
-            // If we still don't have a good element name, try to extract from current position
-            if ("Unknown".equals(elementName)) {
-                elementName = extractElementNameFromPosition(caretPosition);
-            }
-
-        } catch (Exception e) {
-            logger.debug("Error parsing hover content: {}", e.getMessage());
-        }
-
-        return new ElementInfo(elementName, elementType);
-    }
-
-    /**
-     * Extracts element name from a line like "Element: elementName" or "element: elementName"
-     */
-    private String extractElementName(String line) {
-        String[] parts = line.split(":", 2);
-        if (parts.length > 1) {
-            return parts[1].trim();
-        }
-        return "Unknown";
-    }
-
-    /**
-     * Extracts element name from XML tag in hover content
-     */
-    private String extractElementFromTag(String line) {
-        java.util.regex.Pattern tagPattern = java.util.regex.Pattern.compile("</?(\\w+:?\\w*)");
-        java.util.regex.Matcher matcher = tagPattern.matcher(line);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return "Unknown";
-    }
-
-    /**
-     * Extracts type information from hover content
-     */
-    private String extractTypeInfo(String line) {
-        String[] parts = line.split(":", 2);
-        if (parts.length > 1) {
-            return parts[1].trim();
-        }
-        return "Unknown";
-    }
 
     /**
      * Extracts element name by analyzing the text around the cursor position.
@@ -1629,68 +1451,15 @@ public class XmlEditor extends Tab {
     }
 
     /**
-     * Updates element documentation using LSP server hover functionality with XSD fallback.
+     * Updates element documentation using XSD documentation data.
      *
      * @param caretPosition The current cursor position
      */
     private void updateElementDocumentation(int caretPosition) {
         if (xmlFile == null) return;
 
-        // First try LSP if available
-        if (serverProxy != null) {
-            try {
-                var lineColumn = codeArea.offsetToPosition(caretPosition, TwoDimensional.Bias.Forward);
-                TextDocumentIdentifier textDocumentIdentifier = new TextDocumentIdentifier(xmlFile.toURI().toString());
-                Position position = new Position(lineColumn.getMajor(), lineColumn.getMinor());
-
-                // Get hover information (documentation)
-                HoverParams hoverParams = new HoverParams(textDocumentIdentifier, position);
-                CompletableFuture<Hover> hoverFuture = serverProxy.getTextDocumentService().hover(hoverParams);
-
-                hoverFuture.thenAcceptAsync(hover -> {
-                    boolean documentationFound = false;
-                    if (hover != null && hover.getContents() != null) {
-                        final String[] documentation = {""};
-
-                        // Handle different types of hover content
-                        if (hover.getContents().isRight()) {
-                            // Simple string content
-                            documentation[0] = hover.getContents().getRight().getValue();
-                        } else if (hover.getContents().isLeft()) {
-                            // List of marked strings
-                            try {
-                                documentation[0] = hover.getContents().getLeft().stream()
-                                        .map(Object::toString)
-                                        .collect(Collectors.joining("\n"));
-                            } catch (Exception e) {
-                                logger.debug("Error processing hover content: {}", e.getMessage());
-                            }
-                        }
-
-                        if (!documentation[0].isBlank()) {
-                            Platform.runLater(() -> updateDocumentationDisplay(documentation[0]));
-                            documentationFound = true;
-                        }
-                    }
-
-                    // If LSP didn't provide documentation, fallback to XSD
-                    if (!documentationFound) {
-                        tryXsdDocumentationFallback(caretPosition);
-                    }
-                }).exceptionally(ex -> {
-                    logger.debug("LSP hover request failed, trying XSD fallback: {}", ex.getMessage());
-                    tryXsdDocumentationFallback(caretPosition);
-                    return null;
-                });
-
-            } catch (Exception e) {
-                logger.debug("Error updating element documentation from LSP: {}", e.getMessage());
-                tryXsdDocumentationFallback(caretPosition);
-            }
-        } else {
-            // No LSP available, use XSD fallback directly
-            tryXsdDocumentationFallback(caretPosition);
-        }
+        // Use XSD documentation data directly
+        tryXsdDocumentationFallback(caretPosition);
     }
 
     /**

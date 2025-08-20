@@ -30,17 +30,11 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.lemminx.XMLServerLauncher;
-import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.eclipse.lsp4j.services.LanguageServer;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
-import org.fxt.freexmltoolkit.service.MyLspClient;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.XmlService;
@@ -48,17 +42,14 @@ import org.xml.sax.SAXParseException;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class XmlController {
     private final static Logger logger = LogManager.getLogger(XmlController.class);
@@ -105,13 +96,7 @@ public class XmlController {
     XmlEditor emptyXmlEditor;
 
 
-    // --- LSP Server Felder ---
-    private LanguageServer serverProxy;
-    private MyLspClient lspClient;
-    private final ExecutorService lspExecutor = Executors.newSingleThreadExecutor();
-    private Future<?> clientListening;
-    // NEU: Map zur Speicherung von Diagnosen, hierher verschoben.
-    private final Map<String, List<Diagnostic>> diagnosticsMap = new ConcurrentHashMap<>();
+    // LSP Server functionality removed - using XSD-based implementation
     // Executor für asynchrone UI-Tasks wie Formatierung
     private final ExecutorService formattingExecutor = Executors.newCachedThreadPool(runnable -> {
         Thread t = new Thread(runnable);
@@ -119,7 +104,7 @@ public class XmlController {
         return t;
     });
 
-    private final Map<String, Integer> documentVersions = new ConcurrentHashMap<>();
+    // LSP document versioning removed
 
     @FXML
     private void initialize() {
@@ -176,12 +161,8 @@ public class XmlController {
         xmlEditor.setMainController(this.mainController); // Übergeben Sie den Controller
 
         // CRITICAL: Ensure LSP server is available and properly set
-        if (this.serverProxy != null) {
-            logger.debug("✅ Setting Language Server for XML Editor (serverProxy available)");
-            xmlEditor.setLanguageServer(this.serverProxy);
-        } else {
-            logger.warn("⚠️  LSP serverProxy is null - IntelliSense will not work!");
-        }
+        // LSP functionality replaced by XSD-based implementation
+        logger.debug("✅ Using XSD-based implementation instead of LSP");
         
         xmlEditor.refresh();
 
@@ -193,17 +174,14 @@ public class XmlController {
         }
 
         // Füge einen Listener hinzu, der den Server über Textänderungen informiert.
-        // Dies ist entscheidend für aktuelle Diagnosen und Falt-Bereiche.
-        xmlEditor.getXmlCodeEditor().getCodeArea().textProperty().addListener((obs, oldVal, newVal) -> {
-            notifyLspServerFileChanged(xmlEditor);
-        });
+        // LSP text change notification removed
 
         xmlFilesPane.getTabs().add(xmlEditor);
         xmlFilesPane.getSelectionModel().select(xmlEditor);
 
         if (file != null) {
             mainController.addFileToRecentFiles(file);
-            notifyLspServerFileOpened(file, xmlEditor.codeArea.getText());
+            // LSP file opened notification removed
         }
     }
 
@@ -317,145 +295,17 @@ public class XmlController {
     public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.mainController = parentController;
-        try {
-            setupLSPServer();
-        } catch (Exception e) {
-            logger.error("Failed to start LSP Server from XmlController", e);
-        }
+        // LSP Server initialization removed - using XSD-based implementation
+        logger.debug("Using XSD-based implementation instead of LSP Server");
     }
 
-    private void setupLSPServer() throws IOException, ExecutionException, InterruptedException {
-        var clientInputStream = new PipedInputStream();
-        var serverOutputStream = new PipedOutputStream(clientInputStream);
-        var serverInputStream = new PipedInputStream();
-        var clientOutputStream = new PipedOutputStream(serverInputStream);
+    // LSP server setup method removed - using XSD-based implementation
 
-        // GEÄNDERT: Übergibt 'this' (den XmlController) an den Client.
-        this.lspClient = new MyLspClient(this);
+    // LSP diagnostics publishing removed - using XML validation instead
 
-        // Start the XML server asynchronously BEFORE creating the launcher
-        CompletableFuture<Void> serverFuture = CompletableFuture.runAsync(() -> {
-            try {
-                logger.debug("🔥 Starting XML Language Server...");
-                XMLServerLauncher.launch(serverInputStream, serverOutputStream);
-            } catch (Exception e) {
-                logger.error("Failed to start XML Language Server", e);
-                throw new RuntimeException(e);
-            }
-        }, lspExecutor);
+    // LSP editor URI lookup removed
 
-        // Give the server a moment to start
-        Thread.sleep(500);
-
-        Launcher<LanguageServer> launcher = new LSPLauncher.Builder<LanguageServer>()
-                .setLocalService(lspClient)
-                .setRemoteInterface(LanguageServer.class)
-                .setInput(clientInputStream)
-                .setOutput(clientOutputStream)
-                .setExecutorService(lspExecutor)
-                .create();
-
-        this.serverProxy = launcher.getRemoteProxy();
-        lspClient.connect(serverProxy);
-        this.clientListening = launcher.startListening();
-
-        logger.debug("🚀 LSP Client started and connected (Owner: XmlController).");
-
-        // Initialize the server
-        InitializeParams initParams = new InitializeParams();
-        initParams.setProcessId((int) ProcessHandle.current().pid());
-        WorkspaceFolder workspaceFolder = new WorkspaceFolder(Paths.get(".").toUri().toString(), "lemminx-project");
-        initParams.setWorkspaceFolders(Collections.singletonList(workspaceFolder));
-
-        logger.debug("🤝 Sending 'initialize' request...");
-        try {
-            InitializeResult result = serverProxy.initialize(initParams).get(10, TimeUnit.SECONDS);
-            serverProxy.initialized(new InitializedParams());
-            logger.debug("✅ LSP Server initialization completed successfully.");
-            logger.debug("   Server capabilities: {}", result.getCapabilities());
-        } catch (TimeoutException e) {
-            logger.error("❌ LSP Server initialization timed out", e);
-            throw new RuntimeException("LSP Server initialization timed out", e);
-        } catch (Exception e) {
-            logger.error("❌ LSP Server initialization failed", e);
-            throw new RuntimeException("LSP Server initialization failed", e);
-        }
-    }
-
-    /**
-     * Wird vom MyLspClient aufgerufen. Speichert die Diagnosen
-     * und stößt die UI-Aktualisierung an.
-     */
-    public void publishDiagnostics(PublishDiagnosticsParams diagnostics) {
-        logger.debug("bin im publishDiagnostics");
-        String uri = diagnostics.getUri();
-        diagnosticsMap.put(uri, diagnostics.getDiagnostics());
-
-        Platform.runLater(() -> {
-            findEditorByUri(uri).ifPresent(editor ->
-                    editor.updateDiagnostics(diagnostics.getDiagnostics())
-            );
-        });
-    }
-
-    /**
-     * Hilfsmethode, um den geöffneten XmlEditor für einen URI zu finden.
-     */
-    private Optional<XmlEditor> findEditorByUri(String uri) {
-        for (Tab tab : xmlFilesPane.getTabs()) {
-            if (tab instanceof XmlEditor editor) {
-                if (editor.getXmlFile() != null && editor.getXmlFile().toURI().toString().equals(uri)) {
-                    return Optional.of(editor);
-                }
-            }
-        }
-        return Optional.empty();
-    }
-
-    private void notifyLspServerFileOpened(File file, String content) {
-        if (this.serverProxy == null) {
-            logger.warn("❌ LSP Server not available. Cannot send 'didOpen' notification for {}", file != null ? file.getName() : "null file");
-            return;
-        }
-
-        if (file == null) {
-            logger.warn("❌ Cannot send 'didOpen' notification - file is null");
-            return;
-        }
-
-        try {
-            String uri = file.toURI().toString();
-            
-            // 1. Erstelle ein TextDocumentItem mit allen notwendigen Informationen
-            TextDocumentItem textDocumentItem = new TextDocumentItem(
-                    uri,                     // LSP verwendet URIs zur Identifikation
-                    "xml",                   // Die Sprach-ID
-                    1,                       // Version 1, da es das erste Öffnen ist
-                    content != null ? content : ""  // Der vollständige Inhalt der Datei
-            );
-
-            // 2. Verpacke das Item in die 'didOpen'-Parameter
-            DidOpenTextDocumentParams params = new DidOpenTextDocumentParams(textDocumentItem);
-
-            // 3. Sende die Benachrichtigung an den Text-Service des Servers
-            // Dies ist eine asynchrone Benachrichtigung, wir warten nicht auf eine Antwort.
-            this.serverProxy.getTextDocumentService().didOpen(params);
-
-            // Initialisiere die Version für dieses Dokument
-            documentVersions.put(uri, 1);
-
-            // Request folding ranges for the current editor
-            XmlEditor currentEditor = getCurrentXmlEditor();
-            if (currentEditor != null) {
-                requestFoldingRanges(currentEditor);
-            }
-
-            logger.info("✅ Sent 'didOpen' notification for {} to LSP server (URI: {})", file.getName(), uri);
-
-        } catch (Exception e) {
-            logger.error("❌ Failed to send 'didOpen' notification to LSP server for {}", file.getName(), e);
-        }
-    }
+    // LSP server file notification removed - using XSD-based implementation
 
     public void displayFileContent(File file) {
         if (file != null && file.exists()) {
@@ -473,8 +323,7 @@ public class XmlController {
                     area.replaceText(content);
                     logger.debug("File {} displayed.", file.getName());
 
-                    // Benachrichtige den LSP-Server, dass die Datei geöffnet wurde.
-                    notifyLspServerFileOpened(file, content);
+                    // LSP file opened notification removed
                 }
 
             } catch (IOException e) {
@@ -493,11 +342,7 @@ public class XmlController {
                 if (xmlEditor.getXmlFile() != null) {
                     textAreaTemp.setText(xmlEditor.getXmlFile().getName());
                     // Hole die CodeArea sicher. Der direkte Aufruf von .getText() auf das Ergebnis von
-                    // getCurrentCodeArea() ist unsicher, da die Methode null zurückgeben kann.
-                    CodeArea currentCodeArea = getCurrentCodeArea();
-                    if (currentCodeArea != null) {
-                        notifyLspServerFileOpened(xmlEditor.getXmlFile(), currentCodeArea.getText());
-                    }
+                    // LSP file opened notification removed
                 }
             }
         } catch (Exception e) {
@@ -741,122 +586,19 @@ public class XmlController {
     }
 
     /**
-     * Fährt den Language Server und die zugehörigen Dienste sauber herunter.
-     * Diese Methode sollte beim Schließen der Anwendung aufgerufen werden.
+     * Shuts down executor services.
      */
     public void shutdown() {
-        if (serverProxy == null) {
-            logger.info("LSP Server wurde nie gestartet, kein Shutdown notwendig.");
-            return;
+        if (!formattingExecutor.isShutdown()) {
+            formattingExecutor.shutdownNow();
+            logger.debug("Formatting-Executor-Service heruntergefahren.");
         }
-
-        logger.info("Beginne mit dem Herunterfahren des LSP-Servers...");
-        try {
-            // Schritt 1: Sende die 'shutdown'-Anfrage und warte auf die Antwort.
-            // Dies signalisiert dem Server, sich vorzubereiten, aber noch nicht zu beenden.
-            serverProxy.shutdown().get(5, TimeUnit.SECONDS);
-            logger.debug("LSP-Server 'shutdown'-Anfrage erfolgreich gesendet und bestätigt.");
-
-            // Schritt 2: Sende die 'exit'-Benachrichtigung.
-            // Dies weist den Server an, sich jetzt zu beenden. Dies ist eine Benachrichtigung, keine Anfrage.
-            serverProxy.exit();
-            logger.debug("LSP-Server 'exit'-Benachrichtigung gesendet.");
-
-        } catch (Exception e) {
-            logger.error("Fehler beim ordnungsgemäßen Herunterfahren des LSP-Servers.", e);
-        } finally {
-            // Schritt 3: Beende die clientseitigen Ressourcen, unabhängig vom Server-Status.
-            if (clientListening != null && !clientListening.isDone()) {
-                clientListening.cancel(true); // Stoppt den Listener-Thread.
-                logger.debug("LSP-Client-Listener gestoppt.");
-            }
-            if (!lspExecutor.isShutdown()) {
-                lspExecutor.shutdownNow(); // Beendet den Executor-Service.
-                logger.debug("LSP-Executor-Service heruntergefahren.");
-            }
-            if (!formattingExecutor.isShutdown()) {
-                formattingExecutor.shutdownNow();
-                logger.debug("Formatting-Executor-Service heruntergefahren.");
-            }
-            logger.info("LSP-Server-Shutdown-Prozess abgeschlossen.");
-        }
+        logger.info("XmlController shutdown completed.");
     }
 
-    /**
-     * NEU: Sendet eine 'didChange' Benachrichtigung an den LSP-Server, wenn sich der
-     * Text in einem Editor ändert. Aktualisiert auch die Falt-Bereiche.
-     *
-     * @param editor Der Editor, dessen Inhalt sich geändert hat.
-     */
-    private void notifyLspServerFileChanged(XmlEditor editor) {
-        if (serverProxy == null) {
-            logger.debug("⚠️  LSP Server not available for didChange notification");
-            return;
-        }
+    // LSP didChange notification removed - using XSD-based implementation
 
-        if (editor == null || editor.getXmlFile() == null) {
-            logger.debug("⚠️  Editor or file is null for didChange notification");
-            return;
-        }
-
-        try {
-            File file = editor.getXmlFile();
-            String uri = file.toURI().toString();
-            String content = editor.getXmlCodeEditor().getCodeArea().getText();
-
-            // Version für dieses Dokument erhöhen
-            int version = documentVersions.compute(uri, (k, v) -> (v == null) ? 1 : v + 1);
-
-            VersionedTextDocumentIdentifier identifier = new VersionedTextDocumentIdentifier(uri, version);
-            // Wir senden den kompletten neuen Text. Das ist einfacher als inkrementelle Änderungen.
-            TextDocumentContentChangeEvent changeEvent = new TextDocumentContentChangeEvent(content != null ? content : "");
-            DidChangeTextDocumentParams params = new DidChangeTextDocumentParams(identifier, Collections.singletonList(changeEvent));
-
-            serverProxy.getTextDocumentService().didChange(params);
-            logger.debug("📝 Sent 'didChange' (v{}) notification for {}", version, file.getName());
-
-            // Nach einer Änderung müssen die Falt-Bereiche neu angefordert werden.
-            requestFoldingRanges(editor);
-        } catch (Exception e) {
-            logger.error("❌ Failed to send 'didChange' notification", e);
-        }
-    }
-
-    /**
-     * Fordert die Falt-Bereiche vom LSP-Server für den angegebenen Editor an
-     * und aktualisiert die UI, wenn die Antwort eintrifft.
-     *
-     * @param editor Der XmlEditor, für den die Falt-Bereiche angefordert werden.
-     */
-    private void requestFoldingRanges(XmlEditor editor) {
-        // Die Methode wurde robuster und lesbarer gemacht.
-        if (serverProxy == null || editor == null || editor.getXmlFile() == null || editor.getXmlCodeEditor() == null) {
-            return; // Nichts tun, wenn Server oder Datei nicht bereit sind
-        }
-
-        FoldingRangeRequestParams params = new FoldingRangeRequestParams(new TextDocumentIdentifier(editor.getXmlFile().toURI().toString()));
-        logger.debug("Requesting folding ranges for: {}", editor.getXmlFile().getName());
-
-        serverProxy.getTextDocumentService().foldingRange(params).thenAccept(foldingRanges -> {
-            // KORREKTUR: Prüfen, ob die Antwort vom Server null ist, bevor sie verwendet wird.
-            // Dies verhindert die NullPointerException aus dem Stacktrace.
-            final List<FoldingRange> finalRanges = (foldingRanges != null) ? foldingRanges : Collections.emptyList();
-
-            logger.debug("Received {} folding ranges.", finalRanges.size());
-            // Die UI muss auf dem JavaFX Application Thread aktualisiert werden
-            Platform.runLater(() -> {
-                // Es ist gute Praxis, hier nochmals zu prüfen, ob der Editor noch existiert,
-                // da der Benutzer den Tab in der Zwischenzeit geschlossen haben könnte.
-                if (editor.getXmlCodeEditor() != null) {
-                    editor.getXmlCodeEditor().updateFoldingRanges(finalRanges);
-                    logger.debug("Folding ranges updated for {}.", editor.getXmlFile().getName());
-                }
-            });
-        }).exceptionally(e -> {
-            logger.error("Failed to get folding ranges for {}", editor.getXmlFile().getName(), e);
-            return null;
-        });
-    }
+    // LSP folding ranges request removed
 
     @FXML
     private void test() {
@@ -901,13 +643,7 @@ public class XmlController {
         });
         // 7. Führe Folgeaktionen aus, die vom geladenen Inhalt abhängen.
 
-        CodeArea codeArea = getCurrentCodeArea();
-        if (codeArea != null) {
-            // Benachrichtige den LSP-Server, dass die Datei jetzt "geöffnet" ist.
-            notifyLspServerFileOpened(currentEditor.getXmlFile(), codeArea.getText());
-        } else {
-            logger.warn("Could not get CodeArea after refresh to notify LSP server.");
-        }
+        // LSP file opened notification removed
 
         logger.debug("Test file loading complete.");
     }
