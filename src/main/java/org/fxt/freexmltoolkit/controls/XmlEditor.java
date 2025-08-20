@@ -21,6 +21,8 @@ import org.fxmisc.richtext.model.TwoDimensional;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
+import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.service.*;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
@@ -29,6 +31,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -77,6 +80,9 @@ public class XmlEditor extends Tab {
     XmlService xmlService = new XmlServiceImpl();
     XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
     SchematronService schematronService = new SchematronServiceImpl();
+
+    // Cache for XSD documentation data to avoid reparsing
+    private XsdDocumentationData xsdDocumentationData;
 
     private MainController mainController;
     private LanguageServer serverProxy;
@@ -1059,12 +1065,18 @@ public class XmlEditor extends Tab {
             sidebarController.setXsdPathField(xsdFile != null ? xsdFile.getAbsolutePath() : "No XSD schema selected");
         }
 
+        // Clear cached XSD documentation data when XSD changes
+        this.xsdDocumentationData = null;
+
         // Extract element names from XSD and update IntelliSense
         if (xsdFile != null) {
             List<String> elementNames = extractElementNamesFromXsd(xsdFile);
             Map<String, List<String>> contextElementNames = extractContextElementNamesFromXsd(xsdFile);
             xmlCodeEditor.setAvailableElementNames(elementNames);
             xmlCodeEditor.setContextElementNames(contextElementNames);
+
+            // Load XSD documentation data in background
+            loadXsdDocumentationDataAsync();
         }
         
         validateXml();
@@ -1617,52 +1629,378 @@ public class XmlEditor extends Tab {
     }
 
     /**
-     * Updates element documentation using LSP server hover functionality.
+     * Updates element documentation using LSP server hover functionality with XSD fallback.
      *
      * @param caretPosition The current cursor position
      */
     private void updateElementDocumentation(int caretPosition) {
-        if (serverProxy == null || xmlFile == null) return;
+        if (xmlFile == null) return;
 
-        try {
-            var lineColumn = codeArea.offsetToPosition(caretPosition, TwoDimensional.Bias.Forward);
-            TextDocumentIdentifier textDocumentIdentifier = new TextDocumentIdentifier(xmlFile.toURI().toString());
-            Position position = new Position(lineColumn.getMajor(), lineColumn.getMinor());
+        // First try LSP if available
+        if (serverProxy != null) {
+            try {
+                var lineColumn = codeArea.offsetToPosition(caretPosition, TwoDimensional.Bias.Forward);
+                TextDocumentIdentifier textDocumentIdentifier = new TextDocumentIdentifier(xmlFile.toURI().toString());
+                Position position = new Position(lineColumn.getMajor(), lineColumn.getMinor());
 
-            // Get hover information (documentation)
-            HoverParams hoverParams = new HoverParams(textDocumentIdentifier, position);
-            CompletableFuture<Hover> hoverFuture = serverProxy.getTextDocumentService().hover(hoverParams);
+                // Get hover information (documentation)
+                HoverParams hoverParams = new HoverParams(textDocumentIdentifier, position);
+                CompletableFuture<Hover> hoverFuture = serverProxy.getTextDocumentService().hover(hoverParams);
 
-            hoverFuture.thenAcceptAsync(hover -> {
-                if (hover != null && hover.getContents() != null) {
-                    final String[] documentation = {""};
+                hoverFuture.thenAcceptAsync(hover -> {
+                    boolean documentationFound = false;
+                    if (hover != null && hover.getContents() != null) {
+                        final String[] documentation = {""};
 
-                    // Handle different types of hover content
-                    if (hover.getContents().isRight()) {
-                        // Simple string content
-                        documentation[0] = hover.getContents().getRight().getValue();
-                    } else if (hover.getContents().isLeft()) {
-                        // List of marked strings
-                        try {
-                            documentation[0] = hover.getContents().getLeft().stream()
-                                    .map(Object::toString)
-                                    .collect(Collectors.joining("\n"));
-                        } catch (Exception e) {
-                            logger.debug("Error processing hover content: {}", e.getMessage());
+                        // Handle different types of hover content
+                        if (hover.getContents().isRight()) {
+                            // Simple string content
+                            documentation[0] = hover.getContents().getRight().getValue();
+                        } else if (hover.getContents().isLeft()) {
+                            // List of marked strings
+                            try {
+                                documentation[0] = hover.getContents().getLeft().stream()
+                                        .map(Object::toString)
+                                        .collect(Collectors.joining("\n"));
+                            } catch (Exception e) {
+                                logger.debug("Error processing hover content: {}", e.getMessage());
+                            }
+                        }
+
+                        if (!documentation[0].isBlank()) {
+                            Platform.runLater(() -> updateDocumentationDisplay(documentation[0]));
+                            documentationFound = true;
                         }
                     }
 
-                    if (!documentation[0].isBlank()) {
-                        Platform.runLater(() -> updateDocumentationDisplay(documentation[0]));
+                    // If LSP didn't provide documentation, fallback to XSD
+                    if (!documentationFound) {
+                        tryXsdDocumentationFallback(caretPosition);
                     }
-                }
-            }).exceptionally(ex -> {
-                logger.debug("LSP hover request failed: {}", ex.getMessage());
-                return null;
-            });
+                }).exceptionally(ex -> {
+                    logger.debug("LSP hover request failed, trying XSD fallback: {}", ex.getMessage());
+                    tryXsdDocumentationFallback(caretPosition);
+                    return null;
+                });
+
+            } catch (Exception e) {
+                logger.debug("Error updating element documentation from LSP: {}", e.getMessage());
+                tryXsdDocumentationFallback(caretPosition);
+            }
+        } else {
+            // No LSP available, use XSD fallback directly
+            tryXsdDocumentationFallback(caretPosition);
+        }
+    }
+
+    /**
+     * Fallback method to extract documentation using XsdDocumentationData and XPath lookup.
+     *
+     * @param caretPosition The current cursor position
+     */
+    private void tryXsdDocumentationFallback(int caretPosition) {
+        if (xsdDocumentationData == null || xsdFile == null || !xsdFile.exists()) {
+            Platform.runLater(() -> updateDocumentationDisplay(""));
+            return;
+        }
+
+        try {
+            // Get the current XPath position in the XML
+            String currentXPath = getCurrentXPath(codeArea.getText(), caretPosition);
+
+            logger.debug("XSD fallback: current XPath: '{}'", currentXPath);
+
+            if (currentXPath == null || currentXPath.isEmpty()) {
+                Platform.runLater(() -> updateDocumentationDisplay(""));
+                return;
+            }
+
+            // Look up the element information in the extendedXsdElementMap
+            XsdExtendedElement elementInfo = xsdDocumentationData.getExtendedXsdElementMap().get(currentXPath);
+
+            if (elementInfo == null) {
+                // Try to find a partial match or parent element
+                elementInfo = findBestMatchingElement(currentXPath);
+            }
+
+            if (elementInfo != null) {
+                // Get documentation from the extended element
+                String documentation = getDocumentationFromExtendedElement(elementInfo);
+                String elementType = elementInfo.getElementType();
+
+                // Make variables effectively final for lambda
+                final String finalDocumentation = documentation;
+                final String finalElementType = elementType;
+                final String finalElementName = elementInfo.getElementName();
+                final List<String> finalExampleValues = elementInfo.getExampleValues();
+
+                logger.debug("Found element info for XPath '{}': type='{}', doc='{}'",
+                        currentXPath, finalElementType, finalDocumentation);
+
+                // Update sidebar with comprehensive information
+                Platform.runLater(() -> {
+                    updateDocumentationDisplay(finalDocumentation != null ? finalDocumentation : "");
+                    if (sidebarController != null) {
+                        sidebarController.setElementName(finalElementName);
+                        sidebarController.setElementType(finalElementType != null ? finalElementType : "");
+                        sidebarController.setExampleValues(finalExampleValues);
+                    }
+                });
+            } else {
+                logger.debug("No element info found for XPath '{}'", currentXPath);
+                Platform.runLater(() -> updateDocumentationDisplay(""));
+            }
 
         } catch (Exception e) {
-            logger.debug("Error updating element documentation: {}", e.getMessage());
+            logger.debug("Error extracting documentation from XsdDocumentationData: {}", e.getMessage());
+            Platform.runLater(() -> updateDocumentationDisplay(""));
+        }
+    }
+
+    /**
+     * Tries to find the best matching element in the extendedXsdElementMap for a given XPath.
+     * This method handles cases where the exact XPath isn't found by looking for parent elements.
+     *
+     * @param targetXPath The XPath to find a match for
+     * @return The best matching XsdExtendedElement or null
+     */
+    private XsdExtendedElement findBestMatchingElement(String targetXPath) {
+        if (xsdDocumentationData == null || targetXPath == null) {
+            return null;
+        }
+
+        Map<String, XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
+
+        // Try exact match first
+        XsdExtendedElement exactMatch = elementMap.get(targetXPath);
+        if (exactMatch != null) {
+            return exactMatch;
+        }
+
+        // Try to find the longest matching parent path
+        String bestMatch = null;
+        int bestMatchLength = 0;
+
+        for (String xpath : elementMap.keySet()) {
+            if (targetXPath.startsWith(xpath + "/") || targetXPath.equals(xpath)) {
+                if (xpath.length() > bestMatchLength) {
+                    bestMatch = xpath;
+                    bestMatchLength = xpath.length();
+                }
+            }
+        }
+
+        if (bestMatch != null) {
+            logger.debug("Found partial match for '{}': '{}'", targetXPath, bestMatch);
+            return elementMap.get(bestMatch);
+        }
+
+        // Fallback: try to find by element name
+        String elementName = getElementNameFromXPath(targetXPath);
+        if (elementName != null) {
+            for (XsdExtendedElement element : elementMap.values()) {
+                if (elementName.equals(element.getElementName())) {
+                    logger.debug("Found match by element name for '{}': '{}'", targetXPath, element.getCurrentXpath());
+                    return element;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Extracts the element name from an XPath string.
+     *
+     * @param xpath The XPath string
+     * @return The element name or null
+     */
+    private String getElementNameFromXPath(String xpath) {
+        if (xpath == null || xpath.isEmpty()) {
+            return null;
+        }
+
+        // Get the last element in the path
+        String[] parts = xpath.split("/");
+        if (parts.length > 0) {
+            String lastPart = parts[parts.length - 1];
+            // Remove any array indices like [1], [2], etc.
+            return lastPart.replaceAll("\\[\\d+\\]", "");
+        }
+
+        return null;
+    }
+
+    /**
+     * Extracts documentation text from an XsdExtendedElement.
+     *
+     * @param element The XsdExtendedElement
+     * @return The documentation string or null
+     */
+    private String getDocumentationFromExtendedElement(XsdExtendedElement element) {
+        if (element == null) {
+            return null;
+        }
+
+        // Get documentation from the element
+        List<XsdExtendedElement.DocumentationInfo> documentations = element.getDocumentations();
+        if (documentations != null && !documentations.isEmpty()) {
+            StringBuilder docBuilder = new StringBuilder();
+
+            for (XsdExtendedElement.DocumentationInfo docInfo : documentations) {
+                if (docInfo.content() != null && !docInfo.content().trim().isEmpty()) {
+                    if (docBuilder.length() > 0) {
+                        docBuilder.append("\n\n");
+                    }
+
+                    // Add language prefix if available
+                    if (docInfo.lang() != null && !docInfo.lang().isEmpty()) {
+                        docBuilder.append("[").append(docInfo.lang()).append("] ");
+                    }
+
+                    docBuilder.append(docInfo.content().trim());
+                }
+            }
+
+            return docBuilder.length() > 0 ? docBuilder.toString() : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Extracts documentation for a specific element from the XSD schema.
+     *
+     * @param elementName The name of the element to find documentation for
+     * @return The documentation string or null if not found
+     */
+    private String extractDocumentationFromXsd(String elementName) {
+        if (xsdFile == null || !xsdFile.exists() || elementName == null || elementName.isEmpty()) {
+            return null;
+        }
+
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document xsdDoc = builder.parse(xsdFile);
+
+            // Create XPath to find the element and its documentation
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            xpath.setNamespaceContext(new SimpleNamespaceContext(xsdDoc));
+
+            // Look for element documentation in various locations
+            String[] xpathQueries = {
+                    "//xs:element[@name='" + elementName + "']/xs:annotation/xs:documentation",
+                    "//xsd:element[@name='" + elementName + "']/xsd:annotation/xsd:documentation",
+                    "//element[@name='" + elementName + "']/annotation/documentation",
+                    // Also check complexTypes and simpleTypes that might be referenced
+                    "//xs:complexType[@name='" + elementName + "']/xs:annotation/xs:documentation",
+                    "//xsd:complexType[@name='" + elementName + "']/xsd:annotation/xsd:documentation",
+                    "//xs:simpleType[@name='" + elementName + "']/xs:annotation/xs:documentation",
+                    "//xsd:simpleType[@name='" + elementName + "']/xsd:annotation/xsd:documentation"
+            };
+
+            for (String query : xpathQueries) {
+                NodeList nodes = (NodeList) xpath.evaluate(query, xsdDoc, XPathConstants.NODESET);
+                if (nodes.getLength() > 0) {
+                    StringBuilder documentation = new StringBuilder();
+                    for (int i = 0; i < nodes.getLength(); i++) {
+                        Node node = nodes.item(i);
+                        String content = node.getTextContent();
+                        if (content != null && !content.trim().isEmpty()) {
+                            if (documentation.length() > 0) {
+                                documentation.append("\n\n");
+                            }
+                            documentation.append(content.trim());
+                        }
+                    }
+                    if (documentation.length() > 0) {
+                        return documentation.toString();
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            logger.debug("Error parsing XSD for documentation: {}", e.getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Loads XSD documentation data asynchronously to avoid blocking the UI.
+     */
+    private void loadXsdDocumentationDataAsync() {
+        if (xsdFile == null || !xsdFile.exists()) {
+            return;
+        }
+
+        // Run in background thread
+        CompletableFuture.runAsync(() -> {
+            try {
+                logger.debug("Loading XSD documentation data from: {}", xsdFile.getAbsolutePath());
+
+                // Use the XsdDocumentationService to parse the XSD
+                XsdDocumentationService service = new XsdDocumentationService();
+                service.setXsdFilePath(xsdFile.getAbsolutePath());
+                service.processXsd(true);
+
+                // Get the populated documentation data
+                this.xsdDocumentationData = service.xsdDocumentationData;
+
+                logger.debug("Successfully loaded XSD documentation data with {} elements",
+                        xsdDocumentationData.getExtendedXsdElementMap().size());
+
+            } catch (Exception e) {
+                logger.debug("Error loading XSD documentation data: {}", e.getMessage());
+                this.xsdDocumentationData = null;
+            }
+        });
+    }
+
+    /**
+     * Simple namespace context for XSD parsing.
+     */
+    private static class SimpleNamespaceContext implements NamespaceContext {
+        private final Map<String, String> prefixMap = new HashMap<>();
+
+        public SimpleNamespaceContext(Document doc) {
+            // Add common XSD namespace prefixes
+            prefixMap.put("xs", "http://www.w3.org/2001/XMLSchema");
+            prefixMap.put("xsd", "http://www.w3.org/2001/XMLSchema");
+
+            // Try to extract namespace information from the document
+            Element root = doc.getDocumentElement();
+            if (root != null) {
+                String defaultNamespace = root.getNamespaceURI();
+                if (defaultNamespace != null) {
+                    prefixMap.put("", defaultNamespace);
+                }
+            }
+        }
+
+        @Override
+        public String getNamespaceURI(String prefix) {
+            return prefixMap.getOrDefault(prefix, "");
+        }
+
+        @Override
+        public String getPrefix(String namespaceURI) {
+            return prefixMap.entrySet().stream()
+                    .filter(entry -> entry.getValue().equals(namespaceURI))
+                    .map(Map.Entry::getKey)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        @Override
+        public Iterator<String> getPrefixes(String namespaceURI) {
+            return prefixMap.entrySet().stream()
+                    .filter(entry -> entry.getValue().equals(namespaceURI))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList())
+                    .iterator();
         }
     }
 
