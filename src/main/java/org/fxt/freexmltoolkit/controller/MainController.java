@@ -558,4 +558,120 @@ public class MainController {
         String paneVisible = propertiesService.get("xpathQueryPane.visible");
         return paneVisible == null || Boolean.parseBoolean(paneVisible);
     }
+
+    /**
+     * Handles File -> New menu action.
+     * Shows a dialog to select the file type to create.
+     */
+    @FXML
+    private void handleNewFile() {
+        logger.debug("New file action triggered");
+
+        // Create choice dialog for file type selection
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("XML", "XML", "XSD", "XSLT");
+        dialog.setTitle("New File");
+        dialog.setHeaderText("Select File Type");
+        dialog.setContentText("Choose the type of file you want to create:");
+
+        dialog.showAndWait().ifPresent(fileType -> {
+            logger.debug("Selected file type: {}", fileType);
+            switch (fileType) {
+                case "XML" -> {
+                    // Simulate clicking the XML button to navigate to XML tab
+                    xml.fire();
+                    // Wait for controller to be initialized, then create new file
+                    Platform.runLater(() -> {
+                        if (xmlController != null) {
+                            xmlController.createNewFile();
+                        }
+                    });
+                }
+                case "XSD" -> {
+                    // Simulate clicking the XSD button to navigate to XSD tab
+                    xsd.fire();
+                }
+                case "XSLT" -> {
+                    // Simulate clicking the XSLT button to navigate to XSLT tab
+                    xslt.fire();
+                }
+            }
+        });
+    }
+
+    /**
+     * Handles File -> Open menu action.
+     * Shows a file chooser with all supported file formats.
+     */
+    @FXML
+    private void handleOpenFile() {
+        logger.debug("Open file action triggered");
+
+        // Create file chooser with all supported formats
+        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+        fileChooser.setTitle("Open File");
+
+        // Add extension filters for all supported formats
+        fileChooser.getExtensionFilters().addAll(
+                new javafx.stage.FileChooser.ExtensionFilter("All Supported Files", "*.xml", "*.xsd", "*.xsl", "*.xslt"),
+                new javafx.stage.FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"),
+                new javafx.stage.FileChooser.ExtensionFilter("XSD files (*.xsd)", "*.xsd"),
+                new javafx.stage.FileChooser.ExtensionFilter("XSLT files (*.xsl, *.xslt)", "*.xsl", "*.xslt"),
+                new javafx.stage.FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
+        );
+
+        // Set initial directory from properties
+        String lastDirString = propertiesService.getLastOpenDirectory();
+        if (lastDirString != null) {
+            File lastDir = new File(lastDirString);
+            if (lastDir.exists() && lastDir.isDirectory()) {
+                fileChooser.setInitialDirectory(lastDir);
+            }
+        }
+
+        File selectedFile = fileChooser.showOpenDialog(contentPane.getScene().getWindow());
+
+        if (selectedFile != null && selectedFile.exists()) {
+            logger.debug("Selected file: {}", selectedFile.getAbsolutePath());
+
+            // Save the new directory
+            if (selectedFile.getParentFile() != null) {
+                propertiesService.setLastOpenDirectory(selectedFile.getParentFile().getAbsolutePath());
+            }
+
+            // Route to appropriate tab based on file extension
+            String fileName = selectedFile.getName().toLowerCase();
+            if (fileName.endsWith(".xml")) {
+                // Navigate to XML tab and load file
+                xml.fire();
+                Platform.runLater(() -> {
+                    if (xmlController != null) {
+                        xmlController.loadFile(selectedFile);
+                    }
+                });
+            } else if (fileName.endsWith(".xsd")) {
+                // Navigate to XSD tab and load file
+                xsd.fire();
+                Platform.runLater(() -> {
+                    if (xsdController != null) {
+                        xsdController.openXsdFile(selectedFile);
+                    }
+                });
+            } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
+                // Navigate to XSLT tab
+                xslt.fire();
+                // XSLT controller would need a load method - for now just switch tab
+            } else {
+                // Default to XML for unknown extensions
+                xml.fire();
+                Platform.runLater(() -> {
+                    if (xmlController != null) {
+                        xmlController.loadFile(selectedFile);
+                    }
+                });
+            }
+
+            // Add to recent files
+            addFileToRecentFiles(selectedFile);
+        }
+    }
 }

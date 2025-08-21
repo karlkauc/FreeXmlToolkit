@@ -327,6 +327,14 @@ public class XmlController {
     }
 
     /**
+     * Creates a new XML file tab. Called from MainController.
+     */
+    public void createNewFile() {
+        logger.debug("Creating new XML file from main menu");
+        createAndAddXmlTab(null);
+    }
+
+    /**
      * Gets the currently active XML editor tab.
      *
      * @return The current XmlEditor or null if no tab is selected

@@ -151,7 +151,6 @@ public class XsltController {
                 String outputMethod = xmlService.getXsltOutputMethod().toLowerCase().trim();
                 switch (outputMethod) {
                     case "html", "xhtml" -> outputMethodSwitch.getSelectionModel().select(tabWeb);
-                    case "xml", "text" -> outputMethodSwitch.getSelectionModel().select(tabText);
                     default -> outputMethodSwitch.getSelectionModel().select(tabText);
                 }
             } catch (Exception exception) {
