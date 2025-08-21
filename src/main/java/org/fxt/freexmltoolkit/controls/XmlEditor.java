@@ -2070,6 +2070,30 @@ public class XmlEditor extends Tab {
         hoverPopOver.show(codeArea.getScene().getWindow(), screenPos.getX(), screenPos.getY() + 5);
     }
 
+    /**
+     * Auto-formats the XML content if the setting is enabled.
+     */
+    private void autoFormatIfEnabled() {
+        PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+        if (propertiesService.isXmlAutoFormatAfterLoading()) {
+            logger.debug("Auto-formatting XML content after loading file");
+            Platform.runLater(() -> {
+                String currentText = codeArea.getText();
+                if (currentText != null && !currentText.trim().isEmpty()) {
+                    try {
+                        String formattedText = XmlService.prettyFormat(currentText, propertiesService.getXmlIndentSpaces());
+                        if (formattedText != null && !formattedText.isEmpty()) {
+                            codeArea.replaceText(0, codeArea.getLength(), formattedText);
+                            logger.debug("XML content auto-formatted successfully");
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Failed to auto-format XML content: {}", e.getMessage());
+                    }
+                }
+            });
+        }
+    }
+
     public File getXmlFile() {
         return xmlFile;
     }
@@ -2086,6 +2110,9 @@ public class XmlEditor extends Tab {
             xmlCodeEditor.setDocumentUri(xmlFile.toURI().toString());
             xmlCodeEditor.setParentXmlEditor(this);
         }
+
+        // Auto-format XML if setting is enabled
+        autoFormatIfEnabled();
 
         // Try to automatically load XSD schema from XML file
         if (xmlService.loadSchemaFromXMLFile()) {

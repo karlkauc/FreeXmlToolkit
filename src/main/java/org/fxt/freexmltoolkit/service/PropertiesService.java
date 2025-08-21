@@ -54,4 +54,18 @@ public interface PropertiesService {
      * @param spaces the number of indent spaces
      */
     void setXmlIndentSpaces(int spaces);
+
+    /**
+     * Gets whether XML files should be automatically formatted after loading.
+     *
+     * @return true if autoformat is enabled, false otherwise (default: false)
+     */
+    boolean isXmlAutoFormatAfterLoading();
+
+    /**
+     * Sets whether XML files should be automatically formatted after loading.
+     *
+     * @param autoFormat true to enable autoformat, false to disable
+     */
+    void setXmlAutoFormatAfterLoading(boolean autoFormat);
 }

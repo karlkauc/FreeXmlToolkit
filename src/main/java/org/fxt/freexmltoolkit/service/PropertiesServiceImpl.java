@@ -216,4 +216,22 @@ public class PropertiesServiceImpl implements PropertiesService {
         saveProperties(properties);
         logger.debug("Set XML indent spaces to: {}", clampedSpaces);
     }
+
+    @Override
+    public boolean isXmlAutoFormatAfterLoading() {
+        String autoFormat = properties.getProperty("xml.autoformat.after.loading", "false");
+        try {
+            return Boolean.parseBoolean(autoFormat);
+        } catch (Exception e) {
+            logger.warn("Invalid autoformat setting, defaulting to false: {}", autoFormat);
+            return false;
+        }
+    }
+
+    @Override
+    public void setXmlAutoFormatAfterLoading(boolean autoFormat) {
+        properties.setProperty("xml.autoformat.after.loading", String.valueOf(autoFormat));
+        saveProperties(properties);
+        logger.debug("Set XML autoformat after loading to: {}", autoFormat);
+    }
 }

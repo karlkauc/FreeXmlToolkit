@@ -46,6 +46,9 @@ public class SettingsController {
     RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder;
 
     @FXML
+    CheckBox autoFormatXmlAfterLoading;
+
+    @FXML
     TextField customTempFolder, httpProxyHost, httpProxyUser, noProxyHost;
 
     @FXML
@@ -161,6 +164,7 @@ public class SettingsController {
             props.setProperty("http.proxy.user", httpProxyUser.getText());
             props.setProperty("http.proxy.password", httpProxyPass.getText());
             props.setProperty("xml.indent.spaces", xmlIndentSpaces.getValue().toString());
+            props.setProperty("xml.autoformat.after.loading", String.valueOf(autoFormatXmlAfterLoading.isSelected()));
 
             propertiesService.saveProperties(props);
 
@@ -228,6 +232,10 @@ public class SettingsController {
         // Load XML indent spaces setting
         int indentSpaces = propertiesService.getXmlIndentSpaces();
         xmlIndentSpaces.getValueFactory().setValue(indentSpaces);
+
+        // Load XML autoformat setting
+        boolean autoFormat = Boolean.parseBoolean(props.getProperty("xml.autoformat.after.loading", "false"));
+        autoFormatXmlAfterLoading.setSelected(autoFormat);
     }
 
     /**
