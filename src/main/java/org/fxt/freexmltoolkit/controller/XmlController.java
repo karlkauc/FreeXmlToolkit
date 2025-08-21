@@ -200,6 +200,11 @@ public class XmlController {
      * @param file The file to load, or null for a new empty editor
      */
     private void createAndAddXmlTab(File file) {
+        // Close empty tabs when opening a file (not when creating new tabs)
+        if (file != null) {
+            closeEmptyXmlTabs();
+        }
+        
         // The XmlEditor constructors must be adapted to accept the MainController
         XmlEditor xmlEditor = new XmlEditor(file); // Keep your constructor
         xmlEditor.setMainController(this.mainController); // Pass the controller
@@ -224,6 +229,36 @@ public class XmlController {
         if (file != null) {
             mainController.addFileToRecentFiles(file);
         }
+    }
+
+    /**
+     * Closes all XML editor tabs that have no content.
+     */
+    private void closeEmptyXmlTabs() {
+        var tabsToRemove = xmlFilesPane.getTabs().stream()
+                .filter(tab -> tab instanceof XmlEditor)
+                .map(tab -> (XmlEditor) tab)
+                .filter(this::isEmptyXmlEditor)
+                .collect(java.util.stream.Collectors.toList());
+
+        if (!tabsToRemove.isEmpty()) {
+            logger.debug("Closing {} empty XML editor tabs", tabsToRemove.size());
+            xmlFilesPane.getTabs().removeAll(tabsToRemove);
+        }
+    }
+
+    /**
+     * Checks if an XML editor tab is empty (no content and no associated file).
+     */
+    private boolean isEmptyXmlEditor(XmlEditor xmlEditor) {
+        // Check if editor has a file associated
+        if (xmlEditor.getXmlFile() != null) {
+            return false;
+        }
+
+        // Check if editor has any content
+        String content = xmlEditor.codeArea.getText();
+        return content == null || content.trim().isEmpty();
     }
 
     /**
