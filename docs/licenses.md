@@ -13,8 +13,6 @@ This application uses several third-party libraries. The following is a list of 
 | **Log4j** (org.apache.logging.log4j) | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)                                     |
 | **Apache Santuario** (org.apache.santuario:xmlsec) | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)                                     |
 | **Bouncy Castle** (org.bouncycastle) | [MIT License](https://www.bouncycastle.org/licence.html)                                            |
-| **LSP4J** (org.eclipse.lsp4j)         | [Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/)                                |
-| **LemMinX** (org.eclipse.lemminx)     | [Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/)                                |
 | **ControlsFX** (org.controlsfx:controlsfx) | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause)                                |
 | **Apache FOP** (org.apache.xmlgraphics:fop) | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)                                     |
 | **Apache PDFBox** (org.apache.pdfbox:pdfbox) | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)                                     |

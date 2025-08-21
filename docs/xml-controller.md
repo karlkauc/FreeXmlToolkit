@@ -51,10 +51,6 @@ The XML Editor is the core feature of the Free XML Toolkit. It provides a powerf
 ### Querying
 - **XPath & XQuery:** The editor includes dedicated tabs for running XPath and XQuery expressions. This allows you to search, filter, and extract specific data from your XML documents.
 
-### Advanced Features
-- **Language Server Protocol (LSP):** The editor uses modern technology to provide advanced features like real-time error checking (diagnostics) and the ability to collapse or expand sections of your XML (code folding).
-- **Recent Files:** The application keeps a list of your recently opened files for quick access.
-
 ---
 
 [Home](index.md) | [Next: XSD Tools](xsd-controller.md)
