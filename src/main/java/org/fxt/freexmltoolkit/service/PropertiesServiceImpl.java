@@ -196,4 +196,24 @@ public class PropertiesServiceImpl implements PropertiesService {
             saveProperties(properties);
         }
     }
+
+    @Override
+    public int getXmlIndentSpaces() {
+        String spaces = properties.getProperty("xml.indent.spaces", "4");
+        try {
+            int value = Integer.parseInt(spaces);
+            return Math.max(1, Math.min(value, 8)); // Clamp between 1 and 8
+        } catch (NumberFormatException e) {
+            logger.warn("Invalid xml.indent.spaces value '{}', using default 4", spaces);
+            return 4;
+        }
+    }
+
+    @Override
+    public void setXmlIndentSpaces(int spaces) {
+        int clampedSpaces = Math.max(1, Math.min(spaces, 8)); // Clamp between 1 and 8
+        properties.setProperty("xml.indent.spaces", String.valueOf(clampedSpaces));
+        saveProperties(properties);
+        logger.debug("Set XML indent spaces to: {}", clampedSpaces);
+    }
 }

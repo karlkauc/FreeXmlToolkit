@@ -14,8 +14,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.StringWriter;
-import java.net.URI;
 import java.io.Writer;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 
@@ -26,6 +26,7 @@ public class XsdFlattenerService {
 
     private static final String XML_SCHEMA_NS = "http://www.w3.org/2001/XMLSchema";
     private static final String FXT_INTERNAL_NS = "http://www.freexmltoolkit.org/ns/internal";
+    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     /**
      * Flattens an XSD file by resolving all its <xs:include> directives.
@@ -152,7 +153,7 @@ public class XsdFlattenerService {
         Transformer transformer = tf.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(propertiesService.getXmlIndentSpaces()));
 
         Writer out = new StringWriter();
         transformer.transform(new DOMSource(doc), new StreamResult(out));

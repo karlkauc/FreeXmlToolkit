@@ -76,6 +76,7 @@ public class XmlServiceImpl implements XmlService {
 
     private static final XmlServiceImpl instance = new XmlServiceImpl();
     private static final ConnectionService connectionService = ConnectionServiceImpl.getInstance();
+    private static final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
     XPathFactory xPathFactory = new net.sf.saxon.xpath.XPathFactoryImpl();
@@ -86,7 +87,6 @@ public class XmlServiceImpl implements XmlService {
     Xslt30Transformer transformer;
     UrlValidator urlValidator = new UrlValidator();
     SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-    PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     Transformer transform;
     XsltExecutable stylesheet;
     private File cachedXsltFile = null; // Added for caching compiled stylesheet
@@ -191,7 +191,7 @@ public class XmlServiceImpl implements XmlService {
         } catch (IOException ioException) {
             logger.error(ioException.getMessage());
         }
-        return XmlService.prettyFormat(t, 4);
+        return XmlService.prettyFormat(t, propertiesService.getXmlIndentSpaces());
     }
 
     @Override
@@ -199,7 +199,7 @@ public class XmlServiceImpl implements XmlService {
         logger.debug("pretty format file");
         try {
             var temp = Files.readString(this.currentXmlFile.toPath());
-            temp = XmlService.prettyFormat(temp, 4);
+            temp = XmlService.prettyFormat(temp, propertiesService.getXmlIndentSpaces());
             Files.write(this.currentXmlFile.toPath(), temp.getBytes());
             logger.debug("done: {}", temp.getBytes().length);
         } catch (IOException ioException) {
@@ -849,7 +849,7 @@ public class XmlServiceImpl implements XmlService {
                 possibleSchemaLocation = root.getAttribute("xsi:schemaLocation");
                 if (possibleSchemaLocation.contains(" ")) {
                     // e.g. xsi:schemaLocation="http://www.fundsxml.org/XMLSchema/3.0.6 FundsXML3.0.6.xsd"
-                    String[] splitStr = possibleSchemaLocation.split("\s+");
+                    String[] splitStr = possibleSchemaLocation.split(" +");
                     String possibleFileName = splitStr[1];
                     String possibleFilePath = this.currentXmlFile.getParent() + "/" + possibleFileName;
                     if (new File(possibleFilePath).exists()) {
@@ -1101,7 +1101,7 @@ public class XmlServiceImpl implements XmlService {
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(propertiesService.getXmlIndentSpaces()));
         DOMSource source = new DOMSource(doc);
         StreamResult result = new StreamResult(file);
         transformer.transform(source, result);

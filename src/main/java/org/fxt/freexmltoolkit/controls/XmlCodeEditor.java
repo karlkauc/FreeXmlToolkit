@@ -20,6 +20,8 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 import java.util.*;
 import java.util.function.IntFunction;
@@ -38,6 +40,7 @@ public class XmlCodeEditor extends VBox {
     private static final Logger logger = LogManager.getLogger(XmlCodeEditor.class);
     private static final int DEFAULT_FONT_SIZE = 11;
     private int fontSize = DEFAULT_FONT_SIZE;
+    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     private final CodeArea codeArea = new CodeArea();
     private final VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
@@ -47,12 +50,12 @@ public class XmlCodeEditor extends VBox {
     private final Label cursorPositionLabel = new Label("Line: 1, Column: 1");
     private final Label encodingLabel = new Label("UTF-8");
     private final Label lineSeparatorLabel = new Label("LF");
-    private final Label indentationLabel = new Label("4 spaces");
+    private final Label indentationLabel = new Label();
 
     // File properties for status line
     private String currentEncoding = "UTF-8";
     private String currentLineSeparator = "LF";
-    private int currentIndentationSize = 4;
+    private int currentIndentationSize;
     private boolean useSpaces = true;
 
     // Stores start and end lines of foldable regions
@@ -102,7 +105,26 @@ public class XmlCodeEditor extends VBox {
 
     public XmlCodeEditor() {
         super();
+        currentIndentationSize = propertiesService.getXmlIndentSpaces();
         initialize();
+    }
+
+    /**
+     * Updates the indentation label to show the current configured indent spaces.
+     */
+    private void updateIndentationLabel() {
+        int indentSpaces = propertiesService.getXmlIndentSpaces();
+        currentIndentationSize = indentSpaces;
+        String indentType = useSpaces ? "spaces" : "tabs";
+        indentationLabel.setText(indentSpaces + " " + indentType);
+    }
+
+    /**
+     * Refreshes the indentation display in the status line.
+     * Call this method when the indent settings have been changed.
+     */
+    public void refreshIndentationDisplay() {
+        updateIndentationLabel();
     }
 
     /**
@@ -887,11 +909,24 @@ public class XmlCodeEditor extends VBox {
         List<ElementTextInfo> enumElements = findAllEnumerationElements(text);
 
         for (ElementTextInfo elementInfo : enumElements) {
-            enumSpansBuilder.add(Collections.emptyList(), elementInfo.startPosition() - lastMatchEnd);
-            enumSpansBuilder.add(Collections.singleton("enumeration-content"), elementInfo.endPosition() - elementInfo.startPosition());
+            int gapLength = elementInfo.startPosition() - lastMatchEnd;
+            int contentLength = elementInfo.endPosition() - elementInfo.startPosition();
+
+            // Skip invalid spans with negative lengths
+            if (gapLength < 0 || contentLength < 0) {
+                logger.warn("Skipping invalid span: gap={}, content={}, start={}, end={}",
+                        gapLength, contentLength, elementInfo.startPosition(), elementInfo.endPosition());
+                continue;
+            }
+
+            enumSpansBuilder.add(Collections.emptyList(), gapLength);
+            enumSpansBuilder.add(Collections.singleton("enumeration-content"), contentLength);
             lastMatchEnd = elementInfo.endPosition();
         }
-        enumSpansBuilder.add(Collections.emptyList(), text.length() - lastMatchEnd);
+        int finalGapLength = text.length() - lastMatchEnd;
+        if (finalGapLength >= 0) {
+            enumSpansBuilder.add(Collections.emptyList(), finalGapLength);
+        }
 
         // Overlay the enumeration highlighting on top of the base syntax highlighting
         return baseHighlighting.overlay(enumSpansBuilder.create(), (baseStyle, enumStyle) -> {
@@ -1915,6 +1950,9 @@ public class XmlCodeEditor extends VBox {
         encodingLabel.setStyle(labelStyle);
         lineSeparatorLabel.setStyle(labelStyle);
         indentationLabel.setStyle(labelStyle);
+
+        // Initialize indent label with current setting
+        updateIndentationLabel();
 
         // Add labels to status line
         statusLine.getChildren().addAll(

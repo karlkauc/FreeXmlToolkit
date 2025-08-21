@@ -78,6 +78,7 @@ public class XsdDocumentationService {
 
     private TaskProgressListener progressListener;
     private final XsdSampleDataGenerator xsdSampleDataGenerator = new XsdSampleDataGenerator();
+    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
     XsdDocumentationSvgService xsdDocumentationSvgService = new XsdDocumentationSvgService();
 
@@ -100,7 +101,7 @@ public class XsdDocumentationService {
             Transformer transformer = factory.newTransformer();
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(PropertiesServiceImpl.getInstance().getXmlIndentSpaces()));
             return transformer;
         } catch (Exception e) {
             // If initialization fails, a RuntimeException is thrown.
@@ -297,7 +298,7 @@ public class XsdDocumentationService {
                     factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
                     Transformer transformer = factory.newTransformer();
                     transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+                    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(PropertiesServiceImpl.getInstance().getXmlIndentSpaces()));
                     transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
                     transformer.transform(new DOMSource(document), new StreamResult(writer));
                 }
@@ -655,24 +656,9 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Result of XML validation against XSD schema.
-     */
-    public static class ValidationResult {
-        private final boolean isValid;
-        private final String message;
-        
-        public ValidationResult(boolean isValid, String message) {
-            this.isValid = isValid;
-            this.message = message;
-        }
-        
-        public boolean isValid() {
-            return isValid;
-        }
-        
-        public String getMessage() {
-            return message;
-        }
+         * Result of XML validation against XSD schema.
+         */
+        public record ValidationResult(boolean isValid, String message) {
     }
 
     private void buildXmlElement(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel) {

@@ -52,7 +52,6 @@ import java.util.concurrent.Executors;
 public class XmlController {
     private final static Logger logger = LogManager.getLogger(XmlController.class);
 
-    private final static int XML_INDENT = 4;
 
     CodeArea codeAreaXpath = new CodeArea();
     CodeArea codeAreaXQuery = new CodeArea();
@@ -631,15 +630,23 @@ public class XmlController {
         Task<String> formatTask = new Task<>() {
             @Override
             protected String call() {
-                return XmlService.prettyFormat(text, XML_INDENT);
+                return XmlService.prettyFormat(text, propertiesService.getXmlIndentSpaces());
             }
         };
 
         formatTask.setOnSucceeded(event -> {
             String prettyString = formatTask.getValue();
             if (prettyString != null && !prettyString.isEmpty()) {
-                currentCodeArea.clear();
-                currentCodeArea.replaceText(0, 0, prettyString);
+                // Store current caret position
+                int caretPosition = currentCodeArea.getCaretPosition();
+                int textLength = currentCodeArea.getLength();
+
+                // Replace entire text content safely
+                currentCodeArea.replaceText(0, textLength, prettyString);
+
+                // Restore caret position synchronously, ensuring it's within valid bounds
+                int newCaretPosition = Math.min(caretPosition, prettyString.length());
+                currentCodeArea.moveTo(newCaretPosition);
             }
             prettyPrint.setDisable(false);
         });

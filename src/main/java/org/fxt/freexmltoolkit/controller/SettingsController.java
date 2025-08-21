@@ -52,7 +52,7 @@ public class SettingsController {
     PasswordField httpProxyPass;
 
     @FXML
-    Spinner<Integer> portSpinner;
+    Spinner<Integer> portSpinner, xmlIndentSpaces;
 
     @FXML
     Button checkConnection;
@@ -69,6 +69,7 @@ public class SettingsController {
     @FXML
     public void initialize() {
         portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 65535, 8080));
+        xmlIndentSpaces.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 4));
         loadCurrentSettings();
 
         // Listener to enable/disable input fields
@@ -159,6 +160,7 @@ public class SettingsController {
             props.setProperty("http.proxy.port", portSpinner.getValue().toString());
             props.setProperty("http.proxy.user", httpProxyUser.getText());
             props.setProperty("http.proxy.password", httpProxyPass.getText());
+            props.setProperty("xml.indent.spaces", xmlIndentSpaces.getValue().toString());
 
             propertiesService.saveProperties(props);
 
@@ -222,6 +224,10 @@ public class SettingsController {
             useSystemTempFolder.setSelected(true);
             enableTempFolderFields(false);
         }
+
+        // Load XML indent spaces setting
+        int indentSpaces = propertiesService.getXmlIndentSpaces();
+        xmlIndentSpaces.getValueFactory().setValue(indentSpaces);
     }
 
     /**

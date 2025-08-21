@@ -40,4 +40,18 @@ public interface PropertiesService {
     String get(String key);
 
     void set(String key, String value);
+
+    /**
+     * Gets the number of spaces used for XML indentation during pretty printing.
+     *
+     * @return the number of indent spaces (default: 4)
+     */
+    int getXmlIndentSpaces();
+
+    /**
+     * Sets the number of spaces used for XML indentation during pretty printing.
+     *
+     * @param spaces the number of indent spaces
+     */
+    void setXmlIndentSpaces(int spaces);
 }
