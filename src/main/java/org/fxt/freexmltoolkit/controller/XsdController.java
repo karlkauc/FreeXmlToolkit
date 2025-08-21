@@ -832,18 +832,18 @@ public class XsdController {
                 XsdDocumentationService.ValidationResult result = validationTask.getValue();
                 if (result.isValid()) {
                     statusText.setText("Sample XML generated and validated successfully.");
-                    if (!result.getMessage().isEmpty()) {
-                        logger.info("Validation warnings: " + result.getMessage());
+                    if (!result.message().isEmpty()) {
+                        logger.info("Validation warnings: " + result.message());
                     }
                 } else {
                     statusText.setText("Sample XML generated but validation failed.");
-                    logger.warn("XML validation failed: " + result.getMessage());
+                    logger.warn("XML validation failed: " + result.message());
                     // Show validation error in a dialog
                     Platform.runLater(() -> {
                         Alert alert = new Alert(Alert.AlertType.WARNING);
                         alert.setTitle("XML Validation Warning");
                         alert.setHeaderText("Generated XML does not fully conform to the XSD schema");
-                        alert.setContentText("The generated XML may have validation issues:\n\n" + result.getMessage());
+                        alert.setContentText("The generated XML may have validation issues:\n\n" + result.message());
                         alert.showAndWait();
                     });
                 }
