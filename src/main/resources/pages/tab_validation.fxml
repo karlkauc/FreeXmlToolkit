@@ -105,11 +105,6 @@
                         <FontIcon iconColor="#4dd61d" iconLiteral="bi-file-earmark-excel" iconSize="16"/>
                     </graphic>
                 </Button>
-                <Button fx:id="test" onAction="#test" text="test" visible="false">
-                    <graphic>
-                        <FontIcon iconLiteral="win10-spy" iconSize="16"/>
-                    </graphic>
-                </Button>
             </HBox>
 
             <HBox fx:id="statusPane" alignment="CENTER_LEFT" spacing="10"

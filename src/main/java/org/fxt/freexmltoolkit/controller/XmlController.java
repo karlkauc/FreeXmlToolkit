@@ -26,7 +26,6 @@ import javafx.scene.control.*;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -45,8 +44,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -77,8 +74,6 @@ public class XmlController {
 
     FileChooser fileChooser = new FileChooser();
 
-    @FXML
-    HBox test;
 
 
 
@@ -140,8 +135,8 @@ public class XmlController {
 
         var t = System.getenv("debug");
         if (t != null) {
-            logger.debug("set visible false");
-            test.setVisible(true);
+            logger.debug("debug mode enabled");
+            // Debug mode - test functionality can be added here if needed
 
             codeAreaXpath.replaceText(0, 0, "/FundsXML4/ControlData");
             codeAreaXQuery.replaceText(0, 0, """
@@ -741,60 +736,6 @@ public class XmlController {
     }
 
 
-    /**
-     * Loads a test XML file for demonstration purposes.
-     */
-    @FXML
-    private void test() {
-        // 1. Get the current editor.
-        XmlEditor currentEditor = getCurrentXmlEditor();
-
-        // 2. If no editor is active, create a new one.
-        if (currentEditor == null) {
-            logger.info("Test button clicked, but no active editor found. Creating a new one.");
-            createAndAddXmlTab(null);
-            currentEditor = getCurrentXmlEditor();
-        }
-
-        // 3. Define the paths to the test files.
-        Path xmlExampleFile = Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml");
-        Path xsdExampleFile = Paths.get("release/examples/xsd/FundsXML4.xsd");
-
-        // 4. Check if the test file exists to avoid errors.
-        if (!Files.exists(xmlExampleFile)) {
-            logger.error("Test file not found at path: {}", xmlExampleFile.toAbsolutePath());
-            new Alert(Alert.AlertType.ERROR, "Test file not found: " + xmlExampleFile).showAndWait();
-            return;
-        }
-
-        // 5. Configure the editor and its service with the new files.
-        logger.debug("Loading test file '{}' into the current editor.", xmlExampleFile.getFileName());
-        currentEditor.setXmlFile(xmlExampleFile.toFile());
-
-        XmlService service = currentEditor.getXmlService();
-        service.setCurrentXmlFile(xmlExampleFile.toFile());
-        service.setCurrentXsdFile(xsdExampleFile.toFile());
-
-        // 6. Load the file content into the UI.
-        currentEditor.refresh();
-
-        // Set cursor and view to the beginning after UI changes have been processed.
-        XmlEditor finalCurrentEditor = currentEditor;
-        Platform.runLater(() -> {
-            if (finalCurrentEditor.getXmlCodeEditor() != null) {
-                finalCurrentEditor.getXmlCodeEditor().moveUp();
-
-                // Force syntax highlighting refresh
-                finalCurrentEditor.getXmlCodeEditor().refreshSyntaxHighlighting();
-
-                // Force folding regions refresh
-                finalCurrentEditor.getXmlCodeEditor().refreshFoldingRegions();
-            }
-        });
-        // 7. Execute follow-up actions that depend on the loaded content.
-
-        logger.debug("Test file loading complete.");
-    }
 
     /**
      * Sets the visibility of the XML Editor Sidebar for all tabs.

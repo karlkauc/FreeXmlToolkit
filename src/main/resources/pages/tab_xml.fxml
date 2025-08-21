@@ -69,14 +69,6 @@
             </VBox>
             <Separator orientation="VERTICAL" />
         </HBox>
-        <HBox fx:id="test" styleClass="xml" visible="false">
-            <Separator orientation="VERTICAL" />
-            <Button contentDisplay="TOP" onAction="#test" text="test" ButtonBar.buttonData="RIGHT">
-                <graphic>
-                    <FontIcon iconLiteral="win10-checked" />
-                </graphic>
-            </Button>
-        </HBox>
     </HBox>
 
     <SplitPane VBox.vgrow="ALWAYS">

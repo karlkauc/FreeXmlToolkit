@@ -84,7 +84,7 @@ public class XmlCodeEditor extends VBox {
 
     // Performance optimization: Cache compiled patterns
     private static final Pattern OPEN_TAG_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\b[^>]*>");
-    private static final Pattern CLOSE_TAG_PATTERN = Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\s*>");
+    private static final Pattern CLOSE_TAG_PATTERN = Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*) *>");
     private static final Pattern ELEMENT_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)");
 
     // --- Syntax Highlighting Patterns (moved from XmlEditor) ---
@@ -729,7 +729,7 @@ public class XmlCodeEditor extends VBox {
 
                     } catch (Exception ex) {
                         // Handle exceptions from the task
-                        ex.printStackTrace();
+                        logger.error("Exception in folding task", ex);
                     } finally {
                         // Always clean up the UI
                         // Redraw the gutter to update all line numbers and folding icons
@@ -745,7 +745,7 @@ public class XmlCodeEditor extends VBox {
                     if (getScene() != null) {
                         getScene().setCursor(Cursor.DEFAULT);
                     }
-                    foldingTask.getException().printStackTrace();
+                    logger.error("Folding task failed", foldingTask.getException());
                 });
 
                 // 3. Start the task on a new thread.

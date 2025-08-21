@@ -874,11 +874,6 @@ public class XsdController {
         executeTask(generationTask);
     }
 
-    @FXML
-    private void test() {
-        logger.info("Test button clicked.");
-        new Alert(Alert.AlertType.INFORMATION, "Test successful!").showAndWait();
-    }
 
     private void saveStringToFile(String content, File file) {
         Task<Void> saveTask = new Task<>() {
@@ -998,8 +993,8 @@ public class XsdController {
             flattenProgress.setVisible(false);
             flattenStatusLabel.setText("Error during flattening process.");
             Throwable ex = flattenTask.getException();
+            logger.error("Flattening failed", ex);
             showAlert(Alert.AlertType.ERROR, "Flattening Failed", "An error occurred: " + ex.getMessage());
-            ex.printStackTrace();
         });
 
         executeTask(flattenTask);

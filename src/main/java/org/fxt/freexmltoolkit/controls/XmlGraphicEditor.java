@@ -40,15 +40,15 @@ public class XmlGraphicEditor extends VBox {
     public XmlGraphicEditor(Node node, XmlEditor caller) {
         this.xmlEditor = caller;
         this.currentDomNode = node;
-        // Dem Wurzelelement wird eine CSS-Klasse für gezieltes Styling zugewiesen.
+        // Assign a CSS class to the root element for targeted styling.
         this.getStyleClass().add("simple-node-element");
 
         if (node.hasChildNodes()) {
             addChildNodes(node);
         }
 
-        // KEIN Kontextmenü für die Haupt-VBox, um doppelte Menüs zu vermeiden
-        // Kontextmenüs werden nur für die einzelnen Kinder-Elemente erstellt
+        // NO context menu for the main VBox to avoid duplicate menus
+        // Context menus are only created for individual child elements
     }
 
     private void addChildNodes(Node node) {
@@ -59,7 +59,7 @@ public class XmlGraphicEditor extends VBox {
                 case Node.COMMENT_NODE -> addCommentNode(subNode);
                 case Node.ELEMENT_NODE -> addElementNode(subNode);
                 case Node.TEXT_NODE -> {
-                    // Leere Textknoten (oft nur Zeilenumbrüche) werden ignoriert
+                    // Empty text nodes (often just line breaks) are ignored
                     if (subNode.getNodeValue() != null && !subNode.getNodeValue().trim().isEmpty()) {
                         this.getChildren().add(new Label("TEXT: " + subNode.getNodeValue()));
                     }
@@ -76,7 +76,7 @@ public class XmlGraphicEditor extends VBox {
     }
 
     private void addElementNode(Node subNode) {
-        // Prüft, ob der Knoten nur ein einziges Text-Kind hat (z.B. <tag>wert</tag>)
+        // Check if the node has only a single text child (e.g. <tag>value</tag>)
         boolean isTextNode = subNode.getChildNodes().getLength() == 1 && subNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE;
 
         if (isTextNode) {
@@ -91,9 +91,9 @@ public class XmlGraphicEditor extends VBox {
         var nodeName = new Label(subNode.getNodeName());
         var nodeValue = new Label(firstItem.getNodeValue());
 
-        // Zeilenumbruch für den Knotennamen deaktivieren.
+        // Disable line wrapping for the node name.
         nodeName.setWrapText(false);
-        nodeValue.setWrapText(true); // Der Wert darf weiterhin umbrechen.
+        nodeValue.setWrapText(true); // The value may continue to wrap.
 
         nodeName.setTooltip(new Tooltip(subNode.getNodeName()));
         nodeValue.setTooltip(new Tooltip(firstItem.getNodeValue()));
@@ -103,12 +103,12 @@ public class XmlGraphicEditor extends VBox {
         GridPane gridPane = new GridPane();
         gridPane.getStyleClass().add("xml-tree-text");
 
-        // Flexibles Spaltenlayout anstelle von festen Prozentwerten.
-        // Die Namensspalte nimmt sich so viel Platz, wie sie braucht.
+        // Flexible column layout instead of fixed percentage values.
+        // The name column takes as much space as it needs.
         ColumnConstraints nameColumn = new ColumnConstraints();
         nameColumn.setHgrow(Priority.NEVER);
 
-        // Die Wertespalte füllt den gesamten restlichen Platz.
+        // The value column fills all remaining space.
         ColumnConstraints valueColumn = new ColumnConstraints();
         valueColumn.setHgrow(Priority.ALWAYS);
 
@@ -126,7 +126,7 @@ public class XmlGraphicEditor extends VBox {
         gridPane.add(nodeNameBox, 0, row);
         gridPane.add(nodeValueBox, 1, row);
 
-        // Kontextmenü für Text-Knoten hinzufügen - nur an das GridPane, um doppelte Menüs zu vermeiden
+        // Add context menu for text nodes - only to the GridPane to avoid duplicate menus
         logger.debug("Setting up context menu for text node: {} (Type: {})", subNode.getNodeName(), subNode.getNodeType());
         setupContextMenu(gridPane, subNode);
 
@@ -157,12 +157,12 @@ public class XmlGraphicEditor extends VBox {
      * Refactored method to handle complex nodes with a more efficient expand/collapse logic.
      */
     private void addComplexNode(Node subNode) {
-        // Container für das gesamte Element (Parent + Children)
+        // Container for the entire element (Parent + Children)
         VBox elementContainer = new VBox();
         elementContainer.getStyleClass().add("element-container");
         elementContainer.setAlignment(Pos.TOP_CENTER);
-        
-        // 1. Der Header für den aufklappbaren Bereich
+
+        // 1. The header for the expandable area
         HBox headerBox = new HBox(5);
         headerBox.getStyleClass().add("element-box");
         headerBox.setAlignment(Pos.CENTER_LEFT);
@@ -183,36 +183,36 @@ public class XmlGraphicEditor extends VBox {
 
         headerBox.getChildren().addAll(toggleButton, label, countLabel);
 
-        // 2. Der Container für die Kind-Elemente
+        // 2. The container for child elements
         VBox childrenContainer = new VBox();
         childrenContainer.getStyleClass().add("children-container");
 
-        // --- NEU: Die seitliche Klick-Leiste zum Einklappen ---
+        // --- NEW: The side click bar for collapsing ---
         Region collapseBar = new Region();
         collapseBar.getStyleClass().add("collapse-bar");
-        // Ein Klick auf die Leiste löst die Aktion des Toggle-Buttons aus
+        // A click on the bar triggers the toggle button action
         collapseBar.setOnMouseClicked(event -> toggleButton.fire());
 
-        // --- NEU: Ein HBox-Wrapper für Leiste und Inhalt ---
+        // --- NEW: An HBox wrapper for bar and content ---
         HBox contentWrapper = new HBox(collapseBar, childrenContainer);
-        // Der childrenContainer soll den gesamten verfügbaren horizontalen Platz einnehmen
+        // The childrenContainer should take up all available horizontal space
         HBox.setHgrow(childrenContainer, Priority.ALWAYS);
 
-        // Initialer Zustand: Alles unsichtbar
+        // Initial state: Everything invisible
         contentWrapper.setVisible(false);
         contentWrapper.setManaged(false);
 
-        // 3. Die Aktion zum Umschalten der Sichtbarkeit
+        // 3. The action to toggle visibility
         toggleButton.setOnAction(event -> {
             boolean isExpanded = contentWrapper.isVisible();
             if (isExpanded) {
-                // Zuklappen
+                // Collapse
                 contentWrapper.setVisible(false);
                 contentWrapper.setManaged(false);
                 icon.getStyleClass().remove("toggle-collapse");
                 icon.getStyleClass().add("toggle-expand");
             } else {
-                // Aufklappen
+                // Expand
                 if (childrenContainer.getChildren().isEmpty()) {
                     if (shouldBeTable(subNode)) {
                         childrenContainer.getChildren().add(createTable(subNode));
@@ -227,14 +227,14 @@ public class XmlGraphicEditor extends VBox {
             }
         });
 
-        // 4. Header und den neuen contentWrapper zum Haupt-VBox hinzufügen
+        // 4. Add header and the new contentWrapper to main VBox
         elementContainer.getChildren().addAll(headerBox, contentWrapper);
 
-        // 5. Kontextmenü für das Element hinzufügen
+        // 5. Add context menu for the element
         logger.debug("Setting up context menu for complex node: {} (Type: {})", subNode.getNodeName(), subNode.getNodeType());
         setupContextMenu(elementContainer, subNode);
 
-        // 6. Drag & Drop für das Element einrichten
+        // 6. Set up drag & drop for the element
         setupDragAndDrop(elementContainer, subNode);
 
         this.getChildren().add(elementContainer);
@@ -243,7 +243,7 @@ public class XmlGraphicEditor extends VBox {
     @NotNull
     private EventHandler<MouseEvent> editNodeValueHandler(Label nodeValueLabel, Node domNode) {
         return event -> {
-            if (event.getClickCount() != 2) return; // Nur bei Doppelklick bearbeiten
+            if (event.getClickCount() != 2) return; // Only edit on double click
 
             if (!(nodeValueLabel.getParent() instanceof Pane parent)) {
                 logger.warn("Cannot edit node value, label's parent is not a Pane.");
@@ -253,19 +253,19 @@ public class XmlGraphicEditor extends VBox {
             final String originalValue = nodeValueLabel.getText();
             TextField textField = new TextField(originalValue);
 
-            // Ein Flag, um zu verfolgen, ob die Bearbeitung erfolgreich committet wurde.
-            // Wir verwenden ein Array, damit die Variable im Lambda-Ausdruck effektiv final ist.
+            // A flag to track whether editing was successfully committed.
+            // We use an array so the variable is effectively final in the lambda expression.
             final boolean[] committed = {false};
 
-            // 1. Die Commit-Aktion (ENTER) setzt die Flag auf true.
+            // 1. The commit action (ENTER) sets the flag to true.
             textField.setOnAction(e -> {
                 handleEditCommit(textField, nodeValueLabel, domNode, parent);
                 committed[0] = true;
             });
 
-            // 2. Die Cancel-Aktion (Fokusverlust) wird NUR ausgeführt, wenn NICHT committet wurde.
+            // 2. The cancel action (focus loss) is ONLY executed if NOT committed.
             textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
-                if (!newVal && !committed[0]) { // Prüfe den Flag!
+                if (!newVal && !committed[0]) { // Check the flag!
                     handleEditCancel(textField, nodeValueLabel, originalValue, parent);
                 }
             });
@@ -277,38 +277,38 @@ public class XmlGraphicEditor extends VBox {
     }
 
     /**
-     * Übernimmt den neuen Wert aus dem Textfeld, aktualisiert das UI-Label und den zugrundeliegenden XML-DOM-Knoten.
+     * Takes the new value from the text field, updates the UI label and the underlying XML DOM node.
      *
-     * @param textField       Das Textfeld mit dem neuen Wert.
-     * @param label           Das UI-Label, das wieder angezeigt werden soll.
-     * @param domNodeToUpdate Der XML-Knoten (Text oder Attribut), dessen Wert aktualisiert wird.
-     * @param parent          Der UI-Container, in dem das Label/Textfeld liegt.
+     * @param textField       The text field with the new value.
+     * @param label           The UI label to be displayed again.
+     * @param domNodeToUpdate The XML node (text or attribute) whose value is updated.
+     * @param parent          The UI container in which the label/text field is located.
      */
     private void handleEditCommit(TextField textField, Label label, Node domNodeToUpdate, Pane parent) {
-        // 1. Neuen Wert aus dem Textfeld holen.
+        // 1. Get new value from text field.
         final String newValue = textField.getText() != null ? textField.getText() : "";
 
-        // 2. Den Text des UI-Labels aktualisieren.
+        // 2. Update the text of the UI label.
         label.setText(newValue);
 
-        // Protokolliere alte und neue Werte
+        // Log old and new values
         String oldValue = domNodeToUpdate.getNodeType() == Node.ELEMENT_NODE
                 ? domNodeToUpdate.getTextContent()
                 : domNodeToUpdate.getNodeValue();
-        logger.info("Wertänderung - Alt: '{}', Neu: '{}'", oldValue, newValue);
+        logger.info("Value change - Old: '{}', New: '{}'", oldValue, newValue);
 
-        // 3. Den Wert im XML-DOM aktualisieren.
+        // 3. Update the value in the XML DOM.
         if (domNodeToUpdate.getNodeType() == Node.ELEMENT_NODE) {
             domNodeToUpdate.setTextContent(newValue);
         } else {
             domNodeToUpdate.setNodeValue(newValue);
         }
 
-        // 4. Das Textfeld wieder durch das Label ersetzen.
+        // 4. Replace the text field with the label again.
         parent.getChildren().setAll(label);
 
-        // 5. Die Textansicht des Editors aktualisieren.
-        // KORREKTUR: Ruft die neue Methode auf, die aus dem DOM liest, nicht aus der Datei.
+        // 5. Update the text view of the editor.
+        // CORRECTION: Calls the new method that reads from the DOM, not from the file.
         this.xmlEditor.refreshTextViewFromDom();
     }
 
@@ -321,27 +321,27 @@ public class XmlGraphicEditor extends VBox {
         GridPane gridPane = new GridPane();
         gridPane.getStyleClass().add("table-grid");
 
-        // Map, um Spaltennamen und ihre Indizes zu speichern.
-        // LinkedHashMap behält die Einfügereihenfolge bei, was für eine konsistente Spaltenreihenfolge sorgt.
+        // Map to store column names and their indices.
+        // LinkedHashMap maintains insertion order, ensuring consistent column order.
         Map<String, Integer> columns = new LinkedHashMap<>();
 
-        // --- SCHRITT 1: Alle Spaltenköpfe im Voraus ermitteln ---
-        // Wir durchlaufen alle Zeilen, nur um die Spaltennamen zu sammeln.
+        // --- STEP 1: Determine all column headers in advance ---
+        // We iterate through all rows just to collect column names.
         for (int i = 0; i < subNode.getChildNodes().getLength(); i++) {
             Node oneRow = subNode.getChildNodes().item(i);
             if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
                 for (int x = 0; x < oneRow.getChildNodes().getLength(); x++) {
                     Node oneNode = oneRow.getChildNodes().item(x);
                     if (oneNode.getNodeType() == Node.ELEMENT_NODE) {
-                        // Fügt den Spaltennamen hinzu, falls er noch nicht existiert,
-                        // und weist ihm den nächsten verfügbaren Index zu.
+                        // Add the column name if it doesn't exist yet,
+                        // and assign it the next available index.
                         columns.computeIfAbsent(oneNode.getNodeName(), k -> columns.size());
                     }
                 }
             }
         }
 
-        // --- SCHRITT 2: Header-Zeile basierend auf den gesammelten Spalten erstellen ---
+        // --- STEP 2: Create header row based on collected columns ---
         for (Map.Entry<String, Integer> entry : columns.entrySet()) {
             String columnName = entry.getKey();
             int columnIndex = entry.getValue();
@@ -349,15 +349,15 @@ public class XmlGraphicEditor extends VBox {
             var headerLabel = new Label(columnName);
             var headerPane = new StackPane(headerLabel);
             headerPane.getStyleClass().add("table-header");
-            gridPane.add(headerPane, columnIndex, 0); // Header immer in Zeile 0
+            gridPane.add(headerPane, columnIndex, 0); // Header always in row 0
         }
 
-        // --- SCHRITT 3: Datenzeilen füllen ---
-        int row = 1; // Daten beginnen in Zeile 1
+        // --- STEP 3: Fill data rows ---
+        int row = 1; // Data starts in row 1
         for (int i = 0; i < subNode.getChildNodes().getLength(); i++) {
             Node oneRow = subNode.getChildNodes().item(i);
             if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
-                // Die Hilfsmethoden verwenden jetzt die vorab gefüllte 'columns'-Map.
+                // The helper methods now use the pre-filled 'columns' map.
                 addTableRow(gridPane, oneRow, row, columns);
                 row++;
             }
@@ -377,10 +377,10 @@ public class XmlGraphicEditor extends VBox {
     private void addTableCell(GridPane gridPane, Node oneNode, int row, Map<String, Integer> columns) {
         var nodeName = oneNode.getNodeName();
 
-        // Die Spaltenposition wird jetzt zuverlässig aus der vorab gefüllten Map geholt.
+        // The column position is now reliably retrieved from the pre-filled map.
         Integer colPos = columns.get(nodeName);
         if (colPos == null) {
-            // Dies sollte mit der neuen createTable-Logik nicht passieren, ist aber eine gute Absicherung.
+            // This should not happen with the new createTable logic, but it's good safeguarding.
             logger.warn("Column '{}' not found in pre-calculated header map. Skipping cell.", nodeName);
             return;
         }
@@ -388,11 +388,11 @@ public class XmlGraphicEditor extends VBox {
         StackPane cellPane;
         if (oneNode.getChildNodes().getLength() == 1 && oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
             var contentLabel = new Label(oneNode.getTextContent());
-            // Wir übergeben den ELEMENT-Knoten (oneNode), nicht mehr seinen Text-Kind-Knoten.
+            // We pass the ELEMENT node (oneNode), no longer its text child node.
             contentLabel.setOnMouseClicked(editNodeValueHandler(contentLabel, oneNode));
             cellPane = new StackPane(contentLabel);
         } else {
-            // Verschachtelte komplexe Knoten in einer Tabelle
+            // Nested complex nodes in a table
             cellPane = new StackPane(new XmlGraphicEditor(oneNode, xmlEditor));
         }
         cellPane.getStyleClass().add("table-cell");
@@ -418,7 +418,7 @@ public class XmlGraphicEditor extends VBox {
                 if (firstChildName == null) {
                     firstChildName = child.getNodeName();
                 } else if (!firstChildName.equals(child.getNodeName())) {
-                    return false; // Unterschiedliche Namen, also keine Tabelle
+                    return false; // Different names, so no table
                 }
             }
         }
@@ -433,7 +433,7 @@ public class XmlGraphicEditor extends VBox {
 
         ContextMenu contextMenu = new ContextMenu();
 
-        // "Add Child" nur anzeigen, wenn der Knoten Kind-Elemente haben kann
+        // Only show "Add Child" if the node can have child elements
         if (canHaveChildren(domNode)) {
             MenuItem addChildMenuItem = new MenuItem("Add Child to: " + domNode.getNodeName());
             addChildMenuItem.setGraphic(createIcon("ADD_CHILD"));
@@ -463,41 +463,41 @@ public class XmlGraphicEditor extends VBox {
         uiContainer.setOnContextMenuRequested(e -> {
             logger.debug("Context menu requested for UI container. DOM node: {}", domNode.getNodeName());
 
-            // Alle anderen Kontextmenüs schließen
+            // Close all other context menus
             contextMenu.hide();
 
-            // Unser Menü anzeigen
+            // Show our menu
             contextMenu.show(uiContainer, e.getScreenX(), e.getScreenY());
 
-            // Wichtig: Event konsumieren, damit es nicht weiter nach oben bubbelt
+            // Important: Consume event so it doesn't bubble up further
             e.consume();
         });
     }
 
     /**
-     * Prüft, ob ein DOM-Knoten Textinhalt hat.
-     * Ein Knoten hat Textinhalt, wenn er genau ein Text-Kind hat.
+     * Checks if a DOM node has text content.
+     * A node has text content if it has exactly one text child.
      */
     private boolean hasTextContent(Node node) {
         if (node.getNodeType() != Node.ELEMENT_NODE) {
             return false;
         }
 
-        // Prüfe, ob der Knoten genau ein Text-Kind hat
+        // Check if the node has exactly one text child
         return node.getChildNodes().getLength() == 1 &&
                 node.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE;
     }
 
     /**
-     * Prüft, ob ein DOM-Knoten Kind-Elemente haben kann.
-     * Ein Knoten kann Kinder haben, wenn er keinen Textinhalt hat.
+     * Checks if a DOM node can have child elements.
+     * A node can have children if it has no text content.
      */
     private boolean canHaveChildren(Node node) {
         return !hasTextContent(node);
     }
 
     private void setupDragAndDrop(VBox elementContainer, Node domNode) {
-        // Drag-Quelle einrichten - nur für VBox Container (komplexe Knoten)
+        // Set up drag source - only for VBox containers (complex nodes)
         elementContainer.setOnDragDetected(event -> {
             Dragboard db = elementContainer.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent content = new ClipboardContent();
@@ -506,7 +506,7 @@ public class XmlGraphicEditor extends VBox {
             event.consume();
         });
 
-        // Drop-Ziel einrichten
+        // Set up drop target
         elementContainer.setOnDragOver(event -> {
             if (event.getGestureSource() != elementContainer && event.getDragboard().hasString()) {
                 event.acceptTransferModes(TransferMode.MOVE);
@@ -525,8 +525,8 @@ public class XmlGraphicEditor extends VBox {
                         moveNodeToNewParent(domNode, sourceName);
                         success = true;
                     } catch (Exception e) {
-                        logger.error("Fehler beim Verschieben des Knotens", e);
-                        showErrorDialog("Verschieben fehlgeschlagen", e.getMessage());
+                        logger.error("Error moving node", e);
+                        showErrorDialog("Move failed", e.getMessage());
                     }
                 }
             }
@@ -547,12 +547,12 @@ public class XmlGraphicEditor extends VBox {
                     Document doc = parentNode.getOwnerDocument();
                     Element newElement = doc.createElement(elementName.trim());
 
-                    // Füge einen leeren Text-Knoten hinzu, damit das Element sofort editierbar ist
+                    // Add an empty text node so the element is immediately editable
                     newElement.appendChild(doc.createTextNode(""));
                     
                     parentNode.appendChild(newElement);
 
-                    // Intelligente UI-Aktualisierung anstelle einer vollständigen Neuerstellung
+                    // Intelligent UI update instead of complete recreation
                     updateUIAfterNodeAddition(parentNode, newElement);
 
                     logger.info("New child element '{}' added to '{}' with empty text content", elementName, parentNode.getNodeName());
@@ -577,7 +577,7 @@ public class XmlGraphicEditor extends VBox {
                         Document doc = siblingNode.getOwnerDocument();
                         Element newElement = doc.createElement(elementName.trim());
 
-                        // Füge einen leeren Text-Knoten hinzu, damit das Element sofort editierbar ist
+                        // Add an empty text node so the element is immediately editable
                         newElement.appendChild(doc.createTextNode(""));
 
                         if (after) {
@@ -591,7 +591,7 @@ public class XmlGraphicEditor extends VBox {
                             parentNode.insertBefore(newElement, siblingNode);
                         }
 
-                        // Intelligente UI-Aktualisierung anstelle einer vollständigen Neuerstellung
+                        // Intelligent UI update instead of complete recreation
                         updateUIAfterNodeAddition(parentNode, newElement);
 
                         logger.info("New sibling element '{}' added {} '{}' with empty text content",
@@ -637,22 +637,22 @@ public class XmlGraphicEditor extends VBox {
     }
 
     private void refreshWholeView() {
-        // Die gesamte Ansicht neu aufbauen - wir müssen vom Root aus neu laden
-        // da sich die DOM-Struktur geändert hat
+        // Rebuild the entire view - we need to reload from root
+        // since the DOM structure has changed
         this.xmlEditor.refreshTextViewFromDom();
 
-        // Den grafischen Editor neu initialisieren
-        // Dazu suchen wir die parent XmlGraphicEditor Instanz
+        // Reinitialize the graphical editor
+        // For this we search for the parent XmlGraphicEditor instance
         findRootEditorAndRefresh();
     }
 
     private void findRootEditorAndRefresh() {
-        // Diese Methode würde in einer echten Implementierung
-        // den Root-Editor finden und neu laden
-        // Für jetzt loggen wir nur, dass eine Aktualisierung nötig ist
+        // This method would in a real implementation
+        // find the root editor and reload it
+        // For now we just log that an update is needed
         logger.info("DOM structure changed - full UI refresh required");
 
-        // Einfache Lösung: Die aktuelle Instanz neu laden
+        // Simple solution: Reload the current instance
         this.getChildren().clear();
         if (currentDomNode.hasChildNodes()) {
             addChildNodes(currentDomNode);
@@ -661,8 +661,8 @@ public class XmlGraphicEditor extends VBox {
 
 
     private void moveNodeToNewParent(Node newParentNode, String sourceNodeName) {
-        // Vereinfachte Implementierung - in einer echten Anwendung würde man
-        // den zu verschiebenden Knoten anhand der ID finden und verschieben
+        // Simplified implementation - in a real application one would
+        // find and move the node to be moved by ID
         logger.info("Node '{}' would be moved to '{}'", sourceNodeName, newParentNode.getNodeName());
 
         Alert info = new Alert(Alert.AlertType.INFORMATION);
@@ -808,8 +808,8 @@ public class XmlGraphicEditor extends VBox {
     }
 
     /**
-     * Aktualisiert die UI intelligent nach dem Hinzufügen eines neuen Knotens,
-     * anstatt die gesamte UI neu aufzubauen.
+     * Intelligently updates the UI after adding a new node,
+     * instead of rebuilding the entire UI.
      */
     private void updateUIAfterNodeAddition(Node parentNode, Element newElement) {
         // Aktualisiere die Textansicht des Editors

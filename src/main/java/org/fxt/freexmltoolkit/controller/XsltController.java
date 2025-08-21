@@ -62,7 +62,7 @@ public class XsltController {
     @FXML
     private FileExplorer xmlFileExplorer, xsltFileExplorer;
     @FXML
-    private Button debugButton, openInDefaultWebBrowser, openInDefaultTextEditor;
+    private Button openInDefaultWebBrowser, openInDefaultTextEditor;
     @FXML
     private ProgressBar progressBar;
     @FXML
@@ -88,7 +88,8 @@ public class XsltController {
         xsltFileExplorer.setAllowedFileExtensions(List.of("xslt", "xsl"));
 
         if (System.getenv("debug") != null) {
-            debugButton.setVisible(true);
+            logger.debug("Debug mode enabled for XsltController");
+            // Debug mode - test functionality can be added here if needed
         }
 
         fileLoaderPane.heightProperty().addListener((observable, oldValue, newValue) -> {
@@ -226,19 +227,4 @@ public class XsltController {
         }
     }
 
-    @FXML
-    private void test() {
-        String baseDir = System.getProperty("user.dir");
-        xmlFile = Paths.get(baseDir, "release/examples/xml/FundsXML_422_Bond_Fund.xml").toFile();
-        xsltFile = Paths.get(baseDir, "release/examples/xslt/Check_FundsXML_File.xslt").toFile();
-
-        xmlFileExplorer.selectFile(xmlFile);
-        xsltFileExplorer.selectFile(xsltFile);
-
-        if (xmlService != null) {
-            xmlService.setCurrentXmlFile(xmlFile);
-            xmlService.setCurrentXsltFile(xsltFile);
-            checkFiles();
-        }
-    }
 }

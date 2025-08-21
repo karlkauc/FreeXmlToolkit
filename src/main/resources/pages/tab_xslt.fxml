@@ -41,8 +41,6 @@
                 <bottom>
                     <VBox>
                         <HBox alignment="BASELINE_CENTER" spacing="10">
-                            <Button fx:id="debugButton" onAction="#test" text="TEST" visible="false"
-                                    style="-fx-padding: 5px;"/>
                             <Button fx:id="openInDefaultWebBrowser" disable="true" text="Open in Web">
                                 <graphic>
                                     <FontIcon iconColor="black" iconLiteral="cib-google-chrome"/>

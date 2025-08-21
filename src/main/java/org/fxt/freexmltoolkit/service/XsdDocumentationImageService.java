@@ -63,26 +63,26 @@ public class XsdDocumentationImageService {
         }
     });
 
-    // Modernere Abstände und Layout-Parameter
+    // Modern spacing and layout parameters
     final int margin = 16;
     final int gapBetweenSides = 120;
     final int boxPadding = 12;
     final int borderRadius = 8;
 
-    // Moderne Farbpalette mit besseren Kontrasten und modernem Look
-    private static final String COLOR_BG = "#ffffff";                    // Reines Weiß für modernen Look
-    private static final String COLOR_BOX_FILL = "#f8fafc";             // Sehr helles Grau
-    private static final String COLOR_BOX_FILL_HOVER = "#e2e8f0";       // Hover-Farbe
-    private static final String COLOR_STROKE = "#334155";               // Dunkleres Grau für besseren Kontrast
-    private static final String COLOR_STROKE_OPTIONAL = "#94a3b8";      // Hellere Farbe für optionale Elemente
-    private static final String COLOR_STROKE_SEPARATOR = "#e2e8f0";     // Trennlinien
-    private static final String COLOR_TEXT_PRIMARY = "#1e293b";         // Dunkler Text
-    private static final String COLOR_TEXT_SECONDARY = "#64748b";       // Sekundärer Text
-    private static final String COLOR_ICON = "#3b82f6";                 // Moderne Blaufarbe
-    private static final String COLOR_ACCENT = "#8b5cf6";               // Akzentfarbe für Symbole
-    private static final String COLOR_SHADOW = "rgba(0, 0, 0, 0.1)";   // Subtiler Schatten
+    // Modern color palette with better contrast and modern look
+    private static final String COLOR_BG = "#ffffff";                    // Pure white for modern look
+    private static final String COLOR_BOX_FILL = "#f8fafc";             // Very light gray
+    private static final String COLOR_BOX_FILL_HOVER = "#e2e8f0";       // Hover color
+    private static final String COLOR_STROKE = "#334155";               // Darker gray for better contrast
+    private static final String COLOR_STROKE_OPTIONAL = "#94a3b8";      // Lighter color for optional elements
+    private static final String COLOR_STROKE_SEPARATOR = "#e2e8f0";     // Separator lines
+    private static final String COLOR_TEXT_PRIMARY = "#1e293b";         // Dark text
+    private static final String COLOR_TEXT_SECONDARY = "#64748b";       // Secondary text
+    private static final String COLOR_ICON = "#3b82f6";                 // Modern blue color
+    private static final String COLOR_ACCENT = "#8b5cf6";               // Accent color for symbols
+    private static final String COLOR_SHADOW = "rgba(0, 0, 0, 0.1)";   // Subtle shadow
 
-    // Moderne Style-Strings
+    // Modern style strings
     final static String OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 2; stroke-dasharray: 8, 8; fill: " + COLOR_BOX_FILL + ";";
     final static String MANDATORY_FORMAT = "stroke: " + COLOR_STROKE + "; stroke-width: 2; fill: " + COLOR_BOX_FILL + ";";
     final static String CONNECTION_LINE = "stroke: " + COLOR_STROKE + "; stroke-width: 2; fill: none;";
@@ -127,32 +127,32 @@ public class XsdDocumentationImageService {
                 logger.warn("Root element is null. Cannot generate image.");
                 return null;
             }
-            
-            // 1. SVG-DOM-Dokument wie zuvor generieren
+
+            // 1. Generate SVG DOM document as before
             Document svgDocument = generateSvgDocument(rootElement);
             if (svgDocument.getDocumentElement() == null || !svgDocument.getDocumentElement().hasChildNodes()) {
                 logger.warn("Generated SVG for {} is empty, skipping image creation.", rootElement.getCurrentXpath());
                 return null;
             }
 
-            // 2. SVG für PNG-Rendering optimieren (CSS-Styles entfernen, interaktive Elemente deaktivieren)
+            // 2. Optimize SVG for PNG rendering (remove CSS styles, disable interactive elements)
             Document pngOptimizedSvg = optimizeSvgForPngRendering(svgDocument);
 
-            // 3. PNG-Transcoder initialisieren
+            // 3. Initialize PNG transcoder
             PNGTranscoder transcoder = new PNGTranscoder();
 
             // Configure transcoder for better compatibility
             transcoder.addTranscodingHint(PNGTranscoder.KEY_FORCE_TRANSPARENT_WHITE, false);
             transcoder.addTranscodingHint(PNGTranscoder.KEY_BACKGROUND_COLOR, Color.WHITE);
 
-            // 4. Input für den Transcoder direkt aus dem optimierten DOM-Dokument erstellen.
+            // 4. Create input for transcoder directly from optimized DOM document
             TranscoderInput input = new TranscoderInput(pngOptimizedSvg);
 
-            // 5. Ressourcen sicher mit try-with-resources verwalten
+            // 5. Safely manage resources with try-with-resources
             try (OutputStream outputStream = new FileOutputStream(file)) {
                 TranscoderOutput output = new TranscoderOutput(outputStream);
 
-                // 6. Konvertierung durchführen
+                // 6. Perform conversion
                 transcoder.transcode(input, output);
             }
 
@@ -181,10 +181,10 @@ public class XsdDocumentationImageService {
         final Document document = domImpl.createDocument(svgNS, "svg", null);
         var svgRoot = document.getDocumentElement();
 
-        // Moderne Defs-Sektion mit verbesserten Effekten
+        // Modern defs section with improved effects
         Element defs = document.createElementNS(svgNS, "defs");
 
-        // Moderne CSS-Styles mit sanften Übergängen
+        // Modern CSS styles with smooth transitions
         Element styleElement = document.createElementNS(svgNS, "style");
         String css = ".hoverable-rect { transition: all 0.3s ease; cursor: pointer; } " +
                 ".hoverable-rect:hover { fill: " + COLOR_BOX_FILL_HOVER + "; transform: translateY(-2px); " +
@@ -195,7 +195,7 @@ public class XsdDocumentationImageService {
         styleElement.appendChild(document.createTextNode(css));
         defs.appendChild(styleElement);
 
-        // Moderne Drop-Shadow-Filter
+        // Modern drop shadow filter
         Element filter = document.createElementNS(svgNS, "filter");
         filter.setAttribute("id", "modern-shadow");
         filter.setAttribute("x", "-50%");
@@ -233,7 +233,7 @@ public class XsdDocumentationImageService {
         filter.appendChild(feMerge);
         defs.appendChild(filter);
 
-        // Modernes Plus-Icon
+        // Modern plus icon
         Element plusIcon = document.createElementNS(svgNS, "g");
         plusIcon.setAttribute("id", "modern-plus-icon");
         plusIcon.setAttribute("style", "stroke: " + COLOR_ICON + "; stroke-width: 2; stroke-linecap: round;");
@@ -269,7 +269,7 @@ public class XsdDocumentationImageService {
             return document;
         }
 
-        // Sammle Kind-Elemente
+        // Collect child elements
         List<XsdExtendedElement> childElements = new ArrayList<>();
         if (rootElement.getChildren() != null) {
             for (String temp : rootElement.getChildren()) {
@@ -279,24 +279,24 @@ public class XsdDocumentationImageService {
             }
         }
 
-        // Berechne symmetrische Größen
+        // Calculate symmetric sizes
         double maxChildWidth = calculateMaxChildWidth(childElements);
 
         var rootElementBounds = font.getStringBounds(rootElement.getElementName(), frc);
         var rootElementHeight = rootElementBounds.getBounds2D().getHeight();
         var rootElementWidth = rootElementBounds.getBounds2D().getWidth();
 
-        // Berechne die tatsächliche Gesamthöhe der Kind-Elemente
+        // Calculate the actual total height of child elements
         double totalChildElementsHeight = calculateTotalChildElementsHeight(childElements);
 
-        // Berechne Dokumentationshöhe vor der Positionierung
+        // Calculate documentation height before positioning
         double docHeightTotal = calculateDocumentationHeight(rootElement.getDocumentations(), rootElementWidth);
 
-        // Zentriere das Root-Element vertikal in der Mitte der Kind-Elemente
+        // Center the root element vertically in the middle of child elements
         int rootStartX = margin * 2;
         int rootStartY = (int) ((totalChildElementsHeight / 2) - ((boxPadding * 2 + rootElementHeight) / 2));
 
-        // Zeichne das Root-Element mit modernem Design
+        // Draw the root element with modern design
         Element leftRootLink = document.createElementNS(svgNS, "a");
         leftRootLink.setAttribute("href", "#");
 
@@ -316,16 +316,16 @@ public class XsdDocumentationImageService {
         leftRootLink.appendChild(text1);
         svgRoot.appendChild(leftRootLink);
 
-        // Dokumentation hinzufügen
+        // Add documentation
         generateModernDocumentationElement(document, rootElement.getDocumentations(),
                 rootElementWidth, rootElementHeight, rootStartX, rootStartY);
 
-        // Symmetrische Positionierung der Kind-Elemente mit mehr Abstand für Kardinalität
+        // Symmetric positioning of child elements with more space for cardinality
         final double rightStartX = rootStartX + boxPadding * 2 + rootElementWidth + gapBetweenSides + 40;
         final double rootPathEndX = rootStartX + boxPadding * 2 + rootElementWidth;
         final double rootPathCenterY = rootStartY + (boxPadding * 2 + rootElementHeight) / 2;
 
-        // Bestimme Sequenz/Choice-Typ
+        // Determine sequence/choice type
         boolean isSequence = false;
         boolean isChoice = false;
         if (!childElements.isEmpty()) {
@@ -341,7 +341,7 @@ public class XsdDocumentationImageService {
             }
         }
 
-        // Zeichne moderne Symbole für Sequenz/Choice
+        // Draw modern symbols for sequence/choice
         double childPathStartX = rootPathEndX + gapBetweenSides;
         double childPathStartY = rootPathCenterY;
 
@@ -350,7 +350,7 @@ public class XsdDocumentationImageService {
                     gapBetweenSides, isSequence, isChoice, childElements, svgRoot);
         }
 
-        // Zeichne Kind-Elemente mit symmetrischem Layout
+        // Draw child elements with symmetric layout
         double actualHeight = margin * 2;
         final double finalRightStartX = rightStartX;
 
@@ -366,21 +366,21 @@ public class XsdDocumentationImageService {
             double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
             double totalContentHeight = nameHeight + typeHeight;
 
-            // Zentriere das Element vertikal wenn es das einzige ist
+            // Center the element vertically if it's the only one
             double elementY = actualHeight;
             if (childElements.size() == 1) {
                 double maxChildHeight = calculateMaxChildHeight(childElements);
                 elementY = (maxChildHeight / 2) - ((boxPadding * 2 + totalContentHeight) / 2);
             }
 
-            // Moderne Box für Kind-Element
+            // Modern box for child element
             Element rightBox = createModernSvgRect(document, childElement.getCurrentXpath(), totalContentHeight,
                     maxChildWidth, String.valueOf(finalRightStartX), String.valueOf(elementY));
             rightBox.setAttribute("filter", "url(#modern-shadow)");
             rightBox.setAttribute("style", childElement.isMandatory() ? MANDATORY_FORMAT : OPTIONAL_FORMAT);
             rightBox.setAttribute("class", "hoverable-rect");
 
-            // Text-Gruppe mit modernem Layout
+            // Text group with modern layout
             Element textGroup = document.createElementNS(svgNS, "g");
             double nameY = elementY + boxPadding + nameHeight;
             Element nameTextNode = createSvgTextElement(document, elementName,
@@ -389,7 +389,7 @@ public class XsdDocumentationImageService {
             textGroup.appendChild(nameTextNode);
 
             if (!elementType.isBlank()) {
-                // Moderne Trennlinie
+                // Modern separator line
                 double lineY = nameY + 6;
                 Element line = document.createElementNS(svgNS, "line");
                 line.setAttribute("x1", String.valueOf(finalRightStartX + boxPadding));
@@ -407,7 +407,7 @@ public class XsdDocumentationImageService {
                 textGroup.appendChild(typeTextNode);
             }
 
-            // Modernes Plus-Icon
+            // Modern plus icon
             Element useIcon = null;
             if (childElement.hasChildren()) {
                 useIcon = document.createElementNS(svgNS, "use");
@@ -417,7 +417,7 @@ public class XsdDocumentationImageService {
                 useIcon.setAttribute("y", String.valueOf(boxCenterY - 12));
             }
 
-            // Link um die Box
+            // Link around the box
             Element rightLink = document.createElementNS(svgNS, "a");
             if (childElement.hasChildren() && childElement.getPageName() != null) {
                 rightLink.setAttribute("href", childElement.getPageName());
@@ -432,7 +432,7 @@ public class XsdDocumentationImageService {
                 svgRoot.appendChild(textGroup);
             }
 
-            // Moderne Verbindungslinie
+            // Modern connection line
             double pathEndY = elementY + (boxPadding * 2 + totalContentHeight) / 2;
             Element path = document.createElementNS(svgNS, "path");
             path.setAttribute("d", "M " + childPathStartX + " " + childPathStartY + " V " + pathEndY + " H " + finalRightStartX);
@@ -440,7 +440,7 @@ public class XsdDocumentationImageService {
             path.setAttribute("style", childElement.isMandatory() ? CONNECTION_LINE : CONNECTION_LINE_OPTIONAL);
             svgRoot.appendChild(path);
 
-            // Moderne Kardinalität
+            // Modern cardinality
             Node childNode = childElement.getCurrentNode();
             String cardinality = formatCardinality(
                     getAttributeValue(childNode, "minOccurs", "1"),
@@ -451,10 +451,10 @@ public class XsdDocumentationImageService {
                 int cardinalityFontSize = font.getSize() - 3;
                 var cardinalityBounds = font.getStringBounds(cardinality, frc);
 
-                // Positioniere Kardinalität in der Mitte der Verbindungslinie mit mehr Abstand
+                // Position cardinality in the middle of connection line with more spacing
                 double horizontalLineCenter = childPathStartX + (finalRightStartX - childPathStartX) / 2;
                 double cardinalityX = horizontalLineCenter - (cardinalityBounds.getWidth() / 2);
-                double cardinalityY = pathEndY - 12; // Mehr Abstand zur Linie
+                double cardinalityY = pathEndY - 12; // More distance from line
 
                 Element cardinalityTextNode = createSvgTextElement(document, cardinality,
                         String.valueOf(cardinalityX), String.valueOf(cardinalityY),
@@ -466,10 +466,10 @@ public class XsdDocumentationImageService {
             actualHeight += boxPadding * 2 + totalContentHeight + margin * 2;
         }
 
-        // Berechne die Gesamthöhe des Root-Elements inkl. Dokumentation
+        // Calculate total height of root element including documentation
         double rootElementTotalHeight = rootStartY + (boxPadding * 2 + rootElementHeight) + docHeightTotal;
-        
-        // Finalisiere SVG-Größe mit symmetrischem Layout - berücksichtigt sowohl Root- als auch Kind-Elemente
+
+        // Finalize SVG size with symmetric layout - considers both root and child elements
         var imageHeight = Math.max(rootElementTotalHeight, actualHeight);
         svgRoot.setAttribute("height", String.valueOf(imageHeight + margin * 2));
         svgRoot.setAttribute("width", String.valueOf(finalRightStartX + boxPadding * 2 + maxChildWidth + margin * 3));
@@ -523,7 +523,7 @@ public class XsdDocumentationImageService {
             return 0;
         }
 
-        double totalHeight = margin * 2; // Start-Margin
+        double totalHeight = margin * 2; // Starting margin
 
         for (XsdExtendedElement childElement : childElements) {
             String elementName = childElement.getElementName();
@@ -595,14 +595,14 @@ public class XsdDocumentationImageService {
         final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2);
         final double symbolCenterY = rootPathCenterY;
 
-        // Moderne Verbindungslinie zum Symbol
+        // Modern connection line to symbol
         Element pathToSymbol = document.createElementNS(svgNS, "path");
         pathToSymbol.setAttribute("d", "M " + rootPathEndX + " " + rootPathCenterY + " H " + (symbolCenterX - symbolWidth / 2));
         pathToSymbol.setAttribute("class", "connection-line");
         pathToSymbol.setAttribute("style", CONNECTION_LINE);
         svgRoot.appendChild(pathToSymbol);
 
-        // Gruppierungskardinalität
+        // Group cardinality
         String groupCardinality = "";
         Node particleNode = null;
         if (!childElements.isEmpty() && childElements.getFirst().getCurrentNode() != null) {
@@ -616,12 +616,12 @@ public class XsdDocumentationImageService {
             );
         }
 
-        // Zeige Kardinalität über dem Symbol (immer anzeigen)
+        // Show cardinality above symbol (always display)
         if (!groupCardinality.isBlank()) {
             int cardinalityFontSize = font.getSize() - 3;
             var cardinalityBounds = font.getStringBounds(groupCardinality, frc);
             double cardinalityX = symbolCenterX - (cardinalityBounds.getWidth() / 2);
-            double cardinalityY = symbolCenterY - (symbolHeight / 2) - 12; // Mehr Abstand zum Symbol
+            double cardinalityY = symbolCenterY - (symbolHeight / 2) - 12; // More distance to symbol
             Element cardinalityTextNode = createSvgTextElement(document, groupCardinality,
                     String.valueOf(cardinalityX), String.valueOf(cardinalityY),
                     COLOR_TEXT_SECONDARY, cardinalityFontSize);
@@ -630,11 +630,11 @@ public class XsdDocumentationImageService {
         }
 
         if (isSequence) {
-            // Modernes Sequenz-Symbol
+            // Modern sequence symbol
             Element seqGroup = document.createElementNS(svgNS, "g");
             seqGroup.setAttribute("id", "seq-group_" + System.currentTimeMillis());
 
-            // Moderne Box mit abgerundeten Ecken
+            // Modern box with rounded corners
             Element seqRect = document.createElementNS(svgNS, "rect");
             seqRect.setAttribute("x", String.valueOf(symbolCenterX - symbolWidth / 2));
             seqRect.setAttribute("y", String.valueOf(symbolCenterY - symbolHeight / 2));
@@ -647,7 +647,7 @@ public class XsdDocumentationImageService {
             seqRect.setAttribute("ry", String.valueOf(borderRadius));
             seqGroup.appendChild(seqRect);
 
-            // Moderne Trennlinie
+            // Modern separator line
             Element line = document.createElementNS(svgNS, "line");
             line.setAttribute("x1", String.valueOf(symbolCenterX - symbolWidth / 2 + 8));
             line.setAttribute("y1", String.valueOf(symbolCenterY));
@@ -657,7 +657,7 @@ public class XsdDocumentationImageService {
             line.setAttribute("stroke-width", "1.5");
             seqGroup.appendChild(line);
 
-            // Moderne Punkte
+            // Modern dots
             double dotSpacing = 10;
             seqGroup.appendChild(createModernDot(document, symbolCenterX - dotSpacing, symbolCenterY));
             seqGroup.appendChild(createModernDot(document, symbolCenterX, symbolCenterY));
@@ -666,7 +666,7 @@ public class XsdDocumentationImageService {
             svgRoot.appendChild(seqGroup);
 
         } else { // isChoice
-            // Modernes Choice-Symbol (Raute)
+            // Modern choice symbol (diamond)
             Element choiceDiamond = document.createElementNS(svgNS, "polygon");
             String points = (symbolCenterX) + "," + (symbolCenterY - symbolHeight / 2) + " " +
                     (symbolCenterX + symbolWidth / 2) + "," + (symbolCenterY) + " " +
@@ -679,7 +679,7 @@ public class XsdDocumentationImageService {
             svgRoot.appendChild(choiceDiamond);
         }
 
-        // Moderne Trennlinie nach dem Symbol
+        // Modern separator line after symbol
         final double postSymbolLineLength = 25;
         Element postSymbolLine = document.createElementNS(svgNS, "path");
         postSymbolLine.setAttribute("d", "M " + (symbolCenterX + symbolWidth / 2) + " " + symbolCenterY + " h " + postSymbolLineLength);
@@ -772,7 +772,7 @@ public class XsdDocumentationImageService {
         rect.setAttribute("width", String.valueOf(margin + contentWidth + margin));
         rect.setAttribute("x", x);
         rect.setAttribute("y", y);
-        rect.setAttribute("rx", "4"); // Etwas rundere Ecken
+        rect.setAttribute("rx", "4"); // Slightly rounded corners
         rect.setAttribute("ry", "4");
         return rect;
     }

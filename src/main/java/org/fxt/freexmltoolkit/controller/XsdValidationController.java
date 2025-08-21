@@ -49,7 +49,6 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
@@ -72,7 +71,7 @@ public class XsdValidationController {
     @FXML
     private AnchorPane anchorPane;
     @FXML
-    private Button xmlLoadButton, xsdLoadButton, test, excelExport, clearResults;
+    private Button xmlLoadButton, xsdLoadButton, excelExport, clearResults;
     @FXML
     private TextField xmlFileName, xsdFileName, remoteXsdLocation;
     @FXML
@@ -130,7 +129,10 @@ public class XsdValidationController {
             if (xmlService.getCurrentXmlFile() != null) processXmlFile();
         }));
 
-        if (System.getenv("debug") != null) test.setVisible(true);
+        if (System.getenv("debug") != null) {
+            logger.debug("Debug mode enabled for XsdValidationController");
+            // Debug mode - test functionality can be added here if needed
+        }
 
         // Setze den initialen Status der UI
         resetUI();
@@ -423,8 +425,4 @@ public class XsdValidationController {
     /**
      * Test method for processing a sample XML file.
      */
-    @FXML
-    private void test() {
-        processXmlFile(Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml").toFile());
-    }
 }

@@ -22,8 +22,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
-<?import org.fxmisc.richtext.CodeArea?>
 <?import org.fxmisc.flowless.VirtualizedScrollPane?>
+<?import org.fxmisc.richtext.CodeArea?>
 <?import org.fxt.freexmltoolkit.controls.XmlCodeEditor?>
 <?import org.kordamp.ikonli.javafx.*?>
 <?import java.lang.String?>
@@ -321,7 +321,6 @@
                     </graphic>
                 </Button>
 
-                <Button onAction="#test" text="test"/>
             </VBox>
 
         </Tab>
