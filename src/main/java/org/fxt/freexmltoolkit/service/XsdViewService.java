@@ -24,10 +24,10 @@ import java.io.StringReader;
 import java.util.*;
 
 /**
- * Ein Service, der spezialisierte Daten für die UI-Ansichten, insbesondere
- * für das XsdDiagramView, bereitstellt. Diese Klasse enthält die Logik zum
- * Erstellen eines leichtgewichtigen Baumes aus einem XSD unter Verwendung
- * nativer Java XML (JAXP/DOM) APIs.
+ * A service that provides specialized data for UI views, especially
+ * for the XsdDiagramView. This class contains the logic for
+ * creating a lightweight tree from an XSD using
+ * native Java XML (JAXP/DOM) APIs.
  */
 public class XsdViewService {
 
@@ -35,7 +35,7 @@ public class XsdViewService {
     private static final String NS_PREFIX = "xs";
     private static final String NS_URI = "http://www.w3.org/2001/XMLSchema";
 
-    // Caches für schnellen Zugriff auf globale XSD-Definitionen als DOM-Knoten.
+    // Caches for fast access to global XSD definitions as DOM nodes.
     private Map<String, Node> complexTypeMap;
     private Map<String, Node> simpleTypeMap;
     private Map<String, Node> globalElementMap;
@@ -44,15 +44,15 @@ public class XsdViewService {
 
     private XPath xpath;
 
-    // Ein Record, um die extrahierten Dokumentationsteile strukturiert zurückzugeben.
+    // A record to return the extracted documentation parts in a structured way.
     public record DocumentationParts(String mainDocumentation, String javadocContent) {
     }
 
     /**
-     * Erstellt einen leichtgewichtigen Baum für die Diagrammansicht aus dem XSD-Inhalt.
+     * Creates a lightweight tree for the diagram view from the XSD content.
      *
-     * @param xsdContent Der Inhalt der XSD-Datei als String.
-     * @return Der Wurzelknoten des Baumes (XsdNodeInfo) oder null bei einem Fehler.
+     * @param xsdContent The content of the XSD file as a string.
+     * @return The root node of the tree (XsdNodeInfo) or null in case of an error.
      */
     public XsdNodeInfo buildLightweightTree(String xsdContent) {
         try {
@@ -60,30 +60,30 @@ public class XsdViewService {
             initializeXPath();
             initializeCaches(doc);
 
-            // Finde das erste globale Element, das als Wurzelelement angenommen wird.
+            // Find the first global element, which is assumed to be the root element.
             NodeList rootElements = (NodeList) xpath.evaluate("/xs:schema/xs:element", doc, XPathConstants.NODESET);
             if (rootElements.getLength() == 0) {
-                logger.error("Kein Wurzelelement im Schema gefunden.");
+                logger.error("No root element found in schema.");
                 return null;
             }
             Node rootElementNode = rootElements.item(0);
             String rootName = getAttributeValue(rootElementNode, "name");
 
-            // Starte die Rekursion mit einem leeren Set für den Pfad
+            // Start recursion with an empty set for the path
             return buildLightweightNodeRecursive(rootElementNode, "/" + rootName, new HashSet<>());
 
         } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
-            logger.error("Fehler beim Parsen des XSD oder Erstellen des Baumes.", e);
+            logger.error("Error parsing XSD or creating the tree.", e);
             return null;
         }
     }
 
     /**
-     * Extrahiert den allgemeinen Dokumentationstext und die Javadoc-Tags
-     * aus der Annotation eines XSD-Schemas.
+     * Extracts the general documentation text and Javadoc tags
+     * from the annotation of an XSD schema.
      *
-     * @param xsdContent Der Inhalt der XSD-Datei als String.
-     * @return Ein DocumentationParts-Objekt mit den getrennten Inhalten.
+     * @param xsdContent The content of the XSD file as a string.
+     * @return A DocumentationParts object with the separated contents.
      */
     public DocumentationParts extractDocumentationParts(String xsdContent) {
         if (xsdContent == null || xsdContent.isBlank()) {
@@ -98,64 +98,64 @@ public class XsdViewService {
             }
             return extractDocumentationFromAnnotation(schemaAnnotation);
         } catch (Exception e) {
-            logger.error("Konnte Schema-Dokumentation nicht extrahieren.", e);
+            logger.error("Could not extract schema documentation.", e);
             return new DocumentationParts("", "");
         }
     }
 
     // =================================================================================
-    // Rekursive Baum-Erstellung
+    // Recursive tree creation
     // =================================================================================
 
     /**
-     * Rekursive Kernmethode zur Erstellung des XsdNodeInfo-Baumes aus DOM-Knoten.
+     * Recursive core method for creating the XsdNodeInfo tree from DOM nodes.
      */
     private XsdNodeInfo buildLightweightNodeRecursive(Node node, String currentXPath, Set<Node> visitedOnPath) {
         if (node == null || node.getNodeType() != Node.ELEMENT_NODE) {
             return null;
         }
 
-        // Rekursionsschutz: Wenn wir einen Knoten auf dem aktuellen Pfad erneut besuchen, stoppen wir.
+        // Recursion protection: If we visit a node on the current path again, we stop.
         if (visitedOnPath.contains(node)) {
-            logger.warn("Rekursion bei Knoten '{}' auf Pfad '{}' entdeckt. Breche diesen Zweig ab.", getAttributeValue(node, "name"), currentXPath);
+            logger.warn("Recursion detected at node '{}' on path '{}'. Aborting this branch.", getAttributeValue(node, "name"), currentXPath);
             String nodeName = getAttributeValue(node, "name", node.getLocalName());
-            return new XsdNodeInfo(nodeName + " (rekursiv)", "rekursiv", currentXPath, "Rekursive Definition, Verarbeitung gestoppt.", Collections.emptyList(), Collections.emptyList(), "1", "1", NodeType.ELEMENT);
+            return new XsdNodeInfo(nodeName + " (recursive)", "recursive", currentXPath, "Recursive definition, processing stopped.", Collections.emptyList(), Collections.emptyList(), "1", "1", NodeType.ELEMENT);
         }
         visitedOnPath.add(node);
 
         try {
-            // Behandelt Referenzen (ref="...") für Elemente, Attribute und Gruppen
+            // Handles references (ref="...") for elements, attributes and groups
             String ref = getAttributeValue(node, "ref");
             if (!ref.isEmpty()) {
                 Node referencedNode = findReferencedNode(node.getLocalName(), ref);
                 if (referencedNode != null) {
-                    // Verarbeite den referenzierten Knoten anstelle des aktuellen.
+                    // Process the referenced node instead of the current one.
                     return buildLightweightNodeRecursive(referencedNode, currentXPath, visitedOnPath);
                 } else {
-                    logger.warn("Referenz '{}' für Knoten '{}' konnte nicht aufgelöst werden.", ref, node.getLocalName());
-                    return new XsdNodeInfo(ref + " (ungelöst)", "unbekannt", currentXPath, "Konnte Referenz nicht auflösen.", Collections.emptyList(), Collections.emptyList(), "1", "1", NodeType.ELEMENT);
+                    logger.warn("Reference '{}' for node '{}' could not be resolved.", ref, node.getLocalName());
+                    return new XsdNodeInfo(ref + " (unresolved)", "unknown", currentXPath, "Could not resolve reference.", Collections.emptyList(), Collections.emptyList(), "1", "1", NodeType.ELEMENT);
                 }
             }
 
-            // Hauptverarbeitung basierend auf dem lokalen Namen des XML-Knotens
+            // Main processing based on the local name of the XML node
             return switch (node.getLocalName()) {
                 case "element" -> processElement(node, currentXPath, visitedOnPath);
                 case "attribute" -> processAttribute(node, currentXPath);
                 case "sequence", "choice", "all" -> processParticle(node, currentXPath, visitedOnPath);
                 case "any" -> processAny(node, currentXPath);
                 default -> {
-                    logger.trace("Nicht behandelter Knotentyp im Baum: {}", node.getLocalName());
+                    logger.trace("Unhandled node type in tree: {}", node.getLocalName());
                     yield null;
                 }
             };
         } finally {
-            // Entferne den Knoten vom Pfad, damit er in anderen Zweigen wieder besucht werden kann.
+            // Remove the node from the path so it can be visited again in other branches.
             visitedOnPath.remove(node);
         }
     }
 
     // =================================================================================
-    // Verarbeitungslogik für spezifische XSD-Knotentypen
+    // Processing logic for specific XSD node types
     // =================================================================================
 
     private XsdNodeInfo processElement(Node elementNode, String currentXPath, Set<Node> visitedOnPath) {
@@ -167,17 +167,17 @@ public class XsdViewService {
         DocumentationParts docParts = extractDocumentationFromAnnotation(getDirectChildElement(elementNode, "annotation"));
         List<XsdNodeInfo> children = new ArrayList<>();
 
-        // Finde die Typdefinition (entweder inline oder global referenziert)
+        // Find the type definition (either inline or globally referenced)
         Node complexTypeNode = getDirectChildElement(elementNode, "complexType");
         if (complexTypeNode == null && !type.isEmpty()) {
             complexTypeNode = complexTypeMap.get(stripNamespace(type));
         }
 
         if (complexTypeNode != null) {
-            // Verarbeite den Inhalt des komplexen Typs (Partikel und Attribute)
+            // Process the content of the complex type (particles and attributes)
             children.addAll(processComplexTypeContent(complexTypeNode, currentXPath, visitedOnPath));
         } else if (type.isEmpty()) {
-            // Element ohne Typ und ohne inline-Definition ist implizit 'xs:anyType'
+            // Element without type and without inline definition is implicitly 'xs:anyType'
             type = "xs:anyType";
         }
 
@@ -187,7 +187,7 @@ public class XsdViewService {
     private List<XsdNodeInfo> processComplexTypeContent(Node complexTypeNode, String parentXPath, Set<Node> visitedOnPath) {
         List<XsdNodeInfo> children = new ArrayList<>();
 
-        // 1. Verarbeite Vererbung (xs:extension oder xs:restriction)
+        // 1. Process inheritance (xs:extension or xs:restriction)
         Node complexContent = getDirectChildElement(complexTypeNode, "complexContent");
         if (complexContent != null) {
             Node extension = getDirectChildElement(complexContent, "extension");
@@ -195,19 +195,19 @@ public class XsdViewService {
                 String baseType = getAttributeValue(extension, "base");
                 Node baseTypeNode = findTypeNode(baseType);
                 if (baseTypeNode != null) {
-                    // Füge zuerst die Kinder des Basistyps hinzu
+                    // First add the children of the base type
                     children.addAll(processComplexTypeContent(baseTypeNode, parentXPath, visitedOnPath));
                 }
-                // Füge dann die Kinder der Erweiterung hinzu
+                // Then add the children of the extension
                 children.addAll(processParticleAndAttributes(extension, parentXPath, visitedOnPath));
             }
             Node restriction = getDirectChildElement(complexContent, "restriction");
             if (restriction != null) {
-                // Bei einer Beschränkung werden nur die hier definierten Kinder verwendet
+                // In a restriction, only the children defined here are used
                 children.addAll(processParticleAndAttributes(restriction, parentXPath, visitedOnPath));
             }
         } else {
-            // 2. Keine Vererbung, verarbeite direkte Kinder (Partikel und Attribute)
+            // 2. No inheritance, process direct children (particles and attributes)
             children.addAll(processParticleAndAttributes(complexTypeNode, parentXPath, visitedOnPath));
         }
 
@@ -215,14 +215,14 @@ public class XsdViewService {
     }
 
     /**
-     * Verarbeitet Partikel (sequence, choice, all) und Attribute innerhalb eines gegebenen Eltern-Knotens.
+     * Processes particles (sequence, choice, all) and attributes within a given parent node.
      */
     private List<XsdNodeInfo> processParticleAndAttributes(Node parentNode, String parentXPath, Set<Node> visitedOnPath) {
         List<XsdNodeInfo> children = new ArrayList<>();
         for (Node child : getDirectChildElements(parentNode)) {
             String localName = child.getLocalName();
             if ("sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName)) {
-                // Partikel-Container direkt als Kind hinzufügen
+                // Add particle container directly as child
                 children.add(buildLightweightNodeRecursive(child, parentXPath, visitedOnPath));
             } else if ("attribute".equals(localName) || "attributeGroup".equals(localName)) {
                 String attrName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
@@ -278,12 +278,12 @@ public class XsdViewService {
     }
 
     // =================================================================================
-    // Initialisierung und Hilfsmethoden
+    // Initialization and helper methods
     // =================================================================================
 
     private Document parseXsdContent(String xsdContent) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true); // Wichtig für die Arbeit mit Namespaces (xs:)
+        factory.setNamespaceAware(true); // Important for working with namespaces (xs:)
         factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -377,7 +377,7 @@ public class XsdViewService {
     }
 
     // =================================================================================
-    // DOM-Hilfsmethoden
+    // DOM helper methods
     // =================================================================================
 
     private String getAttributeValue(Node node, String attrName) {

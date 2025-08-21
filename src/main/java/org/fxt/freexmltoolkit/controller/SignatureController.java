@@ -117,7 +117,7 @@ public class SignatureController {
         signLoadXmlFileButton.setOnDragOver(SignatureController::handleOnDragOver);
         signLoadXmlFileButton.setOnDragDropped(this::handleXmlLoad);
 
-        // KORREKTUR: Event-Handler für die Validierungs-Buttons werden hier ebenfalls gesetzt
+        // CORRECTION: Event handlers for the validation buttons are also set here
         validateLoadXmlFileButton.setOnAction(this::handleXmlOnAction);
         validateLoadXmlFileButton.setOnDragOver(SignatureController::handleOnDragOver);
         validateLoadXmlFileButton.setOnDragDropped(this::handleXmlLoad);
@@ -308,7 +308,7 @@ public class SignatureController {
             var signedDocument = signatureService.signDocument(xmlFile, certificateFile, keystorePassword, keystoreAlias, aliasPassword, outputFileName);
             showInfoAlert("Success", "File signed successfully.", "File '" + signedDocument.getName() + "' was created.");
 
-            // Das neu signierte Dokument für die Validierung bereitstellen
+            // Provide the newly signed document for validation
             this.xmlFile = signedDocument;
             this.validateXmlFileInfo.setText(this.xmlFile.getName());
 

@@ -102,7 +102,6 @@ public class XmlController {
     XmlEditor emptyXmlEditor;
 
 
-    // LSP Server functionality removed - using XSD-based implementation
     // Executor for asynchronous UI tasks like formatting
     private final ExecutorService formattingExecutor = Executors.newCachedThreadPool(runnable -> {
         Thread t = new Thread(runnable);
@@ -110,7 +109,6 @@ public class XmlController {
         return t;
     });
 
-    // LSP document versioning removed
 
     @FXML
     private void initialize() {
@@ -212,9 +210,8 @@ public class XmlController {
         XmlEditor xmlEditor = new XmlEditor(file); // Keep your constructor
         xmlEditor.setMainController(this.mainController); // Pass the controller
 
-        // CRITICAL: Ensure LSP server is available and properly set
-        // LSP functionality replaced by XSD-based implementation
-        logger.debug("✅ Using XSD-based implementation instead of LSP");
+        // Using XSD-based implementation for validation and completion
+        logger.debug("✅ Using XSD-based implementation");
         
         xmlEditor.refresh();
 
@@ -225,15 +222,13 @@ public class XmlController {
             logger.debug("Applied sidebar visibility setting to new tab: {}", sidebarVisible);
         }
 
-        // Add a listener that notifies the server about text changes.
-        // LSP text change notification removed
+        // Add a listener for text changes (XSD-based validation)
 
         xmlFilesPane.getTabs().add(xmlEditor);
         xmlFilesPane.getSelectionModel().select(xmlEditor);
 
         if (file != null) {
             mainController.addFileToRecentFiles(file);
-            // LSP file opened notification removed
         }
     }
 
@@ -423,8 +418,8 @@ public class XmlController {
     public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.mainController = parentController;
-        // LSP Server initialization removed - using XSD-based implementation
-        logger.debug("Using XSD-based implementation instead of LSP Server");
+        // Using XSD-based implementation for validation and completion
+        logger.debug("Using XSD-based implementation");
 
         // Initialize XPath Query Pane visibility based on saved preference
         if (mainController != null) {
@@ -436,13 +431,6 @@ public class XmlController {
         }
     }
 
-    // LSP server setup method removed - using XSD-based implementation
-
-    // LSP diagnostics publishing removed - using XML validation instead
-
-    // LSP editor URI lookup removed
-
-    // LSP server file notification removed - using XSD-based implementation
 
     /**
      * Displays the content of a file in the current code area.
@@ -464,8 +452,6 @@ public class XmlController {
                 if (area != null) {
                     area.replaceText(content);
                     logger.debug("File {} displayed.", file.getName());
-
-                    // LSP file opened notification removed
                 }
 
             } catch (IOException e) {
@@ -486,8 +472,6 @@ public class XmlController {
 
                 if (xmlEditor.getXmlFile() != null) {
                     textAreaTemp.setText(xmlEditor.getXmlFile().getName());
-                    // Hole die CodeArea sicher. Der direkte Aufruf von .getText() auf das Ergebnis von
-                    // LSP file opened notification removed
                 }
             }
         } catch (Exception e) {
@@ -756,9 +740,6 @@ public class XmlController {
         logger.info("XmlController shutdown completed.");
     }
 
-    // LSP didChange notification removed - using XSD-based implementation
-
-    // LSP folding ranges request removed
 
     /**
      * Loads a test XML file for demonstration purposes.
@@ -811,8 +792,6 @@ public class XmlController {
             }
         });
         // 7. Execute follow-up actions that depend on the loaded content.
-
-        // LSP file opened notification removed
 
         logger.debug("Test file loading complete.");
     }

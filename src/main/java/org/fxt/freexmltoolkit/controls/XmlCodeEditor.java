@@ -65,7 +65,7 @@ public class XmlCodeEditor extends VBox {
     private String documentUri;
 
     // Reference to parent XmlEditor for accessing schema information
-    private Object parentXmlEditor;
+    private XmlEditor parentXmlEditor;
 
     // IntelliSense Popup Components
     private Stage intelliSensePopup;
@@ -83,8 +83,8 @@ public class XmlCodeEditor extends VBox {
     private boolean isElementCompletionContext = false; // Track if we're completing elements or attributes
 
     // Performance optimization: Cache compiled patterns
-    private static final Pattern OPEN_TAG_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\\b[^>]*>");
-    private static final Pattern CLOSE_TAG_PATTERN = Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\\s*>");
+    private static final Pattern OPEN_TAG_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\b[^>]*>");
+    private static final Pattern CLOSE_TAG_PATTERN = Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\s*>");
     private static final Pattern ELEMENT_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)");
 
     // --- Syntax Highlighting Patterns (moved from XmlEditor) ---
@@ -106,7 +106,7 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
-     * Sets the document URI for LSP requests.
+     * Sets the document URI for the current document.
      *
      * @param documentUri The URI of the current document
      */
@@ -128,8 +128,13 @@ public class XmlCodeEditor extends VBox {
      *
      * @param parentEditor The parent XmlEditor instance
      */
-    public void setParentXmlEditor(Object parentEditor) {
+    public void setParentXmlEditor(XmlEditor parentEditor) {
+        logger.debug("setParentXmlEditor called with: {}", parentEditor);
         this.parentXmlEditor = parentEditor;
+        // Trigger immediate cache update when parent is set
+        if (parentEditor != null) {
+            updateEnumerationElementsCache();
+        }
     }
 
     /**
@@ -250,40 +255,53 @@ public class XmlCodeEditor extends VBox {
      */
     private void updateEnumerationElementsCache() {
         try {
+            logger.debug("updateEnumerationElementsCache called. parentXmlEditor: {}", parentXmlEditor);
             if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
                 var xmlService = xmlEditor.getXmlService();
+                logger.debug("xmlService: {}", xmlService);
+                if (xmlService != null) {
+                    logger.debug("currentXsdFile: {}", xmlService.getCurrentXsdFile());
+                }
                 if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
                     java.io.File xsdFile = xmlService.getCurrentXsdFile();
+                    logger.debug("Updating enumeration elements cache from XSD: {}", xsdFile.getAbsolutePath());
 
-                    // Check if XSD file has been modified since last cache update
                     long currentModified = xsdFile.lastModified();
                     if (currentModified == lastXsdModified) {
-                        return; // Cache is still valid
+                        logger.debug("XSD file has not been modified. Cache is up to date.");
+                        return;
                     }
 
-                    // Update cache
                     enumerationElements.clear();
                     lastXsdModified = currentModified;
 
-                    // Parse XSD to find all elements with enumeration constraints
                     javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
                     factory.setNamespaceAware(true);
                     javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
                     org.w3c.dom.Document xsdDoc = builder.parse(xsdFile);
 
                     org.w3c.dom.NodeList elements = xsdDoc.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
+                    logger.debug("Found {} elements in the XSD file.", elements.getLength());
 
                     for (int i = 0; i < elements.getLength(); i++) {
                         org.w3c.dom.Element element = (org.w3c.dom.Element) elements.item(i);
                         String name = element.getAttribute("name");
 
-                        if (name != null && !name.isEmpty() && hasEnumerationConstraint(element)) {
-                            enumerationElements.add(name);
+                        if (name != null && !name.isEmpty()) {
+                            boolean hasEnum = hasEnumerationConstraint(element);
+                            logger.debug("Checking element: {}, Has enumeration: {}", name, hasEnum);
+                            if (hasEnum) {
+                                enumerationElements.add(name);
+                            }
                         }
                     }
 
                     logger.debug("Updated enumeration elements cache with {} elements: {}", enumerationElements.size(), enumerationElements);
+                } else {
+                    logger.debug("XmlService or XSD file is null. Cannot update enumeration cache.");
                 }
+            } else {
+                logger.debug("Parent editor is null or XSD file not available.");
             }
         } catch (Exception e) {
             logger.error("Error updating enumeration elements cache: {}", e.getMessage(), e);
@@ -564,7 +582,6 @@ public class XmlCodeEditor extends VBox {
         logger.debug("Test XML:");
         logger.debug("{}", testXml);
 
-        // Debug CSS status before test
         debugCssStatus();
 
         // Set the test content
@@ -573,7 +590,6 @@ public class XmlCodeEditor extends VBox {
         // Manually trigger syntax highlighting
         refreshSyntaxHighlighting();
 
-        // Debug CSS status after test
         debugCssStatus();
 
         logger.debug("=== Test completed ===");
@@ -752,7 +768,6 @@ public class XmlCodeEditor extends VBox {
     }
 
 
-    // LSP folding functionality removed
 
     // --- Public API for the Editor ---
 
@@ -860,60 +875,48 @@ public class XmlCodeEditor extends VBox {
         if (text == null) {
             text = "";
         }
-        
-        Matcher matcher = XML_TAG.matcher(text);
-        int lastKwEnd = 0;
-        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
 
-        while (matcher.find()) {
-            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
+        // First, get the standard syntax highlighting
+        StyleSpans<Collection<String>> baseHighlighting = computeHighlighting(text);
 
-            if (matcher.group("COMMENT") != null) {
-                spansBuilder.add(Collections.singleton("comment"), matcher.end() - matcher.start());
-            } else {
-                if (matcher.group("ELEMENT") != null) {
-                    String attributesText = matcher.group(GROUP_ATTRIBUTES_SECTION);
-                    String elementName = matcher.group(GROUP_ELEMENT_NAME);
+        // Create a builder for enumeration highlighting
+        StyleSpansBuilder<Collection<String>> enumSpansBuilder = new StyleSpansBuilder<>();
+        int lastMatchEnd = 0;
 
-                    // Check if this element has enumeration constraints
-                    boolean isEnumerationElement = enumerationElements.contains(elementName);
+        // Find all enumeration elements with content
+        List<ElementTextInfo> enumElements = findAllEnumerationElements(text);
 
-                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_OPEN_BRACKET) - matcher.start(GROUP_OPEN_BRACKET));
+        for (ElementTextInfo elementInfo : enumElements) {
+            enumSpansBuilder.add(Collections.emptyList(), elementInfo.startPosition() - lastMatchEnd);
+            enumSpansBuilder.add(Collections.singleton("enumeration-content"), elementInfo.endPosition() - elementInfo.startPosition());
+            lastMatchEnd = elementInfo.endPosition();
+        }
+        enumSpansBuilder.add(Collections.emptyList(), text.length() - lastMatchEnd);
 
-                    // Apply special styling for enumeration elements
-                    if (isEnumerationElement) {
-                        spansBuilder.add(Set.of("anytag", "enumeration"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
-                    } else {
-                        spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
-                    }
+        // Overlay the enumeration highlighting on top of the base syntax highlighting
+        return baseHighlighting.overlay(enumSpansBuilder.create(), (baseStyle, enumStyle) -> {
+            return enumStyle.isEmpty() ? baseStyle : enumStyle;
+        });
+    }
 
-                    if (attributesText != null && !attributesText.isEmpty()) {
-                        lastKwEnd = 0;
-
-                        Matcher amatcher = ATTRIBUTES.matcher(attributesText);
-                        while (amatcher.find()) {
-                            spansBuilder.add(Collections.emptyList(), amatcher.start() - lastKwEnd);
-                            spansBuilder.add(Collections.singleton("attribute"), amatcher.end(GROUP_ATTRIBUTE_NAME) - amatcher.start(GROUP_ATTRIBUTE_NAME));
-                            spansBuilder.add(Collections.singleton("tagmark"), amatcher.end(GROUP_EQUAL_SYMBOL) - amatcher.end(GROUP_ATTRIBUTE_NAME));
-                            spansBuilder.add(Collections.singleton("avalue"), amatcher.end(GROUP_ATTRIBUTE_VALUE) - amatcher.end(GROUP_EQUAL_SYMBOL));
-                            lastKwEnd = amatcher.end();
-                        }
-
-                        if (lastKwEnd < attributesText.length()) {
-                            spansBuilder.add(Collections.emptyList(), attributesText.length() - lastKwEnd);
-                        }
-                    }
-
-                    lastKwEnd = matcher.end(GROUP_ATTRIBUTES_SECTION);
-
-                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_CLOSE_BRACKET) - lastKwEnd);
+    private List<ElementTextInfo> findAllEnumerationElements(String text) {
+        List<ElementTextInfo> elements = new ArrayList<>();
+        logger.debug("Searching for enumeration elements. Cache contains: {}", enumerationElements);
+        for (String elementName : enumerationElements) {
+            Pattern tagPattern = Pattern.compile("<" + elementName + "[^>]*>([^<]*)</" + elementName + ">");
+            Matcher matcher = tagPattern.matcher(text);
+            while (matcher.find()) {
+                String content = matcher.group(1);
+                if (!content.isBlank()) {
+                    int contentStart = matcher.start(1);
+                    int contentEnd = matcher.end(1);
+                    logger.debug("Found enumeration element: {} with content: '{}'", elementName, content);
+                    elements.add(new ElementTextInfo(elementName, content, contentStart, contentEnd));
                 }
             }
-            lastKwEnd = matcher.end();
         }
-        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
-
-        return spansBuilder.create();
+        logger.debug("Total enumeration elements found: {}", elements.size());
+        return elements;
     }
 
     /**
@@ -990,8 +993,8 @@ public class XmlCodeEditor extends VBox {
 
                 // Show the IntelliSense popup with slight delay to ensure the character is processed
                 javafx.application.Platform.runLater(() -> {
-                    logger.debug("Calling requestCompletionsFromLSP for element completion");
-                    requestCompletionsFromLSP();
+                    logger.debug("Calling requestCompletions for element completion");
+                    requestCompletions();
                 });
 
                 return true; // Event was handled
@@ -1009,8 +1012,8 @@ public class XmlCodeEditor extends VBox {
 
                     // Show attribute completions with slight delay
                     javafx.application.Platform.runLater(() -> {
-                        logger.debug("Calling requestCompletionsFromLSP for attribute completion");
-                        requestCompletionsFromLSP();
+                        logger.debug("Calling requestCompletions for attribute completion");
+                        requestCompletions();
                     });
 
                     return true; // Event was handled
@@ -1086,10 +1089,10 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
-     * Requests completions - now uses manual completion since LSP is removed.
+     * Requests completions using XSD-based implementation.
      * Only shows IntelliSense if XSD schema is available.
      */
-    private void requestCompletionsFromLSP() {
+    private void requestCompletions() {
         logger.debug("IntelliSense requested - checking XSD schema availability");
 
         // Only show IntelliSense popup if XSD schema is available
@@ -1130,7 +1133,7 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
-     * Fallback method that shows manual IntelliSense popup (original behavior).
+     * Shows IntelliSense popup with XSD-based completion.
      */
     private void showManualIntelliSensePopup() {
         // Get the current context (parent element)
@@ -1296,7 +1299,6 @@ public class XmlCodeEditor extends VBox {
                 int lastBracketPos = textToCursor.lastIndexOf('<');
 
                 if (lastBracketPos >= 0) {
-                    // Debug information
                     String textBeingReplaced = codeArea.getText(lastBracketPos, currentPosition);
                     String contextBefore = codeArea.getText(Math.max(0, lastBracketPos - 10), lastBracketPos);
                     String contextAfter = codeArea.getText(currentPosition, Math.min(codeArea.getLength(), currentPosition + 10));
@@ -1597,18 +1599,13 @@ public class XmlCodeEditor extends VBox {
 
     /**
      * Handles tab completion for XML elements.
-     * Currently a placeholder for future LSP integration.
      *
      * @param event The key event
      * @return true if the event was handled, false otherwise
      */
     private boolean handleTabCompletion(KeyEvent event) {
-        // For now, just allow normal tab behavior
-        // In a full implementation, this would:
-        // 1. Request completions from LSP server
-        // 2. Show a completion popup
-        // 3. Insert the selected completion
-        logger.debug("Tab completion requested - LSP integration pending");
+        // Allow normal tab behavior for now
+        logger.debug("Tab completion requested");
         return false; // Don't consume the event, allow normal tab behavior
     }
 

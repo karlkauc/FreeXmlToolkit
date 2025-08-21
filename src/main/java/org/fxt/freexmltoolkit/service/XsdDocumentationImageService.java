@@ -45,20 +45,20 @@ public class XsdDocumentationImageService {
 
     private final static Logger logger = LogManager.getLogger(XsdDocumentationImageService.class);
 
-    // Ein ThreadLocal, das für jeden Thread eine wiederverwendbare Transformer-Instanz bereitstellt.
-    // Dies vermeidet den hohen Aufwand, bei jedem Aufruf von asString() eine neue Instanz zu erstellen.
+    // A ThreadLocal that provides a reusable Transformer instance for each thread.
+    // This avoids the high overhead of creating a new instance on every call to asString().
     private static final ThreadLocal<Transformer> transformerThreadLocal = ThreadLocal.withInitial(() -> {
         try {
             TransformerFactory factory = TransformerFactory.newInstance();
             factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
             Transformer trans = factory.newTransformer();
-            // Konfiguriere Eigenschaften, die für alle Transformationen gleich sind
+            // Configure properties that are the same for all transformations
             trans.setOutputProperty(OutputKeys.INDENT, "yes");
             trans.setOutputProperty(OutputKeys.VERSION, "1.0");
             return trans;
         } catch (TransformerConfigurationException e) {
             logger.error("Fatal error during thread-local Transformer initialization", e);
-            // Dies ist ein schwerwiegender Konfigurationsfehler, der die Anwendung stoppen sollte.
+            // This is a serious configuration error that should stop the application.
             throw new IllegalStateException("Failed to create thread-local Transformer", e);
         }
     });
@@ -103,7 +103,7 @@ public class XsdDocumentationImageService {
     public XsdDocumentationImageService(Map<String, XsdExtendedElement> extendedXsdElements) {
         this.extendedXsdElements = extendedXsdElements;
 
-        // Moderne Schriftart mit besserer Lesbarkeit
+        // Modern font with better readability
         font = new Font("Inter", Font.PLAIN, 14);
         frc = new FontRenderContext(
                 null,
@@ -479,7 +479,7 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Berechnet die Höhe der Dokumentation für die Layout-Planung
+     * Calculates the height of the documentation for layout planning
      */
     private double calculateDocumentationHeight(List<XsdExtendedElement.DocumentationInfo> xsdDocumentation, double rootElementWidth) {
         if (xsdDocumentation == null || xsdDocumentation.isEmpty()) {
@@ -516,7 +516,7 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Berechnet die Gesamthöhe aller Kind-Elemente für die Zentrierung
+     * Calculates the total height of all child elements for centering
      */
     private double calculateTotalChildElementsHeight(List<XsdExtendedElement> childElements) {
         if (childElements.isEmpty()) {
@@ -543,7 +543,7 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Berechnet die maximale Höhe der Kind-Elemente für symmetrisches Layout
+     * Calculates the maximum height of child elements for symmetric layout
      */
     private double calculateMaxChildHeight(List<XsdExtendedElement> childElements) {
         double maxHeight = 0;
@@ -564,7 +564,7 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Berechnet die maximale Breite der Kind-Elemente für symmetrisches Layout
+     * Calculates the maximum width of child elements for symmetric layout
      */
     private double calculateMaxChildWidth(List<XsdExtendedElement> childElements) {
         double maxWidth = 0;
@@ -584,7 +584,7 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Zeichnet moderne Sequenz/Choice-Symbole
+     * Draws modern sequence/choice symbols
      */
     private double drawModernSequenceChoiceSymbol(Document document, double rootPathEndX, double rootPathCenterY,
                                                   double gapBetweenSides, boolean isSequence, boolean isChoice,
@@ -691,7 +691,7 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Erstellt ein modernes SVG-Rechteck mit abgerundeten Ecken
+     * Creates a modern SVG rectangle with rounded corners
      */
     private Element createModernSvgRect(Document document, String id, double contentHeight, double contentWidth, String x, String y) {
         Element rect = document.createElementNS(svgNS, "rect");
@@ -707,7 +707,7 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Erstellt einen modernen Punkt für Sequenz-Symbole
+     * Creates a modern dot for sequence symbols
      */
     private Element createModernDot(Document document, double cx, double cy) {
         Element circle = document.createElementNS(svgNS, "circle");
@@ -796,7 +796,7 @@ public class XsdDocumentationImageService {
      */
     private double generateModernDocumentationElement(Document document, List<XsdExtendedElement.DocumentationInfo> xsdDocumentation,
                                                       double rootElementWidth, double rootElementHeight, int startX, int startY) {
-        // Moderne Schriftart für Dokumentation
+        // Modern font for documentation
         final Font docFont = font.deriveFont((float) font.getSize() - 1);
 
         final var docTextGroup = document.createElementNS(svgNS, "g");
@@ -1012,13 +1012,13 @@ public class XsdDocumentationImageService {
      * @return the string representation of the node
      */
     private static String asString(Node node) {
-        // try-with-resources stellt sicher, dass der Writer immer geschlossen wird.
+        // try-with-resources ensures that the Writer is always closed.
         try (StringWriter writer = new StringWriter()) {
-            // Hole die wiederverwendbare Transformer-Instanz für den aktuellen Thread.
+            // Get the reusable Transformer instance for the current thread.
             Transformer trans = transformerThreadLocal.get();
 
-            // Passe die eine dynamische Eigenschaft für diesen spezifischen Aufruf an.
-            // Dies ist entscheidend, da die Transformer-Instanz wiederverwendet wird.
+            // Adjust the one dynamic property for this specific call.
+            // This is crucial since the Transformer instance is reused.
             if (node instanceof Document) {
                 trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
             } else {
@@ -1031,7 +1031,7 @@ public class XsdDocumentationImageService {
             logger.error("Failed to transform DOM node to string", ex);
             throw new IllegalArgumentException("Failed to transform node", ex);
         } catch (final IOException ex) {
-            // StringWriter sollte keine IOException werfen, aber es ist gute Praxis, sie zu behandeln.
+            // StringWriter should not throw IOException, but it's good practice to handle it.
             logger.error("IO error during node serialization", ex);
             throw new UncheckedIOException(ex);
         }

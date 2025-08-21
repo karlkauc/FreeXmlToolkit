@@ -36,6 +36,12 @@
   -fx-fill: black;
 }
 
+.enumeration-content {
+    -rtfx-background-color: #ffff00;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ff0000;
+}
+
 .comment {
   -fx-fill: teal;
 }

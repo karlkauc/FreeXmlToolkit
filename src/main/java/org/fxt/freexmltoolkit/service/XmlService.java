@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -111,10 +113,10 @@ public interface XmlService {
     }
 
     static String prettyFormat(String input, int indent) {
+        Logger logger = LogManager.getLogger(XmlService.class);
         try {
             Transformer transformer = SAXTransformerFactory.newInstance().newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            //transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
 
             Source xmlSource = new SAXSource(new InputSource(new ByteArrayInputStream(input.getBytes())));
@@ -122,8 +124,7 @@ public interface XmlService {
             transformer.transform(xmlSource, res);
             return res.getOutputStream().toString();
         } catch (Exception e) {
-            System.out.println("FEHLER");
-            System.out.println(e.getMessage());
+            logger.error("Error formatting XML: {}", e.getMessage());
             return input;
         }
     }

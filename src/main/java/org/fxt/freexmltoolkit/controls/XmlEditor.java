@@ -129,7 +129,6 @@ public class XmlEditor extends Tab {
         }
     }
 
-    // LSP functionality replaced by XSD-based implementation
 
     private void init() {
         try {
@@ -514,7 +513,6 @@ public class XmlEditor extends Tab {
         hoverPopOver = new PopOver(popOverLabel);
         hoverPopOver.setDetachable(false);
         hoverPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
-        // Hover functionality removed with LSP
     }
 
     private void setupSearchAndReplace() {
@@ -555,7 +553,7 @@ public class XmlEditor extends Tab {
 
     /**
      * Updates the cursor information including XPath, element name, element type, documentation, and example values.
-     * Uses LSP server to get comprehensive information about the current element.
+     * Uses XSD-based implementation to get comprehensive information about the current element.
      */
     private void updateCursorInformation() {
         if (sidebarController == null) return;
@@ -1421,7 +1419,6 @@ public class XmlEditor extends Tab {
         return contextElementNames;
     }
 
-    // LSP diagnostics and hover functionality removed - using XML validation and XSD-based information instead
 
     private void applyStyles() {
         if (codeArea.getText().length() >= MAX_SIZE_FOR_FORMATTING) return;
@@ -1430,8 +1427,8 @@ public class XmlEditor extends Tab {
     }
 
     /**
-     * Updates element information using LSP server for better accuracy.
-     * This method tries to get the current element name and type from the LSP server.
+     * Updates element information using XSD-based implementation for better accuracy.
+     * This method tries to get the current element name and type from the XSD schema.
      *
      * @param caretPosition The current cursor position
      */
@@ -2084,7 +2081,7 @@ public class XmlEditor extends Tab {
 
         xmlService.setCurrentXmlFile(xmlFile);
 
-        // Set the document URI for LSP completion requests and parent reference
+        // Set the document URI for completion requests and parent reference
         if (xmlCodeEditor != null && xmlFile != null) {
             xmlCodeEditor.setDocumentUri(xmlFile.toURI().toString());
             xmlCodeEditor.setParentXmlEditor(this);
@@ -2254,10 +2251,10 @@ public class XmlEditor extends Tab {
      */
     public void debugCssLoading() {
         if (xmlCodeEditor != null) {
-            System.out.println("=== Debugging CSS Loading in XmlEditor ===");
+            logger.debug("=== Debugging CSS Loading in XmlEditor ===");
             xmlCodeEditor.debugCssStatus();
         } else {
-            System.err.println("ERROR: XmlCodeEditor is null");
+            logger.error("ERROR: XmlCodeEditor is null");
         }
     }
 }

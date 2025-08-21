@@ -175,7 +175,7 @@ public class XmlServiceImpl implements XmlService {
             FileInputStream fileIS = new FileInputStream(this.currentXmlFile);
             this.builder = builderFactory.newDocumentBuilder();
             this.xmlDocument = builder.parse(fileIS);
-            this.xmlContent = String.join(System.lineSeparator(), Files.readAllLines(this.currentXmlFile.toPath()));
+            this.xmlContent = Files.readString(this.currentXmlFile.toPath());
 
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -187,7 +187,7 @@ public class XmlServiceImpl implements XmlService {
     public String getFormatedXmlFile() {
         String t = "";
         try {
-            t = String.join(System.lineSeparator(), Files.readAllLines(this.currentXmlFile.toPath()));
+            t = Files.readString(this.currentXmlFile.toPath());
         } catch (IOException ioException) {
             logger.error(ioException.getMessage());
         }
@@ -198,7 +198,7 @@ public class XmlServiceImpl implements XmlService {
     public void prettyFormatCurrentFile() {
         logger.debug("pretty format file");
         try {
-            var temp = String.join(System.lineSeparator(), Files.readAllLines(this.currentXmlFile.toPath()));
+            var temp = Files.readString(this.currentXmlFile.toPath());
             temp = XmlService.prettyFormat(temp, 4);
             Files.write(this.currentXmlFile.toPath(), temp.getBytes());
             logger.debug("done: {}", temp.getBytes().length);

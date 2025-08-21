@@ -54,7 +54,7 @@ public class XsdController {
     @FXML
     private Label statusText;
 
-    // schema nivelieren
+    // schema flattening
     @FXML
     private Tab flattenTab;
     @FXML
@@ -70,26 +70,26 @@ public class XsdController {
     @FXML
     private ProgressIndicator flattenProgress;
 
-    // ExecutorService für Hintergrund-Tasks
+    // ExecutorService for background tasks
     private final ExecutorService executorService = Executors.newFixedThreadPool(2, r -> {
         Thread t = new Thread(r);
         t.setDaemon(true);
         return t;
     });
 
-    // Service-Klassen
+    // Service classes
     private final XmlService xmlService = new XmlServiceImpl();
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     private MainController parentController;
 
-    // --- NEU: Such- und Ersetzen-Funktionalität ---
+    // --- NEW: Search and replace functionality ---
     private SearchReplaceController searchController;
     private PopOver searchPopOver;
 
     private enum SearchMode {SEARCH, REPLACE}
 
-    // --- NEU: Felder für die Dokumentations-Vorschau ---
+    // --- NEW: Fields for documentation preview ---
     @FXML
     private Tab docPreviewTab;
     @FXML
@@ -124,7 +124,7 @@ public class XsdController {
     @FXML
     private ProgressIndicator progressSampleData;
 
-    // Felder für den text tab
+    // Fields for the text tab
 
     @FXML
     private HBox textInfoPane;
@@ -226,7 +226,7 @@ public class XsdController {
         // Setup for the sample data CodeArea
         sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));
 
-        // NEU: Such-Popup und Tastenkürzel für den XSD-Texteditor hinzufügen
+        // NEW: Add search popup and keyboard shortcuts for the XSD text editor
         try {
             initializeSearchPopup();
             sourceCodeEditor.getCodeArea().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -246,11 +246,9 @@ public class XsdController {
         } catch (IOException e) {
             logger.error("Failed to initialize search popup for XSD editor.", e);
         }
-        // NEU: Preview-Tab initial ausblenden und unzugänglich machen
+        // NEW: Initially hide the preview tab and make it inaccessible
         if (docPreviewTab != null) {
             docPreviewTab.setDisable(true);
-            // Optional: Den Tab komplett aus der Tab-Leiste entfernen, bis er gebraucht wird.
-            // tabPane.getTabs().remove(docPreviewTab);
         }
     }
 
@@ -258,7 +256,7 @@ public class XsdController {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/controls/SearchReplaceControl.fxml"));
         Pane searchPane = loader.load();
         searchController = loader.getController();
-        searchController.setXmlCodeEditor(this.sourceCodeEditor); // Verbindet die Suche mit dem XSD-Editor
+        searchController.setXmlCodeEditor(this.sourceCodeEditor); // Connects the search with the XSD editor
         searchPopOver = new PopOver(searchPane);
         searchPopOver.setDetachable(false);
         searchPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
@@ -283,7 +281,7 @@ public class XsdController {
 
         File selectedFile = fileChooser.showOpenDialog(tabPane.getScene().getWindow());
         if (selectedFile != null) {
-            // Die zentrale Methode `openXsdFile` ist nun für alles verantwortlich.
+            // The central method `openXsdFile` is now responsible for everything.
             openXsdFile(selectedFile);
             return selectedFile;
         }
@@ -291,7 +289,7 @@ public class XsdController {
     }
 
     /**
-     * NEU: Zeigt das Such-Popup für den XSD-Editor an.
+     * NEW: Shows the search popup for the XSD editor.
      */
     private void showSearchPopup(SearchMode mode) {
         if (searchPopOver == null) return;
@@ -317,16 +315,16 @@ public class XsdController {
      * @param file Die zu öffnende XSD-Datei.
      */
     public void openXsdFile(File file) {
-        // Die Datei muss ZUERST im Service gesetzt werden,
-        // damit alle nachfolgenden Methoden den korrekten Zustand haben.
+        // The file must be set FIRST in the service,
+        // so that all subsequent methods have the correct state.
         xmlService.setCurrentXsdFile(file);
 
-        // Rufe die zentrale Methode im MainController auf.
-        // Diese fügt die Datei nicht nur zur Liste hinzu, sondern aktualisiert auch das Menü.
+        // Call the central method in the MainController.
+        // This not only adds the file to the list, but also updates the menu.
         if (parentController != null) {
             parentController.addFileToRecentFiles(file);
         } else {
-            // Fallback, falls der Parent-Controller aus irgendeinem Grund nicht gesetzt ist.
+            // Fallback in case the parent controller is not set for some reason.
             propertiesService.addLastOpenFile(file);
         }
 
@@ -337,34 +335,34 @@ public class XsdController {
         String absolutePath = file.getAbsolutePath();
         xsdFilePath.setText(absolutePath);
         xsdForSampleDataPath.setText(absolutePath);
-        xsdToFlattenPath.setText(absolutePath); // Auch für den Flatten-Tab setzen
+        xsdToFlattenPath.setText(absolutePath); // Also set for the Flatten tab
 
         setupXsdDiagram();
     }
 
     /**
-     * Richtet die Diagrammansicht für die aktuell geladene XSD-Datei ein.
-     * Diese Methode erstellt einen Hintergrund-Task, um die XSD-Datei zu parsen und den Baum aufzubauen. Dies wird
-     * ausgeführt, um die Benutzeroberfläche nicht zu blockieren.
+     * Sets up the diagram view for the currently loaded XSD file.
+     * This method creates a background task to parse the XSD file and build the tree. This is
+     * executed to avoid blocking the user interface.
      */
     private void setupXsdDiagram() {
         File currentXsdFile = xmlService.getCurrentXsdFile();
         if (currentXsdFile == null) {
-            // Zeige den "Keine Datei geladen"-Platzhalter an
+            // Show the "No file loaded" placeholder
             noFileLoadedPane.setVisible(true);
             noFileLoadedPane.setManaged(true);
             xsdInfoPane.setVisible(false);
             xsdInfoPane.setManaged(false);
             return;
         }
-        // Zeige den Lade-Indikator an und verstecke den Platzhalter
+        // Show the loading indicator and hide the placeholder
         xsdDiagramProgress.setVisible(true);
         textProgress.setVisible(true);
         noFileLoadedPane.setVisible(false);
         noFileLoadedPane.setManaged(false);
         noFileLoadedPaneText.setVisible(false);
         noFileLoadedPaneText.setManaged(false);
-        xsdStackPane.getChildren().clear(); // Alte Ansicht entfernen
+        xsdStackPane.getChildren().clear(); // Remove old view
 
         Task<DiagramData> task = new Task<>() {
             @Override
@@ -373,18 +371,18 @@ public class XsdController {
 
                 String fileContent = Files.readString(currentXsdFile.toPath());
 
-                // 1. Service für Baum und Doku verwenden (neue Implementierung)
+                // 1. Use service for tree and documentation (new implementation)
                 XsdViewService viewService = new XsdViewService();
                 XsdNodeInfo rootNode = viewService.buildLightweightTree(fileContent);
                 XsdViewService.DocumentationParts docParts = viewService.extractDocumentationParts(fileContent);
 
-                // 2. Metadaten (targetNamespace, version) mit JAXP/DOM auslesen
+                // 2. Read metadata (targetNamespace, version) with JAXP/DOM
                 String targetNamespace = "Not defined";
                 String version = "Not specified";
 
                 try {
                     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                    // Sichere Verarbeitung ist wichtig
+                    // Secure processing is important
                     factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
                     factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
                     factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
@@ -392,7 +390,7 @@ public class XsdController {
                     factory.setExpandEntityReferences(false);
 
                     DocumentBuilder builder = factory.newDocumentBuilder();
-                    // Wichtig: InputSource mit StringReader verwenden, um aus dem String zu parsen
+                    // Important: Use InputSource with StringReader to parse from string
                     Document doc = builder.parse(new InputSource(new StringReader(fileContent)));
 
                     org.w3c.dom.Element schemaElement = doc.getDocumentElement();
@@ -406,7 +404,7 @@ public class XsdController {
                     }
                 } catch (Exception e) {
                     logger.warn("Could not read metadata (targetNamespace, version).", e);
-                    // Standardwerte werden beibehalten
+                    // Default values are retained
                 }
 
                 return new DiagramData(rootNode, targetNamespace, version, docParts.mainDocumentation(), docParts.javadocContent(), fileContent);
@@ -431,7 +429,7 @@ public class XsdController {
             }
             xsdDiagramProgress.setVisible(false);
 
-            // Text-Tab UI aktualisieren
+            // Update text tab UI
             textInfoPane.setVisible(true);
             textInfoPane.setManaged(true);
             textInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
@@ -464,15 +462,15 @@ public class XsdController {
             return;
         }
 
-        // Javadoc-Teil nur anhängen, wenn er Inhalt hat
+        // Only append Javadoc part if it has content
         String fullDocumentation = javadoc.trim().isEmpty() ? mainDoc.trim() : mainDoc.trim() + "\n\n" + javadoc.trim();
 
-        // Task zum Speichern der Datei erstellen
+        // Create task to save the file
         Task<Void> saveTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
                 updateMessage("Saving documentation...");
-                // Service aufrufen, der die eigentliche Arbeit macht
+                // Call service that does the actual work
                 xmlService.updateRootDocumentation(currentXsdFile, fullDocumentation);
                 return null;
             }
@@ -531,7 +529,7 @@ public class XsdController {
     }
 
     /**
-     * Wählt programmatisch den "Text"-Tab in der Tab-Ansicht aus.
+     * Programmatically selects the "Text" tab in the tab view.
      */
     public void selectTextTab() {
         logger.debug("select text tab");
@@ -938,7 +936,7 @@ public class XsdController {
             flattenProgress.setVisible(false);
             String flattenedContent = flattenTask.getValue();
 
-            // GEÄNDERT: Highlighting für die flattenedXsdTextArea anwenden
+            // CHANGED: Apply highlighting for the flattenedXsdTextArea
             flattenedXsdTextArea.replaceText(flattenedContent);
             flattenedXsdTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(flattenedContent));
 
@@ -964,7 +962,7 @@ public class XsdController {
         return originalPath.substring(0, originalPath.length() - 4) + "_flattened.xsd";
     }
 
-    // Stellen Sie sicher, dass diese Methode bereits existiert oder fügen Sie sie hinzu
+    // Make sure this method already exists or add it
     private File showSaveDialog(String title, String description, String extension) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(title);
@@ -975,23 +973,23 @@ public class XsdController {
     // In XsdController.java hinzufügen
 
     /**
-     * Zeigt ein standardmäßiges JavaFX-Alert-Dialogfenster an.
+     * Shows a standard JavaFX alert dialog window.
      *
-     * @param alertType Der Typ des Alerts (z.B. INFORMATION, ERROR, WARNING).
-     * @param title     Der Titel des Dialogfensters.
-     * @param content   Die Nachricht, die dem Benutzer angezeigt werden soll.
+     * @param alertType The type of alert (e.g., INFORMATION, ERROR, WARNING).
+     * @param title     The title of the dialog window.
+     * @param content   The message to be displayed to the user.
      */
     private void showAlert(Alert.AlertType alertType, String title, String content) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
-        alert.setHeaderText(null); // Wir verwenden keinen Header-Text für ein einfacheres Aussehen
+        alert.setHeaderText(null); // We don't use header text for a simpler appearance
         alert.setContentText(content);
         alert.showAndWait();
     }
 
     /**
-     * Fährt den internen ExecutorService herunter, um sicherzustellen, dass alle
-     * Hintergrund-Threads sauber beendet werden, wenn die Anwendung geschlossen wird.
+     * Shuts down the internal ExecutorService to ensure that all
+     * background threads are cleanly terminated when the application is closed.
      */
     public void shutdown() {
         stopDocServer();
@@ -1012,11 +1010,11 @@ public class XsdController {
     }
 
     /**
-     * Stoppt den laufenden Dokumentations-Webserver, falls vorhanden.
+     * Stops the running documentation web server, if present.
      */
     private void stopDocServer() {
         if (docServer != null) {
-            docServer.stop(0); // 0 Sekunden Verzögerung beim Beenden
+            docServer.stop(0); // 0 seconds delay when stopping
             docServer = null;
             logger.info("Documentation server stopped.");
         }

@@ -312,43 +312,43 @@ public class XsdExtendedElement implements Serializable {
     }
 
     /**
-     * Ruft die Beispieldaten für das Element ab und stellt sicher, dass sie frei von ungültigen XML-Zeichen sind.
-     * Diese Methode filtert Steuerzeichen (außer Tabulator, Zeilenumbruch und Wagenrücklauf) heraus,
-     * um Fehler beim Schreiben der Daten in HTML-Dateien zu verhindern.
+     * Retrieves the sample data for the element and ensures it is free of invalid XML characters.
+     * This method filters out control characters (except tab, line feed, and carriage return)
+     * to prevent errors when writing the data to HTML files.
      *
-     * @return Die bereinigten Beispieldaten oder ein leerer String, falls keine vorhanden sind.
+     * @return The cleaned sample data or an empty string if none are available.
      */
     public String getSampleData() {
         if (sampleData == null || sampleData.isEmpty()) {
             return "";
         }
-        // Dieser reguläre Ausdruck entfernt alle Zeichen, die als "Steuerzeichen" (`\p{C}`) kategorisiert sind,
-        // mit Ausnahme der erlaubten Whitespace-Zeichen: Tabulator (\t), Zeilenumbruch (\n) und Wagenrücklauf (\r).
-        // Dies verhindert eine "UnmappableCharacterException" beim Schreiben von Dateien, die solche Zeichen enthalten.
+        // This regular expression removes all characters categorized as "control characters" (`\p{C}`),
+        // except for the allowed whitespace characters: tab (\t), line feed (\n), and carriage return (\r).
+        // This prevents an "UnmappableCharacterException" when writing files that contain such characters.
         return sampleData.replaceAll("[\\p{C}&&[^\\r\\n\\t]]", "");
     }
 
     /**
-     * Gibt die finalen Beispieldaten für die Anzeige zurück.
-     * Priorisiert vordefinierte Beispielwerte aus dem XSD (`exampleValues`).
-     * Wenn keine vorhanden sind, wird auf die künstlich generierten Daten (`sampleData`) zurückgegriffen.
+     * Returns the final sample data for display.
+     * Prioritizes predefined example values from the XSD (`exampleValues`).
+     * If none are available, falls back to the artificially generated data (`sampleData`).
      *
-     * @return Die besten verfügbaren Beispieldaten als bereinigter String.
+     * @return The best available sample data as a cleaned string.
      */
     public String getDisplaySampleData() {
-        // Priorität 1: Vordefinierte Werte aus dem XSD, falls vorhanden.
+        // Priority 1: Predefined values from the XSD, if available.
         if (exampleValues != null && !exampleValues.isEmpty()) {
-            // Nimm den ersten Wert und bereinige ihn von ungültigen Zeichen.
+            // Take the first value and clean it of invalid characters.
             String firstExample = exampleValues.getFirst();
             if (firstExample == null) {
                 return "";
             }
-            // Verwende dieselbe Bereinigung wie für generierte Daten.
+            // Use the same cleaning as for generated data.
             return firstExample.replaceAll("[\\p{C}&&[^\\r\\n\\t]]", "");
         }
 
-        // Priorität 2: Künstlich generierte Daten als Fallback.
-        return getSampleData(); // Diese Methode enthält bereits die Bereinigung.
+        // Priority 2: Artificially generated data as fallback.
+        return getSampleData(); // This method already contains the cleaning.
     }
 
 

@@ -51,13 +51,4 @@ public record ValidationError(
         return sb.toString();
     }
 
-    /**
-     * Returns a short summary for status display
-     */
-    public String getSummaryText() {
-        return lineNumber > 0 ?
-                String.format("L%d:%d - %s", lineNumber, columnNumber,
-                        message.length() > 50 ? message.substring(0, 47) + "..." : message) :
-                message;
-    }
 }

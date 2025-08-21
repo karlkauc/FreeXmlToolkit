@@ -278,14 +278,12 @@ public class XsdDocumentationHtmlService {
 
     public void generateDetailPages() {
         logger.debug("Generating detail pages for all elements...");
-        // xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
         xsdDocumentationData.getExtendedXsdElementMap().values().forEach(this::generateDetailPage);
         logger.debug("Finished generating detail pages.");
     }
 
     public void generateDetailsPagesInParallel() {
         logger.debug("Generating detail pages for all elements (in parallel)...");
-        // xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
         xsdDocumentationData.getExtendedXsdElementMap().values().parallelStream().forEach(this::generateDetailPage);
         logger.debug("Finished generating detail pages (in parallel).");
     }
@@ -314,8 +312,6 @@ public class XsdDocumentationHtmlService {
 
         } catch (IOException e) {
             logger.error("Failed to generate detail page for element: {}", element.getCurrentXpath(), e);
-            // Optional: re-throw as a runtime exception to stop the build
-            // throw new RuntimeException("Failed to generate detail page for " + element.getCurrentXpath(), e);
         }
     }
 

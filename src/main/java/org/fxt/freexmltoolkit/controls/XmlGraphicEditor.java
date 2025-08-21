@@ -605,7 +605,6 @@ public class XmlGraphicEditor extends VBox {
     }
 
     private void deleteNode(Node nodeToDelete) {
-        // Debug info about the node to delete
         logger.info("Deleting node: Name='{}', Type={}, HasParent={}",
                 nodeToDelete.getNodeName(),
                 nodeToDelete.getNodeType(),

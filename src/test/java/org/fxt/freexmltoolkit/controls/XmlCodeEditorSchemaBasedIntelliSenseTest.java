@@ -53,36 +53,11 @@ class XmlCodeEditorSchemaBasedIntelliSenseTest {
         });
     }
 
-    @Test
-    void testIntelliSenseSchemaCheckLogic() throws Exception {
-        // Test the schema checking logic
-        Method isXsdAvailableMethod = XmlCodeEditor.class.getDeclaredMethod("isXsdSchemaAvailable");
-        isXsdAvailableMethod.setAccessible(true);
-
-        Platform.runLater(() -> {
-            try {
-                // Initially no schema should be available
-                boolean initialState = (Boolean) isXsdAvailableMethod.invoke(xmlCodeEditor);
-                assertFalse(initialState, "Initial state should be no schema available");
-
-                // Create a mock XmlEditor (this is a simplified test)
-                // In a real scenario, the XmlEditor would be properly configured
-                xmlCodeEditor.setParentXmlEditor(null); // Explicitly set to null
-
-                boolean afterNullSet = (Boolean) isXsdAvailableMethod.invoke(xmlCodeEditor);
-                assertFalse(afterNullSet, "Schema should not be available when parent is null");
-
-                System.out.println("Test passed: Schema checking logic works correctly");
-            } catch (Exception e) {
-                fail("Error testing schema checking logic: " + e.getMessage());
-            }
-        });
-    }
 
     @Test
     void testRequestCompletionsWithoutSchema() throws Exception {
-        // Test that requestCompletionsFromLSP handles missing schema correctly
-        Method requestCompletionsMethod = XmlCodeEditor.class.getDeclaredMethod("requestCompletionsFromLSP");
+        // Test that requestCompletions handles missing schema correctly
+        Method requestCompletionsMethod = XmlCodeEditor.class.getDeclaredMethod("requestCompletions");
         requestCompletionsMethod.setAccessible(true);
 
         Platform.runLater(() -> {
@@ -140,7 +115,7 @@ class XmlCodeEditorSchemaBasedIntelliSenseTest {
             // Test that setting parentXmlEditor works correctly
             assertDoesNotThrow(() -> {
                 xmlCodeEditor.setParentXmlEditor(null);
-                xmlCodeEditor.setParentXmlEditor(new Object()); // Any object for testing
+                xmlCodeEditor.setParentXmlEditor(new XmlEditor()); // Any object for testing
             });
 
             System.out.println("Test passed: Setting parentXmlEditor works correctly");

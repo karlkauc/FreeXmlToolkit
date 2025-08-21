@@ -40,6 +40,43 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Main application class for FreeXMLToolkit - Universal Toolkit for XML.
+ *
+ * <p>This JavaFX application provides a comprehensive suite of XML tools including:
+ * <ul>
+ *   <li>XML editing with syntax highlighting and validation</li>
+ *   <li>XSD schema visualization and documentation generation</li>
+ *   <li>XSLT transformations with preview capabilities</li>
+ *   <li>XML digital signature creation and validation</li>
+ *   <li>PDF generation from XML/XSL-FO documents</li>
+ * </ul>
+ *
+ * <p>The application features a modern tab-based interface built with JavaFX and AtlantaFX theming.
+ * It includes advanced XML editing capabilities with IntelliSense, schema-based auto-completion,
+ * and real-time validation feedback.
+ *
+ * <p>Performance optimizations include:
+ * <ul>
+ *   <li>Multi-threaded background processing for heavy operations</li>
+ *   <li>Memory monitoring with configurable thresholds</li>
+ *   <li>Efficient file handling with encoding detection</li>
+ *   <li>Cached schema processing for improved response times</li>
+ * </ul>
+ *
+ * <p>Usage example:
+ * <pre>{@code
+ * // Launch the application
+ * FxtGui.main(args);
+ *
+ * // Or programmatically
+ * Application.launch(FxtGui.class, args);
+ * }</pre>
+ *
+ * @author Karl Kauc
+ * @version 1.0
+ * @since 2024
+ */
 public class FxtGui extends Application {
 
     private final static Logger logger = LogManager.getLogger(FxtGui.class);
@@ -54,6 +91,23 @@ public class FxtGui extends Application {
 
     StopWatch startWatch = new StopWatch();
 
+    /**
+     * Initializes and starts the JavaFX application.
+     *
+     * <p>This method performs the following initialization steps:
+     * <ul>
+     *   <li>Loads custom fonts (Roboto family)</li>
+     *   <li>Loads the main FXML layout and initializes controllers</li>
+     *   <li>Sets up platform-specific taskbar icons (macOS and Windows)</li>
+     *   <li>Configures CSS hot-reloading for development</li>
+     *   <li>Sets up the primary stage with maximized window</li>
+     *   <li>Configures application shutdown behavior</li>
+     * </ul>
+     *
+     * @param primaryStage the primary stage for this application, onto which
+     *                     the application scene can be set
+     * @throws IOException if the FXML file cannot be loaded
+     */
     @Override
     public void start(Stage primaryStage) {
         startWatch.start();
@@ -96,6 +150,15 @@ public class FxtGui extends Application {
         }
     }
 
+    /**
+     * Loads custom Roboto font family from embedded resources.
+     *
+     * <p>Attempts to load all variants of the Roboto font including:
+     * Regular, Bold, Italic, Light, Thin, Medium, Black, and their italic variants.
+     * Font loading failures are logged as warnings but do not prevent application startup.
+     *
+     * <p>Fonts are loaded at 10pt size and become available system-wide within the application.
+     */
     private void loadFonts() {
         String[] fonts = {
                 "Roboto-Regular", "Roboto-Bold", "Roboto-Italic", "Roboto-Light",
@@ -112,6 +175,23 @@ public class FxtGui extends Application {
     }
 
 
+    /**
+     * Performs application shutdown and cleanup operations.
+     *
+     * <p>This method is called when the JavaFX application is being stopped.
+     * It performs the following cleanup operations:
+     * <ul>
+     *   <li>Shuts down the global executor service</li>
+     *   <li>Shuts down scheduler and service executors from MainController</li>
+     *   <li>Calls shutdown on the MainController for controller-specific cleanup</li>
+     *   <li>Records application runtime duration</li>
+     *   <li>Saves runtime statistics to application properties</li>
+     * </ul>
+     *
+     * <p>Executor services are given time to complete current tasks before forced shutdown.
+     *
+     * @see #shutdownExecutor(ExecutorService)
+     */
     @Override
     public void stop() {
         logger.debug("stopping Application");
@@ -147,6 +227,21 @@ public class FxtGui extends Application {
         logger.debug("Duration overall: {}", newSeconds);
     }
 
+    /**
+     * Safely shuts down an ExecutorService with graceful timeout handling.
+     *
+     * <p>This method implements a two-phase shutdown process:
+     * <ol>
+     *   <li>Initiates an orderly shutdown allowing currently executing tasks to complete</li>
+     *   <li>Waits up to 800 milliseconds for tasks to finish</li>
+     *   <li>Forces immediate shutdown if tasks don't complete within the timeout</li>
+     * </ol>
+     *
+     * <p>If the shutdown is interrupted, the method will immediately force shutdown
+     * and restore the interrupted status of the current thread.
+     *
+     * @param executor the ExecutorService to shutdown, must not be null
+     */
     private void shutdownExecutor(ExecutorService executor) {
         executor.shutdown();
         try {
@@ -160,7 +255,6 @@ public class FxtGui extends Application {
     }
 
     public static void main(String[] args) {
-        // Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         launch();
     }
 }

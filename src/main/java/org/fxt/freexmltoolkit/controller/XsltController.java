@@ -154,18 +154,18 @@ public class XsltController {
                     default -> outputMethodSwitch.getSelectionModel().select(tabText);
                 }
             } catch (Exception exception) {
-                // Logge den Fehler für die Entwickler-Analyse (mit vollem Stacktrace)
+                // Log the error for developer analysis (with full stacktrace)
                 logger.error("XSLT Transformation failed: {}", exception.getMessage(), exception);
 
-                // NEU: Zeige einen Alert-Dialog für den Benutzer an
+                // NEW: Show an alert dialog for the user
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Transformation Error");
                 alert.setHeaderText("An error occurred during the XSLT transformation.");
-                // Zeige eine verständliche Fehlermeldung an
+                // Show a comprehensible error message
                 alert.setContentText(exception.getMessage());
 
-                // Optional: Füge den kompletten Stacktrace in einem erweiterbaren Bereich hinzu
-                // Dies ist sehr nützlich für technisch versierte Benutzer.
+                // Optional: Add the complete stacktrace in an expandable area
+                // This is very useful for technically savvy users.
                 TextArea textArea = new TextArea(exception.toString());
                 textArea.setEditable(false);
                 textArea.setWrapText(true);

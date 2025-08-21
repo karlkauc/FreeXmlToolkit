@@ -206,7 +206,7 @@ public class XmlEditorSidebarController {
             mainController.toggleXmlEditorSidebarFromSidebar(!currentlyVisible);
         } else {
             // Alternative approach: Try to find the MainController through the Stage
-            System.out.println("Warning: MainController not available directly - trying alternative approach");
+            logger.warn("MainController not available directly - trying alternative approach");
 
             try {
                 // Get the current stage and find MainController through the window
@@ -218,7 +218,7 @@ public class XmlEditorSidebarController {
                     toggleSidebarLocal();
                 }
             } catch (Exception e) {
-                System.out.println("Fallback failed - using local sidebar toggle: " + e.getMessage());
+                logger.warn("Fallback failed - using local sidebar toggle: {}", e.getMessage());
                 toggleSidebarLocal();
             }
         }

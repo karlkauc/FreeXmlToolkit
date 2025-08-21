@@ -71,7 +71,7 @@ public class SettingsController {
         portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 65535, 8080));
         loadCurrentSettings();
 
-        // Listener, um die Eingabefelder zu (de)aktivieren
+        // Listener to enable/disable input fields
         manualProxy.selectedProperty().addListener((observable, oldValue, newValue) -> enableProxyFields(newValue));
         useCustomTempFolder.selectedProperty().addListener((observable, oldValue, newValue) -> enableTempFolderFields(newValue));
     }
@@ -92,7 +92,7 @@ public class SettingsController {
     private void performCheck() {
         logger.debug("Perform Connection Check");
 
-        // Temporäre Properties mit den aktuellen UI-Werten erstellen
+        // Create temporary properties with current UI values
         Properties testProps = new Properties();
         testProps.setProperty("useSystemProxy", String.valueOf(systemProxy.isSelected()));
         testProps.setProperty("manualProxy", String.valueOf(manualProxy.isSelected()));
@@ -103,7 +103,7 @@ public class SettingsController {
 
         try {
             var connectionResult = connectionService.testHttpRequest(new URI("https://www.github.com"), testProps);
-            // Prüfen, ob ein Ergebnis zurückgegeben wurde.
+            // Check if a result was returned.
             if (connectionResult == null) {
                 logger.error("Connection check failed. The connection service returned a null result.");
                 showAlert(Alert.AlertType.ERROR, "Connection Error", "The connection check failed. The connection service did not return a result. Please check proxy settings and application logs.");
@@ -128,7 +128,7 @@ public class SettingsController {
             alert.showAndWait();
 
         } catch (Exception e) {
-            // Logge die vollständige Exception für eine bessere Fehleranalyse
+            // Log the complete exception for better error analysis
             logger.error("An unexpected error occurred during the connection check.", e);
             showAlert(Alert.AlertType.ERROR, "Connection Error", "An unexpected error occurred: " + e.getClass().getSimpleName() + ". See logs for details.");
         }
@@ -162,12 +162,12 @@ public class SettingsController {
 
             propertiesService.saveProperties(props);
 
-            // Erfolgsmeldung anzeigen
+            // Show success message
             showAlert(Alert.AlertType.INFORMATION, "Settings Saved", "Your settings have been saved successfully.");
 
         } catch (Exception e) {
             logger.error("Failed to save settings", e);
-            // Fehlermeldung anzeigen
+            // Show error message
             showAlert(Alert.AlertType.ERROR, "Save Error", "Could not save settings. Please check the logs for details.\n" + e.getMessage());
         }
     }
@@ -187,7 +187,7 @@ public class SettingsController {
     private void loadCurrentSettings() {
         props = propertiesService.loadProperties();
 
-        // Proxy-Einstellungen laden
+        // Load proxy settings
         boolean useSystem = Boolean.parseBoolean(props.getProperty("useSystemProxy", "true"));
         boolean useManual = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
 
@@ -213,7 +213,7 @@ public class SettingsController {
             enableProxyFields(false);
         }
 
-        // Temp-Ordner-Einstellungen laden
+        // Load temp folder settings
         if (props.get("customTempFolder") != null && !props.getProperty("customTempFolder").isBlank()) {
             useCustomTempFolder.setSelected(true);
             customTempFolder.setText(props.get("customTempFolder").toString());
@@ -225,11 +225,11 @@ public class SettingsController {
     }
 
     /**
-     * Eine Hilfsmethode, um Benachrichtigungen anzuzeigen.
+     * A helper method to display notifications.
      *
-     * @param alertType Der Typ des Alerts (z.B. INFORMATION oder ERROR).
-     * @param title     Der Titel des Fensters.
-     * @param content   Die anzuzeigende Nachricht.
+     * @param alertType The type of alert (e.g., INFORMATION or ERROR).
+     * @param title     The title of the window.
+     * @param content   The message to display.
      */
     private void showAlert(Alert.AlertType alertType, String title, String content) {
         Alert alert = new Alert(alertType);

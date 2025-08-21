@@ -37,11 +37,11 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -90,12 +90,12 @@ public class XsdDocumentationService {
     private Map<String, Node> groupMap = new HashMap<>();
     private Map<String, Node> attributeGroupMap = new HashMap<>();
 
-    // Stellt für jeden Thread eine eigene, threadsichere Transformer-Instanz bereit.
-    // Dies vermeidet die Kosten der ständigen Neuerstellung in einer parallelen Umgebung.
+    // Provides a separate, thread-safe Transformer instance for each thread.
+    // This avoids the cost of constant recreation in a parallel environment.
     private static final ThreadLocal<Transformer> transformerThreadLocal = ThreadLocal.withInitial(() -> {
         try {
             TransformerFactory factory = TransformerFactory.newInstance();
-            // Sicherheitsmerkmal, um externe DTDs und Entitäten zu blockieren
+            // Security feature to block external DTDs and entities
             factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
             Transformer transformer = factory.newTransformer();
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
@@ -103,8 +103,8 @@ public class XsdDocumentationService {
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
             return transformer;
         } catch (Exception e) {
-            // Wenn die Initialisierung fehlschlägt, wird eine RuntimeException ausgelöst.
-            // Dies ist in einem ThreadLocal-Initialisierer angemessen.
+            // If initialization fails, a RuntimeException is thrown.
+            // This is appropriate in a ThreadLocal initializer.
             throw new RuntimeException("Failed to initialize thread-local Transformer", e);
         }
     });
@@ -141,7 +141,7 @@ public class XsdDocumentationService {
         xsdDocumentationSvgService.setOutputDirectory(outputDirectory);
         xsdDocumentationSvgService.setDocumentationData(xsdDocumentationData);
 
-        // Der ImageService wird jetzt hier zentral initialisiert, damit er für die Vorerstellung bereit ist.
+        // The ImageService is now centrally initialized here so it's ready for pre-creation.
         xsdDocumentationHtmlService.xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
 
         executeAndTrack("Copying resources", xsdDocumentationHtmlService::copyResources);
@@ -413,11 +413,11 @@ public class XsdDocumentationService {
         String name = getAttributeValue(node, "name");
         extendedElem.setElementName(isAttribute ? "@" + name : name);
 
-        // NEU: Die Herkunft des Namespace aus dem vom Flattener gesetzten Attribut auslesen.
+        // NEW: Read the origin of the namespace from the attribute set by the Flattener.
         String sourceNamespace = getAttributeValue(node, "fxt:sourceNamespace");
         if (sourceNamespace != null && !sourceNamespace.isBlank()) {
             extendedElem.setSourceNamespace(sourceNamespace);
-            // Den zugehörigen Prefix für die Anzeige finden.
+            // Find the corresponding prefix for display.
             xsdDocumentationData.getNamespaces().entrySet().stream()
                     .filter(entry -> sourceNamespace.equals(entry.getValue()))
                     .map(Map.Entry::getKey)
@@ -870,15 +870,15 @@ public class XsdDocumentationService {
         xsdDocumentationData.setTargetNamespace(getAttributeValue(schemaElement, "targetNamespace"));
         xsdDocumentationData.setVersion(getAttributeValue(schemaElement, "version"));
 
-        // NEU: Die Schema-Attribute auslesen und im Datenobjekt speichern.
-        // Der Standardwert "unqualified" wird verwendet, falls das Attribut nicht vorhanden ist.
+        // NEW: Read the schema attributes and store them in the data object.
+        // The default value "unqualified" is used if the attribute is not present.
         xsdDocumentationData.setAttributeFormDefault(getAttributeValue(schemaElement, "attributeFormDefault", "unqualified"));
         xsdDocumentationData.setElementFormDefault(getAttributeValue(schemaElement, "elementFormDefault", "unqualified"));
 
         // Get global elements from the main schema
         xsdDocumentationData.setGlobalElements(nodeListToList((NodeList) xpath.evaluate("/xs:schema/xs:element[@name]", doc, XPathConstants.NODESET)));
 
-        // Die Listen der globalen Typen erstellen und alphabetisch nach Namen sortieren.
+        // Create the lists of global types and sort them alphabetically by name.
         List<Node> complexTypes = new ArrayList<>(complexTypeMap.values());
         complexTypes.sort(Comparator.comparing(node -> getAttributeValue(node, "name")));
         xsdDocumentationData.setGlobalComplexTypes(complexTypes);
@@ -979,19 +979,19 @@ public class XsdDocumentationService {
             return;
         }
 
-        // 1. Dokumentation extrahieren
+        // 1. Extract documentation
         for (Node docNode : getDirectChildElements(annotationNode, "documentation")) {
             String lang = getAttributeValue(docNode, "xml:lang", "default");
             extendedElem.getDocumentations().add(new DocumentationInfo(lang, docNode.getTextContent()));
         }
 
-        // 2. AppInfo-Tags verarbeiten (für Javadoc und Altova-Beispiele)
+        // 2. Process AppInfo tags (for Javadoc and Altova examples)
         XsdDocInfo xsdDocInfo = extendedElem.getXsdDocInfo() != null ? extendedElem.getXsdDocInfo() : new XsdDocInfo();
         List<String> genericAppInfos = extendedElem.getGenericAppInfos() != null ? extendedElem.getGenericAppInfos() : new ArrayList<>();
-        List<String> exampleValues = extendedElem.getExampleValues(); // Liste für Beispielwerte holen
+        List<String> exampleValues = extendedElem.getExampleValues(); // Get list for example values
 
         for (Node appInfoNode : getDirectChildElements(annotationNode, "appinfo")) {
-            // Javadoc-Style-Tags verarbeiten
+            // Process Javadoc-style tags
             String source = getAttributeValue(appInfoNode, "source");
             if (source != null && !source.isBlank()) {
                 if (source.startsWith("@since")) xsdDocInfo.setSince(source.substring("@since".length()).trim());
@@ -1000,13 +1000,13 @@ public class XsdDocumentationService {
                     xsdDocInfo.setDeprecated(source.substring("@deprecated".length()).trim());
                 else genericAppInfos.add(source);
             } else {
-                // Altova-Beispielwerte extrahieren
+                // Extract Altova example values
                 boolean isAltovaExample = false;
                 for (Node appInfoChild : getDirectChildElements(appInfoNode)) {
-                    // Prüfen, ob der Knoten zu Altova gehört und <exampleValues> ist
+                    // Check if the node belongs to Altova and is <exampleValues>
                     if (ALTOVA_NS_URI.equals(appInfoChild.getNamespaceURI()) && "exampleValues".equals(appInfoChild.getLocalName())) {
                         isAltovaExample = true;
-                        // Alle <example>-Kinder durchlaufen
+                        // Iterate through all <example> children
                         for (Node exampleNode : getDirectChildElements(appInfoChild)) {
                             if (ALTOVA_NS_URI.equals(exampleNode.getNamespaceURI()) && "example".equals(exampleNode.getLocalName())) {
                                 String value = getAttributeValue(exampleNode, "value");
@@ -1017,33 +1017,33 @@ public class XsdDocumentationService {
                         }
                     }
                 }
-                // Wenn es kein Altova-Beispiel war, als generische Info behandeln
+                // If it wasn't an Altova example, treat as generic info
                 if (!isAltovaExample) {
                     genericAppInfos.add(appInfoNode.getTextContent());
                 }
             }
         }
 
-        // 3. Gesammelte Informationen im Element speichern
+        // 3. Store collected information in the element
         if (xsdDocInfo.hasData()) {
             extendedElem.setXsdDocInfo(xsdDocInfo);
         }
         if (!genericAppInfos.isEmpty()) {
             extendedElem.setGenericAppInfos(genericAppInfos);
         }
-        // Die 'exampleValues'-Liste wurde direkt modifiziert, ein setExampleValues ist nicht nötig.
+        // The 'exampleValues' list was modified directly, setExampleValues is not needed.
     }
 
     private RestrictionInfo parseRestriction(Node restrictionNode) {
         String base = getAttributeValue(restrictionNode, "base");
-        // Die Map wird jetzt für Listen initialisiert
+        // The map is now initialized for lists
         Map<String, List<String>> facets = new LinkedHashMap<>();
 
         for (Node facetNode : getDirectChildElements(restrictionNode)) {
             String facetName = facetNode.getLocalName();
             if (!"annotation".equals(facetName)) {
-                // Fügt den Wert zur Liste des entsprechenden Facet-Namens hinzu.
-                // computeIfAbsent stellt sicher, dass die Liste existiert.
+                // Adds the value to the list of the corresponding facet name.
+                // computeIfAbsent ensures that the list exists.
                 facets.computeIfAbsent(facetName, k -> new ArrayList<>())
                         .add(getAttributeValue(facetNode, "value"));
             }
@@ -1244,7 +1244,7 @@ public class XsdDocumentationService {
     private String nodeToString(Node node) {
         try {
             StringWriter writer = new StringWriter();
-            // Holt die Transformer-Instanz, die für den aktuellen Thread spezifisch ist.
+            // Gets the Transformer instance that is specific to the current thread.
             Transformer transformer = transformerThreadLocal.get();
             transformer.transform(new DOMSource(node), new StreamResult(writer));
             return writer.toString();

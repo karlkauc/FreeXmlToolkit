@@ -46,7 +46,41 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Hauptcontroller für die Anwendung.
+ * Main controller for the FreeXMLToolkit application.
+ *
+ * <p>This controller serves as the central coordinator for the application's main window and
+ * manages the lifecycle of all other controllers. It handles:
+ * <ul>
+ *   <li>Tab-based navigation between different tools (XML, XSD, XSLT, etc.)</li>
+ *   <li>File operations and recent files management</li>
+ *   <li>Memory monitoring and performance tracking</li>
+ *   <li>Application shutdown and resource cleanup</li>
+ *   <li>Cross-controller communication and coordination</li>
+ * </ul>
+ *
+ * <p>The controller maintains two executor services:
+ * <ul>
+ *   <li>{@code scheduler} - For scheduled background tasks like memory monitoring</li>
+ *   <li>{@code service} - For general background processing tasks</li>
+ * </ul>
+ *
+ * <p>Memory monitoring is automatically started during initialization and tracks:
+ * <ul>
+ *   <li>Current heap usage</li>
+ *   <li>Maximum heap size</li>
+ *   <li>Memory usage percentage with configurable thresholds</li>
+ * </ul>
+ *
+ * <p>File management capabilities include:
+ * <ul>
+ *   <li>Recent files tracking with persistence</li>
+ *   <li>Automatic file type detection and routing to appropriate controllers</li>
+ *   <li>Cross-platform file path handling</li>
+ * </ul>
+ *
+ * @author Karl Kauc
+ * @version 1.0
+ * @since 2024
  */
 public class MainController {
 
@@ -96,7 +130,7 @@ public class MainController {
     FXMLLoader loader;
 
     /**
-     * Initialisiert den Controller.
+     * Initializes the controller.
      */
     @FXML
     public void initialize() {
@@ -152,9 +186,9 @@ public class MainController {
 
     @FXML
     public void shutdown() {
-        logger.info("Applikation wird beendet. Starte Aufräumarbeiten...");
+        logger.info("Application is shutting down. Starting cleanup tasks...");
 
-        // Rufen Sie die Shutdown-Methode für jeden relevanten Controller auf.
+        // Call the shutdown method for each relevant controller.
         if (xmlController != null) {
             xmlController.shutdown();
         }
@@ -162,28 +196,28 @@ public class MainController {
             xsdController.shutdown();
         }
 
-        // Fährt die ExecutorServices herunter. Dies ist entscheidend, um Thread-Leaks zu verhindern.
-        logger.info("Fahre ExecutorServices herunter...");
+        // Shuts down the ExecutorServices. This is crucial to prevent thread leaks.
+        logger.info("Shutting down ExecutorServices...");
         scheduler.shutdownNow();
         service.shutdownNow();
         try {
-            // Warten Sie kurz, um den Executoren Zeit zum Beenden zu geben.
+            // Wait briefly to give the executors time to terminate.
             if (!scheduler.awaitTermination(1, TimeUnit.SECONDS)) {
-                logger.warn("Scheduler-Dienst wurde nicht innerhalb von 1 Sekunde beendet.");
+                logger.warn("Scheduler service was not terminated within 1 second.");
             }
             if (!service.awaitTermination(1, TimeUnit.SECONDS)) {
-                logger.warn("Service-Dienst wurde nicht innerhalb von 1 Sekunde beendet.");
+                logger.warn("Service was not terminated within 1 second.");
             }
         } catch (InterruptedException e) {
-            logger.error("Warten auf das Herunterfahren der Dienste wurde unterbrochen.", e);
-            Thread.currentThread().interrupt(); // Setzt das Interrupted-Flag erneut.
+            logger.error("Waiting for service shutdown was interrupted.", e);
+            Thread.currentThread().interrupt(); // Sets the interrupted flag again.
         }
 
-        logger.info("Aufräumarbeiten abgeschlossen. Anwendung wird geschlossen.");
+        logger.info("Cleanup tasks completed. Application will be closed.");
     }
 
     /**
-     * Lädt die zuletzt geöffneten Dateien und aktualisiert das Menü.
+     * Loads the recently opened files and updates the menu.
      */
     private void loadLastOpenFiles() {
         lastOpenFilesMenu.getItems().clear();
@@ -203,7 +237,7 @@ public class MainController {
             m.setOnAction(event -> {
                 logger.debug("File {} selected from recent files.", f.getAbsolutePath());
 
-                // KORREKTUR: Prüfe den Dateityp und rufe die entsprechende Methode auf.
+                // CORRECTION: Check the file type and call the appropriate method.
                 String fileName = f.getName().toLowerCase();
                 if (fileName.endsWith(".xml")) {
                     switchToXmlViewAndLoadFile(f);
@@ -211,8 +245,8 @@ public class MainController {
                     switchToXsdViewAndLoadFile(f);
                 } else {
                     logger.warn("Unhandled file type from recent files list: {}", f.getName());
-                    // Optional: Einen Alert anzeigen
-                    new Alert(Alert.AlertType.INFORMATION, "Dieser Dateityp kann aus der 'Zuletzt geöffnet'-Liste nicht direkt geöffnet werden.").show();
+                    // Optional: Show an alert
+                    new Alert(Alert.AlertType.INFORMATION, "This file type cannot be opened directly from the 'Recently opened' list.").show();
                 }
             });
             lastOpenFilesMenu.getItems().add(m);
@@ -221,10 +255,10 @@ public class MainController {
 
 
     /**
-     * Öffentliche Methode, die von anderen Controllern aufgerufen werden kann,
-     * um eine Datei zur Liste der zuletzt geöffneten Dateien hinzuzufügen.
+     * Public method that can be called by other controllers
+     * to add a file to the list of recently opened files.
      *
-     * @param file die geöffnete Datei
+     * @param file the opened file
      */
     public void addFileToRecentFiles(File file) {
         propertiesService.addLastOpenFile(file);
@@ -233,9 +267,9 @@ public class MainController {
 
 
     /**
-     * Lädt eine Seite basierend auf dem ActionEvent.
+     * Loads a page based on the ActionEvent.
      *
-     * @param ae das ActionEvent
+     * @param ae the ActionEvent
      */
     @FXML
     public void loadPage(ActionEvent ae) {
@@ -261,15 +295,15 @@ public class MainController {
     }
 
     /**
-     * Lädt eine Seite von einem bestimmten Pfad.
+     * Loads a page from a specific path.
      *
-     * @param pagePath der Pfad zur Seite
+     * @param pagePath the path to the page
      */
     private void loadPageFromPath(String pagePath) {
         try {
             loader = new FXMLLoader(getClass().getResource(pagePath));
             Pane newLoadedPane = loader.load();
-            System.gc();
+            // System.gc() -> Garbage Collection
             setParentController(loader.getController());
             contentPane.getChildren().clear();
             contentPane.getChildren().add(newLoadedPane);
@@ -279,9 +313,9 @@ public class MainController {
     }
 
     /**
-     * Wechselt programmatisch zum XML-Tab und lädt eine Datei.
+     * Programmatically switches to the XML tab and loads a file.
      *
-     * @param fileToLoad Die zu ladende Datei.
+     * @param fileToLoad The file to load.
      */
     public void switchToXmlViewAndLoadFile(File fileToLoad) {
         if (xml == null) {
@@ -367,8 +401,6 @@ public class MainController {
             }
             case HelpController helpController -> {
                 logger.debug("set Help Controller");
-                // helpController.setParentController(this);
-                // no need to set the main controller
             }
             case null, default -> {
                 if (controller != null) {
