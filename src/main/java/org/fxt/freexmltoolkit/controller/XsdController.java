@@ -223,12 +223,34 @@ public class XsdController {
         SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 1);
         maxOccurrencesSpinner.setValueFactory(valueFactory);
 
-        // Setup for the sample data CodeArea
-        sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));
+        // Lazy initialization for CodeAreas - they will be initialized when first accessed
 
-        // NEW: Add search popup and keyboard shortcuts for the XSD text editor
-        try {
-            initializeSearchPopup();
+        // Setup keyboard shortcuts for search/replace (will initialize on first use)
+        setupSearchKeyboardShortcuts();
+        // NEW: Initially hide the preview tab and make it inaccessible
+        if (docPreviewTab != null) {
+            docPreviewTab.setDisable(true);
+        }
+    }
+
+    /**
+     * Sets up keyboard shortcuts for search/replace without initializing the popup
+     */
+    private void setupSearchKeyboardShortcuts() {
+        // Add event filter only when sourceCodeEditor is first accessed
+        textTab.setOnSelectionChanged(event -> {
+            if (textTab.isSelected() && sourceCodeEditor != null) {
+                ensureSourceCodeEditorInitialized();
+            }
+        });
+    }
+
+    /**
+     * Ensures the source code editor is properly initialized with line numbers and search shortcuts
+     */
+    private void ensureSourceCodeEditorInitialized() {
+        if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea().getParagraphGraphicFactory() == null) {
+            // Initialize search shortcuts only when CodeArea is first used
             sourceCodeEditor.getCodeArea().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
                 if (event.isControlDown()) {
                     switch (event.getCode()) {
@@ -243,24 +265,47 @@ public class XsdController {
                     }
                 }
             });
-        } catch (IOException e) {
-            logger.error("Failed to initialize search popup for XSD editor.", e);
-        }
-        // NEW: Initially hide the preview tab and make it inaccessible
-        if (docPreviewTab != null) {
-            docPreviewTab.setDisable(true);
         }
     }
 
-    private void initializeSearchPopup() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/controls/SearchReplaceControl.fxml"));
-        Pane searchPane = loader.load();
-        searchController = loader.getController();
-        searchController.setXmlCodeEditor(this.sourceCodeEditor); // Connects the search with the XSD editor
-        searchPopOver = new PopOver(searchPane);
-        searchPopOver.setDetachable(false);
-        searchPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
-        searchPopOver.setTitle("Find/Replace");
+    /**
+     * Lazy initialization for sample data CodeArea
+     */
+    private void ensureSampleDataTextAreaInitialized() {
+        if (sampleDataTextArea.getParagraphGraphicFactory() == null) {
+            sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));
+        }
+    }
+
+    /**
+     * Lazy initialization for flattened XSD CodeArea
+     */
+    private void ensureFlattenedXsdTextAreaInitialized() {
+        if (flattenedXsdTextArea.getParagraphGraphicFactory() == null) {
+            flattenedXsdTextArea.setParagraphGraphicFactory(LineNumberFactory.get(flattenedXsdTextArea));
+        }
+    }
+
+    /**
+     * Lazy initialization of search popup - only creates it when first needed
+     */
+    private void initializeSearchPopup() {
+        if (searchPopOver != null) {
+            return; // Already initialized
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/controls/SearchReplaceControl.fxml"));
+            Pane searchPane = loader.load();
+            searchController = loader.getController();
+            searchController.setXmlCodeEditor(this.sourceCodeEditor);
+            searchPopOver = new PopOver(searchPane);
+            searchPopOver.setDetachable(false);
+            searchPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
+            searchPopOver.setTitle("Find/Replace");
+        } catch (IOException e) {
+            logger.error("Failed to initialize search popup for XSD editor.", e);
+        }
     }
 
 
@@ -289,10 +334,12 @@ public class XsdController {
     }
 
     /**
-     * NEW: Shows the search popup for the XSD editor.
+     * Shows the search popup for the XSD editor with lazy initialization.
      */
     private void showSearchPopup(SearchMode mode) {
+        initializeSearchPopup(); // Lazy initialization
         if (searchPopOver == null) return;
+
         if (mode == SearchMode.SEARCH) {
             searchController.selectTab(searchController.getSearchTab());
         } else {
@@ -434,6 +481,7 @@ public class XsdController {
             textInfoPane.setManaged(true);
             textInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
 
+            ensureSourceCodeEditorInitialized();
             sourceCodeEditor.getCodeArea().replaceText(result.fileContent());
             sourceCodeEditor.setVisible(true);
             sourceCodeEditor.setManaged(true);
@@ -766,6 +814,7 @@ public class XsdController {
             progressSampleData.setVisible(false);
             String resultXml = generationTask.getValue();
 
+            ensureSampleDataTextAreaInitialized();
             sampleDataTextArea.replaceText(resultXml);
             sampleDataTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(resultXml));
 
@@ -937,6 +986,7 @@ public class XsdController {
             String flattenedContent = flattenTask.getValue();
 
             // CHANGED: Apply highlighting for the flattenedXsdTextArea
+            ensureFlattenedXsdTextAreaInitialized();
             flattenedXsdTextArea.replaceText(flattenedContent);
             flattenedXsdTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(flattenedContent));
 
