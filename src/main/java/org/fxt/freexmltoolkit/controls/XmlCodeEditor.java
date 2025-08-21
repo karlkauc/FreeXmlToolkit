@@ -79,11 +79,17 @@ public class XmlCodeEditor extends VBox {
     // Enumeration completion support
     private ElementTextInfo currentElementTextInfo;
 
-    // Cache for enumeration elements to avoid repeated XSD parsing
-    private final Set<String> enumerationElements = new HashSet<>();
-    private long lastXsdModified = -1;
+    // Cache for enumeration elements from XsdDocumentationData
+    // Key: XPath-like context, Value: Set of element names with enumeration
+    private final Map<String, Set<String>> enumerationElementsByContext = new HashMap<>();
     private int popupStartPosition = -1;
     private boolean isElementCompletionContext = false; // Track if we're completing elements or attributes
+
+    // Debouncing for syntax highlighting
+    private javafx.animation.PauseTransition syntaxHighlightingDebouncer;
+
+    // Background task for syntax highlighting
+    private javafx.concurrent.Task<StyleSpans<Collection<String>>> syntaxHighlightingTask;
 
     // Performance optimization: Cache compiled patterns
     private static final Pattern OPEN_TAG_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\b[^>]*>");
@@ -155,7 +161,8 @@ public class XmlCodeEditor extends VBox {
         this.parentXmlEditor = parentEditor;
         // Trigger immediate cache update when parent is set
         if (parentEditor != null) {
-            updateEnumerationElementsCache();
+            // Use Platform.runLater to avoid blocking the UI thread
+            Platform.runLater(() -> updateEnumerationElementsCache());
         }
     }
 
@@ -178,7 +185,19 @@ public class XmlCodeEditor extends VBox {
         this.contextElementNames = new HashMap<>(contextElementNames);
     }
 
+    /**
+     * Manually triggers enumeration cache update.
+     * Call this method when the XSD schema changes.
+     */
+    public void refreshEnumerationCache() {
+        logger.debug("Manual enumeration cache refresh requested");
+        Platform.runLater(() -> updateEnumerationElementsCache());
+    }
+
     private void initialize() {
+        // Load CSS stylesheets for syntax highlighting
+        loadCssStylesheets();
+        
         codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
 
         setupEventHandlers();
@@ -203,13 +222,43 @@ public class XmlCodeEditor extends VBox {
             }
         });
 
-        // Text change listener for syntax highlighting
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            // Update enumeration elements cache before highlighting
-            updateEnumerationElementsCache();
-            // Apply syntax highlighting using external CSS
-            applySyntaxHighlighting(newText);
+        // Initialize debouncer for syntax highlighting
+        syntaxHighlightingDebouncer = new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
+        syntaxHighlightingDebouncer.setOnFinished(event -> {
+            String currentText = codeArea.getText();
+            if (currentText != null && !currentText.isEmpty()) {
+                applySyntaxHighlighting(currentText);
+            }
         });
+
+        // Text change listener for syntax highlighting with debouncing
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            // Reset the debouncer timer
+            syntaxHighlightingDebouncer.stop();
+            syntaxHighlightingDebouncer.playFromStart();
+        });
+    }
+
+    /**
+     * Loads CSS stylesheets for syntax highlighting.
+     */
+    private void loadCssStylesheets() {
+        try {
+            // Load the main CSS file for syntax highlighting
+            String cssPath = "/css/fxt-theme.css";
+            String cssUrl = getClass().getResource(cssPath).toExternalForm();
+            codeArea.getStylesheets().add(cssUrl);
+            logger.debug("Loaded CSS stylesheet: {}", cssUrl);
+
+            // Also load the XML highlighting specific CSS
+            String xmlCssPath = "/scss/xml-highlighting.css";
+            String xmlCssUrl = getClass().getResource(xmlCssPath).toExternalForm();
+            codeArea.getStylesheets().add(xmlCssUrl);
+            logger.debug("Loaded XML highlighting CSS: {}", xmlCssUrl);
+
+        } catch (Exception e) {
+            logger.error("Error loading CSS stylesheets: {}", e.getMessage(), e);
+        }
     }
 
     /**
@@ -240,24 +289,7 @@ public class XmlCodeEditor extends VBox {
     }
 
 
-    /**
-     * Forces syntax highlighting by directly setting styles on the CodeArea.
-     */
-    private void forceSyntaxHighlighting(String text) {
-        if (text == null || text.isEmpty()) {
-            return;
-        }
 
-        // Apply the syntax highlighting using StyleSpans
-        StyleSpans<Collection<String>> highlighting = computeHighlightingWithEnumeration(text);
-        codeArea.setStyleSpans(0, highlighting);
-
-        // Force a repaint of the CodeArea
-        codeArea.requestLayout();
-
-
-        logger.debug("Forced syntax highlighting applied for text length: {}", text.length());
-    }
 
 
     /**
@@ -268,65 +300,136 @@ public class XmlCodeEditor extends VBox {
             return;
         }
 
-        // Apply the syntax highlighting using StyleSpans (colors come from external CSS)
-        forceSyntaxHighlighting(text);
+        // Cancel any running syntax highlighting task
+        if (syntaxHighlightingTask != null && syntaxHighlightingTask.isRunning()) {
+            syntaxHighlightingTask.cancel();
+        }
+
+        // Create new background task for syntax highlighting
+        syntaxHighlightingTask = new javafx.concurrent.Task<StyleSpans<Collection<String>>>() {
+            @Override
+            protected StyleSpans<Collection<String>> call() throws Exception {
+                // Check if task was cancelled
+                if (isCancelled()) {
+                    return null;
+                }
+
+                // Compute syntax highlighting with enumeration in background
+                return computeHighlightingWithEnumeration(text);
+            }
+        };
+
+        syntaxHighlightingTask.setOnSucceeded(event -> {
+            StyleSpans<Collection<String>> highlighting = syntaxHighlightingTask.getValue();
+            if (highlighting != null) {
+                codeArea.setStyleSpans(0, highlighting);
+            }
+        });
+
+        syntaxHighlightingTask.setOnFailed(event -> {
+            logger.error("Syntax highlighting failed", syntaxHighlightingTask.getException());
+            // Fallback to basic highlighting
+            StyleSpans<Collection<String>> basicHighlighting = computeHighlighting(text);
+            codeArea.setStyleSpans(0, basicHighlighting);
+        });
+
+        // Run the task in background
+        new Thread(syntaxHighlightingTask).start();
     }
 
     /**
-     * Updates the cache of elements that have enumeration constraints in the XSD.
+     * Updates the cache of elements that have enumeration constraints from XsdDocumentationData.
      */
     private void updateEnumerationElementsCache() {
         try {
             logger.debug("updateEnumerationElementsCache called. parentXmlEditor: {}", parentXmlEditor);
             if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
-                var xmlService = xmlEditor.getXmlService();
-                logger.debug("xmlService: {}", xmlService);
-                if (xmlService != null) {
-                    logger.debug("currentXsdFile: {}", xmlService.getCurrentXsdFile());
+                // Get XsdDocumentationData from XmlEditor
+                var xsdDocumentationData = xmlEditor.getXsdDocumentationData();
+                if (xsdDocumentationData == null) {
+                    logger.debug("XsdDocumentationData is null. Cannot update enumeration cache.");
+                    return;
                 }
-                if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
-                    java.io.File xsdFile = xmlService.getCurrentXsdFile();
-                    logger.debug("Updating enumeration elements cache from XSD: {}", xsdFile.getAbsolutePath());
 
-                    long currentModified = xsdFile.lastModified();
-                    if (currentModified == lastXsdModified) {
-                        logger.debug("XSD file has not been modified. Cache is up to date.");
-                        return;
-                    }
+                logger.debug("Updating enumeration cache from XsdDocumentationData...");
+                enumerationElementsByContext.clear();
 
-                    enumerationElements.clear();
-                    lastXsdModified = currentModified;
+                // Extract enumeration elements from XsdDocumentationData
+                extractEnumerationElementsFromDocumentationData(xsdDocumentationData);
 
-                    javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
-                    factory.setNamespaceAware(true);
-                    javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
-                    org.w3c.dom.Document xsdDoc = builder.parse(xsdFile);
+                logger.debug("Updated enumeration elements cache with {} contexts: {}",
+                        enumerationElementsByContext.size(), enumerationElementsByContext.keySet());
 
-                    org.w3c.dom.NodeList elements = xsdDoc.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
-                    logger.debug("Found {} elements in the XSD file.", elements.getLength());
-
-                    for (int i = 0; i < elements.getLength(); i++) {
-                        org.w3c.dom.Element element = (org.w3c.dom.Element) elements.item(i);
-                        String name = element.getAttribute("name");
-
-                        if (name != null && !name.isEmpty()) {
-                            boolean hasEnum = hasEnumerationConstraint(element);
-                            logger.debug("Checking element: {}, Has enumeration: {}", name, hasEnum);
-                            if (hasEnum) {
-                                enumerationElements.add(name);
-                            }
-                        }
-                    }
-
-                    logger.debug("Updated enumeration elements cache with {} elements: {}", enumerationElements.size(), enumerationElements);
-                } else {
-                    logger.debug("XmlService or XSD file is null. Cannot update enumeration cache.");
+                // Force refresh of syntax highlighting after cache update
+                String currentText = codeArea.getText();
+                if (currentText != null && !currentText.isEmpty()) {
+                    applySyntaxHighlighting(currentText);
                 }
+
             } else {
-                logger.debug("Parent editor is null or XSD file not available.");
+                logger.debug("Parent editor is null or XsdDocumentationData not available.");
             }
         } catch (Exception e) {
             logger.error("Error updating enumeration elements cache: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Extracts enumeration elements from XsdDocumentationData.
+     */
+    private void extractEnumerationElementsFromDocumentationData(org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdDocumentationData) {
+        try {
+            Map<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
+
+            for (Map.Entry<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> entry : elementMap.entrySet()) {
+                String xpath = entry.getKey();
+                org.fxt.freexmltoolkit.domain.XsdExtendedElement element = entry.getValue();
+
+                // Check if element has enumeration constraints
+                if (element.getRestrictionInfo() != null &&
+                        element.getRestrictionInfo().facets() != null &&
+                        element.getRestrictionInfo().facets().containsKey("enumeration")) {
+
+                    // Extract context from XPath
+                    String context = extractContextFromXPath(xpath);
+                    String elementName = element.getElementName();
+
+                    if (elementName != null && !elementName.isEmpty()) {
+                        // Remove @ prefix for attributes
+                        if (elementName.startsWith("@")) {
+                            elementName = elementName.substring(1);
+                        }
+
+                        enumerationElementsByContext.computeIfAbsent(context, k -> new HashSet<>()).add(elementName);
+                        logger.debug("Added enumeration element: {} in context: {} (XPath: {})", elementName, context, xpath);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error extracting enumeration elements from documentation data: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Extracts context from XPath for enumeration mapping.
+     */
+    private String extractContextFromXPath(String xpath) {
+        if (xpath == null || xpath.isEmpty()) {
+            return "/";
+        }
+
+        // Split XPath by '/' and get the parent context
+        String[] parts = xpath.split("/");
+        if (parts.length <= 2) {
+            return "/"; // Root context
+        } else {
+            // Return parent context (everything except the last element)
+            StringBuilder context = new StringBuilder();
+            for (int i = 1; i < parts.length - 1; i++) {
+                context.append("/").append(parts[i]);
+            }
+            return context.toString();
         }
     }
 
@@ -618,6 +721,118 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
+     * Test method to verify enumeration highlighting is working.
+     * This method loads XML with enumeration elements and tests highlighting.
+     */
+    public void testEnumerationHighlighting() {
+        // Add some test enumeration elements to the cache with context
+        Set<String> rootContext = new HashSet<>();
+        rootContext.add("DataOperation");
+        rootContext.add("Status");
+        enumerationElementsByContext.put("/", rootContext);
+
+        String testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<root>\n" +
+                "    <DataOperation>INITIAL</DataOperation>\n" +
+                "    <Status>ACTIVE</Status>\n" +
+                "    <OtherElement>Some content</OtherElement>\n" +
+                "</root>";
+
+        logger.debug("=== Testing Enumeration Highlighting ===");
+        logger.debug("Test XML:");
+        logger.debug("{}", testXml);
+        logger.debug("Enumeration elements in cache: {}", enumerationElementsByContext);
+
+        debugCssStatus();
+
+        // Set the test content
+        codeArea.replaceText(testXml);
+
+        // Manually trigger syntax highlighting
+        refreshSyntaxHighlighting();
+
+        debugCssStatus();
+
+        logger.debug("=== Enumeration Test completed ===");
+    }
+
+    /**
+     * Test method to verify XsdDocumentationData-based enumeration highlighting.
+     * This method tests the new optimized approach.
+     */
+    public void testXsdDocumentationDataEnumerationHighlighting() {
+        logger.debug("=== Testing XsdDocumentationData-based Enumeration Highlighting ===");
+
+        // Update enumeration cache from XsdDocumentationData
+        updateEnumerationElementsCache();
+
+        String testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<root>\n" +
+                "    <DataOperation>INITIAL</DataOperation>\n" +
+                "    <Status>ACTIVE</Status>\n" +
+                "    <OtherElement>Some content</OtherElement>\n" +
+                "</root>";
+
+        logger.debug("Test XML:");
+        logger.debug("{}", testXml);
+        logger.debug("Enumeration elements in cache: {}", enumerationElementsByContext);
+
+        // Set the test content
+        codeArea.replaceText(testXml);
+
+        // Manually trigger syntax highlighting
+        refreshSyntaxHighlighting();
+
+        logger.debug("=== XsdDocumentationData Enumeration Test completed ===");
+    }
+
+    /**
+     * Performance test for enumeration highlighting.
+     * This method tests the performance with a large XML file.
+     */
+    public void testEnumerationHighlightingPerformance() {
+        logger.debug("=== Performance Test for Enumeration Highlighting ===");
+
+        // Add test enumeration elements
+        Set<String> rootContext = new HashSet<>();
+        rootContext.add("DataOperation");
+        rootContext.add("Status");
+        rootContext.add("Priority");
+        enumerationElementsByContext.put("/", rootContext);
+
+        // Create a large XML file for testing
+        StringBuilder largeXml = new StringBuilder();
+        largeXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        largeXml.append("<root>\n");
+
+        for (int i = 0; i < 1000; i++) {
+            largeXml.append("    <DataOperation>INITIAL</DataOperation>\n");
+            largeXml.append("    <Status>ACTIVE</Status>\n");
+            largeXml.append("    <Priority>HIGH</Priority>\n");
+            largeXml.append("    <OtherElement>Some content ").append(i).append("</OtherElement>\n");
+        }
+        largeXml.append("</root>");
+
+        String testXml = largeXml.toString();
+        logger.debug("Created test XML with {} lines", testXml.split("\n").length);
+
+        // Measure performance
+        long startTime = System.currentTimeMillis();
+
+        // Set the test content
+        codeArea.replaceText(testXml);
+
+        // Manually trigger syntax highlighting
+        refreshSyntaxHighlighting();
+
+        long endTime = System.currentTimeMillis();
+        long duration = endTime - startTime;
+
+        logger.debug("Performance test completed in {} ms", duration);
+        logger.debug("=== Performance Test completed ===");
+    }
+
+    /**
      * Manually triggers syntax highlighting for the current text content.
      * This can be used for testing or to force a refresh of the highlighting.
      */
@@ -626,8 +841,8 @@ public class XmlCodeEditor extends VBox {
         if (currentText != null && !currentText.isEmpty()) {
             logger.debug("Manually refreshing syntax highlighting for text length: {}", currentText.length());
 
-            // Force syntax highlighting with debugging
-            forceSyntaxHighlighting(currentText);
+            // Apply syntax highlighting
+            applySyntaxHighlighting(currentText);
 
             logger.debug("Syntax highlighting refresh completed");
         } else {
@@ -929,29 +1144,109 @@ public class XmlCodeEditor extends VBox {
         }
 
         // Overlay the enumeration highlighting on top of the base syntax highlighting
-        return baseHighlighting.overlay(enumSpansBuilder.create(), (baseStyle, enumStyle) -> {
-            return enumStyle.isEmpty() ? baseStyle : enumStyle;
+        StyleSpans<Collection<String>> enumHighlighting = enumSpansBuilder.create();
+
+        // Debug logging
+        logger.debug("Base highlighting spans: {}", baseHighlighting.length());
+        logger.debug("Enumeration highlighting spans: {}", enumHighlighting.length());
+
+        return baseHighlighting.overlay(enumHighlighting, (baseStyle, enumStyle) -> {
+            // If we have enumeration styling, use it; otherwise use base styling
+            if (enumStyle != null && !enumStyle.isEmpty()) {
+                logger.debug("Applying enumeration style: {}", enumStyle);
+                return enumStyle;
+            } else {
+                return baseStyle;
+            }
         });
     }
 
     private List<ElementTextInfo> findAllEnumerationElements(String text) {
         List<ElementTextInfo> elements = new ArrayList<>();
-        logger.debug("Searching for enumeration elements. Cache contains: {}", enumerationElements);
-        for (String elementName : enumerationElements) {
-            Pattern tagPattern = Pattern.compile("<" + elementName + "[^>]*>([^<]*)</" + elementName + ">");
-            Matcher matcher = tagPattern.matcher(text);
-            while (matcher.find()) {
-                String content = matcher.group(1);
-                if (!content.isBlank()) {
-                    int contentStart = matcher.start(1);
-                    int contentEnd = matcher.end(1);
-                    logger.debug("Found enumeration element: {} with content: '{}'", elementName, content);
-                    elements.add(new ElementTextInfo(elementName, content, contentStart, contentEnd));
-                }
+
+        if (enumerationElementsByContext.isEmpty()) {
+            return elements;
+        }
+
+        // Use a more flexible pattern that matches any element with content
+        // and then checks if the element name is in our enumeration cache for the current context
+        Pattern tagPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^>]*>([^<]*)</\\1>");
+        Matcher matcher = tagPattern.matcher(text);
+
+        while (matcher.find()) {
+            String elementName = matcher.group(1);
+            String content = matcher.group(2);
+
+            if (content.isBlank()) {
+                continue; // Skip empty elements
+            }
+
+            // Find the context for this element by looking at the XML structure
+            String context = findElementContext(text, matcher.start());
+
+            // Check if this element is in our enumeration cache for this context
+            Set<String> contextElements = enumerationElementsByContext.get(context);
+            if (contextElements != null && contextElements.contains(elementName)) {
+                int contentStart = matcher.start(2);
+                int contentEnd = matcher.end(2);
+                elements.add(new ElementTextInfo(elementName, content, contentStart, contentEnd));
             }
         }
-        logger.debug("Total enumeration elements found: {}", elements.size());
+        
         return elements;
+    }
+
+    /**
+     * Finds the context (XPath-like path) for an element at the given position.
+     */
+    private String findElementContext(String text, int elementPosition) {
+        try {
+            // Look backwards from the element position to build the context
+            String textBeforeElement = text.substring(0, elementPosition);
+
+            // Use a stack to track element nesting
+            java.util.Stack<String> elementStack = new java.util.Stack<>();
+
+            // Simple character-based parsing for better performance
+            int pos = textBeforeElement.length() - 1;
+            while (pos >= 0) {
+                char ch = textBeforeElement.charAt(pos);
+
+                if (ch == '>') {
+                    // Look for opening tag
+                    int tagStart = textBeforeElement.lastIndexOf('<', pos);
+                    if (tagStart >= 0) {
+                        String tag = textBeforeElement.substring(tagStart + 1, pos).trim();
+                        if (!tag.startsWith("/") && !tag.endsWith("/")) {
+                            // Extract element name (first word)
+                            int spacePos = tag.indexOf(' ');
+                            String elementName = spacePos > 0 ? tag.substring(0, spacePos) : tag;
+                            if (!elementName.isEmpty()) {
+                                elementStack.push(elementName);
+                            }
+                        }
+                    }
+                } else if (ch == '<' && pos + 1 < textBeforeElement.length() && textBeforeElement.charAt(pos + 1) == '/') {
+                    // Closing tag found, pop from stack
+                    if (!elementStack.isEmpty()) {
+                        elementStack.pop();
+                    }
+                }
+
+                pos--;
+            }
+
+            // Build context path
+            if (elementStack.isEmpty()) {
+                return "/"; // Root context
+            } else {
+                // Use the immediate parent as context
+                return "/" + elementStack.peek();
+            }
+
+        } catch (Exception e) {
+            return "/"; // Default to root context
+        }
     }
 
     /**

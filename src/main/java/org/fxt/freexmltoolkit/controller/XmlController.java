@@ -26,6 +26,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -44,6 +45,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -52,6 +55,7 @@ import java.util.concurrent.Executors;
 public class XmlController {
     private final static Logger logger = LogManager.getLogger(XmlController.class);
 
+    private final static int XML_INDENT = 4;
 
     CodeArea codeAreaXpath = new CodeArea();
     CodeArea codeAreaXQuery = new CodeArea();
@@ -69,13 +73,10 @@ public class XmlController {
     @FXML
     StackPane stackPaneXPath, stackPaneXQuery;
 
-
-
     FileChooser fileChooser = new FileChooser();
 
-
-
-
+    @FXML
+    HBox test;
 
     @FXML
     Tab xPathTab, xQueryTab;
@@ -103,6 +104,7 @@ public class XmlController {
         return t;
     });
 
+    // LSP document versioning removed
 
     @FXML
     private void initialize() {
@@ -134,8 +136,8 @@ public class XmlController {
 
         var t = System.getenv("debug");
         if (t != null) {
-            logger.debug("debug mode enabled");
-            // Debug mode - test functionality can be added here if needed
+            logger.debug("set visible false");
+            test.setVisible(true);
 
             codeAreaXpath.replaceText(0, 0, "/FundsXML4/ControlData");
             codeAreaXQuery.replaceText(0, 0, """
@@ -200,17 +202,13 @@ public class XmlController {
      * @param file The file to load, or null for a new empty editor
      */
     private void createAndAddXmlTab(File file) {
-        // Close empty tabs when opening a file (not when creating new tabs)
-        if (file != null) {
-            closeEmptyXmlTabs();
-        }
-        
         // The XmlEditor constructors must be adapted to accept the MainController
         XmlEditor xmlEditor = new XmlEditor(file); // Keep your constructor
         xmlEditor.setMainController(this.mainController); // Pass the controller
 
-        // Using XSD-based implementation for validation and completion
-        logger.debug("✅ Using XSD-based implementation");
+        // CRITICAL: Ensure LSP server is available and properly set
+        // LSP functionality replaced by XSD-based implementation
+        logger.debug("✅ Using XSD-based implementation instead of LSP");
         
         xmlEditor.refresh();
 
@@ -221,44 +219,16 @@ public class XmlController {
             logger.debug("Applied sidebar visibility setting to new tab: {}", sidebarVisible);
         }
 
-        // Add a listener for text changes (XSD-based validation)
+        // Add a listener that notifies the server about text changes.
+        // LSP text change notification removed
 
         xmlFilesPane.getTabs().add(xmlEditor);
         xmlFilesPane.getSelectionModel().select(xmlEditor);
 
         if (file != null) {
             mainController.addFileToRecentFiles(file);
+            // LSP file opened notification removed
         }
-    }
-
-    /**
-     * Closes all XML editor tabs that have no content.
-     */
-    private void closeEmptyXmlTabs() {
-        var tabsToRemove = xmlFilesPane.getTabs().stream()
-                .filter(tab -> tab instanceof XmlEditor)
-                .map(tab -> (XmlEditor) tab)
-                .filter(this::isEmptyXmlEditor)
-                .collect(java.util.stream.Collectors.toList());
-
-        if (!tabsToRemove.isEmpty()) {
-            logger.debug("Closing {} empty XML editor tabs", tabsToRemove.size());
-            xmlFilesPane.getTabs().removeAll(tabsToRemove);
-        }
-    }
-
-    /**
-     * Checks if an XML editor tab is empty (no content and no associated file).
-     */
-    private boolean isEmptyXmlEditor(XmlEditor xmlEditor) {
-        // Check if editor has a file associated
-        if (xmlEditor.getXmlFile() != null) {
-            return false;
-        }
-
-        // Check if editor has any content
-        String content = xmlEditor.codeArea.getText();
-        return content == null || content.trim().isEmpty();
     }
 
     /**
@@ -320,17 +290,9 @@ public class XmlController {
      * Handles the new file button press event.
      */
     @FXML
-    private void newFilePressed() {
+    public void newFilePressed() {
         logger.debug("New File Pressed");
         // Use the central method for creating tabs
-        createAndAddXmlTab(null);
-    }
-
-    /**
-     * Creates a new XML file tab. Called from MainController.
-     */
-    public void createNewFile() {
-        logger.debug("Creating new XML file from main menu");
         createAndAddXmlTab(null);
     }
 
@@ -347,7 +309,6 @@ public class XmlController {
     // The font size methods can be removed since the control
     // now happens directly in XmlCodeEditor via keyboard shortcuts and mouse wheel.
     // If you want to keep them for toolbar buttons, you can implement them like this:
-
     /**
      * Increases the font size of the current editor.
      */
@@ -455,8 +416,8 @@ public class XmlController {
     public void setParentController(MainController parentController) {
         logger.debug("XML Controller - set parent controller");
         this.mainController = parentController;
-        // Using XSD-based implementation for validation and completion
-        logger.debug("Using XSD-based implementation");
+        // LSP Server initialization removed - using XSD-based implementation
+        logger.debug("Using XSD-based implementation instead of LSP Server");
 
         // Initialize XPath Query Pane visibility based on saved preference
         if (mainController != null) {
@@ -467,7 +428,6 @@ public class XmlController {
             });
         }
     }
-
 
     /**
      * Displays the content of a file in the current code area.
@@ -489,6 +449,8 @@ public class XmlController {
                 if (area != null) {
                     area.replaceText(content);
                     logger.debug("File {} displayed.", file.getName());
+
+                    // LSP file opened notification removed
                 }
 
             } catch (IOException e) {
@@ -673,23 +635,15 @@ public class XmlController {
         Task<String> formatTask = new Task<>() {
             @Override
             protected String call() {
-                return XmlService.prettyFormat(text, propertiesService.getXmlIndentSpaces());
+                return XmlService.prettyFormat(text, XML_INDENT);
             }
         };
 
         formatTask.setOnSucceeded(event -> {
             String prettyString = formatTask.getValue();
             if (prettyString != null && !prettyString.isEmpty()) {
-                // Store current caret position
-                int caretPosition = currentCodeArea.getCaretPosition();
-                int textLength = currentCodeArea.getLength();
-
-                // Replace entire text content safely
-                currentCodeArea.replaceText(0, textLength, prettyString);
-
-                // Restore caret position synchronously, ensuring it's within valid bounds
-                int newCaretPosition = Math.min(caretPosition, prettyString.length());
-                currentCodeArea.moveTo(newCaretPosition);
+                currentCodeArea.clear();
+                currentCodeArea.replaceText(0, 0, prettyString);
             }
             prettyPrint.setDisable(false);
         });
@@ -785,7 +739,64 @@ public class XmlController {
         logger.info("XmlController shutdown completed.");
     }
 
+    // LSP didChange notification removed - using XSD-based implementation
 
+    // LSP folding ranges request removed
+
+    /**
+     * Loads a test XML file for demonstration purposes.
+     */
+    @FXML
+    private void test() {
+        // 1. Get the current editor.
+        XmlEditor currentEditor = getCurrentXmlEditor();
+
+        // 2. If no editor is active, create a new one.
+        if (currentEditor == null) {
+            logger.info("Test button clicked, but no active editor found. Creating a new one.");
+            createAndAddXmlTab(null);
+            currentEditor = getCurrentXmlEditor();
+        }
+
+        // 3. Define the paths to the test files.
+        Path xmlExampleFile = Paths.get("release/examples/xml/FundsXML_422_Bond_Fund.xml");
+        Path xsdExampleFile = Paths.get("release/examples/xsd/FundsXML4.xsd");
+
+        // 4. Check if the test file exists to avoid errors.
+        if (!Files.exists(xmlExampleFile)) {
+            logger.error("Test file not found at path: {}", xmlExampleFile.toAbsolutePath());
+            new Alert(Alert.AlertType.ERROR, "Test file not found: " + xmlExampleFile).showAndWait();
+            return;
+        }
+
+        // 5. Configure the editor and its service with the new files.
+        logger.debug("Loading test file '{}' into the current editor.", xmlExampleFile.getFileName());
+        currentEditor.setXmlFile(xmlExampleFile.toFile());
+
+        XmlService service = currentEditor.getXmlService();
+        service.setCurrentXmlFile(xmlExampleFile.toFile());
+        service.setCurrentXsdFile(xsdExampleFile.toFile());
+
+        // 6. Load the file content into the UI.
+        currentEditor.refresh();
+
+        // Set cursor and view to the beginning after UI changes have been processed.
+        XmlEditor finalCurrentEditor = currentEditor;
+        Platform.runLater(() -> {
+            if (finalCurrentEditor.getXmlCodeEditor() != null) {
+                finalCurrentEditor.getXmlCodeEditor().moveUp();
+
+                // Force syntax highlighting refresh
+                finalCurrentEditor.getXmlCodeEditor().refreshSyntaxHighlighting();
+
+                // Force folding regions refresh
+                finalCurrentEditor.getXmlCodeEditor().refreshFoldingRegions();
+            }
+        });
+        // 7. Execute follow-up actions that depend on the loaded content.
+
+        logger.debug("Test file loading complete.");
+    }
 
     /**
      * Sets the visibility of the XML Editor Sidebar for all tabs.

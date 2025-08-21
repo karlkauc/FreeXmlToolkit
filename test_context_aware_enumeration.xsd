@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- Simple types with enumeration constraints -->
+    <xs:simpleType name="DataOperationType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="INITIAL"/>
+            <xs:enumeration value="UPDATE"/>
+            <xs:enumeration value="DELETE"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="StatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ACTIVE"/>
+            <xs:enumeration value="INACTIVE"/>
+            <xs:enumeration value="PENDING"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PriorityType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="HIGH"/>
+            <xs:enumeration value="MEDIUM"/>
+            <xs:enumeration value="LOW"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Root element -->
+    <xs:element name="root">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="DataOperation" type="DataOperationType"/>
+                <xs:element name="Status" type="StatusType"/>
+                <xs:element name="OtherElement" type="xs:string"/>
+                <xs:element name="UserContext" type="UserContextType"/>
+                <xs:element name="SystemContext" type="SystemContextType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- User context - Status has different enumeration values -->
+    <xs:complexType name="UserContextType">
+        <xs:sequence>
+            <xs:element name="Status">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ONLINE"/>
+                        <xs:enumeration value="OFFLINE"/>
+                        <xs:enumeration value="AWAY"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Priority" type="PriorityType"/>
+            <xs:element name="DataOperation" type="xs:string"/> <!-- No enumeration here -->
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- System context - DataOperation has different enumeration values -->
+    <xs:complexType name="SystemContextType">
+        <xs:sequence>
+            <xs:element name="DataOperation">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="START"/>
+                        <xs:enumeration value="STOP"/>
+                        <xs:enumeration value="RESTART"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Status" type="xs:string"/> <!-- No enumeration here -->
+            <xs:element name="Priority" type="PriorityType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

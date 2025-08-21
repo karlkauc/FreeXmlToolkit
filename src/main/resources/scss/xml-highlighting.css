@@ -47,6 +47,12 @@
     -fx-underline: true;
 }
 
+.enumeration-content {
+    -fx-fill: #ff0000;
+    -fx-font-weight: bold;
+    -fx-background-color: #ffff00;
+}
+
 /* line Number */
 .lineno {
     -fx-background-color: #e3e3e3;

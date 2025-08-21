@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <DataOperation>INITIAL</DataOperation>
+    <Status>ACTIVE</Status>
+    <OtherElement>Some content</OtherElement>
+    <DataOperation>UPDATE</DataOperation>
+    <Status>INACTIVE</Status>
+</root>

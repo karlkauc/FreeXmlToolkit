@@ -37,9 +37,9 @@
 }
 
 .enumeration-content {
-    -rtfx-background-color: #ffff00;
+    -fx-fill: #ff0000;
     -fx-font-weight: bold;
-    -fx-text-fill: #ff0000;
+    -fx-background-color: #ffff00;
 }
 
 .comment {

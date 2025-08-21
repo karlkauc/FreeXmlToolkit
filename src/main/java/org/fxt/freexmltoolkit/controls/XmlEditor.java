@@ -2284,4 +2284,13 @@ public class XmlEditor extends Tab {
             logger.error("ERROR: XmlCodeEditor is null");
         }
     }
+
+    /**
+     * Gets the XSD documentation data.
+     *
+     * @return The XSD documentation data
+     */
+    public XsdDocumentationData getXsdDocumentationData() {
+        return xsdDocumentationData;
+    }
 }

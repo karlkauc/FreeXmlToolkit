@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <!-- Root level elements with enumeration -->
+    <DataOperation>INITIAL</DataOperation>
+    <Status>ACTIVE</Status>
+    <OtherElement>Some content</OtherElement>
+
+    <!-- User context - Status has different enumeration values -->
+    <UserContext>
+        <Status>ONLINE</Status>
+        <Priority>HIGH</Priority>
+        <DataOperation>Some user operation</DataOperation>
+    </UserContext>
+
+    <!-- System context - DataOperation has different enumeration values -->
+    <SystemContext>
+        <DataOperation>START</DataOperation>
+        <Status>System status</Status>
+        <Priority>MEDIUM</Priority>
+    </SystemContext>
+</root>

@@ -582,7 +582,7 @@ public class MainController {
                     // Wait for controller to be initialized, then create new file
                     Platform.runLater(() -> {
                         if (xmlController != null) {
-                            xmlController.createNewFile();
+                            xmlController.newFilePressed();
                         }
                     });
                 }
