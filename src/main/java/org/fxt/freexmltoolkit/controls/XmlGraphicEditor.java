@@ -16,6 +16,8 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
+import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -36,6 +38,12 @@ public class XmlGraphicEditor extends VBox {
 
     private final XmlEditor xmlEditor;
     private final Node currentDomNode;
+    private XmlEditorSidebarController sidebarController;
+    private javafx.scene.Node currentSelectedUINode;
+    private Node currentSelectedDomNode;
+
+    // Map to store direct UI Node -> DOM Node associations
+    private final Map<javafx.scene.Node, Node> uiNodeToDomNodeMap = new LinkedHashMap<>();
 
     public XmlGraphicEditor(Node node, XmlEditor caller) {
         this.xmlEditor = caller;
@@ -49,6 +57,131 @@ public class XmlGraphicEditor extends VBox {
 
         // NO context menu for the main VBox to avoid duplicate menus
         // Context menus are only created for individual child elements
+    }
+
+    /**
+     * Sets the sidebar controller for integration with XmlEditorSidebar functionality
+     */
+    public void setSidebarController(XmlEditorSidebarController sidebarController) {
+        this.sidebarController = sidebarController;
+        logger.info("🔗 XmlGraphicEditor: Sidebar controller set: {}", sidebarController != null ? "SUCCESS" : "NULL");
+
+        // If sidebar controller is now available, setup node selection for all existing nodes
+        if (sidebarController != null) {
+            setupNodeSelectionForAllNodes();
+        }
+    }
+
+    /**
+     * Sets up node selection for all existing UI nodes - called after sidebar controller is set
+     */
+    private void setupNodeSelectionForAllNodes() {
+        logger.info("🔄 XmlGraphicEditor: Setting up node selection for {} mapped nodes", uiNodeToDomNodeMap.size());
+
+        // Use the direct mapping instead of complex heuristics
+        for (Map.Entry<javafx.scene.Node, Node> entry : uiNodeToDomNodeMap.entrySet()) {
+            javafx.scene.Node uiNode = entry.getKey();
+            Node domNode = entry.getValue();
+
+            logger.debug("🔗 Setting up selection for mapped: {} -> DOM: {}",
+                    uiNode.getClass().getSimpleName(), domNode.getNodeName());
+
+            setupNodeSelectionForSpecificNode(uiNode, domNode);
+        }
+    }
+
+
+    /**
+     * Sets up node selection for a specific UI node - DOM node pair
+     */
+    private void setupNodeSelectionForSpecificNode(javafx.scene.Node uiNode, Node domNode) {
+        if (sidebarController == null) {
+            logger.warn("⚠️  XmlGraphicEditor: Cannot setup node selection - sidebarController is still null!");
+            return;
+        }
+
+        logger.debug("🖱️  Setting up node selection for: {} -> {}",
+                uiNode.getClass().getSimpleName(), domNode.getNodeName());
+
+        uiNode.setOnMouseClicked(event -> {
+            logger.info("🖱️ CLICK EVENT: clickCount={}, target={}, domNode={}",
+                    event.getClickCount(), event.getTarget().getClass().getSimpleName(), domNode.getNodeName());
+
+            if (event.getClickCount() == 1) {
+                // Single click to select for sidebar
+                logger.info("👆 XmlGraphicEditor: Processing single click for node - {}", domNode.getNodeName());
+                selectNode(uiNode, domNode);
+                logger.info("✅ XmlGraphicEditor: Single click processed for - {}", domNode.getNodeName());
+                // IMPORTANT: Consume the event to prevent bubbling to parent elements
+                event.consume();
+                logger.debug("🛑 XmlGraphicEditor: Event consumed to prevent bubbling");
+            } else {
+                logger.info("🖱️ XmlGraphicEditor: Multi-click ({}) - letting it bubble for - {}",
+                        event.getClickCount(), domNode.getNodeName());
+            }
+            // For double-clicks, don't handle here - let them bubble to child elements (Labels)
+        });
+
+        // Add visual selection feedback
+        uiNode.setOnMouseEntered(event -> {
+            if (currentSelectedUINode != uiNode) {
+                uiNode.setStyle(uiNode.getStyle() + "-fx-background-color: rgba(74, 144, 226, 0.1);");
+            }
+        });
+
+        uiNode.setOnMouseExited(event -> {
+            if (currentSelectedUINode != uiNode) {
+                // Remove hover effect by resetting style
+                String style = uiNode.getStyle();
+                if (style.contains("-fx-background-color: rgba(74, 144, 226, 0.1);")) {
+                    uiNode.setStyle(style.replace("-fx-background-color: rgba(74, 144, 226, 0.1);", ""));
+                }
+            }
+        });
+    }
+
+    /**
+     * Special setup for text cells that preserves double-click text editing
+     */
+    private void setupNodeSelectionForTextCell(javafx.scene.Node cellPane, Node domNode) {
+        if (sidebarController == null) {
+            return;
+        }
+
+        logger.debug("🖱️📝 Setting up text cell selection for: {}", domNode.getNodeName());
+
+        cellPane.setOnMouseClicked(event -> {
+            logger.info("🖱️📝 TEXT CELL CLICK: clickCount={}, target={}, domNode={}",
+                    event.getClickCount(), event.getTarget().getClass().getSimpleName(), domNode.getNodeName());
+
+            if (event.getClickCount() == 1) {
+                // Single click to select for sidebar
+                logger.info("👆 XmlGraphicEditor: Processing text cell click - {}", domNode.getNodeName());
+                selectNode(cellPane, domNode);
+                logger.info("✅ XmlGraphicEditor: Text cell click processed for - {}", domNode.getNodeName());
+                // Don't consume - let double-clicks reach the label inside
+            } else {
+                logger.info("🖱️📝 XmlGraphicEditor: Text cell multi-click ({}) - letting it bubble for - {}",
+                        event.getClickCount(), domNode.getNodeName());
+            }
+            // Let double-clicks bubble to child Label elements
+        });
+
+        // Add visual selection feedback (same as normal)
+        cellPane.setOnMouseEntered(event -> {
+            if (currentSelectedUINode != cellPane) {
+                cellPane.setStyle(cellPane.getStyle() + "-fx-background-color: rgba(74, 144, 226, 0.1);");
+            }
+        });
+
+        cellPane.setOnMouseExited(event -> {
+            if (currentSelectedUINode != cellPane) {
+                String style = cellPane.getStyle();
+                if (style.contains("-fx-background-color: rgba(74, 144, 226, 0.1);")) {
+                    cellPane.setStyle(style.replace("-fx-background-color: rgba(74, 144, 226, 0.1);", ""));
+                }
+            }
+        });
     }
 
     private void addChildNodes(Node node) {
@@ -177,6 +310,16 @@ public class XmlGraphicEditor extends VBox {
         // Add context menu for text nodes - only to the GridPane to avoid duplicate menus
         logger.debug("Setting up context menu for text node: {} (Type: {})", subNode.getNodeName(), subNode.getNodeType());
         setupContextMenu(gridPane, subNode);
+
+        // Store the mapping between UI element and DOM node
+        uiNodeToDomNodeMap.put(gridPane, subNode);
+        logger.debug("🗂️ Mapped GridPane -> DOM node: {}", subNode.getNodeName());
+
+        // Set up node selection immediately if sidebar controller is available
+        if (sidebarController != null) {
+            setupNodeSelectionForSpecificNode(gridPane, subNode);
+            logger.debug("✅ Set up node selection for text GridPane: {}", subNode.getNodeName());
+        }
 
         this.getChildren().add(gridPane);
     }
@@ -341,7 +484,13 @@ public class XmlGraphicEditor extends VBox {
                     if (shouldBeTable(subNode)) {
                         childrenContainer.getChildren().add(createTable(subNode));
                     } else {
-                        childrenContainer.getChildren().add(new XmlGraphicEditor(subNode, xmlEditor));
+                        // Create nested XmlGraphicEditor and pass sidebar controller
+                        XmlGraphicEditor nestedEditor = new XmlGraphicEditor(subNode, xmlEditor);
+                        if (sidebarController != null) {
+                            nestedEditor.setSidebarController(sidebarController);
+                            logger.debug("🔗 Passed sidebar controller to nested editor for: {}", subNode.getNodeName());
+                        }
+                        childrenContainer.getChildren().add(nestedEditor);
                     }
                 }
                 contentWrapper.setVisible(true);
@@ -360,6 +509,16 @@ public class XmlGraphicEditor extends VBox {
 
         // 6. Set up drag & drop for the element
         setupDragAndDrop(elementContainer, subNode);
+
+        // Store the mapping between UI element and DOM node
+        uiNodeToDomNodeMap.put(elementContainer, subNode);
+        logger.debug("🗂️ Mapped VBox -> DOM node: {}", subNode.getNodeName());
+
+        // Set up node selection immediately if sidebar controller is available
+        if (sidebarController != null) {
+            setupNodeSelectionForSpecificNode(elementContainer, subNode);
+            logger.debug("✅ Set up node selection for complex element VBox: {}", subNode.getNodeName());
+        }
 
         this.getChildren().add(elementContainer);
     }
@@ -551,7 +710,32 @@ public class XmlGraphicEditor extends VBox {
             cellPane = new StackPane(contentLabel);
         } else {
             // Nested complex nodes in a table
-            cellPane = new StackPane(new XmlGraphicEditor(oneNode, xmlEditor));
+            XmlGraphicEditor nestedEditor = new XmlGraphicEditor(oneNode, xmlEditor);
+            if (sidebarController != null) {
+                nestedEditor.setSidebarController(sidebarController);
+                logger.debug("🔗 Passed sidebar controller to table nested editor for: {}", oneNode.getNodeName());
+            }
+            cellPane = new StackPane(nestedEditor);
+        }
+
+        // Store the mapping for table cells too
+        uiNodeToDomNodeMap.put(cellPane, oneNode);
+        logger.debug("🗂️ Mapped table cell -> DOM node: {}", oneNode.getNodeName());
+
+        // Set up node selection immediately if sidebar controller is available
+        // But only for complex nodes (not for text nodes which have their own double-click editing)
+        boolean isTextNode = (oneNode.getChildNodes().getLength() == 1 &&
+                oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE);
+
+        if (sidebarController != null) {
+            if (!isTextNode) {
+                setupNodeSelectionForSpecificNode(cellPane, oneNode);
+                logger.debug("✅ Set up node selection for complex table cell: {}", oneNode.getNodeName());
+            } else {
+                // For text nodes in table cells, set up a special handler that doesn't interfere with text editing
+                setupNodeSelectionForTextCell(cellPane, oneNode);
+                logger.debug("✅ Set up text cell selection for table cell: {}", oneNode.getNodeName());
+            }
         }
 
         // XMLSpy-inspired cell styling with alternating row colors
@@ -1106,5 +1290,368 @@ public class XmlGraphicEditor extends VBox {
             }
         }
         return false;
+    }
+
+
+    /**
+     * Selects a node and updates sidebar information
+     */
+    private void selectNode(javafx.scene.Node uiNode, Node domNode) {
+        logger.info("🎯 XmlGraphicEditor: Selecting node - {}", domNode.getNodeName());
+
+        // Remove selection from previous node
+        if (currentSelectedUINode != null) {
+            String style = currentSelectedUINode.getStyle();
+            if (style.contains("-fx-background-color: rgba(74, 144, 226, 0.2);")) {
+                currentSelectedUINode.setStyle(style.replace("-fx-background-color: rgba(74, 144, 226, 0.2);", ""));
+            }
+        }
+
+        // Set new selection
+        currentSelectedUINode = uiNode;
+        currentSelectedDomNode = domNode;
+
+        // Add selection visual feedback
+        uiNode.setStyle(uiNode.getStyle() + "-fx-background-color: rgba(74, 144, 226, 0.2);");
+
+        // Update sidebar with node information
+        logger.info("📊 XmlGraphicEditor: About to update sidebar for node: {}", domNode.getNodeName());
+        updateSidebarInformation(domNode);
+
+        logger.debug("✅ XmlGraphicEditor: Selected node - {} (Type: {})", domNode.getNodeName(), domNode.getNodeType());
+    }
+
+    /**
+     * Updates the sidebar with information about the selected DOM node
+     */
+    private void updateSidebarInformation(Node domNode) {
+        logger.info("🔄 XmlGraphicEditor: updateSidebarInformation called for: {}", domNode.getNodeName());
+
+        if (sidebarController == null) {
+            logger.error("❌ XmlGraphicEditor: sidebarController is null! Cannot update sidebar.");
+            return;
+        }
+
+        try {
+            // Build XPath for the selected node
+            String xpath = buildXPathForNode(domNode);
+            logger.info("📍 XmlGraphicEditor: Built XPath: {}", xpath);
+
+            sidebarController.setXPath(xpath);
+            logger.info("✅ XmlGraphicEditor: XPath set in sidebar: {}", xpath);
+
+            // Prefer XSD-backed info if available
+            XsdExtendedElement xsdInfo = xmlEditor.findBestMatchingElement(xpath);
+            logger.info("🔍 XmlGraphicEditor: XSD info found: {}", xsdInfo != null);
+
+            if (xsdInfo != null) {
+                logger.info("📚 XmlGraphicEditor: Using XSD-backed information for element: {}", xsdInfo.getElementName());
+                sidebarController.setElementName(xsdInfo.getElementName());
+                sidebarController.setElementType(xsdInfo.getElementType() != null ? xsdInfo.getElementType() : "");
+                // Documentation and examples
+                String documentation = xmlEditor.getDocumentationFromExtendedElement(xsdInfo);
+                sidebarController.setDocumentation(documentation != null ? documentation : "");
+                sidebarController.setExampleValues(xsdInfo.getExampleValues());
+
+                // Possible child elements from XSD map
+                java.util.List<String> childElements = new java.util.ArrayList<>();
+                if (xsdInfo.getChildren() != null) {
+                    for (String childXpath : xsdInfo.getChildren()) {
+                        XsdExtendedElement child = xmlEditor.getXsdDocumentationData() != null
+                                ? xmlEditor.getXsdDocumentationData().getExtendedXsdElementMap().get(childXpath)
+                                : null;
+                        if (child != null && child.getElementName() != null) {
+                            if (!childElements.contains(child.getElementName())) {
+                                childElements.add(child.getElementName());
+                            }
+                        }
+                    }
+                }
+                if (childElements.isEmpty()) {
+                    childElements = getChildElementNames(domNode);
+                }
+                sidebarController.setPossibleChildElements(childElements);
+
+            } else if (domNode.getNodeType() == Node.ATTRIBUTE_NODE) {
+                sidebarController.setElementName("@" + domNode.getNodeName());
+                sidebarController.setElementType("attribute");
+                sidebarController.setDocumentation("Attribute: " + domNode.getNodeName() + " = " + domNode.getNodeValue());
+            } else {
+                // Fallback: DOM-derived info
+                logger.info("📝 XmlGraphicEditor: Using DOM-based fallback information");
+                if (domNode.getNodeType() == Node.ELEMENT_NODE) {
+                    String elementName = domNode.getNodeName();
+                    String elementType = getElementType(domNode);
+                    java.util.List<String> childElements = getChildElementNames(domNode);
+
+                    logger.info("   Element Name: {}", elementName);
+                    logger.info("   Element Type: {}", elementType);
+                    logger.info("   Child Elements: {}", childElements);
+
+                    sidebarController.setElementName(elementName);
+                    sidebarController.setElementType(elementType);
+                    sidebarController.setDocumentation("Element: " + elementName);
+                    sidebarController.setPossibleChildElements(childElements);
+                } else {
+                    logger.info("   Non-element node: {} (Type: {})", domNode.getNodeName(), domNode.getNodeType());
+                    sidebarController.setElementName(domNode.getNodeName());
+                    sidebarController.setElementType(getNodeTypeString(domNode.getNodeType()));
+                    sidebarController.setDocumentation("Node: " + domNode.getNodeName());
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error updating sidebar information for node: {}", domNode.getNodeName(), e);
+        }
+    }
+
+    /**
+     * Builds an XPath string for the given DOM node
+     */
+    private String buildXPathForNode(Node node) {
+        if (node == null) {
+            logger.warn("⚠️  XmlGraphicEditor: buildXPathForNode called with null node");
+            return "";
+        }
+
+        logger.debug("🔨 XmlGraphicEditor: Building XPath for node: {}", node.getNodeName());
+
+        java.util.List<String> pathElements = new java.util.ArrayList<>();
+        Node current = node;
+
+        while (current != null && current.getNodeType() != Node.DOCUMENT_NODE) {
+            if (current.getNodeType() == Node.ELEMENT_NODE) {
+                logger.debug("  📂 Adding to path: {}", current.getNodeName());
+                pathElements.add(0, current.getNodeName());
+            }
+            current = current.getParentNode();
+        }
+
+        String xpath = "/" + String.join("/", pathElements);
+        logger.info("🗺️  XmlGraphicEditor: Built XPath: {}", xpath);
+        return xpath;
+    }
+
+    /**
+     * Determines the element type based on DOM node content
+     */
+    private String getElementType(Node node) {
+        if (node.getChildNodes().getLength() == 0) {
+            return "empty";
+        } else if (node.getChildNodes().getLength() == 1 &&
+                node.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
+            return "text";
+        } else {
+            return "complex";
+        }
+    }
+
+    /**
+     * Gets the names of child elements for the given node
+     */
+    private java.util.List<String> getChildElementNames(Node node) {
+        java.util.List<String> childElements = new java.util.ArrayList<>();
+
+        for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+            Node child = node.getChildNodes().item(i);
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                String childName = child.getNodeName();
+                if (!childElements.contains(childName)) {
+                    childElements.add(childName);
+                }
+            }
+        }
+
+        if (childElements.isEmpty()) {
+            childElements.add("No child elements");
+        }
+
+        return childElements;
+    }
+
+    /**
+     * Navigates to a specific node in the graphic view based on XPath or line number
+     * This can be used for validation error navigation
+     */
+    public boolean navigateToNode(String xpath, int lineNumber) {
+        try {
+            // First try to find node by XPath if available
+            if (xpath != null && !xpath.isEmpty() && !xpath.equals("Unknown")) {
+                Node targetNode = findNodeByXPath(xpath);
+                if (targetNode != null) {
+                    javafx.scene.Node uiNode = findUINodeForDomNode(targetNode);
+                    if (uiNode != null) {
+                        selectNode(uiNode, targetNode);
+                        scrollToNode(uiNode);
+                        return true;
+                    }
+                }
+            }
+
+            // Fallback: try to find node by approximate line number
+            // This is less accurate but better than nothing
+            if (lineNumber > 0) {
+                Node approximateNode = findNodeByApproximatePosition(lineNumber);
+                if (approximateNode != null) {
+                    javafx.scene.Node uiNode = findUINodeForDomNode(approximateNode);
+                    if (uiNode != null) {
+                        selectNode(uiNode, approximateNode);
+                        scrollToNode(uiNode);
+                        return true;
+                    }
+                }
+            }
+
+            logger.debug("Could not navigate to node with xpath: {} and line: {}", xpath, lineNumber);
+            return false;
+        } catch (Exception e) {
+            logger.error("Error navigating to node: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Finds a DOM node by XPath (simplified implementation)
+     */
+    private Node findNodeByXPath(String xpath) {
+        // This is a simplified XPath implementation
+        // For a complete solution, you would use XPath evaluation
+        String[] pathParts = xpath.split("/");
+        if (pathParts.length == 0) return null;
+
+        Node current = currentDomNode;
+
+        // Skip empty first element from leading slash
+        for (int i = (pathParts[0].isEmpty() ? 1 : 0); i < pathParts.length; i++) {
+            String elementName = pathParts[i];
+            if (elementName.isEmpty()) continue;
+
+            Node found = null;
+            for (int j = 0; j < current.getChildNodes().getLength(); j++) {
+                Node child = current.getChildNodes().item(j);
+                if (child.getNodeType() == Node.ELEMENT_NODE &&
+                        child.getNodeName().equals(elementName)) {
+                    found = child;
+                    break;
+                }
+            }
+
+            if (found == null) return null;
+            current = found;
+        }
+
+        return current;
+    }
+
+    /**
+     * Finds a UI node that corresponds to a DOM node
+     */
+    private javafx.scene.Node findUINodeForDomNode(Node targetDomNode) {
+        // This is a simplified implementation
+        // In a complete solution, you would maintain a mapping between DOM and UI nodes
+        return findUINodeRecursively(this, targetDomNode);
+    }
+
+    /**
+     * Recursively searches for UI node corresponding to DOM node
+     */
+    private javafx.scene.Node findUINodeRecursively(javafx.scene.Parent parent, Node targetDomNode) {
+        for (javafx.scene.Node child : parent.getChildrenUnmodifiable()) {
+            // Check if this child corresponds to our target DOM node
+            // This is a heuristic approach - in a complete implementation you'd have proper mapping
+            if (child instanceof GridPane || child instanceof VBox) {
+                if (nodeCorrespondsToDOM(child, targetDomNode)) {
+                    return child;
+                }
+            }
+
+            // Recursively search in children
+            if (child instanceof javafx.scene.Parent childParent) {
+                javafx.scene.Node result = findUINodeRecursively(childParent, targetDomNode);
+                if (result != null) return result;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks if a UI node corresponds to a DOM node (heuristic)
+     */
+    private boolean nodeCorrespondsToDOM(javafx.scene.Node uiNode, Node domNode) {
+        // This is a heuristic approach
+        // Look for labels in the UI node that match the DOM node name
+        if (uiNode instanceof GridPane gridPane) {
+            for (javafx.scene.Node child : gridPane.getChildren()) {
+                if (child instanceof HBox hbox) {
+                    for (javafx.scene.Node hboxChild : hbox.getChildren()) {
+                        if (hboxChild instanceof Label label) {
+                            if (label.getText().equals(domNode.getNodeName())) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Finds a node by approximate position (line number based)
+     */
+    private Node findNodeByApproximatePosition(int lineNumber) {
+        // This is a very approximate method
+        // Count nodes and estimate position
+        java.util.List<Node> allElements = new java.util.ArrayList<>();
+        collectAllElements(currentDomNode, allElements);
+
+        if (!allElements.isEmpty()) {
+            // Use line number as rough approximation of element position
+            int approximateIndex = Math.min(lineNumber - 1, allElements.size() - 1);
+            approximateIndex = Math.max(0, approximateIndex);
+            return allElements.get(approximateIndex);
+        }
+
+        return null;
+    }
+
+    /**
+     * Collects all element nodes recursively
+     */
+    private void collectAllElements(Node node, java.util.List<Node> elements) {
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            elements.add(node);
+        }
+
+        for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+            collectAllElements(node.getChildNodes().item(i), elements);
+        }
+    }
+
+    /**
+     * Scrolls to make the specified UI node visible
+     */
+    private void scrollToNode(javafx.scene.Node uiNode) {
+        // Request focus and try to scroll to the node
+        uiNode.requestFocus();
+
+        // If this XmlGraphicEditor is in a ScrollPane, scroll to the node
+        javafx.scene.Parent parent = this.getParent();
+        while (parent != null) {
+            if (parent instanceof ScrollPane scrollPane) {
+                // Calculate the relative position of the node
+                double nodeY = uiNode.getBoundsInParent().getMinY();
+                double scrollPaneHeight = scrollPane.getHeight();
+                double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
+
+                if (contentHeight > scrollPaneHeight) {
+                    double scrollPosition = nodeY / (contentHeight - scrollPaneHeight);
+                    scrollPosition = Math.max(0, Math.min(1, scrollPosition));
+                    scrollPane.setVvalue(scrollPosition);
+                }
+                break;
+            }
+            parent = parent.getParent();
+        }
     }
 }

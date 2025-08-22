@@ -105,6 +105,19 @@ public class XmlEditorSidebarController {
 
     @FXML
     private void initialize() {
+        // Add click handler for element name field to show node information
+        if (elementNameField != null) {
+            elementNameField.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 1) { // Single click
+                    showNodeInformation();
+                }
+            });
+
+            // Add visual feedback to indicate the field is clickable
+            elementNameField.setStyle("-fx-cursor: hand;");
+            elementNameField.setTooltip(new Tooltip("Click to show detailed node information"));
+        }
+
         changeXsdButton.setOnAction(event -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select XSD Schema");
@@ -540,5 +553,106 @@ public class XmlEditorSidebarController {
     public void updateValidationStatus(String status, String color, List<ValidationError> errors) {
         updateValidationStatus(status, color);
         updateValidationErrors(errors);
+    }
+
+    /**
+     * Shows detailed information about the node when clicking on the element name field
+     */
+    private void showNodeInformation() {
+        if (xmlEditor == null) {
+            return;
+        }
+
+        String currentXPath = xpathField.getText();
+        if (currentXPath == null || currentXPath.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            // Find the node in the XML document using the current XPath
+            org.w3c.dom.Node node = xmlEditor.findNodeByXPath(currentXPath);
+            if (node != null) {
+                // Update the sidebar with information about this node
+                updateSidebarWithNodeInfo(node);
+            }
+        } catch (Exception e) {
+            logger.error("Error showing node information: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Updates the sidebar with information about the specified node
+     */
+    private void updateSidebarWithNodeInfo(org.w3c.dom.Node node) {
+        if (xmlEditor == null || node == null) {
+            return;
+        }
+
+        try {
+            // Build XPath for the node
+            String xpath = xmlEditor.buildXPathForNode(node);
+            setXPath(xpath);
+
+            // Set element name and type
+            if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                setElementName(node.getNodeName());
+
+                // Try to get element type from XSD if available
+                org.fxt.freexmltoolkit.domain.XsdExtendedElement xsdElement = xmlEditor.findBestMatchingElement(xpath);
+                if (xsdElement != null) {
+                    setElementType(xsdElement.getElementType());
+                    setDocumentation(xmlEditor.getDocumentationFromExtendedElement(xsdElement));
+
+                    // Set example values
+                    if (xsdElement.getExampleValues() != null && !xsdElement.getExampleValues().isEmpty()) {
+                        setExampleValues(xsdElement.getExampleValues());
+                    } else {
+                        setExampleValues(java.util.List.of("No example values available"));
+                    }
+
+                    // Set child elements
+                    if (xsdElement.getChildren() != null && !xsdElement.getChildren().isEmpty()) {
+                        setPossibleChildElements(xsdElement.getChildren());
+                    } else {
+                        setPossibleChildElements(java.util.List.of("No child elements available"));
+                    }
+                } else {
+                    // Fallback to DOM-based information
+                    setElementType("Unknown");
+                    setDocumentation("No XSD documentation available");
+                    setExampleValues(java.util.List.of("No example values available"));
+                    setPossibleChildElements(java.util.List.of("No child elements available"));
+                }
+            } else {
+                setElementName(node.getNodeName());
+                setElementType(getNodeTypeName(node.getNodeType()));
+                setDocumentation("Node type: " + getNodeTypeName(node.getNodeType()));
+                setExampleValues(java.util.List.of("No example values available"));
+                setPossibleChildElements(java.util.List.of("No child elements available"));
+            }
+        } catch (Exception e) {
+            logger.error("Error updating sidebar with node info: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Helper method to get a readable name for node types
+     */
+    private String getNodeTypeName(short nodeType) {
+        return switch (nodeType) {
+            case org.w3c.dom.Node.ELEMENT_NODE -> "Element";
+            case org.w3c.dom.Node.ATTRIBUTE_NODE -> "Attribute";
+            case org.w3c.dom.Node.TEXT_NODE -> "Text";
+            case org.w3c.dom.Node.CDATA_SECTION_NODE -> "CDATA Section";
+            case org.w3c.dom.Node.ENTITY_REFERENCE_NODE -> "Entity Reference";
+            case org.w3c.dom.Node.ENTITY_NODE -> "Entity";
+            case org.w3c.dom.Node.PROCESSING_INSTRUCTION_NODE -> "Processing Instruction";
+            case org.w3c.dom.Node.COMMENT_NODE -> "Comment";
+            case org.w3c.dom.Node.DOCUMENT_NODE -> "Document";
+            case org.w3c.dom.Node.DOCUMENT_TYPE_NODE -> "Document Type";
+            case org.w3c.dom.Node.DOCUMENT_FRAGMENT_NODE -> "Document Fragment";
+            case org.w3c.dom.Node.NOTATION_NODE -> "Notation";
+            default -> "Unknown";
+        };
     }
 }

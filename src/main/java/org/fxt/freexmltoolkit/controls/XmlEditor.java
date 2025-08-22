@@ -1467,7 +1467,7 @@ public class XmlEditor extends Tab {
      * @param targetXPath The XPath to find a match for
      * @return The best matching XsdExtendedElement or null
      */
-    private XsdExtendedElement findBestMatchingElement(String targetXPath) {
+    public XsdExtendedElement findBestMatchingElement(String targetXPath) {
         if (xsdDocumentationData == null || targetXPath == null) {
             return null;
         }
@@ -1540,7 +1540,7 @@ public class XmlEditor extends Tab {
      * @param element The XsdExtendedElement
      * @return The documentation string or null
      */
-    private String getDocumentationFromExtendedElement(XsdExtendedElement element) {
+    public String getDocumentationFromExtendedElement(XsdExtendedElement element) {
         if (element == null) {
             return null;
         }
@@ -2015,6 +2015,10 @@ public class XmlEditor extends Tab {
             vBox.setPadding(new Insets(3));
             if (document != null) {
                 var simpleNodeElement = new XmlGraphicEditor(document, this);
+                // Set sidebar controller for integration with XmlEditorSidebar functionality
+                if (sidebarController != null) {
+                    simpleNodeElement.setSidebarController(sidebarController);
+                }
                 VBox.setVgrow(simpleNodeElement, Priority.ALWAYS);
                 vBox.getChildren().add(simpleNodeElement);
             }
@@ -2136,5 +2140,72 @@ public class XmlEditor extends Tab {
      */
     public XsdDocumentationData getXsdDocumentationData() {
         return xsdDocumentationData;
+    }
+
+    /**
+     * Finds a node in the XML document using the given XPath
+     *
+     * @param xpath The XPath expression to find the node
+     * @return The found node or null if not found
+     */
+    public Node findNodeByXPath(String xpath) {
+        if (document == null || xpath == null || xpath.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            XPath xpathEvaluator = XPathFactory.newInstance().newXPath();
+            return (Node) xpathEvaluator.evaluate(xpath, document, XPathConstants.NODE);
+        } catch (Exception e) {
+            logger.error("Error finding node by XPath: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Builds an XPath for the given DOM node
+     *
+     * @param node The DOM node to build XPath for
+     * @return The XPath string for the node
+     */
+    public String buildXPathForNode(Node node) {
+        if (node == null) {
+            return "";
+        }
+
+        try {
+            StringBuilder xpath = new StringBuilder();
+            Node current = node;
+
+            // Build path from current node to root
+            while (current != null && current.getNodeType() != Node.DOCUMENT_NODE) {
+                if (current.getNodeType() == Node.ELEMENT_NODE) {
+                    String nodeName = current.getNodeName();
+
+                    // Add position if there are siblings with same name
+                    int position = 1;
+                    Node sibling = current.getPreviousSibling();
+                    while (sibling != null) {
+                        if (sibling.getNodeType() == Node.ELEMENT_NODE &&
+                                sibling.getNodeName().equals(nodeName)) {
+                            position++;
+                        }
+                        sibling = sibling.getPreviousSibling();
+                    }
+
+                    if (position > 1) {
+                        xpath.insert(0, "/" + nodeName + "[" + position + "]");
+                    } else {
+                        xpath.insert(0, "/" + nodeName);
+                    }
+                }
+                current = current.getParentNode();
+            }
+
+            return xpath.toString();
+        } catch (Exception e) {
+            logger.error("Error building XPath for node: {}", e.getMessage(), e);
+            return "";
+        }
     }
 }
