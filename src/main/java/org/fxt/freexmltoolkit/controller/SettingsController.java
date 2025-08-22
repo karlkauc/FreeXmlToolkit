@@ -43,7 +43,7 @@ public class SettingsController {
     ConnectionService connectionService = ConnectionServiceImpl.getInstance();
 
     @FXML
-    RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder;
+    RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder, lightTheme, darkTheme;
 
     @FXML
     CheckBox autoFormatXmlAfterLoading;
@@ -55,13 +55,13 @@ public class SettingsController {
     PasswordField httpProxyPass;
 
     @FXML
-    Spinner<Integer> portSpinner, xmlIndentSpaces;
+    Spinner<Integer> portSpinner, xmlIndentSpaces, xmlFontSize;
 
     @FXML
     Button checkConnection;
 
     @FXML
-    ToggleGroup proxy, tempFolder;
+    ToggleGroup proxy, tempFolder, theme;
 
     private MainController parentController;
 
@@ -73,6 +73,7 @@ public class SettingsController {
     public void initialize() {
         portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 65535, 8080));
         xmlIndentSpaces.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 4));
+        xmlFontSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(8, 24, 12));
         loadCurrentSettings();
 
         // Listener to enable/disable input fields
@@ -166,6 +167,10 @@ public class SettingsController {
             props.setProperty("xml.indent.spaces", xmlIndentSpaces.getValue().toString());
             props.setProperty("xml.autoformat.after.loading", String.valueOf(autoFormatXmlAfterLoading.isSelected()));
 
+            // Save UI settings
+            props.setProperty("ui.theme", darkTheme.isSelected() ? "dark" : "light");
+            props.setProperty("ui.xml.font.size", xmlFontSize.getValue().toString());
+
             propertiesService.saveProperties(props);
 
             // Show success message
@@ -236,6 +241,22 @@ public class SettingsController {
         // Load XML autoformat setting
         boolean autoFormat = Boolean.parseBoolean(props.getProperty("xml.autoformat.after.loading", "false"));
         autoFormatXmlAfterLoading.setSelected(autoFormat);
+
+        // Load UI settings
+        String theme = props.getProperty("ui.theme", "light");
+        if ("dark".equals(theme)) {
+            darkTheme.setSelected(true);
+        } else {
+            lightTheme.setSelected(true);
+        }
+
+        int fontSize = 12;
+        try {
+            fontSize = Integer.parseInt(props.getProperty("ui.xml.font.size", "12"));
+        } catch (NumberFormatException e) {
+            logger.warn("Invalid font size in settings, defaulting to 12.");
+        }
+        xmlFontSize.getValueFactory().setValue(fontSize);
     }
 
     /**

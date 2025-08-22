@@ -49,6 +49,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class XmlEditor extends Tab {
@@ -484,8 +486,8 @@ public class XmlEditor extends Tab {
             String beforeCursor = text.substring(0, Math.min(position, text.length()));
 
             // Look for the last opening tag
-            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\\b");
-            java.util.regex.Matcher matcher = pattern.matcher(beforeCursor);
+            Pattern pattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\\b");
+            Matcher matcher = pattern.matcher(beforeCursor);
 
             String lastElementName = null;
             while (matcher.find()) {
@@ -608,13 +610,12 @@ public class XmlEditor extends Tab {
             // Always include root element at the beginning if we found one
             if (rootElementName != null) {
                 // Check if root element is already first in path, if not add it
-                if (pathElements.isEmpty() || !pathElements.get(0).equals(rootElementName)) {
-                    pathElements.add(0, rootElementName);
+                if (pathElements.isEmpty() || !pathElements.getFirst().equals(rootElementName)) {
+                    pathElements.addFirst(rootElementName);
                 }
             }
 
-            String xpath = pathElements.isEmpty() ? "/" : "/" + String.join("/", pathElements);
-            return xpath;
+            return pathElements.isEmpty() ? "/" : "/" + String.join("/", pathElements);
 
         } catch (Exception e) {
             logger.debug("Stack-based XPath failed, trying fallback: {}", e.getMessage());
@@ -642,29 +643,29 @@ public class XmlEditor extends Tab {
             String textToCursor = text.substring(0, caretPosition);
 
             // Pattern for opening tags
-            java.util.regex.Pattern openTagPattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^/>]*(?<!/)>");
+            Pattern openTagPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^/>]*(?<!/)>");
             // Pattern for closing tags  
-            java.util.regex.Pattern closeTagPattern = java.util.regex.Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\\s*>");
+            Pattern closeTagPattern = Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*)\\s*>");
             // Pattern for self-closing tags
-            java.util.regex.Pattern selfClosingPattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^>]*/>");
+            Pattern selfClosingPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^>]*/>");
 
             // Find all tags in order
             List<TagMatch> tags = new ArrayList<>();
 
             // Find opening tags
-            java.util.regex.Matcher openMatcher = openTagPattern.matcher(textToCursor);
+            Matcher openMatcher = openTagPattern.matcher(textToCursor);
             while (openMatcher.find()) {
                 tags.add(new TagMatch(openMatcher.start(), openMatcher.group(1), TagType.OPEN));
             }
 
             // Find closing tags
-            java.util.regex.Matcher closeMatcher = closeTagPattern.matcher(textToCursor);
+            Matcher closeMatcher = closeTagPattern.matcher(textToCursor);
             while (closeMatcher.find()) {
                 tags.add(new TagMatch(closeMatcher.start(), closeMatcher.group(1), TagType.CLOSE));
             }
 
             // Find self-closing tags
-            java.util.regex.Matcher selfClosingMatcher = selfClosingPattern.matcher(textToCursor);
+            Matcher selfClosingMatcher = selfClosingPattern.matcher(textToCursor);
             while (selfClosingMatcher.find()) {
                 tags.add(new TagMatch(selfClosingMatcher.start(), selfClosingMatcher.group(1), TagType.SELF_CLOSING));
             }
@@ -712,39 +713,39 @@ public class XmlEditor extends Tab {
 
             // First, remove XML declaration if present
             String workingText = text;
-            java.util.regex.Pattern xmlDeclPattern = java.util.regex.Pattern.compile(
-                    "^\\s*<\\?xml[^>]*>\\s*", java.util.regex.Pattern.DOTALL
+            Pattern xmlDeclPattern = Pattern.compile(
+                    "^\\s*<\\?xml[^>]*>\\s*", Pattern.DOTALL
             );
             workingText = xmlDeclPattern.matcher(workingText).replaceFirst("");
 
             // Remove any comments at the beginning
-            java.util.regex.Pattern commentPattern = java.util.regex.Pattern.compile(
-                    "^\\s*<!--.*?-->\\s*", java.util.regex.Pattern.DOTALL
+            Pattern commentPattern = Pattern.compile(
+                    "^\\s*<!--.*?-->\\s*", Pattern.DOTALL
             );
             while (commentPattern.matcher(workingText).find()) {
                 workingText = commentPattern.matcher(workingText).replaceFirst("");
             }
 
             // Remove any processing instructions
-            java.util.regex.Pattern piPattern = java.util.regex.Pattern.compile(
-                    "^\\s*<\\?.*?\\?>\\s*", java.util.regex.Pattern.DOTALL
+            Pattern piPattern = Pattern.compile(
+                    "^\\s*<\\?.*?\\?>\\s*", Pattern.DOTALL
             );
             while (piPattern.matcher(workingText).find()) {
                 workingText = piPattern.matcher(workingText).replaceFirst("");
             }
 
             // Now find the first element tag
-            java.util.regex.Pattern rootElementPattern = java.util.regex.Pattern.compile(
+            Pattern rootElementPattern = Pattern.compile(
                     "^\\s*<([a-zA-Z][a-zA-Z0-9_:]*)[\\s>]"
             );
-            java.util.regex.Matcher matcher = rootElementPattern.matcher(workingText);
+            Matcher matcher = rootElementPattern.matcher(workingText);
 
             if (matcher.find()) {
                 return matcher.group(1);
             }
 
             // Fallback: find any element tag at the beginning
-            java.util.regex.Pattern fallbackPattern = java.util.regex.Pattern.compile(
+            Pattern fallbackPattern = Pattern.compile(
                     "<([a-zA-Z][a-zA-Z0-9_:]*)[\\s>/]"
             );
             matcher = fallbackPattern.matcher(text);
@@ -778,8 +779,8 @@ public class XmlEditor extends Tab {
 
         try {
             // Find all opening tags before cursor
-            java.util.regex.Pattern openPattern = java.util.regex.Pattern.compile(openTagPattern);
-            java.util.regex.Matcher openMatcher = openPattern.matcher(textBeforeCursor);
+            Pattern openPattern = Pattern.compile(openTagPattern);
+            Matcher openMatcher = openPattern.matcher(textBeforeCursor);
 
             while (openMatcher.find()) {
                 String elementName = openMatcher.group(1);
@@ -790,8 +791,8 @@ public class XmlEditor extends Tab {
             }
 
             // Find all closing tags before cursor and remove corresponding opening tags
-            java.util.regex.Pattern closePattern = java.util.regex.Pattern.compile(closeTagPattern);
-            java.util.regex.Matcher closeMatcher = closePattern.matcher(textBeforeCursor);
+            Pattern closePattern = Pattern.compile(closeTagPattern);
+            Matcher closeMatcher = closePattern.matcher(textBeforeCursor);
 
             while (closeMatcher.find()) {
                 String elementName = closeMatcher.group(1);
@@ -810,13 +811,12 @@ public class XmlEditor extends Tab {
             // Always include root element at the beginning if we found one
             if (rootElementName != null) {
                 // Check if root element is already first in path, if not add it
-                if (pathElements.isEmpty() || !pathElements.get(0).equals(rootElementName)) {
-                    pathElements.add(0, rootElementName);
+                if (pathElements.isEmpty() || !pathElements.getFirst().equals(rootElementName)) {
+                    pathElements.addFirst(rootElementName);
                 }
             }
 
-            String xpath = pathElements.isEmpty() ? "/" : "/" + String.join("/", pathElements);
-            return xpath;
+            return pathElements.isEmpty() ? "/" : "/" + String.join("/", pathElements);
             
         } catch (Exception e) {
             logger.debug("Manual parsing also failed: {}", e.getMessage());
@@ -964,161 +964,6 @@ public class XmlEditor extends Tab {
         }
 
         return Collections.emptyList();
-    }
-
-    public List<String> getChildElementsFromXsd(String elementName) {
-        List<String> childElements = new ArrayList<>();
-
-        try {
-            // Parse the XSD file
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document xsdDoc = builder.parse(xsdFile);
-
-            // Find the element definition - try with and without namespace
-            XPath xpath = XPathFactory.newInstance().newXPath();
-            xpath.setNamespaceContext(new javax.xml.namespace.NamespaceContext() {
-                @Override
-                public String getNamespaceURI(String prefix) {
-                    if ("xs".equals(prefix)) {
-                        return "http://www.w3.org/2001/XMLSchema";
-                    }
-                    return null;
-                }
-
-                @Override
-                public String getPrefix(String uri) {
-                    if ("http://www.w3.org/2001/XMLSchema".equals(uri)) {
-                        return "xs";
-                    }
-                    return null;
-                }
-
-                @Override
-                public java.util.Iterator<String> getPrefixes(String uri) {
-                    return java.util.Collections.singletonList("xs").iterator();
-                }
-            });
-
-            // Remove namespace prefix if present
-            String cleanElementName = elementName;
-            if (elementName.contains(":")) {
-                cleanElementName = elementName.split(":")[1];
-            }
-
-            // Try to find the element definition
-            String elementQuery = "//xs:element[@name='" + cleanElementName + "']";
-            Node elementNode = (Node) xpath.evaluate(elementQuery, xsdDoc, XPathConstants.NODE);
-
-            if (elementNode == null) {
-                // Try without namespace prefix
-                elementQuery = "//element[@name='" + cleanElementName + "']";
-                elementNode = (Node) xpath.evaluate(elementQuery, xsdDoc, XPathConstants.NODE);
-            }
-
-            if (elementNode == null) {
-                return childElements;
-            }
-
-            // Get the type of the element
-            String typeName = elementNode.getAttributes().getNamedItem("type") != null ?
-                    elementNode.getAttributes().getNamedItem("type").getNodeValue() : null;
-
-            Node typeDefinition = null;
-            if (typeName != null) {
-                // Remove namespace prefix if present
-                if (typeName.contains(":")) {
-                    typeName = typeName.split(":")[1];
-                }
-
-                // Find the complex type definition
-                String typeQuery = "//xs:complexType[@name='" + typeName + "']";
-                typeDefinition = (Node) xpath.evaluate(typeQuery, xsdDoc, XPathConstants.NODE);
-
-                if (typeDefinition == null) {
-                    // Try without namespace prefix
-                    typeQuery = "//complexType[@name='" + typeName + "']";
-                    typeDefinition = (Node) xpath.evaluate(typeQuery, xsdDoc, XPathConstants.NODE);
-                }
-            } else {
-                // Check for inline complex type
-                NodeList complexTypes = elementNode.getChildNodes();
-                for (int i = 0; i < complexTypes.getLength(); i++) {
-                    Node child = complexTypes.item(i);
-                    if (child.getNodeType() == Node.ELEMENT_NODE &&
-                            ("complexType".equals(child.getLocalName()) || "xs:complexType".equals(child.getNodeName()))) {
-                        typeDefinition = child;
-                        break;
-                    }
-                }
-            }
-
-            if (typeDefinition != null) {
-                // Find sequence, choice, or all elements
-                NodeList children = typeDefinition.getChildNodes();
-                for (int i = 0; i < children.getLength(); i++) {
-                    Node child = children.item(i);
-                    if (child.getNodeType() == Node.ELEMENT_NODE) {
-                        String localName = child.getLocalName();
-                        if (localName == null) {
-                            // Try to get from nodeName
-                            String nodeName = child.getNodeName();
-                            if (nodeName.contains(":")) {
-                                localName = nodeName.split(":")[1];
-                            } else {
-                                localName = nodeName;
-                            }
-                        }
-
-                        if ("sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName)) {
-                            // Get all element children
-                            NodeList elementChildren = child.getChildNodes();
-                            for (int j = 0; j < elementChildren.getLength(); j++) {
-                                Node elementChild = elementChildren.item(j);
-                                if (elementChild.getNodeType() == Node.ELEMENT_NODE) {
-                                    String elementLocalName = elementChild.getLocalName();
-                                    if (elementLocalName == null) {
-                                        String elementNodeName = elementChild.getNodeName();
-                                        if (elementNodeName.contains(":")) {
-                                            elementLocalName = elementNodeName.split(":")[1];
-                                        } else {
-                                            elementLocalName = elementNodeName;
-                                        }
-                                    }
-
-                                    if ("element".equals(elementLocalName)) {
-                                        String childName = elementChild.getAttributes().getNamedItem("name") != null ?
-                                                elementChild.getAttributes().getNamedItem("name").getNodeValue() : null;
-                                        if (childName != null) {
-                                            String minOccurs = elementChild.getAttributes().getNamedItem("minOccurs") != null ?
-                                                    elementChild.getAttributes().getNamedItem("minOccurs").getNodeValue() : "1";
-                                            String maxOccurs = elementChild.getAttributes().getNamedItem("maxOccurs") != null ?
-                                                    elementChild.getAttributes().getNamedItem("maxOccurs").getNodeValue() : "1";
-
-                                            String occurrence = "";
-                                            if ("0".equals(minOccurs) && "1".equals(maxOccurs)) {
-                                                occurrence = " (optional)";
-                                            } else if ("unbounded".equals(maxOccurs)) {
-                                                occurrence = " (0..*)";
-                                            } else if (!"1".equals(minOccurs) || !"1".equals(maxOccurs)) {
-                                                occurrence = " (" + minOccurs + ".." + maxOccurs + ")";
-                                            }
-
-                                            childElements.add(childName + occurrence);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Error parsing XSD for child elements", e);
-        }
-
-        return childElements;
     }
 
     public File getXsdFile() {
@@ -1269,7 +1114,7 @@ public class XmlEditor extends Tab {
             for (int i = 0; i < elementNodes.getLength(); i++) {
                 Element element = (Element) elementNodes.item(i);
                 String name = element.getAttribute("name");
-                if (name != null && !name.isEmpty()) {
+                if (!name.isEmpty()) {
                     elementNames.add(name);
                 }
             }
@@ -1280,7 +1125,7 @@ public class XmlEditor extends Tab {
                 Element element = (Element) allElements.item(i);
                 if (element.getTagName().endsWith(":element")) {
                     String name = element.getAttribute("name");
-                    if (name != null && !name.isEmpty() && !elementNames.contains(name)) {
+                    if (!name.isEmpty() && !elementNames.contains(name)) {
                         elementNames.add(name);
                     }
                 }
@@ -1318,7 +1163,7 @@ public class XmlEditor extends Tab {
                 Element complexType = (Element) complexTypes.item(i);
                 String typeName = complexType.getAttribute("name");
 
-                if (typeName != null && !typeName.isEmpty()) {
+                if (!typeName.isEmpty()) {
                     // Find child elements within this complex type
                     List<String> childElements = new ArrayList<>();
 
@@ -1334,7 +1179,7 @@ public class XmlEditor extends Tab {
                         for (int k = 0; k < elements.getLength(); k++) {
                             Element element = (Element) elements.item(k);
                             String elementName = element.getAttribute("name");
-                            if (elementName != null && !elementName.isEmpty()) {
+                            if (!elementName.isEmpty()) {
                                 childElements.add(elementName);
                             }
                         }
@@ -1347,7 +1192,7 @@ public class XmlEditor extends Tab {
                         for (int k = 0; k < elements.getLength(); k++) {
                             Element element = (Element) elements.item(k);
                             String elementName = element.getAttribute("name");
-                            if (elementName != null && !elementName.isEmpty()) {
+                            if (!elementName.isEmpty()) {
                                 childElements.add(elementName);
                             }
                         }
@@ -1360,7 +1205,7 @@ public class XmlEditor extends Tab {
                         for (int k = 0; k < elements.getLength(); k++) {
                             Element element = (Element) elements.item(k);
                             String elementName = element.getAttribute("name");
-                            if (elementName != null && !elementName.isEmpty()) {
+                            if (!elementName.isEmpty()) {
                                 childElements.add(elementName);
                             }
                         }
@@ -1379,15 +1224,14 @@ public class XmlEditor extends Tab {
                 String elementName = element.getAttribute("name");
                 String elementType = element.getAttribute("type");
 
-                if (elementName != null && !elementName.isEmpty() && elementType != null && !elementType.isEmpty()) {
+                if (!elementName.isEmpty() && !elementType.isEmpty()) {
                     // If this element has a type, check if we have child elements for that type
-                    String typeName = elementType;
-                    if (typeName.startsWith("xs:")) {
+                    if (elementType.startsWith("xs:")) {
                         // Skip built-in types
                         continue;
                     }
 
-                    List<String> childElements = contextElementNames.get(typeName);
+                    List<String> childElements = contextElementNames.get(elementType);
                     if (childElements != null && !childElements.isEmpty()) {
                         contextElementNames.put(elementName, new ArrayList<>(childElements));
                     }
@@ -1399,7 +1243,7 @@ public class XmlEditor extends Tab {
             for (int i = 0; i < allElements.getLength(); i++) {
                 Element element = (Element) allElements.item(i);
                 String elementName = element.getAttribute("name");
-                if (elementName != null && !elementName.isEmpty()) {
+                if (!elementName.isEmpty()) {
                     rootElements.add(elementName);
                 }
             }
@@ -1510,8 +1354,8 @@ public class XmlEditor extends Tab {
             int relativePos = caretPosition - windowStart;
 
             // Find tags that contain the cursor position
-            java.util.regex.Pattern tagPattern = java.util.regex.Pattern.compile("<(/?)([a-zA-Z][a-zA-Z0-9_:]*)[^>]*>");
-            java.util.regex.Matcher matcher = tagPattern.matcher(window);
+            Pattern tagPattern = Pattern.compile("<(/?)([a-zA-Z][a-zA-Z0-9_:]*)[^>]*>");
+            Matcher matcher = tagPattern.matcher(window);
 
             while (matcher.find()) {
                 int tagStart = matcher.start();
@@ -2106,7 +1950,7 @@ public class XmlEditor extends Tab {
         xmlService.setCurrentXmlFile(xmlFile);
 
         // Set the document URI for completion requests and parent reference
-        if (xmlCodeEditor != null && xmlFile != null) {
+        if (xmlCodeEditor != null) {
             xmlCodeEditor.setDocumentUri(xmlFile.toURI().toString());
             xmlCodeEditor.setParentXmlEditor(this);
         }

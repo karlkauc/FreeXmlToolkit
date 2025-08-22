@@ -231,6 +231,38 @@ public class XsdController {
         if (docPreviewTab != null) {
             docPreviewTab.setDisable(true);
         }
+
+        applyEditorSettings();
+    }
+
+    private void applyEditorSettings() {
+        try {
+            String fontSizeStr = propertiesService.get("ui.xml.font.size");
+            int fontSize = 12; // Default size
+            if (fontSizeStr != null) {
+                try {
+                    fontSize = Integer.parseInt(fontSizeStr);
+                } catch (NumberFormatException e) {
+                    logger.warn("Invalid font size in settings, defaulting to 12.", e);
+                }
+            }
+            String style = String.format("-fx-font-size: %dpx;", fontSize);
+
+            if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+                sourceCodeEditor.getCodeArea().setStyle(style);
+                logger.debug("Applied font size {}px to sourceCodeEditor", fontSize);
+            }
+            if (sampleDataTextArea != null) {
+                sampleDataTextArea.setStyle(style);
+                logger.debug("Applied font size {}px to sampleDataTextArea", fontSize);
+            }
+            if (flattenedXsdTextArea != null) {
+                flattenedXsdTextArea.setStyle(style);
+                logger.debug("Applied font size {}px to flattenedXsdTextArea", fontSize);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to apply editor settings.", e);
+        }
     }
 
     /**
@@ -489,6 +521,7 @@ public class XsdController {
             textProgress.setVisible(false);
 
             statusText.setText("XSD loaded successfully.");
+            applyEditorSettings();
         });
 
         task.setOnFailed(event -> {
@@ -817,6 +850,7 @@ public class XsdController {
             ensureSampleDataTextAreaInitialized();
             sampleDataTextArea.replaceText(resultXml);
             sampleDataTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(resultXml));
+            applyEditorSettings();
 
             // Validate the generated XML against the XSD schema
             Task<XsdDocumentationService.ValidationResult> validationTask = new Task<>() {
@@ -984,6 +1018,7 @@ public class XsdController {
             ensureFlattenedXsdTextAreaInitialized();
             flattenedXsdTextArea.replaceText(flattenedContent);
             flattenedXsdTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(flattenedContent));
+            applyEditorSettings();
 
             flattenStatusLabel.setText("Successfully flattened and saved to: " + destinationFile.getAbsolutePath());
             showAlert(Alert.AlertType.INFORMATION, "Success", "XSD has been flattened successfully.");

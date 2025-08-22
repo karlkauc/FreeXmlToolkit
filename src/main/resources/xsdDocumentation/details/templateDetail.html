@@ -90,23 +90,33 @@
         <!-- Card header with element name and XPath -->
         <header class="p-6 border-b border-slate-200 bg-slate-50">
             <h1 class="text-2xl font-bold text-slate-900" th:text="${element.elementName}">ElementName</h1>
-            <!-- The p-tag was replaced by a flex container holding the text and a copy button -->
+            <!-- Container for XPath and copy buttons -->
             <div class="flex items-center space-x-2 mt-1">
                 <p class="text-sm text-slate-600 font-mono" th:text="${element.currentXpath}">/path/to/element</p>
-                <!-- Button to copy the XPath to the clipboard -->
+
+                <!-- Button to copy the XPath -->
                 <button th:attr="data-xpath=${element.currentXpath}"
-                        onclick="copyToClipboard(this)"
+                        onclick="copyXPath(this)"
                         class="relative group p-1 rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
-                    <!-- The copy icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                          stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                     </svg>
-                    <!-- Tooltip that appears on hover and shows status after click -->
-                    <span id="tooltip-text"
-                          class="absolute -top-8 left-1/2 -translate-x-1/2 w-max px-2 py-1 bg-slate-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span class="tooltip-text absolute -top-8 left-1/2 -translate-x-1/2 w-max px-2 py-1 bg-slate-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
                         Copy XPath
+                    </span>
+                </button>
+
+                <!-- Button to copy the Permalink -->
+                <button th:attr="data-xpath=${element.currentXpath}"
+                        onclick="copyPermalink(this)"
+                        class="relative group p-1 rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <span class="tooltip-text absolute -top-8 left-1/2 -translate-x-1/2 w-max px-2 py-1 bg-slate-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                        Copy Permalink
                     </span>
                 </button>
             </div>
@@ -200,7 +210,6 @@
                     </div>
                     <div class="flex flex-col">
                         <dt class="text-sm font-medium text-slate-500">Cardinality</dt>
-                        <!-- KORREKTUR: Greift auf eine Hilfsmethode zu, die die Kardinalität vom DOM-Knoten liest. -->
                         <dd class="mt-1 text-slate-900 font-mono"
                             th:text="${this.getCardinality(element)}">
                             1..1
@@ -244,13 +253,11 @@
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 text-sm">
-                        <!-- KORREKTUR: Iteriert über die Liste der Kind-XPaths -->
                         <tr th:each="childXpath: ${element.children}">
                             <td class="px-4 py-3 font-mono">
                                 <a th:href="${this.getPageName(childXpath)}"
                                    th:title="${childXpath}"
                                    class="text-sky-600 hover:text-sky-800 hover:underline">
-                                    <!-- KORREKTUR: Verbesserte und korrigierte Logik zur Pfad-Kürzung -->
                                     <span th:with="pathParts=${#strings.arraySplit(childXpath, '/')}"
                                           th:text="${(#arrays.length(pathParts) > 3) ? ('/' + pathParts[1] + '/.../' + pathParts[#arrays.length(pathParts) - 1]) : childXpath}">
                                     </span>
@@ -258,7 +265,6 @@
                             </td>
 
                             <td class="px-4 py-3 font-mono">
-                                <!-- Die Logik zur Verlinkung von Typen bleibt gleich, da sie Hilfsmethoden nutzt -->
                                 <a th:if="${this.isChildTypeLinkable(childXpath)}"
                                    th:href="${this.getChildTypePageName(childXpath)}"
                                    th:text="${this.getChildType(childXpath)}"
@@ -309,9 +315,9 @@
 
 <!-- JavaScript for the copy functionality -->
 <script>
-    function copyToClipboard(buttonElement) {
+    function copyXPath(buttonElement) {
         const textToCopy = buttonElement.getAttribute('data-xpath');
-        const tooltip = buttonElement.querySelector('#tooltip-text');
+        const tooltip = buttonElement.querySelector('.tooltip-text');
 
         navigator.clipboard.writeText(textToCopy).then(() => {
             tooltip.textContent = 'Copied!';
@@ -323,6 +329,29 @@
             console.error('Could not copy text: ', err);
             setTimeout(() => {
                 tooltip.textContent = 'Copy XPath';
+            }, 2000);
+        });
+    }
+
+    function copyPermalink(buttonElement) {
+        const xpath = buttonElement.getAttribute('data-xpath');
+        const tooltip = buttonElement.querySelector('.tooltip-text');
+
+        const permalinkUrl = new URL('../index.html', window.location.href);
+        permalinkUrl.searchParams.set('xpath', xpath);
+
+        const urlToCopy = permalinkUrl.href.replaceAll('%2F', '/');
+
+        navigator.clipboard.writeText(urlToCopy).then(() => {
+            tooltip.textContent = 'Copied!';
+            setTimeout(() => {
+                tooltip.textContent = 'Copy Permalink';
+            }, 2000);
+        }).catch(err => {
+            tooltip.textContent = 'Failed to copy!';
+            console.error('Could not copy permalink: ', err);
+            setTimeout(() => {
+                tooltip.textContent = 'Copy Permalink';
             }, 2000);
         });
     }

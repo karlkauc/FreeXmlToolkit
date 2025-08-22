@@ -72,19 +72,17 @@
             <table class="w-full text-left">
                 <thead class="bg-slate-50 border-b border-slate-200 text-sm">
                 <tr>
-                    <!-- Column for the counter -->
                     <th scope="col" class="px-6 py-4 font-semibold text-slate-900 text-right">#</th>
                     <th scope="col" class="px-6 py-4 font-semibold text-slate-900">XPath</th>
+                    <th scope="col" class="px-6 py-4 font-semibold text-slate-900">Mandatory</th>
                     <th scope="col" class="px-6 py-4 font-semibold text-slate-900">Documentation</th>
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 text-sm">
                 <!-- Iteration over all elements -->
                 <tr th:each="element, iterStat : ${allElements}" class="hover:bg-slate-50 transition-colors">
-                    <!-- Counter cell -->
                     <td class="px-6 py-4 text-right text-slate-500" th:text="${iterStat.count}"></td>
 
-                    <!-- XPath cell with intelligent truncation -->
                     <td class="px-6 py-4 font-mono whitespace-nowrap">
                         <a th:href="${'details/' + element.pageName}"
                            th:title="${element.currentXpath}"
@@ -94,14 +92,19 @@
                     </td>
 
                     <td class="px-6 py-4">
-                        <!-- Block 1: The documentation of the element itself -->
+                        <span th:if="${element.isMandatory()}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Yes
+                        </span>
+                        <span th:unless="${element.isMandatory()}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                            No
+                        </span>
+                    </td>
+
+                    <td class="px-6 py-4">
                         <span class="text-slate-700"
                               th:utext="${this.getChildDocumentation(element.currentXpath)}"></span>
 
-                        <!-- Block 2: The documentation of the underlying type -->
-                        <!-- th:with stores the result to avoid calling the method multiple times -->
                         <div th:with="typeDoc=${this.getTypeDocumentation(element.currentXpath)}">
-                            <!-- This block is only displayed if type documentation was found -->
                             <div th:if="${!#strings.isEmpty(typeDoc)}"
                                  class="mt-2 pt-2 border-t border-slate-200/60">
                                 <span class="block text-xs font-semibold text-slate-500"
@@ -131,9 +134,7 @@
     // Logic for the Scroll-to-Top Button
     const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
-    // Show or hide the button based on the scroll position
     window.onscroll = function () {
-        // Show the button when scrolled down more than 100px
         if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
             scrollToTopBtn.classList.remove('hidden');
         } else {
@@ -141,13 +142,11 @@
         }
     };
 
-    // Scroll smoothly to the top when the button is clicked
     scrollToTopBtn.onclick = function () {
         window.scrollTo({top: 0, behavior: 'smooth'});
     };
 </script>
 
-<!-- The search script will now fetch the search_index.json file externally -->
 <script src="assets/search.js" defer></script>
 
 </body>

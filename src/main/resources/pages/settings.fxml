@@ -142,6 +142,37 @@
                 </content>
             </TitledPane>
 
+            <!-- Section 4: UI Settings -->
+            <TitledPane animated="true" expanded="true" text="UI Settings">
+                <graphic>
+                    <FontIcon iconLiteral="bi-palette" iconSize="20"/>
+                </graphic>
+                <content>
+                    <VBox style="-fx-padding: 15 5 5 5;" spacing="15">
+                        <GridPane hgap="10" vgap="15">
+                            <Label text="Theme:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                <RadioButton fx:id="lightTheme" mnemonicParsing="false" text="Light Mode">
+                                    <toggleGroup>
+                                        <ToggleGroup fx:id="theme"/>
+                                    </toggleGroup>
+                                </RadioButton>
+                                <RadioButton fx:id="darkTheme" mnemonicParsing="false" text="Dark Mode" toggleGroup="$theme"/>
+                            </VBox>
+
+                            <Label text="Default XML Font Size:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <Spinner fx:id="xmlFontSize" editable="true" initialValue="12" min="8" max="24" prefWidth="100"
+                                     GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+                        </GridPane>
+                    </VBox>
+                </content>
+            </TitledPane>
+
             <!-- Action Buttons at the bottom -->
             <HBox spacing="10.0" alignment="CENTER_LEFT" style="-fx-padding: 20 0 0 0;">
                 <Button mnemonicParsing="false" onAction="#performSave" text="Save Settings"

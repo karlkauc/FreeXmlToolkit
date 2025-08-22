@@ -22,6 +22,7 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -45,43 +46,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Main controller for the FreeXMLToolkit application.
- *
- * <p>This controller serves as the central coordinator for the application's main window and
- * manages the lifecycle of all other controllers. It handles:
- * <ul>
- *   <li>Tab-based navigation between different tools (XML, XSD, XSLT, etc.)</li>
- *   <li>File operations and recent files management</li>
- *   <li>Memory monitoring and performance tracking</li>
- *   <li>Application shutdown and resource cleanup</li>
- *   <li>Cross-controller communication and coordination</li>
- * </ul>
- *
- * <p>The controller maintains two executor services:
- * <ul>
- *   <li>{@code scheduler} - For scheduled background tasks like memory monitoring</li>
- *   <li>{@code service} - For general background processing tasks</li>
- * </ul>
- *
- * <p>Memory monitoring is automatically started during initialization and tracks:
- * <ul>
- *   <li>Current heap usage</li>
- *   <li>Maximum heap size</li>
- *   <li>Memory usage percentage with configurable thresholds</li>
- * </ul>
- *
- * <p>File management capabilities include:
- * <ul>
- *   <li>Recent files tracking with persistence</li>
- *   <li>Automatic file type detection and routing to appropriate controllers</li>
- *   <li>Cross-platform file path handling</li>
- * </ul>
- *
- * @author Karl Kauc
- * @version 1.0
- * @since 2024
- */
 public class MainController {
 
     private final static Logger logger = LogManager.getLogger(MainController.class);
@@ -129,9 +93,6 @@ public class MainController {
 
     FXMLLoader loader;
 
-    /**
-     * Initializes the controller.
-     */
     @FXML
     public void initialize() {
         scheduler.scheduleAtFixedRate(this::updateMemoryUsage, 1, 2, TimeUnit.SECONDS);
@@ -141,14 +102,38 @@ public class MainController {
         loadXmlEditorSidebarPreference();
         loadXPathQueryPanePreference();
         loadPageFromPath("/pages/welcome.fxml");
+        Platform.runLater(this::applyTheme);
+    }
+
+    public void applyTheme() {
+        try {
+            Scene scene = contentPane.getScene();
+            if (scene == null) {
+                logger.warn("Scene not available. Cannot apply theme yet.");
+                return;
+            }
+
+            scene.getStylesheets().removeIf(s -> s.contains("light-theme.css") || s.contains("dark-theme.css"));
+
+            String theme = propertiesService.get("ui.theme");
+            logger.debug("Attempting to apply theme: {}", theme);
+
+            if ("dark".equals(theme)) {
+                scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/dark-theme.css")).toExternalForm());
+                logger.info("Dark theme applied.");
+            } else {
+                scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/light-theme.css")).toExternalForm());
+                logger.info("Light theme applied.");
+            }
+        } catch (Exception e) {
+            logger.error("Could not apply theme. Make sure dark-theme.css and light-theme.css are in the resources/css folder.", e);
+        }
     }
 
     private void loadXmlEditorSidebarPreference() {
-        // Load preference - default is visible (true)
         String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
         boolean isVisible = sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
 
-        // Set the menu item state
         if (xmlEditorSidebarMenuItem != null) {
             xmlEditorSidebarMenuItem.setSelected(isVisible);
         }
@@ -157,11 +142,9 @@ public class MainController {
     }
 
     private void loadXPathQueryPanePreference() {
-        // Load preference - default is visible (true)
         String paneVisible = propertiesService.get("xpathQueryPane.visible");
         boolean isVisible = paneVisible == null || Boolean.parseBoolean(paneVisible);
 
-        // Set the menu item state
         if (xpathQueryPaneMenuItem != null) {
             xpathQueryPaneMenuItem.setSelected(isVisible);
         }
@@ -188,7 +171,6 @@ public class MainController {
     public void shutdown() {
         logger.info("Application is shutting down. Starting cleanup tasks...");
 
-        // Call the shutdown method for each relevant controller.
         if (xmlController != null) {
             xmlController.shutdown();
         }
@@ -196,12 +178,10 @@ public class MainController {
             xsdController.shutdown();
         }
 
-        // Shuts down the ExecutorServices. This is crucial to prevent thread leaks.
         logger.info("Shutting down ExecutorServices...");
         scheduler.shutdownNow();
         service.shutdownNow();
         try {
-            // Wait briefly to give the executors time to terminate.
             if (!scheduler.awaitTermination(1, TimeUnit.SECONDS)) {
                 logger.warn("Scheduler service was not terminated within 1 second.");
             }
@@ -210,15 +190,12 @@ public class MainController {
             }
         } catch (InterruptedException e) {
             logger.error("Waiting for service shutdown was interrupted.", e);
-            Thread.currentThread().interrupt(); // Sets the interrupted flag again.
+            Thread.currentThread().interrupt();
         }
 
         logger.info("Cleanup tasks completed. Application will be closed.");
     }
 
-    /**
-     * Loads the recently opened files and updates the menu.
-     */
     private void loadLastOpenFiles() {
         lastOpenFilesMenu.getItems().clear();
         lastOpenFiles.clear();
@@ -237,7 +214,6 @@ public class MainController {
             m.setOnAction(event -> {
                 logger.debug("File {} selected from recent files.", f.getAbsolutePath());
 
-                // CORRECTION: Check the file type and call the appropriate method.
                 String fileName = f.getName().toLowerCase();
                 if (fileName.endsWith(".xml")) {
                     switchToXmlViewAndLoadFile(f);
@@ -245,7 +221,6 @@ public class MainController {
                     switchToXsdViewAndLoadFile(f);
                 } else {
                     logger.warn("Unhandled file type from recent files list: {}", f.getName());
-                    // Optional: Show an alert
                     new Alert(Alert.AlertType.INFORMATION, "This file type cannot be opened directly from the 'Recently opened' list.").show();
                 }
             });
@@ -253,24 +228,11 @@ public class MainController {
         }
     }
 
-
-    /**
-     * Public method that can be called by other controllers
-     * to add a file to the list of recently opened files.
-     *
-     * @param file the opened file
-     */
     public void addFileToRecentFiles(File file) {
         propertiesService.addLastOpenFile(file);
         loadLastOpenFiles();
     }
 
-
-    /**
-     * Loads a page based on the ActionEvent.
-     *
-     * @param ae the ActionEvent
-     */
     @FXML
     public void loadPage(ActionEvent ae) {
         Button currentButton = (Button) ae.getSource();
@@ -294,16 +256,10 @@ public class MainController {
         currentButton.getStyleClass().add("active");
     }
 
-    /**
-     * Loads a page from a specific path.
-     *
-     * @param pagePath the path to the page
-     */
     private void loadPageFromPath(String pagePath) {
         try {
             loader = new FXMLLoader(getClass().getResource(pagePath));
             Pane newLoadedPane = loader.load();
-            // System.gc() -> Garbage Collection
             setParentController(loader.getController());
             contentPane.getChildren().clear();
             contentPane.getChildren().add(newLoadedPane);
@@ -312,30 +268,18 @@ public class MainController {
         }
     }
 
-    /**
-     * Programmatically switches to the XML tab and loads a file.
-     *
-     * @param fileToLoad The file to load.
-     */
     public void switchToXmlViewAndLoadFile(File fileToLoad) {
         if (xml == null) {
             logger.error("XML-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
         }
-        // Visuellen Stil des Menü-Buttons anpassen, um den aktiven Tab zu zeigen
         xml.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
         xml.getStyleClass().add("active");
 
-        // Die XML-Seite laden
         loadPageFromPath("/pages/tab_xml.fxml");
 
-        // Sicherstellen, dass der XmlController initialisiert ist und die Datei laden.
-        // Platform.runLater wird verwendet, um sicherzustellen, dass die UI-Updates
-        // nach dem Laden und Anzeigen der neuen Szene ausgeführt werden.
         if (this.xmlController != null && fileToLoad != null && fileToLoad.exists()) {
             Platform.runLater(() -> {
-                // Ruft loadFile auf, um die Datei in einem neuen Tab zu öffnen,
-                // anstatt den Inhalt des aktuellen Tabs zu ersetzen.
                 xmlController.loadFile(fileToLoad);
             });
         } else {
@@ -343,27 +287,18 @@ public class MainController {
         }
     }
 
-    /**
-     * Wechselt programmatisch zum XSD-Tab und lädt eine Datei.
-     *
-     * @param fileToLoad Die zu ladende XSD-Datei.
-     */
     public void switchToXsdViewAndLoadFile(File fileToLoad) {
         if (xsd == null) {
             logger.error("XSD-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
         }
-        // Visuellen Stil des Menü-Buttons anpassen
         xsd.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
         xsd.getStyleClass().add("active");
 
-        // Die XSD-Seite laden
         loadPageFromPath("/pages/tab_xsd.fxml");
 
-        // Sicherstellen, dass der XsdController initialisiert ist und die Datei laden.
         if (this.xsdController != null && fileToLoad != null && fileToLoad.exists()) {
             Platform.runLater(() -> {
-                // Ruft openXsdFile auf, um die Datei in der grafischen und Text-Ansicht zu laden.
                 xsdController.openXsdFile(fileToLoad);
                 xsdController.selectTextTab();
             });
@@ -415,16 +350,12 @@ public class MainController {
         }
     }
 
-    /**
-     * Zeigt den "Über"-Dialog an, wenn der entsprechende Menüpunkt geklickt wird.
-     */
     @FXML
     private void handleAboutAction() {
         Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
         aboutDialog.setTitle("About FreeXMLToolkit");
         aboutDialog.setHeaderText("FreeXMLToolkit - Universal Toolkit for XML");
 
-        // Setzt das Icon für das Dialogfenster
         try {
             Stage stage = (Stage) aboutDialog.getDialogPane().getScene().getWindow();
             stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/logo.png"))));
@@ -432,7 +363,6 @@ public class MainController {
             logger.warn("Could not load logo for about dialog window.", e);
         }
 
-        // Setzt die Grafik (Logo) im Header-Panel
         try {
             ImageView logo = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/img/logo.png"))));
             logo.setFitHeight(60);
@@ -491,43 +421,27 @@ public class MainController {
         boolean isVisible = xmlEditorSidebarMenuItem.isSelected();
         logger.debug("Toggle XML Editor Sidebar: {}", isVisible);
 
-        // Save preference
         propertiesService.set("xmlEditorSidebar.visible", String.valueOf(isVisible));
 
-        // Apply to current XML controller if available
         if (xmlController != null) {
             xmlController.setXmlEditorSidebarVisible(isVisible);
         }
     }
 
-    /**
-     * Gets the current sidebar visibility setting from preferences.
-     *
-     * @return true if sidebar should be visible, false otherwise
-     */
     public boolean isXmlEditorSidebarVisible() {
         String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
         return sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
     }
 
-    /**
-     * Toggles XML Editor Sidebar visibility from the sidebar button.
-     * This method synchronizes the menu state and applies the global toggle.
-     *
-     * @param visible true to show the sidebar, false to hide it
-     */
     public void toggleXmlEditorSidebarFromSidebar(boolean visible) {
         logger.debug("Toggle XML Editor Sidebar from sidebar button: {}", visible);
 
-        // Update the menu checkbox to reflect the new state
         if (xmlEditorSidebarMenuItem != null) {
             xmlEditorSidebarMenuItem.setSelected(visible);
         }
 
-        // Save preference
         propertiesService.set("xmlEditorSidebar.visible", String.valueOf(visible));
 
-        // Apply to current XML controller if available
         if (xmlController != null) {
             xmlController.setXmlEditorSidebarVisible(visible);
         }
@@ -538,10 +452,8 @@ public class MainController {
         boolean isVisible = xpathQueryPaneMenuItem.isSelected();
         logger.debug("Toggle XPath Query Pane: {}", isVisible);
 
-        // Save preference
         propertiesService.set("xpathQueryPane.visible", String.valueOf(isVisible));
 
-        // Apply to current XML controller if available
         if (xmlController != null) {
             xmlController.setXPathQueryPaneVisible(isVisible);
         } else {
@@ -549,25 +461,15 @@ public class MainController {
         }
     }
 
-    /**
-     * Gets the current XPath Query Pane visibility setting from preferences.
-     *
-     * @return true if XPath Query Pane should be visible, false otherwise
-     */
     public boolean isXPathQueryPaneVisible() {
         String paneVisible = propertiesService.get("xpathQueryPane.visible");
         return paneVisible == null || Boolean.parseBoolean(paneVisible);
     }
 
-    /**
-     * Handles File -> New menu action.
-     * Shows a dialog to select the file type to create.
-     */
     @FXML
     private void handleNewFile() {
         logger.debug("New file action triggered");
 
-        // Create choice dialog for file type selection
         ChoiceDialog<String> dialog = new ChoiceDialog<>("XML", "XML", "XSD", "XSLT");
         dialog.setTitle("New File");
         dialog.setHeaderText("Select File Type");
@@ -577,9 +479,7 @@ public class MainController {
             logger.debug("Selected file type: {}", fileType);
             switch (fileType) {
                 case "XML" -> {
-                    // Simulate clicking the XML button to navigate to XML tab
                     xml.fire();
-                    // Wait for controller to be initialized, then create new file
                     Platform.runLater(() -> {
                         if (xmlController != null) {
                             xmlController.newFilePressed();
@@ -587,30 +487,22 @@ public class MainController {
                     });
                 }
                 case "XSD" -> {
-                    // Simulate clicking the XSD button to navigate to XSD tab
                     xsd.fire();
                 }
                 case "XSLT" -> {
-                    // Simulate clicking the XSLT button to navigate to XSLT tab
                     xslt.fire();
                 }
             }
         });
     }
 
-    /**
-     * Handles File -> Open menu action.
-     * Shows a file chooser with all supported file formats.
-     */
     @FXML
     private void handleOpenFile() {
         logger.debug("Open file action triggered");
 
-        // Create file chooser with all supported formats
         javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
         fileChooser.setTitle("Open File");
 
-        // Add extension filters for all supported formats
         fileChooser.getExtensionFilters().addAll(
                 new javafx.stage.FileChooser.ExtensionFilter("All Supported Files", "*.xml", "*.xsd", "*.xsl", "*.xslt"),
                 new javafx.stage.FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"),
@@ -619,7 +511,6 @@ public class MainController {
                 new javafx.stage.FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
         );
 
-        // Set initial directory from properties
         String lastDirString = propertiesService.getLastOpenDirectory();
         if (lastDirString != null) {
             File lastDir = new File(lastDirString);
@@ -633,15 +524,12 @@ public class MainController {
         if (selectedFile != null && selectedFile.exists()) {
             logger.debug("Selected file: {}", selectedFile.getAbsolutePath());
 
-            // Save the new directory
             if (selectedFile.getParentFile() != null) {
                 propertiesService.setLastOpenDirectory(selectedFile.getParentFile().getAbsolutePath());
             }
 
-            // Route to appropriate tab based on file extension
             String fileName = selectedFile.getName().toLowerCase();
             if (fileName.endsWith(".xml")) {
-                // Navigate to XML tab and load file
                 xml.fire();
                 Platform.runLater(() -> {
                     if (xmlController != null) {
@@ -649,7 +537,6 @@ public class MainController {
                     }
                 });
             } else if (fileName.endsWith(".xsd")) {
-                // Navigate to XSD tab and load file
                 xsd.fire();
                 Platform.runLater(() -> {
                     if (xsdController != null) {
@@ -657,11 +544,8 @@ public class MainController {
                     }
                 });
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
-                // Navigate to XSLT tab
                 xslt.fire();
-                // XSLT controller would need a load method - for now just switch tab
             } else {
-                // Default to XML for unknown extensions
                 xml.fire();
                 Platform.runLater(() -> {
                     if (xmlController != null) {
@@ -670,7 +554,6 @@ public class MainController {
                 });
             }
 
-            // Add to recent files
             addFileToRecentFiles(selectedFile);
         }
     }
