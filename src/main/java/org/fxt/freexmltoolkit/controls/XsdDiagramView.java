@@ -11,6 +11,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.web.WebView;
 import org.fxt.freexmltoolkit.controller.XsdController;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
@@ -41,41 +43,67 @@ public class XsdDiagramView {
 
     private ScrollPane treeScrollPane;
 
-    // Styles
+    // Enhanced Styles inspired by Altova XMLSpy
     private static final String NODE_LABEL_STYLE =
-            "-fx-background-color: #eef4ff; -fx-border-color: #adc8ff; -fx-border-width: 1px; " + "-fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 5px 10px; " +
-                    "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0d47a1; -fx-cursor: hand;";
+            "-fx-background-color: linear-gradient(to bottom, #ffffff, #f0f8ff); " +
+                    "-fx-border-color: #4a90e2; -fx-border-width: 2px; " +
+                    "-fx-border-radius: 4px; -fx-background-radius: 4px; " +
+                    "-fx-padding: 8px 12px; -fx-font-family: 'Segoe UI', sans-serif; " +
+                    "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0; " +
+                    "-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 2, 0, 1, 1);";
 
     private static final String ATTRIBUTE_LABEL_STYLE =
-            "-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 1px; " + "-fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 3px 8px; " +
-                    "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px; -fx-font-weight: normal; -fx-text-fill: #495057; -fx-cursor: hand;";
+            "-fx-background-color: linear-gradient(to bottom, #fffef7, #f9f5e7); " +
+                    "-fx-border-color: #d4a147; -fx-border-width: 1.5px; " +
+                    "-fx-border-radius: 3px; -fx-background-radius: 3px; " +
+                    "-fx-padding: 4px 8px; -fx-font-family: 'Segoe UI', sans-serif; " +
+                    "-fx-font-size: 12px; -fx-font-weight: normal; -fx-text-fill: #8b6914; " +
+                    "-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 1, 0, 0.5, 0.5);";
 
     private static final String SEQUENCE_NODE_STYLE =
-            "-fx-background-color: #f5f5f5; -fx-border-color: #bdbdbd; -fx-border-width: 1px; -fx-border-style: solid; " +
-                    "-fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 5px 10px; " +
-                    "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #424242;";
+            "-fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef); " +
+                    "-fx-border-color: #6c757d; -fx-border-width: 2px; -fx-border-style: solid; " +
+                    "-fx-border-radius: 4px; -fx-background-radius: 4px; " +
+                    "-fx-padding: 6px 10px; -fx-font-family: 'Segoe UI', sans-serif; " +
+                    "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #495057; " +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 2, 0, 1, 1);";
 
     private static final String CHOICE_NODE_STYLE =
-            "-fx-background-color: #fff8e1; -fx-border-color: #ffc107; -fx-border-width: 1px; -fx-border-style: dashed; " +
-                    "-fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 5px 10px; " +
-                    "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #856404;";
+            "-fx-background-color: linear-gradient(to bottom, #fffbf0, #fff3cd); " +
+                    "-fx-border-color: #ff8c00; -fx-border-width: 2px; -fx-border-style: dashed; " +
+                    "-fx-border-radius: 4px; -fx-background-radius: 4px; " +
+                    "-fx-padding: 6px 10px; -fx-font-family: 'Segoe UI', sans-serif; " +
+                    "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #b45309; " +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 2, 0, 1, 1);";
 
     private static final String ANY_NODE_STYLE =
-            "-fx-background-color: #e9ecef; -fx-border-color: #ced4da; -fx-border-width: 1px; -fx-border-style: dotted; " +
-                    "-fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 5px 10px; " +
-                    "-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #495057;";
+            "-fx-background-color: linear-gradient(to bottom, #f8f9fa, #dee2e6); " +
+                    "-fx-border-color: #adb5bd; -fx-border-width: 1.5px; -fx-border-style: dotted; " +
+                    "-fx-border-radius: 4px; -fx-background-radius: 4px; " +
+                    "-fx-padding: 6px 10px; -fx-font-family: 'Segoe UI', sans-serif; " +
+                    "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #6c757d; " +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 1, 0, 0.5, 0.5);";
 
     private static final String CARDINALITY_LABEL_STYLE =
-            "-fx-font-size: 12px; -fx-text-fill: #555; -fx-font-family: 'Consolas', 'Monaco', monospace;";
+            "-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-family: 'Consolas', 'Monaco', monospace; " +
+                    "-fx-background-color: #f8f9fa; -fx-padding: 2px 4px; -fx-background-radius: 3px; " +
+                    "-fx-border-color: #dee2e6; -fx-border-width: 1px; -fx-border-radius: 3px;";
 
     private static final String TOGGLE_BUTTON_STYLE =
-            "-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #0d47a1; -fx-padding: 0 5px; -fx-cursor: hand;";
+            "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #4a90e2; " +
+                    "-fx-background-color: #ffffff; -fx-border-color: #4a90e2; -fx-border-width: 1px; " +
+                    "-fx-border-radius: 50%; -fx-background-radius: 50%; -fx-padding: 2px 6px; " +
+                    "-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 1, 0, 0.5, 0.5);";
 
     private static final String DOC_LABEL_STYLE =
-            "-fx-font-size: 11px; -fx-text-fill: #6c757d; -fx-font-style: italic; -fx-padding: 2px 0 0 5px;";
+            "-fx-font-size: 11px; -fx-text-fill: #6c757d; -fx-font-style: italic; " +
+                    "-fx-padding: 4px 8px 4px 12px; -fx-background-color: rgba(108, 117, 125, 0.05); " +
+                    "-fx-background-radius: 3px; -fx-border-color: rgba(108, 117, 125, 0.15); " +
+                    "-fx-border-width: 0 0 0 3px; -fx-border-radius: 0 3px 3px 0;";
 
     private static final String DETAIL_LABEL_STYLE = "-fx-font-weight: bold; -fx-text-fill: #333;";
     private static final String DETAIL_PANE_STYLE = "-fx-padding: 15px; -fx-background-color: #ffffff; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 0 1px;";
+
 
     public XsdDiagramView(XsdNodeInfo rootNode, XsdController controller, String initialDoc, String initialJavadoc) {
         this.rootNode = rootNode;
@@ -161,15 +189,18 @@ public class XsdDiagramView {
 
         // Wenn strukturelle Kinder vorhanden sind, das Element vertikal mittig ausrichten
         if (!structuralChildren.isEmpty()) {
-            elementInfoContainer.setAlignment(Pos.CENTER_LEFT); // Vertikal mittig, horizontal linksbündig
+            elementInfoContainer.setAlignment(Pos.CENTER_LEFT);
         }
 
-        // Rechter Teil: Container für strukturelle Kinder (sequence, choice)
+        // Rechter Teil: Container für strukturelle Kinder (sequence, choice) mit Verbindungslinien
         VBox structuralChildrenContainer = new VBox(5);
-        structuralChildrenContainer.setPadding(new Insets(0, 0, 0, 10));
+        structuralChildrenContainer.setPadding(new Insets(0, 0, 0, 20));
         structuralChildrenContainer.setVisible(false);
         structuralChildrenContainer.setManaged(false);
-        structuralChildrenContainer.setAlignment(Pos.TOP_LEFT); // Kinder linksbündig
+        structuralChildrenContainer.setAlignment(Pos.TOP_LEFT);
+
+        // Add visual connector line
+        structuralChildrenContainer.setStyle("-fx-border-color: #4a90e2; -fx-border-width: 0 0 0 2px; -fx-border-style: solid;");
 
         // --- Linken Teil befüllen (elementInfoContainer) ---
         HBox nameAndToggleRow = new HBox(5);
@@ -177,12 +208,23 @@ public class XsdDiagramView {
 
         Label nameLabel = new Label(node.name());
         nameLabel.setStyle(NODE_LABEL_STYLE);
+
+        // Add element icon
+        FontIcon elementIcon = new FontIcon("bi-box");
+        elementIcon.setIconColor(javafx.scene.paint.Color.web("#4a90e2"));
+        elementIcon.setIconSize(14);
+        nameLabel.setGraphic(elementIcon);
+        
         nameLabel.setOnMouseClicked(event -> updateDetailPane(node));
 
-        Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
-        cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
-
-        nameAndToggleRow.getChildren().addAll(nameLabel, cardinalityLabel);
+        String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
+        if (!cardinality.isEmpty()) {
+            Label cardinalityLabel = new Label(cardinality);
+            cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
+            nameAndToggleRow.getChildren().addAll(nameLabel, cardinalityLabel);
+        } else {
+            nameAndToggleRow.getChildren().add(nameLabel);
+        }
         elementInfoContainer.getChildren().add(nameAndToggleRow);
 
         // Dokumentation für das Element hinzufügen
@@ -208,12 +250,21 @@ public class XsdDiagramView {
         if (!structuralChildren.isEmpty()) {
             // Der Toggle-Button steuert jetzt den rechten Container
             addToggleButton(nameAndToggleRow, structuralChildrenContainer, structuralChildren);
-        }
 
-        // Finale Ansicht zusammenbauen
-        mainContainer.getChildren().add(elementInfoContainer);
-        if (!structuralChildren.isEmpty()) {
-            mainContainer.getChildren().add(structuralChildrenContainer);
+            // Add horizontal connector line between element and children
+            HBox connectorContainer = new HBox();
+            Line horizontalLine = new Line();
+            horizontalLine.setStartX(0);
+            horizontalLine.setStartY(0);
+            horizontalLine.setEndX(15);
+            horizontalLine.setEndY(0);
+            horizontalLine.setStroke(Color.web("#4a90e2"));
+            horizontalLine.setStrokeWidth(2);
+            connectorContainer.getChildren().add(horizontalLine);
+            connectorContainer.setAlignment(Pos.CENTER_LEFT);
+            mainContainer.getChildren().addAll(elementInfoContainer, connectorContainer, structuralChildrenContainer);
+        } else {
+            mainContainer.getChildren().add(elementInfoContainer);
         }
 
         return mainContainer;
@@ -228,12 +279,23 @@ public class XsdDiagramView {
 
         Label nameLabel = new Label(node.name());
         nameLabel.setStyle(ATTRIBUTE_LABEL_STYLE);
+
+        // Add attribute icon
+        FontIcon attributeIcon = new FontIcon("bi-at");
+        attributeIcon.setIconColor(javafx.scene.paint.Color.web("#d4a147"));
+        attributeIcon.setIconSize(12);
+        nameLabel.setGraphic(attributeIcon);
+        
         nameLabel.setOnMouseClicked(event -> updateDetailPane(node));
 
-        Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
-        cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
-
-        attributeContainer.getChildren().addAll(nameLabel, cardinalityLabel);
+        String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
+        if (!cardinality.isEmpty()) {
+            Label cardinalityLabel = new Label(cardinality);
+            cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
+            attributeContainer.getChildren().addAll(nameLabel, cardinalityLabel);
+        } else {
+            attributeContainer.getChildren().add(nameLabel);
+        }
         return attributeContainer;
     }
 
@@ -252,24 +314,73 @@ public class XsdDiagramView {
         titleRow.setStyle(style);
 
         Label titleLabel = new Label(title);
-        Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
-        cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
-        titleRow.getChildren().addAll(titleLabel, cardinalityLabel);
+
+        // Add appropriate icon for structural elements
+        FontIcon structuralIcon;
+        if ("SEQUENCE".equals(title)) {
+            structuralIcon = new FontIcon("bi-list-ol");
+            structuralIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
+        } else if ("CHOICE".equals(title)) {
+            structuralIcon = new FontIcon("bi-option");
+            structuralIcon.setIconColor(javafx.scene.paint.Color.web("#ff8c00"));
+        } else {
+            structuralIcon = new FontIcon("bi-diagram-3");
+            structuralIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
+        }
+        structuralIcon.setIconSize(12);
+        titleLabel.setGraphic(structuralIcon);
+
+        String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
+        if (!cardinality.isEmpty()) {
+            Label cardinalityLabel = new Label(cardinality);
+            cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
+            titleRow.getChildren().addAll(titleLabel, cardinalityLabel);
+        } else {
+            titleRow.getChildren().add(titleLabel);
+        }
         titleContainer.getChildren().add(titleRow);
 
-        // Rechter Teil: Die eigentlichen Kinder der Sequenz/Choice
+        // Rechter Teil: Die eigentlichen Kinder der Sequenz/Choice mit Verbindungslinien
         VBox childrenVBox = new VBox(5);
         childrenVBox.setPadding(new Insets(0, 0, 5, 20));
         childrenVBox.setVisible(false);
         childrenVBox.setManaged(false);
-        childrenVBox.setAlignment(Pos.TOP_LEFT); // Kinder linksbündig
-        childrenVBox.setStyle("-fx-border-color: #e0e0e0; -fx-border-width: 0 0 0 1px; -fx-border-style: solid;");
+        childrenVBox.setAlignment(Pos.TOP_LEFT);
+
+        // Enhanced connector line style based on structural type
+        if ("SEQUENCE".equals(title)) {
+            childrenVBox.setStyle("-fx-border-color: #6c757d; -fx-border-width: 0 0 0 2px; -fx-border-style: solid;");
+        } else if ("CHOICE".equals(title)) {
+            childrenVBox.setStyle("-fx-border-color: #ff8c00; -fx-border-width: 0 0 0 2px; -fx-border-style: dashed;");
+        } else {
+            childrenVBox.setStyle("-fx-border-color: #adb5bd; -fx-border-width: 0 0 0 1px; -fx-border-style: dotted;");
+        }
 
         if (!node.children().isEmpty()) {
             addToggleButton(titleRow, childrenVBox, node.children());
-        }
 
-        mainContainer.getChildren().addAll(titleContainer, childrenVBox);
+            // Add horizontal connector for structural nodes
+            HBox connectorContainer = new HBox();
+            Line horizontalLine = new Line();
+            horizontalLine.setStartX(0);
+            horizontalLine.setStartY(0);
+            horizontalLine.setEndX(15);
+            horizontalLine.setEndY(0);
+            if ("SEQUENCE".equals(title)) {
+                horizontalLine.setStroke(Color.web("#6c757d"));
+            } else if ("CHOICE".equals(title)) {
+                horizontalLine.setStroke(Color.web("#ff8c00"));
+                horizontalLine.getStrokeDashArray().addAll(5.0, 5.0);
+            } else {
+                horizontalLine.setStroke(Color.web("#adb5bd"));
+            }
+            horizontalLine.setStrokeWidth(2);
+            connectorContainer.getChildren().add(horizontalLine);
+            connectorContainer.setAlignment(Pos.CENTER_LEFT);
+            mainContainer.getChildren().addAll(titleContainer, connectorContainer, childrenVBox);
+        } else {
+            mainContainer.getChildren().add(titleContainer);
+        }
         return mainContainer;
     }
 
@@ -282,12 +393,23 @@ public class XsdDiagramView {
 
         Label nameLabel = new Label(node.name());
         nameLabel.setStyle(ANY_NODE_STYLE);
+
+        // Add any element icon
+        FontIcon anyIcon = new FontIcon("bi-asterisk");
+        anyIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
+        anyIcon.setIconSize(12);
+        nameLabel.setGraphic(anyIcon);
+        
         nameLabel.setOnMouseClicked(event -> updateDetailPane(node));
 
-        Label cardinalityLabel = new Label(formatCardinality(node.minOccurs(), node.maxOccurs()));
-        cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
-
-        nodeContainer.getChildren().addAll(nameLabel, cardinalityLabel);
+        String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
+        if (!cardinality.isEmpty()) {
+            Label cardinalityLabel = new Label(cardinality);
+            cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
+            nodeContainer.getChildren().addAll(nameLabel, cardinalityLabel);
+        } else {
+            nodeContainer.getChildren().add(nameLabel);
+        }
         return nodeContainer;
     }
 
@@ -366,9 +488,21 @@ public class XsdDiagramView {
         String min = (minOccurs == null) ? "1" : minOccurs;
         String max = (maxOccurs == null) ? "1" : maxOccurs;
         if ("unbounded".equalsIgnoreCase(max)) {
-            max = "*";
+            max = "∞";
         }
-        return String.format("[%s..%s]", min, max);
+
+        // Special formatting for common cases
+        if ("1".equals(min) && "1".equals(max)) {
+            return ""; // Don't show [1..1] as it's the default
+        } else if ("0".equals(min) && "1".equals(max)) {
+            return "0..1";
+        } else if ("1".equals(min) && "∞".equals(max)) {
+            return "1..∞";
+        } else if ("0".equals(min) && "∞".equals(max)) {
+            return "0..∞";
+        } else {
+            return String.format("%s..%s", min, max);
+        }
     }
 
     private void updateDetailPane(XsdNodeInfo node) {

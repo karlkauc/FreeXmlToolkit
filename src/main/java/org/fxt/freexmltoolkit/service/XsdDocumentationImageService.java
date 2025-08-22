@@ -36,6 +36,7 @@ import java.awt.font.FontRenderContext;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -69,24 +70,32 @@ public class XsdDocumentationImageService {
     final int boxPadding = 12;
     final int borderRadius = 8;
 
-    // Modern color palette with better contrast and modern look
-    private static final String COLOR_BG = "#ffffff";                    // Pure white for modern look
-    private static final String COLOR_BOX_FILL = "#f8fafc";             // Very light gray
-    private static final String COLOR_BOX_FILL_HOVER = "#e2e8f0";       // Hover color
-    private static final String COLOR_STROKE = "#334155";               // Darker gray for better contrast
-    private static final String COLOR_STROKE_OPTIONAL = "#94a3b8";      // Lighter color for optional elements
-    private static final String COLOR_STROKE_SEPARATOR = "#e2e8f0";     // Separator lines
-    private static final String COLOR_TEXT_PRIMARY = "#1e293b";         // Dark text
-    private static final String COLOR_TEXT_SECONDARY = "#64748b";       // Secondary text
-    private static final String COLOR_ICON = "#3b82f6";                 // Modern blue color
-    private static final String COLOR_ACCENT = "#8b5cf6";               // Accent color for symbols
-    private static final String COLOR_SHADOW = "rgba(0, 0, 0, 0.1)";   // Subtle shadow
+    // XMLSpy-inspired color palette
+    private static final String COLOR_BG = "#ffffff";                    // Pure white background
+    private static final String COLOR_BOX_FILL_ELEMENT = "#f0f8ff";      // Light blue for elements
+    private static final String COLOR_BOX_FILL_ATTRIBUTE = "#fffef7";    // Light yellow for attributes
+    private static final String COLOR_BOX_FILL_STRUCTURAL = "#f8f9fa";   // Light gray for structural
+    private static final String COLOR_BOX_FILL_HOVER = "#e2e8f0";        // Hover color
+    private static final String COLOR_STROKE_ELEMENT = "#4a90e2";        // Blue for elements
+    private static final String COLOR_STROKE_ATTRIBUTE = "#d4a147";      // Orange for attributes
+    private static final String COLOR_STROKE_STRUCTURAL = "#6c757d";     // Gray for structural
+    private static final String COLOR_STROKE_OPTIONAL = "#94a3b8";       // Lighter for optional
+    private static final String COLOR_STROKE_SEPARATOR = "#dee2e6";      // Separator lines
+    private static final String COLOR_TEXT_PRIMARY = "#2c5aa0";          // Blue text for elements
+    private static final String COLOR_TEXT_SECONDARY = "#6c757d";        // Gray secondary text
+    private static final String COLOR_TEXT_ATTRIBUTE = "#8b6914";        // Brown for attributes
+    private static final String COLOR_ICON = "#4a90e2";                  // Blue icons
+    private static final String COLOR_ACCENT = "#ff8c00";                // Orange accent
+    private static final String COLOR_SHADOW = "rgba(0, 0, 0, 0.15)";    // Deeper shadow
 
-    // Modern style strings
-    final static String OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 2; stroke-dasharray: 8, 8; fill: " + COLOR_BOX_FILL + ";";
-    final static String MANDATORY_FORMAT = "stroke: " + COLOR_STROKE + "; stroke-width: 2; fill: " + COLOR_BOX_FILL + ";";
-    final static String CONNECTION_LINE = "stroke: " + COLOR_STROKE + "; stroke-width: 2; fill: none;";
-    final static String CONNECTION_LINE_OPTIONAL = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 2; stroke-dasharray: 8, 8; fill: none;";
+    // XMLSpy-inspired style strings with gradients
+    final static String ELEMENT_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: url(#elementGradient);";
+    final static String ELEMENT_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 1.5; stroke-dasharray: 5, 5; fill: url(#elementGradient);";
+    final static String ATTRIBUTE_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ATTRIBUTE + "; stroke-width: 1.5; fill: url(#attributeGradient);";
+    final static String ATTRIBUTE_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 1; stroke-dasharray: 3, 3; fill: url(#attributeGradient);";
+    final static String STRUCTURAL_FORMAT = "stroke: " + COLOR_STROKE_STRUCTURAL + "; stroke-width: 2; fill: url(#structuralGradient);";
+    final static String CONNECTION_LINE = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 1.5; fill: none;";
+    final static String CONNECTION_LINE_OPTIONAL = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 1; stroke-dasharray: 5, 5; fill: none;";
 
     Font font;
     FontRenderContext frc;
@@ -181,23 +190,28 @@ public class XsdDocumentationImageService {
         final Document document = domImpl.createDocument(svgNS, "svg", null);
         var svgRoot = document.getDocumentElement();
 
-        // Modern defs section with improved effects
+        // XMLSpy-inspired defs section with gradients and effects
         Element defs = document.createElementNS(svgNS, "defs");
+
+        // Gradient definitions for different element types
+        addGradientDefinitions(document, defs);
 
         // Modern CSS styles with smooth transitions
         Element styleElement = document.createElementNS(svgNS, "style");
         String css = ".hoverable-rect { transition: all 0.3s ease; cursor: pointer; } " +
-                ".hoverable-rect:hover { fill: " + COLOR_BOX_FILL_HOVER + "; transform: translateY(-2px); " +
-                "filter: drop-shadow(0 4px 8px " + COLOR_SHADOW + "); } " +
+                ".hoverable-rect:hover { transform: translateY(-1px); " +
+                "filter: drop-shadow(0 3px 6px " + COLOR_SHADOW + "); } " +
                 ".connection-line { transition: stroke-width 0.2s ease; } " +
-                ".connection-line:hover { stroke-width: 3; } " +
-                ".cardinality-text { font-weight: 500; font-size: 11px; }";
+                ".connection-line:hover { stroke-width: 2.5; } " +
+                ".cardinality-text { font-weight: 600; font-size: 10px; } " +
+                ".element-icon { fill: " + COLOR_ICON + "; } " +
+                ".attribute-icon { fill: " + COLOR_STROKE_ATTRIBUTE + "; }";
         styleElement.appendChild(document.createTextNode(css));
         defs.appendChild(styleElement);
 
-        // Modern drop shadow filter
+        // Enhanced drop shadow filter for XMLSpy look
         Element filter = document.createElementNS(svgNS, "filter");
-        filter.setAttribute("id", "modern-shadow");
+        filter.setAttribute("id", "xmlspy-shadow");
         filter.setAttribute("x", "-50%");
         filter.setAttribute("y", "-50%");
         filter.setAttribute("width", "200%");
@@ -205,18 +219,18 @@ public class XsdDocumentationImageService {
         
         Element feGaussianBlur = document.createElementNS(svgNS, "feGaussianBlur");
         feGaussianBlur.setAttribute("in", "SourceAlpha");
-        feGaussianBlur.setAttribute("stdDeviation", "3");
+        feGaussianBlur.setAttribute("stdDeviation", "2");
         filter.appendChild(feGaussianBlur);
 
         Element feOffset = document.createElementNS(svgNS, "feOffset");
-        feOffset.setAttribute("dx", "0");
-        feOffset.setAttribute("dy", "2");
+        feOffset.setAttribute("dx", "1");
+        feOffset.setAttribute("dy", "1");
         feOffset.setAttribute("result", "offsetblur");
         filter.appendChild(feOffset);
 
         Element feFlood = document.createElementNS(svgNS, "feFlood");
         feFlood.setAttribute("flood-color", "black");
-        feFlood.setAttribute("flood-opacity", "0.08");
+        feFlood.setAttribute("flood-opacity", "0.2");
         filter.appendChild(feFlood);
 
         Element feComposite = document.createElementNS(svgNS, "feComposite");
@@ -242,7 +256,7 @@ public class XsdDocumentationImageService {
         circle.setAttribute("cx", "12");
         circle.setAttribute("cy", "12");
         circle.setAttribute("r", "10");
-        circle.setAttribute("fill", COLOR_BOX_FILL);
+        circle.setAttribute("fill", COLOR_BOX_FILL_ELEMENT);
         circle.setAttribute("stroke", COLOR_ICON);
         circle.setAttribute("stroke-width", "1.5");
         plusIcon.appendChild(circle);
@@ -303,8 +317,8 @@ public class XsdDocumentationImageService {
         Element rect1 = createModernSvgRect(document, rootElement.getCurrentXpath(),
                 rootElementHeight, rootElementWidth,
                 String.valueOf(rootStartX), String.valueOf(rootStartY));
-        rect1.setAttribute("filter", "url(#modern-shadow)");
-        rect1.setAttribute("style", rootElement.isMandatory() ? MANDATORY_FORMAT : OPTIONAL_FORMAT);
+        rect1.setAttribute("filter", "url(#xmlspy-shadow)");
+        rect1.setAttribute("style", rootElement.isMandatory() ? ELEMENT_MANDATORY_FORMAT : ELEMENT_OPTIONAL_FORMAT);
         rect1.setAttribute("class", "hoverable-rect");
 
         Element text1 = createSvgTextElement(document, rootElement.getElementName(),
@@ -345,14 +359,27 @@ public class XsdDocumentationImageService {
         double childPathStartX = rootPathEndX + gapBetweenSides;
         double childPathStartY = rootPathCenterY;
 
+        // Calculate symbol position explicitly
+        final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2.0);
+        final double symbolCenterY = rootPathCenterY; // Y-Position der Symbol-Mitte
+        final double symbolWidth = isSequence ? 50 : (isChoice ? 30 : 0);
+        final double finalSymbolWidth = symbolWidth;
+        final double finalSymbolCenterX = symbolCenterX;
+
+        double symbolEndX = rootPathEndX; // Default to root element end
         if (isSequence || isChoice) {
-            childPathStartX = drawModernSequenceChoiceSymbol(document, rootPathEndX, rootPathCenterY,
+            symbolEndX = drawModernSequenceChoiceSymbol(document, rootPathEndX, rootPathCenterY,
                     gapBetweenSides, isSequence, isChoice, childElements, svgRoot);
         }
 
         // Draw child elements with symmetric layout
         double actualHeight = margin * 2;
         final double finalRightStartX = rightStartX;
+
+        // Make sequence/choice flags and symbol position available in the loop
+        final boolean hasSequenceOrChoice = isSequence || isChoice;
+        final double finalSymbolEndX = symbolEndX; // Use the actual returned value
+        final double finalSymbolCenterY = symbolCenterY;
 
         for (int i = 0; i < childElements.size(); i++) {
             XsdExtendedElement childElement = childElements.get(i);
@@ -376,8 +403,8 @@ public class XsdDocumentationImageService {
             // Modern box for child element
             Element rightBox = createModernSvgRect(document, childElement.getCurrentXpath(), totalContentHeight,
                     maxChildWidth, String.valueOf(finalRightStartX), String.valueOf(elementY));
-            rightBox.setAttribute("filter", "url(#modern-shadow)");
-            rightBox.setAttribute("style", childElement.isMandatory() ? MANDATORY_FORMAT : OPTIONAL_FORMAT);
+            rightBox.setAttribute("filter", "url(#xmlspy-shadow)");
+            rightBox.setAttribute("style", childElement.isMandatory() ? ELEMENT_MANDATORY_FORMAT : ELEMENT_OPTIONAL_FORMAT);
             rightBox.setAttribute("class", "hoverable-rect");
 
             // Text group with modern layout
@@ -432,12 +459,36 @@ public class XsdDocumentationImageService {
                 svgRoot.appendChild(textGroup);
             }
 
-            // Modern connection line
-            double pathEndY = elementY + (boxPadding * 2 + totalContentHeight) / 2;
+            // L-shaped connection line from sequence/choice symbol to child element
+            double childElementCenterY = elementY + (boxPadding * 2 + totalContentHeight) / 2;
+
+            // Start coordinates based on whether we have a sequence/choice symbol
+            double lineStartX, lineStartY;
+            if (hasSequenceOrChoice) {
+                // Start from the CENTER of the sequence/choice symbol
+                lineStartX = finalSymbolCenterX;
+                lineStartY = finalSymbolCenterY; // Center of the Sequence/Choice symbol
+            } else {
+                // Start from root element
+                lineStartX = rootPathEndX;
+                lineStartY = rootPathCenterY;
+            }
+
+            // Create L-shaped path: horizontal -> vertical -> horizontal
+            double horizontalSegmentLength = 30; // Distance to go right before turning
+            double turnX = lineStartX + horizontalSegmentLength;
+            
             Element path = document.createElementNS(svgNS, "path");
-            path.setAttribute("d", "M " + childPathStartX + " " + childPathStartY + " V " + pathEndY + " H " + finalRightStartX);
+            String pathData = String.format(Locale.ROOT, "M %.1f %.1f H %.1f V %.1f H %.1f",
+                    lineStartX, lineStartY,              // Start at symbol right edge
+                    turnX,                               // Go right 30px
+                    childElementCenterY,                 // Go up/down to child center
+                    finalRightStartX);                   // Go right to child left edge
+
+            path.setAttribute("d", pathData);
             path.setAttribute("class", "connection-line");
             path.setAttribute("style", childElement.isMandatory() ? CONNECTION_LINE : CONNECTION_LINE_OPTIONAL);
+            path.setAttribute("fill", "none");
             svgRoot.appendChild(path);
 
             // Modern cardinality
@@ -447,19 +498,31 @@ public class XsdDocumentationImageService {
                     getAttributeValue(childNode, "maxOccurs", "1")
             );
 
-            if (!cardinality.isBlank()) {
-                int cardinalityFontSize = font.getSize() - 3;
+            if (!cardinality.isEmpty()) {
+                int cardinalityFontSize = font.getSize() - 4;
                 var cardinalityBounds = font.getStringBounds(cardinality, frc);
 
-                // Position cardinality in the middle of connection line with more spacing
-                double horizontalLineCenter = childPathStartX + (finalRightStartX - childPathStartX) / 2;
-                double cardinalityX = horizontalLineCenter - (cardinalityBounds.getWidth() / 2);
-                double cardinalityY = pathEndY - 12; // More distance from line
+                // Position cardinality closer to the child element for better association
+                double cardinalityX = turnX + (finalRightStartX - turnX) * 0.75 - (cardinalityBounds.getWidth() / 2);
+                double cardinalityY = childElementCenterY - 15; // Above the horizontal line to child
+
+                // Background rect for cardinality
+                Element cardinalityBg = document.createElementNS(svgNS, "rect");
+                cardinalityBg.setAttribute("x", String.valueOf(cardinalityX - 4));
+                cardinalityBg.setAttribute("y", String.valueOf(cardinalityY - cardinalityBounds.getHeight()));
+                cardinalityBg.setAttribute("width", String.valueOf(cardinalityBounds.getWidth() + 8));
+                cardinalityBg.setAttribute("height", String.valueOf(cardinalityBounds.getHeight() + 4));
+                cardinalityBg.setAttribute("fill", COLOR_BOX_FILL_ELEMENT);
+                cardinalityBg.setAttribute("stroke", COLOR_STROKE_SEPARATOR);
+                cardinalityBg.setAttribute("stroke-width", "1");
+                cardinalityBg.setAttribute("rx", "3");
+                svgRoot.appendChild(cardinalityBg);
 
                 Element cardinalityTextNode = createSvgTextElement(document, cardinality,
-                        String.valueOf(cardinalityX), String.valueOf(cardinalityY),
+                        String.valueOf(cardinalityX), String.valueOf(cardinalityY - 2),
                         COLOR_TEXT_SECONDARY, cardinalityFontSize);
                 cardinalityTextNode.setAttribute("class", "cardinality-text");
+                cardinalityTextNode.setAttribute("font-weight", "600");
                 svgRoot.appendChild(cardinalityTextNode);
             }
 
@@ -595,9 +658,12 @@ public class XsdDocumentationImageService {
         final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2);
         final double symbolCenterY = rootPathCenterY;
 
-        // Modern connection line to symbol
-        Element pathToSymbol = document.createElementNS(svgNS, "path");
-        pathToSymbol.setAttribute("d", "M " + rootPathEndX + " " + rootPathCenterY + " H " + (symbolCenterX - symbolWidth / 2));
+        // Connection line from root element to sequence/choice symbol
+        Element pathToSymbol = document.createElementNS(svgNS, "line");
+        pathToSymbol.setAttribute("x1", String.valueOf(rootPathEndX));
+        pathToSymbol.setAttribute("y1", String.valueOf(rootPathCenterY));
+        pathToSymbol.setAttribute("x2", String.valueOf(symbolCenterX - symbolWidth / 2));
+        pathToSymbol.setAttribute("y2", String.valueOf(rootPathCenterY));
         pathToSymbol.setAttribute("class", "connection-line");
         pathToSymbol.setAttribute("style", CONNECTION_LINE);
         svgRoot.appendChild(pathToSymbol);
@@ -616,16 +682,30 @@ public class XsdDocumentationImageService {
             );
         }
 
-        // Show cardinality above symbol (always display)
-        if (!groupCardinality.isBlank()) {
-            int cardinalityFontSize = font.getSize() - 3;
+        // Show cardinality above symbol with background
+        if (!groupCardinality.isEmpty()) {
+            int cardinalityFontSize = font.getSize() - 4;
             var cardinalityBounds = font.getStringBounds(groupCardinality, frc);
             double cardinalityX = symbolCenterX - (cardinalityBounds.getWidth() / 2);
-            double cardinalityY = symbolCenterY - (symbolHeight / 2) - 12; // More distance to symbol
+            double cardinalityY = symbolCenterY - (symbolHeight / 2) - 8;
+
+            // Background rect for group cardinality
+            Element groupCardinalityBg = document.createElementNS(svgNS, "rect");
+            groupCardinalityBg.setAttribute("x", String.valueOf(cardinalityX - 4));
+            groupCardinalityBg.setAttribute("y", String.valueOf(cardinalityY - cardinalityBounds.getHeight()));
+            groupCardinalityBg.setAttribute("width", String.valueOf(cardinalityBounds.getWidth() + 8));
+            groupCardinalityBg.setAttribute("height", String.valueOf(cardinalityBounds.getHeight() + 4));
+            groupCardinalityBg.setAttribute("fill", COLOR_BOX_FILL_STRUCTURAL);
+            groupCardinalityBg.setAttribute("stroke", COLOR_STROKE_SEPARATOR);
+            groupCardinalityBg.setAttribute("stroke-width", "1");
+            groupCardinalityBg.setAttribute("rx", "3");
+            svgRoot.appendChild(groupCardinalityBg);
+            
             Element cardinalityTextNode = createSvgTextElement(document, groupCardinality,
-                    String.valueOf(cardinalityX), String.valueOf(cardinalityY),
+                    String.valueOf(cardinalityX), String.valueOf(cardinalityY - 2),
                     COLOR_TEXT_SECONDARY, cardinalityFontSize);
             cardinalityTextNode.setAttribute("class", "cardinality-text");
+            cardinalityTextNode.setAttribute("font-weight", "600");
             svgRoot.appendChild(cardinalityTextNode);
         }
 
@@ -640,7 +720,14 @@ public class XsdDocumentationImageService {
             seqRect.setAttribute("y", String.valueOf(symbolCenterY - symbolHeight / 2));
             seqRect.setAttribute("width", String.valueOf(symbolWidth));
             seqRect.setAttribute("height", String.valueOf(symbolHeight));
-            seqRect.setAttribute("fill", COLOR_BOX_FILL);
+            seqRect.setAttribute("fill", COLOR_BOX_FILL_STRUCTURAL);
+
+            // Add sequence icon
+            Element seqIconUse = document.createElementNS(svgNS, "use");
+            seqIconUse.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#sequence-icon");
+            seqIconUse.setAttribute("x", String.valueOf(symbolCenterX - symbolWidth / 2 + 5));
+            seqIconUse.setAttribute("y", String.valueOf(symbolCenterY - symbolHeight / 2 + 5));
+            seqGroup.appendChild(seqIconUse);
             seqRect.setAttribute("stroke", COLOR_ACCENT);
             seqRect.setAttribute("stroke-width", "2");
             seqRect.setAttribute("rx", String.valueOf(borderRadius));
@@ -666,28 +753,28 @@ public class XsdDocumentationImageService {
             svgRoot.appendChild(seqGroup);
 
         } else { // isChoice
-            // Modern choice symbol (diamond)
+            // Modern choice symbol (diamond with icon)
             Element choiceDiamond = document.createElementNS(svgNS, "polygon");
             String points = (symbolCenterX) + "," + (symbolCenterY - symbolHeight / 2) + " " +
                     (symbolCenterX + symbolWidth / 2) + "," + (symbolCenterY) + " " +
                     (symbolCenterX) + "," + (symbolCenterY + symbolHeight / 2) + " " +
                     (symbolCenterX - symbolWidth / 2) + "," + (symbolCenterY);
             choiceDiamond.setAttribute("points", points);
-            choiceDiamond.setAttribute("fill", COLOR_BOX_FILL);
+            choiceDiamond.setAttribute("fill", COLOR_BOX_FILL_STRUCTURAL);
             choiceDiamond.setAttribute("stroke", COLOR_ACCENT);
             choiceDiamond.setAttribute("stroke-width", "2");
             svgRoot.appendChild(choiceDiamond);
+
+            // Add choice icon
+            Element choiceIconUse = document.createElementNS(svgNS, "use");
+            choiceIconUse.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#choice-icon");
+            choiceIconUse.setAttribute("x", String.valueOf(symbolCenterX - 8));
+            choiceIconUse.setAttribute("y", String.valueOf(symbolCenterY - 8));
+            svgRoot.appendChild(choiceIconUse);
         }
 
-        // Modern separator line after symbol
-        final double postSymbolLineLength = 25;
-        Element postSymbolLine = document.createElementNS(svgNS, "path");
-        postSymbolLine.setAttribute("d", "M " + (symbolCenterX + symbolWidth / 2) + " " + symbolCenterY + " h " + postSymbolLineLength);
-        postSymbolLine.setAttribute("class", "connection-line");
-        postSymbolLine.setAttribute("style", CONNECTION_LINE);
-        svgRoot.appendChild(postSymbolLine);
-
-        return symbolCenterX + symbolWidth / 2 + postSymbolLineLength;
+        // Return the right edge X position and center Y position of the symbol
+        return symbolCenterX + symbolWidth / 2;
     }
 
     /**
@@ -695,7 +782,7 @@ public class XsdDocumentationImageService {
      */
     private Element createModernSvgRect(Document document, String id, double contentHeight, double contentWidth, String x, String y) {
         Element rect = document.createElementNS(svgNS, "rect");
-        rect.setAttribute("fill", COLOR_BOX_FILL);
+        rect.setAttribute("fill", COLOR_BOX_FILL_ELEMENT);
         rect.setAttribute("id", id);
         rect.setAttribute("height", String.valueOf(boxPadding * 2 + contentHeight));
         rect.setAttribute("width", String.valueOf(boxPadding * 2 + contentWidth));
@@ -732,22 +819,31 @@ public class XsdDocumentationImageService {
 
     /**
      * Formats minOccurs and maxOccurs into a human-readable cardinality string.
-     * e.g., (1, 1) -> "1", (0, 1) -> "0..1", (1, unbounded) -> "1..*"
+     * Uses XMLSpy-style formatting with infinity symbol and smart defaults.
      *
      * @param minOccurs The minOccurs value from the XSD.
      * @param maxOccurs The maxOccurs value from the XSD.
      * @return A formatted string representing the cardinality.
      */
     private String formatCardinality(String minOccurs, String maxOccurs) {
-        if (minOccurs == null || maxOccurs == null) {
-            return ""; // Default to empty if data is missing
+        String min = (minOccurs == null) ? "1" : minOccurs;
+        String max = (maxOccurs == null) ? "1" : maxOccurs;
+        if ("unbounded".equalsIgnoreCase(max)) {
+            max = "∞";
         }
 
-        // Replace "unbounded" with a more common diagram symbol
-        final String max = "unbounded".equalsIgnoreCase(maxOccurs) ? "*" : maxOccurs;
-
-        // Otherwise, format as a range.
-        return minOccurs + ".." + max;
+        // Special formatting for common cases (matching XsdDiagramView)
+        if ("1".equals(min) && "1".equals(max)) {
+            return ""; // Don't show [1..1] as it's the default
+        } else if ("0".equals(min) && "1".equals(max)) {
+            return "0..1";
+        } else if ("1".equals(min) && "∞".equals(max)) {
+            return "1..∞";
+        } else if ("0".equals(min) && "∞".equals(max)) {
+            return "0..∞";
+        } else {
+            return String.format("%s..%s", min, max);
+        }
     }
 
     /**
@@ -766,7 +862,7 @@ public class XsdDocumentationImageService {
      */
     private Element createSvgRect(Document document, String id, double contentHeight, double contentWidth, String x, String y) {
         Element rect = document.createElementNS(svgNS, "rect");
-        rect.setAttribute("fill", COLOR_BOX_FILL);
+        rect.setAttribute("fill", COLOR_BOX_FILL_ELEMENT);
         rect.setAttribute("id", id);
         rect.setAttribute("height", String.valueOf(margin + contentHeight + margin));
         rect.setAttribute("width", String.valueOf(margin + contentWidth + margin));
@@ -944,17 +1040,17 @@ public class XsdDocumentationImageService {
                 XsdExtendedElement element = extendedXsdElements.get(id);
                 if (element != null) {
                     if (!element.isMandatory()) {
-                        rect.setAttribute("style", OPTIONAL_FORMAT);
+                        rect.setAttribute("style", ELEMENT_OPTIONAL_FORMAT);
                     } else {
-                        rect.setAttribute("style", MANDATORY_FORMAT);
+                        rect.setAttribute("style", ELEMENT_MANDATORY_FORMAT);
                     }
                 } else {
                     // Fallback: check if the current style indicates optional
                     String currentStyle = rect.getAttribute("style");
                     if (currentStyle != null && currentStyle.contains("stroke-dasharray")) {
-                        rect.setAttribute("style", OPTIONAL_FORMAT);
+                        rect.setAttribute("style", ELEMENT_OPTIONAL_FORMAT);
                     } else {
-                        rect.setAttribute("style", MANDATORY_FORMAT);
+                        rect.setAttribute("style", ELEMENT_MANDATORY_FORMAT);
                     }
                 }
             }
@@ -1036,4 +1132,67 @@ public class XsdDocumentationImageService {
             throw new UncheckedIOException(ex);
         }
     }
+
+    /**
+     * Adds gradient definitions for XMLSpy-like appearance
+     */
+    private void addGradientDefinitions(Document document, Element defs) {
+        // Element gradient (light blue)
+        Element elementGradient = document.createElementNS(svgNS, "linearGradient");
+        elementGradient.setAttribute("id", "elementGradient");
+        elementGradient.setAttribute("x1", "0%");
+        elementGradient.setAttribute("y1", "0%");
+        elementGradient.setAttribute("x2", "0%");
+        elementGradient.setAttribute("y2", "100%");
+
+        Element elementStop1 = document.createElementNS(svgNS, "stop");
+        elementStop1.setAttribute("offset", "0%");
+        elementStop1.setAttribute("stop-color", "#ffffff");
+        elementGradient.appendChild(elementStop1);
+
+        Element elementStop2 = document.createElementNS(svgNS, "stop");
+        elementStop2.setAttribute("offset", "100%");
+        elementStop2.setAttribute("stop-color", COLOR_BOX_FILL_ELEMENT);
+        elementGradient.appendChild(elementStop2);
+        defs.appendChild(elementGradient);
+
+        // Attribute gradient (light yellow)
+        Element attributeGradient = document.createElementNS(svgNS, "linearGradient");
+        attributeGradient.setAttribute("id", "attributeGradient");
+        attributeGradient.setAttribute("x1", "0%");
+        attributeGradient.setAttribute("y1", "0%");
+        attributeGradient.setAttribute("x2", "0%");
+        attributeGradient.setAttribute("y2", "100%");
+
+        Element attrStop1 = document.createElementNS(svgNS, "stop");
+        attrStop1.setAttribute("offset", "0%");
+        attrStop1.setAttribute("stop-color", "#ffffff");
+        attributeGradient.appendChild(attrStop1);
+
+        Element attrStop2 = document.createElementNS(svgNS, "stop");
+        attrStop2.setAttribute("offset", "100%");
+        attrStop2.setAttribute("stop-color", COLOR_BOX_FILL_ATTRIBUTE);
+        attributeGradient.appendChild(attrStop2);
+        defs.appendChild(attributeGradient);
+
+        // Structural gradient (light gray)
+        Element structuralGradient = document.createElementNS(svgNS, "linearGradient");
+        structuralGradient.setAttribute("id", "structuralGradient");
+        structuralGradient.setAttribute("x1", "0%");
+        structuralGradient.setAttribute("y1", "0%");
+        structuralGradient.setAttribute("x2", "0%");
+        structuralGradient.setAttribute("y2", "100%");
+
+        Element structStop1 = document.createElementNS(svgNS, "stop");
+        structStop1.setAttribute("offset", "0%");
+        structStop1.setAttribute("stop-color", "#ffffff");
+        structuralGradient.appendChild(structStop1);
+
+        Element structStop2 = document.createElementNS(svgNS, "stop");
+        structStop2.setAttribute("offset", "100%");
+        structStop2.setAttribute("stop-color", COLOR_BOX_FILL_STRUCTURAL);
+        structuralGradient.appendChild(structStop2);
+        defs.appendChild(structuralGradient);
+    }
+
 }
