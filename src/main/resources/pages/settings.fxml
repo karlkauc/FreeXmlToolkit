@@ -18,7 +18,6 @@
   ~
   -->
 
-<!-- KORREKTUR: Das Root-Element ist nun eine AnchorPane, um die volle Größe sicherzustellen -->
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.*?>
@@ -28,123 +27,120 @@
             AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
             AnchorPane.topAnchor="0">
 
-    <!-- KORREKTUR: Eine ScrollPane sorgt für gutes Verhalten bei kleinen Fenstergrößen -->
     <ScrollPane fitToWidth="true" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                 AnchorPane.topAnchor="0">
 
-        <!-- KORREKTUR: Der Hauptcontainer ist eine VBox mit einheitlichem Padding und Spacing -->
-        <VBox spacing="25.0" style="-fx-padding: 25px;">
+        <VBox spacing="15.0" style="-fx-padding: 25px;">
 
             <!-- Page Header -->
             <Label styleClass="h2" text="Application Settings"/>
             <Separator/>
 
             <!-- Section 1: Proxy Settings -->
-            <VBox styleClass="card" spacing="10">
-                <HBox alignment="CENTER_LEFT" spacing="10">
-                    <FontIcon iconLiteral="bi-hdd-network" iconSize="24"/>
-                    <Label styleClass="h3" text="Proxy Settings"/>
-                </HBox>
-                <Separator/>
-                <VBox style="-fx-padding: 15 0 0 0;" spacing="15">
-                    <!-- Radio Buttons -->
-                    <VBox spacing="10.0">
-                        <RadioButton fx:id="noProxy" mnemonicParsing="false" text="No Proxy">
-                            <toggleGroup>
-                                <ToggleGroup fx:id="proxy"/>
-                            </toggleGroup>
-                        </RadioButton>
-                        <RadioButton fx:id="systemProxy" mnemonicParsing="false" selected="true"
-                                     text="Use System proxy settings" toggleGroup="$proxy"/>
-                        <RadioButton fx:id="manualProxy" mnemonicParsing="false"
-                                     text="Manual proxy configuration" toggleGroup="$proxy"/>
+            <TitledPane animated="true" expanded="true" text="Proxy Settings">
+                <graphic>
+                    <FontIcon iconLiteral="bi-hdd-network" iconSize="20"/>
+                </graphic>
+                <content>
+                    <VBox style="-fx-padding: 15 5 5 5;" spacing="15">
+                        <!-- Radio Buttons -->
+                        <VBox spacing="10.0">
+                            <RadioButton fx:id="noProxy" mnemonicParsing="false" text="No Proxy">
+                                <toggleGroup>
+                                    <ToggleGroup fx:id="proxy"/>
+                                </toggleGroup>
+                            </RadioButton>
+                            <RadioButton fx:id="systemProxy" mnemonicParsing="false" selected="true"
+                                         text="Use System proxy settings" toggleGroup="$proxy"/>
+                            <RadioButton fx:id="manualProxy" mnemonicParsing="false"
+                                         text="Manual proxy configuration" toggleGroup="$proxy"/>
+                        </VBox>
+                        <!-- GridPane for manual settings -->
+                        <GridPane hgap="10" vgap="15" style="-fx-padding: 10 0 0 20;">
+                            <Label text="Proxy Host Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <TextField fx:id="httpProxyHost" promptText="host name" GridPane.columnIndex="1"
+                                       GridPane.rowIndex="0"/>
+
+                            <Label text="Proxy Port Number:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <Spinner fx:id="portSpinner" editable="true" initialValue="8080" prefWidth="100"
+                                     GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                            <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                            <TextField fx:id="httpProxyUser" promptText="username" GridPane.columnIndex="1"
+                                       GridPane.rowIndex="2"/>
+
+                            <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                            <PasswordField fx:id="httpProxyPass" promptText="password" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="3"/>
+
+                            <Label text="No Proxy for:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                            <TextField fx:id="noProxyHost" promptText="e.g. *.domain.com, 192.168.*"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+                        </GridPane>
+                        <Button fx:id="checkConnection" mnemonicParsing="false" onAction="#performCheck"
+                                text="Check Connection">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-plug-fill" iconSize="16"/>
+                            </graphic>
+                        </Button>
                     </VBox>
-                    <!-- GridPane for manual settings -->
-                    <GridPane hgap="10" vgap="15" style="-fx-padding: 10 0 0 20;">
-                        <Label text="Proxy Host Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <TextField fx:id="httpProxyHost" promptText="host name" GridPane.columnIndex="1"
-                                   GridPane.rowIndex="0"/>
-
-                        <Label text="Proxy Port Number:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <Spinner fx:id="portSpinner" editable="true" initialValue="8080" prefWidth="100"
-                                 GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-
-                        <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                        <TextField fx:id="httpProxyUser" promptText="username" GridPane.columnIndex="1"
-                                   GridPane.rowIndex="2"/>
-
-                        <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-                        <PasswordField fx:id="httpProxyPass" promptText="password" GridPane.columnIndex="1"
-                                       GridPane.rowIndex="3"/>
-
-                        <Label text="No Proxy for:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-                        <TextField fx:id="noProxyHost" promptText="e.g. *.domain.com, 192.168.*"
-                                   GridPane.columnIndex="1" GridPane.rowIndex="4"/>
-
-                        <columnConstraints>
-                            <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
-                            <ColumnConstraints hgrow="ALWAYS"/>
-                        </columnConstraints>
-                    </GridPane>
-                    <Button fx:id="checkConnection" mnemonicParsing="false" onAction="#performCheck"
-                            text="Check Connection">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-plug-fill" iconSize="16"/>
-                        </graphic>
-                    </Button>
-                </VBox>
-            </VBox>
+                </content>
+            </TitledPane>
 
             <!-- Section 2: XML Settings -->
-            <VBox styleClass="card" spacing="10">
-                <HBox alignment="CENTER_LEFT" spacing="10">
-                    <FontIcon iconLiteral="bi-code-slash" iconSize="24"/>
-                    <Label styleClass="h3" text="XML Settings"/>
-                </HBox>
-                <Separator/>
-                <VBox style="-fx-padding: 15 0 0 0;" spacing="15">
-                    <GridPane hgap="10" vgap="15">
-                        <Label text="XML Indent Spaces:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <Spinner fx:id="xmlIndentSpaces" editable="true" initialValue="4" min="1" max="10"
-                                 prefWidth="100"
-                                 GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+            <TitledPane animated="true" expanded="true" text="XML Settings">
+                <graphic>
+                    <FontIcon iconLiteral="bi-code-slash" iconSize="20"/>
+                </graphic>
+                <content>
+                    <VBox style="-fx-padding: 15 5 5 5;" spacing="15">
+                        <GridPane hgap="10" vgap="15">
+                            <Label text="XML Indent Spaces:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <Spinner fx:id="xmlIndentSpaces" editable="true" initialValue="4" min="1" max="10"
+                                     prefWidth="100"
+                                     GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-                        <CheckBox fx:id="autoFormatXmlAfterLoading" text="Autoformat XML after loading"
-                                  GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2"/>
+                            <CheckBox fx:id="autoFormatXmlAfterLoading" text="Autoformat XML after loading"
+                                      GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2"/>
 
-                        <columnConstraints>
-                            <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
-                            <ColumnConstraints hgrow="ALWAYS"/>
-                        </columnConstraints>
-                    </GridPane>
-                </VBox>
-            </VBox>
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+                        </GridPane>
+                    </VBox>
+                </content>
+            </TitledPane>
 
             <!-- Section 3: Folder Settings -->
-            <VBox styleClass="card" spacing="10">
-                <HBox alignment="CENTER_LEFT" spacing="10">
-                    <FontIcon iconLiteral="bi-folder2-open" iconSize="24"/>
-                    <Label styleClass="h3" text="Folder Settings"/>
-                </HBox>
-                <Separator/>
-                <VBox style="-fx-padding: 15 0 0 0;" spacing="15">
-                    <Label styleClass="h3" text="Temporary Folder"/>
-                    <VBox spacing="10">
-                        <RadioButton fx:id="useSystemTempFolder" text="Use System Temp Folder">
-                            <toggleGroup>
-                                <ToggleGroup fx:id="tempFolder"/>
-                            </toggleGroup>
-                        </RadioButton>
-                        <RadioButton fx:id="useCustomTempFolder" text="Use Custom Temp Folder:"
-                                     toggleGroup="$tempFolder"/>
-                        <HBox spacing="5" alignment="CENTER_LEFT">
-                            <TextField fx:id="customTempFolder" promptText="C:/temp" HBox.hgrow="ALWAYS"/>
-                            <!-- HINZUGEFÜGT: Ein Button zur einfacheren Ordnerauswahl -->
-                            <Button onAction="#selectCustomTempFolder" text="Browse..."/>
-                        </HBox>
+            <TitledPane animated="true" expanded="true" text="Folder Settings">
+                <graphic>
+                    <FontIcon iconLiteral="bi-folder2-open" iconSize="20"/>
+                </graphic>
+                <content>
+                    <VBox style="-fx-padding: 15 5 5 5;" spacing="15">
+                        <Label styleClass="h3" text="Temporary Folder"/>
+                        <VBox spacing="10">
+                            <RadioButton fx:id="useSystemTempFolder" text="Use System Temp Folder">
+                                <toggleGroup>
+                                    <ToggleGroup fx:id="tempFolder"/>
+                                </toggleGroup>
+                            </RadioButton>
+                            <RadioButton fx:id="useCustomTempFolder" text="Use Custom Temp Folder:"
+                                         toggleGroup="$tempFolder"/>
+                            <HBox spacing="5" alignment="CENTER_LEFT">
+                                <TextField fx:id="customTempFolder" promptText="C:/temp" HBox.hgrow="ALWAYS"/>
+                                <Button onAction="#selectCustomTempFolder" text="Browse..."/>
+                            </HBox>
+                        </VBox>
                     </VBox>
-                </VBox>
-            </VBox>
+                </content>
+            </TitledPane>
 
             <!-- Action Buttons at the bottom -->
             <HBox spacing="10.0" alignment="CENTER_LEFT" style="-fx-padding: 20 0 0 0;">
