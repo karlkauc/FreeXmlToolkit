@@ -1,0 +1,371 @@
+{
+  "name": "XMLSpy Style Configuration",
+  "description": "XMLSpy-inspired color palette and styling configuration for XML editors and viewers",
+  "version": "1.0",
+  "colors": {
+    "backgrounds": {
+      "primary": "#ffffff",
+      "element": "#f0f8ff",
+      "attribute": "#fffef7",
+      "structural": "#f8f9fa",
+      "hover": "#e2e8f0",
+      "alternating_row": "#f8f8f8",
+      "comment": "#f8f9fa"
+    },
+    "strokes_borders": {
+      "element": "#4a90e2",
+      "attribute": "#d4a147",
+      "structural": "#6c757d",
+      "optional": "#94a3b8",
+      "separator": "#dee2e6",
+      "grid_lines": "#e0e0e0",
+      "table_border": "#c0c0c0",
+      "light_border": "#e0e8ff",
+      "attribute_border": "#e8dcc0"
+    },
+    "text": {
+      "primary": "#2c5aa0",
+      "secondary": "#6c757d",
+      "attribute": "#8b6914",
+      "attribute_value": "#6c4100",
+      "black": "#000000",
+      "header": "#333333",
+      "comment": "#6c757d"
+    },
+    "effects": {
+      "shadow": "rgba(0, 0, 0, 0.15)",
+      "light_shadow": "rgba(0, 0, 0, 0.1)",
+      "collapse_bar": "#4a90e2"
+    }
+  },
+  "gradients": {
+    "element_box": {
+      "type": "linear",
+      "direction": "to right",
+      "stops": [
+        {
+          "offset": "0%",
+          "color": "#ffffff"
+        },
+        {
+          "offset": "100%",
+          "color": "#f0f8ff"
+        }
+      ]
+    },
+    "attribute_box": {
+      "type": "linear",
+      "direction": "to right",
+      "stops": [
+        {
+          "offset": "0%",
+          "color": "#fffef7"
+        },
+        {
+          "offset": "100%",
+          "color": "#fff8dc"
+        }
+      ]
+    },
+    "header_box": {
+      "type": "linear",
+      "direction": "to bottom",
+      "stops": [
+        {
+          "offset": "0%",
+          "color": "#f8f9fa"
+        },
+        {
+          "offset": "100%",
+          "color": "#e9ecef"
+        }
+      ]
+    },
+    "table_header": {
+      "type": "linear",
+      "direction": "to bottom",
+      "stops": [
+        {
+          "offset": "0%",
+          "color": "#f5f5f5"
+        },
+        {
+          "offset": "100%",
+          "color": "#e8e8e8"
+        }
+      ]
+    },
+    "svg_element": {
+      "type": "linear",
+      "direction": "to bottom",
+      "stops": [
+        {
+          "offset": "0%",
+          "color": "#ffffff"
+        },
+        {
+          "offset": "100%",
+          "color": "#f0f8ff"
+        }
+      ]
+    },
+    "svg_attribute": {
+      "type": "linear",
+      "direction": "to bottom",
+      "stops": [
+        {
+          "offset": "0%",
+          "color": "#ffffff"
+        },
+        {
+          "offset": "100%",
+          "color": "#fffef7"
+        }
+      ]
+    },
+    "svg_structural": {
+      "type": "linear",
+      "direction": "to bottom",
+      "stops": [
+        {
+          "offset": "0%",
+          "color": "#ffffff"
+        },
+        {
+          "offset": "100%",
+          "color": "#f8f9fa"
+        }
+      ]
+    }
+  },
+  "typography": {
+    "font_family": "'Segoe UI', Arial, sans-serif",
+    "sizes": {
+      "header": "12px",
+      "element": "11px",
+      "attribute": "10px",
+      "comment": "10px",
+      "table_header": "11px",
+      "table_cell": "11px"
+    },
+    "weights": {
+      "bold": "bold",
+      "normal": "normal"
+    },
+    "styles": {
+      "italic": "italic",
+      "normal": "normal"
+    }
+  },
+  "spacing": {
+    "padding": {
+      "small": "3px 6px",
+      "medium": "4px 8px",
+      "large": "6px 8px",
+      "table_cell": "4px 8px"
+    },
+    "margins": {
+      "small": "2px",
+      "medium": "4px",
+      "large": "8px"
+    },
+    "border_width": {
+      "thin": "1px",
+      "medium": "2px",
+      "thick": "3px"
+    },
+    "border_radius": {
+      "small": "3px",
+      "medium": "4px",
+      "large": "8px"
+    }
+  },
+  "effects": {
+    "shadows": {
+      "light": "dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 1, 1)",
+      "medium": "dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 1, 1)",
+      "heavy": "dropshadow(three-pass-box, rgba(0,0,0,0.15), 2, 0, 1, 1)"
+    }
+  },
+  "component_styles": {
+    "text_element": {
+      "gridpane": {
+        "background_color": "#f0f8ff",
+        "border_color": "#4a90e2",
+        "border_width": "1px",
+        "border_radius": "4px",
+        "background_radius": "4px",
+        "effect": "dropshadow(three-pass-box, rgba(0,0,0,0.15), 2, 0, 1, 1)",
+        "padding": "6px"
+      },
+      "name_label": {
+        "text_fill": "#2c5aa0",
+        "font_weight": "bold",
+        "font_size": "11px",
+        "font_family": "'Segoe UI', Arial, sans-serif"
+      },
+      "value_label": {
+        "text_fill": "#000000",
+        "font_size": "11px",
+        "font_family": "'Segoe UI', Arial, sans-serif"
+      },
+      "name_box": {
+        "background": "linear-gradient(to right, #ffffff, #f0f8ff)",
+        "padding": "4px 8px",
+        "border_color": "#e0e8ff",
+        "border_width": "0 1px 0 0"
+      },
+      "value_box": {
+        "background_color": "#ffffff",
+        "padding": "4px 8px"
+      }
+    },
+    "attribute": {
+      "name_label": {
+        "text_fill": "#8b6914",
+        "font_weight": "bold",
+        "font_size": "10px",
+        "font_family": "'Segoe UI', Arial, sans-serif"
+      },
+      "value_label": {
+        "text_fill": "#6c4100",
+        "font_size": "10px",
+        "font_family": "'Segoe UI', Arial, sans-serif"
+      },
+      "name_box": {
+        "background": "linear-gradient(to right, #fffef7, #fff8dc)",
+        "padding": "3px 6px",
+        "border_color": "#e8dcc0",
+        "border_width": "0 1px 0 0"
+      },
+      "value_box": {
+        "background_color": "#ffffff",
+        "padding": "3px 6px"
+      }
+    },
+    "complex_element": {
+      "container": {
+        "spacing": "2px"
+      },
+      "header_box": {
+        "background": "linear-gradient(to bottom, #f8f9fa, #e9ecef)",
+        "border_color": "#6c757d",
+        "border_width": "1px",
+        "border_radius": "4px",
+        "background_radius": "4px",
+        "effect": "dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 1, 1)",
+        "padding": "6px 8px"
+      },
+      "label": {
+        "text_fill": "#2c5aa0",
+        "font_weight": "bold",
+        "font_size": "12px",
+        "font_family": "'Segoe UI', Arial, sans-serif"
+      },
+      "count_label": {
+        "text_fill": "#6c757d",
+        "font_size": "10px",
+        "font_family": "'Segoe UI', Arial, sans-serif",
+        "font_style": "italic"
+      },
+      "children_container": {
+        "background_color": "#ffffff",
+        "border_color": "#dee2e6",
+        "border_width": "1px 1px 1px 3px",
+        "padding": "8px",
+        "spacing": "4px"
+      },
+      "collapse_bar": {
+        "background_color": "#4a90e2",
+        "min_width": "4px",
+        "max_width": "4px",
+        "opacity": "0.7",
+        "hover_opacity": "1.0"
+      },
+      "toggle_button": {
+        "background_color": "transparent",
+        "border_color": "#4a90e2",
+        "border_width": "1px",
+        "border_radius": "3px",
+        "padding": "2px 6px",
+        "cursor": "hand"
+      },
+      "toggle_icon": {
+        "background_color": "#4a90e2",
+        "min_width": "8px",
+        "min_height": "8px"
+      }
+    },
+    "comment": {
+      "label": {
+        "text_fill": "#6c757d",
+        "font_style": "italic",
+        "font_size": "10px",
+        "font_family": "'Segoe UI', Arial, sans-serif",
+        "background_color": "#f8f9fa",
+        "padding": "4px 8px",
+        "border_color": "#e9ecef",
+        "border_width": "1px",
+        "border_radius": "3px",
+        "background_radius": "3px"
+      }
+    },
+    "table": {
+      "grid": {
+        "background_color": "white",
+        "border_color": "#c0c0c0",
+        "border_width": "1px",
+        "effect": "dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 1, 1)",
+        "grid_lines_visible": true,
+        "hgap": "0",
+        "vgap": "0"
+      },
+      "header": {
+        "label": {
+          "text_fill": "#333333",
+          "font_weight": "bold",
+          "font_size": "11px",
+          "font_family": "'Segoe UI', Arial, sans-serif"
+        },
+        "pane": {
+          "background": "linear-gradient(to bottom, #f5f5f5, #e8e8e8)",
+          "border_color": "#c0c0c0",
+          "border_width": "0 1px 1px 0",
+          "padding": "4px 8px",
+          "alignment": "CENTER_LEFT"
+        }
+      },
+      "cell": {
+        "label": {
+          "text_fill": "#000000",
+          "font_size": "11px",
+          "font_family": "'Segoe UI', Arial, sans-serif"
+        },
+        "pane": {
+          "background_color_odd": "#ffffff",
+          "background_color_even": "#f8f8f8",
+          "border_color": "#e0e0e0",
+          "border_width": "0 1px 1px 0",
+          "padding": "4px 8px",
+          "alignment": "CENTER_LEFT"
+        }
+      }
+    }
+  },
+  "usage_examples": {
+    "javafx_css": {
+      "element_name": "-fx-text-fill: #2c5aa0; -fx-font-weight: bold; -fx-font-size: 11px; -fx-font-family: 'Segoe UI', Arial, sans-serif;",
+      "gradient_background": "-fx-background-color: linear-gradient(to right, #ffffff, #f0f8ff);",
+      "shadow_effect": "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 2, 0, 1, 1);"
+    },
+    "css": {
+      "element_name": "color: #2c5aa0; font-weight: bold; font-size: 11px; font-family: 'Segoe UI', Arial, sans-serif;",
+      "gradient_background": "background: linear-gradient(to right, #ffffff, #f0f8ff);",
+      "shadow_effect": "box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);"
+    },
+    "svg": {
+      "gradient_definition": "<linearGradient id=\"elementGradient\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\"><stop offset=\"0%\" stop-color=\"#ffffff\"/><stop offset=\"100%\" stop-color=\"#f0f8ff\"/></linearGradient>",
+      "element_style": "stroke: #4a90e2; stroke-width: 2; fill: url(#elementGradient);"
+    }
+  }
+}

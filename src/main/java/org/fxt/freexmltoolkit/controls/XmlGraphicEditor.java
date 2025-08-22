@@ -72,6 +72,19 @@ public class XmlGraphicEditor extends VBox {
     private void addCommentNode(Node subNode) {
         Label label = new Label("<!-- " + subNode.getNodeValue().trim() + " -->");
         label.getStyleClass().add("xml-tree-comment");
+        // XMLSpy-inspired comment styling
+        label.setStyle(
+                "-fx-text-fill: #6c757d; " +
+                        "-fx-font-style: italic; " +
+                        "-fx-font-size: 10px; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif; " +
+                        "-fx-background-color: #f8f9fa; " +
+                        "-fx-padding: 4px 8px; " +
+                        "-fx-border-color: #e9ecef; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: 3px; " +
+                        "-fx-background-radius: 3px;"
+        );
         this.getChildren().add(label);
     }
 
@@ -91,6 +104,20 @@ public class XmlGraphicEditor extends VBox {
         var nodeName = new Label(subNode.getNodeName());
         var nodeValue = new Label(firstItem.getNodeValue());
 
+        // XMLSpy-inspired styling for text elements
+        nodeName.setStyle(
+                "-fx-text-fill: #2c5aa0; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-font-size: 11px; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+        );
+
+        nodeValue.setStyle(
+                "-fx-text-fill: #000000; " +
+                        "-fx-font-size: 11px; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+        );
+
         // Disable line wrapping for the node name.
         nodeName.setWrapText(false);
         nodeValue.setWrapText(true); // The value may continue to wrap.
@@ -102,6 +129,17 @@ public class XmlGraphicEditor extends VBox {
 
         GridPane gridPane = new GridPane();
         gridPane.getStyleClass().add("xml-tree-text");
+
+        // XMLSpy-inspired GridPane styling
+        gridPane.setStyle(
+                "-fx-background-color: #f0f8ff; " +
+                        "-fx-border-color: #4a90e2; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: 4px; " +
+                        "-fx-background-radius: 4px; " +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 2, 0, 1, 1); " +
+                        "-fx-padding: 6px;"
+        );
 
         // Flexible column layout instead of fixed percentage values.
         // The name column takes as much space as it needs.
@@ -118,9 +156,19 @@ public class XmlGraphicEditor extends VBox {
 
         var nodeNameBox = new HBox(nodeName);
         nodeNameBox.getStyleClass().add("node-name-box");
+        nodeNameBox.setStyle(
+                "-fx-background-color: linear-gradient(to right, #ffffff, #f0f8ff); " +
+                        "-fx-padding: 4px 8px; " +
+                        "-fx-border-color: #e0e8ff; " +
+                        "-fx-border-width: 0 1px 0 0;"
+        );
 
         var nodeValueBox = new HBox(nodeValue);
         nodeValueBox.getStyleClass().add("node-value-box");
+        nodeValueBox.setStyle(
+                "-fx-background-color: #ffffff; " +
+                        "-fx-padding: 4px 8px;"
+        );
 
         final int row = gridPane.getRowCount();
         gridPane.add(nodeNameBox, 0, row);
@@ -139,13 +187,36 @@ public class XmlGraphicEditor extends VBox {
                 var attribute = subNode.getAttributes().item(i);
 
                 var attributeNameLabel = new Label(attribute.getNodeName());
+                // XMLSpy-inspired attribute styling
+                attributeNameLabel.setStyle(
+                        "-fx-text-fill: #8b6914; " +
+                                "-fx-font-weight: bold; " +
+                                "-fx-font-size: 10px; " +
+                                "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+                );
+                
                 var attributeBox = new HBox(attributeNameLabel);
                 attributeBox.getStyleClass().add("attribute-box");
+                attributeBox.setStyle(
+                        "-fx-background-color: linear-gradient(to right, #fffef7, #fff8dc); " +
+                                "-fx-padding: 3px 6px; " +
+                                "-fx-border-color: #e8dcc0; " +
+                                "-fx-border-width: 0 1px 0 0;"
+                );
 
                 var attributeValueLabel = new Label(attribute.getNodeValue());
+                attributeValueLabel.setStyle(
+                        "-fx-text-fill: #6c4100; " +
+                                "-fx-font-size: 10px; " +
+                                "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+                );
                 attributeValueLabel.setOnMouseClicked(editNodeValueHandler(attributeValueLabel, attribute));
                 var nodeValueBox = new HBox(attributeValueLabel);
                 nodeValueBox.getStyleClass().add("attribute-value-box");
+                nodeValueBox.setStyle(
+                        "-fx-background-color: #ffffff; " +
+                                "-fx-padding: 3px 6px;"
+                );
 
                 gridPane.add(attributeBox, 0, i);
                 gridPane.add(nodeValueBox, 1, i);
@@ -161,11 +232,23 @@ public class XmlGraphicEditor extends VBox {
         VBox elementContainer = new VBox();
         elementContainer.getStyleClass().add("element-container");
         elementContainer.setAlignment(Pos.TOP_CENTER);
+        elementContainer.setStyle("-fx-spacing: 2px;");
 
         // 1. The header for the expandable area
         HBox headerBox = new HBox(5);
         headerBox.getStyleClass().add("element-box");
         headerBox.setAlignment(Pos.CENTER_LEFT);
+
+        // XMLSpy-inspired header styling
+        headerBox.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef); " +
+                        "-fx-border-color: #6c757d; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: 4px; " +
+                        "-fx-background-radius: 4px; " +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 1, 1); " +
+                        "-fx-padding: 6px 8px;"
+        );
 
         Region icon = new Region();
         icon.getStyleClass().add("icon");
@@ -173,25 +256,66 @@ public class XmlGraphicEditor extends VBox {
         Button toggleButton = new Button();
         toggleButton.setGraphic(icon);
         toggleButton.getStyleClass().add("tree-toggle-button");
+        toggleButton.setStyle(
+                "-fx-background-color: transparent; " +
+                        "-fx-border-color: #4a90e2; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: 3px; " +
+                        "-fx-padding: 2px 6px; " +
+                        "-fx-cursor: hand;"
+        );
         icon.getStyleClass().add("toggle-expand");
+        icon.setStyle(
+                "-fx-background-color: #4a90e2; " +
+                        "-fx-min-width: 8px; " +
+                        "-fx-min-height: 8px;"
+        );
 
         Label label = new Label(subNode.getNodeName());
         label.getStyleClass().add("node-label-complex");
+        label.setStyle(
+                "-fx-text-fill: #2c5aa0; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-font-size: 12px; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+        );
 
         Label countLabel = new Label("(" + calculateNodeCount(subNode) + ")");
         countLabel.getStyleClass().add("node-count-label");
+        countLabel.setStyle(
+                "-fx-text-fill: #6c757d; " +
+                        "-fx-font-size: 10px; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif; " +
+                        "-fx-font-style: italic;"
+        );
 
         headerBox.getChildren().addAll(toggleButton, label, countLabel);
 
         // 2. The container for child elements
         VBox childrenContainer = new VBox();
         childrenContainer.getStyleClass().add("children-container");
+        childrenContainer.setStyle(
+                "-fx-background-color: #ffffff; " +
+                        "-fx-border-color: #dee2e6; " +
+                        "-fx-border-width: 1px 1px 1px 3px; " +
+                        "-fx-padding: 8px; " +
+                        "-fx-spacing: 4px;"
+        );
 
         // --- NEW: The side click bar for collapsing ---
         Region collapseBar = new Region();
         collapseBar.getStyleClass().add("collapse-bar");
+        collapseBar.setStyle(
+                "-fx-background-color: #4a90e2; " +
+                        "-fx-min-width: 4px; " +
+                        "-fx-max-width: 4px; " +
+                        "-fx-opacity: 0.7;"
+        );
         // A click on the bar triggers the toggle button action
-        collapseBar.setOnMouseClicked(event -> toggleButton.fire());
+        collapseBar.setOnMouseClicked(event -> {
+            collapseBar.setStyle(collapseBar.getStyle() + "-fx-opacity: 1.0;");
+            toggleButton.fire();
+        });
 
         // --- NEW: An HBox wrapper for bar and content ---
         HBox contentWrapper = new HBox(collapseBar, childrenContainer);
@@ -917,6 +1041,20 @@ public class XmlGraphicEditor extends VBox {
         var nodeName = new Label(newElement.getNodeName());
         var nodeValue = new Label(""); // Leerer Text für neue Elemente
 
+        // XMLSpy-inspired styling for new elements
+        nodeName.setStyle(
+                "-fx-text-fill: #2c5aa0; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-font-size: 11px; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+        );
+
+        nodeValue.setStyle(
+                "-fx-text-fill: #000000; " +
+                        "-fx-font-size: 11px; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+        );
+
         nodeName.setWrapText(false);
         nodeValue.setWrapText(true);
 
@@ -928,9 +1066,19 @@ public class XmlGraphicEditor extends VBox {
 
         var nodeNameBox = new HBox(nodeName);
         nodeNameBox.getStyleClass().add("node-name-box");
+        nodeNameBox.setStyle(
+                "-fx-background-color: linear-gradient(to right, #ffffff, #f0f8ff); " +
+                        "-fx-padding: 4px 8px; " +
+                        "-fx-border-color: #e0e8ff; " +
+                        "-fx-border-width: 0 1px 0 0;"
+        );
 
         var nodeValueBox = new HBox(nodeValue);
         nodeValueBox.getStyleClass().add("node-value-box");
+        nodeValueBox.setStyle(
+                "-fx-background-color: #ffffff; " +
+                        "-fx-padding: 4px 8px;"
+        );
 
         // Füge das neue Element zur nächsten Zeile hinzu
         int nextRow = gridPane.getRowCount();
