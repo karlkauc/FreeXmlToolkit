@@ -319,7 +319,20 @@ public class XmlGraphicEditor extends VBox {
 
     private GridPane createTable(Node subNode) {
         GridPane gridPane = new GridPane();
-        gridPane.getStyleClass().add("table-grid");
+        gridPane.getStyleClass().add("xmlspy-table-grid");
+
+        // XMLSpy-inspired styling
+        gridPane.setStyle(
+                "-fx-background-color: white; " +
+                        "-fx-border-color: #c0c0c0; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 1, 1);"
+        );
+
+        // Set grid lines and gaps for XMLSpy look
+        gridPane.setGridLinesVisible(true);
+        gridPane.setHgap(0);
+        gridPane.setVgap(0);
 
         // Map to store column names and their indices.
         // LinkedHashMap maintains insertion order, ensuring consistent column order.
@@ -347,8 +360,22 @@ public class XmlGraphicEditor extends VBox {
             int columnIndex = entry.getValue();
 
             var headerLabel = new Label(columnName);
+            headerLabel.setStyle(
+                    "-fx-text-fill: #333333; " +
+                            "-fx-font-weight: bold; " +
+                            "-fx-font-size: 11px; " +
+                            "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+            );
+            
             var headerPane = new StackPane(headerLabel);
-            headerPane.getStyleClass().add("table-header");
+            headerPane.setStyle(
+                    "-fx-background-color: linear-gradient(to bottom, #f5f5f5, #e8e8e8); " +
+                            "-fx-border-color: #c0c0c0; " +
+                            "-fx-border-width: 0 1px 1px 0; " +
+                            "-fx-padding: 4px 8px;"
+            );
+            headerPane.setAlignment(Pos.CENTER_LEFT);
+            headerPane.getStyleClass().add("xmlspy-table-header");
             gridPane.add(headerPane, columnIndex, 0); // Header always in row 0
         }
 
@@ -388,6 +415,13 @@ public class XmlGraphicEditor extends VBox {
         StackPane cellPane;
         if (oneNode.getChildNodes().getLength() == 1 && oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE) {
             var contentLabel = new Label(oneNode.getTextContent());
+            // XMLSpy-inspired text cell styling
+            contentLabel.setStyle(
+                    "-fx-text-fill: #000000; " +
+                            "-fx-font-size: 11px; " +
+                            "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+            );
+            
             // We pass the ELEMENT node (oneNode), no longer its text child node.
             contentLabel.setOnMouseClicked(editNodeValueHandler(contentLabel, oneNode));
             cellPane = new StackPane(contentLabel);
@@ -395,7 +429,19 @@ public class XmlGraphicEditor extends VBox {
             // Nested complex nodes in a table
             cellPane = new StackPane(new XmlGraphicEditor(oneNode, xmlEditor));
         }
-        cellPane.getStyleClass().add("table-cell");
+
+        // XMLSpy-inspired cell styling with alternating row colors
+        boolean isOddRow = (row % 2) == 1;
+        String backgroundColor = isOddRow ? "#ffffff" : "#f8f8f8";
+
+        cellPane.setStyle(
+                "-fx-background-color: " + backgroundColor + "; " +
+                        "-fx-border-color: #e0e0e0; " +
+                        "-fx-border-width: 0 1px 1px 0; " +
+                        "-fx-padding: 4px 8px;"
+        );
+        cellPane.setAlignment(Pos.CENTER_LEFT);
+        cellPane.getStyleClass().add("xmlspy-table-cell");
         gridPane.add(cellPane, colPos, row);
     }
 
