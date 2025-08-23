@@ -59,6 +59,18 @@
             </VBox>
         </TitledPane>
 
+        <TitledPane text="Schematron Errors" collapsible="true" expanded="true" fx:id="schematronErrorsPane"
+                    visible="false" managed="false">
+            <VBox spacing="5">
+                <Label fx:id="schematronErrorsCountLabel" text="Schematron Errors (0)" style="-fx-font-weight: bold;"/>
+                <ListView fx:id="schematronErrorsListView" prefHeight="150" maxHeight="200">
+                    <placeholder>
+                        <Label text="No Schematron errors"/>
+                    </placeholder>
+                </ListView>
+            </VBox>
+        </TitledPane>
+
         <TitledPane text="Cursor Information" collapsible="true" expanded="true">
             <VBox spacing="5">
                 <Label text="XPath:"/>

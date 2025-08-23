@@ -217,6 +217,11 @@ public class XmlController {
 
         if (file != null) {
             mainController.addFileToRecentFiles(file);
+
+            // Notify integration service of XML file change
+            if (mainController.getIntegrationService() != null) {
+                mainController.getIntegrationService().setCurrentXmlFile(file);
+            }
         }
     }
 

@@ -77,6 +77,15 @@ public class XmlEditorSidebarController {
     private Button schematronDetailsButton;
 
     @FXML
+    private TitledPane schematronErrorsPane;
+
+    @FXML
+    private Label schematronErrorsCountLabel;
+
+    @FXML
+    private ListView<SchematronService.SchematronValidationError> schematronErrorsListView;
+
+    @FXML
     private Button toggleSidebarButton;
 
     @FXML
@@ -117,6 +126,9 @@ public class XmlEditorSidebarController {
             elementNameField.setStyle("-fx-cursor: hand;");
             elementNameField.setTooltip(new Tooltip("Click to show detailed node information"));
         }
+
+        // Initialize Schematron errors list view
+        initializeSchematronErrorsList();
 
         changeXsdButton.setOnAction(event -> {
             FileChooser fileChooser = new FileChooser();
@@ -335,6 +347,9 @@ public class XmlEditorSidebarController {
             boolean hasErrors = errors != null && !errors.isEmpty();
             schematronDetailsButton.setVisible(hasErrors);
         }
+
+        // Update the new Schematron errors list
+        updateSchematronErrorsList(errors);
     }
 
     public void setXsdPathField(String path) {
@@ -654,5 +669,119 @@ public class XmlEditorSidebarController {
             case org.w3c.dom.Node.NOTATION_NODE -> "Notation";
             default -> "Unknown";
         };
+    }
+
+
+    /**
+     * Initializes the Schematron errors list view with custom cell factory
+     */
+    private void initializeSchematronErrorsList() {
+        if (schematronErrorsListView != null) {
+            // Custom cell factory to display errors with click functionality
+            schematronErrorsListView.setCellFactory(listView -> new ListCell<SchematronService.SchematronValidationError>() {
+                @Override
+                protected void updateItem(SchematronService.SchematronValidationError error, boolean empty) {
+                    super.updateItem(error, empty);
+
+                    if (empty || error == null) {
+                        setText(null);
+                        setGraphic(null);
+                        setStyle("");
+                        setOnMouseClicked(null);
+                    } else {
+                        // Format the error message for display
+                        String displayText = String.format("[Line %d] %s",
+                                error.lineNumber() > 0 ? error.lineNumber() : 0,
+                                error.message());
+                        setText(displayText);
+
+                        // Style based on severity
+                        String severity = error.severity() != null ? error.severity().toLowerCase() : "error";
+                        switch (severity) {
+                            case "error" -> setStyle("-fx-text-fill: #d32f2f; -fx-cursor: hand;");
+                            case "warning" -> setStyle("-fx-text-fill: #f57c00; -fx-cursor: hand;");
+                            case "info" -> setStyle("-fx-text-fill: #1976d2; -fx-cursor: hand;");
+                            default -> setStyle("-fx-text-fill: #d32f2f; -fx-cursor: hand;");
+                        }
+
+                        // Add click handler to navigate to error location
+                        setOnMouseClicked(event -> {
+                            if (event.getClickCount() == 1) {
+                                navigateToSchematronError(error);
+                            }
+                        });
+
+                        // Add tooltip with detailed information
+                        String tooltipText = String.format(
+                                "Severity: %s\nRule ID: %s\nContext: %s\nLine: %d, Column: %d\n\nClick to navigate to error location",
+                                error.severity() != null ? error.severity() : "Error",
+                                error.ruleId() != null ? error.ruleId() : "Unknown",
+                                error.context() != null ? error.context() : "Unknown",
+                                error.lineNumber(),
+                                error.columnNumber()
+                        );
+                        setTooltip(new Tooltip(tooltipText));
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Updates the Schematron errors list and visibility
+     */
+    private void updateSchematronErrorsList(List<SchematronService.SchematronValidationError> errors) {
+        if (schematronErrorsListView == null || schematronErrorsPane == null || schematronErrorsCountLabel == null) {
+            return;
+        }
+
+        // Clear existing items
+        schematronErrorsListView.getItems().clear();
+
+        boolean hasErrors = errors != null && !errors.isEmpty();
+
+        if (hasErrors) {
+            // Add errors to the list
+            schematronErrorsListView.getItems().addAll(errors);
+
+            // Update count label
+            schematronErrorsCountLabel.setText(String.format("Schematron Errors (%d)", errors.size()));
+
+            // Show the errors pane
+            schematronErrorsPane.setVisible(true);
+            schematronErrorsPane.setManaged(true);
+        } else {
+            // Hide the errors pane when no errors
+            schematronErrorsPane.setVisible(false);
+            schematronErrorsPane.setManaged(false);
+        }
+    }
+
+    /**
+     * Navigates to the specified Schematron error location in the code editor
+     */
+    private void navigateToSchematronError(SchematronService.SchematronValidationError error) {
+        if (xmlEditor == null) {
+            logger.warn("Cannot navigate to error - xmlEditor is null");
+            return;
+        }
+
+        try {
+            logger.info("Navigating to Schematron error at line {} column {}: {}",
+                    error.lineNumber(), error.columnNumber(), error.message());
+
+            // Navigate to the error location using line number
+            if (error.lineNumber() > 0) {
+                xmlEditor.navigateToLine(error.lineNumber());
+            }
+
+            // Try to also navigate in the graphic view if possible
+            if (error.context() != null && !error.context().trim().isEmpty()) {
+                xmlEditor.navigateToXPath(error.context());
+            }
+
+        } catch (Exception e) {
+            logger.error("Error navigating to Schematron error location", e);
+        }
     }
 }

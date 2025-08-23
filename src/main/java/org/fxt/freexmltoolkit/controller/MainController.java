@@ -53,6 +53,10 @@ public class MainController {
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     XmlController xmlController;
     XsdController xsdController;
+    SchematronController schematronController;
+
+    // Integration service for cross-controller communication
+    private org.fxt.freexmltoolkit.service.SchematronXmlIntegrationService integrationService;
 
     public final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     public final ExecutorService service = Executors.newCachedThreadPool();
@@ -65,7 +69,7 @@ public class MainController {
     AnchorPane contentPane;
 
     @FXML
-    Button xslt, xml, xsd, xsdValidation, fop, signature, help, settings, exit;
+    Button xslt, xml, xsd, xsdValidation, schematron, fop, signature, help, settings, exit;
 
     @FXML
     MenuItem menuItemExit;
@@ -219,6 +223,8 @@ public class MainController {
                     switchToXmlViewAndLoadFile(f);
                 } else if (fileName.endsWith(".xsd")) {
                     switchToXsdViewAndLoadFile(f);
+                } else if (fileName.endsWith(".sch") || fileName.endsWith(".schematron")) {
+                    switchToSchematronViewAndLoadFile(f);
                 } else {
                     logger.warn("Unhandled file type from recent files list: {}", f.getName());
                     new Alert(Alert.AlertType.INFORMATION, "This file type cannot be opened directly from the 'Recently opened' list.").show();
@@ -241,6 +247,7 @@ public class MainController {
             case "xml" -> "/pages/tab_xml.fxml";
             case "xsd" -> "/pages/tab_xsd.fxml";
             case "xsdValidation" -> "/pages/tab_validation.fxml";
+            case "schematron" -> "/pages/tab_schematron.fxml";
             case "fop" -> "/pages/tab_fop.fxml";
             case "signature" -> "/pages/tab_signature.fxml";
             case "help" -> "/pages/tab_help.fxml";
@@ -307,12 +314,32 @@ public class MainController {
         }
     }
 
+    public void switchToSchematronViewAndLoadFile(File fileToLoad) {
+        if (schematron == null) {
+            logger.error("Schematron-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
+            return;
+        }
+        schematron.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        schematron.getStyleClass().add("active");
+
+        loadPageFromPath("/pages/tab_schematron.fxml");
+
+        if (this.schematronController != null && fileToLoad != null && fileToLoad.exists()) {
+            Platform.runLater(() -> {
+                schematronController.loadSchematronFile(fileToLoad);
+            });
+        } else {
+            logger.warn("SchematronController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
+        }
+    }
+
     private void setParentController(Object controller) {
         switch (controller) {
             case XmlController xmlController1 -> {
                 logger.debug("set XML Controller");
                 this.xmlController = xmlController1;
                 xmlController1.setParentController(this);
+                initializeIntegrationService();
             }
             case XsdValidationController xsdValidationController -> xsdValidationController.setParentController(this);
             case SettingsController settingsController -> settingsController.setParentController(this);
@@ -321,6 +348,12 @@ public class MainController {
                 logger.debug("set XSD Controller");
                 this.xsdController = xsdController1;
                 xsdController1.setParentController(this);
+            }
+            case SchematronController schematronController1 -> {
+                logger.debug("set Schematron Controller");
+                this.schematronController = schematronController1;
+                schematronController1.setParentController(this);
+                initializeIntegrationService();
             }
             case XsltController xsltController -> {
                 logger.debug("set XSLT Controller");
@@ -348,6 +381,28 @@ public class MainController {
         if (controller != null) {
             logger.debug("Controller Class: {}", controller.getClass());
         }
+    }
+
+    /**
+     * Initialize the integration service for cross-controller communication
+     */
+    private void initializeIntegrationService() {
+        if (integrationService == null) {
+            integrationService = new org.fxt.freexmltoolkit.service.SchematronXmlIntegrationService();
+        }
+
+        // Initialize the service with available controllers
+        integrationService.initialize(this, xmlController, schematronController);
+
+        logger.debug("Integration service initialized with XML: {}, Schematron: {}",
+                xmlController != null, schematronController != null);
+    }
+
+    /**
+     * Get the integration service for cross-controller communication
+     */
+    public org.fxt.freexmltoolkit.service.SchematronXmlIntegrationService getIntegrationService() {
+        return integrationService;
     }
 
     @FXML
@@ -390,10 +445,10 @@ public class MainController {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xml, xsd, xsdValidation, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button_collapsed", xml, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xml, xsd, xsdValidation, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button", xml, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
         }
         showMenu = !showMenu;
     }
@@ -504,10 +559,11 @@ public class MainController {
         fileChooser.setTitle("Open File");
 
         fileChooser.getExtensionFilters().addAll(
-                new javafx.stage.FileChooser.ExtensionFilter("All Supported Files", "*.xml", "*.xsd", "*.xsl", "*.xslt"),
+                new javafx.stage.FileChooser.ExtensionFilter("All Supported Files", "*.xml", "*.xsd", "*.xsl", "*.xslt", "*.sch", "*.schematron"),
                 new javafx.stage.FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"),
                 new javafx.stage.FileChooser.ExtensionFilter("XSD files (*.xsd)", "*.xsd"),
                 new javafx.stage.FileChooser.ExtensionFilter("XSLT files (*.xsl, *.xslt)", "*.xsl", "*.xslt"),
+                new javafx.stage.FileChooser.ExtensionFilter("Schematron files (*.sch, *.schematron)", "*.sch", "*.schematron"),
                 new javafx.stage.FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
         );
 
@@ -541,6 +597,13 @@ public class MainController {
                 Platform.runLater(() -> {
                     if (xsdController != null) {
                         xsdController.openXsdFile(selectedFile);
+                    }
+                });
+            } else if (fileName.endsWith(".sch") || fileName.endsWith(".schematron")) {
+                schematron.fire();
+                Platform.runLater(() -> {
+                    if (schematronController != null) {
+                        schematronController.loadSchematronFile(selectedFile);
                     }
                 });
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {

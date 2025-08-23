@@ -140,6 +140,13 @@
                             </Button>
 
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
+                                    text="Schematron Editor" VBox.vgrow="ALWAYS" fx:id="schematron">
+                                <graphic>
+                                    <FontIcon iconColor="#ff6b6b" iconLiteral="bi-shield-check" iconSize="16"/>
+                                </graphic>
+                            </Button>
+
+                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="XSLT Viewer" VBox.vgrow="ALWAYS" fx:id="xslt">
                                 <graphic>
                                     <FontIcon iconColor="#e27429" iconLiteral="fth-git-pull-request" iconSize="16"/>

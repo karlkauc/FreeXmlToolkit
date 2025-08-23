@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.SchematronController">
+
+    <!-- Main Tab Container -->
+    <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS">
+
+        <!-- Code Editor Tab -->
+        <Tab fx:id="codeTab" text="Code" closable="false">
+            <VBox spacing="0">
+                <!-- Toolbar -->
+                <ToolBar fx:id="toolbar">
+                    <Button fx:id="newRuleButton" text="New Rule">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
+                        </graphic>
+                        <tooltip>
+                            <Tooltip text="Insert a new rule template"/>
+                        </tooltip>
+                    </Button>
+
+                    <Button fx:id="newPatternButton" text="New Pattern">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-collection" iconColor="#007bff" iconSize="14"/>
+                        </graphic>
+                        <tooltip>
+                            <Tooltip text="Insert a new pattern template"/>
+                        </tooltip>
+                    </Button>
+
+                    <Separator orientation="VERTICAL"/>
+
+                    <Button fx:id="validateButton" text="Validate">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-check-circle" iconColor="#17a2b8" iconSize="14"/>
+                        </graphic>
+                        <tooltip>
+                            <Tooltip text="Validate Schematron syntax"/>
+                        </tooltip>
+                    </Button>
+
+                    <Button fx:id="testRulesButton" text="Test Rules">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-play-circle" iconColor="#ff6b6b" iconSize="14"/>
+                        </graphic>
+                        <tooltip>
+                            <Tooltip text="Test rules against XML files"/>
+                        </tooltip>
+                    </Button>
+                </ToolBar>
+
+                <!-- Main Content Area with Split Pane -->
+                <SplitPane dividerPositions="0.75" VBox.vgrow="ALWAYS">
+
+                    <!-- Main Editor Area -->
+                    <VBox fx:id="codeEditorContainer" spacing="0" SplitPane.resizableWithParent="true">
+                        <!-- Code editor will be added programmatically -->
+                    </VBox>
+
+                    <!-- Sidebar -->
+                    <VBox fx:id="sidebarContainer" spacing="5" minWidth="200" maxWidth="400" prefWidth="300">
+                        <padding>
+                            <Insets top="5" right="5" bottom="5" left="5"/>
+                        </padding>
+
+                        <!-- Schematron Structure -->
+                        <TitledPane fx:id="structurePane" text="Schematron Structure" expanded="true"
+                                    collapsible="true">
+                            <VBox spacing="5">
+                                <Label text="Document structure will appear here"/>
+                                <ListView prefHeight="100">
+                                    <placeholder>
+                                        <Label text="No structure to display"/>
+                                    </placeholder>
+                                </ListView>
+                            </VBox>
+                        </TitledPane>
+
+                        <!-- Rule Templates -->
+                        <TitledPane fx:id="templatesPane" text="Rule Templates" expanded="false" collapsible="true">
+                            <VBox spacing="5">
+                                <Label text="Common rule templates"/>
+                                <ListView prefHeight="80">
+                                    <placeholder>
+                                        <Label text="Templates will be added in Phase 2"/>
+                                    </placeholder>
+                                </ListView>
+                            </VBox>
+                        </TitledPane>
+
+                        <!-- XPath Helper -->
+                        <TitledPane fx:id="xpathHelperPane" text="XPath Helper" expanded="false" collapsible="true"
+                                    VBox.vgrow="ALWAYS">
+                            <VBox spacing="5">
+                                <Label text="XPath functions and expressions"/>
+                                <TextField promptText="Test XPath expression..."/>
+                                <ListView>
+                                    <placeholder>
+                                        <Label text="XPath helper will be implemented in Phase 2"/>
+                                    </placeholder>
+                                </ListView>
+                            </VBox>
+                        </TitledPane>
+
+                    </VBox>
+
+                </SplitPane>
+            </VBox>
+        </Tab>
+
+        <!-- Visual Builder Tab -->
+        <Tab fx:id="visualBuilderTab" text="Visual Builder" closable="false">
+            <ScrollPane fitToWidth="true" fitToHeight="true">
+                <VBox fx:id="visualBuilderContainer" spacing="0">
+                    <!-- Visual Builder will be added here programmatically -->
+                </VBox>
+            </ScrollPane>
+        </Tab>
+
+        <!-- Test Tab -->
+        <Tab fx:id="testTab" text="Test" closable="false">
+            <ScrollPane fitToWidth="true" fitToHeight="true">
+                <VBox fx:id="testingContainer" spacing="0">
+                    <!-- Testing framework will be added here programmatically -->
+                </VBox>
+            </ScrollPane>
+        </Tab>
+
+        <!-- Documentation Tab -->
+        <Tab fx:id="documentationTab" text="Documentation" closable="false">
+            <ScrollPane fitToWidth="true" fitToHeight="true">
+                <VBox fx:id="documentationContainer" spacing="0">
+                    <!-- Documentation generator will be added here programmatically -->
+                </VBox>
+            </ScrollPane>
+        </Tab>
+
+    </TabPane>
+
+</VBox>

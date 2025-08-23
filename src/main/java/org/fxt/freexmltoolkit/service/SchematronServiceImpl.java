@@ -167,6 +167,36 @@ public class SchematronServiceImpl implements SchematronService {
     }
 
     @Override
+    public SchematronValidationResult validateXmlWithSchematron(File xmlFile, File schematronFile) {
+        SchematronValidationResult result = new SchematronValidationResult();
+
+        if (xmlFile == null || !xmlFile.exists()) {
+            result.addError("XML file is null or does not exist");
+            return result;
+        }
+
+        if (schematronFile == null || !schematronFile.exists()) {
+            result.addError("Schematron file is null or does not exist");
+            return result;
+        }
+
+        try {
+            List<SchematronValidationError> errors = validateXmlFile(xmlFile, schematronFile);
+            for (SchematronValidationError error : errors) {
+                if ("error".equals(error.severity())) {
+                    result.addError(error.message());
+                } else if ("warning".equals(error.severity())) {
+                    result.addWarning(error.message());
+                }
+            }
+        } catch (Exception e) {
+            result.addError("Validation failed: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    @Override
     public boolean isValidSchematronFile(File file) {
         if (file == null || !file.exists()) {
             return false;

@@ -95,6 +95,9 @@ public class XmlEditor extends Tab {
     private XmlEditorSidebarController sidebarController;
     private SplitPane splitPane;
 
+    // --- Graphic View Component ---
+    private XmlGraphicEditor currentGraphicEditor;
+
     /**
          * Data class to hold element information.
          */
@@ -2014,13 +2017,13 @@ public class XmlEditor extends Tab {
             VBox vBox = new VBox();
             vBox.setPadding(new Insets(3));
             if (document != null) {
-                var simpleNodeElement = new XmlGraphicEditor(document, this);
+                currentGraphicEditor = new XmlGraphicEditor(document, this);
                 // Set sidebar controller for integration with XmlEditorSidebar functionality
                 if (sidebarController != null) {
-                    simpleNodeElement.setSidebarController(sidebarController);
+                    currentGraphicEditor.setSidebarController(sidebarController);
                 }
-                VBox.setVgrow(simpleNodeElement, Priority.ALWAYS);
-                vBox.getChildren().add(simpleNodeElement);
+                VBox.setVgrow(currentGraphicEditor, Priority.ALWAYS);
+                vBox.getChildren().add(currentGraphicEditor);
             }
             ScrollPane pane = new ScrollPane(vBox);
             pane.setBackground(new Background(new BackgroundFill(Color.rgb(200, 200, 50, 0.5), new CornerRadii(5), new Insets(5))));
@@ -2207,5 +2210,144 @@ public class XmlEditor extends Tab {
             logger.error("Error building XPath for node: {}", e.getMessage(), e);
             return "";
         }
+    }
+
+    /**
+     * Navigates to a specific line in the code editor
+     *
+     * @param lineNumber The line number to navigate to (1-based)
+     */
+    public void navigateToLine(int lineNumber) {
+        if (codeArea != null) {
+            Platform.runLater(() -> {
+                try {
+                    // Convert to 0-based line number
+                    int zeroBasedLine = Math.max(0, lineNumber - 1);
+
+                    // Ensure the line number is within bounds
+                    int totalLines = codeArea.getParagraphs().size();
+                    if (zeroBasedLine >= totalLines) {
+                        zeroBasedLine = totalLines - 1;
+                    }
+
+                    // Move cursor to the beginning of the line
+                    codeArea.moveTo(zeroBasedLine, 0);
+
+                    // Select the entire line to highlight it
+                    codeArea.selectLine();
+
+                    // Scroll to make the line visible
+                    codeArea.requestFollowCaret();
+
+                    // Request focus
+                    codeArea.requestFocus();
+
+                    logger.info("Navigated to line {} in code editor", lineNumber);
+                } catch (Exception e) {
+                    logger.error("Error navigating to line {}: {}", lineNumber, e.getMessage(), e);
+                }
+            });
+        }
+    }
+
+    /**
+     * Navigates to a specific XPath location in both code and graphic view
+     *
+     * @param xpath The XPath to navigate to
+     */
+    public void navigateToXPath(String xpath) {
+        if (xpath == null || xpath.trim().isEmpty()) {
+            logger.warn("Cannot navigate to empty XPath");
+            return;
+        }
+
+        try {
+            logger.info("Navigating to XPath: {}", xpath);
+
+            // Try to navigate in the graphic view first
+            if (currentGraphicEditor != null) {
+                boolean graphicNavigationSuccess = currentGraphicEditor.navigateToNode(xpath, 0);
+                if (graphicNavigationSuccess) {
+                    logger.info("Successfully navigated to XPath in graphic view: {}", xpath);
+                    return;
+                }
+            }
+
+            // Fallback: try to find the element in the DOM and estimate line number
+            if (document != null) {
+                Node targetNode = findNodeByXPath(xpath);
+                if (targetNode != null) {
+                    // Try to estimate line number based on element position
+                    int estimatedLine = estimateLineNumberForNode(targetNode);
+                    if (estimatedLine > 0) {
+                        navigateToLine(estimatedLine);
+                        logger.info("Navigated to estimated line {} for XPath: {}", estimatedLine, xpath);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error navigating to XPath {}: {}", xpath, e.getMessage(), e);
+        }
+    }
+
+
+    /**
+     * Estimates the line number for a DOM node based on its position in the document
+     * This is a heuristic approach since DOM doesn't contain line information
+     */
+    private int estimateLineNumberForNode(Node targetNode) {
+        try {
+            // Count all preceding nodes to estimate line position
+            int nodeCount = 0;
+            nodeCount += countPrecedingNodes(document.getDocumentElement(), targetNode);
+
+            // Rough estimation: each element might span 1-3 lines on average
+            // This is very approximate but better than nothing
+            return Math.max(1, nodeCount * 2);
+
+        } catch (Exception e) {
+            logger.debug("Could not estimate line number for node: {}", e.getMessage());
+            return 1;
+        }
+    }
+
+    /**
+     * Recursively counts nodes preceding the target node
+     */
+    private int countPrecedingNodes(Node current, Node target) {
+        if (current == target) {
+            return 0;
+        }
+
+        int count = 1; // Count current node
+
+        // Count child nodes
+        for (int i = 0; i < current.getChildNodes().getLength(); i++) {
+            Node child = current.getChildNodes().item(i);
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                int childCount = countPrecedingNodes(child, target);
+                if (childCount >= 0) {
+                    return count + childCount;
+                }
+                count += countAllNodes(child);
+            }
+        }
+
+        return -1; // Target not found in this branch
+    }
+
+    /**
+     * Counts all nodes in a subtree
+     */
+    private int countAllNodes(Node node) {
+        int count = 1; // Count current node
+        for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+            Node child = node.getChildNodes().item(i);
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                count += countAllNodes(child);
+            }
+        }
+        return count;
     }
 }

@@ -1,0 +1,379 @@
+/* 
+ * Schematron Editor Stylesheet
+ * Enhanced syntax highlighting for Schematron documents
+ */
+
+/* XML Basic Styles */
+.xml-declaration {
+    -fx-fill: #8b008b;
+    -fx-font-weight: bold;
+}
+
+.xml-comment {
+    -fx-fill: #808080;
+    -fx-font-style: italic;
+}
+
+.xml-cdata {
+    -fx-fill: #b8860b;
+    -fx-font-weight: bold;
+}
+
+.xml-element {
+    -fx-fill: #0000ff;
+    -fx-font-weight: bold;
+}
+
+.xml-attribute {
+    -fx-fill: #ff4500;
+}
+
+/* Schematron Specific Styles */
+.schematron-element {
+    -fx-fill: #dc143c;
+    -fx-font-weight: bold;
+}
+
+.schematron-attribute {
+    -fx-fill: #ff6347;
+    -fx-font-weight: bold;
+}
+
+/* XPath Specific Styles */
+.xpath-expression {
+    -fx-fill: #006400;
+    -fx-font-style: italic;
+    -fx-background-color: #f0fff0;
+}
+
+.xpath-function {
+    -fx-fill: #4b0082;
+    -fx-font-weight: bold;
+}
+
+/* Enhanced XPath Syntax Highlighting */
+.xpath-string {
+    -fx-fill: #d73027;
+    -fx-font-weight: normal;
+}
+
+.xpath-number {
+    -fx-fill: #1a5490;
+    -fx-font-weight: bold;
+}
+
+.xpath-variable {
+    -fx-fill: #8c2d04;
+    -fx-font-style: italic;
+}
+
+.xpath-axis {
+    -fx-fill: #762a83;
+    -fx-font-weight: bold;
+}
+
+.xpath-operator {
+    -fx-fill: #c51b7d;
+    -fx-font-weight: bold;
+}
+
+.xpath-node-test {
+    -fx-fill: #2166ac;
+    -fx-font-weight: bold;
+}
+
+/* Default style */
+.default {
+    -fx-fill: #000000;
+}
+
+/* Code Area Enhancements */
+.code-area {
+    -fx-background-color: #ffffff;
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+    -fx-font-size: 12px;
+}
+
+.code-area .text {
+    -fx-fill: #000000;
+}
+
+/* Line Numbers */
+.lineno {
+    -fx-background-color: #f5f5f5;
+    -fx-text-fill: #666666;
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+    -fx-font-size: 11px;
+    -fx-alignment: center-right;
+    -fx-padding: 0 5px 0 0;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 1px 0 0;
+}
+
+/* Selection */
+.code-area .selection {
+    -fx-fill: #ffffff;
+    -fx-background-color: #3399ff;
+}
+
+/* Caret */
+.code-area .caret {
+    -fx-stroke: #000000;
+    -fx-stroke-width: 1px;
+}
+
+/* Bracket Matching */
+.code-area .bracket-highlight {
+    -fx-background-color: #ffff99;
+    -fx-background-radius: 2px;
+}
+
+/* Error Highlighting */
+.error-highlight {
+    -fx-background-color: #ffe6e6;
+    -fx-border-color: #ff0000;
+    -fx-border-width: 0 0 2px 0;
+}
+
+/* Warning Highlighting */
+.warning-highlight {
+    -fx-background-color: #fff8dc;
+    -fx-border-color: #ffa500;
+    -fx-border-width: 0 0 1px 0;
+}
+
+/* Folding */
+.code-area .folding-indicator {
+    -fx-background-color: #e8e8e8;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-text-fill: #666666;
+    -fx-font-size: 10px;
+    -fx-cursor: hand;
+}
+
+.code-area .folding-indicator:hover {
+    -fx-background-color: #d0d0d0;
+}
+
+/* Autocompletion Popup */
+.autocompletion-popup {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 5, 0, 2, 2);
+}
+
+.autocompletion-popup .list-cell {
+    -fx-padding: 3px 8px;
+    -fx-background-color: transparent;
+}
+
+.autocompletion-popup .list-cell:hover {
+    -fx-background-color: #e6f3ff;
+}
+
+.autocompletion-popup .list-cell:selected {
+    -fx-background-color: #cce7ff;
+    -fx-text-fill: #000000;
+}
+
+/* Toolbar Enhancements */
+.schematron-toolbar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 5px;
+}
+
+.schematron-toolbar .button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 5px 10px;
+    -fx-cursor: hand;
+}
+
+.schematron-toolbar .button:hover {
+    -fx-background-color: #e9ecef;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+}
+
+.schematron-toolbar .button:pressed {
+    -fx-background-color: #dee2e6;
+}
+
+/* Sidebar Enhancements */
+.schematron-sidebar {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px 0 0 1px;
+}
+
+.schematron-sidebar .titled-pane {
+    -fx-background-color: transparent;
+}
+
+.schematron-sidebar .titled-pane > .title {
+    -fx-background-color: #e9ecef;
+    -fx-text-fill: #495057;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+    -fx-padding: 5px 10px;
+}
+
+.schematron-sidebar .titled-pane > .content {
+    -fx-background-color: #ffffff;
+    -fx-padding: 5px;
+}
+
+/* Status Bar */
+.schematron-status {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px 0 0 0;
+    -fx-padding: 3px 10px;
+    -fx-font-size: 11px;
+    -fx-text-fill: #6c757d;
+}
+
+/* Validation Messages */
+.validation-error {
+    -fx-text-fill: #dc3545;
+    -fx-font-weight: bold;
+}
+
+.validation-warning {
+    -fx-text-fill: #fd7e14;
+}
+
+.validation-success {
+    -fx-text-fill: #28a745;
+}
+
+/* Template Items */
+.template-item {
+    -fx-padding: 5px;
+    -fx-cursor: hand;
+}
+
+.template-item:hover {
+    -fx-background-color: #e6f3ff;
+}
+
+.template-item .label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #495057;
+}
+
+.template-item .description {
+    -fx-font-size: 10px;
+    -fx-text-fill: #6c757d;
+    -fx-font-style: italic;
+}
+
+/* Visual Builder Styles */
+.visual-builder-section {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.section-title {
+    -fx-text-fill: #495057;
+    -fx-font-weight: bold;
+}
+
+.primary-button {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-padding: 6px 12px;
+    -fx-font-weight: bold;
+}
+
+.primary-button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.secondary-button {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-padding: 6px 12px;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #545b62;
+}
+
+.danger-button {
+    -fx-background-color: #dc3545;
+    -fx-text-fill: white;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-padding: 4px 8px;
+    -fx-font-size: 10px;
+}
+
+.danger-button:hover {
+    -fx-background-color: #c82333;
+}
+
+/* Table styling for visual builder */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #495057;
+    -fx-font-weight: bold;
+    -fx-border-color: #dee2e6;
+}
+
+.table-view .table-cell {
+    -fx-border-color: #dee2e6;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #e7f3ff;
+}
+
+/* Testing Framework Styles */
+.testing-section {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.status-label {
+    -fx-text-fill: #495057;
+    -fx-font-weight: bold;
+}
+
+/* Documentation Generator Styles */
+.doc-generator-section {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+/* Template Library Styles */
+.template-library-section {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
