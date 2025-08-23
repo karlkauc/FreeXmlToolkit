@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controller;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.SimpleFileServer;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -195,6 +196,12 @@ public class XsdController {
 
     @FXML
     public void initialize() {
+        // Initialize ChoiceBox items
+        if (grafikFormat != null) {
+            grafikFormat.setItems(FXCollections.observableArrayList("SVG", "PNG", "JPG"));
+            grafikFormat.setValue("SVG");
+        }
+        
         xsdTab.setOnSelectionChanged(event -> {
             if (xsdTab.isSelected()) {
                 if (xmlService.getCurrentXsdFile() == null) {

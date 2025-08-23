@@ -69,7 +69,7 @@ public class MainController {
     AnchorPane contentPane;
 
     @FXML
-    Button xslt, xml, xsd, xsdValidation, schematron, fop, signature, help, settings, exit;
+    Button xslt, xml, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, templates;
 
     @FXML
     MenuItem menuItemExit;
@@ -245,6 +245,9 @@ public class MainController {
         String pagePath = switch (currentButton.getId()) {
             case "xslt" -> "/pages/tab_xslt.fxml";
             case "xml" -> "/pages/tab_xml.fxml";
+            case "xmlEnhanced" -> "/pages/tab_xml_enhanced.fxml";
+            case "xmlNew" -> "/pages/tab_xml_new.fxml";
+            case "xmlUltimate" -> "/pages/tab_xml_ultimate.fxml";
             case "xsd" -> "/pages/tab_xsd.fxml";
             case "xsdValidation" -> "/pages/tab_validation.fxml";
             case "schematron" -> "/pages/tab_schematron.fxml";
@@ -252,6 +255,10 @@ public class MainController {
             case "signature" -> "/pages/tab_signature.fxml";
             case "help" -> "/pages/tab_help.fxml";
             case "settings" -> "/pages/settings.fxml";
+            // Revolutionary Features - Alleinstellungsmerkmale
+            case "templates" -> "/pages/tab_templates.fxml";
+            case "schemaGenerator" -> "/pages/tab_schema_generator.fxml";
+            case "xsltDeveloper" -> "/pages/tab_xslt_developer.fxml";
             default -> null;
         };
 
@@ -369,6 +376,24 @@ public class MainController {
             }
             case HelpController helpController -> {
                 logger.debug("set Help Controller");
+            }
+            case TemplatesController templatesController -> {
+                logger.debug("set Smart Templates Controller");
+            }
+            case SchemaGeneratorController schemaGeneratorController -> {
+                logger.debug("set Intelligent Schema Generator Controller");
+            }
+            case XsltDeveloperController xsltDeveloperController -> {
+                logger.debug("set Advanced XSLT Developer Controller");
+            }
+            case XmlEnhancedController xmlEnhancedController -> {
+                logger.debug("set XML Enhanced Controller");
+            }
+            case XmlNewController xmlNewController -> {
+                logger.debug("set Ultimate XML New Controller");
+            }
+            case XmlUltimateController xmlUltimateController -> {
+                logger.debug("set Ultimate XML Controller - Complete Edition");
             }
             case null, default -> {
                 if (controller != null) {

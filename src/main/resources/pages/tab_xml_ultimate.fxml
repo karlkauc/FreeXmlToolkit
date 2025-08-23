@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
+<?import org.kordamp.ikonli.javafx.*?>
+<VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XmlUltimateController">
+
+    <!-- Ultimate XML Editor Toolbar - Merged from both versions -->
+    <HBox styleClass="xml-toolbar" spacing="5" alignment="CENTER_LEFT">
+        <padding>
+            <Insets top="8" bottom="8" left="10" right="10"/>
+        </padding>
+
+        <!-- File Operations Group -->
+        <Button fx:id="newFile" contentDisplay="TOP" onAction="#newFilePressed" text="New">
+            <graphic>
+                <FontIcon iconColor="#28a745" iconLiteral="bi-file-earmark" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Create new XML document"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="openFile" contentDisplay="TOP" onAction="#openFile" text="Open">
+            <graphic>
+                <FontIcon iconColor="#007bff" iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Open XML document"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="saveFile" contentDisplay="TOP" onAction="#saveFile" text="Save">
+            <graphic>
+                <FontIcon iconColor="#17a2b8" iconLiteral="bi-hdd" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save current document"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL" prefHeight="25"/>
+
+        <!-- Format Operations Group -->
+        <Button fx:id="prettyPrint" contentDisplay="TOP" onAction="#prettifyingXmlText" text="Format">
+            <graphic>
+                <FontIcon iconColor="#fd7e14" iconLiteral="bi-justify" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Format and beautify XML"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="minifyButton" contentDisplay="TOP" onAction="#minifyXmlText" text="Minify">
+            <graphic>
+                <FontIcon iconColor="#6c757d" iconLiteral="bi-layout-text-window-reverse" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Minify XML (remove whitespace)"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL" prefHeight="25"/>
+
+        <!-- Validation Group -->
+        <Button fx:id="validateButton" onAction="#validateXml" text="Validate" styleClass="secondary-button">
+            <graphic>
+                <FontIcon iconColor="#28a745" iconLiteral="bi-check-circle" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Validate XML structure"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="lintButton" onAction="#lintXml" text="Lint" styleClass="secondary-button">
+            <graphic>
+                <FontIcon iconColor="#dc3545" iconLiteral="bi-bug" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Check XML for issues"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL" prefHeight="25"/>
+
+        <!-- Query & Analysis Group -->
+        <Button fx:id="runXpathQuery" contentDisplay="TOP" onAction="#runXpathQueryPressed" text="XPath">
+            <graphic>
+                <FontIcon iconColor="#6f42c1" iconLiteral="bi-code-slash" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Run XPath queries"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL" prefHeight="25"/>
+
+        <!-- Revolutionary Features Group -->
+        <Button fx:id="templateManagerButton" contentDisplay="TOP" onAction="#showTemplateManager" text="Templates">
+            <graphic>
+                <FontIcon iconColor="#28a745" iconLiteral="bi-file-text" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Smart Templates System"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="schemaGeneratorButton" contentDisplay="TOP" onAction="#showSchemaGenerator" text="Schema">
+            <graphic>
+                <FontIcon iconColor="#dc3545" iconLiteral="bi-diagram-3" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Intelligent Schema Generator"/>
+            </tooltip>
+        </Button>
+
+        <Button fx:id="xsltDeveloperButton" contentDisplay="TOP" onAction="#showXsltDeveloper" text="XSLT">
+            <graphic>
+                <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Advanced XSLT Developer"/>
+            </tooltip>
+        </Button>
+
+        <Separator orientation="VERTICAL" prefHeight="25"/>
+
+        <!-- View Options Group -->
+        <ToggleButton fx:id="treeViewToggle" onAction="#toggleTreeView" text="Tree View" styleClass="secondary-button">
+            <graphic>
+                <FontIcon iconColor="#6f42c1" iconLiteral="bi-diagram-3" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Toggle tree view"/>
+            </tooltip>
+        </ToggleButton>
+    </HBox>
+
+    <!-- Main Content Area with All Features -->
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.75" styleClass="xml-split-pane">
+        <!-- Left Panel: Editor Tabs (Support for XmlEditor control) -->
+        <TabPane fx:id="xmlFilesPane" side="TOP" SplitPane.resizableWithParent="true"
+                 styleClass="xml-editor-tabs"/>
+
+        <!-- Right Panel: Ultimate Sidebar with All Features -->
+        <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="250" maxWidth="450" prefWidth="350">
+            <VBox spacing="5" styleClass="xml-sidebar">
+                <padding>
+                    <Insets top="10" bottom="10" left="10" right="10"/>
+                </padding>
+
+                <!-- Document Outline -->
+                <TitledPane text="Document Outline" expanded="true" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <Label text="XML structure and navigation" styleClass="section-description"/>
+                        <TreeView fx:id="documentTreeView" prefHeight="150" styleClass="xml-structure-tree"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Validation Results -->
+                <TitledPane text="Validation Results" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="8">
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Label text="Schema:" styleClass="section-label"/>
+                            <ComboBox fx:id="schemaCombo" prefWidth="120" promptText="Select schema"
+                                      styleClass="xml-combo-box"/>
+                        </HBox>
+                        <ListView fx:id="validationResultsList" prefHeight="100" styleClass="xml-list-view"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Properties -->
+                <TitledPane text="Properties" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <Label text="Element properties and attributes" styleClass="section-description"/>
+                        <TableView fx:id="propertiesTable" prefHeight="120" styleClass="xml-properties-table">
+                            <columns>
+                                <TableColumn fx:id="propertyNameColumn" text="Property" prefWidth="100"/>
+                                <TableColumn fx:id="propertyValueColumn" text="Value" prefWidth="150"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Namespaces -->
+                <TitledPane text="Namespaces" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <Label text="Document namespaces" styleClass="section-description"/>
+                        <ListView fx:id="namespacesList" prefHeight="80" styleClass="xml-list-view"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Smart Templates Panel -->
+                <TitledPane fx:id="templatesPanel" text="Smart Templates" expanded="false" collapsible="true"
+                            styleClass="sidebar-section">
+                    <VBox spacing="8">
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <ComboBox fx:id="templateCategoryCombo" prefWidth="120" promptText="Category"
+                                      styleClass="xml-combo-box"/>
+                            <Button fx:id="refreshTemplatesButton" onAction="#refreshTemplates">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+                        <ListView fx:id="templatesListView" prefHeight="120" styleClass="xml-list-view"
+                                  onMouseClicked="#onTemplateSelected"/>
+                        <HBox spacing="5">
+                            <Button fx:id="applyTemplateButton" text="Apply" onAction="#applySelectedTemplate"
+                                    styleClass="btn-primary" prefWidth="60"/>
+                            <Button fx:id="previewTemplateButton" text="Preview" onAction="#previewSelectedTemplate"
+                                    styleClass="btn-secondary" prefWidth="60"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Schema Generation Panel -->
+                <TitledPane fx:id="schemaPanel" text="Schema Generator" expanded="false" collapsible="true"
+                            styleClass="sidebar-section">
+                    <VBox spacing="8">
+                        <Label text="Generate XSD from current XML" styleClass="section-description"/>
+                        <HBox spacing="5">
+                            <CheckBox fx:id="inferTypesCheckbox" text="Infer Types" selected="true"/>
+                            <CheckBox fx:id="flattenSchemaCheckbox" text="Flatten"/>
+                        </HBox>
+                        <HBox spacing="5">
+                            <Button fx:id="generateSchemaButton" text="Generate" onAction="#generateSchema"
+                                    styleClass="btn-success" prefWidth="75"/>
+                            <Button fx:id="exportSchemaButton" text="Export" onAction="#exportSchema"
+                                    styleClass="btn-info" prefWidth="60"/>
+                        </HBox>
+                        <TextArea fx:id="schemaPreviewArea" prefHeight="80" styleClass="code-preview" editable="false"
+                                  wrapText="false"/>
+                    </VBox>
+                </TitledPane>
+            </VBox>
+        </ScrollPane>
+    </SplitPane>
+
+    <!-- Advanced Development Panels - Bottom Tabs -->
+    <TabPane fx:id="developmentTabPane" side="BOTTOM" tabClosingPolicy="SELECTED_TAB" prefHeight="200">
+        <!-- XPath/XQuery Panel -->
+        <Tab fx:id="xPathQueryTab" text="XPath / XQuery">
+            <TabPane fx:id="xPathQueryPane" tabClosingPolicy="UNAVAILABLE" side="TOP">
+                <Tab fx:id="xPathTab" text="XPath">
+                    <StackPane fx:id="stackPaneXPath"/>
+                </Tab>
+                <Tab fx:id="xQueryTab" text="XQuery">
+                    <StackPane fx:id="stackPaneXQuery"/>
+                </Tab>
+            </TabPane>
+        </Tab>
+
+        <!-- XSLT Development Panel -->
+        <Tab fx:id="xsltDevelopmentTab" text="XSLT Development">
+            <SplitPane dividerPositions="0.6" orientation="HORIZONTAL">
+                <!-- XSLT Editor -->
+                <VBox spacing="5">
+                    <padding>
+                        <Insets top="5" bottom="5" left="5" right="5"/>
+                    </padding>
+                    <HBox spacing="5" alignment="CENTER_LEFT">
+                        <Label text="XSLT Stylesheet:" styleClass="section-label"/>
+                        <Button fx:id="loadXsltButton" text="Load" onAction="#loadXsltFile"/>
+                        <Button fx:id="saveXsltButton" text="Save" onAction="#saveXsltFile"/>
+                        <Separator orientation="VERTICAL"/>
+                        <Button fx:id="transformButton" text="Transform" onAction="#executeTransformation"
+                                styleClass="btn-primary"/>
+                    </HBox>
+                    <TextArea fx:id="xsltEditorArea" VBox.vgrow="ALWAYS" styleClass="code-editor" wrapText="false"/>
+                </VBox>
+
+                <!-- Transformation Results -->
+                <VBox spacing="5">
+                    <padding>
+                        <Insets top="5" bottom="5" left="5" right="5"/>
+                    </padding>
+                    <HBox spacing="5" alignment="CENTER_LEFT">
+                        <Label text="Output:" styleClass="section-label"/>
+                        <ComboBox fx:id="outputFormatCombo" prefWidth="80"/>
+                        <CheckBox fx:id="livePreviewCheckbox" text="Live Preview"/>
+                    </HBox>
+                    <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+                        <Tab text="Result">
+                            <TextArea fx:id="transformationResultArea" styleClass="code-preview" editable="false"
+                                      wrapText="false"/>
+                        </Tab>
+                        <Tab text="Preview">
+                            <WebView fx:id="transformationPreviewWeb"/>
+                        </Tab>
+                        <Tab text="Performance">
+                            <TextArea fx:id="performanceResultArea" styleClass="code-preview" editable="false"
+                                      wrapText="true"/>
+                        </Tab>
+                    </TabPane>
+                </VBox>
+            </SplitPane>
+        </Tab>
+
+        <!-- Template Development Panel -->
+        <Tab fx:id="templateDevelopmentTab" text="Template Development">
+            <SplitPane dividerPositions="0.4" orientation="HORIZONTAL">
+                <!-- Template Parameters -->
+                <VBox spacing="5">
+                    <padding>
+                        <Insets top="5" bottom="5" left="5" right="5"/>
+                    </padding>
+                    <HBox spacing="5" alignment="CENTER_LEFT">
+                        <Label text="Template Parameters:" styleClass="section-label"/>
+                        <Button fx:id="addParameterButton" onAction="#addTemplateParameter">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-plus-circle" iconSize="12"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                    <TableView fx:id="templateParametersTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="parameterNameColumn" text="Name" prefWidth="80"/>
+                            <TableColumn fx:id="parameterValueColumn" text="Value" prefWidth="100"/>
+                            <TableColumn fx:id="parameterTypeColumn" text="Type" prefWidth="60"/>
+                        </columns>
+                    </TableView>
+                    <HBox spacing="5">
+                        <Button fx:id="validateParametersButton" text="Validate" onAction="#validateTemplateParameters"
+                                styleClass="btn-warning"/>
+                        <Button fx:id="resetParametersButton" text="Reset" onAction="#resetTemplateParameters"
+                                styleClass="btn-secondary"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Template Preview -->
+                <VBox spacing="5">
+                    <padding>
+                        <Insets top="5" bottom="5" left="5" right="5"/>
+                    </padding>
+                    <HBox spacing="5" alignment="CENTER_LEFT">
+                        <Label text="Generated XML:" styleClass="section-label"/>
+                        <Button fx:id="generateTemplateButton" text="Generate" onAction="#generateTemplateXml"
+                                styleClass="btn-success"/>
+                        <Button fx:id="insertTemplateButton" text="Insert" onAction="#insertGeneratedTemplate"
+                                styleClass="btn-primary"/>
+                    </HBox>
+                    <TextArea fx:id="templatePreviewArea" VBox.vgrow="ALWAYS" styleClass="code-preview"
+                              wrapText="false"/>
+                </VBox>
+            </SplitPane>
+        </Tab>
+
+        <!-- Console Output -->
+        <Tab text="Console" closable="false">
+            <VBox spacing="5">
+                <padding>
+                    <Insets top="5" bottom="5" left="5" right="5"/>
+                </padding>
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <Label text="Output Console" styleClass="section-label"/>
+                    <Button text="Clear" onAction="#clearConsole">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-trash" iconSize="12"/>
+                        </graphic>
+                    </Button>
+                </HBox>
+                <TextArea fx:id="consoleOutput" VBox.vgrow="ALWAYS" styleClass="console-output" editable="false"/>
+            </VBox>
+        </Tab>
+    </TabPane>
+</VBox>

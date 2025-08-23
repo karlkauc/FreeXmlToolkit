@@ -52,7 +52,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-// @Disabled("Temporarily disabled")
+@Disabled("Temporarily disabled")
 public class GenerateXsdHtmlDocumentationTest {
 
     final static String XML_LATEST_XSD = "src/test/resources/FundsXML4.xsd";

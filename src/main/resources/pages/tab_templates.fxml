@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) Karl Kauc 2024.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.TemplatesController"
+      styleClass="revolutionary-page">
+
+    <!-- Enhanced Smart Templates Header -->
+    <HBox styleClass="revolutionary-header" spacing="15" alignment="CENTER_LEFT">
+        <padding>
+            <Insets top="15" bottom="15" left="20" right="20"/>
+        </padding>
+
+        <VBox alignment="CENTER_LEFT">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <FontIcon iconColor="#28a745" iconLiteral="bi-file-text" iconSize="32"/>
+                <VBox>
+                    <Label text="Smart Templates System" styleClass="revolutionary-title"/>
+                    <Label text="Professional XML templates with intelligent parameter validation"
+                           styleClass="revolutionary-subtitle"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button fx:id="refreshTemplatesBtn" text="Refresh" styleClass="btn-secondary">
+                <graphic>
+                    <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                </graphic>
+            </Button>
+            <Button fx:id="createTemplateBtn" text="Create New" styleClass="btn-primary">
+                <graphic>
+                    <FontIcon iconLiteral="bi-plus-circle" iconSize="16"/>
+                </graphic>
+            </Button>
+        </HBox>
+    </HBox>
+
+    <!-- Main Content Area -->
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.3" styleClass="revolutionary-split-pane">
+        <!-- Left Panel: Template Categories and List -->
+        <VBox spacing="10" styleClass="templates-sidebar">
+            <padding>
+                <Insets top="15" bottom="15" left="15" right="15"/>
+            </padding>
+
+            <!-- Category Filter -->
+            <VBox spacing="8">
+                <Label text="Template Categories" styleClass="section-header"/>
+                <ComboBox fx:id="templateCategoryCombo" prefWidth="250" promptText="Select Category"
+                          styleClass="revolutionary-combo"/>
+            </VBox>
+
+            <!-- Search Filter -->
+            <VBox spacing="8">
+                <Label text="Search Templates" styleClass="section-header"/>
+                <TextField fx:id="templateSearchField" promptText="Search by name or description..."
+                           styleClass="revolutionary-search"/>
+            </VBox>
+
+            <!-- Templates List -->
+            <VBox spacing="8" VBox.vgrow="ALWAYS">
+                <Label text="Available Templates" styleClass="section-header"/>
+                <ListView fx:id="templatesListView" VBox.vgrow="ALWAYS" styleClass="revolutionary-list-view"
+                          onMouseClicked="#onTemplateSelected"/>
+            </VBox>
+        </VBox>
+
+        <!-- Right Panel: Template Details and Preview -->
+        <VBox spacing="10" styleClass="templates-content">
+            <padding>
+                <Insets top="15" bottom="15" left="15" right="15"/>
+            </padding>
+
+            <!-- Template Information -->
+            <VBox spacing="10" styleClass="template-info-panel">
+                <Label text="Template Details" styleClass="section-header"/>
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label fx:id="templateNameLabel" text="Select a template" styleClass="template-name"/>
+                        <Label fx:id="templateDescriptionLabel" text="" styleClass="template-description"/>
+                        <HBox spacing="10">
+                            <Label fx:id="templateCategoryLabel" text="" styleClass="template-category"/>
+                            <Label fx:id="templateTagsLabel" text="" styleClass="template-tags"/>
+                        </HBox>
+                    </VBox>
+                    <VBox spacing="5" alignment="CENTER_RIGHT">
+                        <Button fx:id="applyTemplateBtn" text="Apply Template" styleClass="btn-success"
+                                onAction="#applySelectedTemplate" disable="true"/>
+                        <Button fx:id="previewTemplateBtn" text="Live Preview" styleClass="btn-info"
+                                onAction="#previewSelectedTemplate" disable="true"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- Template Parameters -->
+            <VBox spacing="10" styleClass="template-params-panel" VBox.vgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Template Parameters" styleClass="section-header"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="validateParamsBtn" text="Validate" styleClass="btn-warning"
+                            onAction="#validateParameters"/>
+                    <Button fx:id="resetParamsBtn" text="Reset" styleClass="btn-secondary" onAction="#resetParameters"/>
+                </HBox>
+
+                <TableView fx:id="templateParametersTable" VBox.vgrow="ALWAYS" styleClass="revolutionary-table">
+                    <columns>
+                        <TableColumn fx:id="paramNameColumn" text="Parameter" prefWidth="120"/>
+                        <TableColumn fx:id="paramValueColumn" text="Value" prefWidth="180"/>
+                        <TableColumn fx:id="paramTypeColumn" text="Type" prefWidth="80"/>
+                        <TableColumn fx:id="paramRequiredColumn" text="Required" prefWidth="80"/>
+                        <TableColumn fx:id="paramDescriptionColumn" text="Description" prefWidth="200"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- Live Preview -->
+            <VBox spacing="10" styleClass="template-preview-panel">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Generated XML Preview" styleClass="section-header"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <ToggleButton fx:id="livePreviewToggle" text="Live Preview" styleClass="btn-toggle"/>
+                    <Button fx:id="copyToClipboardBtn" text="Copy" styleClass="btn-outline">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                        </graphic>
+                    </Button>
+                </HBox>
+
+                <TabPane fx:id="previewTabPane" prefHeight="200" styleClass="revolutionary-tab-pane">
+                    <Tab text="XML Source" closable="false">
+                        <TextArea fx:id="xmlPreviewArea" styleClass="code-preview" editable="false" wrapText="false"/>
+                    </Tab>
+                    <Tab text="Formatted View" closable="false">
+                        <WebView fx:id="xmlFormattedPreview" prefHeight="200"/>
+                    </Tab>
+                </TabPane>
+            </VBox>
+        </VBox>
+    </SplitPane>
+</VBox>

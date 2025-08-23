@@ -19,15 +19,17 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,9 +38,9 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
-import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.domain.TemplateParameter;
+import org.fxt.freexmltoolkit.domain.XmlTemplate;
+import org.fxt.freexmltoolkit.service.*;
 import org.xml.sax.SAXParseException;
 
 import java.io.File;
@@ -47,7 +49,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,6 +74,52 @@ public class XmlController {
     @FXML
     Button openFile, saveFile, prettyPrint, newFile, runXpathQuery, minifyButton;
 
+    // New Revolutionary Features UI Components
+    @FXML
+    Button templateManagerButton, schemaGeneratorButton, xsltDeveloperButton;
+
+    @FXML
+    TitledPane templatesPanel, schemaPanel;
+
+    @FXML
+    ComboBox<String> templateCategoryCombo, outputFormatCombo;
+
+    @FXML
+    ListView<XmlTemplate> templatesListView;
+
+    @FXML
+    Button refreshTemplatesButton, applyTemplateButton, previewTemplateButton;
+
+    @FXML
+    CheckBox inferTypesCheckbox, flattenSchemaCheckbox, livePreviewCheckbox;
+
+    @FXML
+    Button generateSchemaButton, exportSchemaButton;
+
+    @FXML
+    TextArea schemaPreviewArea, xsltEditorArea, transformationResultArea, performanceResultArea, templatePreviewArea;
+
+    @FXML
+    WebView transformationPreviewWeb;
+
+    @FXML
+    TabPane developmentTabPane, xPathQueryPane, transformationResultsPane;
+
+    @FXML
+    Tab xsltDevelopmentTab, templateDevelopmentTab;
+
+    @FXML
+    Button loadXsltButton, saveXsltButton, transformButton;
+
+    @FXML
+    TableView<TemplateParameter> templateParametersTable;
+
+    @FXML
+    TableColumn<TemplateParameter, String> parameterNameColumn, parameterValueColumn, parameterTypeColumn;
+
+    @FXML
+    Button addParameterButton, validateParametersButton, resetParametersButton, generateTemplateButton, insertTemplateButton;
+
     @FXML
     StackPane stackPaneXPath, stackPaneXQuery;
 
@@ -79,13 +129,22 @@ public class XmlController {
     HBox test;
 
     @FXML
-    Tab xPathTab, xQueryTab;
+    Tab xPathTab, xQueryTab, xPathQueryTab;
 
     @FXML
-    TabPane xPathQueryPane, xmlFilesPane;
+    TabPane xmlFilesPane;
 
     @FXML
     TitledPane xPathQueryTitledPane;
+
+    // Revolutionary Features Service Integration
+    private final TemplateEngine templateEngine = TemplateEngine.getInstance();
+    private final TemplateRepository templateRepository = TemplateRepository.getInstance();
+    private final XsltTransformationEngine xsltEngine = XsltTransformationEngine.getInstance();
+    private final SchemaGenerationEngine schemaEngine = SchemaGenerationEngine.getInstance();
+
+    private XmlTemplate selectedTemplate;
+    private final Map<String, String> currentTemplateParameters = new HashMap<>();
 
     private SplitPane parentVerticalSplitPane;
 
@@ -127,29 +186,13 @@ public class XmlController {
 
         reloadXmlText();
         applyEditorSettings();
+        initializeRevolutionaryFeatures();
 
         Platform.runLater(() -> {
-            if (xPathQueryTitledPane != null) {
-                logger.debug("TitledPane found: {}", xPathQueryTitledPane);
-
-                Node parent = xPathQueryTitledPane.getParent();
-                int traversalCount = 0;
-                final int MAX_TRAVERSAL = 10;
-
-                while (parent != null && !(parent instanceof SplitPane) && traversalCount < MAX_TRAVERSAL) {
-                    logger.debug("Current parent: {} (class: {})", parent, parent.getClass());
-                    parent = parent.getParent();
-                    traversalCount++;
-                }
-
-                if (parent instanceof SplitPane) {
-                    parentVerticalSplitPane = (SplitPane) parent;
-                    logger.debug("Found parent SplitPane: {} - items count: {}", parentVerticalSplitPane, parentVerticalSplitPane.getItems().size());
-                } else {
-                    logger.warn("Could not find SplitPane parent for TitledPane after {} traversals", traversalCount);
-                }
-            } else {
-                logger.warn("xPathQueryTitledPane is null during initialization");
+            // Initialize development panels
+            if (developmentTabPane != null) {
+                developmentTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
+                logger.debug("Development TabPane initialized");
             }
         });
 
@@ -182,6 +225,53 @@ public class XmlController {
         } catch (Exception e) {
             logger.error("Failed to apply editor settings.", e);
         }
+    }
+
+    private void initializeRevolutionaryFeatures() {
+        logger.debug("Initializing Revolutionary XML Editor Features");
+
+        // Initialize Templates Panel
+        if (templateCategoryCombo != null) {
+            templateCategoryCombo.setItems(FXCollections.observableArrayList(
+                    "All", "Finance", "Healthcare", "Automotive", "Government", "Generic"
+            ));
+            templateCategoryCombo.setValue("All");
+        }
+
+        if (templatesListView != null) {
+            templatesListView.setCellFactory(listView -> new ListCell<XmlTemplate>() {
+                @Override
+                protected void updateItem(XmlTemplate template, boolean empty) {
+                    super.updateItem(template, empty);
+                    if (empty || template == null) {
+                        setText(null);
+                    } else {
+                        setText(template.getName() + " - " + template.getCategory());
+                    }
+                }
+            });
+            refreshTemplates();
+        }
+
+        // Initialize Schema Generation Panel
+        if (inferTypesCheckbox != null) {
+            inferTypesCheckbox.setSelected(true);
+        }
+
+        // Initialize XSLT Development Panel
+        if (outputFormatCombo != null) {
+            outputFormatCombo.setItems(FXCollections.observableArrayList("XML", "HTML", "Text", "JSON"));
+            outputFormatCombo.setValue("XML");
+        }
+
+        // Initialize Template Parameters Table
+        if (templateParametersTable != null) {
+            parameterNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+            parameterValueColumn.setCellValueFactory(new PropertyValueFactory<>("defaultValue"));
+            parameterTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        }
+
+        logger.debug("Revolutionary XML Editor Features initialized successfully");
     }
 
     private void createAndAddXmlTab(File file) {
@@ -680,4 +770,295 @@ public class XmlController {
                     xPathQueryTitledPane != null, parentVerticalSplitPane != null);
         }
     }
+
+    // ============== REVOLUTIONARY FEATURES EVENT HANDLERS ==============
+
+    @FXML
+    private void showTemplateManager() {
+        logger.debug("Opening Template Manager");
+        if (templatesPanel != null) {
+            templatesPanel.setExpanded(true);
+        }
+        refreshTemplates();
+    }
+
+    @FXML
+    private void showSchemaGenerator() {
+        logger.debug("Opening Schema Generator");
+        if (schemaPanel != null) {
+            schemaPanel.setExpanded(true);
+        }
+    }
+
+    @FXML
+    private void showXsltDeveloper() {
+        logger.debug("Opening XSLT Developer");
+        if (developmentTabPane != null && xsltDevelopmentTab != null) {
+            developmentTabPane.getSelectionModel().select(xsltDevelopmentTab);
+        }
+    }
+
+    @FXML
+    private void refreshTemplates() {
+        if (templatesListView != null && templateCategoryCombo != null) {
+            String selectedCategory = templateCategoryCombo.getValue();
+
+            Task<List<XmlTemplate>> task = new Task<>() {
+                @Override
+                protected List<XmlTemplate> call() throws Exception {
+                    if ("All".equals(selectedCategory)) {
+                        return templateRepository.getAllTemplates();
+                    } else {
+                        return templateRepository.getTemplatesByCategory(selectedCategory);
+                    }
+                }
+
+                @Override
+                protected void succeeded() {
+                    Platform.runLater(() -> {
+                        templatesListView.setItems(FXCollections.observableList(getValue()));
+                        logger.debug("Loaded {} templates for category: {}", getValue().size(), selectedCategory);
+                    });
+                }
+
+                @Override
+                protected void failed() {
+                    Platform.runLater(() -> {
+                        logger.error("Failed to load templates", getException());
+                    });
+                }
+            };
+
+            formattingExecutor.submit(task);
+        }
+    }
+
+    @FXML
+    private void onTemplateSelected() {
+        if (templatesListView != null) {
+            selectedTemplate = templatesListView.getSelectionModel().getSelectedItem();
+            if (selectedTemplate != null) {
+                logger.debug("Selected template: {}", selectedTemplate.getName());
+                updateTemplateParametersTable();
+            }
+        }
+    }
+
+    @FXML
+    private void applySelectedTemplate() {
+        if (selectedTemplate != null) {
+            Task<String> task = new Task<>() {
+                @Override
+                protected String call() throws Exception {
+                    return selectedTemplate.processTemplate(currentTemplateParameters);
+                }
+
+                @Override
+                protected void succeeded() {
+                    Platform.runLater(() -> {
+                        String generatedXml = getValue();
+                        insertXmlIntoCurrentEditor(generatedXml);
+                        logger.debug("Applied template: {}", selectedTemplate.getName());
+                    });
+                }
+
+                @Override
+                protected void failed() {
+                    Platform.runLater(() -> {
+                        logger.error("Failed to apply template", getException());
+                        showAlert("Template Error", "Failed to apply template: " + getException().getMessage());
+                    });
+                }
+            };
+
+            formattingExecutor.submit(task);
+        }
+    }
+
+    @FXML
+    private void previewSelectedTemplate() {
+        if (selectedTemplate != null && templatePreviewArea != null) {
+            Task<String> task = new Task<>() {
+                @Override
+                protected String call() throws Exception {
+                    return selectedTemplate.processTemplate(currentTemplateParameters);
+                }
+
+                @Override
+                protected void succeeded() {
+                    Platform.runLater(() -> {
+                        templatePreviewArea.setText(getValue());
+                        if (developmentTabPane != null && templateDevelopmentTab != null) {
+                            developmentTabPane.getSelectionModel().select(templateDevelopmentTab);
+                        }
+                    });
+                }
+
+                @Override
+                protected void failed() {
+                    Platform.runLater(() -> {
+                        logger.error("Failed to preview template", getException());
+                    });
+                }
+            };
+
+            formattingExecutor.submit(task);
+        }
+    }
+
+    @FXML
+    private void generateSchema() {
+        XmlEditor currentEditor = getCurrentXmlEditor();
+        if (currentEditor != null && schemaPreviewArea != null) {
+            Task<SchemaGenerationResult> task = new Task<>() {
+                @Override
+                protected SchemaGenerationResult call() throws Exception {
+                    String xmlContent = currentEditor.getXmlCodeEditor().getCodeArea().getText();
+                    SchemaGenerationOptions options = new SchemaGenerationOptions();
+                    if (inferTypesCheckbox != null && inferTypesCheckbox.isSelected()) {
+                        options.setInferComplexTypes(true);
+                        options.setGenerateComplexTypes(true);
+                    }
+                    if (flattenSchemaCheckbox != null && flattenSchemaCheckbox.isSelected()) {
+                        options.setOptimizeSchema(true);
+                    }
+                    return schemaEngine.generateSchema(xmlContent, options);
+                }
+
+                @Override
+                protected void succeeded() {
+                    Platform.runLater(() -> {
+                        SchemaGenerationResult result = getValue();
+                        schemaPreviewArea.setText(result.getXsdContent());
+                        logger.debug("Generated schema with {} complex types and {} simple types",
+                                result.getTotalComplexTypesGenerated(), result.getTotalSimpleTypesGenerated());
+                    });
+                }
+
+                @Override
+                protected void failed() {
+                    Platform.runLater(() -> {
+                        logger.error("Failed to generate schema", getException());
+                        showAlert("Schema Error", "Failed to generate schema: " + getException().getMessage());
+                    });
+                }
+            };
+
+            formattingExecutor.submit(task);
+        }
+    }
+
+    @FXML
+    private void exportSchema() {
+        if (schemaPreviewArea != null && !schemaPreviewArea.getText().isEmpty()) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Export Schema");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Files", "*.xsd"));
+
+            File file = fileChooser.showSaveDialog(schemaPreviewArea.getScene().getWindow());
+            if (file != null) {
+                try {
+                    Files.write(file.toPath(), schemaPreviewArea.getText().getBytes(StandardCharsets.UTF_8));
+                    logger.debug("Schema exported to: {}", file.getAbsolutePath());
+                } catch (IOException e) {
+                    logger.error("Failed to export schema", e);
+                    showAlert("Export Error", "Failed to export schema: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    @FXML
+    private void executeTransformation() {
+        XmlEditor currentEditor = getCurrentXmlEditor();
+        if (currentEditor != null && xsltEditorArea != null && transformationResultArea != null) {
+            Task<XsltTransformationResult> task = new Task<>() {
+                @Override
+                protected XsltTransformationResult call() throws Exception {
+                    String xmlContent = currentEditor.getXmlCodeEditor().getCodeArea().getText();
+                    String xsltContent = xsltEditorArea.getText();
+                    String outputFormat = outputFormatCombo != null ? outputFormatCombo.getValue() : "XML";
+
+                    return xsltEngine.transform(xmlContent, xsltContent, new HashMap<>(),
+                            XsltTransformationEngine.OutputFormat.valueOf(outputFormat));
+                }
+
+                @Override
+                protected void succeeded() {
+                    Platform.runLater(() -> {
+                        XsltTransformationResult result = getValue();
+                        transformationResultArea.setText(result.getOutputContent());
+
+                        if (performanceResultArea != null) {
+                            performanceResultArea.setText(String.format(
+                                    "Transformation completed in %d ms\nOutput size: %d characters\nFormat: %s",
+                                    result.getTransformationTime(), result.getOutputSize(), result.getOutputFormat()));
+                        }
+
+                        if (transformationPreviewWeb != null && "HTML".equals(outputFormatCombo.getValue())) {
+                            transformationPreviewWeb.getEngine().loadContent(result.getOutputContent());
+                        }
+
+                        logger.debug("XSLT transformation completed in {}ms", result.getTransformationTime());
+                    });
+                }
+
+                @Override
+                protected void failed() {
+                    Platform.runLater(() -> {
+                        logger.error("XSLT transformation failed", getException());
+                        showAlert("Transformation Error", "XSLT transformation failed: " + getException().getMessage());
+                    });
+                }
+            };
+
+            formattingExecutor.submit(task);
+        }
+    }
+
+    // Helper methods
+    private void updateTemplateParametersTable() {
+        if (selectedTemplate != null && templateParametersTable != null) {
+            templateParametersTable.setItems(FXCollections.observableList(selectedTemplate.getParameters()));
+        }
+    }
+
+    private void insertXmlIntoCurrentEditor(String xml) {
+        XmlEditor currentEditor = getCurrentXmlEditor();
+        if (currentEditor != null) {
+            currentEditor.getXmlCodeEditor().getCodeArea().insertText(
+                    currentEditor.getXmlCodeEditor().getCodeArea().getCaretPosition(), xml);
+        }
+    }
+
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // Placeholder methods for additional functionality
+    @FXML
+    private void loadXsltFile() { /* TODO: Implement XSLT file loading */ }
+
+    @FXML
+    private void saveXsltFile() { /* TODO: Implement XSLT file saving */ }
+
+    @FXML
+    private void addTemplateParameter() { /* TODO: Implement parameter addition */ }
+
+    @FXML
+    private void validateTemplateParameters() { /* TODO: Implement parameter validation */ }
+
+    @FXML
+    private void resetTemplateParameters() { /* TODO: Implement parameter reset */ }
+
+    @FXML
+    private void generateTemplateXml() { /* TODO: Implement template XML generation */ }
+
+    @FXML
+    private void insertGeneratedTemplate() { /* TODO: Implement template insertion */ }
 }

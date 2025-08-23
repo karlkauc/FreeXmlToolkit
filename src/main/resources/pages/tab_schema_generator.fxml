@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) Karl Kauc 2024.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
+<VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.SchemaGeneratorController"
+      styleClass="revolutionary-page">
+
+    <!-- Enhanced Schema Generator Header -->
+    <HBox styleClass="revolutionary-header" spacing="15" alignment="CENTER_LEFT">
+        <padding>
+            <Insets top="15" bottom="15" left="20" right="20"/>
+        </padding>
+
+        <VBox alignment="CENTER_LEFT">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <FontIcon iconColor="#dc3545" iconLiteral="bi-diagram-3" iconSize="32"/>
+                <VBox>
+                    <Label text="Intelligent Schema Generator" styleClass="revolutionary-title"/>
+                    <Label text="Auto-generate XSD schemas with advanced type inference and optimization"
+                           styleClass="revolutionary-subtitle"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button fx:id="loadXmlBtn" text="Load XML" styleClass="btn-secondary">
+                <graphic>
+                    <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                </graphic>
+            </Button>
+            <Button fx:id="batchProcessBtn" text="Batch Process" styleClass="btn-info">
+                <graphic>
+                    <FontIcon iconLiteral="bi-stack" iconSize="16"/>
+                </graphic>
+            </Button>
+        </HBox>
+    </HBox>
+
+    <!-- Main Content Area -->
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.4" styleClass="revolutionary-split-pane">
+        <!-- Left Panel: Configuration and XML Input -->
+        <VBox spacing="15" styleClass="schema-config-sidebar">
+            <padding>
+                <Insets top="15" bottom="15" left="15" right="15"/>
+            </padding>
+
+            <!-- Generation Options -->
+            <VBox spacing="10" styleClass="config-panel">
+                <Label text="Schema Generation Options" styleClass="section-header"/>
+
+                <!-- Type Inference Options -->
+                <VBox spacing="8">
+                    <Label text="Type Inference" styleClass="subsection-header"/>
+                    <CheckBox fx:id="enableSmartTypeInference" text="Smart Type Inference" selected="true"/>
+                    <CheckBox fx:id="inferComplexTypes" text="Infer Complex Types" selected="true"/>
+                    <CheckBox fx:id="strictTypeInference" text="Strict Type Inference"/>
+                    <CheckBox fx:id="analyzeDataPatterns" text="Analyze Data Patterns" selected="true"/>
+                </VBox>
+
+                <!-- Structure Options -->
+                <VBox spacing="8">
+                    <Label text="Schema Structure" styleClass="subsection-header"/>
+                    <CheckBox fx:id="generateComplexTypes" text="Generate Complex Types" selected="true"/>
+                    <CheckBox fx:id="inlineSimpleTypes" text="Inline Simple Types"/>
+                    <CheckBox fx:id="groupSimilarElements" text="Group Similar Elements" selected="true"/>
+                    <CheckBox fx:id="generateGroups" text="Generate Groups"/>
+                </VBox>
+
+                <!-- Optimization Options -->
+                <VBox spacing="8">
+                    <Label text="Schema Optimization" styleClass="subsection-header"/>
+                    <CheckBox fx:id="optimizeSchema" text="Optimize Schema" selected="true"/>
+                    <CheckBox fx:id="eliminateDuplicates" text="Eliminate Duplicates" selected="true"/>
+                    <CheckBox fx:id="mergeCompatibleTypes" text="Merge Compatible Types" selected="true"/>
+                </VBox>
+
+                <!-- Namespace Handling -->
+                <VBox spacing="8">
+                    <Label text="Namespace Handling" styleClass="subsection-header"/>
+                    <CheckBox fx:id="preserveNamespaces" text="Preserve Namespaces" selected="true"/>
+                    <CheckBox fx:id="generateTargetNamespace" text="Generate Target Namespace" selected="true"/>
+                    <TextField fx:id="targetNamespaceField" promptText="Target namespace URI..."
+                               styleClass="revolutionary-input"/>
+                </VBox>
+            </VBox>
+
+            <!-- XML Input -->
+            <VBox spacing="10" styleClass="xml-input-panel" VBox.vgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="XML Input" styleClass="section-header"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="pasteXmlBtn" text="Paste" styleClass="btn-outline">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                        </graphic>
+                    </Button>
+                    <Button fx:id="clearXmlBtn" text="Clear" styleClass="btn-outline">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                        </graphic>
+                    </Button>
+                </HBox>
+
+                <TextArea fx:id="xmlInputArea" VBox.vgrow="ALWAYS" styleClass="code-input"
+                          promptText="Paste your XML content here or use 'Load XML' to open a file..."/>
+            </VBox>
+
+            <!-- Generate Button -->
+            <VBox spacing="10">
+                <Button fx:id="generateSchemaBtn" text="Generate XSD Schema" styleClass="btn-success btn-large"
+                        onAction="#generateSchema" prefWidth="250">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-gear-fill" iconSize="18"/>
+                    </graphic>
+                </Button>
+                <ProgressBar fx:id="generationProgressBar" prefWidth="250" visible="false"/>
+            </VBox>
+        </VBox>
+
+        <!-- Right Panel: Generated Schema and Analysis -->
+        <VBox spacing="10" styleClass="schema-results">
+            <padding>
+                <Insets top="15" bottom="15" left="15" right="15"/>
+            </padding>
+
+            <!-- Results Header -->
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <Label text="Generated XSD Schema" styleClass="section-header"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="generationStatsLabel" text="" styleClass="generation-stats"/>
+                <Button fx:id="exportSchemaBtn" text="Export XSD" styleClass="btn-primary" onAction="#exportSchema"
+                        disable="true">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-download" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </HBox>
+
+            <!-- Schema Results Tabs -->
+            <TabPane fx:id="schemaResultsTabPane" VBox.vgrow="ALWAYS" styleClass="revolutionary-tab-pane">
+                <!-- Generated XSD Tab -->
+                <Tab text="Generated XSD" closable="false">
+                    <VBox spacing="5">
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <CheckBox fx:id="formatXsdOutput" text="Format Output" selected="true"/>
+                            <CheckBox fx:id="addComments" text="Add Comments" selected="true"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="copyXsdBtn" text="Copy" styleClass="btn-outline">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+                        <TextArea fx:id="xsdOutputArea" VBox.vgrow="ALWAYS" styleClass="code-preview"
+                                  editable="false" wrapText="false"/>
+                    </VBox>
+                </Tab>
+
+                <!-- Analysis Results Tab -->
+                <Tab text="Analysis Results" closable="false">
+                    <VBox spacing="10">
+                        <HBox spacing="20">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="Schema Statistics" styleClass="subsection-header"/>
+                                <GridPane hgap="10" vgap="5" styleClass="stats-grid">
+                                    <Label text="Complex Types:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <Label fx:id="complexTypesLabel" text="0" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="0"/>
+                                    <Label text="Simple Types:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <Label fx:id="simpleTypesLabel" text="0" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="1"/>
+                                    <Label text="Elements:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <Label fx:id="elementsLabel" text="0" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="2"/>
+                                    <Label text="Attributes:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                    <Label fx:id="attributesLabel" text="0" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="3"/>
+                                    <Label text="Namespaces:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                                    <Label fx:id="namespacesLabel" text="0" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="4"/>
+                                </GridPane>
+                            </VBox>
+
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="Performance Metrics" styleClass="subsection-header"/>
+                                <GridPane hgap="10" vgap="5" styleClass="stats-grid">
+                                    <Label text="Generation Time:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <Label fx:id="generationTimeLabel" text="0ms" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="0"/>
+                                    <Label text="XML Size:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <Label fx:id="xmlSizeLabel" text="0KB" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="1"/>
+                                    <Label text="XSD Size:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <Label fx:id="xsdSizeLabel" text="0KB" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="2"/>
+                                    <Label text="Compression:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                    <Label fx:id="compressionLabel" text="0%" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="3"/>
+                                </GridPane>
+                            </VBox>
+                        </HBox>
+
+                        <!-- Detailed Analysis -->
+                        <VBox spacing="5" VBox.vgrow="ALWAYS">
+                            <Label text="Detailed Analysis Report" styleClass="subsection-header"/>
+                            <TextArea fx:id="analysisReportArea" VBox.vgrow="ALWAYS" styleClass="code-preview"
+                                      editable="false" wrapText="true"/>
+                        </VBox>
+                    </VBox>
+                </Tab>
+
+                <!-- Type Definitions Tab -->
+                <Tab text="Type Definitions" closable="false">
+                    <VBox spacing="10">
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <ComboBox fx:id="typeFilterCombo" promptText="Filter by type..."
+                                      styleClass="revolutionary-combo"/>
+                            <TextField fx:id="typeSearchField" promptText="Search types..."
+                                       styleClass="revolutionary-search"/>
+                        </HBox>
+
+                        <TableView fx:id="typeDefinitionsTable" VBox.vgrow="ALWAYS" styleClass="revolutionary-table">
+                            <columns>
+                                <TableColumn fx:id="typeNameColumn" text="Type Name" prefWidth="150"/>
+                                <TableColumn fx:id="typeKindColumn" text="Kind" prefWidth="80"/>
+                                <TableColumn fx:id="typeBaseColumn" text="Base Type" prefWidth="120"/>
+                                <TableColumn fx:id="typeUsageColumn" text="Usage Count" prefWidth="80"/>
+                                <TableColumn fx:id="typeDescriptionColumn" text="Description" prefWidth="200"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </SplitPane>
+</VBox>

@@ -119,10 +119,19 @@
                 <BorderPane VBox.vgrow="ALWAYS">
                     <top>
                         <VBox BorderPane.alignment="CENTER" alignment="CENTER">
+                            <!--
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="XML Editor" fx:id="xml">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
+                                </graphic>
+                            </Button>
+                            -->
+
+                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
+                                    text="XML Ultimate" fx:id="xmlUltimate">
+                                <graphic>
+                                    <FontIcon iconColor="#FFD700" iconLiteral="bi-star-fill" iconSize="16"/>
                                 </graphic>
                             </Button>
                             <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" VBox.vgrow="ALWAYS"
@@ -162,6 +171,33 @@
                                     styleClass="menu_button" text="Signature" VBox.vgrow="ALWAYS">
                                 <graphic>
                                     <FontIcon iconColor="#578013" iconLiteral="win10-key" iconSize="16"/>
+                                </graphic>
+                            </Button>
+
+                            <!-- Revolutionary Features Separator -->
+                            <Separator
+                                    style="-fx-background-color: #4a90e2; -fx-pref-height: 2px; -fx-margin: 10 0 5 0;"/>
+                            <Label text="🚀 Revolutionary Features" styleClass="revolutionary-section-header"
+                                   style="-fx-text-fill: #4a90e2; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 5 0 5 0;"/>
+
+                            <Button fx:id="templates" mnemonicParsing="false" onAction="#loadPage"
+                                    styleClass="menu_button" text="Smart Templates" VBox.vgrow="ALWAYS">
+                                <graphic>
+                                    <FontIcon iconColor="#28a745" iconLiteral="bi-file-text" iconSize="16"/>
+                                </graphic>
+                            </Button>
+
+                            <Button fx:id="schemaGenerator" mnemonicParsing="false" onAction="#loadPage"
+                                    styleClass="menu_button" text="Schema Generator" VBox.vgrow="ALWAYS">
+                                <graphic>
+                                    <FontIcon iconColor="#dc3545" iconLiteral="bi-diagram-3" iconSize="16"/>
+                                </graphic>
+                            </Button>
+
+                            <Button fx:id="xsltDeveloper" mnemonicParsing="false" onAction="#loadPage"
+                                    styleClass="menu_button" text="XSLT Developer" VBox.vgrow="ALWAYS">
+                                <graphic>
+                                    <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="16"/>
                                 </graphic>
                             </Button>
                         </VBox>

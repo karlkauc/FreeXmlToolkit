@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ FreeXMLToolkit - Universal Toolkit for XML
+  ~ Copyright (c) Karl Kauc 2024.
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  ~
+  -->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.web.WebView?>
+<?import org.kordamp.ikonli.javafx.*?>
+<VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+      AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.XsltDeveloperController"
+      styleClass="revolutionary-page">
+
+    <!-- Enhanced XSLT Developer Header -->
+    <HBox styleClass="revolutionary-header" spacing="15" alignment="CENTER_LEFT">
+        <padding>
+            <Insets top="15" bottom="15" left="20" right="20"/>
+        </padding>
+
+        <VBox alignment="CENTER_LEFT">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <FontIcon iconColor="#fd7e14" iconLiteral="bi-arrow-repeat" iconSize="32"/>
+                <VBox>
+                    <Label text="Advanced XSLT Developer" styleClass="revolutionary-title"/>
+                    <Label text="Professional XSLT 3.0 development with live preview and performance profiling"
+                           styleClass="revolutionary-subtitle"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <ComboBox fx:id="xsltVersionCombo" styleClass="revolutionary-combo" prefWidth="100"/>
+            <ToggleButton fx:id="liveTransformToggle" text="Live Transform" styleClass="btn-toggle"/>
+            <Button fx:id="transformBtn" text="Transform" styleClass="btn-success" onAction="#executeTransformation">
+                <graphic>
+                    <FontIcon iconLiteral="bi-play-fill" iconSize="16"/>
+                </graphic>
+            </Button>
+        </HBox>
+    </HBox>
+
+    <!-- Main Content Area -->
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.5" orientation="HORIZONTAL"
+               styleClass="revolutionary-split-pane">
+        <!-- Left Panel: Input Section -->
+        <VBox spacing="10" styleClass="xslt-input-section">
+            <padding>
+                <Insets top="10" bottom="10" left="15" right="15"/>
+            </padding>
+
+            <!-- Input Tabs -->
+            <TabPane fx:id="inputTabPane" VBox.vgrow="ALWAYS" styleClass="revolutionary-tab-pane">
+                <!-- XML Input Tab -->
+                <Tab text="XML Source" closable="false">
+                    <VBox spacing="8">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="XML Input Document" styleClass="section-header"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="loadXmlBtn" text="Load" styleClass="btn-outline" onAction="#loadXmlFile">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                            <Button fx:id="validateXmlBtn" text="Validate" styleClass="btn-warning"
+                                    onAction="#validateXml">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+
+                        <TextArea fx:id="xmlInputArea" VBox.vgrow="ALWAYS" styleClass="code-input"
+                                  promptText="Enter or load your XML source document..."
+                                  wrapText="false"/>
+                    </VBox>
+                </Tab>
+
+                <!-- XSLT Stylesheet Tab -->
+                <Tab text="XSLT Stylesheet" closable="false">
+                    <VBox spacing="8">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="XSLT Stylesheet" styleClass="section-header"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="loadXsltBtn" text="Load" styleClass="btn-outline" onAction="#loadXsltFile">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                            <Button fx:id="saveXsltBtn" text="Save" styleClass="btn-outline" onAction="#saveXsltFile">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-save" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                            <Button fx:id="validateXsltBtn" text="Validate" styleClass="btn-warning"
+                                    onAction="#validateXslt">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+
+                        <TextArea fx:id="xsltInputArea" VBox.vgrow="ALWAYS" styleClass="code-input"
+                                  promptText="Enter or load your XSLT stylesheet..."
+                                  wrapText="false"/>
+                    </VBox>
+                </Tab>
+
+                <!-- Parameters Tab -->
+                <Tab text="Parameters" closable="false">
+                    <VBox spacing="10">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="XSLT Parameters" styleClass="section-header"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="addParameterBtn" text="Add" styleClass="btn-primary"
+                                    onAction="#addParameter">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-plus-circle" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                            <Button fx:id="removeParameterBtn" text="Remove" styleClass="btn-secondary"
+                                    onAction="#removeParameter">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-dash-circle" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+
+                        <TableView fx:id="parametersTable" VBox.vgrow="ALWAYS" styleClass="revolutionary-table">
+                            <columns>
+                                <TableColumn fx:id="paramNameColumn" text="Parameter Name" prefWidth="150"/>
+                                <TableColumn fx:id="paramValueColumn" text="Value" prefWidth="200"/>
+                                <TableColumn fx:id="paramTypeColumn" text="Type" prefWidth="80"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </Tab>
+            </TabPane>
+        </VBox>
+
+        <!-- Right Panel: Output and Results -->
+        <VBox spacing="10" styleClass="xslt-output-section">
+            <padding>
+                <Insets top="10" bottom="10" left="15" right="15"/>
+            </padding>
+
+            <!-- Output Configuration -->
+            <HBox alignment="CENTER_LEFT" spacing="15" styleClass="output-config">
+                <Label text="Output Format:" styleClass="section-label"/>
+                <ComboBox fx:id="outputFormatCombo" styleClass="revolutionary-combo" prefWidth="100"/>
+
+                <Label text="Encoding:" styleClass="section-label"/>
+                <ComboBox fx:id="encodingCombo" styleClass="revolutionary-combo" prefWidth="100"/>
+
+                <CheckBox fx:id="indentOutputCheckbox" text="Indent Output" selected="true"/>
+            </HBox>
+
+            <!-- Results Tabs -->
+            <TabPane fx:id="resultsTabPane" VBox.vgrow="ALWAYS" styleClass="revolutionary-tab-pane">
+                <!-- Transformation Result Tab -->
+                <Tab text="Result" closable="false">
+                    <VBox spacing="8">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label fx:id="resultStatsLabel" text="" styleClass="result-stats"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="copyResultBtn" text="Copy" styleClass="btn-outline" onAction="#copyResult">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                            <Button fx:id="saveResultBtn" text="Save" styleClass="btn-outline" onAction="#saveResult">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-save" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+
+                        <TextArea fx:id="transformationResultArea" VBox.vgrow="ALWAYS" styleClass="code-preview"
+                                  editable="false" wrapText="false"/>
+                    </VBox>
+                </Tab>
+
+                <!-- Live Preview Tab -->
+                <Tab text="Live Preview" closable="false">
+                    <VBox spacing="5">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="Live HTML Preview" styleClass="section-header"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="refreshPreviewBtn" text="Refresh" styleClass="btn-outline"
+                                    onAction="#refreshPreview">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+
+                        <WebView fx:id="previewWebView" VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </Tab>
+
+                <!-- Performance Tab -->
+                <Tab text="Performance" closable="false">
+                    <VBox spacing="10">
+                        <HBox spacing="20">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="Transformation Metrics" styleClass="subsection-header"/>
+                                <GridPane hgap="10" vgap="5" styleClass="stats-grid">
+                                    <Label text="Execution Time:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <Label fx:id="executionTimeLabel" text="0ms" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="0"/>
+                                    <Label text="Compilation Time:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <Label fx:id="compilationTimeLabel" text="0ms" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="1"/>
+                                    <Label text="Memory Usage:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <Label fx:id="memoryUsageLabel" text="0MB" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="2"/>
+                                    <Label text="Output Size:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                    <Label fx:id="outputSizeLabel" text="0KB" GridPane.columnIndex="1"
+                                           GridPane.rowIndex="3"/>
+                                </GridPane>
+                            </VBox>
+
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="XSLT Features Used" styleClass="subsection-header"/>
+                                <ListView fx:id="featuresListView" prefHeight="120"
+                                          styleClass="revolutionary-list-view"/>
+                            </VBox>
+                        </HBox>
+
+                        <!-- Performance Details -->
+                        <VBox spacing="5" VBox.vgrow="ALWAYS">
+                            <Label text="Detailed Performance Report" styleClass="subsection-header"/>
+                            <TextArea fx:id="performanceReportArea" VBox.vgrow="ALWAYS" styleClass="code-preview"
+                                      editable="false" wrapText="true"/>
+                        </VBox>
+                    </VBox>
+                </Tab>
+
+                <!-- Debug Tab -->
+                <Tab text="Debug" closable="false">
+                    <VBox spacing="10">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="Debug Information" styleClass="section-header"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <CheckBox fx:id="enableDebugMode" text="Enable Debug Mode"/>
+                            <Button fx:id="clearDebugBtn" text="Clear" styleClass="btn-outline" onAction="#clearDebug">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-trash" iconSize="14"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+
+                        <SplitPane dividerPositions="0.5" orientation="VERTICAL" VBox.vgrow="ALWAYS">
+                            <VBox spacing="5">
+                                <Label text="Messages &amp; Warnings" styleClass="subsection-header"/>
+                                <ListView fx:id="messagesListView" styleClass="revolutionary-list-view"/>
+                            </VBox>
+
+                            <VBox spacing="5">
+                                <Label text="Template Execution Trace" styleClass="subsection-header"/>
+                                <TextArea fx:id="traceArea" styleClass="code-preview" editable="false"/>
+                            </VBox>
+                        </SplitPane>
+                    </VBox>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </SplitPane>
+</VBox>

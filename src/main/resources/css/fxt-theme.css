@@ -1,6 +1,6 @@
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
- * Copyright (c) Karl Kauc 2023.
+ * Copyright (c) Karl Kauc 2024.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,6 +15,406 @@
  *  limitations under the License.
  *
  */
+
+/*
+ * ==========================================================================
+ * REVOLUTIONARY FEATURES STYLES - Alleinstellungsmerkmale
+ * The Ultimate XML Editor - Professional Revolutionary Features UI
+ * ==========================================================================
+ */
+
+/* Revolutionary Page Layout */
+.revolutionary-page {
+    -fx-background-color: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+    -fx-padding: 0;
+}
+
+.revolutionary-header {
+    -fx-background-color: linear-gradient(to right, #4a90e2 0%, #357abd 100%);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 3, 0.2, 0, 1);
+}
+
+.revolutionary-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 2, 0.3, 0, 1);
+}
+
+.revolutionary-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #e8f4fd;
+    -fx-opacity: 0.9;
+}
+
+/* Revolutionary Menu Buttons */
+.revolutionary-menu-button {
+    -fx-background-color: linear-gradient(to bottom, #4a90e2 0%, #357abd 100%);
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 1, 0.1, 0, 1);
+}
+
+.revolutionary-menu-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #5ba0f2 0%, #4589cd 100%);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 2, 0.2, 0, 1);
+}
+
+.revolutionary-menu-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #3980d2 0%, #2570ad 100%);
+}
+
+/* Revolutionary Split Panes */
+.revolutionary-split-pane {
+    -fx-background-color: transparent;
+}
+
+.revolutionary-split-pane .split-pane-divider {
+    -fx-background-color: #d1d8e0;
+    -fx-border-width: 0;
+}
+
+/* Revolutionary Panels */
+.templates-sidebar, .schema-config-sidebar, .xslt-input-section {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 0 1 0 0;
+}
+
+.templates-content, .schema-results, .xslt-output-section {
+    -fx-background-color: white;
+}
+
+.config-panel, .xml-input-panel, .template-info-panel, .template-params-panel, .template-preview-panel {
+    -fx-background-color: white;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 2, 0.1, 0, 1);
+    -fx-padding: 15;
+}
+
+/* Revolutionary Section Headers */
+.section-header {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.subsection-header {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #34495e;
+}
+
+.section-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #6c757d;
+}
+
+/* Revolutionary Controls */
+.revolutionary-combo {
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-font-size: 12px;
+}
+
+.revolutionary-combo:focused {
+    -fx-border-color: #4a90e2;
+    -fx-effect: dropshadow(gaussian, rgba(74, 144, 226, 0.3), 3, 0.3, 0, 0);
+}
+
+.revolutionary-search, .revolutionary-input {
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-font-size: 12px;
+    -fx-padding: 8;
+}
+
+.revolutionary-search:focused, .revolutionary-input:focused {
+    -fx-border-color: #4a90e2;
+    -fx-effect: dropshadow(gaussian, rgba(74, 144, 226, 0.3), 3, 0.3, 0, 0);
+}
+
+.revolutionary-list-view {
+    -fx-background-color: white;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.revolutionary-list-view .list-cell {
+    -fx-padding: 8;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #f8f9fa;
+}
+
+.revolutionary-list-view .list-cell:selected {
+    -fx-background-color: #e3f2fd;
+    -fx-text-fill: #1976d2;
+}
+
+.revolutionary-table {
+    -fx-background-color: white;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.revolutionary-table .column-header {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e9ecef;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.revolutionary-table .table-cell {
+    -fx-padding: 6;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #f8f9fa;
+}
+
+/* Revolutionary Tab Panes */
+.revolutionary-tab-pane {
+    -fx-background-color: transparent;
+}
+
+.revolutionary-tab-pane .tab-header-area {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 0 0 1 0;
+}
+
+.revolutionary-tab-pane .tab {
+    -fx-background-color: #e9ecef;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 6 6 0 0;
+    -fx-background-radius: 6 6 0 0;
+    -fx-padding: 8 16 8 16;
+}
+
+.revolutionary-tab-pane .tab:selected {
+    -fx-background-color: white;
+    -fx-border-color: #4a90e2;
+    -fx-border-width: 2 2 0 2;
+}
+
+.revolutionary-tab-pane .tab-content-area {
+    -fx-background-color: white;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 0;
+    -fx-padding: 15;
+}
+
+/* Revolutionary Buttons */
+.btn-primary {
+    -fx-background-color: linear-gradient(to bottom, #4a90e2 0%, #357abd 100%);
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16 8 16;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 2, 0.1, 0, 1);
+}
+
+.btn-primary:hover {
+    -fx-background-color: linear-gradient(to bottom, #5ba0f2 0%, #4589cd 100%);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 3, 0.15, 0, 1);
+}
+
+.btn-primary:pressed {
+    -fx-background-color: linear-gradient(to bottom, #3980d2 0%, #2570ad 100%);
+}
+
+.btn-secondary {
+    -fx-background-color: linear-gradient(to bottom, #6c757d 0%, #5a6268 100%);
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8 16 8 16;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: linear-gradient(to bottom, #7c858d 0%, #6a7278 100%);
+}
+
+.btn-success {
+    -fx-background-color: linear-gradient(to bottom, #28a745 0%, #1e7e34 100%);
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8 16 8 16;
+    -fx-font-weight: bold;
+}
+
+.btn-success:hover {
+    -fx-background-color: linear-gradient(to bottom, #38b755 0%, #2e8e44 100%);
+}
+
+.btn-warning {
+    -fx-background-color: linear-gradient(to bottom, #ffc107 0%, #e0a800 100%);
+    -fx-text-fill: #212529;
+    -fx-border-width: 0;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8 16 8 16;
+    -fx-font-weight: bold;
+}
+
+.btn-warning:hover {
+    -fx-background-color: linear-gradient(to bottom, #ffcd39 0%, #f0b820 100%);
+}
+
+.btn-info {
+    -fx-background-color: linear-gradient(to bottom, #17a2b8 0%, #117a8b 100%);
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8 16 8 16;
+}
+
+.btn-info:hover {
+    -fx-background-color: linear-gradient(to bottom, #27b2c8 0%, #218a9b 100%);
+}
+
+.btn-outline {
+    -fx-background-color: transparent;
+    -fx-text-fill: #4a90e2;
+    -fx-border-color: #4a90e2;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8 16 8 16;
+}
+
+.btn-outline:hover {
+    -fx-background-color: #4a90e2;
+    -fx-text-fill: white;
+}
+
+.btn-large {
+    -fx-font-size: 16px;
+    -fx-padding: 12 24 12 24;
+}
+
+.btn-toggle {
+    -fx-background-color: #e9ecef;
+    -fx-text-fill: #495057;
+    -fx-border-color: #ced4da;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8 16 8 16;
+}
+
+.btn-toggle:selected {
+    -fx-background-color: #4a90e2;
+    -fx-text-fill: white;
+    -fx-border-color: #357abd;
+}
+
+/* Revolutionary Code Areas */
+.code-input, .code-preview {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+    -fx-font-size: 12px;
+    -fx-padding: 10;
+}
+
+.code-input:focused {
+    -fx-border-color: #4a90e2;
+    -fx-effect: dropshadow(gaussian, rgba(74, 144, 226, 0.3), 3, 0.3, 0, 0);
+}
+
+/* Revolutionary Stats and Labels */
+.generation-stats, .result-stats {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6c757d;
+    -fx-font-style: italic;
+}
+
+.template-name {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.template-description {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6c757d;
+    -fx-wrap-text: true;
+}
+
+.template-category, .template-tags {
+    -fx-font-size: 11px;
+    -fx-text-fill: #4a90e2;
+    -fx-font-weight: bold;
+}
+
+.stats-grid {
+    -fx-hgap: 15;
+    -fx-vgap: 8;
+    -fx-padding: 10;
+    -fx-background-color: #f8f9fa;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.stats-grid .label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #495057;
+}
+
+/* Revolutionary Section Header for Menu */
+.revolutionary-section-header {
+    -fx-text-alignment: center;
+    -fx-font-weight: bold;
+    -fx-padding: 5 0 5 0;
+}
+
+/* Enhanced Menu Buttons for XML Variants */
+.enhanced-menu-button {
+    -fx-background-color: linear-gradient(to bottom, #007bff 0%, #0056b3 100%);
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 123, 255, 0.2), 2, 0.2, 0, 1);
+}
+
+.enhanced-menu-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #0088ff 0%, #0066c3 100%);
+    -fx-effect: dropshadow(gaussian, rgba(0, 123, 255, 0.3), 3, 0.3, 0, 1);
+}
+
+.enhanced-menu-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #0066cc 0%, #0044aa 100%);
+}
+
+/* Output Configuration Styles */
+.output-config {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 15 10 15;
+}
 .tagmark {
   -fx-fill: rgb(0, 0, 255);
 }

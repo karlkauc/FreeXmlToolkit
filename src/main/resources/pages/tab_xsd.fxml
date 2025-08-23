@@ -18,7 +18,6 @@
   ~
   -->
 
-<?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.WebView?>
@@ -26,7 +25,6 @@
 <?import org.fxmisc.richtext.CodeArea?>
 <?import org.fxt.freexmltoolkit.controls.XmlCodeEditor?>
 <?import org.kordamp.ikonli.javafx.*?>
-<?import java.lang.String?>
 <VBox AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
       AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.fxt.freexmltoolkit.controller.XsdController">
@@ -272,15 +270,7 @@
 
                     <Label text="Grafik format" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
                     <ChoiceBox fx:id="grafikFormat" value="SVG" GridPane.columnIndex="1"
-                               GridPane.rowIndex="8">
-                        <items>
-                            <FXCollections fx:factory="observableArrayList">
-                                <String fx:value="SVG"/>
-                                <String fx:value="PNG"/>
-                                <String fx:value="JPG"/>
-                            </FXCollections>
-                        </items>
-                    </ChoiceBox>
+                               GridPane.rowIndex="8"/>
 
                     <Button onAction="#generateDocumentation" text="generate" GridPane.columnIndex="1"
                             GridPane.rowIndex="9">
