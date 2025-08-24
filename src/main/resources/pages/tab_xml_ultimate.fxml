@@ -141,10 +141,10 @@
     </HBox>
 
     <!-- Main Content Area with All Features -->
-    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.75" styleClass="xml-split-pane">
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.65" styleClass="xml-split-pane">
         <!-- Left Panel: Editor Tabs (Support for XmlEditor control) -->
         <TabPane fx:id="xmlFilesPane" side="TOP" SplitPane.resizableWithParent="true"
-                 styleClass="xml-editor-tabs"/>
+                 styleClass="xml-editor-tabs" minHeight="300"/>
 
         <!-- Right Panel: Ultimate Sidebar with All Features -->
         <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="250" maxWidth="450" prefWidth="350">
@@ -242,10 +242,10 @@
     </SplitPane>
 
     <!-- Advanced Development Panels - Bottom Tabs -->
-    <TabPane fx:id="developmentTabPane" side="BOTTOM" tabClosingPolicy="SELECTED_TAB" prefHeight="250">
+    <TabPane fx:id="developmentTabPane" side="BOTTOM" tabClosingPolicy="SELECTED_TAB" prefHeight="180" minHeight="150">
         <!-- XPath/XQuery Panel -->
         <Tab fx:id="xPathQueryTab" text="XPath / XQuery" closable="false">
-            <VBox spacing="10" style="-fx-padding: 10;">
+            <VBox spacing="10" style="-fx-padding: 10;" minHeight="120">
                 <!-- Query Controls Bar -->
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <Button fx:id="executeQueryButton" onAction="#runXpathQueryPressed"
@@ -273,7 +273,8 @@
                 <Separator/>
 
                 <!-- Query Input Area -->
-                <TabPane fx:id="xPathQueryPane" tabClosingPolicy="UNAVAILABLE" side="TOP" VBox.vgrow="ALWAYS">
+                <TabPane fx:id="xPathQueryPane" tabClosingPolicy="UNAVAILABLE" side="TOP" VBox.vgrow="ALWAYS"
+                         minHeight="100">
                     <Tab fx:id="xPathTab" text="XPath">
                         <VBox spacing="5" style="-fx-padding: 8;">
                             <HBox spacing="10" alignment="CENTER_LEFT">

@@ -356,6 +356,7 @@ public class MainController {
             case XmlUltimateController xmlUltimateController1 -> {
                 logger.debug("set Ultimate XML Controller");
                 this.xmlUltimateController = xmlUltimateController1;
+                xmlUltimateController1.setParentController(this);
                 initializeIntegrationService();
             }
             case XsdValidationController xsdValidationController -> xsdValidationController.setParentController(this);

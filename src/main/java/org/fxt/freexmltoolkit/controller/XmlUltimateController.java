@@ -76,6 +76,9 @@ public class XmlUltimateController implements Initializable {
     private final SchemaGenerationEngine schemaEngine = SchemaGenerationEngine.getInstance();
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
+    // Parent controller reference
+    private MainController parentController;
+
     // Background processing
     private final ExecutorService executorService = Executors.newCachedThreadPool(runnable -> {
         Thread t = new Thread(runnable);
@@ -447,6 +450,20 @@ public class XmlUltimateController implements Initializable {
 
                 updateDocumentTree(content);
                 validateCurrentXml();
+
+                // Add file to recent files
+                if (parentController != null) {
+                    parentController.addFileToRecentFiles(file);
+                } else {
+                    // Fallback in case the parent controller is not set for some reason
+                    propertiesService.addLastOpenFile(file);
+                }
+
+                // Also set last open directory
+                if (file.getParent() != null) {
+                    propertiesService.setLastOpenDirectory(file.getParent());
+                }
+                
                 logToConsole("Opened file: " + file.getAbsolutePath());
             } catch (IOException e) {
                 showError("File Error", "Could not open file: " + e.getMessage());
@@ -1326,5 +1343,13 @@ public class XmlUltimateController implements Initializable {
         public void setValue(String value) {
             this.value = value;
         }
+    }
+
+    /**
+     * Set the parent MainController reference
+     */
+    public void setParentController(MainController parentController) {
+        this.parentController = parentController;
+        logger.debug("Parent controller set for Ultimate XML Controller");
     }
 }
