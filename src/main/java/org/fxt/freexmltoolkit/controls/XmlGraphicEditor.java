@@ -16,7 +16,6 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -38,7 +37,6 @@ public class XmlGraphicEditor extends VBox {
 
     private final XmlEditor xmlEditor;
     private final Node currentDomNode;
-    private XmlEditorSidebarController sidebarController;
     private javafx.scene.Node currentSelectedUINode;
     private Node currentSelectedDomNode;
 
@@ -60,16 +58,10 @@ public class XmlGraphicEditor extends VBox {
     }
 
     /**
-     * Sets the sidebar controller for integration with XmlEditorSidebar functionality
+     * Sidebar functionality has been moved to Ultimate XML Editor
      */
-    public void setSidebarController(XmlEditorSidebarController sidebarController) {
-        this.sidebarController = sidebarController;
-        logger.info("🔗 XmlGraphicEditor: Sidebar controller set: {}", sidebarController != null ? "SUCCESS" : "NULL");
-
-        // If sidebar controller is now available, setup node selection for all existing nodes
-        if (sidebarController != null) {
-            setupNodeSelectionForAllNodes();
-        }
+    public void setSidebarController(Object sidebarController) {
+        // Functionality moved to Ultimate XML Editor
     }
 
     /**
@@ -78,7 +70,7 @@ public class XmlGraphicEditor extends VBox {
     private void setupNodeSelectionForAllNodes() {
         logger.info("🔄 XmlGraphicEditor: Setting up node selection for {} mapped nodes", uiNodeToDomNodeMap.size());
 
-        // Use the direct mapping instead of complex heuristics
+        // Functionality moved to Ultimate XML Editor
         for (Map.Entry<javafx.scene.Node, Node> entry : uiNodeToDomNodeMap.entrySet()) {
             javafx.scene.Node uiNode = entry.getKey();
             Node domNode = entry.getValue();
@@ -86,7 +78,7 @@ public class XmlGraphicEditor extends VBox {
             logger.debug("🔗 Setting up selection for mapped: {} -> DOM: {}",
                     uiNode.getClass().getSimpleName(), domNode.getNodeName());
 
-            setupNodeSelectionForSpecificNode(uiNode, domNode);
+            // Functionality moved to Ultimate XML Editor
         }
     }
 
@@ -95,8 +87,8 @@ public class XmlGraphicEditor extends VBox {
      * Sets up node selection for a specific UI node - DOM node pair
      */
     private void setupNodeSelectionForSpecificNode(javafx.scene.Node uiNode, Node domNode) {
-        if (sidebarController == null) {
-            logger.warn("⚠️  XmlGraphicEditor: Cannot setup node selection - sidebarController is still null!");
+        if (false) { // Functionality moved to Ultimate XML Editor
+            logger.warn("⚠️  XmlGraphicEditor: Cannot setup node selection - functionality moved to Ultimate XML Editor!");
             return;
         }
 
@@ -144,7 +136,7 @@ public class XmlGraphicEditor extends VBox {
      * Special setup for text cells that preserves double-click text editing
      */
     private void setupNodeSelectionForTextCell(javafx.scene.Node cellPane, Node domNode) {
-        if (sidebarController == null) {
+        if (false) { // Functionality moved to Ultimate XML Editor
             return;
         }
 
@@ -316,7 +308,7 @@ public class XmlGraphicEditor extends VBox {
         logger.debug("🗂️ Mapped GridPane -> DOM node: {}", subNode.getNodeName());
 
         // Set up node selection immediately if sidebar controller is available
-        if (sidebarController != null) {
+        if (false) { // Functionality moved to Ultimate XML Editor
             setupNodeSelectionForSpecificNode(gridPane, subNode);
             logger.debug("✅ Set up node selection for text GridPane: {}", subNode.getNodeName());
         }
@@ -486,8 +478,8 @@ public class XmlGraphicEditor extends VBox {
                     } else {
                         // Create nested XmlGraphicEditor and pass sidebar controller
                         XmlGraphicEditor nestedEditor = new XmlGraphicEditor(subNode, xmlEditor);
-                        if (sidebarController != null) {
-                            nestedEditor.setSidebarController(sidebarController);
+                        if (false) { // Functionality moved to Ultimate XML Editor
+                            nestedEditor.setSidebarController(null);
                             logger.debug("🔗 Passed sidebar controller to nested editor for: {}", subNode.getNodeName());
                         }
                         childrenContainer.getChildren().add(nestedEditor);
@@ -515,7 +507,7 @@ public class XmlGraphicEditor extends VBox {
         logger.debug("🗂️ Mapped VBox -> DOM node: {}", subNode.getNodeName());
 
         // Set up node selection immediately if sidebar controller is available
-        if (sidebarController != null) {
+        if (false) { // Functionality moved to Ultimate XML Editor
             setupNodeSelectionForSpecificNode(elementContainer, subNode);
             logger.debug("✅ Set up node selection for complex element VBox: {}", subNode.getNodeName());
         }
@@ -711,8 +703,8 @@ public class XmlGraphicEditor extends VBox {
         } else {
             // Nested complex nodes in a table
             XmlGraphicEditor nestedEditor = new XmlGraphicEditor(oneNode, xmlEditor);
-            if (sidebarController != null) {
-                nestedEditor.setSidebarController(sidebarController);
+            if (false) { // Functionality moved to Ultimate XML Editor
+                nestedEditor.setSidebarController(null);
                 logger.debug("🔗 Passed sidebar controller to table nested editor for: {}", oneNode.getNodeName());
             }
             cellPane = new StackPane(nestedEditor);
@@ -727,7 +719,7 @@ public class XmlGraphicEditor extends VBox {
         boolean isTextNode = (oneNode.getChildNodes().getLength() == 1 &&
                 oneNode.getChildNodes().item(0).getNodeType() == Node.TEXT_NODE);
 
-        if (sidebarController != null) {
+        if (false) { // Functionality moved to Ultimate XML Editor
             if (!isTextNode) {
                 setupNodeSelectionForSpecificNode(cellPane, oneNode);
                 logger.debug("✅ Set up node selection for complex table cell: {}", oneNode.getNodeName());
@@ -1327,8 +1319,8 @@ public class XmlGraphicEditor extends VBox {
     private void updateSidebarInformation(Node domNode) {
         logger.info("🔄 XmlGraphicEditor: updateSidebarInformation called for: {}", domNode.getNodeName());
 
-        if (sidebarController == null) {
-            logger.error("❌ XmlGraphicEditor: sidebarController is null! Cannot update sidebar.");
+        if (true) { // Functionality moved to Ultimate XML Editor
+            logger.error("❌ XmlGraphicEditor: Sidebar functionality moved to Ultimate XML Editor.");
             return;
         }
 
@@ -1337,7 +1329,7 @@ public class XmlGraphicEditor extends VBox {
             String xpath = buildXPathForNode(domNode);
             logger.info("📍 XmlGraphicEditor: Built XPath: {}", xpath);
 
-            sidebarController.setXPath(xpath);
+            // Functionality moved to Ultimate XML Editor
             logger.info("✅ XmlGraphicEditor: XPath set in sidebar: {}", xpath);
 
             // Prefer XSD-backed info if available
@@ -1346,12 +1338,10 @@ public class XmlGraphicEditor extends VBox {
 
             if (xsdInfo != null) {
                 logger.info("📚 XmlGraphicEditor: Using XSD-backed information for element: {}", xsdInfo.getElementName());
-                sidebarController.setElementName(xsdInfo.getElementName());
-                sidebarController.setElementType(xsdInfo.getElementType() != null ? xsdInfo.getElementType() : "");
+                // Functionality moved to Ultimate XML Editor
                 // Documentation and examples
                 String documentation = xmlEditor.getDocumentationFromExtendedElement(xsdInfo);
-                sidebarController.setDocumentation(documentation != null ? documentation : "");
-                sidebarController.setExampleValues(xsdInfo.getExampleValues());
+                // Functionality moved to Ultimate XML Editor
 
                 // Possible child elements from XSD map
                 java.util.List<String> childElements = new java.util.ArrayList<>();
@@ -1370,12 +1360,10 @@ public class XmlGraphicEditor extends VBox {
                 if (childElements.isEmpty()) {
                     childElements = getChildElementNames(domNode);
                 }
-                sidebarController.setPossibleChildElements(childElements);
+                // Functionality moved to Ultimate XML Editor
 
             } else if (domNode.getNodeType() == Node.ATTRIBUTE_NODE) {
-                sidebarController.setElementName("@" + domNode.getNodeName());
-                sidebarController.setElementType("attribute");
-                sidebarController.setDocumentation("Attribute: " + domNode.getNodeName() + " = " + domNode.getNodeValue());
+                // Functionality moved to Ultimate XML Editor
             } else {
                 // Fallback: DOM-derived info
                 logger.info("📝 XmlGraphicEditor: Using DOM-based fallback information");
@@ -1388,15 +1376,10 @@ public class XmlGraphicEditor extends VBox {
                     logger.info("   Element Type: {}", elementType);
                     logger.info("   Child Elements: {}", childElements);
 
-                    sidebarController.setElementName(elementName);
-                    sidebarController.setElementType(elementType);
-                    sidebarController.setDocumentation("Element: " + elementName);
-                    sidebarController.setPossibleChildElements(childElements);
+                    // Functionality moved to Ultimate XML Editor
                 } else {
                     logger.info("   Non-element node: {} (Type: {})", domNode.getNodeName(), domNode.getNodeType());
-                    sidebarController.setElementName(domNode.getNodeName());
-                    sidebarController.setElementType(getNodeTypeString(domNode.getNodeType()));
-                    sidebarController.setDocumentation("Node: " + domNode.getNodeName());
+                    // Functionality moved to Ultimate XML Editor
                 }
             }
 

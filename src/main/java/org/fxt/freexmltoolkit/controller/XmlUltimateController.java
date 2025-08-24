@@ -56,10 +56,12 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static java.nio.file.Files.readString;
+import static java.nio.file.Files.writeString;
 
 /**
  * Ultimate XML Controller - The Complete XML Editor with All Features
@@ -121,7 +123,7 @@ public class XmlUltimateController implements Initializable {
 
     // Main Editor
     @FXML
-    private TabPane xmlFilesPane;
+    TabPane xmlFilesPane;
 
     // Sidebar Components
     @FXML
@@ -138,6 +140,60 @@ public class XmlUltimateController implements Initializable {
     private TableColumn<PropertyEntry, String> propertyValueColumn;
     @FXML
     private ListView<String> namespacesList;
+
+    // XSD Schema Configuration (merged from XmlEditorSidebar)
+    @FXML
+    private TextField xsdPathField;
+    @FXML
+    private Button changeXsdButton;
+    @FXML
+    private Label validationStatusLabel;
+    @FXML
+    private CheckBox continuousValidationCheckBox;
+
+    // Validation Errors (merged from XmlEditorSidebar)
+    @FXML
+    private TitledPane validationErrorsPane;
+    @FXML
+    private Label validationErrorsCountLabel;
+    @FXML
+    private ListView<String> validationErrorsListView;
+
+    // Schematron Configuration and Errors (merged from XmlEditorSidebar)
+    @FXML
+    private TextField schematronPathField;
+    @FXML
+    private Button changeSchematronButton;
+    @FXML
+    private Label schematronValidationStatusLabel;
+    @FXML
+    private Button schematronDetailsButton;
+    @FXML
+    private CheckBox continuousSchematronValidationCheckBox;
+    @FXML
+    private TitledPane schematronErrorsPane;
+    @FXML
+    private Label schematronErrorsCountLabel;
+    @FXML
+    private ListView<String> schematronErrorsListView;
+
+    // Cursor Information (merged from XmlEditorSidebar)
+    @FXML
+    private TextField xpathField;
+    @FXML
+    private TextField elementNameField;
+    @FXML
+    private TextField elementTypeField;
+
+    // Node Documentation (merged from XmlEditorSidebar)
+    @FXML
+    private TextArea documentationTextArea;
+
+    // Example Values and Child Elements (merged from XmlEditorSidebar)
+    @FXML
+    private ListView<String> exampleValuesListView;
+    @FXML
+    private ListView<String> childElementsListView;
 
     // Smart Templates Panel
     @FXML
@@ -436,7 +492,7 @@ public class XmlUltimateController implements Initializable {
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
             try {
-                String content = Files.readString(file.toPath());
+                String content = readString(file.toPath());
                 currentXmlFile = file;
                 currentXmlContent = content;
 
@@ -493,7 +549,7 @@ public class XmlUltimateController implements Initializable {
 
             if (currentXmlFile != null) {
                 try {
-                    Files.writeString(currentXmlFile.toPath(), currentXmlContent);
+                    writeString(currentXmlFile.toPath(), currentXmlContent);
                     currentTab.setText(currentXmlFile.getName());
                     logToConsole("Saved file: " + currentXmlFile.getAbsolutePath());
                 } catch (IOException e) {
@@ -815,7 +871,7 @@ public class XmlUltimateController implements Initializable {
             File file = fileChooser.showSaveDialog(null);
             if (file != null) {
                 try {
-                    Files.writeString(file.toPath(), generatedSchemaContent);
+                    writeString(file.toPath(), generatedSchemaContent);
                     logToConsole("Schema exported to: " + file.getAbsolutePath());
                 } catch (IOException e) {
                     showError("Export Error", "Could not export schema: " + e.getMessage());
@@ -842,7 +898,7 @@ public class XmlUltimateController implements Initializable {
         File file = fileChooser.showOpenDialog(null);
         if (file != null && xsltEditorArea != null) {
             try {
-                currentXsltContent = Files.readString(file.toPath());
+                currentXsltContent = readString(file.toPath());
                 xsltEditorArea.setText(currentXsltContent);
                 logToConsole("XSLT loaded: " + file.getName());
             } catch (IOException e) {
@@ -867,7 +923,7 @@ public class XmlUltimateController implements Initializable {
             File file = fileChooser.showSaveDialog(null);
             if (file != null) {
                 try {
-                    Files.writeString(file.toPath(), xsltEditorArea.getText());
+                    writeString(file.toPath(), xsltEditorArea.getText());
                     logToConsole("XSLT saved: " + file.getName());
                 } catch (IOException e) {
                     showError("Save Error", "Could not save XSLT: " + e.getMessage());
@@ -1351,5 +1407,47 @@ public class XmlUltimateController implements Initializable {
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
         logger.debug("Parent controller set for Ultimate XML Controller");
+    }
+
+    /**
+     * Load a file into the Ultimate XML Editor (called from MainController)
+     */
+    public void loadFileFromExternal(File file) {
+        if (file == null || !file.exists()) {
+            logger.warn("Cannot load file - file is null or doesn't exist: {}", file);
+            return;
+        }
+
+        try {
+            String content = readString(file.toPath());
+            currentXmlFile = file;
+            currentXmlContent = content;
+
+            if (xmlFilesPane != null) {
+                XmlEditor xmlEditor = new XmlEditor();
+                xmlEditor.setText(file.getName());
+                xmlEditor.codeArea.replaceText(content);
+                xmlFilesPane.getTabs().add(xmlEditor);
+                xmlFilesPane.getSelectionModel().select(xmlEditor);
+            }
+
+            updateDocumentTree(content);
+            validateCurrentXml();
+            logToConsole("Loaded file from recent files: " + file.getAbsolutePath());
+            logger.info("Successfully loaded file from external call: {}", file.getAbsolutePath());
+        } catch (Exception e) {
+            logger.error("Failed to load file from external call: {}", e.getMessage(), e);
+            showError("File Error", "Could not load file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Show Schematron validation details in a dialog
+     */
+    public void showSchematronDetails() {
+        // Implementation for showing Schematron validation details
+        // This would typically open a dialog with detailed Schematron validation results
+        logger.info("Show Schematron details requested");
+        logToConsole("Schematron details functionality - implementation needed");
     }
 }

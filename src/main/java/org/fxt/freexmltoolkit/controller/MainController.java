@@ -70,7 +70,7 @@ public class MainController {
     AnchorPane contentPane;
 
     @FXML
-    Button xslt, xml, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, templates;
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, templates;
 
     @FXML
     MenuItem menuItemExit;
@@ -78,8 +78,6 @@ public class MainController {
     @FXML
     Menu lastOpenFilesMenu;
 
-    @FXML
-    CheckMenuItem xmlEditorSidebarMenuItem;
 
     @FXML
     CheckMenuItem xpathQueryPaneMenuItem;
@@ -148,14 +146,7 @@ public class MainController {
     }
 
     private void loadXmlEditorSidebarPreference() {
-        String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
-        boolean isVisible = sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
-
-        if (xmlEditorSidebarMenuItem != null) {
-            xmlEditorSidebarMenuItem.setSelected(isVisible);
-        }
-
-        logger.debug("Loaded XML Editor Sidebar preference: {}", isVisible);
+        // XML Editor Sidebar functionality removed
     }
 
     private void loadXPathQueryPanePreference() {
@@ -296,17 +287,20 @@ public class MainController {
     }
 
     public void switchToXmlViewAndLoadFile(File fileToLoad) {
-        if (xml == null) {
-            logger.error("XML-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
+        if (xmlUltimate == null) {
+            logger.error("XML Ultimate Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
         }
-        xml.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
-        xml.getStyleClass().add("active");
+        xmlUltimate.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        xmlUltimate.getStyleClass().add("active");
 
         loadPageFromPath("/pages/tab_xml_ultimate.fxml");
 
         if (this.xmlUltimateController != null && fileToLoad != null && fileToLoad.exists()) {
-            // Ultimate XML Controller handles file loading internally
+            // Load the file in the Ultimate XML Controller using the dedicated method
+            Platform.runLater(() -> {
+                xmlUltimateController.loadFileFromExternal(fileToLoad);
+            });
         } else {
             logger.warn("XML Ultimate Controller ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
         }
@@ -472,10 +466,10 @@ public class MainController {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xml, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xml, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
         }
         showMenu = !showMenu;
     }
@@ -500,33 +494,16 @@ public class MainController {
 
     @FXML
     private void toggleXmlEditorSidebar() {
-        boolean isVisible = xmlEditorSidebarMenuItem.isSelected();
-        logger.debug("Toggle XML Editor Sidebar: {}", isVisible);
-
-        propertiesService.set("xmlEditorSidebar.visible", String.valueOf(isVisible));
-
-        if (xmlUltimateController != null) {
-            // Ultimate XML Controller handles sidebar automatically(isVisible);
-        }
+        // XML Editor Sidebar functionality removed
     }
 
     public boolean isXmlEditorSidebarVisible() {
-        String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
-        return sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
+        // XML Editor Sidebar functionality removed
+        return false;
     }
 
     public void toggleXmlEditorSidebarFromSidebar(boolean visible) {
-        logger.debug("Toggle XML Editor Sidebar from sidebar button: {}", visible);
-
-        if (xmlEditorSidebarMenuItem != null) {
-            xmlEditorSidebarMenuItem.setSelected(visible);
-        }
-
-        propertiesService.set("xmlEditorSidebar.visible", String.valueOf(visible));
-
-        if (xmlUltimateController != null) {
-            // Ultimate XML Controller handles sidebar automatically(visible);
-        }
+        // XML Editor Sidebar functionality removed
     }
 
     @FXML
@@ -561,7 +538,7 @@ public class MainController {
             logger.debug("Selected file type: {}", fileType);
             switch (fileType) {
                 case "XML" -> {
-                    xml.fire();
+                    xmlUltimate.fire();
                     Platform.runLater(() -> {
                         if (xmlUltimateController != null) {
                             xmlUltimateController.newFilePressed();
@@ -613,7 +590,7 @@ public class MainController {
 
             String fileName = selectedFile.getName().toLowerCase();
             if (fileName.endsWith(".xml")) {
-                xml.fire();
+                xmlUltimate.fire();
                 Platform.runLater(() -> {
                     if (xmlUltimateController != null) {
                         // Ultimate XML Controller handles file loading(selectedFile);
@@ -636,7 +613,7 @@ public class MainController {
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
                 xslt.fire();
             } else {
-                xml.fire();
+                xmlUltimate.fire();
                 Platform.runLater(() -> {
                     if (xmlUltimateController != null) {
                         // Ultimate XML Controller handles file loading(selectedFile);
