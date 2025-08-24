@@ -5,7 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.SchematronController;
-import org.fxt.freexmltoolkit.controller.XmlController;
+import org.fxt.freexmltoolkit.controller.XmlUltimateController;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class SchematronXmlIntegrationService {
     private static final Logger logger = LogManager.getLogger(SchematronXmlIntegrationService.class);
 
     private MainController mainController;
-    private XmlController xmlController;
+    private XmlUltimateController xmlController;
     private SchematronController schematronController;
 
     // Integration state
@@ -40,7 +40,7 @@ public class SchematronXmlIntegrationService {
     /**
      * Initialize the integration service with controllers
      */
-    public void initialize(MainController mainController, XmlController xmlController,
+    public void initialize(MainController mainController, XmlUltimateController xmlController,
                            SchematronController schematronController) {
         this.mainController = mainController;
         this.xmlController = xmlController;

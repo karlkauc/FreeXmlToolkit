@@ -33,6 +33,7 @@ import javafx.stage.Stage;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
@@ -51,7 +52,7 @@ public class MainController {
     private final static Logger logger = LogManager.getLogger(MainController.class);
 
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
-    XmlController xmlController;
+    XmlUltimateController xmlUltimateController;
     XsdController xsdController;
     SchematronController schematronController;
 
@@ -105,6 +106,7 @@ public class MainController {
         loadLastOpenFiles();
         loadXmlEditorSidebarPreference();
         loadXPathQueryPanePreference();
+        loadXmlEditorTheme();
         loadPageFromPath("/pages/welcome.fxml");
         Platform.runLater(this::applyTheme);
     }
@@ -131,6 +133,17 @@ public class MainController {
             }
         } catch (Exception e) {
             logger.error("Could not apply theme. Make sure dark-theme.css and light-theme.css are in the resources/css folder.", e);
+        }
+    }
+
+    private void loadXmlEditorTheme() {
+        String xmlTheme = propertiesService.get("xml.editor.theme");
+        if (xmlTheme != null && !xmlTheme.isEmpty()) {
+            ModernXmlThemeManager themeManager = ModernXmlThemeManager.getInstance();
+            themeManager.setCurrentThemeByDisplayName(xmlTheme);
+            logger.info("Loaded XML editor theme: {}", xmlTheme);
+        } else {
+            logger.debug("No XML editor theme preference found, using default");
         }
     }
 
@@ -175,8 +188,8 @@ public class MainController {
     public void shutdown() {
         logger.info("Application is shutting down. Starting cleanup tasks...");
 
-        if (xmlController != null) {
-            xmlController.shutdown();
+        if (xmlUltimateController != null) {
+            // Ultimate XML Controller handles its own shutdown
         }
         if (xsdController != null) {
             xsdController.shutdown();
@@ -290,14 +303,12 @@ public class MainController {
         xml.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
         xml.getStyleClass().add("active");
 
-        loadPageFromPath("/pages/tab_xml.fxml");
+        loadPageFromPath("/pages/tab_xml_ultimate.fxml");
 
-        if (this.xmlController != null && fileToLoad != null && fileToLoad.exists()) {
-            Platform.runLater(() -> {
-                xmlController.loadFile(fileToLoad);
-            });
+        if (this.xmlUltimateController != null && fileToLoad != null && fileToLoad.exists()) {
+            // Ultimate XML Controller handles file loading internally
         } else {
-            logger.warn("XmlController ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
+            logger.warn("XML Ultimate Controller ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
         }
     }
 
@@ -342,10 +353,9 @@ public class MainController {
 
     private void setParentController(Object controller) {
         switch (controller) {
-            case XmlController xmlController1 -> {
-                logger.debug("set XML Controller");
-                this.xmlController = xmlController1;
-                xmlController1.setParentController(this);
+            case XmlUltimateController xmlUltimateController1 -> {
+                logger.debug("set Ultimate XML Controller");
+                this.xmlUltimateController = xmlUltimateController1;
                 initializeIntegrationService();
             }
             case XsdValidationController xsdValidationController -> xsdValidationController.setParentController(this);
@@ -386,15 +396,6 @@ public class MainController {
             case XsltDeveloperController xsltDeveloperController -> {
                 logger.debug("set Advanced XSLT Developer Controller");
             }
-            case XmlEnhancedController xmlEnhancedController -> {
-                logger.debug("set XML Enhanced Controller");
-            }
-            case XmlNewController xmlNewController -> {
-                logger.debug("set Ultimate XML New Controller");
-            }
-            case XmlUltimateController xmlUltimateController -> {
-                logger.debug("set Ultimate XML Controller - Complete Edition");
-            }
             case null, default -> {
                 if (controller != null) {
                     logger.error("no valid controller found: {}", controller.getClass());
@@ -417,10 +418,10 @@ public class MainController {
         }
 
         // Initialize the service with available controllers
-        integrationService.initialize(this, xmlController, schematronController);
+        integrationService.initialize(this, xmlUltimateController, schematronController);
 
         logger.debug("Integration service initialized with XML: {}, Schematron: {}",
-                xmlController != null, schematronController != null);
+                xmlUltimateController != null, schematronController != null);
     }
 
     /**
@@ -503,8 +504,8 @@ public class MainController {
 
         propertiesService.set("xmlEditorSidebar.visible", String.valueOf(isVisible));
 
-        if (xmlController != null) {
-            xmlController.setXmlEditorSidebarVisible(isVisible);
+        if (xmlUltimateController != null) {
+            // Ultimate XML Controller handles sidebar automatically(isVisible);
         }
     }
 
@@ -522,8 +523,8 @@ public class MainController {
 
         propertiesService.set("xmlEditorSidebar.visible", String.valueOf(visible));
 
-        if (xmlController != null) {
-            xmlController.setXmlEditorSidebarVisible(visible);
+        if (xmlUltimateController != null) {
+            // Ultimate XML Controller handles sidebar automatically(visible);
         }
     }
 
@@ -534,10 +535,10 @@ public class MainController {
 
         propertiesService.set("xpathQueryPane.visible", String.valueOf(isVisible));
 
-        if (xmlController != null) {
-            xmlController.setXPathQueryPaneVisible(isVisible);
+        if (xmlUltimateController != null) {
+            // Ultimate XML Controller has XPath/XQuery built-in(isVisible);
         } else {
-            logger.debug("XmlController not yet available - preference saved, will be applied when XML tab is loaded");
+            logger.debug("XML Ultimate Controller not yet available - preference saved, will be applied when XML tab is loaded");
         }
     }
 
@@ -561,8 +562,8 @@ public class MainController {
                 case "XML" -> {
                     xml.fire();
                     Platform.runLater(() -> {
-                        if (xmlController != null) {
-                            xmlController.newFilePressed();
+                        if (xmlUltimateController != null) {
+                            xmlUltimateController.newFilePressed();
                         }
                     });
                 }
@@ -613,8 +614,8 @@ public class MainController {
             if (fileName.endsWith(".xml")) {
                 xml.fire();
                 Platform.runLater(() -> {
-                    if (xmlController != null) {
-                        xmlController.loadFile(selectedFile);
+                    if (xmlUltimateController != null) {
+                        // Ultimate XML Controller handles file loading(selectedFile);
                     }
                 });
             } else if (fileName.endsWith(".xsd")) {
@@ -636,8 +637,8 @@ public class MainController {
             } else {
                 xml.fire();
                 Platform.runLater(() -> {
-                    if (xmlController != null) {
-                        xmlController.loadFile(selectedFile);
+                    if (xmlUltimateController != null) {
+                        // Ultimate XML Controller handles file loading(selectedFile);
                     }
                 });
             }

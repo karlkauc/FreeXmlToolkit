@@ -23,6 +23,7 @@ import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
 import org.fxt.freexmltoolkit.service.ConnectionService;
 import org.fxt.freexmltoolkit.service.ConnectionServiceImpl;
@@ -63,6 +64,9 @@ public class SettingsController {
     @FXML
     ToggleGroup proxy, tempFolder, theme;
 
+    @FXML
+    ComboBox<String> xmlThemeComboBox;
+
     private MainController parentController;
 
     public void setParentController(MainController parentController) {
@@ -74,6 +78,11 @@ public class SettingsController {
         portSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 65535, 8080));
         xmlIndentSpaces.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 4));
         xmlFontSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(8, 24, 12));
+
+        // Initialize XML theme combo box
+        ModernXmlThemeManager themeManager = ModernXmlThemeManager.getInstance();
+        xmlThemeComboBox.getItems().addAll(themeManager.getThemeNames());
+        
         loadCurrentSettings();
 
         // Listener to enable/disable input fields
@@ -171,6 +180,14 @@ public class SettingsController {
             props.setProperty("ui.theme", darkTheme.isSelected() ? "dark" : "light");
             props.setProperty("ui.xml.font.size", xmlFontSize.getValue().toString());
 
+            // Save XML editor theme
+            String selectedTheme = xmlThemeComboBox.getSelectionModel().getSelectedItem();
+            if (selectedTheme != null) {
+                props.setProperty("xml.editor.theme", selectedTheme);
+                // Apply the theme immediately
+                ModernXmlThemeManager.getInstance().setCurrentThemeByDisplayName(selectedTheme);
+            }
+
             propertiesService.saveProperties(props);
 
             // Show success message
@@ -257,6 +274,17 @@ public class SettingsController {
             logger.warn("Invalid font size in settings, defaulting to 12.");
         }
         xmlFontSize.getValueFactory().setValue(fontSize);
+
+        // Load XML editor theme
+        String xmlTheme = props.getProperty("xml.editor.theme", "Modern Light");
+        ModernXmlThemeManager themeManager = ModernXmlThemeManager.getInstance();
+        if (xmlThemeComboBox.getItems().contains(xmlTheme)) {
+            xmlThemeComboBox.getSelectionModel().select(xmlTheme);
+        } else {
+            // Select current theme if saved theme not found
+            String currentThemeName = themeManager.getCurrentTheme().getDisplayName();
+            xmlThemeComboBox.getSelectionModel().select(currentThemeName);
+        }
     }
 
     /**

@@ -747,6 +747,25 @@ public class ModernXmlThemeManager {
      * Load current theme from preferences
      */
     private void loadCurrentTheme() {
+        // First try to load from properties service for consistency
+        try {
+            org.fxt.freexmltoolkit.service.PropertiesService propertiesService =
+                    org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance();
+            String themeDisplayName = propertiesService.get("xml.editor.theme");
+
+            if (themeDisplayName != null && !themeDisplayName.isEmpty()) {
+                XmlHighlightTheme theme = getThemeByDisplayName(themeDisplayName);
+                if (theme != null) {
+                    currentTheme = theme;
+                    logger.info("Loaded XML syntax highlighting theme from properties: {}", currentTheme.getDisplayName());
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Could not load theme from properties service: {}", e.getMessage());
+        }
+
+        // Fallback to preferences
         String themeName = preferences.get(CURRENT_THEME_KEY, DEFAULT_THEME_NAME.toLowerCase().replace(" ", "-"));
         XmlHighlightTheme theme = getTheme(themeName);
 

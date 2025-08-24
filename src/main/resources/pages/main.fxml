@@ -129,9 +129,9 @@
                             -->
 
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                    text="XML Ultimate" fx:id="xmlUltimate">
+                                    text="XML Editor" fx:id="xmlUltimate">
                                 <graphic>
-                                    <FontIcon iconColor="#FFD700" iconLiteral="bi-star-fill" iconSize="16"/>
+                                    <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
                                 </graphic>
                             </Button>
                             <Button onAction="#loadPage" styleClass="menu_button" text="XSD Editor" VBox.vgrow="ALWAYS"

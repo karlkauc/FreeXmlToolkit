@@ -33,6 +33,10 @@ import javafx.stage.FileChooser;
 import javafx.util.converter.DefaultStringConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxmisc.flowless.VirtualizedScrollPane;
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
+import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
@@ -79,6 +83,12 @@ public class XmlUltimateController implements Initializable {
         t.setName("UltimateXML-Thread");
         return t;
     });
+
+    // XPath/XQuery Code Areas
+    private final CodeArea codeAreaXpath = new CodeArea();
+    private final CodeArea codeAreaXQuery = new CodeArea();
+    private VirtualizedScrollPane<CodeArea> virtualizedScrollPaneXpath;
+    private VirtualizedScrollPane<CodeArea> virtualizedScrollPaneXQuery;
 
     // Toolbar Buttons
     @FXML
@@ -171,6 +181,12 @@ public class XmlUltimateController implements Initializable {
     private Tab xQueryTab;
     @FXML
     private StackPane stackPaneXQuery;
+    @FXML
+    private Label queryResultLabel;
+    @FXML
+    private Button executeQueryButton;
+    @FXML
+    private Button clearQueryButton;
 
     // XSLT Development
     @FXML
@@ -236,6 +252,7 @@ public class XmlUltimateController implements Initializable {
         initializeComboBoxes();
         initializeUI();
         initializeTables();
+        initializeXPathXQuery();
         loadTemplates();
         createInitialTab();
         logger.info("Ultimate XML Controller initialized successfully");
@@ -274,6 +291,65 @@ public class XmlUltimateController implements Initializable {
                 }
             });
         }
+    }
+
+    private void initializeXPathXQuery() {
+        logger.debug("Initializing XPath/XQuery components");
+
+        if (stackPaneXPath == null || stackPaneXQuery == null) {
+            logger.error("StackPanes for XPath/XQuery are null! Check FXML bindings.");
+            return;
+        }
+
+        // Initialize XPath code area
+        codeAreaXpath.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXpath));
+        codeAreaXpath.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 13px; -fx-background-color: white;");
+        codeAreaXpath.setPrefHeight(100);
+        virtualizedScrollPaneXpath = new VirtualizedScrollPane<>(codeAreaXpath);
+        virtualizedScrollPaneXpath.setStyle("-fx-background-color: white;");
+        stackPaneXPath.getChildren().clear();
+        stackPaneXPath.getChildren().add(virtualizedScrollPaneXpath);
+
+        // Add placeholder text
+        codeAreaXpath.replaceText("// Enter your XPath expression here\n// Example: //book[@category='fiction']/title");
+
+        codeAreaXpath.textProperty().addListener((obs, oldText, newText) -> {
+            if (newText != null && !newText.equals(oldText)) {
+                Platform.runLater(() -> {
+                    try {
+                        codeAreaXpath.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText));
+                    } catch (Exception e) {
+                        logger.debug("Error highlighting XPath: {}", e.getMessage());
+                    }
+                });
+            }
+        });
+
+        // Initialize XQuery code area
+        codeAreaXQuery.setParagraphGraphicFactory(LineNumberFactory.get(codeAreaXQuery));
+        codeAreaXQuery.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 13px; -fx-background-color: white;");
+        codeAreaXQuery.setPrefHeight(100);
+        virtualizedScrollPaneXQuery = new VirtualizedScrollPane<>(codeAreaXQuery);
+        virtualizedScrollPaneXQuery.setStyle("-fx-background-color: white;");
+        stackPaneXQuery.getChildren().clear();
+        stackPaneXQuery.getChildren().add(virtualizedScrollPaneXQuery);
+
+        // Add placeholder text
+        codeAreaXQuery.replaceText("(: Enter your XQuery expression here :)\n(: Example: for $x in //book return $x/title :)");
+
+        codeAreaXQuery.textProperty().addListener((obs, oldText, newText) -> {
+            if (newText != null && !newText.equals(oldText)) {
+                Platform.runLater(() -> {
+                    try {
+                        codeAreaXQuery.setStyleSpans(0, XmlCodeEditor.computeHighlighting(newText));
+                    } catch (Exception e) {
+                        logger.debug("Error highlighting XQuery: {}", e.getMessage());
+                    }
+                });
+            }
+        });
+
+        logger.info("XPath/XQuery code areas initialized successfully");
     }
 
     private void initializeTables() {
@@ -541,29 +617,8 @@ public class XmlUltimateController implements Initializable {
     }
 
     /**
-     * Query Operations
+     * Query Operations - Placeholder (real implementation below)
      */
-    @FXML
-    private void runXpathQueryPressed() {
-        logger.info("Running XPath Query");
-        logToConsole("Executing XPath query...");
-
-        // Show XPath panel
-        if (developmentTabPane != null && xPathQueryTab != null) {
-            developmentTabPane.getSelectionModel().select(xPathQueryTab);
-        }
-
-        // TODO: Implement actual XPath query execution
-        TextInputDialog dialog = new TextInputDialog("//root/*");
-        dialog.setTitle("XPath Query");
-        dialog.setHeaderText("Enter XPath Expression");
-        dialog.setContentText("XPath:");
-
-        dialog.showAndWait().ifPresent(xpath -> {
-            logToConsole("Executing XPath: " + xpath);
-            // Execute XPath query here
-        });
-    }
 
     /**
      * Revolutionary Features
@@ -1035,6 +1090,197 @@ public class XmlUltimateController implements Initializable {
         transformer.transform(source, result);
 
         return writer.toString();
+    }
+
+    // XPath/XQuery Methods
+    private String executeXQuery(String xmlContent, String xQuery) throws Exception {
+        try {
+            net.sf.saxon.s9api.Processor saxon = new net.sf.saxon.s9api.Processor(false);
+            net.sf.saxon.s9api.XQueryCompiler compiler = saxon.newXQueryCompiler();
+            net.sf.saxon.s9api.XQueryExecutable executable = compiler.compile(xQuery);
+
+            net.sf.saxon.s9api.DocumentBuilder builder = saxon.newDocumentBuilder();
+            javax.xml.transform.Source src = new javax.xml.transform.stream.StreamSource(
+                    new java.io.StringReader(xmlContent));
+            net.sf.saxon.s9api.XdmNode doc = builder.build(src);
+
+            net.sf.saxon.s9api.XQueryEvaluator evaluator = executable.load();
+            evaluator.setContextItem(doc);
+            net.sf.saxon.s9api.XdmValue result = evaluator.evaluate();
+
+            StringBuilder resultBuilder = new StringBuilder();
+            for (net.sf.saxon.s9api.XdmItem item : result) {
+                if (resultBuilder.length() > 0) {
+                    resultBuilder.append(System.lineSeparator());
+                }
+                resultBuilder.append(item.toString());
+            }
+
+            return resultBuilder.toString();
+        } catch (Exception e) {
+            logger.error("XQuery execution failed: {}", e.getMessage(), e);
+            throw new Exception("XQuery execution failed: " + e.getMessage(), e);
+        }
+    }
+
+    private XmlEditor getCurrentEditor() {
+        if (xmlFilesPane != null) {
+            Tab selectedTab = xmlFilesPane.getSelectionModel().getSelectedItem();
+            if (selectedTab instanceof XmlEditor) {
+                return (XmlEditor) selectedTab;
+            }
+        }
+        return null;
+    }
+
+    @FXML
+    private void runXpathQueryPressed() {
+        XmlEditor currentEditor = getCurrentEditor();
+        if (currentEditor == null || currentEditor.getXmlCodeEditor() == null) {
+            showError("No Editor", "No XML editor is currently active");
+            return;
+        }
+
+        CodeArea currentCodeArea = currentEditor.getXmlCodeEditor().getCodeArea();
+        if (currentCodeArea == null || currentCodeArea.getText() == null) {
+            return;
+        }
+
+        String xml = currentCodeArea.getText();
+        Tab selectedItem = xPathQueryPane.getSelectionModel().getSelectedItem();
+
+        final String query;
+        try {
+            if ("xPathTab".equals(selectedItem.getId())) {
+                query = codeAreaXpath.getText();
+            } else if ("xQueryTab".equals(selectedItem.getId())) {
+                query = codeAreaXQuery.getText();
+            } else {
+                return;
+            }
+        } catch (Exception e) {
+            logger.error("Error accessing query text: {}", e.getMessage());
+            return;
+        }
+
+        if (query == null || query.trim().isEmpty()) {
+            logger.warn("Query is empty, nothing to execute");
+            return;
+        }
+
+        logger.debug("Executing query: {}", query);
+
+        // Update status label
+        if (queryResultLabel != null) {
+            Platform.runLater(() -> queryResultLabel.setText("Executing query..."));
+        }
+
+        Task<String> queryTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                if ("xQueryTab".equals(selectedItem.getId())) {
+                    // Execute XQuery with XML content as context
+                    return executeXQuery(xml, query);
+                } else if ("xPathTab".equals(selectedItem.getId())) {
+                    return currentEditor.getXmlService().getXmlFromXpath(xml, query);
+                } else {
+                    return "";
+                }
+            }
+        };
+
+        queryTask.setOnSucceeded(event -> {
+            String queryResult = queryTask.getValue();
+            if (queryResult != null && !queryResult.isEmpty()) {
+                logger.debug("Query result length: {}", queryResult.length());
+                currentCodeArea.clear();
+                currentCodeArea.replaceText(0, 0, queryResult);
+                if (queryResultLabel != null) {
+                    queryResultLabel.setText("Query executed successfully (" + queryResult.length() + " chars)");
+                }
+                logToConsole("Query executed successfully");
+            } else {
+                logger.debug("Query returned empty result");
+                if (queryResultLabel != null) {
+                    queryResultLabel.setText("Query returned no results");
+                }
+                logToConsole("Query returned no results");
+            }
+        });
+
+        queryTask.setOnFailed(event -> {
+            logger.error("Query execution failed", queryTask.getException());
+            if (queryResultLabel != null) {
+                queryResultLabel.setText("Error: " + queryTask.getException().getMessage());
+            }
+            showError("Query Error", "Failed to execute query: " + queryTask.getException().getMessage());
+        });
+
+        executorService.submit(queryTask);
+    }
+
+    @FXML
+    private void clearXpathQuery() {
+        Tab selectedTab = xPathQueryPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null) {
+            try {
+                if ("xPathTab".equals(selectedTab.getId())) {
+                    codeAreaXpath.clear();
+                } else if ("xQueryTab".equals(selectedTab.getId())) {
+                    codeAreaXQuery.clear();
+                }
+                if (queryResultLabel != null) {
+                    queryResultLabel.setText("Query cleared");
+                }
+            } catch (Exception e) {
+                logger.error("Error clearing query: {}", e.getMessage());
+            }
+        }
+    }
+
+    @FXML
+    private void insertXPathExample1() {
+        codeAreaXpath.replaceText("//node");
+        xPathQueryPane.getSelectionModel().select(0);
+    }
+
+    @FXML
+    private void insertXPathExample2() {
+        codeAreaXpath.replaceText("/root/child[@attr='value']");
+        xPathQueryPane.getSelectionModel().select(0);
+    }
+
+    @FXML
+    private void insertXPathExample3() {
+        codeAreaXpath.replaceText("//text()");
+        xPathQueryPane.getSelectionModel().select(0);
+    }
+
+    @FXML
+    private void insertXPathExample4() {
+        codeAreaXpath.replaceText("count(//element)");
+        xPathQueryPane.getSelectionModel().select(0);
+    }
+
+    @FXML
+    private void insertXQueryExample1() {
+        codeAreaXQuery.replaceText("for $x in //item return $x");
+        xPathQueryPane.getSelectionModel().select(1);
+    }
+
+    @FXML
+    private void insertXQueryExample2() {
+        codeAreaXQuery.replaceText("for $x in //item where $x/@id='1' return $x/name");
+        xPathQueryPane.getSelectionModel().select(1);
+    }
+
+    @FXML
+    private void reloadXmlText() {
+        XmlEditor currentEditor = getCurrentEditor();
+        if (currentEditor != null && currentEditor.getXmlFile() != null && currentEditor.getXmlFile().exists()) {
+            currentEditor.refresh();
+            logToConsole("XML reloaded from file");
+        }
     }
 
     private void showInfo(String title, String message) {
