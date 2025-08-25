@@ -296,17 +296,36 @@ public class MainController {
     }
 
     public void switchToXmlViewAndLoadFile(File fileToLoad) {
-        if (xml == null) {
-            logger.error("XML-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
+        // Use xmlUltimate button instead of xml (which doesn't exist anymore)
+        if (xmlUltimate == null) {
+            logger.error("XML Ultimate Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
         }
-        xml.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
-        xml.getStyleClass().add("active");
+        xmlUltimate.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        xmlUltimate.getStyleClass().add("active");
 
         loadPageFromPath("/pages/tab_xml_ultimate.fxml");
 
         if (this.xmlUltimateController != null && fileToLoad != null && fileToLoad.exists()) {
-            // Ultimate XML Controller handles file loading internally
+            // Schedule file loading after the controller is fully initialized
+            Platform.runLater(() -> {
+                // Call the open file method to load the file
+                try {
+                    String content = java.nio.file.Files.readString(fileToLoad.toPath());
+                    // Create new tab in the XML editor with the file content
+                    if (xmlUltimateController.xmlFilesPane != null) {
+                        var xmlEditor = new org.fxt.freexmltoolkit.controls.XmlEditor();
+                        xmlEditor.setText(fileToLoad.getName());
+                        xmlEditor.codeArea.replaceText(content);
+                        xmlUltimateController.xmlFilesPane.getTabs().add(xmlEditor);
+                        xmlUltimateController.xmlFilesPane.getSelectionModel().select(xmlEditor);
+
+                        logger.info("Successfully loaded file: {}", fileToLoad.getAbsolutePath());
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to load file from recent files: {}", e.getMessage(), e);
+                }
+            });
         } else {
             logger.warn("XML Ultimate Controller ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
         }
@@ -561,7 +580,7 @@ public class MainController {
             logger.debug("Selected file type: {}", fileType);
             switch (fileType) {
                 case "XML" -> {
-                    xml.fire();
+                    xmlUltimate.fire();
                     Platform.runLater(() -> {
                         if (xmlUltimateController != null) {
                             xmlUltimateController.newFilePressed();
@@ -613,7 +632,7 @@ public class MainController {
 
             String fileName = selectedFile.getName().toLowerCase();
             if (fileName.endsWith(".xml")) {
-                xml.fire();
+                xmlUltimate.fire();
                 Platform.runLater(() -> {
                     if (xmlUltimateController != null) {
                         // Ultimate XML Controller handles file loading(selectedFile);
@@ -636,7 +655,7 @@ public class MainController {
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
                 xslt.fire();
             } else {
-                xml.fire();
+                xmlUltimate.fire();
                 Platform.runLater(() -> {
                     if (xmlUltimateController != null) {
                         // Ultimate XML Controller handles file loading(selectedFile);
