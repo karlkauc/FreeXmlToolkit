@@ -1588,12 +1588,34 @@ public class XmlCodeEditor extends VBox {
      */
     private List<String> getContextSpecificElements(String parentElement) {
         logger.debug("Getting context-specific elements for parent: {}", parentElement);
-        logger.debug("Available contextElementNames keys: {}", contextElementNames.keySet());
+
+        // PRIORITY 1: Always try XSD-based lookup first (regardless of parentElement)
+        if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
+            try {
+                List<String> sidebarElements = getSidebarChildElements(xmlEditor, parentElement);
+                if (sidebarElements != null && !sidebarElements.isEmpty()) {
+                    logger.debug("SUCCESS: Found {} XSD-based elements: {}", sidebarElements.size(), sidebarElements);
+                    return sidebarElements;
+                } else {
+                    logger.debug("XSD lookup returned null or empty for parentElement: {}", parentElement);
+                }
+            } catch (Exception e) {
+                logger.error("Error in XSD-based element lookup: {}", e.getMessage(), e);
+            }
+        } else {
+            logger.debug("parentXmlEditor is null or wrong type");
+        }
+
+        // FALLBACK: Use static context mapping
+        logger.debug("Using static context mapping, available keys: {}", contextElementNames.keySet());
         
         if (parentElement == null) {
-            // If no parent context, return root-level elements
-            List<String> rootElements = contextElementNames.getOrDefault("root", availableElementNames);
-            logger.debug("No parent context - returning root elements: {}", rootElements.size());
+            // If no parent context, return root-level elements (but smaller set)
+            List<String> rootElements = contextElementNames.getOrDefault("root", Collections.emptyList());
+            if (rootElements.isEmpty()) {
+                rootElements = Arrays.asList("FundsXML4", "root", "document", "data");
+            }
+            logger.debug("No parent context - returning limited root elements: {}", rootElements.size());
             return rootElements;
         }
 
@@ -1614,9 +1636,192 @@ public class XmlCodeEditor extends VBox {
             }
         }
 
-        // Final fallback to general element names if no specific children found
-        logger.debug("No specific children found for parent '{}' - falling back to availableElementNames: {}", parentElement, availableElementNames.size());
-        return availableElementNames;
+        // Final fallback - return minimal set
+        logger.debug("No specific children found for parent '{}' - using minimal fallback", parentElement);
+        return Arrays.asList("element", "item", "data", "value", "content", "name", "id", "type");
+    }
+
+    /**
+     * Gets child elements using the same logic as the XmlEditor sidebar.
+     * This ensures IntelliSense shows the same elements as "Possible Child Elements" in sidebar.
+     */
+    private List<String> getSidebarChildElements(org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor, String parentElement) {
+        try {
+            logger.debug("getSidebarChildElements called with parentElement: {}", parentElement);
+
+            // Get current cursor position and build XPath
+            int caretPosition = codeArea.getCaretPosition();
+            String text = codeArea.getText();
+            logger.debug("Current cursor position: {}, text length: {}", caretPosition, text.length());
+
+            // Build XPath for current cursor position
+            String currentXPath = buildXPathForCurrentPosition(text, caretPosition);
+            logger.debug("Built XPath for current position: '{}'", currentXPath);
+
+            if (currentXPath == null || currentXPath.trim().isEmpty()) {
+                logger.debug("Could not determine XPath for current position, returning null");
+                return null;
+            }
+
+            // Use XmlEditor's child element lookup method (same as sidebar uses)
+            List<String> childElements = getChildElementsFromXsdByXPath(xmlEditor, currentXPath);
+            logger.debug("getChildElementsFromXsdByXPath returned: {} elements",
+                    childElements != null ? childElements.size() : "null");
+
+            if (childElements != null && !childElements.isEmpty()) {
+                // Clean up the element names - remove formatting and extract just names
+                List<String> cleanedElements = extractCleanElementNames(childElements);
+                logger.debug("Cleaned element names: {}", cleanedElements);
+                return cleanedElements;
+            } else {
+                logger.debug("No child elements found for XPath: {}", currentXPath);
+            }
+
+            return null;
+        } catch (Exception e) {
+            logger.error("Error in getSidebarChildElements: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Builds XPath for the current cursor position to determine context.
+     */
+    private String buildXPathForCurrentPosition(String text, int caretPosition) {
+        try {
+            // Similar to getCurrentElementContext but returns XPath instead of just element name
+            java.util.Stack<String> elementStack = new java.util.Stack<>();
+
+            // Find all opening and closing tags before cursor
+            String textBeforeCursor = text.substring(0, caretPosition);
+
+            java.util.regex.Matcher openMatcher = OPEN_TAG_PATTERN.matcher(textBeforeCursor);
+            java.util.List<java.util.regex.MatchResult> openTags = new java.util.ArrayList<>();
+            while (openMatcher.find()) {
+                openTags.add(openMatcher.toMatchResult());
+            }
+
+            java.util.regex.Matcher closeMatcher = CLOSE_TAG_PATTERN.matcher(textBeforeCursor);
+            java.util.List<java.util.regex.MatchResult> closeTags = new java.util.ArrayList<>();
+            while (closeMatcher.find()) {
+                closeTags.add(closeMatcher.toMatchResult());
+            }
+
+            // Build element stack by processing tags in order
+            int openIndex = 0, closeIndex = 0;
+            while (openIndex < openTags.size() || closeIndex < closeTags.size()) {
+                boolean takeOpen = false;
+
+                if (openIndex >= openTags.size()) {
+                    takeOpen = false;
+                } else if (closeIndex >= closeTags.size()) {
+                    takeOpen = true;
+                } else {
+                    takeOpen = openTags.get(openIndex).start() < closeTags.get(closeIndex).start();
+                }
+
+                if (takeOpen) {
+                    String tagName = openTags.get(openIndex).group(1);
+                    if (tagName != null && !tagName.trim().isEmpty()) {
+                        elementStack.push(tagName.trim());
+                    }
+                    openIndex++;
+                } else {
+                    if (!elementStack.isEmpty()) {
+                        elementStack.pop();
+                    }
+                    closeIndex++;
+                }
+            }
+
+            // Build XPath from element stack
+            if (elementStack.isEmpty()) {
+                return "/";
+            }
+
+            StringBuilder xpath = new StringBuilder();
+            for (String element : elementStack) {
+                xpath.append("/").append(element);
+            }
+
+            return xpath.toString();
+        } catch (Exception e) {
+            logger.error("Error building XPath for current position: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Gets child elements from XSD using XPath (same method as XmlEditor sidebar uses).
+     */
+    private List<String> getChildElementsFromXsdByXPath(org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor, String xpath) {
+        try {
+            logger.debug("Getting child elements from XmlEditor for XPath: {}", xpath);
+
+            // Use the new public method in XmlEditor
+            List<String> childElements = xmlEditor.getChildElementsForIntelliSense(xpath);
+
+            if (childElements != null && !childElements.isEmpty()) {
+                logger.debug("Found {} child elements from XmlEditor: {}", childElements.size(), childElements);
+                return childElements;
+            }
+
+            return null;
+
+        } catch (Exception e) {
+            logger.error("Error getting child elements from XSD by XPath: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Extracts element name from XPath (e.g., "/root/child" -> "child").
+     */
+    private String getElementNameFromXPath(String xpath) {
+        if (xpath == null || xpath.trim().isEmpty() || xpath.equals("/")) {
+            return null;
+        }
+
+        String[] parts = xpath.split("/");
+        return parts.length > 0 ? parts[parts.length - 1] : null;
+    }
+
+    /**
+     * Cleans up element names from display format to simple names for IntelliSense.
+     */
+    private List<String> extractCleanElementNames(List<String> displayElements) {
+        if (displayElements == null) return null;
+
+        return displayElements.stream()
+                .map(this::extractElementNameFromDisplay)
+                .filter(name -> name != null && !name.trim().isEmpty())
+                .distinct()
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Extracts element name from display text (e.g., "elementName (type: string)" -> "elementName").
+     */
+    private String extractElementNameFromDisplay(String displayText) {
+        if (displayText == null) return null;
+
+        // Handle different display formats
+        String text = displayText.trim();
+
+        // Format: "elementName (type: ...)" -> "elementName"  
+        int parenIndex = text.indexOf(" (");
+        if (parenIndex > 0) {
+            return text.substring(0, parenIndex);
+        }
+
+        // Format: "elementName - description" -> "elementName"
+        int dashIndex = text.indexOf(" - ");
+        if (dashIndex > 0) {
+            return text.substring(0, dashIndex);
+        }
+
+        // Format: just element name
+        return text;
     }
 
     /**

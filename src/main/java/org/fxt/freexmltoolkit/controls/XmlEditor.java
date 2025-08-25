@@ -973,6 +973,60 @@ public class XmlEditor extends Tab {
         return xsdFile;
     }
 
+    /**
+     * Public method to get child elements for IntelliSense use.
+     * This allows XmlCodeEditor to get the same child elements as shown in sidebar.
+     */
+    public List<String> getChildElementsForIntelliSense(String xpath) {
+        try {
+            if (xpath == null || xpath.trim().isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            logger.debug("Getting child elements for IntelliSense, XPath: {}", xpath);
+
+            // Use the same logic as updateChildElements() but return the list instead of setting sidebar
+            if (xsdDocumentationData == null) {
+                return Collections.emptyList();
+            }
+
+            // Look up the element information in the extendedXsdElementMap
+            XsdExtendedElement elementInfo = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+
+            if (elementInfo == null) {
+                // Try to find a partial match or parent element
+                elementInfo = findBestMatchingElement(xpath);
+            }
+
+            if (elementInfo != null) {
+                List<String> childElements = elementInfo.getChildren();
+                if (childElements != null && !childElements.isEmpty()) {
+                    // Format child elements to show only names, not full XPaths
+                    List<String> formattedChildren = formatChildElementsForDisplay(childElements);
+                    logger.debug("Found {} formatted child elements for IntelliSense: {}", formattedChildren.size(), formattedChildren);
+                    return formattedChildren;
+                }
+            } else {
+                // Fallback: try to find child elements using element name from xpath
+                String elementName = getElementNameFromXPath(xpath);
+                if (elementName != null) {
+                    List<String> childElements = getChildElementsFromXsdByName(elementName);
+                    if (!childElements.isEmpty()) {
+                        // Format child elements to show only names, not full XPaths
+                        List<String> formattedChildren = formatChildElementsForDisplay(childElements);
+                        logger.debug("Found {} formatted child elements by name for IntelliSense: {}", formattedChildren.size(), formattedChildren);
+                        return formattedChildren;
+                    }
+                }
+            }
+
+            return Collections.emptyList();
+        } catch (Exception e) {
+            logger.error("Error getting child elements for IntelliSense", e);
+            return Collections.emptyList();
+        }
+    }
+
     public void setXsdFile(File xsdFile) {
         this.xsdFile = xsdFile;
         if (sidebarController != null) {
