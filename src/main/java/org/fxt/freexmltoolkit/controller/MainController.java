@@ -653,4 +653,30 @@ public class MainController {
             addFileToRecentFiles(selectedFile);
         }
     }
+
+    // Methods for opening files in specific editors (used by SettingsController for favorites)
+
+    public void openXmlFileInEditor(File file) {
+        if (file != null && xmlUltimateController != null) {
+            xmlUltimate.fire(); // Switch to XML tab
+            Platform.runLater(() -> xmlUltimateController.loadXmlFile(file));
+            logger.info("Opening XML file in editor: {}", file.getAbsolutePath());
+        }
+    }
+
+    public void openXsdFileInEditor(File file) {
+        if (file != null && xsdController != null) {
+            xsd.fire(); // Switch to XSD tab
+            Platform.runLater(() -> xsdController.openXsdFile(file));
+            logger.info("Opening XSD file in editor: {}", file.getAbsolutePath());
+        }
+    }
+
+    public void openSchematronFileInEditor(File file) {
+        if (file != null && schematronController != null) {
+            schematron.fire(); // Switch to Schematron tab
+            Platform.runLater(() -> schematronController.loadSchematronFile(file));
+            logger.info("Opening Schematron file in editor: {}", file.getAbsolutePath());
+        }
+    }
 }

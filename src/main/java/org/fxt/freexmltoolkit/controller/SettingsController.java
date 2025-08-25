@@ -18,17 +18,19 @@
 
 package org.fxt.freexmltoolkit.controller;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
-import org.fxt.freexmltoolkit.service.ConnectionService;
-import org.fxt.freexmltoolkit.service.ConnectionServiceImpl;
-import org.fxt.freexmltoolkit.service.PropertiesService;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.domain.FileFavorite;
+import org.fxt.freexmltoolkit.service.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -42,6 +44,7 @@ public class SettingsController {
     private final static Logger logger = LogManager.getLogger(SettingsController.class);
     PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     ConnectionService connectionService = ConnectionServiceImpl.getInstance();
+    FavoritesService favoritesService = FavoritesService.getInstance();
 
     @FXML
     RadioButton noProxy, systemProxy, manualProxy, useSystemTempFolder, useCustomTempFolder, lightTheme, darkTheme;
@@ -67,6 +70,22 @@ public class SettingsController {
     @FXML
     ComboBox<String> xmlThemeComboBox;
 
+    // Favorites Management FXML components
+    @FXML
+    TableView<FileFavorite> favoritesTable;
+
+    @FXML
+    TableColumn<FileFavorite, String> nameColumn, categoryColumn, fileTypeColumn, pathColumn;
+
+    @FXML
+    Button openFavoriteButton, editFavoriteButton, removeFavoriteButton, removeNonExistentButton, createCategoryButton;
+
+    @FXML
+    TextField newCategoryField;
+
+    // Data for favorites table
+    private final ObservableList<FileFavorite> favoritesData = FXCollections.observableArrayList();
+
     private MainController parentController;
 
     public void setParentController(MainController parentController) {
@@ -82,6 +101,9 @@ public class SettingsController {
         // Initialize XML theme combo box
         ModernXmlThemeManager themeManager = ModernXmlThemeManager.getInstance();
         xmlThemeComboBox.getItems().addAll(themeManager.getThemeNames());
+
+        // Initialize favorites table
+        initializeFavoritesTable();
         
         loadCurrentSettings();
 
@@ -285,6 +307,222 @@ public class SettingsController {
             String currentThemeName = themeManager.getCurrentTheme().getDisplayName();
             xmlThemeComboBox.getSelectionModel().select(currentThemeName);
         }
+    }
+
+    // Favorites Management Methods
+
+    private void initializeFavoritesTable() {
+        // Set up table columns
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("folderName"));
+        fileTypeColumn.setCellValueFactory(new PropertyValueFactory<>("fileType"));
+        pathColumn.setCellValueFactory(new PropertyValueFactory<>("filePath"));
+
+        // Set the data source
+        favoritesTable.setItems(favoritesData);
+
+        // Load favorites data
+        refreshFavoritesTable();
+
+        // Enable/disable buttons based on selection
+        favoritesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            boolean hasSelection = newSelection != null;
+            openFavoriteButton.setDisable(!hasSelection);
+            editFavoriteButton.setDisable(!hasSelection);
+            removeFavoriteButton.setDisable(!hasSelection);
+        });
+
+        // Initially disable action buttons
+        openFavoriteButton.setDisable(true);
+        editFavoriteButton.setDisable(true);
+        removeFavoriteButton.setDisable(true);
+    }
+
+    private void refreshFavoritesTable() {
+        favoritesData.clear();
+        List<FileFavorite> favorites = favoritesService.getAllFavorites();
+        favoritesData.addAll(favorites);
+        logger.debug("Loaded {} favorites into table", favorites.size());
+    }
+
+    @FXML
+    private void openSelectedFavorite() {
+        FileFavorite selectedFavorite = favoritesTable.getSelectionModel().getSelectedItem();
+        if (selectedFavorite == null) {
+            return;
+        }
+
+        File file = new File(selectedFavorite.getFilePath());
+        if (!file.exists()) {
+            showAlert(Alert.AlertType.ERROR, "File Not Found",
+                    "The file no longer exists at: " + selectedFavorite.getFilePath());
+            return;
+        }
+
+        // Open the file in the appropriate editor based on file type
+        if (parentController != null) {
+            try {
+                switch (selectedFavorite.getFileType()) {
+                    case XML -> parentController.openXmlFileInEditor(file);
+                    case XSD -> parentController.openXsdFileInEditor(file);
+                    case SCHEMATRON -> parentController.openSchematronFileInEditor(file);
+                    default -> parentController.openXmlFileInEditor(file); // fallback to XML editor
+                }
+                showAlert(Alert.AlertType.INFORMATION, "File Opened",
+                        "Opened " + selectedFavorite.getName() + " in the appropriate editor.");
+            } catch (Exception e) {
+                logger.error("Failed to open favorite file", e);
+                showAlert(Alert.AlertType.ERROR, "Error Opening File",
+                        "Could not open file: " + e.getMessage());
+            }
+        }
+    }
+
+    @FXML
+    private void editSelectedFavorite() {
+        FileFavorite selectedFavorite = favoritesTable.getSelectionModel().getSelectedItem();
+        if (selectedFavorite == null) {
+            return;
+        }
+
+        // Create a dialog to edit the favorite
+        Dialog<FileFavorite> dialog = new Dialog<>();
+        dialog.setTitle("Edit Favorite");
+        dialog.setHeaderText("Edit favorite: " + selectedFavorite.getName());
+
+        // Set up dialog buttons
+        ButtonType saveButtonType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+        // Create form fields
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+
+        TextField nameField = new TextField(selectedFavorite.getName());
+        TextField categoryField = new TextField(selectedFavorite.getFolderName());
+        TextArea descriptionArea = new TextArea(selectedFavorite.getDescription());
+        descriptionArea.setPrefRowCount(3);
+
+        grid.add(new Label("Name:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Category:"), 0, 1);
+        grid.add(categoryField, 1, 1);
+        grid.add(new Label("Description:"), 0, 2);
+        grid.add(descriptionArea, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Convert result when Save is clicked
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                selectedFavorite.setName(nameField.getText().trim());
+                selectedFavorite.setFolderName(categoryField.getText().trim());
+                selectedFavorite.setDescription(descriptionArea.getText().trim());
+                return selectedFavorite;
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(favorite -> {
+            favoritesService.updateFavorite(favorite);
+            refreshFavoritesTable();
+            showAlert(Alert.AlertType.INFORMATION, "Favorite Updated",
+                    "Successfully updated favorite: " + favorite.getName());
+        });
+    }
+
+    @FXML
+    private void removeSelectedFavorite() {
+        FileFavorite selectedFavorite = favoritesTable.getSelectionModel().getSelectedItem();
+        if (selectedFavorite == null) {
+            return;
+        }
+
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Remove Favorite");
+        confirmDialog.setHeaderText("Remove favorite?");
+        confirmDialog.setContentText("Are you sure you want to remove \"" + selectedFavorite.getName() + "\" from favorites?");
+
+        confirmDialog.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                favoritesService.removeFavorite(selectedFavorite.getId());
+                refreshFavoritesTable();
+                showAlert(Alert.AlertType.INFORMATION, "Favorite Removed",
+                        "Successfully removed favorite: " + selectedFavorite.getName());
+            }
+        });
+    }
+
+    @FXML
+    private void removeNonExistentFavorites() {
+        List<FileFavorite> allFavorites = favoritesService.getAllFavorites();
+        List<FileFavorite> nonExistentFavorites = allFavorites.stream()
+                .filter(favorite -> !new File(favorite.getFilePath()).exists())
+                .toList();
+
+        if (nonExistentFavorites.isEmpty()) {
+            showAlert(Alert.AlertType.INFORMATION, "No Non-Existent Files",
+                    "All favorites point to existing files.");
+            return;
+        }
+
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Remove Non-Existent Favorites");
+        confirmDialog.setHeaderText("Remove " + nonExistentFavorites.size() + " non-existent favorites?");
+        confirmDialog.setContentText("This will remove all favorites that point to files that no longer exist.");
+
+        confirmDialog.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                int removedCount = 0;
+                for (FileFavorite favorite : nonExistentFavorites) {
+                    favoritesService.removeFavorite(favorite.getId());
+                    removedCount++;
+                }
+                refreshFavoritesTable();
+                showAlert(Alert.AlertType.INFORMATION, "Favorites Cleaned",
+                        "Removed " + removedCount + " non-existent favorites.");
+            }
+        });
+    }
+
+    @FXML
+    private void createNewCategory() {
+        String categoryName = newCategoryField.getText().trim();
+        if (categoryName.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Invalid Category Name",
+                    "Please enter a category name.");
+            return;
+        }
+
+        // Check if category already exists
+        List<String> existingCategories = favoritesService.getAllFavorites().stream()
+                .map(FileFavorite::getFolderName)
+                .distinct()
+                .toList();
+
+        if (existingCategories.contains(categoryName)) {
+            showAlert(Alert.AlertType.WARNING, "Category Exists",
+                    "A category with the name \"" + categoryName + "\" already exists.");
+            return;
+        }
+
+        // Create a placeholder favorite in this category (will be removed when first real favorite is added)
+        FileFavorite placeholder = new FileFavorite();
+        placeholder.setName("_placeholder_");
+        placeholder.setFolderName(categoryName);
+        placeholder.setFilePath("");
+        placeholder.setFileType(FileFavorite.FileType.OTHER);
+        placeholder.setDescription("Category placeholder - will be removed automatically");
+
+        favoritesService.addFavorite(placeholder);
+
+        // Clear the input field and show success message
+        newCategoryField.clear();
+        showAlert(Alert.AlertType.INFORMATION, "Category Created",
+                "Created new category: " + categoryName + "\n\nThe category will appear in dropdowns when adding favorites.");
+
+        logger.info("Created new favorites category: {}", categoryName);
     }
 
     /**

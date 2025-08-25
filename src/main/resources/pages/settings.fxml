@@ -177,6 +177,71 @@
                 </content>
             </TitledPane>
 
+            <!-- Section 5: Favorites Management -->
+            <TitledPane animated="true" expanded="false" text="Favorites Management">
+                <graphic>
+                    <FontIcon iconLiteral="bi-star-fill" iconSize="20"/>
+                </graphic>
+                <content>
+                    <VBox style="-fx-padding: 15 5 5 5;" spacing="15">
+                        <!-- Favorites List -->
+                        <VBox spacing="10">
+                            <Label styleClass="h3" text="Manage Saved Favorites"/>
+                            <TableView fx:id="favoritesTable" prefHeight="300">
+                                <columns>
+                                    <TableColumn fx:id="nameColumn" text="Name" prefWidth="200"/>
+                                    <TableColumn fx:id="categoryColumn" text="Category" prefWidth="150"/>
+                                    <TableColumn fx:id="fileTypeColumn" text="Type" prefWidth="80"/>
+                                    <TableColumn fx:id="pathColumn" text="Path" prefWidth="300"/>
+                                </columns>
+                            </TableView>
+
+                            <!-- Favorites Actions -->
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Button fx:id="openFavoriteButton" onAction="#openSelectedFavorite" text="Open">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="editFavoriteButton" onAction="#editSelectedFavorite" text="Edit">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-pencil" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="removeFavoriteButton" onAction="#removeSelectedFavorite" text="Remove">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-trash" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                                <Button fx:id="removeNonExistentButton" onAction="#removeNonExistentFavorites"
+                                        text="Remove Non-Existent">
+                                    <graphic>
+                                        <FontIcon iconLiteral="bi-x-circle" iconSize="16"/>
+                                    </graphic>
+                                </Button>
+                            </HBox>
+
+                            <!-- Category Management -->
+                            <Separator/>
+                            <Label styleClass="h3" text="Category Management"/>
+                            <VBox spacing="10">
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <TextField fx:id="newCategoryField" promptText="Enter new category name"
+                                               HBox.hgrow="ALWAYS"/>
+                                    <Button fx:id="createCategoryButton" onAction="#createNewCategory"
+                                            text="Create Category">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-plus-circle" iconSize="16"/>
+                                        </graphic>
+                                    </Button>
+                                </HBox>
+                                <Label text="Categories with favorites cannot be deleted" styleClass="text-muted"/>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+                </content>
+            </TitledPane>
+
             <!-- Action Buttons at the bottom -->
             <HBox spacing="10.0" alignment="CENTER_LEFT" style="-fx-padding: 20 0 0 0;">
                 <Button mnemonicParsing="false" onAction="#performSave" text="Save Settings"

@@ -420,6 +420,9 @@ public class XmlUltimateController implements Initializable {
 
                     // Set the XML file to trigger automatic XSD schema detection
                     xmlEditor.setXmlFile(file);
+
+                    // Store the File object in userData so favorites can access it
+                    xmlEditor.setUserData(file);
                     
                     xmlFilesPane.getTabs().add(xmlEditor);
                     xmlFilesPane.getSelectionModel().select(xmlEditor);
@@ -473,6 +476,9 @@ public class XmlUltimateController implements Initializable {
 
                 // Set the XML file to trigger automatic XSD schema detection
                 xmlEditor.setXmlFile(file);
+
+                // Store the File object in userData so favorites can access it
+                xmlEditor.setUserData(file);
                 
                 xmlFilesPane.getTabs().add(xmlEditor);
                 xmlFilesPane.getSelectionModel().select(xmlEditor);
