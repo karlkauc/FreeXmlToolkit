@@ -402,6 +402,10 @@ public class XmlUltimateController implements Initializable {
                     XmlEditor xmlEditor = new XmlEditor();
                     xmlEditor.setText(file.getName());
                     xmlEditor.codeArea.replaceText(content);
+
+                    // Set the XML file to trigger automatic XSD schema detection
+                    xmlEditor.setXmlFile(file);
+                    
                     xmlFilesPane.getTabs().add(xmlEditor);
                     xmlFilesPane.getSelectionModel().select(xmlEditor);
                 }
@@ -451,6 +455,10 @@ public class XmlUltimateController implements Initializable {
                 XmlEditor xmlEditor = new XmlEditor();
                 xmlEditor.setText(file.getName());
                 xmlEditor.codeArea.replaceText(content);
+
+                // Set the XML file to trigger automatic XSD schema detection
+                xmlEditor.setXmlFile(file);
+                
                 xmlFilesPane.getTabs().add(xmlEditor);
                 xmlFilesPane.getSelectionModel().select(xmlEditor);
             }
