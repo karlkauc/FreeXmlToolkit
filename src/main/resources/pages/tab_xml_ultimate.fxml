@@ -140,9 +140,214 @@
         </ToggleButton>
     </HBox>
 
+<<<<<<< HEAD
     <!-- Main Content Area - Editor Only (No Sidebar) -->
     <TabPane fx:id="xmlFilesPane" VBox.vgrow="ALWAYS" side="TOP"
              styleClass="xml-editor-tabs" minHeight="300"/>
+=======
+    <!-- Main Content Area with All Features -->
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.65" styleClass="xml-split-pane">
+        <!-- Left Panel: Editor Tabs (Support for XmlEditor control) -->
+        <TabPane fx:id="xmlFilesPane" side="TOP" SplitPane.resizableWithParent="true"
+                 styleClass="xml-editor-tabs" minHeight="300"/>
+
+        <!-- Right Panel: Ultimate Sidebar with All Features -->
+        <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="250" maxWidth="450" prefWidth="350">
+            <VBox spacing="5" styleClass="xml-sidebar">
+                <padding>
+                    <Insets top="10" bottom="10" left="10" right="10"/>
+                </padding>
+
+                <!-- Document Outline -->
+                <TitledPane text="Document Outline" expanded="true" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <Label text="XML structure and navigation" styleClass="section-description"/>
+                        <TreeView fx:id="documentTreeView" prefHeight="150" styleClass="xml-structure-tree"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- XSD Schema Configuration -->
+                <TitledPane text="XSD Schema" expanded="true" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <TextField fx:id="xsdPathField" HBox.hgrow="ALWAYS" promptText="XSD Schema" editable="false"
+                                       styleClass="xml-text-field"/>
+                            <Button fx:id="changeXsdButton" text="..." styleClass="btn-secondary"/>
+                        </HBox>
+                        <Label fx:id="validationStatusLabel" text="Validation status: Unknown" wrapText="true"
+                               styleClass="status-label"/>
+                        <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Validation Errors -->
+                <TitledPane text="Validation Errors" expanded="false" collapsible="true" styleClass="sidebar-section"
+                            fx:id="validationErrorsPane" visible="false" managed="false">
+                    <VBox spacing="5">
+                        <Label fx:id="validationErrorsCountLabel" text="Validation Errors (0)"
+                               style="-fx-font-weight: bold;"/>
+                        <ListView fx:id="validationErrorsListView" prefHeight="120" styleClass="xml-list-view">
+                            <placeholder>
+                                <Label text="No validation errors"/>
+                            </placeholder>
+                        </ListView>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Schematron Rules -->
+                <TitledPane text="Schematron Rules" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <TextField fx:id="schematronPathField" HBox.hgrow="ALWAYS" promptText="Schematron Rules"
+                                       editable="false" styleClass="xml-text-field"/>
+                            <Button fx:id="changeSchematronButton" text="..." styleClass="btn-secondary"/>
+                        </HBox>
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Label fx:id="schematronValidationStatusLabel" text="Schematron validation status: Unknown"
+                                   wrapText="true" HBox.hgrow="ALWAYS" styleClass="status-label"/>
+                            <Button fx:id="schematronDetailsButton" text="Details" visible="false"
+                                    onAction="#showSchematronDetails" prefWidth="60" maxHeight="20" minHeight="20"
+                                    style="-fx-font-size: 10px;"/>
+                        </HBox>
+                        <CheckBox fx:id="continuousSchematronValidationCheckBox"
+                                  text="Continuous Schematron validation"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Schematron Errors -->
+                <TitledPane text="Schematron Errors" expanded="false" collapsible="true" styleClass="sidebar-section"
+                            fx:id="schematronErrorsPane" visible="false" managed="false">
+                    <VBox spacing="5">
+                        <Label fx:id="schematronErrorsCountLabel" text="Schematron Errors (0)"
+                               style="-fx-font-weight: bold;"/>
+                        <ListView fx:id="schematronErrorsListView" prefHeight="120" styleClass="xml-list-view">
+                            <placeholder>
+                                <Label text="No Schematron errors"/>
+                            </placeholder>
+                        </ListView>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Legacy Validation Results (for backward compatibility) -->
+                <TitledPane text="Validation Results" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="8">
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Label text="Schema:" styleClass="section-label"/>
+                            <ComboBox fx:id="schemaCombo" prefWidth="120" promptText="Select schema"
+                                      styleClass="xml-combo-box"/>
+                        </HBox>
+                        <ListView fx:id="validationResultsList" prefHeight="100" styleClass="xml-list-view"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Properties -->
+                <TitledPane text="Properties" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <Label text="Element properties and attributes" styleClass="section-description"/>
+                        <TableView fx:id="propertiesTable" prefHeight="120" styleClass="xml-properties-table">
+                            <columns>
+                                <TableColumn fx:id="propertyNameColumn" text="Property" prefWidth="100"/>
+                                <TableColumn fx:id="propertyValueColumn" text="Value" prefWidth="150"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Cursor Information -->
+                <TitledPane text="Cursor Information" expanded="true" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <Label text="XPath:" styleClass="section-label"/>
+                        <TextField fx:id="xpathField" editable="false" promptText="XPath will appear here..."
+                                   styleClass="xml-text-field"/>
+                        <Label text="Node Name:" styleClass="section-label"/>
+                        <TextField fx:id="elementNameField" editable="false" promptText="Node name will appear here..."
+                                   styleClass="xml-text-field"/>
+                        <Label text="Element Type:" styleClass="section-label"/>
+                        <TextField fx:id="elementTypeField" editable="false"
+                                   promptText="Element type will appear here..." styleClass="xml-text-field"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Node Documentation -->
+                <TitledPane text="Node Documentation" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <TextArea fx:id="documentationTextArea" prefRowCount="4" editable="false" wrapText="true"
+                              promptText="Node documentation will appear here..." styleClass="xml-text-area"/>
+                </TitledPane>
+
+                <!-- Example Values -->
+                <TitledPane text="Example Values" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <ListView fx:id="exampleValuesListView" prefHeight="100" styleClass="xml-list-view">
+                        <placeholder>
+                            <Label text="Example values will appear here..."/>
+                        </placeholder>
+                    </ListView>
+                </TitledPane>
+
+                <!-- Possible Child Elements -->
+                <TitledPane text="Possible Child Elements" expanded="true" collapsible="true"
+                            styleClass="sidebar-section" VBox.vgrow="ALWAYS">
+                    <ListView fx:id="childElementsListView" styleClass="xml-list-view">
+                        <placeholder>
+                            <Label text="Child elements will appear here..."/>
+                        </placeholder>
+                    </ListView>
+                </TitledPane>
+
+                <!-- Namespaces -->
+                <TitledPane text="Namespaces" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <Label text="Document namespaces" styleClass="section-description"/>
+                        <ListView fx:id="namespacesList" prefHeight="80" styleClass="xml-list-view"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Smart Templates Panel -->
+                <TitledPane fx:id="templatesPanel" text="Smart Templates" expanded="false" collapsible="true"
+                            styleClass="sidebar-section">
+                    <VBox spacing="8">
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <ComboBox fx:id="templateCategoryCombo" prefWidth="120" promptText="Category"
+                                      styleClass="xml-combo-box"/>
+                            <Button fx:id="refreshTemplatesButton" onAction="#refreshTemplates">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/>
+                                </graphic>
+                            </Button>
+                        </HBox>
+                        <ListView fx:id="templatesListView" prefHeight="120" styleClass="xml-list-view"
+                                  onMouseClicked="#onTemplateSelected"/>
+                        <HBox spacing="5">
+                            <Button fx:id="applyTemplateButton" text="Apply" onAction="#applySelectedTemplate"
+                                    styleClass="btn-primary" prefWidth="60"/>
+                            <Button fx:id="previewTemplateButton" text="Preview" onAction="#previewSelectedTemplate"
+                                    styleClass="btn-secondary" prefWidth="60"/>
+                        </HBox>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Schema Generation Panel -->
+                <TitledPane fx:id="schemaPanel" text="Schema Generator" expanded="false" collapsible="true"
+                            styleClass="sidebar-section">
+                    <VBox spacing="8">
+                        <Label text="Generate XSD from current XML" styleClass="section-description"/>
+                        <HBox spacing="5">
+                            <CheckBox fx:id="inferTypesCheckbox" text="Infer Types" selected="true"/>
+                            <CheckBox fx:id="flattenSchemaCheckbox" text="Flatten"/>
+                        </HBox>
+                        <HBox spacing="5">
+                            <Button fx:id="generateSchemaButton" text="Generate" onAction="#generateSchema"
+                                    styleClass="btn-success" prefWidth="75"/>
+                            <Button fx:id="exportSchemaButton" text="Export" onAction="#exportSchema"
+                                    styleClass="btn-info" prefWidth="60"/>
+                        </HBox>
+                        <TextArea fx:id="schemaPreviewArea" prefHeight="80" styleClass="code-preview" editable="false"
+                                  wrapText="false"/>
+                    </VBox>
+                </TitledPane>
+            </VBox>
+        </ScrollPane>
+    </SplitPane>
+>>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
 
     <!-- Advanced Development Panels - Bottom Tabs -->
     <TabPane fx:id="developmentTabPane" side="BOTTOM" tabClosingPolicy="SELECTED_TAB" prefHeight="180" minHeight="150">

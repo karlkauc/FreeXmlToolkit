@@ -3,7 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.fxt.freexmltoolkit.controller.SchematronController">
@@ -11,8 +11,195 @@
     <!-- Main Tab Container -->
     <TabPane fx:id="tabPane" VBox.vgrow="ALWAYS">
 
+        <!-- Help & Getting Started Tab -->
+        <Tab fx:id="helpTab" text="Help &amp; Examples" closable="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-question-circle" iconColor="#007bff" iconSize="14"/>
+            </graphic>
+            <ScrollPane fitToWidth="true">
+                <VBox spacing="20" style="-fx-padding: 20;">
+                    <!-- Welcome Section -->
+                    <VBox spacing="10">
+                        <Label text="Welcome to Schematron Editor"
+                               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                        <Label text="Business Rules Validation for XML Documents"
+                               style="-fx-font-size: 14px; -fx-text-fill: #7f8c8d;" wrapText="true"/>
+                    </VBox>
+
+                    <Separator/>
+
+                    <!-- What is Schematron? -->
+                    <TitledPane text="What is Schematron?" expanded="true">
+                        <VBox spacing="10">
+                            <Label wrapText="true" style="-fx-font-size: 13px;">
+                                <text>Schematron is a rule-based validation language for XML documents. Unlike XSD which
+                                    validates structure, Schematron validates business rules and relationships between
+                                    elements.
+                                </text>
+                            </Label>
+                            <VBox spacing="5">
+                                <Label text="Key Features:" style="-fx-font-weight: bold;"/>
+                                <Label text="• Define custom business rules using XPath" wrapText="true"/>
+                                <Label text="• Create human-readable error messages" wrapText="true"/>
+                                <Label text="• Validate relationships between elements" wrapText="true"/>
+                                <Label text="• Implement complex conditional logic" wrapText="true"/>
+                            </VBox>
+                        </VBox>
+                    </TitledPane>
+
+                    <!-- Quick Start Guide -->
+                    <TitledPane text="Quick Start Guide" expanded="true">
+                        <VBox spacing="15">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="1."
+                                       style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #3498db;"/>
+                                <VBox spacing="5">
+                                    <Label text="Create a New Schematron File" style="-fx-font-weight: bold;"/>
+                                    <Label text="Click 'New Pattern' or 'New Rule' to insert templates" wrapText="true"
+                                           style="-fx-font-size: 12px;"/>
+                                </VBox>
+                            </HBox>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="2."
+                                       style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #3498db;"/>
+                                <VBox spacing="5">
+                                    <Label text="Define Your Rules" style="-fx-font-weight: bold;"/>
+                                    <Label text="Use XPath expressions to select elements and define assertions"
+                                           wrapText="true" style="-fx-font-size: 12px;"/>
+                                </VBox>
+                            </HBox>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="3."
+                                       style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #3498db;"/>
+                                <VBox spacing="5">
+                                    <Label text="Test Your Rules" style="-fx-font-weight: bold;"/>
+                                    <Label text="Click 'Test Rules' to validate XML files against your Schematron"
+                                           wrapText="true" style="-fx-font-size: 12px;"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </TitledPane>
+
+                    <!-- Basic Example -->
+                    <TitledPane text="Basic Example" expanded="false">
+                        <VBox spacing="10">
+                            <Label text="Simple Business Rule Example:" style="-fx-font-weight: bold;"/>
+                            <TextArea editable="false" prefRowCount="12"
+                                      style="-fx-font-family: monospace; -fx-font-size: 12px;">
+                                <text>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+                                    &lt;schema xmlns="http://purl.oclc.org/dsdl/schematron"&gt;
+                                    &lt;pattern&gt;
+                                    &lt;rule context="invoice"&gt;
+                                    &lt;assert test="total = sum(item/price)"&gt;
+                                    Invoice total must equal sum of all item prices
+                                    &lt;/assert&gt;
+                                    &lt;assert test="@date &lt;= current-date()"&gt;
+                                    Invoice date cannot be in the future
+                                    &lt;/assert&gt;
+                                    &lt;/rule&gt;
+                                    &lt;/pattern&gt;
+                                    &lt;/schema&gt;
+                                </text>
+                            </TextArea>
+                            <Label text="This example validates that invoice totals are correct and dates are valid."
+                                   wrapText="true" style="-fx-font-size: 12px; -fx-font-style: italic;"/>
+                        </VBox>
+                    </TitledPane>
+
+                    <!-- Common Patterns -->
+                    <TitledPane text="Common Validation Patterns" expanded="false">
+                        <VBox spacing="15">
+                            <VBox spacing="5">
+                                <Label text="Required Field Check:" style="-fx-font-weight: bold;"/>
+                                <TextArea editable="false" prefRowCount="3"
+                                          style="-fx-font-family: monospace; -fx-font-size: 11px;">
+                                    <text>&lt;assert test="normalize-space(field) != ''"&gt;
+                                        Field is required and cannot be empty
+                                        &lt;/assert&gt;
+                                    </text>
+                                </TextArea>
+                            </VBox>
+
+                            <VBox spacing="5">
+                                <Label text="Value Range Check:" style="-fx-font-weight: bold;"/>
+                                <TextArea editable="false" prefRowCount="3"
+                                          style="-fx-font-family: monospace; -fx-font-size: 11px;">
+                                    <text>&lt;assert test="price &gt;= 0 and price &lt;= 10000"&gt;
+                                        Price must be between 0 and 10000
+                                        &lt;/assert&gt;
+                                    </text>
+                                </TextArea>
+                            </VBox>
+
+                            <VBox spacing="5">
+                                <Label text="Cross-Reference Validation:" style="-fx-font-weight: bold;"/>
+                                <TextArea editable="false" prefRowCount="3"
+                                          style="-fx-font-family: monospace; -fx-font-size: 11px;">
+                                    <text>&lt;assert test="//customer[@id = current()/@customer-ref]"&gt;
+                                        Customer reference must exist in customer list
+                                        &lt;/assert&gt;
+                                    </text>
+                                </TextArea>
+                            </VBox>
+                        </VBox>
+                    </TitledPane>
+
+                    <!-- Keyboard Shortcuts -->
+                    <TitledPane text="Keyboard Shortcuts" expanded="false">
+                        <GridPane hgap="20" vgap="5">
+                            <Label text="Ctrl+S" style="-fx-font-weight: bold;" GridPane.columnIndex="0"
+                                   GridPane.rowIndex="0"/>
+                            <Label text="Save file" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                            <Label text="Ctrl+Space" style="-fx-font-weight: bold;" GridPane.columnIndex="0"
+                                   GridPane.rowIndex="1"/>
+                            <Label text="Auto-complete" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                            <Label text="Ctrl+F" style="-fx-font-weight: bold;" GridPane.columnIndex="0"
+                                   GridPane.rowIndex="2"/>
+                            <Label text="Find/Replace" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                            <Label text="Ctrl+Z/Y" style="-fx-font-weight: bold;" GridPane.columnIndex="0"
+                                   GridPane.rowIndex="3"/>
+                            <Label text="Undo/Redo" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                        </GridPane>
+                    </TitledPane>
+
+                    <!-- Tips -->
+                    <VBox spacing="10"
+                          style="-fx-background-color: #ecf0f1; -fx-padding: 15; -fx-background-radius: 5;">
+                        <Label text="💡 Pro Tips" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                        <Label text="• Use the Visual Designer tab for a graphical approach to creating rules"
+                               wrapText="true"/>
+                        <Label text="• The XPath Helper in the sidebar can help you build complex expressions"
+                               wrapText="true"/>
+                        <Label text="• Test your rules frequently with sample XML files" wrapText="true"/>
+                        <Label text="• Use descriptive error messages to help users fix validation issues"
+                               wrapText="true"/>
+                    </VBox>
+
+                    <!-- Resources -->
+                    <TitledPane text="Learn More" expanded="false">
+                        <VBox spacing="8">
+                            <Label text="Schematron Resources:" style="-fx-font-weight: bold;"/>
+                            <Hyperlink text="• Official Schematron Website" onAction="#openSchematronWebsite"/>
+                            <Hyperlink text="• ISO Schematron Specification" onAction="#openISOSpec"/>
+                            <Hyperlink text="• XPath 2.0 Reference" onAction="#openXPathReference"/>
+                            <Label text="Note: Click links to open in your browser"
+                                   style="-fx-font-size: 11px; -fx-font-style: italic;"/>
+                        </VBox>
+                    </TitledPane>
+                </VBox>
+            </ScrollPane>
+        </Tab>
+
         <!-- Code Editor Tab -->
         <Tab fx:id="codeTab" text="Code" closable="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-code-slash" iconColor="#28a745" iconSize="14"/>
+            </graphic>
             <VBox spacing="0">
                 <!-- Toolbar -->
                 <ToolBar fx:id="toolbar">
@@ -21,7 +208,17 @@
                             <FontIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
                         </graphic>
                         <tooltip>
-                            <Tooltip text="Insert a new rule template"/>
+                            <Tooltip showDelay="500ms">
+                                <text>Insert a new rule template
+
+                                    Creates a basic &lt;rule&gt; element with:
+                                    • context attribute for element selection
+                                    • assert/report statements for validation
+                                    • error messages
+
+                                    Shortcut: Ctrl+R
+                                </text>
+                            </Tooltip>
                         </tooltip>
                     </Button>
 
@@ -30,7 +227,17 @@
                             <FontIcon iconLiteral="bi-collection" iconColor="#007bff" iconSize="14"/>
                         </graphic>
                         <tooltip>
-                            <Tooltip text="Insert a new pattern template"/>
+                            <Tooltip showDelay="500ms">
+                                <text>Insert a new pattern template
+
+                                    Creates a &lt;pattern&gt; element:
+                                    • Groups related validation rules
+                                    • Helps organize complex schemas
+                                    • Can be activated/deactivated
+
+                                    Shortcut: Ctrl+P
+                                </text>
+                            </Tooltip>
                         </tooltip>
                     </Button>
 
@@ -41,7 +248,18 @@
                             <FontIcon iconLiteral="bi-check-circle" iconColor="#17a2b8" iconSize="14"/>
                         </graphic>
                         <tooltip>
-                            <Tooltip text="Validate Schematron syntax"/>
+                            <Tooltip showDelay="500ms">
+                                <text>Validate Schematron syntax
+
+                                    Checks for:
+                                    • Well-formed XML structure
+                                    • Valid Schematron elements
+                                    • XPath expression syntax
+                                    • Required attributes
+
+                                    Results appear in sidebar
+                                </text>
+                            </Tooltip>
                         </tooltip>
                     </Button>
 
@@ -50,7 +268,17 @@
                             <FontIcon iconLiteral="bi-play-circle" iconColor="#ff6b6b" iconSize="14"/>
                         </graphic>
                         <tooltip>
-                            <Tooltip text="Test rules against XML files"/>
+                            <Tooltip showDelay="500ms">
+                                <text>Test rules against XML files
+
+                                    • Select XML files to validate
+                                    • Run Schematron rules
+                                    • View validation results
+                                    • Export test reports
+
+                                    Switch to 'Test' tab for details
+                                </text>
+                            </Tooltip>
                         </tooltip>
                     </Button>
                 </ToolBar>
@@ -116,6 +344,9 @@
 
         <!-- Visual Builder Tab -->
         <Tab fx:id="visualBuilderTab" text="Visual Builder" closable="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-diagram-3" iconColor="#007bff" iconSize="14"/>
+            </graphic>
             <ScrollPane fitToWidth="true" fitToHeight="true">
                 <VBox fx:id="visualBuilderContainer" spacing="0">
                     <!-- Visual Builder will be added here programmatically -->
@@ -125,6 +356,9 @@
 
         <!-- Test Tab -->
         <Tab fx:id="testTab" text="Test" closable="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-play-circle" iconColor="#dc3545" iconSize="14"/>
+            </graphic>
             <ScrollPane fitToWidth="true" fitToHeight="true">
                 <VBox fx:id="testingContainer" spacing="0">
                     <!-- Testing framework will be added here programmatically -->
@@ -134,6 +368,9 @@
 
         <!-- Documentation Tab -->
         <Tab fx:id="documentationTab" text="Documentation" closable="false">
+            <graphic>
+                <FontIcon iconLiteral="bi-file-text" iconColor="#6f42c1" iconSize="14"/>
+            </graphic>
             <ScrollPane fitToWidth="true" fitToHeight="true">
                 <VBox fx:id="documentationContainer" spacing="0">
                     <!-- Documentation generator will be added here programmatically -->

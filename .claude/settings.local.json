@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew:*)",
+      "Bash(rm:*)",
+      "Bash(javac:*)",
+      "Bash(java:*)",
+      "Bash(mv:*)",
+      "Bash(timeout:*)",
+      "Bash(true)",
+      "WebFetch(domain:www.altova.com)",
+      "WebSearch",
+      "Bash(grep:*)",
+      "Bash(cp:*)"
+    ],
+    "deny": []
+  }
+}

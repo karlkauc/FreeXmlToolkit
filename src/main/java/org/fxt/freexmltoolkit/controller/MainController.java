@@ -70,7 +70,7 @@ public class MainController {
     AnchorPane contentPane;
 
     @FXML
-    Button xslt, xml, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, templates;
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, templates;
 
     @FXML
     MenuItem menuItemExit;
@@ -78,8 +78,6 @@ public class MainController {
     @FXML
     Menu lastOpenFilesMenu;
 
-    @FXML
-    CheckMenuItem xmlEditorSidebarMenuItem;
 
     @FXML
     CheckMenuItem xpathQueryPaneMenuItem;
@@ -148,14 +146,7 @@ public class MainController {
     }
 
     private void loadXmlEditorSidebarPreference() {
-        String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
-        boolean isVisible = sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
-
-        if (xmlEditorSidebarMenuItem != null) {
-            xmlEditorSidebarMenuItem.setSelected(isVisible);
-        }
-
-        logger.debug("Loaded XML Editor Sidebar preference: {}", isVisible);
+        // XML Editor Sidebar functionality removed
     }
 
     private void loadXPathQueryPanePreference() {
@@ -296,7 +287,10 @@ public class MainController {
     }
 
     public void switchToXmlViewAndLoadFile(File fileToLoad) {
+<<<<<<< HEAD
         // Use xmlUltimate button instead of xml (which doesn't exist anymore)
+=======
+>>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
         if (xmlUltimate == null) {
             logger.error("XML Ultimate Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
@@ -307,6 +301,7 @@ public class MainController {
         loadPageFromPath("/pages/tab_xml_ultimate.fxml");
 
         if (this.xmlUltimateController != null && fileToLoad != null && fileToLoad.exists()) {
+<<<<<<< HEAD
             // Schedule file loading after the controller is fully initialized
             Platform.runLater(() -> {
                 // Call the open file method to load the file
@@ -325,6 +320,11 @@ public class MainController {
                 } catch (Exception e) {
                     logger.error("Failed to load file from recent files: {}", e.getMessage(), e);
                 }
+=======
+            // Load the file in the Ultimate XML Controller using the dedicated method
+            Platform.runLater(() -> {
+                xmlUltimateController.loadFileFromExternal(fileToLoad);
+>>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
             });
         } else {
             logger.warn("XML Ultimate Controller ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
@@ -491,10 +491,10 @@ public class MainController {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xml, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xml, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
         }
         showMenu = !showMenu;
     }
@@ -519,33 +519,16 @@ public class MainController {
 
     @FXML
     private void toggleXmlEditorSidebar() {
-        boolean isVisible = xmlEditorSidebarMenuItem.isSelected();
-        logger.debug("Toggle XML Editor Sidebar: {}", isVisible);
-
-        propertiesService.set("xmlEditorSidebar.visible", String.valueOf(isVisible));
-
-        if (xmlUltimateController != null) {
-            // Ultimate XML Controller handles sidebar automatically(isVisible);
-        }
+        // XML Editor Sidebar functionality removed
     }
 
     public boolean isXmlEditorSidebarVisible() {
-        String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
-        return sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
+        // XML Editor Sidebar functionality removed
+        return false;
     }
 
     public void toggleXmlEditorSidebarFromSidebar(boolean visible) {
-        logger.debug("Toggle XML Editor Sidebar from sidebar button: {}", visible);
-
-        if (xmlEditorSidebarMenuItem != null) {
-            xmlEditorSidebarMenuItem.setSelected(visible);
-        }
-
-        propertiesService.set("xmlEditorSidebar.visible", String.valueOf(visible));
-
-        if (xmlUltimateController != null) {
-            // Ultimate XML Controller handles sidebar automatically(visible);
-        }
+        // XML Editor Sidebar functionality removed
     }
 
     @FXML
