@@ -32,7 +32,8 @@
             </graphic>
         </Button>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button fx:id="createNewTemplateButton" text="Create New" styleClass="btn-primary">
+        <Button fx:id="createNewTemplateButton" text="Create New" styleClass="btn-primary"
+                onAction="#createNewTemplate">
             <graphic>
                 <FontIcon iconLiteral="bi-plus-circle" iconColor="white" iconSize="14"/>
             </graphic>
@@ -67,7 +68,7 @@
             <VBox spacing="8">
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Template Parameters:" styleClass="section-label"/>
-                    <Button fx:id="addParameterButton" text="Add Parameter">
+                    <Button fx:id="addParameterButton" text="Add Parameter" onAction="#addParameter">
                         <graphic>
                             <FontIcon iconLiteral="bi-plus-circle" iconSize="12"/>
                         </graphic>
@@ -92,7 +93,7 @@
             <VBox spacing="8" VBox.vgrow="ALWAYS">
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Preview:" styleClass="section-label"/>
-                    <Button fx:id="generatePreviewButton" text="Generate Preview">
+                    <Button fx:id="generatePreviewButton" text="Generate Preview" onAction="#generatePreview">
                         <graphic>
                             <FontIcon iconLiteral="bi-eye" iconSize="12"/>
                         </graphic>
@@ -107,17 +108,19 @@
 
     <!-- Action Buttons -->
     <HBox spacing="10" alignment="CENTER_RIGHT">
-        <Button fx:id="validateTemplateButton" text="Validate Parameters" styleClass="btn-warning">
+        <Button fx:id="validateTemplateButton" text="Validate Parameters" styleClass="btn-warning"
+                onAction="#validateTemplate">
             <graphic>
                 <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
             </graphic>
         </Button>
-        <Button fx:id="applyTemplateButton" text="Apply to Editor" styleClass="btn-success">
+        <Button fx:id="applyTemplateButton" text="Apply to Editor" styleClass="btn-success" onAction="#applyTemplate">
             <graphic>
                 <FontIcon iconLiteral="bi-arrow-right" iconSize="14"/>
             </graphic>
         </Button>
-        <Button fx:id="insertTemplateButton" text="Insert at Cursor" styleClass="btn-primary">
+        <Button fx:id="insertTemplateButton" text="Insert at Cursor" styleClass="btn-primary"
+                onAction="#insertTemplate">
             <graphic>
                 <FontIcon iconLiteral="bi-cursor-text" iconSize="14"/>
             </graphic>

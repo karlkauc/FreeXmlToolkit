@@ -192,7 +192,7 @@
                 <FontIcon iconLiteral="bi-hdd" iconSize="14"/>
             </graphic>
         </Button>
-        <Button fx:id="exportSchemaButton" text="Export & Open" styleClass="btn-success">
+        <Button fx:id="exportSchemaButton" text="Export &amp; Open" styleClass="btn-success">
             <graphic>
                 <FontIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/>
             </graphic>

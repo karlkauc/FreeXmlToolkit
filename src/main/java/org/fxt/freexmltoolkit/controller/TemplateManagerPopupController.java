@@ -25,6 +25,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.converter.DefaultStringConverter;
 import org.apache.logging.log4j.LogManager;
@@ -154,6 +155,14 @@ public class TemplateManagerPopupController implements Initializable {
                     }
                 }
         );
+
+        // Additional button event handlers
+        createNewTemplateButton.setOnAction(e -> createNewTemplate());
+        addParameterButton.setOnAction(e -> addParameter());
+        generatePreviewButton.setOnAction(e -> generatePreview());
+        validateTemplateButton.setOnAction(e -> validateTemplate());
+        applyTemplateButton.setOnAction(e -> applyTemplate());
+        insertTemplateButton.setOnAction(e -> insertTemplate());
     }
 
     @FXML
@@ -314,6 +323,91 @@ public class TemplateManagerPopupController implements Initializable {
             templateCategoryLabel.setText("");
             templateParameterCountLabel.setText("0");
         }
+    }
+
+    /**
+     * Create new template functionality
+     */
+    @FXML
+    private void createNewTemplate() {
+        logger.info("Creating new template");
+
+        // Create dialog for new template creation
+        Dialog<XmlTemplate> dialog = new Dialog<>();
+        dialog.setTitle("Create New Template");
+        dialog.setHeaderText("Create a new XML template");
+
+        // Set dialog pane
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Create form fields
+        VBox formContent = new VBox(10);
+        formContent.setPadding(new javafx.geometry.Insets(20));
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Template name");
+
+        TextField descriptionField = new TextField();
+        descriptionField.setPromptText("Template description");
+
+        ComboBox<String> categoryComboBox = new ComboBox<>();
+        categoryComboBox.getItems().addAll("Finance", "Healthcare", "Automotive", "Government", "Generic", "Web Services", "Configuration");
+        categoryComboBox.setPromptText("Select category");
+
+        TextArea templateContentArea = new TextArea();
+        templateContentArea.setPromptText("Enter XML template content...");
+        templateContentArea.setPrefRowCount(10);
+
+        formContent.getChildren().addAll(
+                new Label("Template Name:"), nameField,
+                new Label("Description:"), descriptionField,
+                new Label("Category:"), categoryComboBox,
+                new Label("Template Content:"), templateContentArea
+        );
+
+        dialogPane.setContent(formContent);
+
+        // Convert result to template when OK is clicked
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                String name = nameField.getText().trim();
+                String description = descriptionField.getText().trim();
+                String category = categoryComboBox.getValue();
+                String content = templateContentArea.getText().trim();
+
+                if (name.isEmpty() || content.isEmpty()) {
+                    showError("Validation Error", "Template name and content are required");
+                    return null;
+                }
+
+                try {
+                    // Create new template using the correct constructor (name, content, category)
+                    XmlTemplate newTemplate = new XmlTemplate(name, content, category != null ? category : "Generic");
+                    if (description != null && !description.isEmpty()) {
+                        newTemplate.setDescription(description);
+                    }
+
+                    // Add to repository
+                    templateRepository.addTemplate(newTemplate);
+
+                    return newTemplate;
+                } catch (Exception e) {
+                    showError("Template Creation Error", "Could not create template: " + e.getMessage());
+                    logger.error("Failed to create template", e);
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        // Show dialog and handle result
+        dialog.showAndWait().ifPresent(newTemplate -> {
+            loadTemplates(); // Refresh template list
+            // Select the new template
+            templatesListView.getSelectionModel().select(newTemplate);
+            showInfo("Template Created", "Template '" + newTemplate.getName() + "' has been created successfully");
+        });
     }
 
     private void closePopup() {
