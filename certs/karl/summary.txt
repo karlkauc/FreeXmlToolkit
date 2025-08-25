@@ -1,0 +1,29 @@
+Keystore Alias: karl
+Keystore Password: 123
+Alias Password: 123
+
+Certificate Details:
+  [0]         Version: 3
+         SerialNumber: 1751840306416
+             IssuerDN: CN=Karl Kauc
+           Start Date: Mon Jul 07 00:18:26 CEST 2025
+           Final Date: Tue Jul 07 00:18:26 CEST 2026
+            SubjectDN: CN=Karl Kauc
+           Public Key: RSA Public Key [d3:42:07:b0:66:e9:03:d6:9a:92:bd:cd:ff:af:8d:31:0e:3f:a5:35],[56:66:d1:a4]
+        modulus: b41f8f2cdfb7721e275f7723d7cf0319de2aa048dd5514a951ce641410e966c96675b50c1c44682b6e92a12378add5a7607c2095c5cbd5fcc7c9db5178afa565747b44983da4dca3ce4085c38f033c047258be71ce338849242a21d71fb498f8ccf6812f2a54feba6c4a69a817bd0178ede31a551828297ab6073a18d719aa9634d4fe53cf72d025c6c42422cad6a4723b03769ebe5fbd70e232e122fe2bcedaa2615eb827579458b3a8e3b3bc7e7f36142bdb5d15920e25696ef32c97340c35273e821cdb5aa11ac71f30168888e2fa1270a280fddf8a3997a5ad9f17f0b97220f29965619e8b896f0c937a84fa1d8b4e6aa0da6e8a2e0394f50c4b9dc27501
+public exponent: 10001
+
+  Signature Algorithm: SHA256WITHRSA
+            Signature: 95bd47c182d03dc147b2b616a78f3e6eab24826c
+                       59707c3df42de5be680cdaaa80c540bb49485cec
+                       4ffafca790e0c2f73d3c6994c981597eee0d465f
+                       99ce4e947af2d8fb6570cc9381109065f5ef472a
+                       e5bc03f55df184c42ed4c015711349d4995a05a4
+                       d4f240c2c2549182dd6b66cad3ef396a1e947ad5
+                       2540e8f934210110c720ab88109b8e86e73d8e71
+                       b0f7d2262233dcc0275ddbd773837f1c577dfd9d
+                       2d084fd41bb43ba82f4d5a550191e4e3bf98ca9a
+                       b6c399e677a26b3754fc0ac679adc2499c1f5c28
+                       cbbf60a2e52775288fa41ff7609a546f429f4065
+                       28c26240b765a82a5e6a36235cf068e86cd9d5bb
+                       922e3d921267a02e2e551d759ec21ddd

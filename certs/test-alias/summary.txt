@@ -1,0 +1,29 @@
+Keystore Alias: test-alias
+Keystore Password: keystore-password
+Alias Password: alias-password
+
+Certificate Details:
+  [0]         Version: 3
+         SerialNumber: 1756063201949
+             IssuerDN: CN=Test Certificate
+           Start Date: Sun Aug 24 21:20:01 CEST 2025
+           Final Date: Mon Aug 24 21:20:01 CEST 2026
+            SubjectDN: CN=Test Certificate
+           Public Key: RSA Public Key [d8:c7:f2:7b:fd:25:2e:7c:24:52:36:e4:46:cc:5c:71:99:ae:4a:3e],[56:66:d1:a4]
+        modulus: c10c68312e45da87f420584277b5468f8572c0cdd4f9183580be31b70652642210522ea56156596a0fcf310193c56e8b460db52b336ef735e0f9be26df68c9c1751895f434e5ebaf698ec0b14fe7b96036319a31f934b5c5b009ab4fedd7a046d8267012f2c3e72cd8556fbce81cfe4c68d58b50c1c42610deec7b5d706fefad427dc619ffab97b19ec4f9109bbba774b5d09eaf4e631fd25975ae9ff3b778a656f67bdf7c3f2205c10796809a7e0aeacb5875a2e5d15aca6715d0ffc33d7d5684832e7d220f0e8ebe62730781b97180c0d4a40a18d72e7e1ff1f3659708f4d665305f7132686c79b4c468f51f9609a0d9f5a369b8371ae0dcc48e38eeeb5ee1
+public exponent: 10001
+
+  Signature Algorithm: SHA256WITHRSA
+            Signature: 6a2a3410d52905d866780377a148c445ef1491f4
+                       80b365a6aa994ca82a92834b96399a33cb0737f3
+                       17e246656e914c0d00e6e00e9c311b41cb83728a
+                       e3cac10a99f43d3c24d1b9f459838254d47c54e1
+                       278a383a08382abe84d31d9552e4144ec4d59ba1
+                       e939bdb9763e59792c04defae0d90ce84a92c660
+                       0445a7c54149b35c852f2abe56055cba5c407723
+                       0e493ab6c77ad8bb136116784acf91bd74fe8b5e
+                       39b62e9ac8a75d1ca8fbb1c1c6265b821b3db8c3
+                       7c3edf80a3e1734e83a161596c87c984cadcc4d6
+                       0a2f69f6a1dc550debd5615de8f5b304239d21f7
+                       925321b122683556ae0f78baa9de106a3b784ba2
+                       15cb0125622464bffb0d0e6c24e1c511

@@ -140,6 +140,11 @@
         </ToggleButton>
     </HBox>
 
+<<<<<<< HEAD
+    <!-- Main Content Area - Editor Only (No Sidebar) -->
+    <TabPane fx:id="xmlFilesPane" VBox.vgrow="ALWAYS" side="TOP"
+             styleClass="xml-editor-tabs" minHeight="300"/>
+=======
     <!-- Main Content Area with All Features -->
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.65" styleClass="xml-split-pane">
         <!-- Left Panel: Editor Tabs (Support for XmlEditor control) -->
@@ -342,6 +347,7 @@
             </VBox>
         </ScrollPane>
     </SplitPane>
+>>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
 
     <!-- Advanced Development Panels - Bottom Tabs -->
     <TabPane fx:id="developmentTabPane" side="BOTTOM" tabClosingPolicy="SELECTED_TAB" prefHeight="180" minHeight="150">

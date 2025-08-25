@@ -287,6 +287,10 @@ public class MainController {
     }
 
     public void switchToXmlViewAndLoadFile(File fileToLoad) {
+<<<<<<< HEAD
+        // Use xmlUltimate button instead of xml (which doesn't exist anymore)
+=======
+>>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
         if (xmlUltimate == null) {
             logger.error("XML Ultimate Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
@@ -297,9 +301,30 @@ public class MainController {
         loadPageFromPath("/pages/tab_xml_ultimate.fxml");
 
         if (this.xmlUltimateController != null && fileToLoad != null && fileToLoad.exists()) {
+<<<<<<< HEAD
+            // Schedule file loading after the controller is fully initialized
+            Platform.runLater(() -> {
+                // Call the open file method to load the file
+                try {
+                    String content = java.nio.file.Files.readString(fileToLoad.toPath());
+                    // Create new tab in the XML editor with the file content
+                    if (xmlUltimateController.xmlFilesPane != null) {
+                        var xmlEditor = new org.fxt.freexmltoolkit.controls.XmlEditor();
+                        xmlEditor.setText(fileToLoad.getName());
+                        xmlEditor.codeArea.replaceText(content);
+                        xmlUltimateController.xmlFilesPane.getTabs().add(xmlEditor);
+                        xmlUltimateController.xmlFilesPane.getSelectionModel().select(xmlEditor);
+
+                        logger.info("Successfully loaded file: {}", fileToLoad.getAbsolutePath());
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to load file from recent files: {}", e.getMessage(), e);
+                }
+=======
             // Load the file in the Ultimate XML Controller using the dedicated method
             Platform.runLater(() -> {
                 xmlUltimateController.loadFileFromExternal(fileToLoad);
+>>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
             });
         } else {
             logger.warn("XML Ultimate Controller ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
