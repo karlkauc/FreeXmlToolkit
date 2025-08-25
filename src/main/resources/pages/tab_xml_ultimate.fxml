@@ -140,6 +140,11 @@
         </ToggleButton>
     </HBox>
 
+<<<<<<< HEAD
+    <!-- Main Content Area - Editor Only (No Sidebar) -->
+    <TabPane fx:id="xmlFilesPane" VBox.vgrow="ALWAYS" side="TOP"
+             styleClass="xml-editor-tabs" minHeight="300"/>
+=======
     <!-- Main Content Area with All Features -->
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.65" styleClass="xml-split-pane">
         <!-- Left Panel: Editor Tabs (Support for XmlEditor control) -->
@@ -161,7 +166,69 @@
                     </VBox>
                 </TitledPane>
 
-                <!-- Validation Results -->
+                <!-- XSD Schema Configuration -->
+                <TitledPane text="XSD Schema" expanded="true" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <TextField fx:id="xsdPathField" HBox.hgrow="ALWAYS" promptText="XSD Schema" editable="false"
+                                       styleClass="xml-text-field"/>
+                            <Button fx:id="changeXsdButton" text="..." styleClass="btn-secondary"/>
+                        </HBox>
+                        <Label fx:id="validationStatusLabel" text="Validation status: Unknown" wrapText="true"
+                               styleClass="status-label"/>
+                        <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Validation Errors -->
+                <TitledPane text="Validation Errors" expanded="false" collapsible="true" styleClass="sidebar-section"
+                            fx:id="validationErrorsPane" visible="false" managed="false">
+                    <VBox spacing="5">
+                        <Label fx:id="validationErrorsCountLabel" text="Validation Errors (0)"
+                               style="-fx-font-weight: bold;"/>
+                        <ListView fx:id="validationErrorsListView" prefHeight="120" styleClass="xml-list-view">
+                            <placeholder>
+                                <Label text="No validation errors"/>
+                            </placeholder>
+                        </ListView>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Schematron Rules -->
+                <TitledPane text="Schematron Rules" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <TextField fx:id="schematronPathField" HBox.hgrow="ALWAYS" promptText="Schematron Rules"
+                                       editable="false" styleClass="xml-text-field"/>
+                            <Button fx:id="changeSchematronButton" text="..." styleClass="btn-secondary"/>
+                        </HBox>
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <Label fx:id="schematronValidationStatusLabel" text="Schematron validation status: Unknown"
+                                   wrapText="true" HBox.hgrow="ALWAYS" styleClass="status-label"/>
+                            <Button fx:id="schematronDetailsButton" text="Details" visible="false"
+                                    onAction="#showSchematronDetails" prefWidth="60" maxHeight="20" minHeight="20"
+                                    style="-fx-font-size: 10px;"/>
+                        </HBox>
+                        <CheckBox fx:id="continuousSchematronValidationCheckBox"
+                                  text="Continuous Schematron validation"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Schematron Errors -->
+                <TitledPane text="Schematron Errors" expanded="false" collapsible="true" styleClass="sidebar-section"
+                            fx:id="schematronErrorsPane" visible="false" managed="false">
+                    <VBox spacing="5">
+                        <Label fx:id="schematronErrorsCountLabel" text="Schematron Errors (0)"
+                               style="-fx-font-weight: bold;"/>
+                        <ListView fx:id="schematronErrorsListView" prefHeight="120" styleClass="xml-list-view">
+                            <placeholder>
+                                <Label text="No Schematron errors"/>
+                            </placeholder>
+                        </ListView>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Legacy Validation Results (for backward compatibility) -->
                 <TitledPane text="Validation Results" expanded="false" collapsible="true" styleClass="sidebar-section">
                     <VBox spacing="8">
                         <HBox spacing="5" alignment="CENTER_LEFT">
@@ -184,6 +251,46 @@
                             </columns>
                         </TableView>
                     </VBox>
+                </TitledPane>
+
+                <!-- Cursor Information -->
+                <TitledPane text="Cursor Information" expanded="true" collapsible="true" styleClass="sidebar-section">
+                    <VBox spacing="5">
+                        <Label text="XPath:" styleClass="section-label"/>
+                        <TextField fx:id="xpathField" editable="false" promptText="XPath will appear here..."
+                                   styleClass="xml-text-field"/>
+                        <Label text="Node Name:" styleClass="section-label"/>
+                        <TextField fx:id="elementNameField" editable="false" promptText="Node name will appear here..."
+                                   styleClass="xml-text-field"/>
+                        <Label text="Element Type:" styleClass="section-label"/>
+                        <TextField fx:id="elementTypeField" editable="false"
+                                   promptText="Element type will appear here..." styleClass="xml-text-field"/>
+                    </VBox>
+                </TitledPane>
+
+                <!-- Node Documentation -->
+                <TitledPane text="Node Documentation" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <TextArea fx:id="documentationTextArea" prefRowCount="4" editable="false" wrapText="true"
+                              promptText="Node documentation will appear here..." styleClass="xml-text-area"/>
+                </TitledPane>
+
+                <!-- Example Values -->
+                <TitledPane text="Example Values" expanded="false" collapsible="true" styleClass="sidebar-section">
+                    <ListView fx:id="exampleValuesListView" prefHeight="100" styleClass="xml-list-view">
+                        <placeholder>
+                            <Label text="Example values will appear here..."/>
+                        </placeholder>
+                    </ListView>
+                </TitledPane>
+
+                <!-- Possible Child Elements -->
+                <TitledPane text="Possible Child Elements" expanded="true" collapsible="true"
+                            styleClass="sidebar-section" VBox.vgrow="ALWAYS">
+                    <ListView fx:id="childElementsListView" styleClass="xml-list-view">
+                        <placeholder>
+                            <Label text="Child elements will appear here..."/>
+                        </placeholder>
+                    </ListView>
                 </TitledPane>
 
                 <!-- Namespaces -->
@@ -240,6 +347,7 @@
             </VBox>
         </ScrollPane>
     </SplitPane>
+>>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
 
     <!-- Advanced Development Panels - Bottom Tabs -->
     <TabPane fx:id="developmentTabPane" side="BOTTOM" tabClosingPolicy="SELECTED_TAB" prefHeight="180" minHeight="150">

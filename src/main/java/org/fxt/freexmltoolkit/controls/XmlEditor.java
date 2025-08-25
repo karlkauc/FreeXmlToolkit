@@ -16,7 +16,6 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
-import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
 import org.fxt.freexmltoolkit.domain.ValidationError;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
@@ -91,8 +90,7 @@ public class XmlEditor extends Tab {
     private SearchReplaceController searchController;
     private PopOver searchPopOver;
 
-    // --- Sidebar Components ---
-    private XmlEditorSidebarController sidebarController;
+    // --- Layout Components ---
     private SplitPane splitPane;
 
     // --- Graphic View Component ---
@@ -125,13 +123,7 @@ public class XmlEditor extends Tab {
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
 
-        // Also set the MainController reference in the sidebar controller if it's already initialized
-        if (sidebarController != null) {
-            sidebarController.setMainController(mainController);
-            logger.debug("✅ Updated MainController reference in XmlEditorSidebarController");
-        } else {
-            logger.debug("⚠️ SidebarController not yet initialized, MainController will be set later");
-        }
+        // MainController reference updated
     }
 
 
@@ -189,55 +181,19 @@ public class XmlEditor extends Tab {
         splitPane = new SplitPane();
         splitPane.setDividerPositions(0.8); // Initial position
 
-        // --- Load Sidebar from FXML ---
-        VBox sidebar = loadSidebar();
-
-        splitPane.getItems().addAll(tabPane, sidebar);
+        // --- Add content to split pane ---
+        splitPane.getItems().add(tabPane);
         this.setContent(splitPane);
 
         // --- Add Listeners ---
         // Note: Syntax highlighting is handled by XmlCodeEditor's text listener
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (sidebarController != null && sidebarController.isContinuousValidationSelected()) {
-                validateXml();
-            }
-            if (sidebarController != null && sidebarController.isContinuousSchematronValidationSelected()) {
-                validateSchematron();
-            }
+            // Text changes handled by syntax highlighting
         });
 
         codeArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> updateCursorInformation());
     }
 
-    /**
-     * Loads the sidebar from FXML and initializes the controller.
-     *
-     * @return VBox containing the sidebar loaded from FXML
-     */
-    private VBox loadSidebar() {
-        try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/pages/controls/XmlEditorSidebar.fxml"));
-            VBox sidebar = loader.load();
-            sidebarController = loader.getController();
-            sidebarController.setXmlEditor(this);
-            sidebarController.setSidebarContainer(sidebar); // Pass the container reference
-
-            // Pass MainController reference if available
-            if (mainController != null) {
-                sidebarController.setMainController(mainController);
-                logger.debug("✅ Set MainController reference during sidebar initialization");
-            } else {
-                logger.debug("⚠️ MainController not available during sidebar initialization");
-            }
-            return sidebar;
-        } catch (IOException e) {
-            logger.error("Failed to load sidebar FXML", e);
-            // Fallback: create a simple error message
-            VBox errorBox = new VBox();
-            errorBox.getChildren().add(new Label("Error loading sidebar: " + e.getMessage()));
-            return errorBox;
-        }
-    }
 
     /**
      * Extracts element name and type information at the given cursor position.
@@ -561,24 +517,9 @@ public class XmlEditor extends Tab {
      * Uses XSD-based implementation to get comprehensive information about the current element.
      */
     private void updateCursorInformation() {
-        if (sidebarController == null) return;
-        
-        String text = codeArea.getText();
-        int caretPosition = codeArea.getCaretPosition();
-        String xpath = getCurrentXPath(text, caretPosition);
-        sidebarController.setXPath(xpath);
+        // Cursor information functionality removed (moved to Ultimate XML Editor sidebar)
+        // This method is kept for compatibility but no longer updates any sidebar
 
-        // Get element information from XSD documentation data
-        updateElementInfoFromXsd(caretPosition);
-
-        // Update child elements based on current position
-        updateChildElements(xpath);
-
-        // Update documentation and example values from XSD
-        updateElementDocumentation(caretPosition);
-
-        // Update example values based on current XPath
-        updateExampleValuesFromXsd(xpath);
     }
 
     /**
@@ -833,11 +774,11 @@ public class XmlEditor extends Tab {
      * @param xpath The current XPath to find child elements for
      */
     private void updateChildElements(String xpath) {
-        if (sidebarController == null) return;
+        // Child elements functionality moved to Ultimate XML Editor
 
         if (xsdDocumentationData == null || xpath == null || xpath.equals("Invalid XML structure") ||
                 xpath.equals("No XML content") || xpath.equals("Unable to determine XPath")) {
-            sidebarController.setPossibleChildElements(Collections.singletonList("No XSD documentation data loaded or invalid XPath"));
+            // Functionality moved to Ultimate XML Editor
             return;
         }
 
@@ -855,9 +796,9 @@ public class XmlEditor extends Tab {
                 if (childElements != null && !childElements.isEmpty()) {
                     // Format child elements to show only names and types, not full XPaths
                     List<String> formattedChildren = formatChildElementsForDisplay(childElements);
-                    sidebarController.setPossibleChildElements(formattedChildren);
+                    // Functionality moved to Ultimate XML Editor
                 } else {
-                    sidebarController.setPossibleChildElements(Collections.singletonList("No child elements defined for this element"));
+                    // Functionality moved to Ultimate XML Editor
                 }
             } else {
                 // Fallback: try to find child elements using element name from xpath
@@ -867,17 +808,17 @@ public class XmlEditor extends Tab {
                     if (!childElements.isEmpty()) {
                         // Format child elements to show only names and types, not full XPaths
                         List<String> formattedChildren = formatChildElementsForDisplay(childElements);
-                        sidebarController.setPossibleChildElements(formattedChildren);
+                        // Functionality moved to Ultimate XML Editor
                     } else {
-                        sidebarController.setPossibleChildElements(Collections.singletonList("No child elements found for: " + elementName));
+                        // Functionality moved to Ultimate XML Editor
                     }
                 } else {
-                    sidebarController.setPossibleChildElements(Collections.singletonList("Element not found in XSD"));
+                    // Functionality moved to Ultimate XML Editor
                 }
             }
         } catch (Exception e) {
             logger.error("Error getting child elements from XSD documentation data", e);
-            sidebarController.setPossibleChildElements(Collections.singletonList("Error: " + e.getMessage()));
+            // Functionality moved to Ultimate XML Editor
         }
     }
 
@@ -975,9 +916,7 @@ public class XmlEditor extends Tab {
 
     public void setXsdFile(File xsdFile) {
         this.xsdFile = xsdFile;
-        if (sidebarController != null) {
-            sidebarController.setXsdPathField(xsdFile != null ? xsdFile.getAbsolutePath() : "No XSD schema selected");
-        }
+        // Functionality moved to Ultimate XML Editor
 
         // Clear cached XSD documentation data when XSD changes
         this.xsdDocumentationData = null;
@@ -998,24 +937,22 @@ public class XmlEditor extends Tab {
 
     public void setSchematronFile(File schematronFile) {
         this.schematronFile = schematronFile;
-        if (sidebarController != null) {
-            sidebarController.setSchematronPathField(schematronFile != null ? schematronFile.getAbsolutePath() : "No Schematron rules selected");
-        }
+        // Functionality moved to Ultimate XML Editor
         validateSchematron();
     }
 
     public void validateXml() {
-        if (sidebarController == null) return;
+        // XML validation functionality moved to Ultimate XML Editor
         
         if (xsdFile == null) {
-            sidebarController.updateValidationStatus("No XSD selected", "orange", null);
+            // Functionality moved to Ultimate XML Editor
             return;
         }
 
         try {
             String xmlContent = codeArea.getText();
             if (xmlContent == null || xmlContent.trim().isEmpty()) {
-                sidebarController.updateValidationStatus("No XML content", "orange", null);
+                // Functionality moved to Ultimate XML Editor
                 return;
             }
 
@@ -1023,7 +960,7 @@ public class XmlEditor extends Tab {
             List<org.xml.sax.SAXParseException> saxErrors = xmlService.validateText(xmlContent, xsdFile);
 
             if (saxErrors == null || saxErrors.isEmpty()) {
-                sidebarController.updateValidationStatus("✓ Valid", "green", null);
+                // Functionality moved to Ultimate XML Editor
             } else {
                 // Convert SAXParseException to ValidationError objects
                 List<ValidationError> validationErrors = saxErrors.stream()
@@ -1031,10 +968,10 @@ public class XmlEditor extends Tab {
                         .collect(Collectors.toList());
 
                 String errorMessage = "✗ Invalid (" + saxErrors.size() + " error" + (saxErrors.size() == 1 ? "" : "s") + ")";
-                sidebarController.updateValidationStatus(errorMessage, "red", validationErrors);
+                // Functionality moved to Ultimate XML Editor
             }
         } catch (Exception e) {
-            sidebarController.updateValidationStatus("Error during validation", "red", null);
+            // Functionality moved to Ultimate XML Editor
             logger.error("Error during XML validation", e);
         }
     }
@@ -1058,17 +995,17 @@ public class XmlEditor extends Tab {
     }
 
     public void validateSchematron() {
-        if (sidebarController == null) return;
+        // Schematron validation functionality moved to Ultimate XML Editor
         
         if (schematronFile == null) {
-            sidebarController.updateSchematronValidationStatus("No Schematron rules selected", "orange", null);
+            // Functionality moved to Ultimate XML Editor
             return;
         }
 
         try {
             String xmlContent = codeArea.getText();
             if (xmlContent == null || xmlContent.trim().isEmpty()) {
-                sidebarController.updateSchematronValidationStatus("No XML content", "orange", null);
+                // Functionality moved to Ultimate XML Editor
                 return;
             }
 
@@ -1076,14 +1013,14 @@ public class XmlEditor extends Tab {
             List<SchematronService.SchematronValidationError> errors = schematronService.validateXml(xmlContent, schematronFile);
 
             if (errors == null || errors.isEmpty()) {
-                sidebarController.updateSchematronValidationStatus("✓ Valid", "green", null);
+                // Functionality moved to Ultimate XML Editor
             } else {
                 // Create a short summary for the label
                 String shortMessage = String.format("✗ Invalid (%d error%s)",
                         errors.size(), errors.size() == 1 ? "" : "s");
 
                 // Use the new method that stores the error details and shows the details button
-                sidebarController.updateSchematronValidationStatus(shortMessage, "red", errors);
+                // Functionality moved to Ultimate XML Editor
 
                 logger.info("Schematron validation: ✗ Invalid ({} error(s))", errors.size());
                 for (SchematronService.SchematronValidationError error : errors) {
@@ -1092,7 +1029,7 @@ public class XmlEditor extends Tab {
                 }
             }
         } catch (Exception e) {
-            sidebarController.updateSchematronValidationStatus("Error during validation", "red", null);
+            // Functionality moved to Ultimate XML Editor
             logger.error("Error during Schematron validation", e);
         }
     }
@@ -1294,24 +1231,20 @@ public class XmlEditor extends Tab {
                 }
 
                 if (elementInfo != null) {
-                    // Update sidebar with XSD-based information
-                    sidebarController.setElementName(elementInfo.getElementName());
-                    sidebarController.setElementType(elementInfo.getElementType() != null ? elementInfo.getElementType() : "");
+                    // Functionality moved to Ultimate XML Editor
                     return;
                 }
             }
 
             // Fallback to manual parsing if XSD data is not available
             ElementInfo fallbackInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
-            sidebarController.setElementName(fallbackInfo.name);
-            sidebarController.setElementType(fallbackInfo.type);
+            // Functionality moved to Ultimate XML Editor
 
         } catch (Exception e) {
             logger.debug("Error getting element info from XSD: {}", e.getMessage());
             // Fallback to manual parsing
             ElementInfo elementInfo = getElementInfoAtPosition(codeArea.getText(), caretPosition);
-            sidebarController.setElementName(elementInfo.name);
-            sidebarController.setElementType(elementInfo.type);
+            // Functionality moved to Ultimate XML Editor
         }
     }
 
@@ -1443,14 +1376,10 @@ public class XmlEditor extends Tab {
                 logger.debug("Found element info for XPath '{}': type='{}', doc='{}'",
                         currentXPath, finalElementType, finalDocumentation);
 
-                // Update sidebar with comprehensive information
+                // Functionality moved to Ultimate XML Editor
                 Platform.runLater(() -> {
                     updateDocumentationDisplay(finalDocumentation != null ? finalDocumentation : "");
-                    if (sidebarController != null) {
-                        sidebarController.setElementName(finalElementName);
-                        sidebarController.setElementType(finalElementType != null ? finalElementType : "");
-                        sidebarController.setExampleValues(finalExampleValues);
-                    }
+                    // Functionality moved to Ultimate XML Editor
                 });
             } else {
                 logger.debug("No element info found for XPath '{}'", currentXPath);
@@ -1716,9 +1645,7 @@ public class XmlEditor extends Tab {
      * @param documentation The documentation text to display
      */
     private void updateDocumentationDisplay(String documentation) {
-        if (sidebarController != null) {
-            sidebarController.setDocumentation(documentation);
-        }
+        // Functionality moved to Ultimate XML Editor
     }
 
     /**
@@ -1727,9 +1654,7 @@ public class XmlEditor extends Tab {
      * @param exampleValues The list of example values to display
      */
     private void updateExampleValuesDisplay(List<String> exampleValues) {
-        if (sidebarController != null) {
-            sidebarController.setExampleValues(exampleValues);
-        }
+        // Functionality moved to Ultimate XML Editor
     }
 
     /**
@@ -1738,11 +1663,12 @@ public class XmlEditor extends Tab {
      * @param xpath The current XPath to find example values for
      */
     private void updateExampleValuesFromXsd(String xpath) {
-        if (sidebarController == null) return;
+        // Functionality moved to Ultimate XML Editor
         
+        /*
         if (xsdFile == null || xpath == null || xpath.equals("Invalid XML structure") ||
                 xpath.equals("No XML content") || xpath.equals("Unable to determine XPath")) {
-            sidebarController.setExampleValues(Collections.singletonList("No XSD schema loaded"));
+            // Functionality moved to Ultimate XML Editor
             return;
         }
 
@@ -1750,27 +1676,28 @@ public class XmlEditor extends Tab {
             // Get the current element name from XPath
             String[] pathParts = xpath.split("/");
             if (pathParts.length == 0) {
-                sidebarController.setExampleValues(Collections.singletonList("No element selected"));
+                // Functionality moved to Ultimate XML Editor
                 return;
             }
 
             String currentElementName = pathParts[pathParts.length - 1];
             if (currentElementName.isEmpty()) {
-                sidebarController.setExampleValues(Collections.singletonList("No element selected"));
+                // Functionality moved to Ultimate XML Editor
                 return;
             }
 
             // Extract example values from XSD
             List<String> exampleValues = getExampleValuesFromXsd(currentElementName);
             if (exampleValues.isEmpty()) {
-                sidebarController.setExampleValues(Collections.singletonList("No example values found for: " + currentElementName));
+                // Functionality moved to Ultimate XML Editor
             } else {
-                sidebarController.setExampleValues(exampleValues);
+                // Functionality moved to Ultimate XML Editor
             }
         } catch (Exception e) {
             logger.error("Error getting example values", e);
-            sidebarController.setExampleValues(Collections.singletonList("Error: " + e.getMessage()));
+            // Functionality moved to Ultimate XML Editor
         }
+        */
     }
 
     /**
@@ -1968,17 +1895,11 @@ public class XmlEditor extends Tab {
                 setXsdFile(loadedXsdFile);
             } else {
                 // If no XSD was found, clear the XSD field
-                if (sidebarController != null) {
-                    sidebarController.setXsdPathField("No XSD schema found in XML");
-                    sidebarController.updateValidationStatus("No XSD schema found", "orange");
-                }
+                // Functionality moved to Ultimate XML Editor
             }
         } else {
             // If no XSD was found, clear the XSD field
-            if (sidebarController != null) {
-                sidebarController.setXsdPathField("No XSD schema found in XML");
-                sidebarController.updateValidationStatus("No XSD schema found", "orange");
-            }
+            // Functionality moved to Ultimate XML Editor
         }
     }
 
@@ -2018,10 +1939,7 @@ public class XmlEditor extends Tab {
             vBox.setPadding(new Insets(3));
             if (document != null) {
                 currentGraphicEditor = new XmlGraphicEditor(document, this);
-                // Set sidebar controller for integration with XmlEditorSidebar functionality
-                if (sidebarController != null) {
-                    currentGraphicEditor.setSidebarController(sidebarController);
-                }
+                // Sidebar functionality removed
                 VBox.setVgrow(currentGraphicEditor, Priority.ALWAYS);
                 vBox.getChildren().add(currentGraphicEditor);
             }
@@ -2072,11 +1990,10 @@ public class XmlEditor extends Tab {
     private double savedDividerPosition = 0.8;
 
     /**
-     * Sets the visibility of the XML Editor Sidebar.
-     *
-     * @param visible true to show the sidebar, false to hide it completely
+     * Sidebar functionality removed - kept for compatibility
      */
     public void setXmlEditorSidebarVisible(boolean visible) {
+        // Sidebar functionality has been moved to Ultimate XML Editor
         if (splitPane != null && splitPane.getItems().size() > 1) {
             javafx.scene.Node sidebarNode = splitPane.getItems().get(1); // Sidebar is the second item
 
