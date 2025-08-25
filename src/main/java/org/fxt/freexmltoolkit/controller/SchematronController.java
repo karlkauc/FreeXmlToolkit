@@ -2,19 +2,25 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.*;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Controller for the Schematron Editor tab.
@@ -55,6 +61,12 @@ public class SchematronController {
     private Button testRulesButton;
 
     @FXML
+    private Button addSchematronToFavoritesButton;
+
+    @FXML
+    private MenuButton loadSchematronFavoritesButton;
+
+    @FXML
     private VBox codeEditorContainer;
 
     @FXML
@@ -88,6 +100,7 @@ public class SchematronController {
     private SchematronTemplateLibrary templateLibrary;
     private CodeArea codeArea;
     private SchematronService schematronService;
+    private FavoritesService favoritesService;
     private MainController parentController;
     private ProgressManager progressManager;
 
@@ -103,6 +116,7 @@ public class SchematronController {
 
         // Initialize services
         schematronService = new SchematronServiceImpl();
+        favoritesService = FavoritesService.getInstance();
         progressManager = ProgressManager.getInstance();
         errorDetector = new SchematronErrorDetector();
 
@@ -123,6 +137,9 @@ public class SchematronController {
 
         // Initialize sidebar components
         initializeSidebarComponents();
+
+        // Initialize favorites
+        initializeFavorites();
 
         logger.info("SchematronController initialization completed");
     }
@@ -667,6 +684,227 @@ public class SchematronController {
      */
     private void showWarning(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // ======================================================================
+    // Favorites functionality for Schematron files
+    // ======================================================================
+
+    private void initializeFavorites() {
+        // Initialize the favorites menu
+        Platform.runLater(() -> refreshSchematronFavoritesMenu());
+        logger.debug("Schematron favorites system initialized");
+    }
+
+    @FXML
+    private void addCurrentSchematronToFavorites() {
+        logger.info("Adding current Schematron file to favorites");
+
+        if (currentSchematronFile == null || !currentSchematronFile.exists()) {
+            showAlert(Alert.AlertType.WARNING, "Warning", "No Schematron file is currently loaded or file does not exist.");
+            return;
+        }
+
+        // Check if already in favorites
+        if (favoritesService.isFavorite(currentSchematronFile.getAbsolutePath())) {
+            showAlert(Alert.AlertType.INFORMATION, "Information", "This Schematron file is already in your favorites.");
+            return;
+        }
+
+        // Show dialog to add to favorites
+        showAddSchematronToFavoritesDialog(currentSchematronFile);
+    }
+
+    private void showAddSchematronToFavoritesDialog(File file) {
+        Dialog<org.fxt.freexmltoolkit.domain.FileFavorite> dialog = new Dialog<>();
+        dialog.setTitle("Add Schematron to Favorites");
+        dialog.setHeaderText("Add \"" + file.getName() + "\" to favorites");
+
+        // Set the button types
+        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        // Create form
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField nameField = new TextField(file.getName().replaceFirst("[.][^.]+$", ""));
+        ComboBox<String> categoryCombo = new ComboBox<>();
+        categoryCombo.setEditable(true);
+        categoryCombo.getItems().addAll(favoritesService.getAllFolders());
+        categoryCombo.setValue("Schematron Rules");
+        TextField descriptionField = new TextField();
+
+        grid.add(new Label("Name:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Category:"), 0, 1);
+        grid.add(categoryCombo, 1, 1);
+        grid.add(new Label("Description:"), 0, 2);
+        grid.add(descriptionField, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Enable/disable add button depending on whether name is entered
+        Button addButton = (Button) dialog.getDialogPane().lookupButton(addButtonType);
+        addButton.setDisable(nameField.getText().trim().isEmpty());
+        nameField.textProperty().addListener((observable, oldValue, newValue) ->
+                addButton.setDisable(newValue.trim().isEmpty()));
+
+        Platform.runLater(() -> nameField.requestFocus());
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                try {
+                    org.fxt.freexmltoolkit.domain.FileFavorite favorite = new org.fxt.freexmltoolkit.domain.FileFavorite(
+                            nameField.getText().trim(),
+                            file.getAbsolutePath(),
+                            categoryCombo.getValue() != null ? categoryCombo.getValue().trim() : "Schematron Rules"
+                    );
+                    if (!descriptionField.getText().trim().isEmpty()) {
+                        favorite.setDescription(descriptionField.getText().trim());
+                    }
+                    return favorite;
+                } catch (Exception e) {
+                    logger.error("Error creating Schematron favorite", e);
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        Optional<org.fxt.freexmltoolkit.domain.FileFavorite> result = dialog.showAndWait();
+        result.ifPresent(favorite -> {
+            favoritesService.addFavorite(favorite);
+            refreshSchematronFavoritesMenu();
+            showAlert(Alert.AlertType.INFORMATION, "Success", "Schematron file added to favorites successfully!");
+            logger.info("Added {} to favorites in category {}", favorite.getName(), favorite.getFolderName());
+        });
+    }
+
+    private void refreshSchematronFavoritesMenu() {
+        if (loadSchematronFavoritesButton == null) return;
+
+        loadSchematronFavoritesButton.getItems().clear();
+
+        // Get Schematron favorites
+        List<org.fxt.freexmltoolkit.domain.FileFavorite> schematronFavorites = favoritesService.getFavoritesByType(
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON);
+
+        if (schematronFavorites.isEmpty()) {
+            MenuItem noFavoritesItem = new MenuItem("No Schematron favorites yet");
+            noFavoritesItem.setDisable(true);
+            loadSchematronFavoritesButton.getItems().add(noFavoritesItem);
+            return;
+        }
+
+        // Organize by categories
+        java.util.Map<String, List<org.fxt.freexmltoolkit.domain.FileFavorite>> favoritesByCategory =
+                schematronFavorites.stream().collect(java.util.stream.Collectors.groupingBy(
+                        f -> f.getFolderName() != null ? f.getFolderName() : "Uncategorized"));
+
+        for (java.util.Map.Entry<String, List<org.fxt.freexmltoolkit.domain.FileFavorite>> entry : favoritesByCategory.entrySet()) {
+            String category = entry.getKey();
+            List<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesInCategory = entry.getValue();
+
+            if (favoritesByCategory.size() > 1) {
+                // Add category submenu if multiple categories
+                Menu categoryMenu = new Menu(category);
+                categoryMenu.getStyleClass().add("favorites-category");
+
+                for (org.fxt.freexmltoolkit.domain.FileFavorite favorite : favoritesInCategory) {
+                    MenuItem favoriteItem = createSchematronFavoriteMenuItem(favorite);
+                    categoryMenu.getItems().add(favoriteItem);
+                }
+
+                loadSchematronFavoritesButton.getItems().add(categoryMenu);
+            } else {
+                // If only one category, add items directly
+                for (org.fxt.freexmltoolkit.domain.FileFavorite favorite : favoritesInCategory) {
+                    MenuItem favoriteItem = createSchematronFavoriteMenuItem(favorite);
+                    loadSchematronFavoritesButton.getItems().add(favoriteItem);
+                }
+            }
+        }
+
+        // Add separator and management options
+        loadSchematronFavoritesButton.getItems().add(new SeparatorMenuItem());
+
+        MenuItem manageFavoritesItem = new MenuItem("Manage Favorites...");
+        manageFavoritesItem.setOnAction(e -> showSchematronFavoritesManagement());
+        loadSchematronFavoritesButton.getItems().add(manageFavoritesItem);
+    }
+
+    private MenuItem createSchematronFavoriteMenuItem(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
+        MenuItem item = new MenuItem(favorite.getName());
+
+        // Set Schematron icon
+        FontIcon icon = new FontIcon(favorite.getFileType().getIconLiteral());
+        icon.setIconColor(javafx.scene.paint.Color.web(favorite.getFileType().getDefaultColor()));
+        icon.setIconSize(14);
+        item.setGraphic(icon);
+
+        // Add tooltip with file path and description
+        String tooltipText = favorite.getFilePath();
+        if (favorite.getDescription() != null && !favorite.getDescription().trim().isEmpty()) {
+            tooltipText += "\n" + favorite.getDescription();
+        }
+        Tooltip.install(item.getGraphic(), new Tooltip(tooltipText));
+
+        // Set action to load the Schematron file
+        item.setOnAction(e -> loadSchematronFavoriteFile(favorite));
+
+        return item;
+    }
+
+    private void loadSchematronFavoriteFile(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
+        File file = new File(favorite.getFilePath());
+
+        if (!file.exists()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("File Not Found");
+            alert.setHeaderText("Cannot open favorite Schematron file");
+            alert.setContentText("The file \"" + file.getName() + "\" no longer exists at:\n" + favorite.getFilePath());
+
+            // Offer to remove from favorites
+            ButtonType removeButton = new ButtonType("Remove from Favorites");
+            ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+            alert.getButtonTypes().setAll(removeButton, cancelButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == removeButton) {
+                favoritesService.removeFavorite(favorite.getId());
+                refreshSchematronFavoritesMenu();
+            }
+            return;
+        }
+
+        try {
+            // Load the Schematron file
+            loadSchematronFile(file);
+
+            // Update last accessed time
+            favoritesService.updateFavorite(favorite);
+
+            logger.info("Loaded favorite Schematron file: {}", favorite.getName());
+        } catch (Exception e) {
+            logger.error("Error loading favorite Schematron file: {}", favorite.getName(), e);
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to load favorite Schematron file:\n" + e.getMessage());
+        }
+    }
+
+    private void showSchematronFavoritesManagement() {
+        // This will be implemented when we create the settings UI
+        showAlert(Alert.AlertType.INFORMATION, "Coming Soon", "Favorites management will be available in Settings.");
+    }
+
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);

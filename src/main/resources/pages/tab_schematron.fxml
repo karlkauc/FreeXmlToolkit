@@ -187,6 +187,28 @@
                             <Tooltip text="Test rules against XML files"/>
                         </tooltip>
                     </Button>
+
+                    <Separator orientation="VERTICAL"/>
+
+                    <!-- Favorites Buttons -->
+                    <Button fx:id="addSchematronToFavoritesButton" text="★ Add"
+                            onAction="#addCurrentSchematronToFavorites">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-star" iconColor="#ffc107" iconSize="14"/>
+                        </graphic>
+                        <tooltip>
+                            <Tooltip text="Add current Schematron file to favorites"/>
+                        </tooltip>
+                    </Button>
+
+                    <MenuButton fx:id="loadSchematronFavoritesButton" text="Favorites">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-star-fill" iconColor="#ffc107" iconSize="14"/>
+                        </graphic>
+                        <tooltip>
+                            <Tooltip text="Load from favorites"/>
+                        </tooltip>
+                    </MenuButton>
                 </ToolBar>
 
                 <!-- Main Content Area with Split Pane -->

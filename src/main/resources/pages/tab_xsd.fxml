@@ -118,6 +118,28 @@
                                 </children>
                             </VBox>
                             <Region HBox.hgrow="ALWAYS"/>
+
+                            <!-- Favorites Section -->
+                            <Button fx:id="addXsdToFavoritesButton" onAction="#addCurrentXsdToFavorites"
+                                    style="-fx-font-size: 11px;"
+                                    text="★ Add">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-star" iconColor="#ffc107"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Add current XSD file to favorites"/>
+                                </tooltip>
+                            </Button>
+
+                            <MenuButton fx:id="loadXsdFavoritesButton" style="-fx-font-size: 11px;" text="Favorites">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-star-fill" iconColor="#ffc107"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Load from favorites"/>
+                                </tooltip>
+                            </MenuButton>
+
                             <Button onAction="#openXsdFileChooser" style="-fx-font-size: 11px;"
                                     text="Load another file...">
                                 <graphic>

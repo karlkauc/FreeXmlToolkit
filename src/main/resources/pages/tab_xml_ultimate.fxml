@@ -43,6 +43,25 @@
             </tooltip>
         </Button>
 
+        <!-- Favorites Group -->
+        <Button fx:id="addToFavoritesButton" contentDisplay="TOP" onAction="#addCurrentFileToFavorites" text="★ Add">
+            <graphic>
+                <FontIcon iconColor="#ffc107" iconLiteral="bi-star" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Add current file to favorites"/>
+            </tooltip>
+        </Button>
+
+        <MenuButton fx:id="loadFavoritesButton" contentDisplay="TOP" text="Favorites">
+            <graphic>
+                <FontIcon iconColor="#ffc107" iconLiteral="bi-star-fill" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Load from favorites"/>
+            </tooltip>
+        </MenuButton>
+
         <Separator orientation="VERTICAL" prefHeight="25"/>
 
         <!-- Format Operations Group -->

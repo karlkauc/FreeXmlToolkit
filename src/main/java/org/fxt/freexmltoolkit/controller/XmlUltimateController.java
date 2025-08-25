@@ -24,11 +24,13 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
@@ -45,6 +47,7 @@ import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.*;
+import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -79,6 +82,7 @@ public class XmlUltimateController implements Initializable {
     private final XsltTransformationEngine xsltEngine = XsltTransformationEngine.getInstance();
     private final SchemaGenerationEngine schemaEngine = SchemaGenerationEngine.getInstance();
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    private final FavoritesService favoritesService = FavoritesService.getInstance();
 
     // Parent controller reference
     private MainController parentController;
@@ -122,6 +126,10 @@ public class XmlUltimateController implements Initializable {
     private Button xsltDeveloperButton;
     @FXML
     private ToggleButton treeViewToggle;
+    @FXML
+    private Button addToFavoritesButton;
+    @FXML
+    private MenuButton loadFavoritesButton;
 
     // Main Editor
     @FXML
@@ -236,6 +244,7 @@ public class XmlUltimateController implements Initializable {
         initializeXPathXQuery();
         loadTemplates();
         createInitialTab();
+        initializeFavorites();
         logger.info("Ultimate XML Controller initialized successfully");
     }
 
@@ -360,6 +369,12 @@ public class XmlUltimateController implements Initializable {
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
         }
+    }
+
+    private void initializeFavorites() {
+        // Initialize the favorites menu
+        Platform.runLater(() -> refreshFavoritesMenu());
+        logger.debug("Favorites system initialized");
     }
 
     /**
@@ -655,6 +670,220 @@ public class XmlUltimateController implements Initializable {
         logger.info("Opening Template Manager Popup");
         logToConsole("Opening Smart Templates System...");
         openTemplateManagerPopup();
+    }
+
+    @FXML
+    private void addCurrentFileToFavorites() {
+        logger.info("Adding current file to favorites");
+
+        Tab selectedTab = xmlFilesPane.getSelectionModel().getSelectedItem();
+        if (selectedTab == null || selectedTab.getUserData() == null) {
+            showAlert(Alert.AlertType.WARNING, "Warning", "No file is currently open.");
+            return;
+        }
+
+        File currentFile = (File) selectedTab.getUserData();
+        if (!currentFile.exists()) {
+            showAlert(Alert.AlertType.ERROR, "Error", "Current file does not exist on disk.");
+            return;
+        }
+
+        // Check if already in favorites
+        if (favoritesService.isFavorite(currentFile.getAbsolutePath())) {
+            showAlert(Alert.AlertType.INFORMATION, "Information", "This file is already in your favorites.");
+            return;
+        }
+
+        // Show dialog to add to favorites with category selection
+        showAddToFavoritesDialog(currentFile);
+    }
+
+    private void showAddToFavoritesDialog(File file) {
+        Dialog<org.fxt.freexmltoolkit.domain.FileFavorite> dialog = new Dialog<>();
+        dialog.setTitle("Add to Favorites");
+        dialog.setHeaderText("Add \"" + file.getName() + "\" to favorites");
+
+        // Set the button types
+        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+        // Create form
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField nameField = new TextField(file.getName().replaceFirst("[.][^.]+$", ""));
+        ComboBox<String> categoryCombo = new ComboBox<>();
+        categoryCombo.setEditable(true);
+        categoryCombo.getItems().addAll(favoritesService.getAllFolders());
+        categoryCombo.setValue("General");
+        TextField descriptionField = new TextField();
+
+        grid.add(new Label("Name:"), 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(new Label("Category:"), 0, 1);
+        grid.add(categoryCombo, 1, 1);
+        grid.add(new Label("Description:"), 0, 2);
+        grid.add(descriptionField, 1, 2);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Enable/disable add button depending on whether name is entered
+        Button addButton = (Button) dialog.getDialogPane().lookupButton(addButtonType);
+        addButton.setDisable(nameField.getText().trim().isEmpty());
+        nameField.textProperty().addListener((observable, oldValue, newValue) ->
+                addButton.setDisable(newValue.trim().isEmpty()));
+
+        Platform.runLater(() -> nameField.requestFocus());
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                try {
+                    org.fxt.freexmltoolkit.domain.FileFavorite favorite = new org.fxt.freexmltoolkit.domain.FileFavorite(
+                            nameField.getText().trim(),
+                            file.getAbsolutePath(),
+                            categoryCombo.getValue() != null ? categoryCombo.getValue().trim() : "General"
+                    );
+                    if (!descriptionField.getText().trim().isEmpty()) {
+                        favorite.setDescription(descriptionField.getText().trim());
+                    }
+                    return favorite;
+                } catch (Exception e) {
+                    logger.error("Error creating favorite", e);
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        Optional<org.fxt.freexmltoolkit.domain.FileFavorite> result = dialog.showAndWait();
+        result.ifPresent(favorite -> {
+            favoritesService.addFavorite(favorite);
+            refreshFavoritesMenu();
+            showAlert(Alert.AlertType.INFORMATION, "Success", "File added to favorites successfully!");
+            logger.info("Added {} to favorites in category {}", favorite.getName(), favorite.getFolderName());
+        });
+    }
+
+    private void refreshFavoritesMenu() {
+        if (loadFavoritesButton == null) return;
+
+        loadFavoritesButton.getItems().clear();
+
+        // Get all favorites organized by folders
+        Set<String> folders = favoritesService.getAllFolders();
+
+        if (folders.isEmpty() || (folders.size() == 1 && folders.contains("Uncategorized"))) {
+            // No favorites yet
+            MenuItem noFavoritesItem = new MenuItem("No favorites yet");
+            noFavoritesItem.setDisable(true);
+            loadFavoritesButton.getItems().add(noFavoritesItem);
+            return;
+        }
+
+        // Add favorites by category
+        for (String folder : folders) {
+            List<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesInFolder = favoritesService.getFavoritesByFolder(folder);
+            if (favoritesInFolder.isEmpty()) continue;
+
+            if (folders.size() > 1) {
+                // Add category header if there are multiple categories
+                Menu categoryMenu = new Menu(folder);
+                categoryMenu.getStyleClass().add("favorites-category");
+
+                for (org.fxt.freexmltoolkit.domain.FileFavorite favorite : favoritesInFolder) {
+                    MenuItem favoriteItem = createFavoriteMenuItem(favorite);
+                    categoryMenu.getItems().add(favoriteItem);
+                }
+
+                loadFavoritesButton.getItems().add(categoryMenu);
+            } else {
+                // If only one category, add items directly
+                for (org.fxt.freexmltoolkit.domain.FileFavorite favorite : favoritesInFolder) {
+                    MenuItem favoriteItem = createFavoriteMenuItem(favorite);
+                    loadFavoritesButton.getItems().add(favoriteItem);
+                }
+            }
+        }
+
+        // Add separator and management options
+        loadFavoritesButton.getItems().add(new SeparatorMenuItem());
+
+        MenuItem manageFavoritesItem = new MenuItem("Manage Favorites...");
+        manageFavoritesItem.setOnAction(e -> showFavoritesManagement());
+        loadFavoritesButton.getItems().add(manageFavoritesItem);
+
+        MenuItem cleanupItem = new MenuItem("Remove Non-Existent Files");
+        cleanupItem.setOnAction(e -> {
+            favoritesService.cleanupNonExistentFiles();
+            refreshFavoritesMenu();
+            showAlert(Alert.AlertType.INFORMATION, "Cleanup Complete", "Removed non-existent files from favorites.");
+        });
+        loadFavoritesButton.getItems().add(cleanupItem);
+    }
+
+    private MenuItem createFavoriteMenuItem(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
+        MenuItem item = new MenuItem(favorite.getName());
+
+        // Set icon based on file type
+        FontIcon icon = new FontIcon(favorite.getFileType().getIconLiteral());
+        icon.setIconColor(javafx.scene.paint.Color.web(favorite.getFileType().getDefaultColor()));
+        icon.setIconSize(14);
+        item.setGraphic(icon);
+
+        // Add tooltip with file path and description
+        String tooltipText = favorite.getFilePath();
+        if (favorite.getDescription() != null && !favorite.getDescription().trim().isEmpty()) {
+            tooltipText += "\n" + favorite.getDescription();
+        }
+        Tooltip.install(item.getGraphic(), new Tooltip(tooltipText));
+
+        // Set action to load the file
+        item.setOnAction(e -> loadFavoriteFile(favorite));
+
+        return item;
+    }
+
+    private void loadFavoriteFile(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
+        File file = new File(favorite.getFilePath());
+
+        if (!file.exists()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("File Not Found");
+            alert.setHeaderText("Cannot open favorite file");
+            alert.setContentText("The file \"" + file.getName() + "\" no longer exists at:\n" + favorite.getFilePath());
+
+            // Offer to remove from favorites
+            ButtonType removeButton = new ButtonType("Remove from Favorites");
+            ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+            alert.getButtonTypes().setAll(removeButton, cancelButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == removeButton) {
+                favoritesService.removeFavorite(favorite.getId());
+                refreshFavoritesMenu();
+            }
+            return;
+        }
+
+        try {
+            // Load the file in the current editor
+            loadXmlFile(file);
+
+            // Update last accessed time
+            favoritesService.updateFavorite(favorite);
+
+            logger.info("Loaded favorite file: {}", favorite.getName());
+        } catch (Exception e) {
+            logger.error("Error loading favorite file: {}", favorite.getName(), e);
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to load favorite file:\n" + e.getMessage());
+        }
+    }
+
+    private void showFavoritesManagement() {
+        // This will be implemented when we create the settings UI
+        showAlert(Alert.AlertType.INFORMATION, "Coming Soon", "Favorites management will be available in Settings.");
     }
 
     @FXML
@@ -1181,6 +1410,14 @@ public class XmlUltimateController implements Initializable {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText("Error");
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
     }
