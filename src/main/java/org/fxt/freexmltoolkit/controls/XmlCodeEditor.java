@@ -1425,12 +1425,13 @@ public class XmlCodeEditor extends VBox {
     private void requestCompletions() {
         logger.debug("IntelliSense requested - checking XSD schema availability");
 
-        // Only show IntelliSense popup if XSD schema is available
+        // Show IntelliSense popup - prioritize XSD-based suggestions but allow fallback
         if (isXsdSchemaAvailable()) {
-            logger.debug("XSD schema available - showing IntelliSense popup");
+            logger.debug("XSD schema available - showing context-aware IntelliSense popup");
             showManualIntelliSensePopup();
         } else {
-            logger.debug("No XSD schema - IntelliSense popup disabled");
+            logger.debug("No XSD schema - showing basic IntelliSense with available elements");
+            showBasicIntelliSensePopup();
         }
     }
 
@@ -1463,11 +1464,46 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
+     * Shows basic IntelliSense popup without XSD schema (fallback mode).
+     */
+    private void showBasicIntelliSensePopup() {
+        logger.debug("Showing basic IntelliSense popup without XSD context");
+
+        // Even without XSD, try to get context-specific elements if any context mapping exists
+        String currentContext = getCurrentElementContext();
+        List<String> suggestedElements;
+
+        if (currentContext != null && !contextElementNames.isEmpty()) {
+            logger.debug("No XSD but context mapping available - trying context-specific elements for '{}'", currentContext);
+            suggestedElements = getContextSpecificElements(currentContext);
+        } else if (!availableElementNames.isEmpty()) {
+            logger.debug("Using available element names from XSD: {}", availableElementNames.size());
+            suggestedElements = availableElementNames;
+        } else {
+            logger.debug("No context available - using generic element names");
+            suggestedElements = Arrays.asList("element", "item", "data", "value", "content", "name", "id", "type");
+        }
+
+        // Update the list view with suggested elements
+        completionListView.getItems().clear();
+        completionListView.getItems().addAll(suggestedElements);
+
+        // Select the first item
+        if (!completionListView.getItems().isEmpty()) {
+            completionListView.getSelectionModel().select(0);
+        }
+
+        // Show the popup at the current cursor position
+        showIntelliSensePopupAtCursor();
+    }
+
+    /**
      * Shows IntelliSense popup with XSD-based completion.
      */
     private void showManualIntelliSensePopup() {
         // Get the current context (parent element)
         String currentContext = getCurrentElementContext();
+        logger.debug("Current element context determined as: '{}'", currentContext);
         List<String> contextSpecificElements = getContextSpecificElements(currentContext);
 
         // Update the list view with context-specific elements
@@ -1480,6 +1516,13 @@ public class XmlCodeEditor extends VBox {
         }
 
         // Show the popup at the current cursor position
+        showIntelliSensePopupAtCursor();
+    }
+
+    /**
+     * Shows the IntelliSense popup at the current cursor position.
+     */
+    private void showIntelliSensePopupAtCursor() {
         if (codeArea.getScene() != null && codeArea.getScene().getWindow() != null) {
             var caretBounds = codeArea.getCaretBounds().orElse(null);
             if (caretBounds != null) {
@@ -1487,6 +1530,7 @@ public class XmlCodeEditor extends VBox {
                 intelliSensePopup.setX(screenPos.getX());
                 intelliSensePopup.setY(screenPos.getY());
                 intelliSensePopup.show();
+                logger.debug("IntelliSense popup shown at cursor position");
             }
         }
     }
@@ -1543,18 +1587,35 @@ public class XmlCodeEditor extends VBox {
      * @return List of child element names for the given parent
      */
     private List<String> getContextSpecificElements(String parentElement) {
+        logger.debug("Getting context-specific elements for parent: {}", parentElement);
+        logger.debug("Available contextElementNames keys: {}", contextElementNames.keySet());
+        
         if (parentElement == null) {
             // If no parent context, return root-level elements
-            return contextElementNames.getOrDefault("root", availableElementNames);
+            List<String> rootElements = contextElementNames.getOrDefault("root", availableElementNames);
+            logger.debug("No parent context - returning root elements: {}", rootElements.size());
+            return rootElements;
         }
 
         // Get child elements for the current parent
         List<String> childElements = contextElementNames.get(parentElement);
         if (childElements != null && !childElements.isEmpty()) {
+            logger.debug("Found {} child elements for parent '{}': {}", childElements.size(), parentElement, childElements);
             return childElements;
         }
 
-        // Fallback to general element names if no specific children found
+        // Fallback: try to find if the parent element is actually a child of another element
+        // This handles cases where the element context detection might not be perfect
+        for (Map.Entry<String, List<String>> entry : contextElementNames.entrySet()) {
+            if (entry.getValue().contains(parentElement)) {
+                // Found parent element as a child, so maybe we can suggest its siblings or common elements
+                logger.debug("Parent '{}' found as child of '{}', returning siblings: {}", parentElement, entry.getKey(), entry.getValue());
+                return entry.getValue();
+            }
+        }
+
+        // Final fallback to general element names if no specific children found
+        logger.debug("No specific children found for parent '{}' - falling back to availableElementNames: {}", parentElement, availableElementNames.size());
         return availableElementNames;
     }
 
@@ -2000,9 +2061,10 @@ public class XmlCodeEditor extends VBox {
 
     /**
      * Handles intelligent cursor positioning when Enter key is pressed.
-     * Implements two main rules:
+     * Implements three main rules:
      * 1. After a closing XML tag: maintain indentation of previous element
      * 2. Between opening and closing tag: indent by 4 spaces more than parent
+     * 3. After opening tag with children: insert new line with 4 spaces more indentation
      *
      * @return true if the event was handled and should be consumed, false for normal behavior
      */
@@ -2023,6 +2085,11 @@ public class XmlCodeEditor extends VBox {
             // Rule 2: Check if we're between opening and closing tags
             if (isBetweenOpeningAndClosingTag(text, caretPosition)) {
                 return handleEnterBetweenTags(text, caretPosition);
+            }
+
+            // Rule 3: Check if we're after an opening tag that has child elements
+            if (isAfterOpeningTagWithChildren(text, caretPosition)) {
+                return handleEnterAfterOpeningTagWithChildren(text, caretPosition);
             }
 
             // No special handling needed
@@ -2084,6 +2151,80 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
+     * Checks if the cursor is positioned after an opening XML tag that has child elements.
+     * Example: <Contact> |  (where there are child elements following)
+     * <Email>...</Email>
+     *
+     * @param text          The text content
+     * @param caretPosition The current cursor position
+     * @return true if cursor is after opening tag with children, false otherwise
+     */
+    private boolean isAfterOpeningTagWithChildren(String text, int caretPosition) {
+        try {
+            // Look backwards to find the most recent '>' character
+            for (int i = caretPosition - 1; i >= 0; i--) {
+                char ch = text.charAt(i);
+                if (ch == '>') {
+                    // Found '>', check if it's from an opening tag (not closing or self-closing)
+                    if (isOpeningTagEnding(text, i)) {
+                        // Check if there are child elements after current position
+                        return hasChildElementsAfterPosition(text, caretPosition);
+                    } else {
+                        return false;
+                    }
+                } else if (!Character.isWhitespace(ch)) {
+                    // Found non-whitespace character that isn't '>'
+                    return false;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            logger.error("Error checking if after opening tag with children: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a '>' character ends an opening tag (not a closing or self-closing tag).
+     */
+    private boolean isOpeningTagEnding(String text, int gtPosition) {
+        if (gtPosition <= 0) return false;
+
+        // Check if it's a self-closing tag (ends with />)
+        if (text.charAt(gtPosition - 1) == '/') {
+            return false;
+        }
+
+        // Look backwards to find the opening '<'
+        for (int i = gtPosition - 1; i >= 0; i--) {
+            char ch = text.charAt(i);
+            if (ch == '<') {
+                // Make sure it's not a closing tag (doesn't start with </)
+                return i + 1 >= text.length() || text.charAt(i + 1) != '/';// It's an opening tag
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if there are child elements after the given position.
+     */
+    private boolean hasChildElementsAfterPosition(String text, int position) {
+        // Look for the next '<' character that indicates a child element
+        for (int i = position; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if (ch == '<') {
+                // Found a tag, check if it's an element (not closing tag of current element)
+                return true;
+            } else if (!Character.isWhitespace(ch)) {
+                // Found non-whitespace content, so there are child elements
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Handles Enter key press after a closing XML tag.
      * Creates new line with same indentation as the previous element.
      */
@@ -2121,22 +2262,61 @@ public class XmlCodeEditor extends VBox {
             String currentLine = getLineContainingPosition(text, caretPosition);
             String baseIndentation = extractIndentation(currentLine);
 
-            // Add 4 spaces of additional indentation
-            String newIndentation = baseIndentation + "    ";
+            // Add 4 spaces of additional indentation for the new content line
+            String contentIndentation = baseIndentation + "    ";
 
-            // Insert newline with increased indentation and another newline with original indentation
-            String insertText = "\n" + newIndentation + "\n" + baseIndentation;
-            codeArea.insertText(caretPosition, insertText);
+            // Split the current position: everything before the cursor and everything after
+            String beforeCursor = text.substring(0, caretPosition);
+            String afterCursor = text.substring(caretPosition);
 
-            // Position cursor at the end of the first inserted line (between the tags)
-            int newPosition = caretPosition + newIndentation.length() + 1; // +1 for first newline
+            // Insert newline with content indentation, then newline with base indentation for closing tag
+            String insertText = "\n" + contentIndentation + "\n" + baseIndentation;
+
+            // Replace the text: before cursor + inserted text + after cursor
+            codeArea.replaceText(0, text.length(), beforeCursor + insertText + afterCursor);
+
+            // Position cursor at the end of the content indentation (on the empty content line)
+            int newPosition = caretPosition + contentIndentation.length() + 1; // +1 for first newline
             codeArea.moveTo(newPosition);
 
-            logger.debug("Applied Enter between tags with indentation: '{}'", newIndentation);
+            logger.debug("Applied Enter between tags with content indentation: '{}'", contentIndentation);
             return true;
 
         } catch (Exception e) {
             logger.error("Error handling Enter between tags: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Handles Enter key press after an opening XML tag that has child elements.
+     * Creates new line with indentation before the existing child content.
+     * Example: <Contact> | -> <Contact>
+     *          <Email>...       |
+     *                           <Email>...
+     */
+    private boolean handleEnterAfterOpeningTagWithChildren(String text, int caretPosition) {
+        try {
+            // Find the current line and its indentation
+            int lineStart = findLineStart(text, caretPosition);
+            String currentLine = getLineContainingPosition(text, caretPosition);
+            String baseIndentation = extractIndentation(currentLine);
+
+            // Add 4 spaces of additional indentation for the new content line
+            String contentIndentation = baseIndentation + "    ";
+
+            // Insert newline with content indentation
+            String insertText = "\n" + contentIndentation;
+            codeArea.insertText(caretPosition, insertText);
+
+            // Position cursor at end of inserted text
+            codeArea.moveTo(caretPosition + insertText.length());
+
+            logger.debug("Applied Enter after opening tag with children, indentation: '{}'", contentIndentation);
+            return true;
+
+        } catch (Exception e) {
+            logger.error("Error handling Enter after opening tag with children: {}", e.getMessage(), e);
             return false;
         }
     }
