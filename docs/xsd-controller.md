@@ -18,6 +18,8 @@ The XSD Viewer is the central feature for exploring and editing your schemas. It
 - **Full Code Editor:** Provides a complete text editor for viewing and editing the raw source code of the XSD file.
 - **Syntax Highlighting:** The code is colored to make it easy to read and identify different parts of the schema syntax.
 - **Search and Replace:** A powerful find-and-replace feature is built-in, allowing you to quickly locate and change text within the XSD file.
+- **Favorites Integration:** Save XSD schemas as favorites with custom categories (default: "XSD Schemas") for quick
+  access across all editors. See the [Favorites System](favorites-system.md) documentation for more details.
 
 ## 2. Documentation Generator
 

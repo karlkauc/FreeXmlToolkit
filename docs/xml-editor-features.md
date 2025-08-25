@@ -24,6 +24,14 @@ constraints defined in Schematron files.
 4. The validation status will be displayed in the sidebar
 5. Enable "Continuous Schematron validation" for real-time checking
 
+### Schematron Favorites
+
+The XML Editor supports saving frequently used Schematron files as favorites:
+
+- Use the dedicated [Schematron Editor](favorites-system.md) to save .sch files with the "★ Add" button
+- Access saved Schematron rules from the "Favorites" dropdown in any editor
+- Organize Schematron files in custom categories like "Business Rules", "Validation Sets", etc.
+
 ### Supported Schematron Formats
 
 - Pure Schematron (.sch files)

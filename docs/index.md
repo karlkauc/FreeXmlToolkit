@@ -38,6 +38,9 @@ Click on any feature below to learn more about it:
   signatures with both Basic Mode for common use cases and Expert Mode for advanced XML-DSig operations with full W3C
   compliance.
 
+- **[Favorites System](favorites-system.md)**: Save and organize frequently used files across all editors with smart
+  categorization and quick access features.
+
 ---
 
-[Next: XML Editor](xml-controller.md) | [Licenses](licenses.md)
+[Next: XML Editor](xml-controller.md) | [Favorites System](favorites-system.md) | [Licenses](licenses.md)

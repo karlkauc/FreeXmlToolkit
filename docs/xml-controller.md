@@ -12,6 +12,8 @@ The XML Editor is the core feature of the Free XML Toolkit. It provides a powerf
 - **Open & Save:** Easily open existing XML files from your computer or save your work. The application remembers the last directory you used, making it convenient to access your files.
 - **New Files:** Create new, empty XML documents from scratch.
 - **Drag & Drop:** Simply drag and drop XML files from your file explorer directly into the editor to open them.
+- **Favorites System:** Save frequently used files as favorites with custom categories and descriptions for quick
+  access. See the [Favorites System](favorites-system.md) documentation for detailed information.
 
 ### Editing Experience
 

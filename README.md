@@ -25,6 +25,8 @@ as your personal XML assistant that helps you work smarter, not harder.
 - **IntelliSense/Auto-Completion**: Smart code completion that suggests only valid XML elements based on your XSD schema
 - **Code Folding**: Collapse and expand XML sections for better navigation in large files
 - **Graphical Tree View**: Visual tree representation and editing of XML structure alongside the text editor
+- **Favorites System**: Save frequently used XML, XSD, and Schematron files as favorites with custom categories and
+  descriptions for quick access across all editors
 - **Real-time Help**: The editor highlights errors as you type and suggests fixes
 - **Auto-Formatting**: Clean up messy XML files with one click - automatically organizes and indents your code
 - **Syntax Highlighting**: Different colors for different parts of your XML make it easy to read and understand
@@ -77,6 +79,18 @@ as your personal XML assistant that helps you work smarter, not harder.
 - **Smart Data**: The generated data respects all the rules and constraints of your schema
 - **Perfect for Testing**: Create multiple test scenarios quickly and easily
 - **Realistic Content**: Get believable sample data that looks like real information
+
+### ⭐ **Favorites & Quick Access**
+
+- **Universal Favorites**: Save any XML, XSD, or Schematron file as a favorite from any editor in the application
+- **Smart Categorization**: Organize favorites into custom folders (e.g., "Project Files", "Templates", "Schemas")
+- **Cross-Editor Access**: Load favorites from any editor - XSD files saved from the Schema editor can be opened from
+  the XML editor
+- **File Type Detection**: Automatic detection and proper handling of different file types (XML, XSD, XSLT, Schematron)
+- **Rich Metadata**: Add custom names and descriptions to make favorites easy to identify
+- **Quick Loading**: One-click access to your most frequently used files
+- **Smart Cleanup**: Automatically detect and remove favorites for files that no longer exist
+- **Persistent Storage**: Favorites are saved locally and persist between application sessions
 
 ## 🚀 Why Choose FreeXmlToolkit?
 
@@ -181,6 +195,13 @@ cd FreeXmlToolkit
 2. Load your XML file
 3. Load your XSLT stylesheet
 4. See the transformed result instantly
+
+**Using Favorites:**
+
+1. **Saving Files**: Click the "★ Add" button in any editor to save the current file as a favorite
+2. **Organizing**: Choose a category when saving (e.g., "My Schemas", "Templates") or create a new one
+3. **Loading Files**: Click the "Favorites" dropdown in any editor to quickly open saved files
+4. **Managing**: Access all favorites from the dropdown menu's "Manage Favorites" option
 
 ## 🤝 Getting Help
 
