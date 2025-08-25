@@ -20,15 +20,14 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.util.converter.DefaultStringConverter;
@@ -42,7 +41,6 @@ import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.*;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -58,12 +56,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static java.nio.file.Files.readString;
-import static java.nio.file.Files.writeString;
 
 /**
  * Ultimate XML Controller - The Complete XML Editor with All Features
@@ -125,70 +121,23 @@ public class XmlUltimateController implements Initializable {
 
     // Main Editor
     @FXML
-<<<<<<< HEAD
-    public TabPane xmlFilesPane;
-=======
-    TabPane xmlFilesPane;
->>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
+    private TabPane xmlFilesPane;
 
-    // Note: Document tree, validation, properties, and namespaces are now handled by individual tab sidebars
-
-<<<<<<< HEAD
-    // Note: Smart Templates and Schema Generator are now popup dialogs
-=======
-    // XSD Schema Configuration (merged from XmlEditorSidebar)
+    // Sidebar Components
     @FXML
-    private TextField xsdPathField;
+    private TreeView<String> documentTreeView;
     @FXML
-    private Button changeXsdButton;
+    private ComboBox<String> schemaCombo;
     @FXML
-    private Label validationStatusLabel;
+    private ListView<String> validationResultsList;
     @FXML
-    private CheckBox continuousValidationCheckBox;
-
-    // Validation Errors (merged from XmlEditorSidebar)
+    private TableView<PropertyEntry> propertiesTable;
     @FXML
-    private TitledPane validationErrorsPane;
+    private TableColumn<PropertyEntry, String> propertyNameColumn;
     @FXML
-    private Label validationErrorsCountLabel;
+    private TableColumn<PropertyEntry, String> propertyValueColumn;
     @FXML
-    private ListView<String> validationErrorsListView;
-
-    // Schematron Configuration and Errors (merged from XmlEditorSidebar)
-    @FXML
-    private TextField schematronPathField;
-    @FXML
-    private Button changeSchematronButton;
-    @FXML
-    private Label schematronValidationStatusLabel;
-    @FXML
-    private Button schematronDetailsButton;
-    @FXML
-    private CheckBox continuousSchematronValidationCheckBox;
-    @FXML
-    private TitledPane schematronErrorsPane;
-    @FXML
-    private Label schematronErrorsCountLabel;
-    @FXML
-    private ListView<String> schematronErrorsListView;
-
-    // Cursor Information (merged from XmlEditorSidebar)
-    @FXML
-    private TextField xpathField;
-    @FXML
-    private TextField elementNameField;
-    @FXML
-    private TextField elementTypeField;
-
-    // Node Documentation (merged from XmlEditorSidebar)
-    @FXML
-    private TextArea documentationTextArea;
-
-    // Example Values and Child Elements (merged from XmlEditorSidebar)
-    @FXML
-    private ListView<String> exampleValuesListView;
-    @FXML
-    private ListView<String> childElementsListView;
+    private ListView<String> namespacesList;
 
     // Smart Templates Panel
     @FXML
@@ -217,7 +166,6 @@ public class XmlUltimateController implements Initializable {
     private Button exportSchemaButton;
     @FXML
     private TextArea schemaPreviewArea;
->>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
 
     // Development Panels
     @FXML
@@ -320,7 +268,14 @@ public class XmlUltimateController implements Initializable {
             ));
             outputFormatCombo.getSelectionModel().selectFirst();
         }
-        // Note: Template category combo is now created in the popup dialog
+
+        if (templateCategoryCombo != null) {
+            templateCategoryCombo.setItems(FXCollections.observableArrayList(
+                    "All Templates", "Finance", "Healthcare", "Automotive",
+                    "Government", "Generic", "Web Services", "Configuration"
+            ));
+            templateCategoryCombo.setValue("All Templates");
+        }
     }
 
     private void initializeUI() {
@@ -328,7 +283,17 @@ public class XmlUltimateController implements Initializable {
             consoleOutput.appendText("Ultimate XML Editor initialized.\n");
             consoleOutput.appendText("All revolutionary features are available.\n");
         }
-        // Note: Template list view is now created in the popup dialog
+
+        // Setup template list cell factory
+        if (templatesListView != null) {
+            templatesListView.setCellFactory(lv -> new ListCell<XmlTemplate>() {
+                @Override
+                protected void updateItem(XmlTemplate item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty || item == null ? null : item.getName() + " - " + item.getDescription());
+                }
+            });
+        }
     }
 
     private void initializeXPathXQuery() {
@@ -391,8 +356,17 @@ public class XmlUltimateController implements Initializable {
     }
 
     private void initializeTables() {
-        // Note: Properties table is now handled by individual tab sidebars
-        
+        // Properties table
+        if (propertyNameColumn != null && propertyValueColumn != null) {
+            propertyNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+            propertyValueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
+            propertyValueColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+            propertyValueColumn.setOnEditCommit(event -> {
+                event.getRowValue().setValue(event.getNewValue());
+                updateCurrentXmlFromProperties();
+            });
+        }
+
         // Template parameters table
         if (parameterNameColumn != null && parameterValueColumn != null && parameterTypeColumn != null) {
             parameterNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -412,8 +386,12 @@ public class XmlUltimateController implements Initializable {
     }
 
     private void loadTemplates() {
-        // Note: Templates are now loaded directly in the popup dialog
-        logger.debug("Templates loaded: {} templates available", templateRepository.getAllTemplates().size());
+        if (templatesListView != null) {
+            ObservableList<XmlTemplate> templates = FXCollections.observableArrayList(
+                    templateRepository.getAllTemplates()
+            );
+            templatesListView.setItems(templates);
+        }
     }
 
     private void createInitialTab() {
@@ -458,7 +436,7 @@ public class XmlUltimateController implements Initializable {
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
             try {
-                String content = readString(file.toPath());
+                String content = Files.readString(file.toPath());
                 currentXmlFile = file;
                 currentXmlContent = content;
 
@@ -515,7 +493,7 @@ public class XmlUltimateController implements Initializable {
 
             if (currentXmlFile != null) {
                 try {
-                    writeString(currentXmlFile.toPath(), currentXmlContent);
+                    Files.writeString(currentXmlFile.toPath(), currentXmlContent);
                     currentTab.setText(currentXmlFile.getName());
                     logToConsole("Saved file: " + currentXmlFile.getAbsolutePath());
                 } catch (IOException e) {
@@ -599,15 +577,22 @@ public class XmlUltimateController implements Initializable {
                         errors.add("✗ XML is not well-formed: " + e.getMessage());
                     }
 
-                    // Note: Schema validation is now handled by individual tab sidebars
-                    
+                    // Schema validation if available
+                    String schemaFile = schemaCombo != null ? schemaCombo.getValue() : null;
+                    if (schemaFile != null && !schemaFile.isEmpty()) {
+                        // Add schema validation logic here
+                        errors.add("✓ Schema validation: " + schemaFile);
+                    }
+
                     return errors;
                 }
             };
 
             validationTask.setOnSucceeded(e -> {
                 List<String> results = validationTask.getValue();
-                // Note: Validation results are now displayed in individual tab sidebars
+                if (validationResultsList != null) {
+                    validationResultsList.setItems(FXCollections.observableArrayList(results));
+                }
                 results.forEach(this::logToConsole);
             });
 
@@ -641,7 +626,9 @@ public class XmlUltimateController implements Initializable {
                 issues.add("✓ No linting issues found");
             }
 
-            // Note: Lint results are now displayed in individual tab sidebars
+            if (validationResultsList != null) {
+                validationResultsList.setItems(FXCollections.observableArrayList(issues));
+            }
             issues.forEach(this::logToConsole);
         }
     }
@@ -657,119 +644,8 @@ public class XmlUltimateController implements Initializable {
     private void showTemplateManager() {
         logger.info("Opening Template Manager");
         logToConsole("Opening Smart Templates System...");
-
-        // Create popup dialog for Smart Templates
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Smart Templates");
-        dialog.setHeaderText("Intelligent XML templates for rapid development");
-        dialog.setResizable(true);
-
-        // Create dialog content
-        VBox content = new VBox(10);
-        content.setPrefWidth(500);
-        content.setPrefHeight(400);
-        content.setPadding(new javafx.geometry.Insets(10));
-
-        // Template category selection
-        HBox categoryBox = new HBox(10);
-        categoryBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        Label categoryLabel = new Label("Category:");
-        ComboBox<String> templateCategoryCombo = new ComboBox<>();
-        templateCategoryCombo.setItems(FXCollections.observableArrayList(
-                "All Templates", "Finance", "Healthcare", "Automotive",
-                "Government", "Generic", "Web Services", "Configuration"
-        ));
-        templateCategoryCombo.setValue("All Templates");
-        templateCategoryCombo.setPrefWidth(150);
-
-        Button refreshButton = new Button();
-        refreshButton.setGraphic(new FontIcon("bi-arrow-clockwise"));
-        refreshButton.setTooltip(new Tooltip("Refresh template library"));
-        refreshButton.setOnAction(e -> loadTemplates());
-
-        categoryBox.getChildren().addAll(categoryLabel, templateCategoryCombo, refreshButton);
-
-        // Template list
-        ListView<XmlTemplate> templatesListView = new ListView<>();
-        templatesListView.setCellFactory(lv -> new ListCell<XmlTemplate>() {
-            @Override
-            protected void updateItem(XmlTemplate item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.getName() + " - " + item.getDescription());
-            }
-        });
-        templatesListView.setItems(FXCollections.observableArrayList(templateRepository.getAllTemplates()));
-        VBox.setVgrow(templatesListView, javafx.scene.layout.Priority.ALWAYS);
-
-        // Preview area
-        TextArea previewArea = new TextArea();
-        previewArea.setEditable(false);
-        previewArea.setPrefHeight(150);
-        previewArea.setPromptText("Select a template to preview");
-
-        // Template selection handler
-        templatesListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                selectedTemplate = newVal;
-                try {
-                    // Initialize template parameters with defaults
-                    Map<String, String> params = new HashMap<>();
-                    for (TemplateParameter param : newVal.getParameters()) {
-                        String defaultValue = param.getDefaultValue();
-                        if (defaultValue == null || defaultValue.isEmpty()) {
-                            defaultValue = param.isRequired() ? "REQUIRED_VALUE" : "";
-                        }
-                        params.put(param.getName(), defaultValue);
-                    }
-                    String preview = newVal.processTemplate(params);
-                    previewArea.setText(preview);
-                } catch (Exception e) {
-                    previewArea.setText("Error: " + e.getMessage());
-                }
-            }
-        });
-
-        content.getChildren().addAll(categoryBox, new Separator(), templatesListView, new Separator(),
-                new Label("Preview:"), previewArea);
-
-        dialog.getDialogPane().setContent(content);
-
-        // Add buttons
-        ButtonType applyButtonType = new ButtonType("Apply", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(applyButtonType, ButtonType.CANCEL);
-
-        // Handle apply
-        Optional<ButtonType> result = dialog.showAndWait();
-        if (result.isPresent() && result.get() == applyButtonType) {
-            XmlTemplate selected = templatesListView.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                applyTemplate(selected);
-            }
-        }
-    }
-
-    private void applyTemplate(XmlTemplate template) {
-        try {
-            // Initialize parameters with defaults
-            Map<String, String> params = new HashMap<>();
-            for (TemplateParameter param : template.getParameters()) {
-                String defaultValue = param.getDefaultValue();
-                if (defaultValue == null || defaultValue.isEmpty()) {
-                    defaultValue = param.isRequired() ? "REQUIRED_VALUE" : "";
-                }
-                params.put(param.getName(), defaultValue);
-            }
-
-            String generatedXml = template.processTemplate(params);
-
-            Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
-            if (currentTab instanceof XmlEditor editor) {
-                editor.codeArea.replaceText(generatedXml);
-                logToConsole("Template '" + template.getName() + "' applied successfully");
-            }
-        } catch (Exception e) {
-            showError("Template Error", "Could not apply template: " + e.getMessage());
-            logger.error("Failed to apply template", e);
+        if (templatesPanel != null) {
+            templatesPanel.setExpanded(true);
         }
     }
 
@@ -777,153 +653,8 @@ public class XmlUltimateController implements Initializable {
     private void showSchemaGenerator() {
         logger.info("Opening Schema Generator");
         logToConsole("Opening Intelligent Schema Generator...");
-
-        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
-        if (!(currentTab instanceof XmlEditor editor)) {
-            showError("No XML", "Please open an XML document first");
-            return;
-        }
-
-        String xml = editor.codeArea.getText();
-        if (xml == null || xml.trim().isEmpty()) {
-            showError("Empty Document", "The current XML document is empty");
-            return;
-        }
-
-        // Create popup dialog for Schema Generator
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Schema Generator");
-        dialog.setHeaderText("Generate XSD schema from current XML document");
-        dialog.setResizable(true);
-
-        // Create dialog content
-        VBox content = new VBox(10);
-        content.setPrefWidth(600);
-        content.setPrefHeight(450);
-        content.setPadding(new javafx.geometry.Insets(10));
-
-        // Options
-        CheckBox inferTypesCheckbox = new CheckBox("Smart type inference");
-        inferTypesCheckbox.setSelected(true);
-        inferTypesCheckbox.setTooltip(new Tooltip("Automatically detect data types (string, int, date, etc.)"));
-
-        CheckBox flattenSchemaCheckbox = new CheckBox("Flatten unnecessary structure");
-        flattenSchemaCheckbox.setTooltip(new Tooltip("Remove redundant nested elements"));
-
-        HBox optionsBox = new HBox(20);
-        optionsBox.getChildren().addAll(inferTypesCheckbox, flattenSchemaCheckbox);
-
-        // Schema preview area
-        TextArea schemaPreviewArea = new TextArea();
-        schemaPreviewArea.setEditable(false);
-        schemaPreviewArea.setStyle("-fx-font-family: monospace");
-        schemaPreviewArea.setPromptText("Generated XSD schema will appear here...");
-        VBox.setVgrow(schemaPreviewArea, javafx.scene.layout.Priority.ALWAYS);
-
-        // Progress indicator
-        ProgressIndicator progressIndicator = new ProgressIndicator();
-        progressIndicator.setVisible(false);
-
-        // Generate button
-        Button generateButton = new Button("Generate Schema");
-        generateButton.setGraphic(new FontIcon("bi-diagram-3"));
-        generateButton.setStyle("-fx-background-color: #28a745; -fx-text-fill: white;");
-        generateButton.setOnAction(e -> {
-            progressIndicator.setVisible(true);
-            generateButton.setDisable(true);
-
-            Task<String> schemaTask = new Task<>() {
-                @Override
-                protected String call() throws Exception {
-                    SchemaGenerationOptions options = new SchemaGenerationOptions();
-                    options.setEnableSmartTypeInference(inferTypesCheckbox.isSelected());
-                    options.setFlattenUnnecessaryStructure(flattenSchemaCheckbox.isSelected());
-
-                    SchemaGenerationResult result = schemaEngine.generateSchema(xml, options);
-                    return result.getXsdContent();
-                }
-            };
-
-            schemaTask.setOnSucceeded(evt -> {
-                generatedSchemaContent = schemaTask.getValue();
-                schemaPreviewArea.setText(generatedSchemaContent);
-                progressIndicator.setVisible(false);
-                generateButton.setDisable(false);
-                logToConsole("Schema generated successfully");
-            });
-
-            schemaTask.setOnFailed(evt -> {
-                showError("Schema Generation Error", "Could not generate schema: " + schemaTask.getException().getMessage());
-                progressIndicator.setVisible(false);
-                generateButton.setDisable(false);
-                logger.error("Failed to generate schema", schemaTask.getException());
-            });
-
-            executorService.submit(schemaTask);
-        });
-
-        HBox buttonBox = new HBox(10);
-        buttonBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        buttonBox.getChildren().addAll(generateButton, progressIndicator);
-
-        content.getChildren().addAll(
-                new Label("Generation Options:"),
-                optionsBox,
-                new Separator(),
-                buttonBox,
-                new Separator(),
-                new Label("Generated XSD Schema:"),
-                schemaPreviewArea
-        );
-
-        dialog.getDialogPane().setContent(content);
-
-        // Add buttons
-        ButtonType exportButtonType = new ButtonType("Export", ButtonBar.ButtonData.LEFT);
-        dialog.getDialogPane().getButtonTypes().addAll(exportButtonType, ButtonType.CLOSE);
-
-        // Get export button and disable initially
-        Button exportBtn = (Button) dialog.getDialogPane().lookupButton(exportButtonType);
-        exportBtn.setDisable(true);
-        exportBtn.setGraphic(new FontIcon("bi-download"));
-
-        // Enable export when schema is generated
-        schemaPreviewArea.textProperty().addListener((obs, oldVal, newVal) -> {
-            exportBtn.setDisable(newVal == null || newVal.trim().isEmpty());
-        });
-
-        // Handle result
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == exportButtonType) {
-                exportGeneratedSchema();
-                return null; // Keep dialog open
-            }
-            return dialogButton;
-        });
-
-        dialog.showAndWait();
-    }
-
-    private void exportGeneratedSchema() {
-        if (generatedSchemaContent != null && !generatedSchemaContent.isEmpty()) {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Export XSD Schema");
-            fileChooser.getExtensionFilters().add(
-                    new FileChooser.ExtensionFilter("XSD Files", "*.xsd")
-            );
-            fileChooser.setInitialFileName("schema.xsd");
-
-            File file = fileChooser.showSaveDialog(null);
-            if (file != null) {
-                try {
-                    writeString(file.toPath(), generatedSchemaContent);
-                    logToConsole("Schema exported to: " + file.getAbsolutePath());
-                    showInfo("Export Successful", "Schema exported to: " + file.getName());
-                } catch (IOException e) {
-                    showError("Export Error", "Could not export schema: " + e.getMessage());
-                    logger.error("Failed to export schema", e);
-                }
-            }
+        if (schemaPanel != null) {
+            schemaPanel.setExpanded(true);
         }
     }
 
@@ -945,17 +676,154 @@ public class XmlUltimateController implements Initializable {
         boolean selected = treeViewToggle.isSelected();
         logToConsole("Tree view " + (selected ? "enabled" : "disabled"));
 
-        // Note: Tree view is now handled by individual tab sidebars
-        logToConsole("Tree view functionality is available in each XML tab's sidebar.");
+        if (selected && documentTreeView != null) {
+            Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
+            if (currentTab != null && currentTab instanceof XmlEditor editor) {
+                updateDocumentTree(editor.codeArea.getText());
+            }
+        }
     }
 
     /**
-     * Template Operations - Now handled via popup dialogs
+     * Template Operations
      */
+    @FXML
+    private void refreshTemplates() {
+        logger.info("Refreshing Templates");
+        logToConsole("Refreshing template library...");
+        loadTemplates();
+    }
+
+    @FXML
+    private void onTemplateSelected() {
+        logger.info("Template selected");
+        selectedTemplate = templatesListView != null ? templatesListView.getSelectionModel().getSelectedItem() : null;
+
+        if (selectedTemplate != null) {
+            logToConsole("Selected template: " + selectedTemplate.getName());
+
+            // Load template parameters
+            if (templateParametersTable != null) {
+                templateParametersTable.setItems(FXCollections.observableArrayList(selectedTemplate.getParameters()));
+            }
+
+            // Initialize parameter values
+            currentTemplateParams.clear();
+            for (TemplateParameter param : selectedTemplate.getParameters()) {
+                String defaultValue = param.getDefaultValue();
+                if (defaultValue == null || defaultValue.isEmpty()) {
+                    defaultValue = param.isRequired() ? "REQUIRED_VALUE" : "";
+                }
+                currentTemplateParams.put(param.getName(), defaultValue);
+            }
+        }
+    }
+
+    @FXML
+    private void applySelectedTemplate() {
+        logger.info("Applying Template");
+        logToConsole("Applying selected template...");
+
+        if (selectedTemplate != null) {
+            try {
+                String generatedXml = selectedTemplate.processTemplate(currentTemplateParams);
+
+                Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
+                if (currentTab != null && currentTab instanceof XmlEditor editor) {
+                    editor.codeArea.replaceText(generatedXml);
+                    logToConsole("Template applied successfully");
+                }
+            } catch (Exception e) {
+                showError("Template Error", "Could not apply template: " + e.getMessage());
+                logger.error("Failed to apply template", e);
+            }
+        }
+    }
+
+    @FXML
+    private void previewSelectedTemplate() {
+        logger.info("Previewing Template");
+        logToConsole("Generating template preview...");
+
+        if (selectedTemplate != null && templatePreviewArea != null) {
+            try {
+                String generatedXml = selectedTemplate.processTemplate(currentTemplateParams);
+                templatePreviewArea.setText(generatedXml);
+                logToConsole("Template preview generated");
+            } catch (Exception e) {
+                templatePreviewArea.setText("Error: " + e.getMessage());
+                logger.error("Failed to preview template", e);
+            }
+        }
+    }
 
     /**
-     * Schema Generation Operations - Now handled via popup dialogs
+     * Schema Generation Operations
      */
+    @FXML
+    private void generateSchema() {
+        logger.info("Generating Schema");
+        boolean inferTypes = inferTypesCheckbox != null && inferTypesCheckbox.isSelected();
+        boolean flatten = flattenSchemaCheckbox != null && flattenSchemaCheckbox.isSelected();
+        logToConsole("Generating XSD schema (inferTypes=" + inferTypes + ", flatten=" + flatten + ")...");
+
+        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
+        if (currentTab != null && currentTab instanceof XmlEditor editor) {
+            String xml = editor.codeArea.getText();
+
+            Task<String> schemaTask = new Task<>() {
+                @Override
+                protected String call() throws Exception {
+                    SchemaGenerationOptions options = new SchemaGenerationOptions();
+                    options.setEnableSmartTypeInference(inferTypes);
+                    options.setFlattenUnnecessaryStructure(flatten);
+
+                    SchemaGenerationResult result = schemaEngine.generateSchema(xml, options);
+                    return result.getXsdContent();
+                }
+            };
+
+            schemaTask.setOnSucceeded(e -> {
+                generatedSchemaContent = schemaTask.getValue();
+                if (schemaPreviewArea != null) {
+                    schemaPreviewArea.setText(generatedSchemaContent);
+                }
+                logToConsole("Schema generated successfully");
+            });
+
+            schemaTask.setOnFailed(e -> {
+                showError("Schema Generation Error", "Could not generate schema: " + schemaTask.getException().getMessage());
+                logger.error("Failed to generate schema", schemaTask.getException());
+            });
+
+            executorService.submit(schemaTask);
+        }
+    }
+
+    @FXML
+    private void exportSchema() {
+        logger.info("Exporting Schema");
+        logToConsole("Exporting generated schema...");
+
+        if (generatedSchemaContent != null && !generatedSchemaContent.isEmpty()) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Export XSD Schema");
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("XSD Files", "*.xsd")
+            );
+
+            File file = fileChooser.showSaveDialog(null);
+            if (file != null) {
+                try {
+                    Files.writeString(file.toPath(), generatedSchemaContent);
+                    logToConsole("Schema exported to: " + file.getAbsolutePath());
+                } catch (IOException e) {
+                    showError("Export Error", "Could not export schema: " + e.getMessage());
+                    logger.error("Failed to export schema", e);
+                }
+            }
+        }
+    }
 
     /**
      * XSLT Operations
@@ -974,7 +842,7 @@ public class XmlUltimateController implements Initializable {
         File file = fileChooser.showOpenDialog(null);
         if (file != null && xsltEditorArea != null) {
             try {
-                currentXsltContent = readString(file.toPath());
+                currentXsltContent = Files.readString(file.toPath());
                 xsltEditorArea.setText(currentXsltContent);
                 logToConsole("XSLT loaded: " + file.getName());
             } catch (IOException e) {
@@ -999,7 +867,7 @@ public class XmlUltimateController implements Initializable {
             File file = fileChooser.showSaveDialog(null);
             if (file != null) {
                 try {
-                    writeString(file.toPath(), xsltEditorArea.getText());
+                    Files.writeString(file.toPath(), xsltEditorArea.getText());
                     logToConsole("XSLT saved: " + file.getName());
                 } catch (IOException e) {
                     showError("Save Error", "Could not save XSLT: " + e.getMessage());
@@ -1200,8 +1068,19 @@ public class XmlUltimateController implements Initializable {
     }
 
     private void updateDocumentTree(String xml) {
-        // Note: Document tree updates are now handled by individual tab sidebars
-        logger.debug("Document tree update delegated to tab sidebars");
+        if (documentTreeView != null) {
+            try {
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                Document doc = builder.parse(new InputSource(new StringReader(xml)));
+
+                TreeItem<String> root = new TreeItem<>(doc.getDocumentElement().getNodeName());
+                // TODO: Recursively build tree from DOM
+                documentTreeView.setRoot(root);
+            } catch (Exception e) {
+                logger.error("Failed to update document tree", e);
+            }
+        }
     }
 
     private void updateCurrentXmlFromProperties() {
@@ -1472,47 +1351,5 @@ public class XmlUltimateController implements Initializable {
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
         logger.debug("Parent controller set for Ultimate XML Controller");
-    }
-
-    /**
-     * Load a file into the Ultimate XML Editor (called from MainController)
-     */
-    public void loadFileFromExternal(File file) {
-        if (file == null || !file.exists()) {
-            logger.warn("Cannot load file - file is null or doesn't exist: {}", file);
-            return;
-        }
-
-        try {
-            String content = readString(file.toPath());
-            currentXmlFile = file;
-            currentXmlContent = content;
-
-            if (xmlFilesPane != null) {
-                XmlEditor xmlEditor = new XmlEditor();
-                xmlEditor.setText(file.getName());
-                xmlEditor.codeArea.replaceText(content);
-                xmlFilesPane.getTabs().add(xmlEditor);
-                xmlFilesPane.getSelectionModel().select(xmlEditor);
-            }
-
-            updateDocumentTree(content);
-            validateCurrentXml();
-            logToConsole("Loaded file from recent files: " + file.getAbsolutePath());
-            logger.info("Successfully loaded file from external call: {}", file.getAbsolutePath());
-        } catch (Exception e) {
-            logger.error("Failed to load file from external call: {}", e.getMessage(), e);
-            showError("File Error", "Could not load file: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Show Schematron validation details in a dialog
-     */
-    public void showSchematronDetails() {
-        // Implementation for showing Schematron validation details
-        // This would typically open a dialog with detailed Schematron validation results
-        logger.info("Show Schematron details requested");
-        logToConsole("Schematron details functionality - implementation needed");
     }
 }

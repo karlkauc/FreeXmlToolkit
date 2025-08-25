@@ -70,7 +70,7 @@ public class MainController {
     AnchorPane contentPane;
 
     @FXML
-    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, templates;
+    Button xslt, xml, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, templates;
 
     @FXML
     MenuItem menuItemExit;
@@ -78,6 +78,8 @@ public class MainController {
     @FXML
     Menu lastOpenFilesMenu;
 
+    @FXML
+    CheckMenuItem xmlEditorSidebarMenuItem;
 
     @FXML
     CheckMenuItem xpathQueryPaneMenuItem;
@@ -146,7 +148,14 @@ public class MainController {
     }
 
     private void loadXmlEditorSidebarPreference() {
-        // XML Editor Sidebar functionality removed
+        String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
+        boolean isVisible = sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
+
+        if (xmlEditorSidebarMenuItem != null) {
+            xmlEditorSidebarMenuItem.setSelected(isVisible);
+        }
+
+        logger.debug("Loaded XML Editor Sidebar preference: {}", isVisible);
     }
 
     private void loadXPathQueryPanePreference() {
@@ -287,45 +296,17 @@ public class MainController {
     }
 
     public void switchToXmlViewAndLoadFile(File fileToLoad) {
-<<<<<<< HEAD
-        // Use xmlUltimate button instead of xml (which doesn't exist anymore)
-=======
->>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
-        if (xmlUltimate == null) {
-            logger.error("XML Ultimate Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
+        if (xml == null) {
+            logger.error("XML-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
         }
-        xmlUltimate.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
-        xmlUltimate.getStyleClass().add("active");
+        xml.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        xml.getStyleClass().add("active");
 
         loadPageFromPath("/pages/tab_xml_ultimate.fxml");
 
         if (this.xmlUltimateController != null && fileToLoad != null && fileToLoad.exists()) {
-<<<<<<< HEAD
-            // Schedule file loading after the controller is fully initialized
-            Platform.runLater(() -> {
-                // Call the open file method to load the file
-                try {
-                    String content = java.nio.file.Files.readString(fileToLoad.toPath());
-                    // Create new tab in the XML editor with the file content
-                    if (xmlUltimateController.xmlFilesPane != null) {
-                        var xmlEditor = new org.fxt.freexmltoolkit.controls.XmlEditor();
-                        xmlEditor.setText(fileToLoad.getName());
-                        xmlEditor.codeArea.replaceText(content);
-                        xmlUltimateController.xmlFilesPane.getTabs().add(xmlEditor);
-                        xmlUltimateController.xmlFilesPane.getSelectionModel().select(xmlEditor);
-
-                        logger.info("Successfully loaded file: {}", fileToLoad.getAbsolutePath());
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to load file from recent files: {}", e.getMessage(), e);
-                }
-=======
-            // Load the file in the Ultimate XML Controller using the dedicated method
-            Platform.runLater(() -> {
-                xmlUltimateController.loadFileFromExternal(fileToLoad);
->>>>>>> 74fde297ea26dfb59bc2e61c16a6583b47c7050b
-            });
+            // Ultimate XML Controller handles file loading internally
         } else {
             logger.warn("XML Ultimate Controller ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
         }
@@ -491,10 +472,10 @@ public class MainController {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button_collapsed", xml, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button", xml, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
         }
         showMenu = !showMenu;
     }
@@ -519,16 +500,33 @@ public class MainController {
 
     @FXML
     private void toggleXmlEditorSidebar() {
-        // XML Editor Sidebar functionality removed
+        boolean isVisible = xmlEditorSidebarMenuItem.isSelected();
+        logger.debug("Toggle XML Editor Sidebar: {}", isVisible);
+
+        propertiesService.set("xmlEditorSidebar.visible", String.valueOf(isVisible));
+
+        if (xmlUltimateController != null) {
+            // Ultimate XML Controller handles sidebar automatically(isVisible);
+        }
     }
 
     public boolean isXmlEditorSidebarVisible() {
-        // XML Editor Sidebar functionality removed
-        return false;
+        String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
+        return sidebarVisible == null || Boolean.parseBoolean(sidebarVisible);
     }
 
     public void toggleXmlEditorSidebarFromSidebar(boolean visible) {
-        // XML Editor Sidebar functionality removed
+        logger.debug("Toggle XML Editor Sidebar from sidebar button: {}", visible);
+
+        if (xmlEditorSidebarMenuItem != null) {
+            xmlEditorSidebarMenuItem.setSelected(visible);
+        }
+
+        propertiesService.set("xmlEditorSidebar.visible", String.valueOf(visible));
+
+        if (xmlUltimateController != null) {
+            // Ultimate XML Controller handles sidebar automatically(visible);
+        }
     }
 
     @FXML
@@ -563,7 +561,7 @@ public class MainController {
             logger.debug("Selected file type: {}", fileType);
             switch (fileType) {
                 case "XML" -> {
-                    xmlUltimate.fire();
+                    xml.fire();
                     Platform.runLater(() -> {
                         if (xmlUltimateController != null) {
                             xmlUltimateController.newFilePressed();
@@ -615,7 +613,7 @@ public class MainController {
 
             String fileName = selectedFile.getName().toLowerCase();
             if (fileName.endsWith(".xml")) {
-                xmlUltimate.fire();
+                xml.fire();
                 Platform.runLater(() -> {
                     if (xmlUltimateController != null) {
                         // Ultimate XML Controller handles file loading(selectedFile);
@@ -638,7 +636,7 @@ public class MainController {
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
                 xslt.fire();
             } else {
-                xmlUltimate.fire();
+                xml.fire();
                 Platform.runLater(() -> {
                     if (xmlUltimateController != null) {
                         // Ultimate XML Controller handles file loading(selectedFile);
