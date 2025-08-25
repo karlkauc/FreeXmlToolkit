@@ -140,63 +140,9 @@
         </ToggleButton>
     </HBox>
 
-    <!-- Main Content Area with All Features -->
-    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.65" styleClass="xml-split-pane">
-        <!-- Left Panel: Editor Tabs (Support for XmlEditor control) -->
-        <TabPane fx:id="xmlFilesPane" side="TOP" SplitPane.resizableWithParent="true"
-                 styleClass="xml-editor-tabs" minHeight="300"/>
-
-        <!-- Right Panel: Ultimate Sidebar with All Features -->
-        <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="250" maxWidth="450" prefWidth="350">
-            <VBox spacing="5" styleClass="xml-sidebar">
-                <padding>
-                    <Insets top="10" bottom="10" left="10" right="10"/>
-                </padding>
-
-                <!-- Document Outline -->
-                <TitledPane text="Document Outline" expanded="true" collapsible="true" styleClass="sidebar-section">
-                    <VBox spacing="5">
-                        <Label text="XML structure and navigation" styleClass="section-description"/>
-                        <TreeView fx:id="documentTreeView" prefHeight="150" styleClass="xml-structure-tree"/>
-                    </VBox>
-                </TitledPane>
-
-                <!-- Validation Results -->
-                <TitledPane text="Validation Results" expanded="false" collapsible="true" styleClass="sidebar-section">
-                    <VBox spacing="8">
-                        <HBox spacing="5" alignment="CENTER_LEFT">
-                            <Label text="Schema:" styleClass="section-label"/>
-                            <ComboBox fx:id="schemaCombo" prefWidth="120" promptText="Select schema"
-                                      styleClass="xml-combo-box"/>
-                        </HBox>
-                        <ListView fx:id="validationResultsList" prefHeight="100" styleClass="xml-list-view"/>
-                    </VBox>
-                </TitledPane>
-
-                <!-- Properties -->
-                <TitledPane text="Properties" expanded="false" collapsible="true" styleClass="sidebar-section">
-                    <VBox spacing="5">
-                        <Label text="Element properties and attributes" styleClass="section-description"/>
-                        <TableView fx:id="propertiesTable" prefHeight="120" styleClass="xml-properties-table">
-                            <columns>
-                                <TableColumn fx:id="propertyNameColumn" text="Property" prefWidth="100"/>
-                                <TableColumn fx:id="propertyValueColumn" text="Value" prefWidth="150"/>
-                            </columns>
-                        </TableView>
-                    </VBox>
-                </TitledPane>
-
-                <!-- Namespaces -->
-                <TitledPane text="Namespaces" expanded="false" collapsible="true" styleClass="sidebar-section">
-                    <VBox spacing="5">
-                        <Label text="Document namespaces" styleClass="section-description"/>
-                        <ListView fx:id="namespacesList" prefHeight="80" styleClass="xml-list-view"/>
-                    </VBox>
-                </TitledPane>
-
-            </VBox>
-        </ScrollPane>
-    </SplitPane>
+    <!-- Main Content Area -->
+    <TabPane fx:id="xmlFilesPane" side="TOP" VBox.vgrow="ALWAYS"
+             styleClass="xml-editor-tabs" minHeight="300"/>
 
     <!-- Advanced Development Panels - Bottom Tabs -->
     <TabPane fx:id="developmentTabPane" side="BOTTOM" tabClosingPolicy="SELECTED_TAB" prefHeight="180" minHeight="150">

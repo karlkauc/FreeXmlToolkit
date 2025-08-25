@@ -70,7 +70,7 @@ public class MainController {
     AnchorPane contentPane;
 
     @FXML
-    Button xslt, xml, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, templates;
+    Button xslt, xmlUltimate, xsd, xsdValidation, schematron, fop, signature, help, settings, exit, xsltDeveloper, schemaGenerator, templates;
 
     @FXML
     MenuItem menuItemExit;
@@ -296,20 +296,24 @@ public class MainController {
     }
 
     public void switchToXmlViewAndLoadFile(File fileToLoad) {
-        if (xml == null) {
+        if (xmlUltimate == null) {
             logger.error("XML-Button ist nicht initialisiert, Tab-Wechsel nicht möglich.");
             return;
         }
-        xml.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
-        xml.getStyleClass().add("active");
+        xmlUltimate.getParent().getChildrenUnmodifiable().forEach(node -> node.getStyleClass().remove("active"));
+        xmlUltimate.getStyleClass().add("active");
 
         loadPageFromPath("/pages/tab_xml_ultimate.fxml");
 
-        if (this.xmlUltimateController != null && fileToLoad != null && fileToLoad.exists()) {
-            // Ultimate XML Controller handles file loading internally
-        } else {
-            logger.warn("XML Ultimate Controller ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
-        }
+        // Wait for controller to be initialized, then load the file
+        Platform.runLater(() -> {
+            if (this.xmlUltimateController != null && fileToLoad != null && fileToLoad.exists()) {
+                logger.debug("Loading file through XmlUltimateController: {}", fileToLoad.getAbsolutePath());
+                this.xmlUltimateController.loadXmlFile(fileToLoad);
+            } else {
+                logger.warn("XML Ultimate Controller ist nicht verfügbar oder die Datei existiert nicht. Kann die Datei nicht laden: {}", fileToLoad);
+            }
+        });
     }
 
     public void switchToXsdViewAndLoadFile(File fileToLoad) {
@@ -472,10 +476,10 @@ public class MainController {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xml, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xml, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
         }
         showMenu = !showMenu;
     }
@@ -561,7 +565,7 @@ public class MainController {
             logger.debug("Selected file type: {}", fileType);
             switch (fileType) {
                 case "XML" -> {
-                    xml.fire();
+                    xmlUltimate.fire();
                     Platform.runLater(() -> {
                         if (xmlUltimateController != null) {
                             xmlUltimateController.newFilePressed();
@@ -613,10 +617,11 @@ public class MainController {
 
             String fileName = selectedFile.getName().toLowerCase();
             if (fileName.endsWith(".xml")) {
-                xml.fire();
+                xmlUltimate.fire();
                 Platform.runLater(() -> {
                     if (xmlUltimateController != null) {
-                        // Ultimate XML Controller handles file loading(selectedFile);
+                        logger.debug("Loading selected XML file through XmlUltimateController: {}", selectedFile.getAbsolutePath());
+                        xmlUltimateController.loadXmlFile(selectedFile);
                     }
                 });
             } else if (fileName.endsWith(".xsd")) {
@@ -636,10 +641,11 @@ public class MainController {
             } else if (fileName.endsWith(".xsl") || fileName.endsWith(".xslt")) {
                 xslt.fire();
             } else {
-                xml.fire();
+                xmlUltimate.fire();
                 Platform.runLater(() -> {
                     if (xmlUltimateController != null) {
-                        // Ultimate XML Controller handles file loading(selectedFile);
+                        logger.debug("Loading unknown file type as XML through XmlUltimateController: {}", selectedFile.getAbsolutePath());
+                        xmlUltimateController.loadXmlFile(selectedFile);
                     }
                 });
             }

@@ -430,6 +430,50 @@ public class XmlUltimateController implements Initializable {
         }
     }
 
+    /**
+     * Load a specific XML file programmatically (used for recent files, drag & drop, etc.)
+     */
+    public void loadXmlFile(File file) {
+        if (file == null || !file.exists()) {
+            logger.warn("Cannot load file - file is null or does not exist: {}", file);
+            return;
+        }
+
+        try {
+            logger.info("Loading XML file programmatically: {}", file.getAbsolutePath());
+            logToConsole("Loading XML file: " + file.getName());
+
+            String content = Files.readString(file.toPath());
+            currentXmlFile = file;
+            currentXmlContent = content;
+
+            if (xmlFilesPane != null) {
+                XmlEditor xmlEditor = new XmlEditor();
+                xmlEditor.setText(file.getName());
+                xmlEditor.codeArea.replaceText(content);
+                xmlFilesPane.getTabs().add(xmlEditor);
+                xmlFilesPane.getSelectionModel().select(xmlEditor);
+            }
+
+            updateDocumentTree(content);
+
+            // Update recent files list
+            if (parentController != null) {
+                parentController.addFileToRecentFiles(file);
+            }
+
+            // Also set last open directory
+            if (file.getParent() != null) {
+                propertiesService.setLastOpenDirectory(file.getParent());
+            }
+
+            logToConsole("Loaded file: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            showError("File Error", "Could not load file: " + e.getMessage());
+            logger.error("Failed to load file", e);
+        }
+    }
+
     @FXML
     private void saveFile() {
         logger.info("Saving XML document");
