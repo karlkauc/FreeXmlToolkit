@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
+<VBox prefHeight="500.0" prefWidth="700.0" spacing="10" styleClass="popup-container"
+      xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets top="15" bottom="15" left="15" right="15"/>
+    </padding>
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="10" styleClass="popup-header">
+        <FontIcon iconLiteral="bi-file-text" iconColor="#28a745" iconSize="24"/>
+        <VBox spacing="2">
+            <Label text="Smart Templates Manager" styleClass="popup-title"/>
+            <Label text="Create and manage XML templates for rapid development" styleClass="popup-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <Separator/>
+
+    <!-- Template Categories and Controls -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Category:" styleClass="form-label"/>
+        <ComboBox fx:id="templateCategoryCombo" prefWidth="150" promptText="Select category"/>
+        <Button fx:id="refreshTemplatesButton" text="Refresh" onAction="#refreshTemplates">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/>
+            </graphic>
+        </Button>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="createNewTemplateButton" text="Create New" styleClass="btn-primary">
+            <graphic>
+                <FontIcon iconLiteral="bi-plus-circle" iconColor="white" iconSize="14"/>
+            </graphic>
+        </Button>
+    </HBox>
+
+    <!-- Main Content Area -->
+    <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.4" orientation="HORIZONTAL">
+        <!-- Left: Template List -->
+        <VBox spacing="10">
+            <Label text="Available Templates:" styleClass="section-label"/>
+            <ListView fx:id="templatesListView" VBox.vgrow="ALWAYS" onMouseClicked="#onTemplateSelected"/>
+
+            <!-- Template Info -->
+            <VBox spacing="5" styleClass="info-panel">
+                <Label fx:id="templateNameLabel" text="No template selected" styleClass="template-name"/>
+                <Label fx:id="templateDescriptionLabel" text="" styleClass="template-description" wrapText="true"/>
+                <HBox spacing="5">
+                    <Label text="Category:" styleClass="info-label"/>
+                    <Label fx:id="templateCategoryLabel" text="" styleClass="info-value"/>
+                </HBox>
+                <HBox spacing="5">
+                    <Label text="Parameters:" styleClass="info-label"/>
+                    <Label fx:id="templateParameterCountLabel" text="0" styleClass="info-value"/>
+                </HBox>
+            </VBox>
+        </VBox>
+
+        <!-- Right: Template Preview and Parameters -->
+        <VBox spacing="10">
+            <!-- Template Parameters -->
+            <VBox spacing="8">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Template Parameters:" styleClass="section-label"/>
+                    <Button fx:id="addParameterButton" text="Add Parameter">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-plus-circle" iconSize="12"/>
+                        </graphic>
+                    </Button>
+                </HBox>
+                <TableView fx:id="templateParametersTable" prefHeight="150">
+                    <columns>
+                        <TableColumn fx:id="parameterNameColumn" text="Name" prefWidth="100"/>
+                        <TableColumn fx:id="parameterValueColumn" text="Value" prefWidth="120"/>
+                        <TableColumn fx:id="parameterTypeColumn" text="Type" prefWidth="80"/>
+                    </columns>
+                    <placeholder>
+                        <VBox alignment="CENTER" spacing="10">
+                            <FontIcon iconLiteral="bi-table" iconColor="#6c757d" iconSize="32"/>
+                            <Label text="No parameters defined" styleClass="placeholder-text"/>
+                        </VBox>
+                    </placeholder>
+                </TableView>
+            </VBox>
+
+            <!-- Template Preview -->
+            <VBox spacing="8" VBox.vgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Preview:" styleClass="section-label"/>
+                    <Button fx:id="generatePreviewButton" text="Generate Preview">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-eye" iconSize="12"/>
+                        </graphic>
+                    </Button>
+                </HBox>
+                <TextArea fx:id="templatePreviewArea" VBox.vgrow="ALWAYS" editable="false"
+                          wrapText="false" styleClass="code-preview"
+                          promptText="Template preview will be displayed here..."/>
+            </VBox>
+        </VBox>
+    </SplitPane>
+
+    <!-- Action Buttons -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button fx:id="validateTemplateButton" text="Validate Parameters" styleClass="btn-warning">
+            <graphic>
+                <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
+            </graphic>
+        </Button>
+        <Button fx:id="applyTemplateButton" text="Apply to Editor" styleClass="btn-success">
+            <graphic>
+                <FontIcon iconLiteral="bi-arrow-right" iconSize="14"/>
+            </graphic>
+        </Button>
+        <Button fx:id="insertTemplateButton" text="Insert at Cursor" styleClass="btn-primary">
+            <graphic>
+                <FontIcon iconLiteral="bi-cursor-text" iconSize="14"/>
+            </graphic>
+        </Button>
+        <Button fx:id="cancelButton" text="Cancel" styleClass="btn-secondary">
+            <graphic>
+                <FontIcon iconLiteral="bi-x-circle" iconSize="14"/>
+            </graphic>
+        </Button>
+    </HBox>
+</VBox>

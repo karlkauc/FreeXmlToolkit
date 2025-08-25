@@ -194,49 +194,6 @@
                     </VBox>
                 </TitledPane>
 
-                <!-- Smart Templates Panel -->
-                <TitledPane fx:id="templatesPanel" text="Smart Templates" expanded="false" collapsible="true"
-                            styleClass="sidebar-section">
-                    <VBox spacing="8">
-                        <HBox spacing="5" alignment="CENTER_LEFT">
-                            <ComboBox fx:id="templateCategoryCombo" prefWidth="120" promptText="Category"
-                                      styleClass="xml-combo-box"/>
-                            <Button fx:id="refreshTemplatesButton" onAction="#refreshTemplates">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="12"/>
-                                </graphic>
-                            </Button>
-                        </HBox>
-                        <ListView fx:id="templatesListView" prefHeight="120" styleClass="xml-list-view"
-                                  onMouseClicked="#onTemplateSelected"/>
-                        <HBox spacing="5">
-                            <Button fx:id="applyTemplateButton" text="Apply" onAction="#applySelectedTemplate"
-                                    styleClass="btn-primary" prefWidth="60"/>
-                            <Button fx:id="previewTemplateButton" text="Preview" onAction="#previewSelectedTemplate"
-                                    styleClass="btn-secondary" prefWidth="60"/>
-                        </HBox>
-                    </VBox>
-                </TitledPane>
-
-                <!-- Schema Generation Panel -->
-                <TitledPane fx:id="schemaPanel" text="Schema Generator" expanded="false" collapsible="true"
-                            styleClass="sidebar-section">
-                    <VBox spacing="8">
-                        <Label text="Generate XSD from current XML" styleClass="section-description"/>
-                        <HBox spacing="5">
-                            <CheckBox fx:id="inferTypesCheckbox" text="Infer Types" selected="true"/>
-                            <CheckBox fx:id="flattenSchemaCheckbox" text="Flatten"/>
-                        </HBox>
-                        <HBox spacing="5">
-                            <Button fx:id="generateSchemaButton" text="Generate" onAction="#generateSchema"
-                                    styleClass="btn-success" prefWidth="75"/>
-                            <Button fx:id="exportSchemaButton" text="Export" onAction="#exportSchema"
-                                    styleClass="btn-info" prefWidth="60"/>
-                        </HBox>
-                        <TextArea fx:id="schemaPreviewArea" prefHeight="80" styleClass="code-preview" editable="false"
-                                  wrapText="false"/>
-                    </VBox>
-                </TitledPane>
             </VBox>
         </ScrollPane>
     </SplitPane>

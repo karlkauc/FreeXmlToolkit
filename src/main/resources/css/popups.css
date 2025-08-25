@@ -1,0 +1,297 @@
+/* Popup Container Styles */
+.popup-container {
+    -fx-background-color: #f8f9fa;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 10, 0.5, 0, 2);
+}
+
+/* Header Styles */
+.popup-header {
+    -fx-background-color: white;
+    -fx-padding: 15 10 15 10;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 0 0 1 0;
+}
+
+.popup-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #212529;
+}
+
+.popup-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6c757d;
+}
+
+/* Section Labels */
+.section-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #495057;
+}
+
+.subsection-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #6c757d;
+}
+
+/* Form Elements */
+.form-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #495057;
+}
+
+/* Info Panel */
+.info-panel {
+    -fx-background-color: white;
+    -fx-padding: 10;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.template-name {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #28a745;
+}
+
+.template-description {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6c757d;
+    -fx-wrap-text: true;
+}
+
+.info-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #495057;
+    -fx-font-size: 11px;
+}
+
+.info-value {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 11px;
+}
+
+/* Statistics */
+.stats-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #495057;
+}
+
+.stats-value {
+    -fx-text-fill: #28a745;
+    -fx-font-weight: bold;
+}
+
+/* Status */
+.status-label {
+    -fx-text-fill: #6c757d;
+    -fx-font-style: italic;
+}
+
+/* Code Preview */
+.code-preview {
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+    -fx-font-size: 11px;
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 8;
+}
+
+/* Placeholder Text */
+.placeholder-text {
+    -fx-text-fill: #6c757d;
+    -fx-font-style: italic;
+}
+
+/* Button Styles */
+.btn-primary {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #0056b3;
+}
+
+.btn-success {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.btn-success:hover {
+    -fx-background-color: #1e7e34;
+}
+
+.btn-info {
+    -fx-background-color: #17a2b8;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.btn-info:hover {
+    -fx-background-color: #117a8b;
+}
+
+.btn-warning {
+    -fx-background-color: #ffc107;
+    -fx-text-fill: #212529;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.btn-warning:hover {
+    -fx-background-color: #e0a800;
+}
+
+.btn-secondary {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #5a6268;
+}
+
+/* Table Styles */
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+/* ListView Styles */
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.list-cell {
+    -fx-background-color: white;
+}
+
+.list-cell:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}
+
+.list-cell:hover {
+    -fx-background-color: #e3f2fd;
+}
+
+/* Progress Indicator */
+.progress-indicator {
+    -fx-accent: #007bff;
+}
+
+/* Separator */
+.separator {
+    -fx-background-color: #e9ecef;
+}
+
+/* CheckBox */
+.check-box {
+    -fx-text-fill: #495057;
+}
+
+.check-box:selected .box {
+    -fx-background-color: #007bff;
+    -fx-border-color: #007bff;
+}
+
+/* RadioButton */
+.radio-button {
+    -fx-text-fill: #495057;
+}
+
+.radio-button:selected .radio {
+    -fx-background-color: #007bff;
+    -fx-border-color: #007bff;
+}
+
+/* TextField and TextArea */
+.text-field, .text-area {
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.text-field:focused, .text-area:focused {
+    -fx-border-color: #007bff;
+    -fx-effect: dropshadow(gaussian, rgba(0, 123, 255, 0.25), 3, 0.5, 0, 0);
+}
+
+/* ComboBox */
+.combo-box {
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.combo-box:focused {
+    -fx-border-color: #007bff;
+}
+
+/* Spinner */
+.spinner {
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+/* TabPane */
+.tab-pane {
+    -fx-background-color: white;
+}
+
+.tab {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #e9ecef;
+}
+
+.tab:selected {
+    -fx-background-color: white;
+    -fx-border-color: #007bff #e9ecef #white #e9ecef;
+}
+
+/* TitledPane */
+.titled-pane {
+    -fx-background-color: white;
+    -fx-border-color: #e9ecef;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.titled-pane > .title {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 4 4 0 0;
+    -fx-border-color: #e9ecef;
+    -fx-border-width: 0 0 1 0;
+    -fx-font-weight: bold;
+    -fx-text-fill: #495057;
+}
+
+.titled-pane:expanded > .title {
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+}

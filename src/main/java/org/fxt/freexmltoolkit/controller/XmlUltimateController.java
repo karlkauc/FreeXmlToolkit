@@ -20,16 +20,20 @@ package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.converter.DefaultStringConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -139,33 +143,7 @@ public class XmlUltimateController implements Initializable {
     @FXML
     private ListView<String> namespacesList;
 
-    // Smart Templates Panel
-    @FXML
-    private TitledPane templatesPanel;
-    @FXML
-    private ComboBox<String> templateCategoryCombo;
-    @FXML
-    private Button refreshTemplatesButton;
-    @FXML
-    private ListView<XmlTemplate> templatesListView;
-    @FXML
-    private Button applyTemplateButton;
-    @FXML
-    private Button previewTemplateButton;
-
-    // Schema Generation Panel
-    @FXML
-    private TitledPane schemaPanel;
-    @FXML
-    private CheckBox inferTypesCheckbox;
-    @FXML
-    private CheckBox flattenSchemaCheckbox;
-    @FXML
-    private Button generateSchemaButton;
-    @FXML
-    private Button exportSchemaButton;
-    @FXML
-    private TextArea schemaPreviewArea;
+    // Removed: Smart Templates Panel and Schema Generation Panel (now in popups)
 
     // Development Panels
     @FXML
@@ -247,7 +225,7 @@ public class XmlUltimateController implements Initializable {
     private XmlTemplate selectedTemplate;
     private final Map<String, String> currentTemplateParams = new HashMap<>();
     private String currentXsltContent = "";
-    private String generatedSchemaContent = "";
+    private final String generatedSchemaContent = "";
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -269,13 +247,7 @@ public class XmlUltimateController implements Initializable {
             outputFormatCombo.getSelectionModel().selectFirst();
         }
 
-        if (templateCategoryCombo != null) {
-            templateCategoryCombo.setItems(FXCollections.observableArrayList(
-                    "All Templates", "Finance", "Healthcare", "Automotive",
-                    "Government", "Generic", "Web Services", "Configuration"
-            ));
-            templateCategoryCombo.setValue("All Templates");
-        }
+        // Template category combo removed (now in popup)
     }
 
     private void initializeUI() {
@@ -284,16 +256,7 @@ public class XmlUltimateController implements Initializable {
             consoleOutput.appendText("All revolutionary features are available.\n");
         }
 
-        // Setup template list cell factory
-        if (templatesListView != null) {
-            templatesListView.setCellFactory(lv -> new ListCell<XmlTemplate>() {
-                @Override
-                protected void updateItem(XmlTemplate item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setText(empty || item == null ? null : item.getName() + " - " + item.getDescription());
-                }
-            });
-        }
+        // Template list view setup removed (now in popup)
     }
 
     private void initializeXPathXQuery() {
@@ -386,12 +349,7 @@ public class XmlUltimateController implements Initializable {
     }
 
     private void loadTemplates() {
-        if (templatesListView != null) {
-            ObservableList<XmlTemplate> templates = FXCollections.observableArrayList(
-                    templateRepository.getAllTemplates()
-            );
-            templatesListView.setItems(templates);
-        }
+        // Template loading moved to popup
     }
 
     private void createInitialTab() {
@@ -642,20 +600,16 @@ public class XmlUltimateController implements Initializable {
      */
     @FXML
     private void showTemplateManager() {
-        logger.info("Opening Template Manager");
+        logger.info("Opening Template Manager Popup");
         logToConsole("Opening Smart Templates System...");
-        if (templatesPanel != null) {
-            templatesPanel.setExpanded(true);
-        }
+        openTemplateManagerPopup();
     }
 
     @FXML
     private void showSchemaGenerator() {
-        logger.info("Opening Schema Generator");
+        logger.info("Opening Schema Generator Popup");
         logToConsole("Opening Intelligent Schema Generator...");
-        if (schemaPanel != null) {
-            schemaPanel.setExpanded(true);
-        }
+        openSchemaGeneratorPopup();
     }
 
     @FXML
@@ -684,146 +638,9 @@ public class XmlUltimateController implements Initializable {
         }
     }
 
-    /**
-     * Template Operations
-     */
-    @FXML
-    private void refreshTemplates() {
-        logger.info("Refreshing Templates");
-        logToConsole("Refreshing template library...");
-        loadTemplates();
-    }
+    // Template operations moved to popup controller
 
-    @FXML
-    private void onTemplateSelected() {
-        logger.info("Template selected");
-        selectedTemplate = templatesListView != null ? templatesListView.getSelectionModel().getSelectedItem() : null;
-
-        if (selectedTemplate != null) {
-            logToConsole("Selected template: " + selectedTemplate.getName());
-
-            // Load template parameters
-            if (templateParametersTable != null) {
-                templateParametersTable.setItems(FXCollections.observableArrayList(selectedTemplate.getParameters()));
-            }
-
-            // Initialize parameter values
-            currentTemplateParams.clear();
-            for (TemplateParameter param : selectedTemplate.getParameters()) {
-                String defaultValue = param.getDefaultValue();
-                if (defaultValue == null || defaultValue.isEmpty()) {
-                    defaultValue = param.isRequired() ? "REQUIRED_VALUE" : "";
-                }
-                currentTemplateParams.put(param.getName(), defaultValue);
-            }
-        }
-    }
-
-    @FXML
-    private void applySelectedTemplate() {
-        logger.info("Applying Template");
-        logToConsole("Applying selected template...");
-
-        if (selectedTemplate != null) {
-            try {
-                String generatedXml = selectedTemplate.processTemplate(currentTemplateParams);
-
-                Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
-                if (currentTab != null && currentTab instanceof XmlEditor editor) {
-                    editor.codeArea.replaceText(generatedXml);
-                    logToConsole("Template applied successfully");
-                }
-            } catch (Exception e) {
-                showError("Template Error", "Could not apply template: " + e.getMessage());
-                logger.error("Failed to apply template", e);
-            }
-        }
-    }
-
-    @FXML
-    private void previewSelectedTemplate() {
-        logger.info("Previewing Template");
-        logToConsole("Generating template preview...");
-
-        if (selectedTemplate != null && templatePreviewArea != null) {
-            try {
-                String generatedXml = selectedTemplate.processTemplate(currentTemplateParams);
-                templatePreviewArea.setText(generatedXml);
-                logToConsole("Template preview generated");
-            } catch (Exception e) {
-                templatePreviewArea.setText("Error: " + e.getMessage());
-                logger.error("Failed to preview template", e);
-            }
-        }
-    }
-
-    /**
-     * Schema Generation Operations
-     */
-    @FXML
-    private void generateSchema() {
-        logger.info("Generating Schema");
-        boolean inferTypes = inferTypesCheckbox != null && inferTypesCheckbox.isSelected();
-        boolean flatten = flattenSchemaCheckbox != null && flattenSchemaCheckbox.isSelected();
-        logToConsole("Generating XSD schema (inferTypes=" + inferTypes + ", flatten=" + flatten + ")...");
-
-        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
-        if (currentTab != null && currentTab instanceof XmlEditor editor) {
-            String xml = editor.codeArea.getText();
-
-            Task<String> schemaTask = new Task<>() {
-                @Override
-                protected String call() throws Exception {
-                    SchemaGenerationOptions options = new SchemaGenerationOptions();
-                    options.setEnableSmartTypeInference(inferTypes);
-                    options.setFlattenUnnecessaryStructure(flatten);
-
-                    SchemaGenerationResult result = schemaEngine.generateSchema(xml, options);
-                    return result.getXsdContent();
-                }
-            };
-
-            schemaTask.setOnSucceeded(e -> {
-                generatedSchemaContent = schemaTask.getValue();
-                if (schemaPreviewArea != null) {
-                    schemaPreviewArea.setText(generatedSchemaContent);
-                }
-                logToConsole("Schema generated successfully");
-            });
-
-            schemaTask.setOnFailed(e -> {
-                showError("Schema Generation Error", "Could not generate schema: " + schemaTask.getException().getMessage());
-                logger.error("Failed to generate schema", schemaTask.getException());
-            });
-
-            executorService.submit(schemaTask);
-        }
-    }
-
-    @FXML
-    private void exportSchema() {
-        logger.info("Exporting Schema");
-        logToConsole("Exporting generated schema...");
-
-        if (generatedSchemaContent != null && !generatedSchemaContent.isEmpty()) {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Export XSD Schema");
-            fileChooser.getExtensionFilters().add(
-                    new FileChooser.ExtensionFilter("XSD Files", "*.xsd")
-            );
-
-            File file = fileChooser.showSaveDialog(null);
-            if (file != null) {
-                try {
-                    Files.writeString(file.toPath(), generatedSchemaContent);
-                    logToConsole("Schema exported to: " + file.getAbsolutePath());
-                } catch (IOException e) {
-                    showError("Export Error", "Could not export schema: " + e.getMessage());
-                    logger.error("Failed to export schema", e);
-                }
-            }
-        }
-    }
+    // Schema generation operations moved to popup controller
 
     /**
      * XSLT Operations
@@ -1351,5 +1168,101 @@ public class XmlUltimateController implements Initializable {
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
         logger.debug("Parent controller set for Ultimate XML Controller");
+    }
+
+    /**
+     * Open Template Manager Popup
+     */
+    private void openTemplateManagerPopup() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/popup_templates.fxml"));
+
+            // Create and set controller instance BEFORE loading
+            TemplateManagerPopupController controller = new TemplateManagerPopupController(
+                    this, templateEngine, templateRepository
+            );
+            loader.setController(controller);
+
+            Parent root = loader.load();
+
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/popups.css").toExternalForm());
+
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Smart Templates Manager");
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+            popupStage.setResizable(true);
+            popupStage.setScene(scene);
+
+            popupStage.showAndWait();
+            logToConsole("Template Manager popup closed");
+        } catch (Exception e) {
+            logger.error("Failed to open Template Manager popup", e);
+            showError("Popup Error", "Could not open Template Manager: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Open Schema Generator Popup
+     */
+    private void openSchemaGeneratorPopup() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/popup_schema_generator.fxml"));
+
+            // Create and set controller instance BEFORE loading
+            SchemaGeneratorPopupController controller = new SchemaGeneratorPopupController(
+                    this, schemaEngine
+            );
+            loader.setController(controller);
+
+            Parent root = loader.load();
+
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/css/popups.css").toExternalForm());
+
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Intelligent Schema Generator");
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+            popupStage.setResizable(true);
+            popupStage.setScene(scene);
+
+            popupStage.showAndWait();
+            logToConsole("Schema Generator popup closed");
+        } catch (Exception e) {
+            logger.error("Failed to open Schema Generator popup", e);
+            showError("Popup Error", "Could not open Schema Generator: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get current XML content for popup controllers
+     */
+    public String getCurrentXmlContent() {
+        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
+        if (currentTab != null && currentTab instanceof XmlEditor editor) {
+            return editor.codeArea.getText();
+        }
+        return "";
+    }
+
+    /**
+     * Set XML content in current editor
+     */
+    public void setCurrentXmlContent(String content) {
+        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
+        if (currentTab != null && currentTab instanceof XmlEditor editor) {
+            editor.codeArea.replaceText(content);
+        }
+    }
+
+    /**
+     * Insert XML content at cursor position in current editor
+     */
+    public void insertXmlContent(String content) {
+        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
+        if (currentTab != null && currentTab instanceof XmlEditor editor) {
+            int caretPosition = editor.codeArea.getCaretPosition();
+            editor.codeArea.insertText(caretPosition, content);
+        }
     }
 }

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
+<VBox prefHeight="600.0" prefWidth="800.0" spacing="10" styleClass="popup-container"
+      xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets top="15" bottom="15" left="15" right="15"/>
+    </padding>
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="10" styleClass="popup-header">
+        <FontIcon iconLiteral="bi-diagram-3" iconColor="#dc3545" iconSize="24"/>
+        <VBox spacing="2">
+            <Label text="Intelligent Schema Generator" styleClass="popup-title"/>
+            <Label text="Generate XSD schemas from XML documents with advanced inference" styleClass="popup-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <Separator/>
+
+    <!-- Source Selection -->
+    <VBox spacing="10">
+        <Label text="XML Source:" styleClass="section-label"/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <RadioButton fx:id="useCurrentEditorRadio" text="Current Editor Content" selected="true">
+                <toggleGroup>
+                    <ToggleGroup fx:id="sourceGroup"/>
+                </toggleGroup>
+            </RadioButton>
+            <RadioButton fx:id="useFileRadio" text="Load from File" toggleGroup="$sourceGroup"/>
+            <RadioButton fx:id="useMultipleFilesRadio" text="Multiple Files" toggleGroup="$sourceGroup"/>
+        </HBox>
+
+        <!-- File Selection Area -->
+        <HBox fx:id="fileSelectionArea" spacing="10" alignment="CENTER_LEFT" disable="true">
+            <TextField fx:id="sourceFileField" promptText="Select XML file(s)..." prefWidth="400" editable="false"/>
+            <Button fx:id="browseSourceButton" text="Browse...">
+                <graphic>
+                    <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                </graphic>
+            </Button>
+            <Button fx:id="addMoreFilesButton" text="Add More" disable="true">
+                <graphic>
+                    <FontIcon iconLiteral="bi-plus-circle" iconSize="14"/>
+                </graphic>
+            </Button>
+        </HBox>
+
+        <!-- Multiple Files List -->
+        <ListView fx:id="sourceFilesList" prefHeight="80" visible="false" managed="false">
+            <placeholder>
+                <Label text="No files selected" styleClass="placeholder-text"/>
+            </placeholder>
+        </ListView>
+    </VBox>
+
+    <Separator/>
+
+    <!-- Schema Generation Options -->
+    <VBox spacing="15">
+        <Label text="Generation Options:" styleClass="section-label"/>
+
+        <GridPane hgap="20" vgap="10">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="50.0"/>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="50.0"/>
+            </columnConstraints>
+
+            <!-- Left Column -->
+            <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                <Label text="Structure Options:" styleClass="subsection-label"/>
+                <CheckBox fx:id="inferTypesCheckbox" text="Smart Type Inference" selected="true"/>
+                <CheckBox fx:id="flattenSchemaCheckbox" text="Flatten Unnecessary Nesting"/>
+                <CheckBox fx:id="generateDocumentationCheckbox" text="Generate Documentation" selected="true"/>
+                <CheckBox fx:id="enforceOrderCheckbox" text="Enforce Element Order"/>
+            </VBox>
+
+            <!-- Right Column -->
+            <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <Label text="Content Options:" styleClass="subsection-label"/>
+                <CheckBox fx:id="includeAttributesCheckbox" text="Include Attributes" selected="true"/>
+                <CheckBox fx:id="makeOptionalCheckbox" text="Make Elements Optional"/>
+                <CheckBox fx:id="generateExamplesCheckbox" text="Generate Example Values"/>
+                <CheckBox fx:id="includeNamespacesCheckbox" text="Preserve Namespaces" selected="true"/>
+            </VBox>
+        </GridPane>
+
+        <!-- Advanced Options -->
+        <TitledPane text="Advanced Options" expanded="false" collapsible="true">
+            <VBox spacing="10">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Target Namespace:" minWidth="120"/>
+                    <TextField fx:id="targetNamespaceField" promptText="http://example.com/schema" prefWidth="300"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Schema Prefix:" minWidth="120"/>
+                    <TextField fx:id="schemaPrefixField" promptText="xs" prefWidth="100"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Root Element Name:" minWidth="120"/>
+                    <TextField fx:id="rootElementField" promptText="Auto-detect" prefWidth="200"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Max Occurs Limit:" minWidth="120"/>
+                    <Spinner fx:id="maxOccursSpinner" prefWidth="100" min="1" max="999" initialValue="10"/>
+                    <CheckBox fx:id="unboundedMaxOccursCheckbox" text="Unbounded"/>
+                </HBox>
+            </VBox>
+        </TitledPane>
+    </VBox>
+
+    <Separator/>
+
+    <!-- Generation Progress and Results -->
+    <VBox spacing="10" VBox.vgrow="ALWAYS">
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="Generated Schema:" styleClass="section-label"/>
+            <ProgressIndicator fx:id="generationProgress" visible="false" prefWidth="24" prefHeight="24"/>
+            <Label fx:id="generationStatusLabel" text="Ready to generate" styleClass="status-label"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="generateSchemaButton" text="Generate Schema" styleClass="btn-success">
+                <graphic>
+                    <FontIcon iconLiteral="bi-gear" iconColor="white" iconSize="16"/>
+                </graphic>
+            </Button>
+        </HBox>
+
+        <!-- Schema Preview with Tabs -->
+        <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+            <Tab text="Generated XSD">
+                <TextArea fx:id="schemaPreviewArea" wrapText="false" editable="false"
+                          styleClass="code-preview" promptText="Generated XSD schema will appear here..."/>
+            </Tab>
+            <Tab text="Generation Report">
+                <VBox spacing="10" style="-fx-padding: 10;">
+                    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                        <VBox fx:id="reportContainer" spacing="5"/>
+                    </ScrollPane>
+                </VBox>
+            </Tab>
+            <Tab text="Schema Statistics">
+                <VBox spacing="10" style="-fx-padding: 10;">
+                    <GridPane hgap="10" vgap="5">
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="120" prefWidth="120"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Elements:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                               styleClass="stats-label"/>
+                        <Label fx:id="elementCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                               styleClass="stats-value"/>
+
+                        <Label text="Attributes:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                               styleClass="stats-label"/>
+                        <Label fx:id="attributeCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                               styleClass="stats-value"/>
+
+                        <Label text="Complex Types:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                               styleClass="stats-label"/>
+                        <Label fx:id="complexTypeCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                               styleClass="stats-value"/>
+
+                        <Label text="Simple Types:" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                               styleClass="stats-label"/>
+                        <Label fx:id="simpleTypeCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                               styleClass="stats-value"/>
+
+                        <Label text="Namespaces:" GridPane.columnIndex="0" GridPane.rowIndex="4"
+                               styleClass="stats-label"/>
+                        <Label fx:id="namespaceCountLabel" text="0" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                               styleClass="stats-value"/>
+                    </GridPane>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </VBox>
+
+    <!-- Action Buttons -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button fx:id="validateSchemaButton" text="Validate Generated Schema" styleClass="btn-info">
+            <graphic>
+                <FontIcon iconLiteral="bi-check-circle" iconSize="14"/>
+            </graphic>
+        </Button>
+        <Button fx:id="saveSchemaButton" text="Save Schema" styleClass="btn-primary">
+            <graphic>
+                <FontIcon iconLiteral="bi-hdd" iconSize="14"/>
+            </graphic>
+        </Button>
+        <Button fx:id="exportSchemaButton" text="Export & Open" styleClass="btn-success">
+            <graphic>
+                <FontIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/>
+            </graphic>
+        </Button>
+        <Button fx:id="cancelButton" text="Close" styleClass="btn-secondary">
+            <graphic>
+                <FontIcon iconLiteral="bi-x-circle" iconSize="14"/>
+            </graphic>
+        </Button>
+    </HBox>
+</VBox>
