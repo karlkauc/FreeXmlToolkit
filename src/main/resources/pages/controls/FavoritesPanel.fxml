@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.*?>
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController"
+      styleClass="favorites-panel" prefWidth="350" minWidth="280"
+      style="-fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-width: 1;">
+
+    <!-- Header with XMLSpy-style gradient -->
+    <VBox styleClass="favorites-header" spacing="10"
+          style="-fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef); 
+                 -fx-padding: 12; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;">
+
+        <!-- Title Bar -->
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <FontIcon iconLiteral="bi-star-fill" iconSize="18" iconColor="#ffc107"/>
+            <Label text="Favorites Manager"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0; 
+                          -fx-font-family: 'Segoe UI', Arial, sans-serif;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Action Buttons -->
+            <Button fx:id="syncButton" styleClass="icon-button" tooltip="Sync Favorites">
+                <graphic>
+                    <FontIcon iconLiteral="bi-cloud-arrow-down" iconSize="14" iconColor="#4a90e2"/>
+                </graphic>
+            </Button>
+            <Button fx:id="settingsButton" styleClass="icon-button" tooltip="Settings">
+                <graphic>
+                    <FontIcon iconLiteral="bi-gear" iconSize="14" iconColor="#6c757d"/>
+                </graphic>
+            </Button>
+        </HBox>
+
+        <!-- Search and Filter Bar -->
+        <HBox spacing="5" alignment="CENTER_LEFT">
+            <TextField fx:id="searchField" promptText="Search favorites..." HBox.hgrow="ALWAYS"
+                       style="-fx-background-color: white; -fx-border-color: #4a90e2; 
+                              -fx-border-radius: 4; -fx-background-radius: 4;">
+                <padding>
+                    <Insets top="5" bottom="5" left="8" right="8"/>
+                </padding>
+            </TextField>
+
+            <MenuButton fx:id="filterButton" text="All"
+                        style="-fx-background-color: white; -fx-border-color: #4a90e2;">
+                <items>
+                    <MenuItem text="All Files"/>
+                    <MenuItem text="XML Documents"/>
+                    <MenuItem text="XSD Schemas"/>
+                    <MenuItem text="XSLT Stylesheets"/>
+                    <MenuItem text="XQuery Scripts"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Recent"/>
+                    <MenuItem text="Modified"/>
+                </items>
+            </MenuButton>
+
+            <Button fx:id="addButton" styleClass="primary-button" text="Add"
+                    style="-fx-background-color: #4a90e2; -fx-text-fill: white;">
+                <graphic>
+                    <FontIcon iconLiteral="bi-plus-circle" iconSize="14" iconColor="white"/>
+                </graphic>
+            </Button>
+        </HBox>
+    </VBox>
+
+    <!-- Main Content Area with ScrollPane -->
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                style="-fx-background: white; -fx-background-color: white;">
+        <VBox fx:id="contentArea" spacing="10" style="-fx-background-color: white;">
+            <padding>
+                <Insets top="10" bottom="10" left="10" right="10"/>
+            </padding>
+
+            <!-- Smart Collections Section -->
+            <TitledPane fx:id="smartCollectionsPane" text="Smart Collections" expanded="true"
+                        styleClass="favorites-section">
+                <VBox spacing="5">
+                    <HBox styleClass="collection-item" spacing="8" alignment="CENTER_LEFT"
+                          style="-fx-padding: 8; -fx-background-color: #f0f8ff; 
+                                 -fx-background-radius: 4; -fx-cursor: hand;">
+                        <FontIcon iconLiteral="bi-clock-history" iconSize="16" iconColor="#4a90e2"/>
+                        <Label text="Recently Used" style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="recentCountLabel" text="12"
+                               style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+                    </HBox>
+
+                    <HBox styleClass="collection-item" spacing="8" alignment="CENTER_LEFT"
+                          style="-fx-padding: 8; -fx-background-color: #f0f8ff; 
+                                 -fx-background-radius: 4; -fx-cursor: hand;">
+                        <FontIcon iconLiteral="bi-star" iconSize="16" iconColor="#ffc107"/>
+                        <Label text="Most Popular" style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="popularCountLabel" text="8"
+                               style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+                    </HBox>
+
+                    <HBox styleClass="collection-item" spacing="8" alignment="CENTER_LEFT"
+                          style="-fx-padding: 8; -fx-background-color: #f0f8ff; 
+                                 -fx-background-radius: 4; -fx-cursor: hand;">
+                        <FontIcon iconLiteral="bi-calendar-week" iconSize="16" iconColor="#28a745"/>
+                        <Label text="This Week" style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="weekCountLabel" text="5"
+                               style="-fx-text-fill: #6c757d; -fx-font-size: 11px;"/>
+                    </HBox>
+                </VBox>
+            </TitledPane>
+
+            <!-- Categories Section -->
+            <TitledPane fx:id="categoriesPane" text="Categories" expanded="true"
+                        styleClass="favorites-section">
+                <TreeView fx:id="categoriesTreeView" prefHeight="200"
+                          style="-fx-background-color: white; -fx-border-color: #e0e0e0;"/>
+            </TitledPane>
+
+            <!-- Projects Section -->
+            <TitledPane fx:id="projectsPane" text="Projects" expanded="false"
+                        styleClass="favorites-section">
+                <TreeView fx:id="projectsTreeView" prefHeight="200"
+                          style="-fx-background-color: white; -fx-border-color: #e0e0e0;"/>
+            </TitledPane>
+
+            <!-- Templates & Snippets Section -->
+            <TitledPane fx:id="templatesPane" text="Templates &amp; Snippets" expanded="false"
+                        styleClass="favorites-section">
+                <VBox spacing="5">
+                    <ListView fx:id="templatesListView" prefHeight="150"
+                              style="-fx-background-color: white; -fx-border-color: #e0e0e0;"/>
+                </VBox>
+            </TitledPane>
+        </VBox>
+    </ScrollPane>
+
+    <!-- Status Bar -->
+    <HBox styleClass="favorites-statusbar" spacing="10" alignment="CENTER_LEFT"
+          style="-fx-background-color: #f8f9fa; -fx-padding: 8; 
+                 -fx-border-color: #dee2e6; -fx-border-width: 1 0 0 0;">
+        <Label fx:id="statusLabel" text="Ready" style="-fx-font-size: 11px; -fx-text-fill: #6c757d;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="countLabel" text="0 favorites" style="-fx-font-size: 11px; -fx-text-fill: #6c757d;"/>
+    </HBox>
+
+    <!-- Drop Shadow Effect for depth -->
+    <effect>
+        <DropShadow color="#00000026" radius="5" spread="0.1" offsetX="2" offsetY="2"/>
+    </effect>
+</VBox>
