@@ -151,11 +151,11 @@ public class XmlUltimateController implements Initializable {
     @FXML
     private ListView<String> namespacesList;
 
-    // Removed: Smart Templates Panel and Schema Generation Panel (now in popups)
-
     // Development Panels
     @FXML
     private TabPane developmentTabPane;
+    @FXML
+    private SplitPane mainSplitPane; // Add this FXML element
 
     // XPath/XQuery
     @FXML
@@ -255,8 +255,6 @@ public class XmlUltimateController implements Initializable {
             ));
             outputFormatCombo.getSelectionModel().selectFirst();
         }
-
-        // Template category combo removed (now in popup)
     }
 
     private void initializeUI() {
@@ -264,8 +262,6 @@ public class XmlUltimateController implements Initializable {
             consoleOutput.appendText("Ultimate XML Editor initialized.\n");
             consoleOutput.appendText("All revolutionary features are available.\n");
         }
-
-        // Template list view setup removed (now in popup)
     }
 
     private void initializeXPathXQuery() {
@@ -1558,6 +1554,39 @@ public class XmlUltimateController implements Initializable {
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
             int caretPosition = editor.codeArea.getCaretPosition();
             editor.codeArea.insertText(caretPosition, content);
+        }
+    }
+
+    /**
+     * Sets the visibility of the development pane (XPath/XQuery, XSLT, Templates, Console).
+     * This method is called from the MainController based on user preference.
+     *
+     * @param isVisible true to show the pane, false to hide it.
+     */
+    public void setDevelopmentPaneVisible(boolean isVisible) {
+        if (mainSplitPane == null || developmentTabPane == null) {
+            logger.warn("Cannot set development pane visibility: mainSplitPane or developmentTabPane is null.");
+            return;
+        }
+
+        if (isVisible) {
+            // Add the developmentTabPane back to the SplitPane if it's not already there
+            if (!mainSplitPane.getItems().contains(developmentTabPane)) {
+                mainSplitPane.getItems().add(developmentTabPane);
+                // Restore the divider position to make the development pane visible
+                mainSplitPane.setDividerPositions(0.75); // Adjust as needed
+                logger.debug("Development pane set to visible.");
+            } else {
+                logger.debug("Development pane is already visible.");
+            }
+        } else {
+            // Remove the developmentTabPane from the SplitPane
+            if (mainSplitPane.getItems().contains(developmentTabPane)) {
+                mainSplitPane.getItems().remove(developmentTabPane);
+                logger.debug("Development pane set to hidden.");
+            } else {
+                logger.debug("Development pane is already hidden.");
+            }
         }
     }
 }

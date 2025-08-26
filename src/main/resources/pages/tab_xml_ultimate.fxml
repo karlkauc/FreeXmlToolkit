@@ -160,7 +160,7 @@
     </HBox>
 
     <!-- NEW: SplitPane to make the editor and development panes resizable -->
-    <SplitPane orientation="VERTICAL" VBox.vgrow="ALWAYS" dividerPositions="0.75">
+    <SplitPane fx:id="mainSplitPane" orientation="VERTICAL" VBox.vgrow="ALWAYS" dividerPositions="0.75">
         <!-- Main Content Area -->
         <TabPane fx:id="xmlFilesPane" side="TOP"
                  styleClass="xml-editor-tabs" minHeight="300"/>

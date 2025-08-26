@@ -361,6 +361,10 @@ public class MainController {
                 logger.debug("set Ultimate XML Controller");
                 this.xmlUltimateController = xmlUltimateController1;
                 xmlUltimateController1.setParentController(this);
+                Platform.runLater(() -> {
+                    boolean isVisible = isXPathQueryPaneVisible();
+                    xmlUltimateController1.setDevelopmentPaneVisible(isVisible);
+                });
                 initializeIntegrationService();
             }
             case XsdValidationController xsdValidationController -> xsdValidationController.setParentController(this);
@@ -541,7 +545,7 @@ public class MainController {
         propertiesService.set("xpathQueryPane.visible", String.valueOf(isVisible));
 
         if (xmlUltimateController != null) {
-            // Ultimate XML Controller has XPath/XQuery built-in(isVisible);
+            xmlUltimateController.setDevelopmentPaneVisible(isVisible);
         } else {
             logger.debug("XML Ultimate Controller not yet available - preference saved, will be applied when XML tab is loaded");
         }
