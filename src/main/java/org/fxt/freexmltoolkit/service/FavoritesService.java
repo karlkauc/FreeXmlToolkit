@@ -176,6 +176,15 @@ public class FavoritesService {
         saveFavorites();
         logger.info("Removed favorite with ID: {}", id);
     }
+
+    /**
+     * Remove a favorite object
+     */
+    public void removeFavorite(FileFavorite favorite) {
+        if (favorite != null && favorite.getId() != null) {
+            removeFavorite(favorite.getId());
+        }
+    }
     
     /**
      * Remove a favorite by file path

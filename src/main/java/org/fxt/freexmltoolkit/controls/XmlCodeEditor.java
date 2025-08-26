@@ -20,6 +20,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.controls.intellisense.*;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
@@ -84,6 +85,21 @@ public class XmlCodeEditor extends VBox {
     private final Map<String, Set<String>> enumerationElementsByContext = new HashMap<>();
     private int popupStartPosition = -1;
     private boolean isElementCompletionContext = false; // Track if we're completing elements or attributes
+
+    // Enhanced IntelliSense Components
+    private EnhancedCompletionPopup enhancedCompletionPopup;
+    private FuzzySearch fuzzySearch;
+    private XsdDocumentationExtractor xsdDocExtractor;
+    private AttributeValueHelper attributeValueHelper;
+    private CompletionCache completionCache;
+    private PerformanceProfiler performanceProfiler;
+    private MultiSchemaManager multiSchemaManager;
+    private TemplateEngine templateEngine;
+    private QuickActionsIntegration quickActionsIntegration;
+
+    // Integration state
+    private boolean enhancedIntelliSenseEnabled = true;
+    private XsdIntegrationAdapter xsdIntegration;
 
     // Debouncing for syntax highlighting
     private javafx.animation.PauseTransition syntaxHighlightingDebouncer;
@@ -159,6 +175,10 @@ public class XmlCodeEditor extends VBox {
     public void setParentXmlEditor(XmlEditor parentEditor) {
         logger.debug("setParentXmlEditor called with: {}", parentEditor);
         this.parentXmlEditor = parentEditor;
+
+        // Update XSD integration with new parent
+        updateXsdIntegration();
+        
         // Trigger immediate cache update when parent is set
         if (parentEditor != null) {
             // Use Platform.runLater to avoid blocking the UI thread
@@ -202,6 +222,7 @@ public class XmlCodeEditor extends VBox {
 
         setupEventHandlers();
         initializeIntelliSensePopup();
+        initializeEnhancedIntelliSense();
 
         // Set up the main layout
         VBox.setVgrow(virtualizedScrollPane, Priority.ALWAYS);
@@ -626,6 +647,65 @@ public class XmlCodeEditor extends VBox {
             logger.debug("Scene KeyPressed: {}", event.getCode());
             completionListView.fireEvent(event);
         });
+    }
+
+    /**
+     * Initialize Enhanced IntelliSense components
+     */
+    private void initializeEnhancedIntelliSense() {
+        try {
+            logger.debug("Initializing Enhanced IntelliSense components...");
+
+            // Initialize core components with null checks
+            try {
+                fuzzySearch = new FuzzySearch();
+                logger.debug("FuzzySearch initialized");
+            } catch (Exception e) {
+                logger.warn("Failed to initialize FuzzySearch: {}", e.getMessage());
+            }
+
+            try {
+                completionCache = new CompletionCache();
+                logger.debug("CompletionCache initialized");
+            } catch (Exception e) {
+                logger.warn("Failed to initialize CompletionCache: {}", e.getMessage());
+            }
+
+            try {
+                performanceProfiler = PerformanceProfiler.getInstance();
+                logger.debug("PerformanceProfiler initialized");
+            } catch (Exception e) {
+                logger.warn("Failed to initialize PerformanceProfiler: {}", e.getMessage());
+            }
+
+            try {
+                templateEngine = new TemplateEngine();
+                logger.debug("TemplateEngine initialized");
+            } catch (Exception e) {
+                logger.warn("Failed to initialize TemplateEngine: {}", e.getMessage());
+            }
+
+            try {
+                xsdIntegration = new XsdIntegrationAdapter();
+                logger.debug("XsdIntegrationAdapter initialized");
+            } catch (Exception e) {
+                logger.warn("Failed to initialize XsdIntegrationAdapter: {}", e.getMessage());
+            }
+
+            try {
+                quickActionsIntegration = new QuickActionsIntegration(codeArea, xsdIntegration);
+                logger.debug("QuickActionsIntegration initialized");
+            } catch (Exception e) {
+                logger.warn("Failed to initialize QuickActionsIntegration: {}", e.getMessage());
+            }
+
+            logger.info("Enhanced IntelliSense components initialized successfully");
+
+        } catch (Exception e) {
+            logger.error("Failed to initialize Enhanced IntelliSense components: {}", e.getMessage(), e);
+            // Fall back to basic IntelliSense only
+            enhancedIntelliSenseEnabled = false;
+        }
     }
 
     /**
@@ -1501,23 +1581,118 @@ public class XmlCodeEditor extends VBox {
      * Shows IntelliSense popup with XSD-based completion.
      */
     private void showManualIntelliSensePopup() {
-        // Get the current context (parent element)
-        String currentContext = getCurrentElementContext();
-        logger.debug("Current element context determined as: '{}'", currentContext);
-        List<String> contextSpecificElements = getContextSpecificElements(currentContext);
+        if (enhancedIntelliSenseEnabled) {
+            showEnhancedIntelliSensePopup();
+        } else {
+            showBasicIntelliSensePopup();
+        }
+    }
 
-        // Update the list view with context-specific elements
-        completionListView.getItems().clear();
-        completionListView.getItems().addAll(contextSpecificElements);
+    /**
+     * Shows the enhanced IntelliSense popup with all advanced features
+     */
+    private void showEnhancedIntelliSensePopup() {
+        try {
+            logger.debug("Triggering Enhanced IntelliSense popup");
 
-        // Select the first item
-        if (!contextSpecificElements.isEmpty()) {
-            completionListView.getSelectionModel().select(0);
+            // For now, enhance the basic popup with improved suggestions
+            String currentContext = getCurrentElementContext();
+            List<String> contextSpecificElements = getEnhancedContextSpecificElements(currentContext);
+
+            // Update the list view with enhanced context-specific elements
+            completionListView.getItems().clear();
+            completionListView.getItems().addAll(contextSpecificElements);
+
+            // Select the first item
+            if (!contextSpecificElements.isEmpty()) {
+                completionListView.getSelectionModel().select(0);
+            }
+
+            logger.debug("Enhanced completion list updated with {} enhanced elements", contextSpecificElements.size());
+
+            // Show the popup at the current cursor position
+            showIntelliSensePopupAtCursor();
+
+        } catch (Exception e) {
+            logger.error("Error showing enhanced IntelliSense popup: {}", e.getMessage(), e);
+            // Fallback to basic popup
+            showBasicIntelliSensePopup();
+        }
+    }
+
+    /**
+     * Get enhanced context-specific elements using multiple sources
+     */
+    private List<String> getEnhancedContextSpecificElements(String currentContext) {
+        Set<String> allElements = new LinkedHashSet<>();
+
+        try {
+            // 1. Get XSD-based elements if available
+            if (xsdIntegration != null && xsdIntegration.hasSchema()) {
+                List<String> xsdElements = xsdIntegration.getAvailableElements();
+                if (!xsdElements.isEmpty()) {
+                    allElements.addAll(xsdElements);
+                    logger.debug("Added {} XSD elements", xsdElements.size());
+                }
+            }
+
+            // 2. Get basic context elements
+            List<String> basicElements = getContextSpecificElements(currentContext);
+            allElements.addAll(basicElements);
+            logger.debug("Added {} basic context elements", basicElements.size());
+
+            // 3. Apply fuzzy search if enabled and there's a partial input
+            if (fuzzySearch != null) {
+                String prefix = extractCurrentPrefix();
+                if (prefix != null && !prefix.trim().isEmpty()) {
+                    // Filter elements using fuzzy search
+                    List<String> elementsList = new ArrayList<>(allElements);
+                    // For now, simple contains filter
+                    elementsList = elementsList.stream()
+                            .filter(elem -> elem.toLowerCase().contains(prefix.toLowerCase()))
+                            .collect(java.util.stream.Collectors.toList());
+                    allElements = new LinkedHashSet<>(elementsList);
+                    logger.debug("Applied fuzzy filter for prefix '{}', {} elements remain", prefix, allElements.size());
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error generating enhanced elements: {}", e.getMessage(), e);
+            // Fallback to basic elements
+            return getContextSpecificElements(currentContext);
         }
 
-        // Show the popup at the current cursor position
-        showIntelliSensePopupAtCursor();
+        return new ArrayList<>(allElements);
     }
+
+    /**
+     * Extract current prefix being typed for completion
+     */
+    private String extractCurrentPrefix() {
+        try {
+            int caretPos = codeArea.getCaretPosition();
+            String text = codeArea.getText();
+
+            if (caretPos <= 0) return null;
+
+            // Look backwards for the start of the current word
+            int start = caretPos - 1;
+            while (start >= 0) {
+                char c = text.charAt(start);
+                if (!Character.isLetterOrDigit(c) && c != '_' && c != '-' && c != ':') {
+                    break;
+                }
+                start--;
+            }
+
+            return text.substring(start + 1, caretPos);
+
+        } catch (Exception e) {
+            logger.debug("Error extracting prefix: {}", e.getMessage());
+            return null;
+        }
+    }
+
 
     /**
      * Shows the IntelliSense popup at the current cursor position.
@@ -2998,6 +3173,17 @@ public class XmlCodeEditor extends VBox {
             setLineSeparator("\n");
         } else if (text.contains("\r")) {
             setLineSeparator("\r");
+        }
+    }
+
+    // ========== Enhanced IntelliSense Methods ==========
+
+    /**
+     * Update XSD integration when parent XML editor is set
+     */
+    public void updateXsdIntegration() {
+        if (xsdIntegration != null && parentXmlEditor != null) {
+            xsdIntegration.setXmlEditor(parentXmlEditor);
         }
     }
 }

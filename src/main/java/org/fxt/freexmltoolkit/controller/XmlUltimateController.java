@@ -362,6 +362,13 @@ public class XmlUltimateController implements Initializable {
             XmlEditor xmlEditor = new XmlEditor();
             xmlEditor.setText("Untitled.xml");
             xmlEditor.codeArea.replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>");
+
+            // Apply current sidebar visibility setting
+            String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
+            if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
+                xmlEditor.setXmlEditorSidebarVisible(false);
+            }
+            
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
         }
@@ -385,6 +392,13 @@ public class XmlUltimateController implements Initializable {
             XmlEditor xmlEditor = new XmlEditor();
             xmlEditor.setText("Untitled" + (xmlFilesPane.getTabs().size() + 1) + ".xml");
             xmlEditor.codeArea.replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>");
+
+            // Apply current sidebar visibility setting
+            String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
+            if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
+                xmlEditor.setXmlEditorSidebarVisible(false);
+            }
+            
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
         }
@@ -419,6 +433,12 @@ public class XmlUltimateController implements Initializable {
 
                     // Store the File object in userData so favorites can access it
                     xmlEditor.setUserData(file);
+
+                    // Apply current sidebar visibility setting
+                    String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
+                    if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
+                        xmlEditor.setXmlEditorSidebarVisible(false);
+                    }
                     
                     xmlFilesPane.getTabs().add(xmlEditor);
                     xmlFilesPane.getSelectionModel().select(xmlEditor);
@@ -475,6 +495,12 @@ public class XmlUltimateController implements Initializable {
 
                 // Store the File object in userData so favorites can access it
                 xmlEditor.setUserData(file);
+
+                // Apply current sidebar visibility setting
+                String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
+                if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
+                    xmlEditor.setXmlEditorSidebarVisible(false);
+                }
                 
                 xmlFilesPane.getTabs().add(xmlEditor);
                 xmlFilesPane.getSelectionModel().select(xmlEditor);
@@ -1588,5 +1614,92 @@ public class XmlUltimateController implements Initializable {
                 logger.debug("Development pane is already hidden.");
             }
         }
+    }
+
+    /**
+     * Sets the visibility of the XML Editor sidebar for all open XML editor tabs.
+     * This method is called from the MainController based on the Windows menu checkbox.
+     *
+     * @param isVisible true to show the sidebar, false to hide it.
+     */
+    public void setXmlEditorSidebarVisible(boolean isVisible) {
+        logger.debug("Setting XML Editor sidebar visibility to: {}", isVisible);
+
+        if (xmlFilesPane != null) {
+            // Apply to all XML editor tabs
+            for (Tab tab : xmlFilesPane.getTabs()) {
+                if (tab instanceof XmlEditor xmlEditor) {
+                    xmlEditor.setXmlEditorSidebarVisible(isVisible);
+                }
+            }
+            logger.debug("Applied sidebar visibility to {} XML editor tabs", xmlFilesPane.getTabs().size());
+        } else {
+            logger.warn("Cannot set XML Editor sidebar visibility: xmlFilesPane is null");
+        }
+    }
+
+    /**
+     * Loads a file to a new tab in the XML editor.
+     * Used by the Favorites panel to open files.
+     *
+     * @param file The file to load
+     */
+    public void loadFileToNewTab(File file) {
+        if (file != null && file.exists()) {
+            try {
+                String content = Files.readString(file.toPath());
+
+                if (xmlFilesPane != null) {
+                    XmlEditor xmlEditor = new XmlEditor();
+                    xmlEditor.setText(file.getName());
+                    xmlEditor.codeArea.replaceText(content);
+
+                    // Set the XML file to trigger automatic XSD schema detection
+                    xmlEditor.setXmlFile(file);
+
+                    // Store the File object in userData so favorites can access it
+                    xmlEditor.setUserData(file);
+
+                    // Apply current sidebar visibility setting
+                    String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
+                    if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
+                        xmlEditor.setXmlEditorSidebarVisible(false);
+                    }
+
+                    xmlFilesPane.getTabs().add(xmlEditor);
+                    xmlFilesPane.getSelectionModel().select(xmlEditor);
+                }
+
+                updateDocumentTree(content);
+                validateCurrentXml();
+
+                logger.info("Loaded file from favorites: {}", file.getName());
+                logToConsole("Loaded: " + file.getAbsolutePath());
+
+            } catch (IOException e) {
+                logger.error("Failed to read file: {}", file.getAbsolutePath(), e);
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to read file: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Gets the currently selected file from the active tab.
+     *
+     * @return The current file or null if no file is open
+     */
+    public File getCurrentFile() {
+        if (xmlFilesPane != null) {
+            Tab currentTab = xmlFilesPane.getSelectionModel().getSelectedItem();
+            if (currentTab != null && currentTab instanceof XmlEditor xmlEditor) {
+                Object userData = xmlEditor.getUserData();
+                if (userData instanceof File) {
+                    return (File) userData;
+                } else if (xmlEditor.getXmlFile() != null) {
+                    return xmlEditor.getXmlFile();
+                }
+            }
+        }
+        return null;
     }
 }

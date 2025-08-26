@@ -17,6 +17,24 @@ public class FileFavorite {
     private LocalDateTime addedDate;
     private String description;
     private String iconColor;
+
+    // Enhanced metadata fields
+    private String alias;              // User-friendly name
+    private String category;           // User-defined category
+    private LocalDateTime lastAccessed; // Last time file was opened
+    private int accessCount;           // Number of times accessed
+    private long fileSize;             // File size in bytes
+    private String checksum;           // MD5/SHA hash for change detection
+    private LocalDateTime lastModified; // File modification time
+    private String notes;              // User notes/annotations
+    private String[] tags;             // User-defined tags
+    private String thumbnail;          // Base64 encoded preview thumbnail
+    private String projectName;        // Associated project
+    private String[] relatedFiles;     // Related file paths (XSD, XSLT, etc.)
+    private boolean isTemplate;        // Whether this is a template
+    private boolean isPinned;          // Pinned to top of list
+    private int colorCode;             // Custom color coding
+    private String validationStatus;   // Last validation result
     
     public enum FileType {
         XML("XML Document", "bi-file-earmark-code", "#28a745"),
@@ -149,5 +167,143 @@ public class FileFavorite {
     
     public void setIconColor(String iconColor) {
         this.iconColor = iconColor;
+    }
+
+    // Enhanced metadata getters and setters
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public LocalDateTime getLastAccessed() {
+        return lastAccessed;
+    }
+
+    public void setLastAccessed(LocalDateTime lastAccessed) {
+        this.lastAccessed = lastAccessed;
+    }
+
+    public int getAccessCount() {
+        return accessCount;
+    }
+
+    public void setAccessCount(int accessCount) {
+        this.accessCount = accessCount;
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public String getChecksum() {
+        return checksum;
+    }
+
+    public void setChecksum(String checksum) {
+        this.checksum = checksum;
+    }
+
+    public LocalDateTime getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(LocalDateTime lastModified) {
+        this.lastModified = lastModified;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String[] getTags() {
+        return tags;
+    }
+
+    public void setTags(String[] tags) {
+        this.tags = tags;
+    }
+
+    public String getThumbnail() {
+        return thumbnail;
+    }
+
+    public void setThumbnail(String thumbnail) {
+        this.thumbnail = thumbnail;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public String[] getRelatedFiles() {
+        return relatedFiles;
+    }
+
+    public void setRelatedFiles(String[] relatedFiles) {
+        this.relatedFiles = relatedFiles;
+    }
+
+    public boolean isTemplate() {
+        return isTemplate;
+    }
+
+    public void setTemplate(boolean template) {
+        isTemplate = template;
+    }
+
+    public boolean isPinned() {
+        return isPinned;
+    }
+
+    public void setPinned(boolean pinned) {
+        isPinned = pinned;
+    }
+
+    public int getColorCode() {
+        return colorCode;
+    }
+
+    public void setColorCode(int colorCode) {
+        this.colorCode = colorCode;
+    }
+
+    public String getValidationStatus() {
+        return validationStatus;
+    }
+
+    public void setValidationStatus(String validationStatus) {
+        this.validationStatus = validationStatus;
+    }
+
+    // Alias for compatibility with existing code
+    public LocalDateTime getDateAdded() {
+        return addedDate;
+    }
+
+    public void setDateAdded(LocalDateTime dateAdded) {
+        this.addedDate = dateAdded;
     }
 }

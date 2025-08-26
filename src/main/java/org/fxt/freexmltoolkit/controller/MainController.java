@@ -514,7 +514,7 @@ public class MainController {
         propertiesService.set("xmlEditorSidebar.visible", String.valueOf(isVisible));
 
         if (xmlUltimateController != null) {
-            // Ultimate XML Controller handles sidebar automatically(isVisible);
+            xmlUltimateController.setXmlEditorSidebarVisible(isVisible);
         }
     }
 
@@ -533,7 +533,7 @@ public class MainController {
         propertiesService.set("xmlEditorSidebar.visible", String.valueOf(visible));
 
         if (xmlUltimateController != null) {
-            // Ultimate XML Controller handles sidebar automatically(visible);
+            xmlUltimateController.setXmlEditorSidebarVisible(visible);
         }
     }
 
