@@ -18,8 +18,6 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.SimpleFileServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Disabled;
@@ -46,9 +44,6 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.awt.*;
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -103,85 +98,6 @@ public class GenerateXsdHtmlDocumentationTest {
         //  xsdDocumentationService.generateHtmlDocumentation(new File("output/test123"));
     }
 
-    @Test
-    void generateHtmlDoc() throws Exception {
-        // --- 1. Konfiguration und Generierung der Dokumentation ---
-        final var testFilePath = Paths.get(XML_LATEST_XSD);
-        final var outputFilePath = Paths.get("../FundsXML_Documentation");
-
-        this.xsdDocumentationService.setXsdFilePath(testFilePath.toString());
-        this.xsdDocumentationService.setUseMarkdownRenderer(true);
-        this.xsdDocumentationService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
-        this.xsdDocumentationService.setParallelProcessing(true);
-        this.xsdDocumentationService.generateXsdDocumentation(outputFilePath.toFile());
-
-        // --- 2. Eingebetteten HTTP-Server starten ---
-        int port = 8080;
-        startHttpServer(outputFilePath, port);
-        openUrlInBrowser("http://localhost:" + port + "/index.html");
-        Thread.sleep(Integer.MAX_VALUE);
-    }
-
-    @Test
-    void generateHtmlDocFromFlattenedXsd() throws Exception {
-        // --- 1. XSD-Datei flatten ---
-        logger.info("Starting to flatten the XSD file...");
-        final var flattenerService = new XsdFlattenerService();
-        final var sourceXsdFile = new File(XML_LATEST_XSD);
-        // Erstellt eine temporäre Datei für die geflattete XSD
-        final var flattenedXsdFile = new File("output/FundsXML4_flattened.xsd");
-        flattenedXsdFile.getParentFile().mkdirs(); // Stellt sicher, dass das Ausgabeverzeichnis existiert
-
-        flattenerService.flatten(sourceXsdFile, flattenedXsdFile);
-        logger.info("XSD file flattened successfully to: {}", flattenedXsdFile.getAbsolutePath());
-
-
-        // --- 2. Konfiguration und Generierung der Dokumentation aus der geflatteten Datei ---
-        final var outputFilePath = Paths.get("../FundsXML_Documentation_Flattened");
-
-        this.xsdDocumentationService.setXsdFilePath(flattenedXsdFile.getAbsolutePath());
-        this.xsdDocumentationService.setUseMarkdownRenderer(true);
-        this.xsdDocumentationService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
-        this.xsdDocumentationService.setParallelProcessing(true);
-        this.xsdDocumentationService.generateXsdDocumentation(outputFilePath.toFile());
-
-        // --- 3. Eingebetteten HTTP-Server starten ---
-        int port = 8081; // Anderen Port verwenden, um Konflikte zu vermeiden
-        startHttpServer(outputFilePath, port);
-        openUrlInBrowser("http://localhost:" + port + "/index.html");
-        Thread.sleep(Integer.MAX_VALUE);
-    }
-
-    /**
-     * Startet einen einfachen, eingebetteten HTTP-Dateiserver.
-     *
-     * @param docRootPath Das Stammverzeichnis, aus dem die Dateien bereitgestellt werden sollen.
-     * @param port        Der Port, auf dem der Server lauschen soll.
-     * @return Die gestartete HttpServer-Instanz.
-     */
-    private HttpServer startHttpServer(Path docRootPath, int port) {
-        // Der SimpleFileServer benötigt einen absoluten Pfad.
-        // Wir wandeln den relativen Pfad in einen absoluten um und normalisieren ihn.
-        Path absoluteDocRoot = docRootPath.toAbsolutePath().normalize();
-        File docRootFile = absoluteDocRoot.toFile();
-
-        // Erstellt einen einfachen Dateiserver, der den Inhalt des docRoot-Verzeichnisses bereitstellt.
-        // Diese Funktionalität ist seit JDK 18 standardmäßig verfügbar.
-        HttpServer server = SimpleFileServer.createFileServer(
-                new InetSocketAddress(port),
-                absoluteDocRoot,
-                SimpleFileServer.OutputLevel.INFO
-        );
-        server.start();
-
-        logger.info("====================================================================");
-        logger.info("HTTP-Server gestartet auf http://localhost:{}", port);
-        logger.info("Das Stammverzeichnis ist: {}", docRootFile.getAbsolutePath());
-        logger.info("Stoppen Sie den Test in Ihrer IDE, um den Server zu beenden.");
-        logger.info("====================================================================");
-
-        return server;
-    }
 
     /**
      * Versucht, die angegebene URL im Standard-Desktop-Browser zu öffnen.
