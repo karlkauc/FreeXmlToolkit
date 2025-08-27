@@ -1,0 +1,303 @@
+/**
+ * CSS Styles for XML IntelliSense Features
+ * Includes styles for auto-completion, error highlighting, bracket matching, and code folding
+ */
+
+/* Error highlighting with red wavy underline */
+.xml-error {
+    -rtfx-underline-color: #ff0000;
+    -rtfx-underline-width: 2;
+    -rtfx-underline-dash-array: 2 2;
+    -rtfx-underline-wave: true;
+    -rtfx-background-color: rgba(255, 0, 0, 0.1);
+}
+
+/* Warning highlighting with yellow wavy underline */
+.xml-warning {
+    -rtfx-underline-color: #ffaa00;
+    -rtfx-underline-width: 1;
+    -rtfx-underline-dash-array: 2 2;
+    -rtfx-underline-wave: true;
+    -rtfx-background-color: rgba(255, 170, 0, 0.1);
+}
+
+/* Info highlighting with blue underline */
+.xml-info {
+    -rtfx-underline-color: #0088ff;
+    -rtfx-underline-width: 1;
+    -rtfx-underline-dash-array: 3 3;
+    -rtfx-background-color: rgba(0, 136, 255, 0.05);
+}
+
+/* Bracket matching highlight */
+.bracket-match {
+    -fx-fill: #000000;
+    -fx-font-weight: bold;
+    -rtfx-background-color: rgba(0, 255, 0, 0.3);
+    -fx-border-color: #00aa00;
+    -fx-border-width: 1px;
+}
+
+/* Matching tag highlight */
+.tag-match {
+    -rtfx-background-color: rgba(100, 200, 255, 0.2);
+    -fx-font-weight: bold;
+}
+
+/* Auto-completion popup */
+.intellisense-popup {
+    -fx-background-color: white;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-padding: 5px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 2, 2);
+}
+
+.intellisense-popup .list-view {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-pref-height: 200;
+    -fx-pref-width: 300;
+}
+
+.intellisense-popup .list-cell {
+    -fx-padding: 3 8 3 8;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 12px;
+}
+
+.intellisense-popup .list-cell:filled:selected {
+    -fx-background-color: #0066cc;
+    -fx-text-fill: white;
+}
+
+.intellisense-popup .list-cell:filled:hover {
+    -fx-background-color: #e6f3ff;
+}
+
+/* Completion item icons */
+.completion-icon {
+    -fx-font-family: "Font Awesome 5 Free";
+    -fx-font-size: 14px;
+    -fx-padding: 0 5 0 0;
+}
+
+.completion-icon.element {
+    -fx-text-fill: #0066cc;
+}
+
+.completion-icon.attribute {
+    -fx-text-fill: #009900;
+}
+
+.completion-icon.value {
+    -fx-text-fill: #cc6600;
+}
+
+.completion-icon.snippet {
+    -fx-text-fill: #9900cc;
+}
+
+/* Documentation tooltip */
+.doc-tooltip {
+    -fx-background-color: #ffffcc;
+    -fx-border-color: #cccc00;
+    -fx-border-width: 1px;
+    -fx-padding: 8px;
+    -fx-font-size: 11px;
+    -fx-max-width: 400px;
+    -fx-wrap-text: true;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 5, 0, 1, 1);
+}
+
+.doc-tooltip .title {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-padding: 0 0 5 0;
+}
+
+.doc-tooltip .content {
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+.doc-tooltip .code {
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-background-color: rgba(0, 0, 0, 0.05);
+    -fx-padding: 2 4 2 4;
+}
+
+/* Code folding indicators */
+.fold-button {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.fold-button:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.1);
+    -fx-background-radius: 2;
+}
+
+.fold-indicator {
+    -fx-fill: #666666;
+}
+
+.fold-indicator:hover {
+    -fx-fill: #000000;
+}
+
+/* Folded region placeholder */
+.folded-placeholder {
+    -fx-fill: #999999;
+    -fx-font-style: italic;
+    -fx-background-color: rgba(200, 200, 200, 0.2);
+    -fx-padding: 0 4 0 4;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-border-style: dotted;
+}
+
+/* Current line highlight */
+.current-line {
+    -rtfx-background-color: rgba(255, 255, 200, 0.3);
+}
+
+/* Selection highlight */
+.selection-highlight {
+    -rtfx-background-color: rgba(100, 150, 255, 0.3);
+}
+
+/* Search highlight */
+.search-highlight {
+    -rtfx-background-color: rgba(255, 255, 0, 0.5);
+    -fx-font-weight: bold;
+}
+
+/* Line numbers with folding support */
+.lineno {
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 11px;
+    -fx-text-fill: #999999;
+    -fx-padding: 0 8 0 4;
+    -fx-alignment: center-right;
+}
+
+.lineno.has-fold {
+    -fx-padding: 0 8 0 16;
+}
+
+/* Indentation guides */
+.indent-guide {
+    -fx-stroke: #e0e0e0;
+    -fx-stroke-width: 1;
+    -fx-stroke-dash-array: 1 1;
+}
+
+/* Auto-closing bracket animation */
+@keyframes bracket-flash {
+    0% {
+        -rtfx-background-color: rgba(0, 255, 0, 0);
+    }
+    50% {
+        -rtfx-background-color: rgba(0, 255, 0, 0.4);
+    }
+    100% {
+        -rtfx-background-color: rgba(0, 255, 0, 0);
+    }
+}
+
+.bracket-inserted {
+    animation: bracket-flash 0.3s ease-in-out;
+}
+
+/* Quick actions menu */
+.quick-actions-menu {
+    -fx-background-color: white;
+    -fx-border-color: #0066cc;
+    -fx-border-width: 1px;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 15, 0, 3, 3);
+}
+
+.quick-actions-menu .menu-item {
+    -fx-padding: 5 20 5 10;
+    -fx-font-size: 12px;
+}
+
+.quick-actions-menu .menu-item:focused {
+    -fx-background-color: #e6f3ff;
+}
+
+.quick-actions-menu .menu-item .label {
+    -fx-text-fill: #333333;
+}
+
+.quick-actions-menu .menu-item:focused .label {
+    -fx-text-fill: #0066cc;
+}
+
+/* Validation markers in gutter */
+.validation-marker {
+    -fx-padding: 2;
+}
+
+.validation-marker.error {
+    -fx-graphic: url("../img/error-icon.png");
+}
+
+.validation-marker.warning {
+    -fx-graphic: url("../img/warning-icon.png");
+}
+
+.validation-marker.info {
+    -fx-graphic: url("../img/info-icon.png");
+}
+
+/* Enhanced scrollbar for large files */
+.scroll-bar .track {
+    -fx-background-color: #f0f0f0;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #cccccc;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #aaaaaa;
+}
+
+/* Minimap markers */
+.minimap-error-marker {
+    -fx-fill: #ff0000;
+    -fx-stroke: #cc0000;
+    -fx-stroke-width: 1;
+}
+
+.minimap-warning-marker {
+    -fx-fill: #ffaa00;
+    -fx-stroke: #cc8800;
+    -fx-stroke-width: 1;
+}
+
+.minimap-fold-marker {
+    -fx-fill: #666666;
+    -fx-stroke: #444444;
+    -fx-stroke-width: 1;
+}
+
+/* Performance mode for large files */
+.performance-mode .code-area {
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 12px;
+    /* Disable expensive effects in performance mode */
+    -fx-effect: null;
+}
+
+.performance-mode .xml-error,
+.performance-mode .xml-warning,
+.performance-mode .xml-info {
+    -rtfx-underline-wave: false;
+}

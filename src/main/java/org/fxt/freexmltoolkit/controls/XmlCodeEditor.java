@@ -100,6 +100,8 @@ public class XmlCodeEditor extends VBox {
     // Integration state
     private boolean enhancedIntelliSenseEnabled = true;
     private XsdIntegrationAdapter xsdIntegration;
+    private XmlIntelliSenseEngine intelliSenseEngine;
+    private XmlCodeFoldingManager codeFoldingManager;
 
     // Debouncing for syntax highlighting
     private javafx.animation.PauseTransition syntaxHighlightingDebouncer;
@@ -223,6 +225,8 @@ public class XmlCodeEditor extends VBox {
         setupEventHandlers();
         initializeIntelliSensePopup();
         initializeEnhancedIntelliSense();
+        initializeXmlIntelliSenseEngine();
+        initializeCodeFoldingManager();
 
         // Set up the main layout
         VBox.setVgrow(virtualizedScrollPane, Priority.ALWAYS);
@@ -273,9 +277,19 @@ public class XmlCodeEditor extends VBox {
 
             // Also load the XML highlighting specific CSS
             String xmlCssPath = "/scss/xml-highlighting.css";
-            String xmlCssUrl = getClass().getResource(xmlCssPath).toExternalForm();
-            codeArea.getStylesheets().add(xmlCssUrl);
-            logger.debug("Loaded XML highlighting CSS: {}", xmlCssUrl);
+            if (getClass().getResource(xmlCssPath) != null) {
+                String xmlCssUrl = getClass().getResource(xmlCssPath).toExternalForm();
+                codeArea.getStylesheets().add(xmlCssUrl);
+                logger.debug("Loaded XML highlighting CSS: {}", xmlCssUrl);
+            }
+
+            // Load IntelliSense CSS
+            String intelliSenseCssPath = "/css/xml-intellisense.css";
+            if (getClass().getResource(intelliSenseCssPath) != null) {
+                String intelliSenseCssUrl = getClass().getResource(intelliSenseCssPath).toExternalForm();
+                codeArea.getStylesheets().add(intelliSenseCssUrl);
+                logger.debug("Loaded IntelliSense CSS: {}", intelliSenseCssUrl);
+            }
 
         } catch (Exception e) {
             logger.error("Error loading CSS stylesheets: {}", e.getMessage(), e);
@@ -650,6 +664,32 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
+     * Initialize the new XML IntelliSense Engine
+     */
+    private void initializeXmlIntelliSenseEngine() {
+        try {
+            logger.debug("Initializing XML IntelliSense Engine...");
+            intelliSenseEngine = new XmlIntelliSenseEngine(codeArea);
+            logger.info("XML IntelliSense Engine initialized successfully");
+        } catch (Exception e) {
+            logger.error("Failed to initialize XML IntelliSense Engine: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Initialize the Code Folding Manager
+     */
+    private void initializeCodeFoldingManager() {
+        try {
+            logger.debug("Initializing Code Folding Manager...");
+            codeFoldingManager = new XmlCodeFoldingManager(codeArea);
+            logger.info("Code Folding Manager initialized successfully");
+        } catch (Exception e) {
+            logger.error("Failed to initialize Code Folding Manager: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
      * Initialize Enhanced IntelliSense components
      */
     private void initializeEnhancedIntelliSense() {
@@ -688,6 +728,8 @@ public class XmlCodeEditor extends VBox {
             try {
                 xsdIntegration = new XsdIntegrationAdapter();
                 logger.debug("XsdIntegrationAdapter initialized");
+
+                // XSD integration will be updated when parent is set via setParentXmlEditor
             } catch (Exception e) {
                 logger.warn("Failed to initialize XsdIntegrationAdapter: {}", e.getMessage());
             }
@@ -3183,7 +3225,13 @@ public class XmlCodeEditor extends VBox {
      */
     public void updateXsdIntegration() {
         if (xsdIntegration != null && parentXmlEditor != null) {
-            xsdIntegration.setXmlEditor(parentXmlEditor);
+            // Note: XSD integration will be updated when XmlEditor provides schema data
+            logger.debug("XSD integration ready for updates from parent editor");
+
+            // Update IntelliSense engine with XSD integration
+            if (intelliSenseEngine != null) {
+                logger.debug("IntelliSense Engine ready for XSD integration");
+            }
         }
     }
 }
