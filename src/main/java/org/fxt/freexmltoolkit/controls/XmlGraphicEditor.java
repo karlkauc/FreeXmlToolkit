@@ -47,6 +47,24 @@ public class XmlGraphicEditor extends VBox {
     // Map to store direct UI Node -> DOM Node associations
     private final Map<javafx.scene.Node, Node> uiNodeToDomNodeMap = new LinkedHashMap<>();
 
+    // Drag and drop state tracking
+    private Node draggedDomNode;
+    private javafx.scene.Node draggedUINode;
+    private javafx.scene.Node currentDropTarget;
+    private DropPosition currentDropPosition;
+
+    // Drop position indicator
+    private javafx.scene.Node dropPositionIndicator;
+
+    /**
+     * Enum for drop position relative to target element
+     */
+    public enum DropPosition {
+        BEFORE,     // Insert before the target element (same parent)
+        AFTER,      // Insert after the target element (same parent)  
+        INSIDE      // Insert as child of target element
+    }
+
     public XmlGraphicEditor(Node node, XmlEditor caller) {
         this.xmlEditor = caller;
         this.currentDomNode = node;
@@ -312,6 +330,9 @@ public class XmlGraphicEditor extends VBox {
         // Add context menu for text nodes - only to the GridPane to avoid duplicate menus
         logger.debug("Setting up context menu for text node: {} (Type: {})", subNode.getNodeName(), subNode.getNodeType());
         setupContextMenu(gridPane, subNode);
+
+        // Set up drag and drop for text nodes too
+        setupDragAndDropForGridPane(gridPane, subNode);
 
         // Store the mapping between UI element and DOM node
         uiNodeToDomNodeMap.put(gridPane, subNode);
@@ -885,37 +906,112 @@ public class XmlGraphicEditor extends VBox {
     private void setupDragAndDrop(VBox elementContainer, Node domNode) {
         // Set up drag source - only for VBox containers (complex nodes)
         elementContainer.setOnDragDetected(event -> {
+            logger.info("🔄 Drag detected for node: {}", domNode.getNodeName());
+
+            // Store references to dragged elements
+            draggedDomNode = domNode;
+            draggedUINode = elementContainer;
+            
             Dragboard db = elementContainer.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent content = new ClipboardContent();
-            content.putString(domNode.getNodeName() + "||" + System.identityHashCode(domNode));
+            // Use a unique identifier for the dragged node
+            String dragData = domNode.getNodeName() + "||" + System.identityHashCode(domNode) + "||" + buildXPathForNode(domNode);
+            content.putString(dragData);
             db.setContent(content);
+
+            // Visual feedback for drag source
+            elementContainer.setStyle(elementContainer.getStyle() + "-fx-opacity: 0.5;");
+
             event.consume();
         });
 
-        // Set up drop target
+        // Reset visual feedback when drag ends
+        elementContainer.setOnDragDone(event -> {
+            logger.info("🏁 Drag done for node: {}", domNode.getNodeName());
+
+            // Reset opacity
+            String style = elementContainer.getStyle();
+            if (style.contains("-fx-opacity: 0.5;")) {
+                elementContainer.setStyle(style.replace("-fx-opacity: 0.5;", ""));
+            }
+
+            // Clear drag state
+            draggedDomNode = null;
+            draggedUINode = null;
+            removeAllDropFeedback();
+            currentDropTarget = null;
+            currentDropPosition = null;
+            
+            event.consume();
+        });
+
+        // Set up drop target with visual feedback and position detection
         elementContainer.setOnDragOver(event -> {
             if (event.getGestureSource() != elementContainer && event.getDragboard().hasString()) {
-                event.acceptTransferModes(TransferMode.MOVE);
+                if (draggedDomNode != null) {
+                    // Determine drop position based on mouse position
+                    DropPosition position = determineDropPosition(elementContainer, event.getY(), domNode, draggedDomNode);
+
+                    if (position != null) {
+                        event.acceptTransferModes(TransferMode.MOVE);
+
+                        // Update visual feedback if target or position changed
+                        if (currentDropTarget != elementContainer || currentDropPosition != position) {
+                            // Remove previous feedback
+                            removeAllDropFeedback();
+
+                            // Add new feedback based on position
+                            addDropPositionFeedback(elementContainer, position);
+                            currentDropTarget = elementContainer;
+                            currentDropPosition = position;
+                        }
+                    }
+                }
+            }
+            event.consume();
+        });
+
+        // Remove visual feedback when drag exits
+        elementContainer.setOnDragExited(event -> {
+            if (currentDropTarget == elementContainer) {
+                removeAllDropFeedback();
+                currentDropTarget = null;
+                currentDropPosition = null;
             }
             event.consume();
         });
 
         elementContainer.setOnDragDropped(event -> {
+            logger.info("📥 Drop detected on node: {} at position: {}", domNode.getNodeName(), currentDropPosition);
+            
             Dragboard db = event.getDragboard();
             boolean success = false;
-            if (db.hasString()) {
+
+            if (db.hasString() && draggedDomNode != null && currentDropPosition != null) {
                 String[] data = db.getString().split("\\|\\|");
-                if (data.length == 2) {
-                    String sourceName = data[0];
+                if (data.length >= 2) {
                     try {
-                        moveNodeToNewParent(domNode, sourceName);
-                        success = true;
+                        // Move the DOM node based on determined position
+                        success = moveNodeWithPosition(draggedDomNode, domNode, currentDropPosition);
+
+                        if (success) {
+                            logger.info("✅ Successfully moved node {} {} {}",
+                                    draggedDomNode.getNodeName(),
+                                    currentDropPosition.toString().toLowerCase(),
+                                    domNode.getNodeName());
+                        }
                     } catch (Exception e) {
-                        logger.error("Error moving node", e);
-                        showErrorDialog("Move failed", e.getMessage());
+                        logger.error("❌ Error moving node", e);
+                        showErrorDialog("Move failed", "Error moving node: " + e.getMessage());
                     }
                 }
             }
+
+            // Remove visual feedback
+            removeAllDropFeedback();
+            currentDropTarget = null;
+            currentDropPosition = null;
+            
             event.setDropCompleted(success);
             event.consume();
         });
@@ -1046,17 +1142,423 @@ public class XmlGraphicEditor extends VBox {
     }
 
 
-    private void moveNodeToNewParent(Node newParentNode, String sourceNodeName) {
-        // Simplified implementation - in a real application one would
-        // find and move the node to be moved by ID
-        logger.info("Node '{}' would be moved to '{}'", sourceNodeName, newParentNode.getNodeName());
+    /**
+     * Moves a DOM node with specific positioning
+     *
+     * @param nodeToMove The DOM node to be moved
+     * @param targetNode The target DOM node (context for positioning)
+     * @param position   The desired position (BEFORE, AFTER, or INSIDE)
+     * @return true if the move was successful, false otherwise
+     */
+    private boolean moveNodeWithPosition(Node nodeToMove, Node targetNode, DropPosition position) {
+        logger.info("🔄 Moving node '{}' {} '{}'",
+                nodeToMove.getNodeName(), position.toString().toLowerCase(), targetNode.getNodeName());
 
-        Alert info = new Alert(Alert.AlertType.INFORMATION);
-        info.setTitle("Move Node");
-        info.setHeaderText(null);
-        info.setContentText("Node '" + sourceNodeName + "' would be moved to '" + newParentNode.getNodeName() + "'.\n" +
-                "(Full implementation requires node reference tracking)");
-        info.showAndWait();
+        try {
+            // Validate the move
+            if (!isValidPositionMove(nodeToMove, targetNode, position)) {
+                logger.warn("⚠️ Invalid position move");
+                showErrorDialog("Invalid Move", "Cannot move node to this position.");
+                return false;
+            }
+
+            // Get the current parent
+            Node currentParent = nodeToMove.getParentNode();
+            if (currentParent == null) {
+                logger.warn("⚠️ Cannot move node without parent");
+                return false;
+            }
+
+            // Remove from current parent
+            currentParent.removeChild(nodeToMove);
+            logger.debug("✂️ Removed node from current parent: {}", currentParent.getNodeName());
+
+            // Insert based on position
+            switch (position) {
+                case BEFORE:
+                    insertNodeBefore(nodeToMove, targetNode);
+                    break;
+                case AFTER:
+                    insertNodeAfter(nodeToMove, targetNode);
+                    break;
+                case INSIDE:
+                    targetNode.appendChild(nodeToMove);
+                    break;
+            }
+
+            // Update the text view
+            xmlEditor.refreshTextViewFromDom();
+
+            // Refresh the entire graphical view to reflect the changes
+            refreshWholeView();
+
+            logger.info("✅ Successfully moved node '{}' {} '{}'",
+                    nodeToMove.getNodeName(), position.toString().toLowerCase(), targetNode.getNodeName());
+            return true;
+
+        } catch (Exception e) {
+            logger.error("❌ Error moving node '{}' {} '{}'",
+                    nodeToMove.getNodeName(), position.toString().toLowerCase(), targetNode.getNodeName(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Inserts a node before the target node (same parent)
+     */
+    private void insertNodeBefore(Node nodeToMove, Node targetNode) {
+        Node parentNode = targetNode.getParentNode();
+        if (parentNode != null) {
+            parentNode.insertBefore(nodeToMove, targetNode);
+            logger.debug("⬅️ Inserted node before target");
+        }
+    }
+
+    /**
+     * Inserts a node after the target node (same parent)
+     */
+    private void insertNodeAfter(Node nodeToMove, Node targetNode) {
+        Node parentNode = targetNode.getParentNode();
+        if (parentNode != null) {
+            Node nextSibling = targetNode.getNextSibling();
+            if (nextSibling != null) {
+                parentNode.insertBefore(nodeToMove, nextSibling);
+                logger.debug("➡️ Inserted node after target (before next sibling)");
+            } else {
+                parentNode.appendChild(nodeToMove);
+                logger.debug("➡️ Inserted node after target (as last child)");
+            }
+        }
+    }
+
+    /**
+     * Moves a DOM node to a new parent node (legacy method for backward compatibility)
+     *
+     * @param nodeToMove    The DOM node to be moved
+     * @param newParentNode The new parent DOM node
+     * @return true if the move was successful, false otherwise
+     */
+    private boolean moveNodeToNewParent(Node nodeToMove, Node newParentNode) {
+        // Use the new positioned move method with INSIDE position
+        return moveNodeWithPosition(nodeToMove, newParentNode, DropPosition.INSIDE);
+    }
+
+    /**
+     * Validates whether a move operation is valid
+     */
+    private boolean isValidMove(Node nodeToMove, Node newParent) {
+        // Cannot move a node to itself
+        if (nodeToMove == newParent) {
+            return false;
+        }
+
+        // Cannot move a node to one of its descendants (would create a cycle)
+        Node current = newParent;
+        while (current != null) {
+            if (current == nodeToMove) {
+                return false;
+            }
+            current = current.getParentNode();
+        }
+
+        // Cannot move to a text-only parent (parents that have only text content)
+        return !hasTextContent(newParent);
+    }
+
+    /**
+     * Checks if a node is a valid drop target for the currently dragged node
+     */
+    private boolean isValidDropTarget(Node potentialParent, Node draggedNode) {
+        if (draggedNode == null || potentialParent == null) {
+            return false;
+        }
+
+        return isValidMove(draggedNode, potentialParent);
+    }
+
+    /**
+     * Adds visual feedback for valid drop targets
+     */
+    private void addDropTargetFeedback(javafx.scene.Node uiNode) {
+        uiNode.setStyle(uiNode.getStyle() + "-fx-border-color: #4CAF50; -fx-border-width: 2px; -fx-border-style: dashed;");
+    }
+
+    /**
+     * Removes visual feedback from drop targets
+     */
+    private void removeDropTargetFeedback(javafx.scene.Node uiNode) {
+        String style = uiNode.getStyle();
+        style = style.replaceAll("-fx-border-color: #4CAF50;", "");
+        style = style.replaceAll("-fx-border-width: 2px;", "");
+        style = style.replaceAll("-fx-border-style: dashed;", "");
+        uiNode.setStyle(style);
+    }
+
+    /**
+     * Removes all drop feedback including position indicators
+     */
+    private void removeAllDropFeedback() {
+        if (currentDropTarget != null) {
+            removeDropTargetFeedback(currentDropTarget);
+        }
+        if (dropPositionIndicator != null && dropPositionIndicator.getParent() instanceof Pane parent) {
+            parent.getChildren().remove(dropPositionIndicator);
+            dropPositionIndicator = null;
+        }
+    }
+
+    /**
+     * Determines the drop position based on mouse coordinates and element bounds
+     */
+    private DropPosition determineDropPosition(javafx.scene.Node targetUINode, double mouseY, Node targetDomNode, Node draggedNode) {
+        if (draggedNode == null || targetDomNode == null) {
+            return null;
+        }
+
+        // Get the bounds of the target UI element
+        var bounds = targetUINode.getBoundsInLocal();
+        double elementHeight = bounds.getHeight();
+        double relativeY = mouseY;
+
+        // Calculate position zones
+        double upperThird = elementHeight * 0.33;
+        double lowerThird = elementHeight * 0.67;
+
+        logger.debug("📍 Position detection - mouseY: {}, height: {}, zones: {}/{}",
+                relativeY, elementHeight, upperThird, lowerThird);
+
+        DropPosition position;
+
+        if (relativeY < upperThird) {
+            // Upper third - insert before
+            position = DropPosition.BEFORE;
+        } else if (relativeY > lowerThird) {
+            // Lower third - insert after
+            position = DropPosition.AFTER;
+        } else {
+            // Middle third - insert inside (only if target can have children)
+            position = canHaveChildren(targetDomNode) ? DropPosition.INSIDE : null;
+        }
+
+        // Validate the position
+        if (position != null && !isValidPositionMove(draggedNode, targetDomNode, position)) {
+            return null;
+        }
+
+        logger.debug("✅ Determined position: {} for target: {}", position, targetDomNode.getNodeName());
+        return position;
+    }
+
+    /**
+     * Validates if a position-based move is allowed
+     */
+    private boolean isValidPositionMove(Node draggedNode, Node targetNode, DropPosition position) {
+        if (draggedNode == targetNode) {
+            return false; // Can't move to itself
+        }
+
+        switch (position) {
+            case BEFORE:
+            case AFTER:
+                // For before/after, target node must have a parent (can't be root)
+                Node targetParent = targetNode.getParentNode();
+                if (targetParent == null) {
+                    return false;
+                }
+
+                // Can't move to create invalid XML structure
+                return !isDescendant(targetNode, draggedNode);
+
+            case INSIDE:
+                // For inside, use the existing validation logic
+                return isValidMove(draggedNode, targetNode);
+
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Checks if potentialDescendant is a descendant of potentialAncestor
+     */
+    private boolean isDescendant(Node potentialAncestor, Node potentialDescendant) {
+        Node current = potentialDescendant.getParentNode();
+        while (current != null) {
+            if (current == potentialAncestor) {
+                return true;
+            }
+            current = current.getParentNode();
+        }
+        return false;
+    }
+
+    /**
+     * Adds visual feedback for drop position
+     */
+    private void addDropPositionFeedback(javafx.scene.Node targetUINode, DropPosition position) {
+        // First remove any existing feedback
+        removeAllDropFeedback();
+
+        switch (position) {
+            case BEFORE:
+                addDropTargetFeedback(targetUINode);
+                createPositionIndicator(targetUINode, true); // true = before
+                break;
+            case AFTER:
+                addDropTargetFeedback(targetUINode);
+                createPositionIndicator(targetUINode, false); // false = after
+                break;
+            case INSIDE:
+                // For inside, just use the regular drop target feedback
+                addDropTargetFeedback(targetUINode);
+                break;
+        }
+    }
+
+    /**
+     * Creates a visual indicator for insertion position
+     */
+    private void createPositionIndicator(javafx.scene.Node targetUINode, boolean before) {
+        // Create a thin line to show insertion point
+        javafx.scene.shape.Line indicator = new javafx.scene.shape.Line();
+        indicator.setStroke(javafx.scene.paint.Color.ORANGE);
+        indicator.setStrokeWidth(3);
+        indicator.getStyleClass().add("drop-position-indicator");
+
+        // Get parent container
+        javafx.scene.Parent parent = targetUINode.getParent();
+        if (parent instanceof Pane pane) {
+            var bounds = targetUINode.getBoundsInParent();
+
+            // Position the indicator line
+            double y = before ? bounds.getMinY() - 2 : bounds.getMaxY() + 2;
+            indicator.setStartX(bounds.getMinX());
+            indicator.setEndX(bounds.getMaxX());
+            indicator.setStartY(y);
+            indicator.setEndY(y);
+
+            pane.getChildren().add(indicator);
+            dropPositionIndicator = indicator;
+
+            logger.debug("📏 Created position indicator {} target at Y: {}", before ? "before" : "after", y);
+        }
+    }
+
+    /**
+     * Sets up drag and drop functionality for GridPane elements (text nodes)
+     */
+    private void setupDragAndDropForGridPane(GridPane gridPane, Node domNode) {
+        // Set up drag source for GridPane (text nodes)
+        gridPane.setOnDragDetected(event -> {
+            logger.info("🔄 Drag detected for text node: {}", domNode.getNodeName());
+
+            // Store references to dragged elements
+            draggedDomNode = domNode;
+            draggedUINode = gridPane;
+
+            Dragboard db = gridPane.startDragAndDrop(TransferMode.MOVE);
+            ClipboardContent content = new ClipboardContent();
+            // Use a unique identifier for the dragged node
+            String dragData = domNode.getNodeName() + "||" + System.identityHashCode(domNode) + "||" + buildXPathForNode(domNode);
+            content.putString(dragData);
+            db.setContent(content);
+
+            // Visual feedback for drag source
+            gridPane.setStyle(gridPane.getStyle() + "-fx-opacity: 0.5;");
+
+            event.consume();
+        });
+
+        // Reset visual feedback when drag ends
+        gridPane.setOnDragDone(event -> {
+            logger.info("🏁 Drag done for text node: {}", domNode.getNodeName());
+
+            // Reset opacity
+            String style = gridPane.getStyle();
+            if (style.contains("-fx-opacity: 0.5;")) {
+                gridPane.setStyle(style.replace("-fx-opacity: 0.5;", ""));
+            }
+
+            // Clear drag state
+            draggedDomNode = null;
+            draggedUINode = null;
+            removeAllDropFeedback();
+            currentDropTarget = null;
+            currentDropPosition = null;
+
+            event.consume();
+        });
+
+        // Set up drop target with visual feedback and position detection
+        gridPane.setOnDragOver(event -> {
+            if (event.getGestureSource() != gridPane && event.getDragboard().hasString()) {
+                if (draggedDomNode != null) {
+                    // Determine drop position based on mouse position
+                    DropPosition position = determineDropPosition(gridPane, event.getY(), domNode, draggedDomNode);
+
+                    if (position != null) {
+                        event.acceptTransferModes(TransferMode.MOVE);
+
+                        // Update visual feedback if target or position changed
+                        if (currentDropTarget != gridPane || currentDropPosition != position) {
+                            // Remove previous feedback
+                            removeAllDropFeedback();
+
+                            // Add new feedback based on position
+                            addDropPositionFeedback(gridPane, position);
+                            currentDropTarget = gridPane;
+                            currentDropPosition = position;
+                        }
+                    }
+                }
+            }
+            event.consume();
+        });
+
+        // Remove visual feedback when drag exits
+        gridPane.setOnDragExited(event -> {
+            if (currentDropTarget == gridPane) {
+                removeAllDropFeedback();
+                currentDropTarget = null;
+                currentDropPosition = null;
+            }
+            event.consume();
+        });
+
+        gridPane.setOnDragDropped(event -> {
+            logger.info("📥 Drop detected on text node: {} at position: {}", domNode.getNodeName(), currentDropPosition);
+
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+
+            if (db.hasString() && draggedDomNode != null && currentDropPosition != null) {
+                String[] data = db.getString().split("\\|\\|");
+                if (data.length >= 2) {
+                    try {
+                        // Move the DOM node based on determined position
+                        success = moveNodeWithPosition(draggedDomNode, domNode, currentDropPosition);
+
+                        if (success) {
+                            logger.info("✅ Successfully moved node {} {} text node {}",
+                                    draggedDomNode.getNodeName(),
+                                    currentDropPosition.toString().toLowerCase(),
+                                    domNode.getNodeName());
+                        }
+                    } catch (Exception e) {
+                        logger.error("❌ Error moving node to text node", e);
+                        showErrorDialog("Move failed", "Error moving node: " + e.getMessage());
+                    }
+                }
+            }
+
+            // Remove visual feedback
+            removeAllDropFeedback();
+            currentDropTarget = null;
+            currentDropPosition = null;
+
+            event.setDropCompleted(success);
+            event.consume();
+        });
     }
 
     private void showErrorDialog(String title, String message) {
