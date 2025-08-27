@@ -1347,17 +1347,70 @@ public class SchematronController {
         // This is a placeholder - actual implementation would use SchematronService
         // to validate the XML file against the Schematron schema
 
+        long startTime = System.currentTimeMillis();
+
+        // Clear previous detailed results
+        testFile.clearDetailedResults();
+
         // Simulate some results
         double random = Math.random();
         if (random > 0.3) {
             testFile.setStatus("Passed");
             testFile.setViolations(0);
-            testFile.setWarnings((int) (Math.random() * 3));
+            int warningCount = (int) (Math.random() * 3);
+            testFile.setWarnings(warningCount);
+
+            // Add some sample warning details
+            for (int i = 0; i < warningCount; i++) {
+                TestFile.TestResult warning = new TestFile.TestResult(
+                        "rule-warn-" + (i + 1),
+                        "Sample warning message " + (i + 1) + " for demonstration",
+                        "/root/element[" + (i + 1) + "]",
+                        "report",
+                        "Sample Warning Pattern",
+                        15 + i * 10
+                );
+                testFile.addTestResult(warning);
+            }
         } else {
             testFile.setStatus("Failed");
-            testFile.setViolations((int) (Math.random() * 5) + 1);
-            testFile.setWarnings((int) (Math.random() * 3));
+            int violationCount = (int) (Math.random() * 5) + 1;
+            int warningCount = (int) (Math.random() * 3);
+            testFile.setViolations(violationCount);
+            testFile.setWarnings(warningCount);
+
+            // Add some sample violation details
+            for (int i = 0; i < violationCount; i++) {
+                TestFile.TestResult violation = new TestFile.TestResult(
+                        "rule-err-" + (i + 1),
+                        "Sample error message " + (i + 1) + " - validation failed for demonstration",
+                        "/root/data/item[" + (i + 1) + "]",
+                        "assert",
+                        "Required Element Pattern",
+                        25 + i * 15
+                );
+                testFile.addTestResult(violation);
+            }
+
+            // Add some sample warning details  
+            for (int i = 0; i < warningCount; i++) {
+                TestFile.TestResult warning = new TestFile.TestResult(
+                        "rule-warn-" + (i + 1),
+                        "Sample warning message " + (i + 1) + " for demonstration",
+                        "/root/metadata[" + (i + 1) + "]",
+                        "report",
+                        "Best Practice Pattern",
+                        100 + i * 20
+                );
+                testFile.addTestResult(warning);
+            }
         }
+
+        // Simulate test duration
+        long endTime = System.currentTimeMillis();
+        long actualDuration = endTime - startTime;
+        long simulatedDuration = actualDuration + (long) (Math.random() * 500); // Add some random time
+        testFile.setTestDuration(simulatedDuration + "ms");
     }
 
     /**
@@ -1368,6 +1421,12 @@ public class SchematronController {
         if (testFiles.isEmpty()) {
             showWarning("No Results", "No test results to export");
             return;
+        }
+
+        // Show export options dialog
+        ExportOptionsResult exportOptions = showExportOptionsDialog();
+        if (exportOptions == null) {
+            return; // User cancelled
         }
 
         FileChooser fileChooser = new FileChooser();
@@ -1385,21 +1444,67 @@ public class SchematronController {
                 String content = "";
 
                 switch (extension.toLowerCase()) {
-                    case "html" -> content = generateHtmlReport();
-                    case "csv" -> content = generateCsvReport();
-                    case "json" -> content = generateJsonReport();
-                    default -> content = generateTextReport();
+                    case "html" -> content = generateHtmlReport(exportOptions.includeDetails);
+                    case "csv" -> content = generateCsvReport(exportOptions.includeDetails);
+                    case "json" -> content = generateJsonReport(exportOptions.includeDetails);
+                    default -> content = generateTextReport(exportOptions.includeDetails);
                 }
 
                 Files.writeString(file.toPath(), content);
                 showInfo("Export Complete", "Test results exported to: " + file.getName());
-                logger.info("Exported test results to: {}", file.getAbsolutePath());
+                logger.info("Exported test results to: {} (detailed: {})", file.getAbsolutePath(), exportOptions.includeDetails);
 
             } catch (IOException e) {
                 logger.error("Failed to export test results", e);
                 showError("Export Error", "Failed to export results: " + e.getMessage());
             }
         }
+    }
+
+    /**
+     * Show export options dialog
+     */
+    private ExportOptionsResult showExportOptionsDialog() {
+        Dialog<ExportOptionsResult> dialog = new Dialog<>();
+        dialog.setTitle("Export Options");
+        dialog.setHeaderText("Choose export options");
+
+        // Set the button types
+        ButtonType exportButtonType = new ButtonType("Export", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(exportButtonType, ButtonType.CANCEL);
+
+        // Create form
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        CheckBox includeDetailsCheckBox = new CheckBox("Include detailed test results");
+        includeDetailsCheckBox.setSelected(false);
+
+        Label descriptionLabel = new Label("When enabled, the export will include detailed information about each rule violation and warning, including location, rule ID, and message.");
+        descriptionLabel.setWrapText(true);
+        descriptionLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #666666;");
+
+        grid.add(includeDetailsCheckBox, 0, 0);
+        grid.add(descriptionLabel, 0, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == exportButtonType) {
+                return new ExportOptionsResult(includeDetailsCheckBox.isSelected());
+            }
+            return null;
+        });
+
+        return dialog.showAndWait().orElse(null);
+    }
+
+    /**
+         * Helper class for export options
+         */
+        private record ExportOptionsResult(boolean includeDetails) {
     }
 
     /**
@@ -1447,38 +1552,80 @@ public class SchematronController {
         alert.setTitle("Test Results - " + testFile.getFilename());
         alert.setHeaderText("Validation Results");
 
-        String content = String.format(
+        StringBuilder content = new StringBuilder();
+        content.append(String.format(
                 "File: %s\n" +
                         "Status: %s\n" +
                         "Violations: %d\n" +
                         "Warnings: %d\n" +
-                        "Last Tested: %s\n\n" +
-                        "Detailed results would appear here once Schematron validation is fully implemented.",
+                        "Duration: %s\n" +
+                        "Last Tested: %s\n\n",
                 testFile.getFilename(),
                 testFile.getStatus(),
                 testFile.getViolations(),
                 testFile.getWarnings(),
+                testFile.getTestDuration(),
                 testFile.getLastTested()
-        );
+        ));
 
-        alert.setContentText(content);
+        // Add detailed results if available
+        if (testFile.getDetailedResults() != null && !testFile.getDetailedResults().isEmpty()) {
+            content.append("Detailed Results:\n");
+            content.append("================\n\n");
+
+            for (TestFile.TestResult result : testFile.getDetailedResults()) {
+                content.append(String.format(
+                        "[%s] %s\n" +
+                                "  Location: %s (Line %d)\n" +
+                                "  Rule ID: %s\n" +
+                                "  Pattern: %s\n\n",
+                        result.type().toUpperCase(),
+                        result.message(),
+                        result.location(),
+                        result.lineNumber(),
+                        result.ruleId() != null ? result.ruleId() : "N/A",
+                        result.pattern() != null ? result.pattern() : "N/A"
+                ));
+            }
+        } else if (testFile.getViolations() > 0 || testFile.getWarnings() > 0) {
+            content.append("Detailed results not available.\n");
+            content.append("Run the test again to capture detailed information.");
+        } else {
+            content.append("No detailed results - file passed validation.");
+        }
+
+        alert.setContentText(content.toString());
+
+        // Make the dialog resizable and larger for detailed content
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefSize(600, 400);
+        
         alert.showAndWait();
     }
 
     /**
      * Generate HTML report
      */
-    private String generateHtmlReport() {
+    private String generateHtmlReport(boolean includeDetails) {
         StringBuilder html = new StringBuilder();
         html.append("<!DOCTYPE html>\n<html>\n<head>\n");
         html.append("<title>Schematron Test Results</title>\n");
         html.append("<style>\n");
         html.append("body { font-family: Arial, sans-serif; margin: 20px; }\n");
-        html.append("table { border-collapse: collapse; width: 100%; }\n");
+        html.append("table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }\n");
         html.append("th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\n");
         html.append("th { background-color: #f2f2f2; }\n");
         html.append(".passed { color: #28a745; }\n");
         html.append(".failed { color: #dc3545; }\n");
+        html.append(".details { margin-top: 30px; }\n");
+        html.append(".file-details { margin-bottom: 25px; border: 1px solid #ccc; padding: 15px; border-radius: 5px; }\n");
+        html.append(".file-details h3 { margin-top: 0; color: #333; }\n");
+        html.append(".test-result { margin: 5px 0; padding: 8px; border-left: 4px solid #ddd; background-color: #f9f9f9; }\n");
+        html.append(".test-result.assert { border-left-color: #dc3545; }\n");
+        html.append(".test-result.report { border-left-color: #ffc107; }\n");
+        html.append(".test-result.error { border-left-color: #dc3545; }\n");
+        html.append(".result-type { font-weight: bold; text-transform: uppercase; font-size: 0.9em; }\n");
+        html.append(".result-location { font-style: italic; color: #666; }\n");
         html.append("</style>\n</head>\n<body>\n");
 
         html.append("<h1>Schematron Test Results</h1>\n");
@@ -1489,7 +1636,11 @@ public class SchematronController {
         }
 
         html.append("<table>\n<thead>\n<tr>\n");
-        html.append("<th>File</th><th>Status</th><th>Violations</th><th>Warnings</th><th>Last Tested</th>\n");
+        html.append("<th>File</th><th>Status</th><th>Violations</th><th>Warnings</th>");
+        if (includeDetails) {
+            html.append("<th>Duration</th>");
+        }
+        html.append("<th>Last Tested</th>\n");
         html.append("</tr>\n</thead>\n<tbody>\n");
 
         for (TestFile tf : testFiles) {
@@ -1500,36 +1651,123 @@ public class SchematronController {
             html.append("<td class='").append(statusClass).append("'>").append(tf.getStatus()).append("</td>\n");
             html.append("<td>").append(tf.getViolations()).append("</td>\n");
             html.append("<td>").append(tf.getWarnings()).append("</td>\n");
+            if (includeDetails) {
+                html.append("<td>").append(tf.getTestDuration()).append("</td>\n");
+            }
             html.append("<td>").append(tf.getLastTested()).append("</td>\n");
             html.append("</tr>\n");
         }
 
-        html.append("</tbody>\n</table>\n</body>\n</html>");
+        html.append("</tbody>\n</table>\n");
+
+        // Add detailed results section if requested
+        if (includeDetails) {
+            html.append("<div class='details'>\n");
+            html.append("<h2>Detailed Test Results</h2>\n");
+
+            for (TestFile tf : testFiles) {
+                if (tf.getDetailedResults() != null && !tf.getDetailedResults().isEmpty()) {
+                    html.append("<div class='file-details'>\n");
+                    html.append("<h3>").append(tf.getFilename()).append("</h3>\n");
+                    html.append("<p><strong>Status:</strong> ").append(tf.getStatus()).append("</p>\n");
+                    html.append("<p><strong>Test Duration:</strong> ").append(tf.getTestDuration()).append("</p>\n");
+
+                    for (TestFile.TestResult result : tf.getDetailedResults()) {
+                        html.append("<div class='test-result ").append(result.type()).append("'>\n");
+                        html.append("<span class='result-type'>").append(result.type()).append("</span>: ");
+                        html.append(result.message()).append("<br>\n");
+                        html.append("<span class='result-location'>Location: ").append(result.location()).append(" (Line ").append(result.lineNumber()).append(")</span><br>\n");
+                        if (result.ruleId() != null && !result.ruleId().trim().isEmpty()) {
+                            html.append("<strong>Rule ID:</strong> ").append(result.ruleId()).append("<br>\n");
+                        }
+                        if (result.pattern() != null && !result.pattern().trim().isEmpty()) {
+                            html.append("<strong>Pattern:</strong> ").append(result.pattern()).append("\n");
+                        }
+                        html.append("</div>\n");
+                    }
+                    html.append("</div>\n");
+                } else if ("Failed".equals(tf.getStatus()) || tf.getViolations() > 0 || tf.getWarnings() > 0) {
+                    // Show placeholder for files with issues but no detailed results
+                    html.append("<div class='file-details'>\n");
+                    html.append("<h3>").append(tf.getFilename()).append("</h3>\n");
+                    html.append("<p><strong>Status:</strong> ").append(tf.getStatus()).append("</p>\n");
+                    html.append("<p><em>Detailed results not available. Run test again to capture detailed information.</em></p>\n");
+                    html.append("</div>\n");
+                }
+            }
+            html.append("</div>\n");
+        }
+
+        html.append("</body>\n</html>");
         return html.toString();
     }
 
     /**
      * Generate CSV report
      */
-    private String generateCsvReport() {
+    private String generateCsvReport(boolean includeDetails) {
         StringBuilder csv = new StringBuilder();
-        csv.append("File,Status,Violations,Warnings,Last Tested\n");
 
-        for (TestFile tf : testFiles) {
-            csv.append(tf.getFilename()).append(",");
-            csv.append(tf.getStatus()).append(",");
-            csv.append(tf.getViolations()).append(",");
-            csv.append(tf.getWarnings()).append(",");
-            csv.append(tf.getLastTested()).append("\n");
+        if (includeDetails) {
+            csv.append("File,Status,Violations,Warnings,Duration,Last Tested,Rule ID,Message,Location,Line,Type,Pattern\n");
+
+            for (TestFile tf : testFiles) {
+                if (tf.getDetailedResults() != null && !tf.getDetailedResults().isEmpty()) {
+                    for (TestFile.TestResult result : tf.getDetailedResults()) {
+                        csv.append(escapeCsv(tf.getFilename())).append(",");
+                        csv.append(tf.getStatus()).append(",");
+                        csv.append(tf.getViolations()).append(",");
+                        csv.append(tf.getWarnings()).append(",");
+                        csv.append(tf.getTestDuration()).append(",");
+                        csv.append(tf.getLastTested()).append(",");
+                        csv.append(escapeCsv(result.ruleId())).append(",");
+                        csv.append(escapeCsv(result.message())).append(",");
+                        csv.append(escapeCsv(result.location())).append(",");
+                        csv.append(result.lineNumber()).append(",");
+                        csv.append(result.type()).append(",");
+                        csv.append(escapeCsv(result.pattern())).append("\n");
+                    }
+                } else {
+                    // Add summary row even without detailed results
+                    csv.append(escapeCsv(tf.getFilename())).append(",");
+                    csv.append(tf.getStatus()).append(",");
+                    csv.append(tf.getViolations()).append(",");
+                    csv.append(tf.getWarnings()).append(",");
+                    csv.append(tf.getTestDuration()).append(",");
+                    csv.append(tf.getLastTested()).append(",");
+                    csv.append(",,,,\n"); // Empty detailed fields
+                }
+            }
+        } else {
+            csv.append("File,Status,Violations,Warnings,Last Tested\n");
+
+            for (TestFile tf : testFiles) {
+                csv.append(escapeCsv(tf.getFilename())).append(",");
+                csv.append(tf.getStatus()).append(",");
+                csv.append(tf.getViolations()).append(",");
+                csv.append(tf.getWarnings()).append(",");
+                csv.append(tf.getLastTested()).append("\n");
+            }
         }
 
         return csv.toString();
     }
 
     /**
+     * Escape CSV values
+     */
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
+    /**
      * Generate JSON report
      */
-    private String generateJsonReport() {
+    private String generateJsonReport(boolean includeDetails) {
         StringBuilder json = new StringBuilder();
         json.append("{\n");
         json.append("  \"timestamp\": \"").append(LocalDateTime.now().format(DATE_FORMATTER)).append("\",\n");
@@ -1538,16 +1776,49 @@ public class SchematronController {
             json.append("  \"schema\": \"").append(testSchematronFile.getName()).append("\",\n");
         }
 
+        json.append("  \"includeDetails\": ").append(includeDetails).append(",\n");
         json.append("  \"results\": [\n");
 
         for (int i = 0; i < testFiles.size(); i++) {
             TestFile tf = testFiles.get(i);
             json.append("    {\n");
-            json.append("      \"file\": \"").append(tf.getFilename()).append("\",\n");
+            json.append("      \"file\": \"").append(escapeJson(tf.getFilename())).append("\",\n");
             json.append("      \"status\": \"").append(tf.getStatus()).append("\",\n");
             json.append("      \"violations\": ").append(tf.getViolations()).append(",\n");
             json.append("      \"warnings\": ").append(tf.getWarnings()).append(",\n");
-            json.append("      \"lastTested\": \"").append(tf.getLastTested()).append("\"\n");
+
+            if (includeDetails) {
+                json.append("      \"testDuration\": \"").append(tf.getTestDuration()).append("\",\n");
+            }
+
+            json.append("      \"lastTested\": \"").append(tf.getLastTested()).append("\"");
+
+            if (includeDetails && tf.getDetailedResults() != null && !tf.getDetailedResults().isEmpty()) {
+                json.append(",\n      \"detailedResults\": [\n");
+
+                List<TestFile.TestResult> results = tf.getDetailedResults();
+                for (int j = 0; j < results.size(); j++) {
+                    TestFile.TestResult result = results.get(j);
+                    json.append("        {\n");
+                    json.append("          \"ruleId\": \"").append(escapeJson(result.ruleId())).append("\",\n");
+                    json.append("          \"message\": \"").append(escapeJson(result.message())).append("\",\n");
+                    json.append("          \"location\": \"").append(escapeJson(result.location())).append("\",\n");
+                    json.append("          \"lineNumber\": ").append(result.lineNumber()).append(",\n");
+                    json.append("          \"type\": \"").append(result.type()).append("\",\n");
+                    json.append("          \"pattern\": \"").append(escapeJson(result.pattern())).append("\"\n");
+                    json.append("        }");
+
+                    if (j < results.size() - 1) {
+                        json.append(",");
+                    }
+                    json.append("\n");
+                }
+
+                json.append("      ]\n");
+            } else {
+                json.append("\n");
+            }
+            
             json.append("    }");
 
             if (i < testFiles.size() - 1) {
@@ -1561,9 +1832,21 @@ public class SchematronController {
     }
 
     /**
+     * Escape JSON values
+     */
+    private String escapeJson(String value) {
+        if (value == null) return "";
+        return value.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
+    /**
      * Generate plain text report
      */
-    private String generateTextReport() {
+    private String generateTextReport(boolean includeDetails) {
         StringBuilder text = new StringBuilder();
         text.append("Schematron Test Results\n");
         text.append("=======================\n\n");
@@ -1581,7 +1864,29 @@ public class SchematronController {
             text.append("  Status: ").append(tf.getStatus()).append("\n");
             text.append("  Violations: ").append(tf.getViolations()).append("\n");
             text.append("  Warnings: ").append(tf.getWarnings()).append("\n");
+            if (includeDetails) {
+                text.append("  Duration: ").append(tf.getTestDuration()).append("\n");
+            }
             text.append("  Last Tested: ").append(tf.getLastTested()).append("\n");
+
+            if (includeDetails && tf.getDetailedResults() != null && !tf.getDetailedResults().isEmpty()) {
+                text.append("\n  Detailed Results:\n");
+                for (TestFile.TestResult result : tf.getDetailedResults()) {
+                    text.append("    [").append(result.type().toUpperCase()).append("] ");
+                    text.append(result.message()).append("\n");
+                    text.append("      Location: ").append(result.location());
+                    text.append(" (Line ").append(result.lineNumber()).append(")\n");
+                    if (result.ruleId() != null && !result.ruleId().trim().isEmpty()) {
+                        text.append("      Rule ID: ").append(result.ruleId()).append("\n");
+                    }
+                    if (result.pattern() != null && !result.pattern().trim().isEmpty()) {
+                        text.append("      Pattern: ").append(result.pattern()).append("\n");
+                    }
+                    text.append("\n");
+                }
+            } else if (includeDetails && ("Failed".equals(tf.getStatus()) || tf.getViolations() > 0 || tf.getWarnings() > 0)) {
+                text.append("  (Detailed results not available - run test again to capture)\n");
+            }
         }
 
         return text.toString();

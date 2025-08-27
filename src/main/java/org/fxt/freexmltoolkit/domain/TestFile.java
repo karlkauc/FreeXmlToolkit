@@ -6,6 +6,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Model class for test files in the Schematron test table.
@@ -19,6 +21,10 @@ public class TestFile {
     private final IntegerProperty warnings;
     private final StringProperty lastTested;
 
+    // Detailed test results
+    private List<TestResult> detailedResults;
+    private String testDuration;
+
     public TestFile(File file) {
         this.file = file;
         this.filename = new SimpleStringProperty(file.getName());
@@ -26,6 +32,8 @@ public class TestFile {
         this.violations = new SimpleIntegerProperty(0);
         this.warnings = new SimpleIntegerProperty(0);
         this.lastTested = new SimpleStringProperty("-");
+        this.detailedResults = new ArrayList<>();
+        this.testDuration = "0ms";
     }
 
     // File
@@ -97,4 +105,49 @@ public class TestFile {
     public StringProperty lastTestedProperty() {
         return lastTested;
     }
+
+    // Detailed Results
+    public List<TestResult> getDetailedResults() {
+        return detailedResults;
+    }
+
+    public void setDetailedResults(List<TestResult> detailedResults) {
+        this.detailedResults = detailedResults != null ? detailedResults : new ArrayList<>();
+    }
+
+    public void addTestResult(TestResult result) {
+        if (this.detailedResults == null) {
+            this.detailedResults = new ArrayList<>();
+        }
+        this.detailedResults.add(result);
+    }
+
+    public void clearDetailedResults() {
+        if (this.detailedResults != null) {
+            this.detailedResults.clear();
+        }
+    }
+
+    // Test Duration
+    public String getTestDuration() {
+        return testDuration;
+    }
+
+    public void setTestDuration(String testDuration) {
+        this.testDuration = testDuration != null ? testDuration : "0ms";
+    }
+
+    /**
+     * Inner class to represent individual test results
+     *
+     * @param type "assert", "report", "error"
+     */
+        public record TestResult(String ruleId, String message, String location, String type, String pattern,
+                                 int lineNumber) {
+
+        @Override
+            public String toString() {
+                return String.format("[%s] %s at %s (Line %d)", type.toUpperCase(), message, location, lineNumber);
+            }
+        }
 }
