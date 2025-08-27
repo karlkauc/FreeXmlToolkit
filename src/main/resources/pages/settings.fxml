@@ -25,26 +25,32 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.SettingsController"
             AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
-            AnchorPane.topAnchor="0">
+            AnchorPane.topAnchor="0"
+            style="-fx-background-color: #ffffff; -fx-font-family: 'Segoe UI', Arial, sans-serif;">
 
     <ScrollPane fitToWidth="true" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
                 AnchorPane.topAnchor="0">
 
-        <VBox spacing="15.0" style="-fx-padding: 25px;">
+        <VBox spacing="20.0" style="-fx-padding: 20px;">
 
             <!-- Page Header -->
-            <Label styleClass="h2" text="Application Settings"/>
-            <Separator/>
+            <VBox style="-fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef); -fx-padding: 15px; -fx-background-radius: 6px; -fx-border-color: #dee2e6; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 1, 1);">
+                <Label text="Application Settings"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                <Label text="Configure application behavior and preferences"
+                       style="-fx-font-size: 11px; -fx-text-fill: #6c757d; -fx-padding: 5 0 0 0;"/>
+            </VBox>
 
-            <!-- Section 1: Proxy Settings -->
-            <TitledPane animated="true" expanded="true" text="Proxy Settings">
+            <!-- Section 1: Network & Proxy -->
+            <TitledPane animated="true" expanded="false" text="Network &amp; Proxy Settings"
+                        style="-fx-background-color: #ffffff; -fx-border-color: #e0e8ff; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px;">
                 <graphic>
-                    <FontIcon iconLiteral="bi-hdd-network" iconSize="20"/>
+                    <FontIcon iconLiteral="bi-hdd-network" iconSize="16" iconColor="#4a90e2"/>
                 </graphic>
                 <content>
-                    <VBox style="-fx-padding: 15 5 5 5;" spacing="15">
-                        <!-- Radio Buttons -->
-                        <VBox spacing="10.0">
+                    <VBox style="-fx-padding: 12px; -fx-background-color: #ffffff;" spacing="12">
+                        <!-- Proxy Configuration -->
+                        <VBox spacing="8">
                             <RadioButton fx:id="noProxy" mnemonicParsing="false" text="No Proxy">
                                 <toggleGroup>
                                     <ToggleGroup fx:id="proxy"/>
@@ -55,8 +61,9 @@
                             <RadioButton fx:id="manualProxy" mnemonicParsing="false"
                                          text="Manual proxy configuration" toggleGroup="$proxy"/>
                         </VBox>
-                        <!-- GridPane for manual settings -->
-                        <GridPane hgap="10" vgap="15" style="-fx-padding: 10 0 0 20;">
+                        <!-- Manual Proxy Configuration -->
+                        <GridPane hgap="12" vgap="10"
+                                  style="-fx-padding: 8 0 0 16; -fx-background-color: #f0f8ff; -fx-background-radius: 4px; -fx-padding: 12px;">
                             <Label text="Proxy Host Name:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                             <TextField fx:id="httpProxyHost" promptText="host name" GridPane.columnIndex="1"
                                        GridPane.rowIndex="0"/>
@@ -83,23 +90,25 @@
                             </columnConstraints>
                         </GridPane>
                         <Button fx:id="checkConnection" mnemonicParsing="false" onAction="#performCheck"
-                                text="Check Connection">
+                                text="Test Connection"
+                                style="-fx-background-color: #4a90e2; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 16; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
                             <graphic>
-                                <FontIcon iconLiteral="bi-plug-fill" iconSize="16"/>
+                                <FontIcon iconLiteral="bi-plug-fill" iconSize="14"/>
                             </graphic>
                         </Button>
                     </VBox>
                 </content>
             </TitledPane>
 
-            <!-- Section 2: XML Settings -->
-            <TitledPane animated="true" expanded="true" text="XML Settings">
+            <!-- Section 2: Editor Settings -->
+            <TitledPane animated="true" expanded="true" text="XML Editor Settings"
+                        style="-fx-background-color: #ffffff; -fx-border-color: #e0e8ff; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px;">
                 <graphic>
-                    <FontIcon iconLiteral="bi-code-slash" iconSize="20"/>
+                    <FontIcon iconLiteral="bi-code-slash" iconSize="16" iconColor="#4a90e2"/>
                 </graphic>
                 <content>
-                    <VBox style="-fx-padding: 15 5 5 5;" spacing="15">
-                        <GridPane hgap="10" vgap="15">
+                    <VBox style="-fx-padding: 12px; -fx-background-color: #ffffff;" spacing="12">
+                        <GridPane hgap="12" vgap="10">
                             <Label text="XML Indent Spaces:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                             <Spinner fx:id="xmlIndentSpaces" editable="true" initialValue="4" min="1" max="10"
                                      prefWidth="100"
@@ -117,15 +126,18 @@
                 </content>
             </TitledPane>
 
-            <!-- Section 3: Folder Settings -->
-            <TitledPane animated="true" expanded="true" text="Folder Settings">
+            <!-- Section 3: File & Folder Settings -->
+            <TitledPane animated="true" expanded="false" text="File &amp; Folder Settings"
+                        style="-fx-background-color: #ffffff; -fx-border-color: #e0e8ff; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px;">
                 <graphic>
-                    <FontIcon iconLiteral="bi-folder2-open" iconSize="20"/>
+                    <FontIcon iconLiteral="bi-folder2-open" iconSize="16" iconColor="#4a90e2"/>
                 </graphic>
                 <content>
-                    <VBox style="-fx-padding: 15 5 5 5;" spacing="15">
-                        <Label styleClass="h3" text="Temporary Folder"/>
-                        <VBox spacing="10">
+                    <VBox style="-fx-padding: 12px; -fx-background-color: #ffffff;" spacing="12">
+                        <Label text="Temporary Folder Configuration"
+                               style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                        <VBox spacing="8"
+                              style="-fx-background-color: #f0f8ff; -fx-background-radius: 4px; -fx-padding: 12px;">
                             <RadioButton fx:id="useSystemTempFolder" text="Use System Temp Folder">
                                 <toggleGroup>
                                     <ToggleGroup fx:id="tempFolder"/>
@@ -133,25 +145,29 @@
                             </RadioButton>
                             <RadioButton fx:id="useCustomTempFolder" text="Use Custom Temp Folder:"
                                          toggleGroup="$tempFolder"/>
-                            <HBox spacing="5" alignment="CENTER_LEFT">
-                                <TextField fx:id="customTempFolder" promptText="C:/temp" HBox.hgrow="ALWAYS"/>
-                                <Button onAction="#selectCustomTempFolder" text="Browse..."/>
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <TextField fx:id="customTempFolder" promptText="C:/temp" HBox.hgrow="ALWAYS"
+                                           style="-fx-background-color: white; -fx-border-color: #4a90e2; -fx-border-radius: 4px; -fx-background-radius: 4px;"/>
+                                <Button onAction="#selectCustomTempFolder" text="Browse..."
+                                        style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;"/>
                             </HBox>
                         </VBox>
                     </VBox>
                 </content>
             </TitledPane>
 
-            <!-- Section 4: UI Settings -->
-            <TitledPane animated="true" expanded="true" text="UI Settings">
+            <!-- Section 4: User Interface -->
+            <TitledPane animated="true" expanded="true" text="User Interface"
+                        style="-fx-background-color: #ffffff; -fx-border-color: #e0e8ff; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px;">
                 <graphic>
-                    <FontIcon iconLiteral="bi-palette" iconSize="20"/>
+                    <FontIcon iconLiteral="bi-palette" iconSize="16" iconColor="#4a90e2"/>
                 </graphic>
                 <content>
-                    <VBox style="-fx-padding: 15 5 5 5;" spacing="15">
-                        <GridPane hgap="10" vgap="15">
+                    <VBox style="-fx-padding: 12px; -fx-background-color: #ffffff;" spacing="12">
+                        <GridPane hgap="12" vgap="10">
                             <Label text="Theme:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                            <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <VBox spacing="6" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                  style="-fx-background-color: #f0f8ff; -fx-background-radius: 4px; -fx-padding: 8px;">
                                 <RadioButton fx:id="lightTheme" mnemonicParsing="false" text="Light Mode">
                                     <toggleGroup>
                                         <ToggleGroup fx:id="theme"/>
@@ -178,15 +194,17 @@
             </TitledPane>
 
             <!-- Section 5: Favorites Management -->
-            <TitledPane animated="true" expanded="false" text="Favorites Management">
+            <TitledPane animated="true" expanded="false" text="Favorites Management"
+                        style="-fx-background-color: #ffffff; -fx-border-color: #e0e8ff; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px;">
                 <graphic>
-                    <FontIcon iconLiteral="bi-star-fill" iconSize="20"/>
+                    <FontIcon iconLiteral="bi-star-fill" iconSize="16" iconColor="#d4a147"/>
                 </graphic>
                 <content>
-                    <VBox style="-fx-padding: 15 5 5 5;" spacing="15">
+                    <VBox style="-fx-padding: 12px; -fx-background-color: #ffffff;" spacing="12">
                         <!-- Favorites List -->
-                        <VBox spacing="10">
-                            <Label styleClass="h3" text="Manage Saved Favorites"/>
+                        <VBox spacing="8">
+                            <Label text="Manage Saved Favorites"
+                                   style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
                             <TableView fx:id="favoritesTable" prefHeight="300">
                                 <columns>
                                     <TableColumn fx:id="nameColumn" text="Name" prefWidth="200"/>
@@ -197,60 +215,71 @@
                             </TableView>
 
                             <!-- Favorites Actions -->
-                            <HBox spacing="10" alignment="CENTER_LEFT">
-                                <Button fx:id="openFavoriteButton" onAction="#openSelectedFavorite" text="Open">
+                            <HBox spacing="8" alignment="CENTER_LEFT"
+                                  style="-fx-background-color: linear-gradient(to right, #fffef7, #fff8dc); -fx-background-radius: 4px; -fx-padding: 8px;">
+                                <Button fx:id="openFavoriteButton" onAction="#openSelectedFavorite" text="Open"
+                                        style="-fx-background-color: #4a90e2; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                                        <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                     </graphic>
                                 </Button>
-                                <Button fx:id="editFavoriteButton" onAction="#editSelectedFavorite" text="Edit">
+                                <Button fx:id="editFavoriteButton" onAction="#editSelectedFavorite" text="Edit"
+                                        style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-pencil" iconSize="16"/>
+                                        <FontIcon iconLiteral="bi-pencil" iconSize="14"/>
                                     </graphic>
                                 </Button>
-                                <Button fx:id="removeFavoriteButton" onAction="#removeSelectedFavorite" text="Remove">
+                                <Button fx:id="removeFavoriteButton" onAction="#removeSelectedFavorite" text="Remove"
+                                        style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-trash" iconSize="16"/>
+                                        <FontIcon iconLiteral="bi-trash" iconSize="14"/>
                                     </graphic>
                                 </Button>
                                 <Button fx:id="removeNonExistentButton" onAction="#removeNonExistentFavorites"
-                                        text="Remove Non-Existent">
+                                        text="Cleanup"
+                                        style="-fx-background-color: #fd7e14; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
                                     <graphic>
-                                        <FontIcon iconLiteral="bi-x-circle" iconSize="16"/>
+                                        <FontIcon iconLiteral="bi-x-circle" iconSize="14"/>
                                     </graphic>
                                 </Button>
                             </HBox>
 
                             <!-- Category Management -->
-                            <Separator/>
-                            <Label styleClass="h3" text="Category Management"/>
-                            <VBox spacing="10">
-                                <HBox spacing="10" alignment="CENTER_LEFT">
+                            <VBox spacing="8"
+                                  style="-fx-background-color: #f8f9fa; -fx-background-radius: 4px; -fx-padding: 12px; -fx-border-color: #dee2e6; -fx-border-width: 1px; -fx-border-radius: 4px;">
+                                <Label text="Category Management"
+                                       style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+                                <HBox spacing="8" alignment="CENTER_LEFT">
                                     <TextField fx:id="newCategoryField" promptText="Enter new category name"
-                                               HBox.hgrow="ALWAYS"/>
+                                               HBox.hgrow="ALWAYS"
+                                               style="-fx-background-color: white; -fx-border-color: #4a90e2; -fx-border-radius: 4px; -fx-background-radius: 4px;"/>
                                     <Button fx:id="createCategoryButton" onAction="#createNewCategory"
-                                            text="Create Category">
+                                            text="Create"
+                                            style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-padding: 6 12; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
                                         <graphic>
-                                            <FontIcon iconLiteral="bi-plus-circle" iconSize="16"/>
+                                            <FontIcon iconLiteral="bi-plus-circle" iconSize="14"/>
                                         </graphic>
                                     </Button>
                                 </HBox>
-                                <Label text="Categories with favorites cannot be deleted" styleClass="text-muted"/>
+                                <Label text="Note: Categories with favorites cannot be deleted"
+                                       style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;"/>
                             </VBox>
                         </VBox>
                     </VBox>
                 </content>
             </TitledPane>
 
-            <!-- Action Buttons at the bottom -->
-            <HBox spacing="10.0" alignment="CENTER_LEFT" style="-fx-padding: 20 0 0 0;">
+            <!-- Action Buttons -->
+            <HBox spacing="12" alignment="CENTER"
+                  style="-fx-padding: 24 0 0 0; -fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef); -fx-background-radius: 6px; -fx-border-color: #dee2e6; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-padding: 16px;">
                 <Button mnemonicParsing="false" onAction="#performSave" text="Save Settings"
-                        styleClass="button, :default">
+                        style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 2, 0, 1, 1);">
                     <graphic>
                         <FontIcon iconLiteral="bi-save" iconSize="16"/>
                     </graphic>
                 </Button>
-                <Button mnemonicParsing="false" onAction="#loadCurrentSettings" text="Cancel">
+                <Button mnemonicParsing="false" onAction="#loadCurrentSettings" text="Cancel"
+                        style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-padding: 10 20; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-cursor: hand;">
                     <graphic>
                         <FontIcon iconLiteral="bi-x-circle" iconSize="16"/>
                     </graphic>
