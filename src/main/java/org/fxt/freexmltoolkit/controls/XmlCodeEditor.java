@@ -262,6 +262,9 @@ public class XmlCodeEditor extends VBox {
             // Reset the debouncer timer
             syntaxHighlightingDebouncer.stop();
             syntaxHighlightingDebouncer.playFromStart();
+
+            // Handle automatic tag completion
+            handleAutomaticTagCompletion(oldText, newText);
         });
     }
 
@@ -3561,5 +3564,136 @@ public class XmlCodeEditor extends VBox {
                 logger.debug("IntelliSense Engine ready for XSD integration");
             }
         }
+    }
+
+    // ========== Automatic Tag Completion ==========
+
+    /**
+     * Handles automatic tag completion when user types ">"
+     * Automatically generates closing tags and positions cursor between them
+     */
+    private void handleAutomaticTagCompletion(String oldText, String newText) {
+        if (oldText == null || newText == null) {
+            return;
+        }
+
+        // Check if a ">" character was just added
+        if (newText.length() != oldText.length() + 1) {
+            return; // Not a single character addition
+        }
+
+        int caretPosition = codeArea.getCaretPosition();
+        if (caretPosition == 0 || caretPosition > newText.length()) {
+            return;
+        }
+
+        // Check if the last typed character was ">"
+        char lastChar = newText.charAt(caretPosition - 1);
+        if (lastChar != '>') {
+            return;
+        }
+
+        // Find the opening tag before the cursor
+        String tagName = findOpeningTagBeforeCursor(newText, caretPosition);
+        if (tagName != null && !tagName.isEmpty()) {
+            // Check if this is not a self-closing tag or XML declaration
+            if (!isSelfClosingTag(tagName) && !isSpecialTag(tagName)) {
+                // Generate the closing tag
+                String closingTag = "</" + tagName + ">";
+
+                // Insert the closing tag at the current cursor position
+                Platform.runLater(() -> {
+                    codeArea.insertText(caretPosition, closingTag);
+                    // Position cursor between the tags (after the ">" of opening tag)
+                    codeArea.moveTo(caretPosition);
+                });
+
+                logger.debug("Auto-completed tag: {} -> {}", tagName, closingTag);
+            }
+        }
+    }
+
+    /**
+     * Finds the opening tag name before the cursor position
+     * Returns null if no valid opening tag is found
+     */
+    private String findOpeningTagBeforeCursor(String text, int caretPosition) {
+        if (text == null || caretPosition <= 0) {
+            return null;
+        }
+
+        // Look backwards from cursor position to find the opening "<"
+        int openingBracketPos = -1;
+        for (int i = caretPosition - 2; i >= 0; i--) { // -2 because we just typed ">"
+            char ch = text.charAt(i);
+            if (ch == '<') {
+                openingBracketPos = i;
+                break;
+            } else if (ch == '>' || ch == '"' || ch == '\n') {
+                // Found another closing bracket, quote, or newline before opening bracket
+                return null;
+            }
+        }
+
+        if (openingBracketPos == -1) {
+            return null;
+        }
+
+        // Extract the tag content between < and >
+        String tagContent = text.substring(openingBracketPos + 1, caretPosition - 1);
+
+        // Remove any attributes - just get the tag name
+        String tagName = tagContent.trim();
+        if (tagName.isEmpty()) {
+            return null;
+        }
+
+        // Split by whitespace to get only the tag name (ignore attributes)
+        String[] parts = tagName.split("\\s+");
+        tagName = parts[0];
+
+        // Validate tag name (simple validation)
+        if (isValidTagName(tagName)) {
+            return tagName;
+        }
+
+        return null;
+    }
+
+    /**
+     * Checks if the tag name is valid according to XML naming rules
+     */
+    private boolean isValidTagName(String tagName) {
+        if (tagName == null || tagName.isEmpty()) {
+            return false;
+        }
+
+        // Basic XML tag name validation
+        // Must start with letter or underscore, can contain letters, digits, hyphens, periods, underscores
+        if (!Character.isLetter(tagName.charAt(0)) && tagName.charAt(0) != '_') {
+            return false;
+        }
+
+        for (int i = 1; i < tagName.length(); i++) {
+            char ch = tagName.charAt(i);
+            if (!Character.isLetterOrDigit(ch) && ch != '-' && ch != '.' && ch != '_' && ch != ':') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Checks if the tag is a special XML tag (like XML declaration, processing instruction, etc.)
+     */
+    private boolean isSpecialTag(String tagName) {
+        if (tagName == null || tagName.isEmpty()) {
+            return false;
+        }
+
+        // XML declarations, processing instructions, etc.
+        return tagName.startsWith("?") || tagName.startsWith("!") || tagName.contains("?");
     }
 }
