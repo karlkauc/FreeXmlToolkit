@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -317,8 +319,9 @@ public class XmlGraphicEditor extends VBox {
 
         // Set up node selection immediately if sidebar controller is available
         if (sidebarController != null) {
-            setupNodeSelectionForSpecificNode(gridPane, subNode);
-            logger.debug("✅ Set up node selection for text GridPane: {}", subNode.getNodeName());
+            // Use text cell selection for text nodes to preserve double-click editing
+            setupNodeSelectionForTextCell(gridPane, subNode);
+            logger.debug("✅ Set up text cell selection for text GridPane: {}", subNode.getNodeName());
         }
 
         this.getChildren().add(gridPane);
@@ -528,13 +531,39 @@ public class XmlGraphicEditor extends VBox {
         return event -> {
             if (event.getClickCount() != 2) return; // Only edit on double click
 
-            if (!(nodeValueLabel.getParent() instanceof Pane parent)) {
-                logger.warn("Cannot edit node value, label's parent is not a Pane.");
+            // Enhanced debugging for empty text nodes
+            logger.debug("Double-click detected on node: {} (type: {}), label text: '{}'",
+                    domNode.getNodeName(), domNode.getNodeType(), nodeValueLabel.getText());
+
+            if (domNode.getNodeType() == Node.ELEMENT_NODE) {
+                NodeList childNodes = domNode.getChildNodes();
+                logger.debug("Element has {} child nodes", childNodes.getLength());
+                for (int i = 0; i < childNodes.getLength(); i++) {
+                    Node child = childNodes.item(i);
+                    logger.debug("Child {}: type={}, value='{}'", i, child.getNodeType(), child.getNodeValue());
+                }
+            }
+
+            // Get the parent - could be HBox or other Pane
+            Parent labelParent = nodeValueLabel.getParent();
+            if (labelParent == null) {
+                logger.warn("Cannot edit node value, label has no parent.");
+                return;
+            }
+
+            // Check if parent is a Pane (including HBox which extends Pane)
+            if (!(labelParent instanceof Pane parent)) {
+                logger.warn("Cannot edit node value, label's parent is not a Pane but a {}.",
+                        labelParent.getClass().getSimpleName());
                 return;
             }
 
             final String originalValue = nodeValueLabel.getText();
             TextField textField = new TextField(originalValue);
+
+            // Log for debugging
+            logger.debug("Starting edit for node: {} with value: '{}', parent type: {}",
+                    domNode.getNodeName(), originalValue, parent.getClass().getSimpleName());
 
             // A flag to track whether editing was successfully committed.
             // We use an array so the variable is effectively final in the lambda expression.
@@ -553,9 +582,12 @@ public class XmlGraphicEditor extends VBox {
                 }
             });
 
+            // Replace the label with the text field in the parent container
             parent.getChildren().setAll(textField);
             textField.requestFocus();
             textField.selectAll();
+
+            logger.debug("TextField activated for editing, parent children count: {}", parent.getChildren().size());
         };
     }
 
@@ -1221,11 +1253,39 @@ public class XmlGraphicEditor extends VBox {
     }
 
     private void addNewElementToGridPane(GridPane gridPane, Element newElement) {
-        // Erstelle ein neues UI-Element für den neuen Knoten
-        var nodeName = new Label(newElement.getNodeName());
-        var nodeValue = new Label(""); // Leerer Text für neue Elemente
+        // Debug: Check the structure of the new element
+        NodeList childNodes = newElement.getChildNodes();
+        logger.debug("Adding new element '{}' to grid pane, child count: {}", newElement.getNodeName(), childNodes.getLength());
 
-        // XMLSpy-inspired styling for new elements
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node child = childNodes.item(i);
+            logger.debug("Child {}: type={}, value='{}'", i, child.getNodeType(), child.getNodeValue());
+        }
+
+        // Check if this element should be treated as a simple text node
+        boolean isSimpleTextElement = childNodes.getLength() == 1 &&
+                childNodes.item(0).getNodeType() == Node.TEXT_NODE;
+
+        logger.debug("Element '{}' is simple text element: {}", newElement.getNodeName(), isSimpleTextElement);
+
+        if (isSimpleTextElement) {
+            // Use the same logic as addTextNode for consistency
+            addTextNodeToGridPane(gridPane, newElement);
+        } else {
+            // Fallback to the original implementation
+            addComplexElementToGridPane(gridPane, newElement);
+        }
+    }
+
+    private void addTextNodeToGridPane(GridPane gridPane, Element element) {
+        Node textNode = element.getChildNodes().item(0);
+        String textValue = textNode.getNodeValue();
+        logger.debug("Adding text element '{}' with value: '{}'", element.getNodeName(), textValue);
+
+        var nodeName = new Label(element.getNodeName());
+        var nodeValue = new Label(textValue != null ? textValue : "");
+
+        // XMLSpy-inspired styling (same as addTextNode)
         nodeName.setStyle(
                 "-fx-text-fill: #2c5aa0; " +
                         "-fx-font-weight: bold; " +
@@ -1242,11 +1302,12 @@ public class XmlGraphicEditor extends VBox {
         nodeName.setWrapText(false);
         nodeValue.setWrapText(true);
 
-        nodeName.setTooltip(new Tooltip(newElement.getNodeName()));
-        nodeValue.setTooltip(new Tooltip(""));
+        nodeName.setTooltip(new Tooltip(element.getNodeName()));
+        nodeValue.setTooltip(new Tooltip(textValue != null && !textValue.isEmpty() ? textValue : "Double-click to edit"));
 
-        // WICHTIG: Event-Handler für das neue Label setzen
-        nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, newElement));
+        // CRUCIAL: Use the same approach as addTextNode - pass the element node
+        // The editNodeValueHandler expects an Element node for simple text elements
+        nodeValue.setOnMouseClicked(editNodeValueHandler(nodeValue, element));
 
         var nodeNameBox = new HBox(nodeName);
         nodeNameBox.getStyleClass().add("node-name-box");
@@ -1270,9 +1331,82 @@ public class XmlGraphicEditor extends VBox {
         gridPane.add(nodeValueBox, 1, nextRow);
 
         // Kontextmenü für das neue Element hinzufügen
-        setupContextMenu(gridPane, newElement);
+        setupContextMenu(gridPane, element);
 
-        logger.debug("Added new element '{}' to UI at row {}", newElement.getNodeName(), nextRow);
+        // Store mapping and set up node selection for the new text element
+        uiNodeToDomNodeMap.put(gridPane, element);
+        logger.debug("🗂️ Mapped new GridPane -> DOM node: {}", element.getNodeName());
+
+        // Set up text cell selection for new text nodes to preserve double-click editing
+        if (sidebarController != null) {
+            setupNodeSelectionForTextCell(gridPane, element);
+            logger.debug("✅ Set up text cell selection for new text element: {}", element.getNodeName());
+        }
+
+        logger.debug("Added text element '{}' to UI at row {}", element.getNodeName(), nextRow);
+    }
+
+    private void addComplexElementToGridPane(GridPane gridPane, Element element) {
+        // Fallback to original implementation for complex elements
+        var nodeName = new Label(element.getNodeName());
+        var nodeValue = new Label(""); // Complex elements don't have direct text content
+
+        // XMLSpy-inspired styling for complex elements
+        nodeName.setStyle(
+                "-fx-text-fill: #2c5aa0; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-font-size: 11px; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+        );
+
+        nodeValue.setStyle(
+                "-fx-text-fill: #666666; " +
+                        "-fx-font-size: 11px; " +
+                        "-fx-font-style: italic; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+        );
+
+        nodeName.setWrapText(false);
+        nodeValue.setWrapText(true);
+
+        nodeName.setTooltip(new Tooltip(element.getNodeName()));
+        nodeValue.setTooltip(new Tooltip("Complex element - not directly editable"));
+
+        var nodeNameBox = new HBox(nodeName);
+        nodeNameBox.getStyleClass().add("node-name-box");
+        nodeNameBox.setStyle(
+                "-fx-background-color: linear-gradient(to right, #ffffff, #f0f8ff); " +
+                        "-fx-padding: 4px 8px; " +
+                        "-fx-border-color: #e0e8ff; " +
+                        "-fx-border-width: 0 1px 0 0;"
+        );
+
+        var nodeValueBox = new HBox(nodeValue);
+        nodeValueBox.getStyleClass().add("node-value-box");
+        nodeValueBox.setStyle(
+                "-fx-background-color: #f8f8f8; " +
+                        "-fx-padding: 4px 8px;"
+        );
+
+        // Füge das neue Element zur nächsten Zeile hinzu
+        int nextRow = gridPane.getRowCount();
+        gridPane.add(nodeNameBox, 0, nextRow);
+        gridPane.add(nodeValueBox, 1, nextRow);
+
+        // Kontextmenü für das neue Element hinzufügen
+        setupContextMenu(gridPane, element);
+
+        // Store mapping and set up node selection for the new complex element
+        uiNodeToDomNodeMap.put(gridPane, element);
+        logger.debug("🗂️ Mapped new complex GridPane -> DOM node: {}", element.getNodeName());
+
+        // Set up normal node selection for complex elements
+        if (sidebarController != null) {
+            setupNodeSelectionForSpecificNode(gridPane, element);
+            logger.debug("✅ Set up node selection for new complex element: {}", element.getNodeName());
+        }
+
+        logger.debug("Added complex element '{}' to UI at row {}", element.getNodeName(), nextRow);
     }
 
     private boolean addNewNodeToVBox(VBox vbox, Node parentNode, Element newElement) {

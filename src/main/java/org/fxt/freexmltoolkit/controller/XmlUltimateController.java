@@ -30,6 +30,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
@@ -261,6 +264,143 @@ public class XmlUltimateController implements Initializable {
         if (consoleOutput != null) {
             consoleOutput.appendText("Ultimate XML Editor initialized.\n");
             consoleOutput.appendText("All revolutionary features are available.\n");
+        }
+
+        // Initialize drag and drop functionality for XML files
+        initializeDragAndDrop();
+    }
+
+    /**
+     * Initialize drag and drop functionality for the XML editor TabPane
+     */
+    private void initializeDragAndDrop() {
+        if (xmlFilesPane == null) {
+            logger.warn("Cannot initialize drag and drop: xmlFilesPane is null");
+            return;
+        }
+
+        logger.info("Setting up drag and drop functionality for XML files");
+
+        // Allow files to be dropped on the TabPane
+        xmlFilesPane.setOnDragOver(this::handleDragOver);
+        xmlFilesPane.setOnDragDropped(this::handleDragDropped);
+
+        logger.debug("Drag and drop event handlers registered for XML files TabPane");
+    }
+
+    /**
+     * Handle drag over event - determine if files can be accepted
+     */
+    private void handleDragOver(DragEvent event) {
+        Dragboard dragboard = event.getDragboard();
+
+        // Accept files if they exist and at least one is an XML file
+        if (dragboard.hasFiles() && hasXmlFiles(dragboard.getFiles())) {
+            event.acceptTransferModes(TransferMode.COPY);
+            logger.debug("Drag over accepted: {} files detected", dragboard.getFiles().size());
+        } else {
+            logger.debug("Drag over rejected: no XML files found");
+        }
+
+        event.consume();
+    }
+
+    /**
+     * Handle drag dropped event - open the dropped XML files in new tabs
+     */
+    private void handleDragDropped(DragEvent event) {
+        Dragboard dragboard = event.getDragboard();
+        boolean success = false;
+
+        if (dragboard.hasFiles()) {
+            logger.info("Files dropped: processing {} files", dragboard.getFiles().size());
+
+            var xmlFiles = dragboard.getFiles().stream()
+                    .filter(this::isXmlFile)
+                    .toList();
+
+            if (!xmlFiles.isEmpty()) {
+                success = true;
+
+                // Open each XML file in a new tab
+                for (var file : xmlFiles) {
+                    try {
+                        openFileInNewTab(file);
+                        logger.info("Opened dropped file in new tab: {}", file.getName());
+                    } catch (Exception e) {
+                        logger.error("Failed to open dropped file: {}", file.getName(), e);
+                        logToConsole("Error opening file " + file.getName() + ": " + e.getMessage());
+                    }
+                }
+
+                logToConsole("Successfully opened " + xmlFiles.size() + " XML file(s) via drag and drop");
+            } else {
+                logger.info("No XML files found in dropped files");
+                logToConsole("No XML files found in dropped files");
+            }
+        }
+
+        event.setDropCompleted(success);
+        event.consume();
+    }
+
+    /**
+     * Check if the list of files contains at least one XML file
+     */
+    private boolean hasXmlFiles(java.util.List<java.io.File> files) {
+        return files.stream().anyMatch(this::isXmlFile);
+    }
+
+    /**
+     * Check if a file is an XML file based on its extension
+     */
+    private boolean isXmlFile(java.io.File file) {
+        String fileName = file.getName().toLowerCase();
+        return fileName.endsWith(".xml") || fileName.endsWith(".xsd") || fileName.endsWith(".xsl") ||
+                fileName.endsWith(".xslt") || fileName.endsWith(".wsdl");
+    }
+
+    /**
+     * Open a specific file in a new tab (extracted from openFile() method)
+     */
+    private void openFileInNewTab(java.io.File file) throws Exception {
+        String content = java.nio.file.Files.readString(file.toPath());
+
+        // Create new XML editor tab
+        XmlEditor xmlEditor = new XmlEditor();
+        xmlEditor.setText(file.getName());
+        xmlEditor.codeArea.replaceText(content);
+
+        // Set the XML file to trigger automatic XSD schema detection
+        xmlEditor.setXmlFile(file);
+
+        // Store the File object in userData so favorites can access it
+        xmlEditor.setUserData(file);
+
+        // Apply current sidebar visibility setting
+        String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
+        if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
+            xmlEditor.setXmlEditorSidebarVisible(false);
+        }
+
+        // Add tab and select it
+        xmlFilesPane.getTabs().add(xmlEditor);
+        xmlFilesPane.getSelectionModel().select(xmlEditor);
+
+        // Update current file references (for the last opened file)
+        currentXmlFile = file;
+        currentXmlContent = content;
+
+        // Update document tree and validate
+        updateDocumentTree(content);
+        validateCurrentXml();
+
+        // Add file to recent files
+        if (parentController != null) {
+            parentController.addFileToRecentFiles(file);
+        } else {
+            // Fallback in case the parent controller is not set for some reason
+            propertiesService.addLastOpenFile(file);
         }
     }
 

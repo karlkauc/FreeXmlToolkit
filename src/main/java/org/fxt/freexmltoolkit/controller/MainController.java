@@ -22,10 +22,14 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -38,16 +42,14 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 import java.io.File;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.net.URL;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class MainController {
+public class MainController implements Initializable {
 
     private final static Logger logger = LogManager.getLogger(MainController.class);
 
@@ -683,4 +685,121 @@ public class MainController {
             logger.info("Opening Schematron file in editor: {}", file.getAbsolutePath());
         }
     }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        logger.info("Initializing MainController with drag and drop support");
+        initializeDragAndDrop();
+
+        // Load the welcome page on startup
+        Platform.runLater(this::loadWelcomePage);
+    }
+
+    /**
+     * Load the welcome page as the initial content
+     */
+    private void loadWelcomePage() {
+        try {
+            logger.info("Loading welcome page on startup");
+            loadPageFromPath("/pages/welcome.fxml");
+        } catch (Exception e) {
+            logger.error("Failed to load welcome page on startup", e);
+        }
+    }
+
+    /**
+     * Initialize drag and drop functionality for the main application
+     */
+    private void initializeDragAndDrop() {
+        if (contentPane == null) {
+            logger.warn("Cannot initialize drag and drop: contentPane is null");
+            return;
+        }
+
+        logger.info("Setting up global drag and drop functionality for XML files");
+
+        // Allow files to be dropped on the main content pane
+        contentPane.setOnDragOver(this::handleDragOver);
+        contentPane.setOnDragDropped(this::handleDragDropped);
+
+        logger.debug("Drag and drop event handlers registered for main application");
+    }
+
+    /**
+     * Handle drag over event - determine if files can be accepted
+     */
+    private void handleDragOver(DragEvent event) {
+        Dragboard dragboard = event.getDragboard();
+
+        // Accept files if they exist and at least one is an XML file
+        if (dragboard.hasFiles() && hasXmlFiles(dragboard.getFiles())) {
+            event.acceptTransferModes(TransferMode.COPY);
+            logger.debug("Drag over accepted: {} files detected", dragboard.getFiles().size());
+        } else {
+            logger.debug("Drag over rejected: no XML files found");
+        }
+
+        event.consume();
+    }
+
+    /**
+     * Handle drag dropped event - open the dropped XML files in new tabs
+     */
+    private void handleDragDropped(DragEvent event) {
+        Dragboard dragboard = event.getDragboard();
+        boolean success = false;
+
+        if (dragboard.hasFiles()) {
+            logger.info("Files dropped on main application: processing {} files", dragboard.getFiles().size());
+
+            var xmlFiles = dragboard.getFiles().stream()
+                    .filter(this::isXmlFile)
+                    .toList();
+
+            if (!xmlFiles.isEmpty()) {
+                success = true;
+
+                // For now, open the first XML file. Multiple files can be opened by repeated drag & drop.
+                // This ensures reliable functionality while keeping the implementation simple.
+                var firstFile = xmlFiles.get(0);
+                try {
+                    switchToXmlViewAndLoadFile(firstFile);
+                    logger.info("Switched to XML view and opened dropped file: {}", firstFile.getName());
+
+                    if (xmlFiles.size() > 1) {
+                        logger.info("Multiple files dropped ({}). Only the first file was opened: {}. " +
+                                        "Please drop additional files one by one to open them in separate tabs.",
+                                xmlFiles.size(), firstFile.getName());
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to open dropped file: {}", firstFile.getName(), e);
+                    success = false;
+                }
+
+                logger.info("Successfully processed XML file via drag and drop: {}", firstFile.getName());
+            } else {
+                logger.info("No XML files found in dropped files");
+            }
+        }
+
+        event.setDropCompleted(success);
+        event.consume();
+    }
+
+    /**
+     * Check if the list of files contains at least one XML file
+     */
+    private boolean hasXmlFiles(java.util.List<java.io.File> files) {
+        return files.stream().anyMatch(this::isXmlFile);
+    }
+
+    /**
+     * Check if a file is an XML file based on its extension
+     */
+    private boolean isXmlFile(java.io.File file) {
+        String fileName = file.getName().toLowerCase();
+        return fileName.endsWith(".xml") || fileName.endsWith(".xsd") || fileName.endsWith(".xsl") ||
+                fileName.endsWith(".xslt") || fileName.endsWith(".wsdl");
+    }
+    
 }
