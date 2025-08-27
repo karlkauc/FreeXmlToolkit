@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +37,7 @@ public class XmlIntelliSenseEngine {
     private final CompletionCache completionCache;
     private final XsdDocumentationExtractor documentationExtractor;
     private final SchemaValidator schemaValidator;
+    private final AtomicInteger threadCounter = new AtomicInteger(0);
 
     // Pattern matching for XML structures
     private static final Pattern TAG_PATTERN = Pattern.compile("</?([\\w:.-]+)(?:\\s+[^>]*)?>", Pattern.MULTILINE);
@@ -69,7 +71,7 @@ public class XmlIntelliSenseEngine {
         this.executorService = Executors.newCachedThreadPool(r -> {
             Thread thread = new Thread(r);
             thread.setDaemon(true);
-            thread.setName("XmlIntelliSense-" + thread.getId());
+            thread.setName("XmlIntelliSense-" + threadCounter.incrementAndGet());
             return thread;
         });
         this.completionCache = new CompletionCache();

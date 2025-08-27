@@ -59,6 +59,13 @@ public class SchematronController {
     @FXML
     private ToolBar toolbar;
 
+    // Code Tab Buttons
+    @FXML
+    private Button loadSchematronFileButton;
+
+    @FXML
+    private Button saveSchematronButton;
+
     @FXML
     private Button newRuleButton;
 
@@ -1590,5 +1597,103 @@ public class SchematronController {
             return "";
         }
         return name.substring(lastIndexOf + 1);
+    }
+
+    // ==================== CODE TAB HANDLERS ====================
+
+    /**
+     * Load a Schematron file using file chooser
+     */
+    @FXML
+    private void loadSchematronFile() {
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Load Schematron File");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Schematron files (*.sch)", "*.sch"),
+                    new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"),
+                    new FileChooser.ExtensionFilter("All files (*.*)", "*.*")
+            );
+
+            // Set initial directory to user's Documents folder or current directory
+            File initialDir = new File(System.getProperty("user.home", "."));
+            if (initialDir.exists() && initialDir.isDirectory()) {
+                fileChooser.setInitialDirectory(initialDir);
+            }
+
+            File selectedFile = fileChooser.showOpenDialog(loadSchematronFileButton.getScene().getWindow());
+            if (selectedFile != null && selectedFile.exists()) {
+                loadSchematronFile(selectedFile);
+                logger.info("Schematron file loaded from: {}", selectedFile.getAbsolutePath());
+            }
+
+        } catch (Exception e) {
+            logger.error("Error loading Schematron file: {}", e.getMessage(), e);
+            showError("Load Error", "Failed to load Schematron file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Save current Schematron content
+     */
+    @FXML
+    private void saveSchematron() {
+        try {
+            if (currentSchematronFile != null) {
+                // Save to existing file
+                saveSchematronFile();
+            } else {
+                // Save as new file
+                saveSchematronAs();
+            }
+        } catch (Exception e) {
+            logger.error("Error saving Schematron: {}", e.getMessage(), e);
+            showError("Save Error", "Failed to save Schematron file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Save Schematron content as new file
+     */
+    private void saveSchematronAs() {
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save Schematron File");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Schematron files (*.sch)", "*.sch"),
+                    new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml")
+            );
+
+            // Set initial directory and filename
+            File initialDir = new File(System.getProperty("user.home", "."));
+            if (currentSchematronFile != null) {
+                initialDir = currentSchematronFile.getParentFile();
+                fileChooser.setInitialFileName(currentSchematronFile.getName());
+            } else {
+                fileChooser.setInitialFileName("schematron.sch");
+            }
+
+            if (initialDir != null && initialDir.exists() && initialDir.isDirectory()) {
+                fileChooser.setInitialDirectory(initialDir);
+            }
+
+            File selectedFile = fileChooser.showSaveDialog(saveSchematronButton.getScene().getWindow());
+            if (selectedFile != null) {
+                // Ensure .sch extension if not provided
+                String fileName = selectedFile.getName();
+                if (!fileName.contains(".")) {
+                    selectedFile = new File(selectedFile.getParent(), fileName + ".sch");
+                }
+
+                currentSchematronFile = selectedFile;
+                saveSchematronFile();
+                logger.info("Schematron file saved as: {}", selectedFile.getAbsolutePath());
+                showInfo("Save Successful", "Schematron file saved successfully.");
+            }
+
+        } catch (Exception e) {
+            logger.error("Error saving Schematron file as: {}", e.getMessage(), e);
+            showError("Save Error", "Failed to save Schematron file: " + e.getMessage());
+        }
     }
 }
