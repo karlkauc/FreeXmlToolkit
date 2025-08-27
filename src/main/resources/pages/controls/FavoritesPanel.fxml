@@ -24,15 +24,21 @@
             <Region HBox.hgrow="ALWAYS"/>
 
             <!-- Action Buttons -->
-            <Button fx:id="syncButton" styleClass="icon-button" tooltip="Sync Favorites">
+            <Button fx:id="syncButton" styleClass="icon-button">
                 <graphic>
                     <FontIcon iconLiteral="bi-cloud-arrow-down" iconSize="14" iconColor="#4a90e2"/>
                 </graphic>
+                <tooltip>
+                    <Tooltip text="Sync Favorites"/>
+                </tooltip>
             </Button>
-            <Button fx:id="settingsButton" styleClass="icon-button" tooltip="Settings">
+            <Button fx:id="settingsButton" styleClass="icon-button">
                 <graphic>
                     <FontIcon iconLiteral="bi-gear" iconSize="14" iconColor="#6c757d"/>
                 </graphic>
+                <tooltip>
+                    <Tooltip text="Settings"/>
+                </tooltip>
             </Button>
         </HBox>
 

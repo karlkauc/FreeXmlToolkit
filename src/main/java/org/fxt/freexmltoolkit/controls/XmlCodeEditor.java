@@ -3598,17 +3598,70 @@ public class XmlCodeEditor extends VBox {
         if (tagName != null && !tagName.isEmpty()) {
             // Check if this is not a self-closing tag or XML declaration
             if (!isSelfClosingTag(tagName) && !isSpecialTag(tagName)) {
-                // Generate the closing tag
-                String closingTag = "</" + tagName + ">";
+                // Generate content to insert
+                StringBuilder contentToInsert = new StringBuilder();
+                int finalCursorPosition = caretPosition;
 
-                // Insert the closing tag at the current cursor position
+                // Check if XSD is available and get mandatory child elements
+                List<String> mandatoryChildren = getMandatoryChildElementsFromXsd(tagName);
+
+                if (mandatoryChildren != null && !mandatoryChildren.isEmpty()) {
+                    // Get current indentation
+                    String currentIndentation = getCurrentLineIndentation(newText, caretPosition);
+                    String childIndentation = currentIndentation + "  "; // 2 spaces for child indentation
+
+                    // Add line break and mandatory child elements
+                    contentToInsert.append("\n");
+
+                    for (String childElement : mandatoryChildren) {
+                        // Get mandatory children of this child element recursively
+                        List<String> grandchildren = getMandatoryChildElementsFromXsd(childElement);
+
+                        contentToInsert.append(childIndentation)
+                                .append("<").append(childElement).append(">");
+
+                        if (grandchildren != null && !grandchildren.isEmpty()) {
+                            // This child has mandatory children, add them recursively
+                            String grandchildIndentation = childIndentation + "  ";
+                            contentToInsert.append("\n");
+
+                            for (String grandchild : grandchildren) {
+                                contentToInsert.append(grandchildIndentation)
+                                        .append("<").append(grandchild).append("></").append(grandchild).append(">\n");
+                            }
+
+                            contentToInsert.append(childIndentation);
+                        }
+
+                        contentToInsert.append("</").append(childElement).append(">\n");
+                    }
+
+                    contentToInsert.append(currentIndentation);
+                    finalCursorPosition = caretPosition + 1; // Position after the first newline
+                } else {
+                    // No mandatory children, position cursor between tags as before
+                    finalCursorPosition = caretPosition;
+                }
+
+                // Add the closing tag
+                String closingTag = "</" + tagName + ">";
+                contentToInsert.append(closingTag);
+
+                // Insert all content at once
+                String finalContent = contentToInsert.toString();
+                int finalPos = finalCursorPosition;
+                
                 Platform.runLater(() -> {
-                    codeArea.insertText(caretPosition, closingTag);
-                    // Position cursor between the tags (after the ">" of opening tag)
-                    codeArea.moveTo(caretPosition);
+                    codeArea.insertText(caretPosition, finalContent);
+                    // Position cursor appropriately
+                    codeArea.moveTo(finalPos);
                 });
 
-                logger.debug("Auto-completed tag: {} -> {}", tagName, closingTag);
+                if (mandatoryChildren != null && !mandatoryChildren.isEmpty()) {
+                    logger.debug("Auto-completed tag with mandatory children: {} -> {} mandatory children", tagName, mandatoryChildren.size());
+                } else {
+                    logger.debug("Auto-completed tag: {} -> {}", tagName, closingTag);
+                }
             }
         }
     }
@@ -3695,5 +3748,113 @@ public class XmlCodeEditor extends VBox {
 
         // XML declarations, processing instructions, etc.
         return tagName.startsWith("?") || tagName.startsWith("!") || tagName.contains("?");
+    }
+
+    /**
+     * Gets mandatory child elements from XSD for a given element name.
+     *
+     * @param elementName The parent element name
+     * @return List of mandatory child element names, or null if no XSD or no mandatory children
+     */
+    private List<String> getMandatoryChildElementsFromXsd(String elementName) {
+        try {
+            if (parentXmlEditor == null) {
+                logger.debug("No parent XML editor available for XSD lookup");
+                return null;
+            }
+
+            // parentXmlEditor is already XmlEditor type, no cast needed
+            var xsdDocumentationData = parentXmlEditor.getXsdDocumentationData();
+            if (xsdDocumentationData == null) {
+                logger.debug("No XSD documentation data available");
+                return null;
+            }
+
+            // Find the element in XSD documentation data
+            Map<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
+
+            // Look for exact element name match or xpath ending with element name
+            org.fxt.freexmltoolkit.domain.XsdExtendedElement targetElement = null;
+
+            for (Map.Entry<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> entry : elementMap.entrySet()) {
+                org.fxt.freexmltoolkit.domain.XsdExtendedElement element = entry.getValue();
+                if (elementName.equals(element.getElementName())) {
+                    targetElement = element;
+                    break;
+                }
+            }
+
+            if (targetElement == null) {
+                logger.debug("Element '{}' not found in XSD documentation data", elementName);
+                return null;
+            }
+
+            List<String> children = targetElement.getChildren();
+            if (children == null || children.isEmpty()) {
+                logger.debug("Element '{}' has no children in XSD", elementName);
+                return null;
+            }
+
+            // Filter only mandatory children
+            List<String> mandatoryChildren = new ArrayList<>();
+
+            for (String childPath : children) {
+                // Find the child element in the map
+                org.fxt.freexmltoolkit.domain.XsdExtendedElement childElement = elementMap.get(childPath);
+                if (childElement != null && childElement.isMandatory()) {
+                    String childElementName = childElement.getElementName();
+                    if (childElementName != null && !childElementName.startsWith("@")) { // Exclude attributes
+                        mandatoryChildren.add(childElementName);
+                    }
+                }
+            }
+
+            if (mandatoryChildren.isEmpty()) {
+                logger.debug("Element '{}' has no mandatory children", elementName);
+                return null;
+            }
+
+            logger.debug("Found {} mandatory children for '{}': {}", mandatoryChildren.size(), elementName, mandatoryChildren);
+            return mandatoryChildren;
+
+        } catch (Exception e) {
+            logger.error("Error getting mandatory child elements from XSD for '{}': {}", elementName, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Gets the current line indentation by looking backwards from the cursor position.
+     *
+     * @param text          The full text content
+     * @param caretPosition The current cursor position
+     * @return The indentation string (spaces/tabs) of the current line
+     */
+    private String getCurrentLineIndentation(String text, int caretPosition) {
+        if (text == null || caretPosition <= 0) {
+            return "";
+        }
+
+        // Find the start of the current line
+        int lineStart = caretPosition - 1;
+        while (lineStart > 0 && text.charAt(lineStart) != '\n') {
+            lineStart--;
+        }
+        if (text.charAt(lineStart) == '\n') {
+            lineStart++; // Move past the newline character
+        }
+
+        // Count leading spaces/tabs
+        StringBuilder indentation = new StringBuilder();
+        for (int i = lineStart; i < text.length() && i < caretPosition; i++) {
+            char ch = text.charAt(i);
+            if (ch == ' ' || ch == '\t') {
+                indentation.append(ch);
+            } else {
+                break;
+            }
+        }
+
+        return indentation.toString();
     }
 }

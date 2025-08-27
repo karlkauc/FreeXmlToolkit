@@ -53,14 +53,15 @@
             </tooltip>
         </Button>
 
-        <MenuButton fx:id="loadFavoritesButton" contentDisplay="TOP" text="Favorites">
+        <ToggleButton fx:id="toggleFavoritesButton" contentDisplay="TOP" text="Favorites"
+                      onAction="#toggleFavoritesPanel">
             <graphic>
                 <FontIcon iconColor="#ffc107" iconLiteral="bi-star-fill" iconSize="16"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Load from favorites"/>
+                <Tooltip text="Toggle Favorites Manager"/>
             </tooltip>
-        </MenuButton>
+        </ToggleButton>
 
         <Separator orientation="VERTICAL" prefHeight="25"/>
 
@@ -161,9 +162,15 @@
 
     <!-- NEW: SplitPane to make the editor and development panes resizable -->
     <SplitPane fx:id="mainSplitPane" orientation="VERTICAL" VBox.vgrow="ALWAYS" dividerPositions="0.75">
-        <!-- Main Content Area -->
-        <TabPane fx:id="xmlFilesPane" side="TOP"
-                 styleClass="xml-editor-tabs" minHeight="300"/>
+        <!-- Main Content Area with Horizontal Split for Favorites Panel -->
+        <SplitPane fx:id="horizontalSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
+            <!-- Main Editor Tabs -->
+            <TabPane fx:id="xmlFilesPane" side="TOP"
+                     styleClass="xml-editor-tabs" minHeight="300"/>
+
+            <!-- Favorites Panel Sidebar -->
+            <fx:include fx:id="favoritesPanel" source="controls/FavoritesPanel.fxml"/>
+        </SplitPane>
 
         <!-- Advanced Development Panels - Bottom Tabs -->
         <TabPane fx:id="developmentTabPane" side="BOTTOM" tabClosingPolicy="SELECTED_TAB" prefHeight="180" minHeight="150">

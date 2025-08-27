@@ -113,10 +113,7 @@ public class FavoritesPanelController implements Initializable {
         // Setup search field
         searchField.textProperty().addListener((obs, oldText, newText) -> filterFavorites(newText));
 
-        // Apply XMLSpy-style tooltips
-        Tooltip.install(syncButton, new Tooltip("Synchronize favorites across devices"));
-        Tooltip.install(settingsButton, new Tooltip("Configure favorites settings"));
-        Tooltip.install(addButton, new Tooltip("Add current file to favorites"));
+        // Tooltips are now defined in FXML
     }
 
     private void setupEventHandlers() {

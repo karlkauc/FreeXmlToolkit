@@ -45,12 +45,12 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxt.freexmltoolkit.controller.controls.FavoritesPanelController;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.service.*;
-import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -132,7 +132,7 @@ public class XmlUltimateController implements Initializable {
     @FXML
     private Button addToFavoritesButton;
     @FXML
-    private MenuButton loadFavoritesButton;
+    private ToggleButton toggleFavoritesButton;
 
     // Main Editor
     @FXML
@@ -159,6 +159,15 @@ public class XmlUltimateController implements Initializable {
     private TabPane developmentTabPane;
     @FXML
     private SplitPane mainSplitPane; // Add this FXML element
+    @FXML
+    private SplitPane horizontalSplitPane; // Horizontal split for favorites panel
+
+    // Favorites Panel
+    @FXML
+    private FavoritesPanelController favoritesPanelController;
+
+    // Store favorites panel node for show/hide functionality
+    private javafx.scene.Node favoritesPanelNode;
 
     // XPath/XQuery
     @FXML
@@ -515,8 +524,26 @@ public class XmlUltimateController implements Initializable {
     }
 
     private void initializeFavorites() {
-        // Initialize the favorites menu
-        Platform.runLater(() -> refreshFavoritesMenu());
+        // Initialize the favorites panel controller
+        if (favoritesPanelController != null) {
+            favoritesPanelController.setParentController(this);
+            logger.debug("Favorites panel controller initialized");
+        } else {
+            logger.warn("Favorites panel controller is null - favorites panel may not be properly integrated");
+        }
+
+        // Store the favorites panel node for show/hide functionality
+        if (horizontalSplitPane != null && horizontalSplitPane.getItems().size() > 1) {
+            favoritesPanelNode = horizontalSplitPane.getItems().get(1); // Second item is the favorites panel
+            logger.debug("Favorites panel node stored for toggle functionality");
+        }
+
+        // Initialize toggle button state - panel starts hidden
+        if (toggleFavoritesButton != null) {
+            toggleFavoritesButton.setSelected(false);
+            setFavoritesPanelVisible(false);
+        }
+        
         logger.debug("Favorites system initialized");
     }
 
@@ -928,131 +955,30 @@ public class XmlUltimateController implements Initializable {
         Optional<org.fxt.freexmltoolkit.domain.FileFavorite> result = dialog.showAndWait();
         result.ifPresent(favorite -> {
             favoritesService.addFavorite(favorite);
-            refreshFavoritesMenu();
             showAlert(Alert.AlertType.INFORMATION, "Success", "File added to favorites successfully!");
             logger.info("Added {} to favorites in category {}", favorite.getName(), favorite.getFolderName());
         });
     }
 
-    private void refreshFavoritesMenu() {
-        if (loadFavoritesButton == null) return;
+    @FXML
+    public void toggleFavoritesPanel() {
+        logger.info("Toggling Favorites Panel");
 
-        loadFavoritesButton.getItems().clear();
-
-        // Get all favorites organized by folders
-        Set<String> folders = favoritesService.getAllFolders();
-
-        if (folders.isEmpty() || (folders.size() == 1 && folders.contains("Uncategorized"))) {
-            // No favorites yet
-            MenuItem noFavoritesItem = new MenuItem("No favorites yet");
-            noFavoritesItem.setDisable(true);
-            loadFavoritesButton.getItems().add(noFavoritesItem);
+        if (toggleFavoritesButton == null || horizontalSplitPane == null) {
+            logger.warn("Cannot toggle favorites panel: required components are null");
             return;
         }
 
-        // Add favorites by category
-        for (String folder : folders) {
-            List<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesInFolder = favoritesService.getFavoritesByFolder(folder);
-            if (favoritesInFolder.isEmpty()) continue;
+        // Use the toggle button's selected state to determine what to do
+        boolean shouldBeVisible = toggleFavoritesButton.isSelected();
 
-            if (folders.size() > 1) {
-                // Add category header if there are multiple categories
-                Menu categoryMenu = new Menu(folder);
-                categoryMenu.getStyleClass().add("favorites-category");
+        setFavoritesPanelVisible(shouldBeVisible);
 
-                for (org.fxt.freexmltoolkit.domain.FileFavorite favorite : favoritesInFolder) {
-                    MenuItem favoriteItem = createFavoriteMenuItem(favorite);
-                    categoryMenu.getItems().add(favoriteItem);
-                }
-
-                loadFavoritesButton.getItems().add(categoryMenu);
-            } else {
-                // If only one category, add items directly
-                for (org.fxt.freexmltoolkit.domain.FileFavorite favorite : favoritesInFolder) {
-                    MenuItem favoriteItem = createFavoriteMenuItem(favorite);
-                    loadFavoritesButton.getItems().add(favoriteItem);
-                }
-            }
-        }
-
-        // Add separator and management options
-        loadFavoritesButton.getItems().add(new SeparatorMenuItem());
-
-        MenuItem manageFavoritesItem = new MenuItem("Manage Favorites...");
-        manageFavoritesItem.setOnAction(e -> showFavoritesManagement());
-        loadFavoritesButton.getItems().add(manageFavoritesItem);
-
-        MenuItem cleanupItem = new MenuItem("Remove Non-Existent Files");
-        cleanupItem.setOnAction(e -> {
-            favoritesService.cleanupNonExistentFiles();
-            refreshFavoritesMenu();
-            showAlert(Alert.AlertType.INFORMATION, "Cleanup Complete", "Removed non-existent files from favorites.");
-        });
-        loadFavoritesButton.getItems().add(cleanupItem);
+        logToConsole("Favorites panel " + (shouldBeVisible ? "shown" : "hidden"));
+        logger.debug("Favorites panel toggled to: {}", shouldBeVisible ? "visible" : "hidden");
     }
 
-    private MenuItem createFavoriteMenuItem(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
-        MenuItem item = new MenuItem(favorite.getName());
 
-        // Set icon based on file type
-        FontIcon icon = new FontIcon(favorite.getFileType().getIconLiteral());
-        icon.setIconColor(javafx.scene.paint.Color.web(favorite.getFileType().getDefaultColor()));
-        icon.setIconSize(14);
-        item.setGraphic(icon);
-
-        // Add tooltip with file path and description
-        String tooltipText = favorite.getFilePath();
-        if (favorite.getDescription() != null && !favorite.getDescription().trim().isEmpty()) {
-            tooltipText += "\n" + favorite.getDescription();
-        }
-        Tooltip.install(item.getGraphic(), new Tooltip(tooltipText));
-
-        // Set action to load the file
-        item.setOnAction(e -> loadFavoriteFile(favorite));
-
-        return item;
-    }
-
-    private void loadFavoriteFile(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
-        File file = new File(favorite.getFilePath());
-
-        if (!file.exists()) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("File Not Found");
-            alert.setHeaderText("Cannot open favorite file");
-            alert.setContentText("The file \"" + file.getName() + "\" no longer exists at:\n" + favorite.getFilePath());
-
-            // Offer to remove from favorites
-            ButtonType removeButton = new ButtonType("Remove from Favorites");
-            ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-            alert.getButtonTypes().setAll(removeButton, cancelButton);
-
-            Optional<ButtonType> result = alert.showAndWait();
-            if (result.isPresent() && result.get() == removeButton) {
-                favoritesService.removeFavorite(favorite.getId());
-                refreshFavoritesMenu();
-            }
-            return;
-        }
-
-        try {
-            // Load the file in the current editor
-            loadXmlFile(file);
-
-            // Update last accessed time
-            favoritesService.updateFavorite(favorite);
-
-            logger.info("Loaded favorite file: {}", favorite.getName());
-        } catch (Exception e) {
-            logger.error("Error loading favorite file: {}", favorite.getName(), e);
-            showAlert(Alert.AlertType.ERROR, "Error", "Failed to load favorite file:\n" + e.getMessage());
-        }
-    }
-
-    private void showFavoritesManagement() {
-        // This will be implemented when we create the settings UI
-        showAlert(Alert.AlertType.INFORMATION, "Coming Soon", "Favorites management will be available in Settings.");
-    }
 
     @FXML
     private void showSchemaGenerator() {
@@ -1775,6 +1701,65 @@ public class XmlUltimateController implements Initializable {
             logger.debug("Applied sidebar visibility to {} XML editor tabs", xmlFilesPane.getTabs().size());
         } else {
             logger.warn("Cannot set XML Editor sidebar visibility: xmlFilesPane is null");
+        }
+    }
+
+    /**
+     * Sets the visibility of the Favorites Panel by completely removing/adding it to the SplitPane
+     * When hidden, replaces the SplitPane with just the XML editor to remove empty space
+     *
+     * @param isVisible true to show the panel, false to hide it completely
+     */
+    public void setFavoritesPanelVisible(boolean isVisible) {
+        logger.debug("Setting Favorites Panel visibility to: {}", isVisible);
+
+        if (mainSplitPane == null || horizontalSplitPane == null || xmlFilesPane == null || favoritesPanelNode == null) {
+            logger.warn("Cannot set Favorites Panel visibility: required components are null");
+            return;
+        }
+
+        if (isVisible) {
+            // Show the favorites panel by restoring the horizontal SplitPane structure
+            if (!mainSplitPane.getItems().contains(horizontalSplitPane)) {
+                // Replace xmlFilesPane with horizontalSplitPane in mainSplitPane
+                int xmlFilesIndex = mainSplitPane.getItems().indexOf(xmlFilesPane);
+                if (xmlFilesIndex >= 0) {
+                    mainSplitPane.getItems().set(xmlFilesIndex, horizontalSplitPane);
+                } else {
+                    mainSplitPane.getItems().add(0, horizontalSplitPane);
+                }
+
+                // Ensure both components are in the horizontal SplitPane
+                if (!horizontalSplitPane.getItems().contains(xmlFilesPane)) {
+                    horizontalSplitPane.getItems().add(0, xmlFilesPane);
+                }
+                if (!horizontalSplitPane.getItems().contains(favoritesPanelNode)) {
+                    horizontalSplitPane.getItems().add(favoritesPanelNode);
+                }
+
+                // Set the divider position to give 25% to favorites panel
+                Platform.runLater(() -> horizontalSplitPane.setDividerPositions(0.75));
+                logger.debug("Favorites panel restored in horizontal SplitPane with 25% width");
+            } else {
+                // Horizontal SplitPane already exists, just add favorites panel if needed
+                if (!horizontalSplitPane.getItems().contains(favoritesPanelNode)) {
+                    horizontalSplitPane.getItems().add(favoritesPanelNode);
+                    Platform.runLater(() -> horizontalSplitPane.setDividerPositions(0.75));
+                    logger.debug("Favorites panel added to existing horizontal SplitPane");
+                }
+            }
+        } else {
+            // Hide the favorites panel by replacing horizontal SplitPane with just xmlFilesPane
+            if (mainSplitPane.getItems().contains(horizontalSplitPane)) {
+                // Remove xmlFilesPane from horizontal SplitPane first
+                horizontalSplitPane.getItems().remove(xmlFilesPane);
+                // Replace horizontal SplitPane with xmlFilesPane directly in mainSplitPane
+                int horizontalSplitIndex = mainSplitPane.getItems().indexOf(horizontalSplitPane);
+                mainSplitPane.getItems().set(horizontalSplitIndex, xmlFilesPane);
+                logger.debug("Horizontal SplitPane replaced with xmlFilesPane directly - favorites panel completely hidden");
+            } else {
+                logger.debug("Favorites panel already hidden");
+            }
         }
     }
 
