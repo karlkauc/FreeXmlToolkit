@@ -169,6 +169,10 @@ public class XmlUltimateController implements Initializable {
     // Store favorites panel node for show/hide functionality
     private javafx.scene.Node favoritesPanelNode;
 
+    // XSLT Development Code Editors
+    private XmlCodeEditor xmlSourceEditor;
+    private XmlCodeEditor xsltStylesheetEditor;
+
     // XPath/XQuery
     @FXML
     private Tab xPathQueryTab;
@@ -199,7 +203,13 @@ public class XmlUltimateController implements Initializable {
     @FXML
     private Button transformButton;
     @FXML
-    private TextArea xsltEditorArea;
+    private StackPane xmlSourceEditorPane;
+    @FXML
+    private StackPane xsltEditorPane;
+    @FXML
+    private Button loadXmlSourceButton;
+    @FXML
+    private Button saveXmlSourceButton;
     @FXML
     private ComboBox<String> outputFormatCombo;
     @FXML
@@ -254,6 +264,7 @@ public class XmlUltimateController implements Initializable {
         initializeUI();
         initializeTables();
         initializeXPathXQuery();
+        initializeXsltDevelopment();
         loadTemplates();
         createInitialTab();
         initializeFavorites();
@@ -500,6 +511,32 @@ public class XmlUltimateController implements Initializable {
                 }
             });
         }
+    }
+
+    private void initializeXsltDevelopment() {
+        logger.info("Initializing XSLT Development code editors");
+
+        // Initialize XML Source Editor
+        if (xmlSourceEditorPane != null) {
+            xmlSourceEditor = new XmlCodeEditor();
+            xmlSourceEditor.getCodeArea().replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    <!-- XML Source for XSLT transformation -->\n</root>");
+
+            xmlSourceEditorPane.getChildren().add(xmlSourceEditor);
+
+            logger.debug("XML Source editor initialized in XSLT Development panel");
+        }
+
+        // Initialize XSLT Stylesheet Editor
+        if (xsltEditorPane != null) {
+            xsltStylesheetEditor = new XmlCodeEditor();
+            xsltStylesheetEditor.getCodeArea().replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n    <!-- XSLT Stylesheet -->\n    <xsl:template match=\"/\">\n        <html>\n            <body>\n                <xsl:apply-templates/>\n            </body>\n        </html>\n    </xsl:template>\n</xsl:stylesheet>");
+
+            xsltEditorPane.getChildren().add(xsltStylesheetEditor);
+
+            logger.debug("XSLT Stylesheet editor initialized in XSLT Development panel");
+        }
+
+        logger.info("XSLT Development code editors initialized successfully");
     }
 
     private void loadTemplates() {
@@ -1032,10 +1069,10 @@ public class XmlUltimateController implements Initializable {
         );
 
         File file = fileChooser.showOpenDialog(null);
-        if (file != null && xsltEditorArea != null) {
+        if (file != null && xsltStylesheetEditor != null) {
             try {
                 currentXsltContent = Files.readString(file.toPath());
-                xsltEditorArea.setText(currentXsltContent);
+                xsltStylesheetEditor.getCodeArea().replaceText(currentXsltContent);
                 logToConsole("XSLT loaded: " + file.getName());
             } catch (IOException e) {
                 showError("Load Error", "Could not load XSLT: " + e.getMessage());
@@ -1045,11 +1082,59 @@ public class XmlUltimateController implements Initializable {
     }
 
     @FXML
+    private void loadXmlSourceFile() {
+        logger.info("Loading XML Source for XSLT");
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open XML Source File");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("XML Files", "*.xml")
+        );
+
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null && xmlSourceEditor != null) {
+            try {
+                String xmlContent = Files.readString(file.toPath());
+                xmlSourceEditor.getCodeArea().replaceText(xmlContent);
+                logToConsole("XML Source loaded: " + file.getName());
+            } catch (IOException e) {
+                showError("Load Error", "Could not load XML: " + e.getMessage());
+                logger.error("Failed to load XML Source", e);
+            }
+        }
+    }
+
+    @FXML
+    private void saveXmlSourceFile() {
+        logger.info("Saving XML Source");
+        logToConsole("Saving XML Source...");
+
+        if (xmlSourceEditor != null) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save XML Source File");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("XML Files", "*.xml"),
+                    new FileChooser.ExtensionFilter("All Files", "*.*")
+            );
+
+            File file = fileChooser.showSaveDialog(null);
+            if (file != null) {
+                try {
+                    Files.writeString(file.toPath(), xmlSourceEditor.getCodeArea().getText());
+                    logToConsole("XML Source saved: " + file.getName());
+                } catch (IOException e) {
+                    showError("Save Error", "Could not save XML: " + e.getMessage());
+                    logger.error("Failed to save XML Source", e);
+                }
+            }
+        }
+    }
+
+    @FXML
     private void saveXsltFile() {
         logger.info("Saving XSLT");
         logToConsole("Saving XSLT stylesheet...");
 
-        if (xsltEditorArea != null) {
+        if (xsltStylesheetEditor != null) {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save XSLT File");
             fileChooser.getExtensionFilters().add(
@@ -1059,7 +1144,7 @@ public class XmlUltimateController implements Initializable {
             File file = fileChooser.showSaveDialog(null);
             if (file != null) {
                 try {
-                    Files.writeString(file.toPath(), xsltEditorArea.getText());
+                    Files.writeString(file.toPath(), xsltStylesheetEditor.getCodeArea().getText());
                     logToConsole("XSLT saved: " + file.getName());
                 } catch (IOException e) {
                     showError("Save Error", "Could not save XSLT: " + e.getMessage());
@@ -1074,10 +1159,10 @@ public class XmlUltimateController implements Initializable {
         logger.info("Executing XSLT Transformation");
         logToConsole("Executing XSLT transformation...");
 
-        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
-        if (currentTab != null && currentTab instanceof XmlEditor editor && xsltEditorArea != null) {
-            String xml = editor.codeArea.getText();
-            String xslt = xsltEditorArea.getText();
+        // Use XML from xmlSourceEditor instead of current tab
+        if (xmlSourceEditor != null && xsltStylesheetEditor != null) {
+            String xml = xmlSourceEditor.getCodeArea().getText();
+            String xslt = xsltStylesheetEditor.getCodeArea().getText();
 
             if (xslt.isEmpty()) {
                 showError("XSLT Error", "Please load or enter an XSLT stylesheet");

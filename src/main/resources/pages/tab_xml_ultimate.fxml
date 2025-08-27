@@ -247,22 +247,38 @@
 
             <!-- XSLT Development Panel -->
             <Tab fx:id="xsltDevelopmentTab" text="XSLT Development">
-                <SplitPane dividerPositions="0.6" orientation="HORIZONTAL">
-                    <!-- XSLT Editor -->
-                    <VBox spacing="5">
-                        <padding>
-                            <Insets top="5" bottom="5" left="5" right="5"/>
-                        </padding>
-                        <HBox spacing="5" alignment="CENTER_LEFT">
-                            <Label text="XSLT Stylesheet:" styleClass="section-label"/>
-                            <Button fx:id="loadXsltButton" text="Load" onAction="#loadXsltFile"/>
-                            <Button fx:id="saveXsltButton" text="Save" onAction="#saveXsltFile"/>
-                            <Separator orientation="VERTICAL"/>
-                            <Button fx:id="transformButton" text="Transform" onAction="#executeTransformation"
-                                    styleClass="btn-primary"/>
-                        </HBox>
-                        <TextArea fx:id="xsltEditorArea" VBox.vgrow="ALWAYS" styleClass="code-editor" wrapText="false"/>
-                    </VBox>
+                <SplitPane dividerPositions="0.5" orientation="HORIZONTAL">
+                    <!-- Left Side: XML Source and XSLT Stylesheet -->
+                    <SplitPane dividerPositions="0.5" orientation="VERTICAL">
+                        <!-- XML Source Editor -->
+                        <VBox spacing="5">
+                            <padding>
+                                <Insets top="5" bottom="5" left="5" right="5"/>
+                            </padding>
+                            <HBox spacing="5" alignment="CENTER_LEFT">
+                                <Label text="XML Source:" styleClass="section-label"/>
+                                <Button fx:id="loadXmlSourceButton" text="Load" onAction="#loadXmlSourceFile"/>
+                                <Button fx:id="saveXmlSourceButton" text="Save" onAction="#saveXmlSourceFile"/>
+                            </HBox>
+                            <StackPane fx:id="xmlSourceEditorPane" VBox.vgrow="ALWAYS" minHeight="100"/>
+                        </VBox>
+
+                        <!-- XSLT Stylesheet Editor -->
+                        <VBox spacing="5">
+                            <padding>
+                                <Insets top="5" bottom="5" left="5" right="5"/>
+                            </padding>
+                            <HBox spacing="5" alignment="CENTER_LEFT">
+                                <Label text="XSLT Stylesheet:" styleClass="section-label"/>
+                                <Button fx:id="loadXsltButton" text="Load" onAction="#loadXsltFile"/>
+                                <Button fx:id="saveXsltButton" text="Save" onAction="#saveXsltFile"/>
+                                <Separator orientation="VERTICAL"/>
+                                <Button fx:id="transformButton" text="Transform" onAction="#executeTransformation"
+                                        styleClass="btn-primary"/>
+                            </HBox>
+                            <StackPane fx:id="xsltEditorPane" VBox.vgrow="ALWAYS" minHeight="100"/>
+                        </VBox>
+                    </SplitPane>
 
                     <!-- Transformation Results -->
                     <VBox spacing="5">

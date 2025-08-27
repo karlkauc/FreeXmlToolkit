@@ -88,9 +88,7 @@
                             </Button>
                         </HBox>
 
-                        <TextArea fx:id="xmlInputArea" VBox.vgrow="ALWAYS" styleClass="code-input"
-                                  promptText="Enter or load your XML source document..."
-                                  wrapText="false"/>
+                        <StackPane fx:id="xmlInputEditorPane" VBox.vgrow="ALWAYS" minHeight="200"/>
                     </VBox>
                 </Tab>
 
@@ -118,9 +116,7 @@
                             </Button>
                         </HBox>
 
-                        <TextArea fx:id="xsltInputArea" VBox.vgrow="ALWAYS" styleClass="code-input"
-                                  promptText="Enter or load your XSLT stylesheet..."
-                                  wrapText="false"/>
+                        <StackPane fx:id="xsltInputEditorPane" VBox.vgrow="ALWAYS" minHeight="200"/>
                     </VBox>
                 </Tab>
 

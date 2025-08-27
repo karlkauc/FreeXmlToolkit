@@ -28,10 +28,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 
@@ -76,9 +78,14 @@ public class XsltDeveloperController {
     @FXML
     private TabPane inputTabPane;
     @FXML
-    private TextArea xmlInputArea;
+    private StackPane xmlInputEditorPane;
     @FXML
-    private TextArea xsltInputArea;
+    private StackPane xsltInputEditorPane;
+
+    // XmlCodeEditor instances for enhanced editing
+    private XmlCodeEditor xmlInputEditor;
+    private XmlCodeEditor xsltInputEditor;
+    
     @FXML
     private Button loadXmlBtn;
     @FXML
@@ -161,6 +168,7 @@ public class XsltDeveloperController {
         logger.info("Initializing Advanced XSLT Developer Controller - Revolutionary Feature #2");
 
         initializeUI();
+        initializeEditors();
         setupEventHandlers();
         setDefaultValues();
 
@@ -211,6 +219,28 @@ public class XsltDeveloperController {
         }
     }
 
+    private void initializeEditors() {
+        logger.info("Initializing XmlCodeEditor instances for XSLT Developer");
+
+        // Initialize XML Input Editor
+        if (xmlInputEditorPane != null) {
+            xmlInputEditor = new XmlCodeEditor();
+            xmlInputEditor.getCodeArea().replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    <!-- Enter or load your XML source document here -->\n</root>");
+            xmlInputEditorPane.getChildren().add(xmlInputEditor);
+            logger.debug("XML Input Editor initialized");
+        }
+
+        // Initialize XSLT Input Editor
+        if (xsltInputEditorPane != null) {
+            xsltInputEditor = new XmlCodeEditor();
+            xsltInputEditor.getCodeArea().replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n    <!-- Enter or load your XSLT stylesheet here -->\n    <xsl:template match=\"/\">\n        <html>\n            <body>\n                <xsl:apply-templates/>\n            </body>\n        </html>\n    </xsl:template>\n</xsl:stylesheet>");
+            xsltInputEditorPane.getChildren().add(xsltInputEditor);
+            logger.debug("XSLT Input Editor initialized");
+        }
+
+        logger.info("XmlCodeEditor instances initialized successfully");
+    }
+
     private void setupEventHandlers() {
         // Live transform toggle
         if (liveTransformToggle != null) {
@@ -238,16 +268,16 @@ public class XsltDeveloperController {
         }
 
         // Input area changes for live transform
-        if (xmlInputArea != null) {
-            xmlInputArea.textProperty().addListener((obs, oldText, newText) -> {
+        if (xmlInputEditor != null) {
+            xmlInputEditor.getCodeArea().textProperty().addListener((obs, oldText, newText) -> {
                 if (liveTransformToggle != null && liveTransformToggle.isSelected()) {
                     performTransformation();
                 }
             });
         }
 
-        if (xsltInputArea != null) {
-            xsltInputArea.textProperty().addListener((obs, oldText, newText) -> {
+        if (xsltInputEditor != null) {
+            xsltInputEditor.getCodeArea().textProperty().addListener((obs, oldText, newText) -> {
                 if (liveTransformToggle != null && liveTransformToggle.isSelected()) {
                     performTransformation();
                 }
@@ -258,71 +288,16 @@ public class XsltDeveloperController {
     private void setDefaultValues() {
         if (indentOutputCheckbox != null) indentOutputCheckbox.setSelected(true);
 
-        // Add sample content to help users get started
-        if (xmlInputArea != null && xmlInputArea.getText().trim().isEmpty()) {
-            xmlInputArea.setText("""
-                    <?xml version="1.0" encoding="UTF-8"?>
-                    <catalog>
-                        <book id="1">
-                            <title>Learning XSLT</title>
-                            <author>Michael Kay</author>
-                            <price>39.99</price>
-                            <genre>Technical</genre>
-                        </book>
-                        <book id="2">
-                            <title>XML Processing</title>
-                            <author>Doug Tidwell</author>
-                            <price>29.99</price>
-                            <genre>Technical</genre>
-                        </book>
-                    </catalog>
-                    """);
+        // Default content is now set in initializeEditors() method
+
+        // Initialize development environment settings
+        if (enableDebugMode != null) {
+            enableDebugMode.setSelected(false);
         }
 
-        if (xsltInputArea != null && xsltInputArea.getText().trim().isEmpty()) {
-            xsltInputArea.setText("""
-                    <?xml version="1.0" encoding="UTF-8"?>
-                    <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-                        <xsl:output method="html" indent="yes"/>
-                    
-                        <xsl:template match="/">
-                            <html>
-                                <head>
-                                    <title>Book Catalog</title>
-                                    <style>
-                                        body { font-family: Arial, sans-serif; margin: 20px; }
-                                        table { border-collapse: collapse; width: 100%; }
-                                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                                        th { background-color: #f2f2f2; }
-                                    </style>
-                                </head>
-                                <body>
-                                    <h1>Book Catalog</h1>
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Title</th>
-                                                <th>Author</th>
-                                                <th>Price</th>
-                                                <th>Genre</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <xsl:for-each select="catalog/book">
-                                                <tr>
-                                                    <td><xsl:value-of select="title"/></td>
-                                                    <td><xsl:value-of select="author"/></td>
-                                                    <td>$<xsl:value-of select="price"/></td>
-                                                    <td><xsl:value-of select="genre"/></td>
-                                                </tr>
-                                            </xsl:for-each>
-                                        </tbody>
-                                    </table>
-                                </body>
-                            </html>
-                        </xsl:template>
-                    </xsl:stylesheet>
-                    """);
+        // Set default encoding
+        if (encodingCombo != null) {
+            encodingCombo.setValue("UTF-8");
         }
 
         // Add some sample parameters
@@ -357,8 +332,8 @@ public class XsltDeveloperController {
     }
 
     private void performTransformation() {
-        String xmlContent = xmlInputArea != null ? xmlInputArea.getText().trim() : "";
-        String xsltContent = xsltInputArea != null ? xsltInputArea.getText().trim() : "";
+        String xmlContent = xmlInputEditor != null ? xmlInputEditor.getCodeArea().getText().trim() : "";
+        String xsltContent = xsltInputEditor != null ? xsltInputEditor.getCodeArea().getText().trim() : "";
 
         if (xmlContent.isEmpty() || xsltContent.isEmpty()) {
             if (!liveTransformToggle.isSelected()) {
@@ -505,8 +480,8 @@ public class XsltDeveloperController {
         if (file != null) {
             try {
                 String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-                if (xmlInputArea != null) {
-                    xmlInputArea.setText(content);
+                if (xmlInputEditor != null) {
+                    xmlInputEditor.getCodeArea().replaceText(content);
                 }
                 logger.debug("Loaded XML file: {}", file.getAbsolutePath());
 
@@ -522,12 +497,12 @@ public class XsltDeveloperController {
 
     @FXML
     private void validateXml() {
-        if (xmlInputArea == null || xmlInputArea.getText().trim().isEmpty()) {
+        if (xmlInputEditor == null || xmlInputEditor.getCodeArea().getText().trim().isEmpty()) {
             showAlert("No Content", "No XML content to validate.");
             return;
         }
 
-        String xmlContent = xmlInputArea.getText();
+        String xmlContent = xmlInputEditor.getCodeArea().getText();
 
         Task<String> validationTask = new Task<>() {
             @Override
@@ -598,12 +573,12 @@ public class XsltDeveloperController {
 
     @FXML
     private void validateXslt() {
-        if (xsltInputArea == null || xsltInputArea.getText().trim().isEmpty()) {
+        if (xsltInputEditor == null || xsltInputEditor.getCodeArea().getText().trim().isEmpty()) {
             showAlert("No Content", "No XSLT content to validate.");
             return;
         }
 
-        String xsltContent = xsltInputArea.getText();
+        String xsltContent = xsltInputEditor.getCodeArea().getText();
 
         Task<String> validationTask = new Task<>() {
             @Override
@@ -666,8 +641,8 @@ public class XsltDeveloperController {
         if (file != null) {
             try {
                 String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-                if (xsltInputArea != null) {
-                    xsltInputArea.setText(content);
+                if (xsltInputEditor != null) {
+                    xsltInputEditor.getCodeArea().replaceText(content);
                 }
                 logger.debug("Loaded XSLT file: {}", file.getAbsolutePath());
             } catch (IOException e) {
@@ -679,7 +654,7 @@ public class XsltDeveloperController {
 
     @FXML
     private void saveXsltFile() {
-        if (xsltInputArea == null || xsltInputArea.getText().isEmpty()) {
+        if (xsltInputEditor == null || xsltInputEditor.getCodeArea().getText().isEmpty()) {
             showAlert("No Content", "No XSLT content to save.");
             return;
         }
@@ -695,7 +670,7 @@ public class XsltDeveloperController {
         File file = fileChooser.showSaveDialog(saveXsltBtn.getScene().getWindow());
         if (file != null) {
             try {
-                Files.write(file.toPath(), xsltInputArea.getText().getBytes(StandardCharsets.UTF_8));
+                Files.write(file.toPath(), xsltInputEditor.getCodeArea().getText().getBytes(StandardCharsets.UTF_8));
                 showInfo("Save Successful", "XSLT saved to: " + file.getAbsolutePath());
                 logger.info("XSLT saved to: {}", file.getAbsolutePath());
             } catch (IOException e) {
