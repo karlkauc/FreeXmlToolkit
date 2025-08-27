@@ -84,9 +84,8 @@ public class IntelliSenseDemo extends Application {
                 "-fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8;");
         header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-        FontIcon icon = new FontIcon("bi-lightning-charge");
+        FontIcon icon = createSafeIcon("bi-lightning", "white");
         icon.setIconSize(24);
-        icon.setIconColor(javafx.scene.paint.Color.WHITE);
 
         Label titleLabel = new Label("Enhanced XML IntelliSense Demo");
         titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white;");
@@ -124,11 +123,11 @@ public class IntelliSenseDemo extends Application {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button loadSampleButton = new Button("Load Sample");
-        loadSampleButton.setGraphic(new FontIcon("bi-file-code"));
+        loadSampleButton.setGraphic(createSafeIcon("bi-file", "#2c5aa0"));
         loadSampleButton.setOnAction(e -> loadSampleXml());
 
         Button clearButton = new Button("Clear");
-        clearButton.setGraphic(new FontIcon("bi-eraser"));
+        clearButton.setGraphic(createSafeIcon("bi-x", "#2c5aa0"));
         clearButton.setOnAction(e -> xmlEditor.clear());
 
         editorHeader.getChildren().addAll(editorLabel, spacer, loadSampleButton, clearButton);
@@ -162,7 +161,7 @@ public class IntelliSenseDemo extends Application {
         featuresContainer.getChildren().addAll(
                 createFeatureCard("Enhanced Completion Popup",
                         "Rich 3-panel interface with live preview and documentation",
-                        "bi-window-stack", "#4a90e2", () -> demoCompletionPopup()),
+                        "bi-window", "#4a90e2", () -> demoCompletionPopup()),
 
                 createFeatureCard("Fuzzy Search Engine",
                         "Intelligent search with CamelCase, prefix matching, and relevance scoring",
@@ -170,7 +169,7 @@ public class IntelliSenseDemo extends Application {
 
                 createFeatureCard("Type-aware Attribute Helpers",
                         "Smart input widgets for dates, numbers, booleans, and enumerations",
-                        "bi-ui-checks-grid", "#ffc107", () -> demoAttributeHelpers()),
+                        "bi-ui-checks", "#ffc107", () -> demoAttributeHelpers()),
 
                 createFeatureCard("XSD Documentation Integration",
                         "Rich documentation extracted from XSD annotations and constraints",
@@ -178,7 +177,7 @@ public class IntelliSenseDemo extends Application {
 
                 createFeatureCard("Performance Optimizations",
                         "Lazy loading, caching, and virtual scrolling for large datasets",
-                        "bi-speedometer2", "#fd7e14", () -> demoPerformance())
+                        "bi-speedometer", "#fd7e14", () -> demoPerformance())
         );
 
         ScrollPane featuresScroll = new ScrollPane(featuresContainer);
@@ -200,9 +199,8 @@ public class IntelliSenseDemo extends Application {
         HBox header = new HBox(10);
         header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-        FontIcon icon = new FontIcon(iconLiteral);
+        FontIcon icon = createSafeIcon(iconLiteral, color);
         icon.setIconSize(18);
-        icon.setIconColor(javafx.scene.paint.Color.web(color));
 
         Label titleLabel = new Label(title);
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #2c5aa0;");
@@ -336,7 +334,7 @@ public class IntelliSenseDemo extends Application {
         );
 
         Point2D position = xmlEditor.localToScreen(100, 100);
-        completionPopup.show(null, demoItems, position);
+        completionPopup.show(xmlEditor, demoItems, position);
     }
 
     private void demoFuzzySearch() {
@@ -371,7 +369,7 @@ public class IntelliSenseDemo extends Application {
         List<CompletionItem> largeDataset = generateLargeDataset(1000);
 
         Point2D position = xmlEditor.localToScreen(150, 150);
-        completionPopup.show(null, largeDataset, position);
+        completionPopup.show(xmlEditor, largeDataset, position);
     }
 
     private List<CompletionItem> generateLargeDataset(int count) {
@@ -495,7 +493,24 @@ public class IntelliSenseDemo extends Application {
         logger.info("Status: {}", message);
     }
 
-    public static void main(String[] args) {
+    /**
+     * Creates a FontIcon safely with fallback handling
+     */
+    private FontIcon createSafeIcon(String iconLiteral, String color) {
+        try {
+            FontIcon icon = new FontIcon(iconLiteral);
+            icon.setIconColor(javafx.scene.paint.Color.web(color));
+            return icon;
+        } catch (Exception e) {
+            logger.warn("Failed to create icon '{}', using fallback", iconLiteral, e);
+            // Fallback to a simple circle
+            FontIcon fallbackIcon = new FontIcon("bi-circle");
+            fallbackIcon.setIconColor(javafx.scene.paint.Color.web(color));
+            return fallbackIcon;
+        }
+    }
+
+    static void main(String[] args) {
         launch(args);
     }
 }

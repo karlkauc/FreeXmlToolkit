@@ -11,7 +11,8 @@
       "WebFetch(domain:www.altova.com)",
       "WebSearch",
       "Bash(grep:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(chmod:*)"
     ],
     "deny": []
   }

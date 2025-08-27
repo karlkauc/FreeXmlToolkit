@@ -48,6 +48,7 @@ javafx {
 
 application {
     mainClass.set("org.fxt.freexmltoolkit.FxtGui")
+    // mainClass.set("org.fxt.freexmltoolkit.demo.IntelliSenseDemo")
 }
 
 dependencies {
@@ -127,7 +128,7 @@ tasks.jar {
             .joinToString(" ") { "lib/${it.name}" }
 
         attributes(
-            "Main-Class" to "org.fxt.freexmltoolkit.FxtGui",
+            "Main-Class" to application.mainClass,
             "Implementation-Title" to "FreeXmlToolkit",
             "Implementation-Version" to project.version,
             "Implementation-Vendor" to "Karl Kauc",
@@ -139,9 +140,12 @@ tasks.jar {
     exclude("META-INF/*.RSA", "META-INF/*.DSA", "META-INF/*.SF")
 }
 
+
+/*
 tasks.withType<JavaExec> {
     mainClass.set("org.fxt.freexmltoolkit.FxtGui")
 }
+ */
 
 tasks.test {
     useJUnitPlatform()

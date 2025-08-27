@@ -176,7 +176,7 @@ public class XmlCodeFoldingManager {
                 hbox.getChildren().add(foldButton);
             } else {
                 // Add spacer to maintain alignment
-                Node spacer = new javafx.scene.layout.Region();
+                javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
                 spacer.setPrefSize(12, 12);
                 hbox.getChildren().add(spacer);
             }
@@ -431,7 +431,11 @@ public class XmlCodeFoldingManager {
 
     private void refreshFoldingDisplay() {
         // Trigger a refresh of the paragraph graphics
-        codeArea.recreateParagraphGraphics();
+        // Trigger a refresh - RichTextFX doesn't have recreateParagraphGraphics
+        // We'll use a workaround by updating the paragraph graphic factory
+        var currentFactory = codeArea.getParagraphGraphicFactory();
+        codeArea.setParagraphGraphicFactory(null);
+        codeArea.setParagraphGraphicFactory(currentFactory);
     }
 
     // Inner classes

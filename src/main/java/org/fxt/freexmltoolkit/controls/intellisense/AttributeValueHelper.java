@@ -91,7 +91,7 @@ public class AttributeValueHelper {
         // Create appropriate widget based on type
         createValueWidget(attributeInfo, currentValue);
 
-        popup.show((javafx.scene.Node) null, position.getX(), position.getY());
+        popup.show(javafx.stage.Window.getWindows().stream().findFirst().orElse(null), position.getX(), position.getY());
     }
 
     private void createValueWidget(AttributeInfo attributeInfo, String currentValue) {

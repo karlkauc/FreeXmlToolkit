@@ -195,8 +195,8 @@ public class XsdIntegrationAdapter {
         // Try XsdDocumentationData first
         if (xsdDocumentationData != null) {
             XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get("/" + elementName);
-            if (element != null && element.getDocumentation() != null) {
-                return element.getDocumentation();
+            if (element != null && element.getDocumentations() != null && !element.getDocumentations().isEmpty()) {
+                return element.getDocumentations().get(0).content();
             }
         }
 
@@ -257,10 +257,12 @@ public class XsdIntegrationAdapter {
                 if (elementName != null && !elementName.startsWith("@")) {
                     ElementInfo info = new ElementInfo();
                     info.name = elementName;
-                    info.documentation = element.getDocumentation();
-                    info.type = element.getType();
-                    info.minOccurs = element.getMinOccurs();
-                    info.maxOccurs = element.getMaxOccurs();
+                    if (element.getDocumentations() != null && !element.getDocumentations().isEmpty()) {
+                        info.documentation = element.getDocumentations().get(0).content();
+                    }
+                    info.type = element.getElementType();
+                    info.minOccurs = "";
+                    info.maxOccurs = "";
 
                     elementInfoCache.put(elementName, info);
                 }
@@ -424,9 +426,11 @@ public class XsdIntegrationAdapter {
 
                 AttributeInfo info = new AttributeInfo();
                 info.name = attrName;
-                info.type = element.getType();
-                info.documentation = element.getDocumentation();
-                info.use = element.getUse();
+                info.type = element.getElementType();
+                if (element.getDocumentations() != null && !element.getDocumentations().isEmpty()) {
+                    info.documentation = element.getDocumentations().get(0).content();
+                }
+                info.use = "";
 
                 attributes.add(info);
             }

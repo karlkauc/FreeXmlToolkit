@@ -440,6 +440,19 @@ public class EnhancedCompletionPopup {
         if (!items.isEmpty()) {
             completionListView.getSelectionModel().selectFirst();
         }
+
+        // Actually show the popup
+        popup.setX(position.getX());
+        popup.setY(position.getY());
+        if (parentNode != null && parentNode.getScene() != null) {
+            popup.show(parentNode.getScene().getWindow());
+        } else {
+            // Fallback to first available window
+            javafx.stage.Window window = javafx.stage.Window.getWindows().stream().findFirst().orElse(null);
+            if (window != null) {
+                popup.show(window);
+            }
+        }
     }
 
     /**

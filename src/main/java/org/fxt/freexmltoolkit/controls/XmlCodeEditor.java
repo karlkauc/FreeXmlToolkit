@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
@@ -99,7 +100,7 @@ public class XmlCodeEditor extends VBox {
 
     // Integration state
     private boolean enhancedIntelliSenseEnabled = true;
-    private XsdIntegrationAdapter xsdIntegration;
+    private org.fxt.freexmltoolkit.controls.intellisense.XsdIntegrationAdapter xsdIntegration;
     private XmlIntelliSenseEngine intelliSenseEngine;
     private XmlCodeFoldingManager codeFoldingManager;
 
@@ -726,7 +727,7 @@ public class XmlCodeEditor extends VBox {
             }
 
             try {
-                xsdIntegration = new XsdIntegrationAdapter();
+                xsdIntegration = new org.fxt.freexmltoolkit.controls.intellisense.XsdIntegrationAdapter();
                 logger.debug("XsdIntegrationAdapter initialized");
 
                 // XSD integration will be updated when parent is set via setParentXmlEditor
@@ -1541,23 +1542,322 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
-     * Requests completions using XSD-based implementation.
-     * Only shows IntelliSense if XSD schema is available.
+     * Requests completions using the new intelligent IntelliSense system.
+     * Delegates to the XmlIntelliSenseEngine for smart context-aware completions.
      */
     private void requestCompletions() {
-        logger.debug("IntelliSense requested - checking XSD schema availability");
+        logger.debug("IntelliSense requested - using intelligent completion system");
 
-        // Show IntelliSense popup - prioritize XSD-based suggestions but allow fallback
-        if (isXsdSchemaAvailable()) {
-            logger.debug("XSD schema available - showing context-aware IntelliSense popup");
-            showManualIntelliSensePopup();
+        // Use the new intelligent IntelliSense Engine
+        if (intelliSenseEngine != null) {
+            logger.debug("Delegating to XmlIntelliSenseEngine for intelligent completions");
+            // The IntelliSenseEngine will handle context detection and show appropriate completions
+            // It automatically detects whether we're completing elements, attributes, or values
+            showEnhancedIntelliSenseCompletions();
         } else {
-            logger.debug("No XSD schema - showing basic IntelliSense with available elements");
+            logger.debug("IntelliSense Engine not available - falling back to basic completions");
             showBasicIntelliSensePopup();
         }
     }
 
+    /**
+     * Shows intelligent completions using the enhanced IntelliSense system
+     */
+    private void showEnhancedIntelliSenseCompletions() {
+        try {
+            // Get current context
+            int caretPos = codeArea.getCaretPosition();
+            String textBeforeCaret = codeArea.getText(0, Math.min(caretPos, codeArea.getText().length()));
 
+            // Determine completion type based on context
+            if (isInElementContext(textBeforeCaret)) {
+                logger.debug("Element context detected - showing element completions");
+                showEnhancedElementCompletions();
+            } else if (isInAttributeContext(textBeforeCaret)) {
+                logger.debug("Attribute context detected - showing attribute completions");
+                showEnhancedAttributeCompletions();
+            } else if (isInAttributeValueContext(textBeforeCaret)) {
+                logger.debug("Attribute value context detected - showing value completions");
+                showEnhancedAttributeValueCompletions();
+            } else {
+                logger.debug("General context - showing all available completions");
+                showEnhancedElementCompletions(); // Default to elements
+            }
+        } catch (Exception e) {
+            logger.error("Error in enhanced IntelliSense: {}", e.getMessage(), e);
+            // Fallback to basic popup
+            showBasicIntelliSensePopup();
+        }
+    }
+
+    /**
+     * Show enhanced element completions with XSD integration
+     */
+    private void showEnhancedElementCompletions() {
+        List<String> suggestions = new ArrayList<>();
+
+        // Get current XPath context using the same method as the sidebar
+        String currentXPath = null;
+        if (parentXmlEditor != null) {
+            currentXPath = parentXmlEditor.getCurrentXPath(codeArea.getText(), codeArea.getCaretPosition());
+        }
+        logger.debug("Current XPath context: {}", currentXPath);
+
+        // Use the same method as the sidebar to get filtered child elements
+        if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
+            List<String> xsdSuggestions = parentXmlEditor.getChildElementsForIntelliSense(currentXPath);
+            suggestions.addAll(xsdSuggestions);
+            logger.debug("Added {} XSD-based element suggestions from sidebar method for XPath '{}': {}",
+                    xsdSuggestions.size(), currentXPath, xsdSuggestions);
+
+            // Only show XSD-based suggestions when we have them
+            if (!suggestions.isEmpty()) {
+                showEnhancedCompletionPopup(suggestions,
+                        "Valid Elements" + (currentXPath != null ? " for " + currentXPath : ""), "📝");
+                return;
+            }
+        }
+
+        // Fallback: Get current element context for backwards compatibility
+        String currentContext = getCurrentElementContext();
+        logger.debug("Fallback to element context: {}", currentContext);
+
+        // Fallback only when no XSD schema is available or no suggestions found
+        if (parentXmlEditor == null || parentXmlEditor.getXsdDocumentationData() == null) {
+            // Add context-specific elements from manual configuration
+            if (currentContext != null && contextElementNames.containsKey(currentContext)) {
+                List<String> contextSuggestions = contextElementNames.get(currentContext);
+                suggestions.addAll(contextSuggestions);
+                logger.debug("Added {} context-specific element suggestions", contextSuggestions.size());
+            }
+
+            // Add available elements as final fallback when no schema is present
+            if (suggestions.isEmpty() && !availableElementNames.isEmpty()) {
+                suggestions.addAll(availableElementNames);
+                logger.debug("Added {} fallback element suggestions", availableElementNames.size());
+            }
+
+            // Show completions in enhanced popup
+            if (!suggestions.isEmpty()) {
+                showEnhancedCompletionPopup(suggestions, "Elements", "📝");
+            }
+        } else {
+            // Schema is available but no valid elements found for this context
+            logger.debug("No valid child elements found for XPath '{}' according to XSD schema", currentXPath);
+        }
+    }
+
+    /**
+     * Show enhanced attribute completions
+     */
+    private void showEnhancedAttributeCompletions() {
+        List<String> suggestions = new ArrayList<>();
+        String currentElement = getCurrentElementFromContext();
+
+        if (currentElement != null && xsdIntegration != null && xsdIntegration.hasSchema()) {
+            // Get attributes from XSD
+            var attributeInfos = xsdIntegration.getAvailableAttributes(currentElement);
+            suggestions = attributeInfos.stream()
+                    .map(attr -> attr.name)
+                    .collect(Collectors.toList());
+            logger.debug("Found {} attribute suggestions for element '{}'", suggestions.size(), currentElement);
+        } else {
+            // Generic attributes
+            suggestions = Arrays.asList("id", "name", "type", "class", "value");
+            logger.debug("Using generic attribute suggestions");
+        }
+
+        if (!suggestions.isEmpty()) {
+            showEnhancedCompletionPopup(suggestions, "Attributes", "🏷️");
+        }
+    }
+
+    /**
+     * Show enhanced attribute value completions
+     */
+    private void showEnhancedAttributeValueCompletions() {
+        List<String> suggestions = new ArrayList<>();
+        String currentElement = getCurrentElementFromContext();
+        String currentAttribute = getCurrentAttributeFromContext();
+
+        if (currentElement != null && currentAttribute != null &&
+                xsdIntegration != null && xsdIntegration.hasSchema()) {
+            // Get enumeration values from XSD
+            suggestions = xsdIntegration.getAttributeEnumerationValues(currentElement, currentAttribute);
+            logger.debug("Found {} enumeration values for {}@{}", suggestions.size(), currentElement, currentAttribute);
+        }
+
+        // Add some common values as fallback
+        if (suggestions.isEmpty()) {
+            if ("type".equals(currentAttribute)) {
+                suggestions = Arrays.asList("string", "number", "boolean", "date", "text");
+            } else if ("id".equals(currentAttribute)) {
+                suggestions = List.of("auto-generated-id");
+            }
+        }
+
+        if (!suggestions.isEmpty()) {
+            showEnhancedCompletionPopup(suggestions, "Values", "💡");
+        }
+    }
+
+    /**
+     * Shows enhanced completion popup with modern styling and features
+     */
+    private void showEnhancedCompletionPopup(List<String> suggestions, String title, String icon) {
+        try {
+            // Remove duplicates and sort
+            List<String> uniqueSuggestions = suggestions.stream()
+                    .distinct()
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            // Update the existing completion popup with enhanced suggestions
+            completionListView.getItems().clear();
+            completionListView.getItems().addAll(uniqueSuggestions);
+
+            // Select the first item
+            if (!completionListView.getItems().isEmpty()) {
+                completionListView.getSelectionModel().select(0);
+            }
+
+            // Update title
+            if (intelliSensePopup.getScene() != null &&
+                    intelliSensePopup.getScene().getRoot() instanceof VBox vbox) {
+                if (!vbox.getChildren().isEmpty() &&
+                        vbox.getChildren().get(0) instanceof Label titleLabel) {
+                    titleLabel.setText(icon + " " + title);
+                }
+            }
+
+            // Show the enhanced popup
+            showIntelliSensePopupAtCursor();
+
+            logger.info("Enhanced IntelliSense popup shown with {} {} suggestions",
+                    uniqueSuggestions.size(), title.toLowerCase());
+
+        } catch (Exception e) {
+            logger.error("Error showing enhanced completion popup: {}", e.getMessage(), e);
+        }
+    }
+
+    // Helper methods for context detection
+
+    /**
+     * Check if we're in an element context (after '<')
+     */
+    private boolean isInElementContext(String textBeforeCaret) {
+        if (textBeforeCaret == null || textBeforeCaret.isEmpty()) return false;
+
+        // Look for '<' followed by optional element name characters
+        return textBeforeCaret.matches(".*<[a-zA-Z_][a-zA-Z0-9_:.-]*$") ||
+                textBeforeCaret.endsWith("<");
+    }
+
+    /**
+     * Check if we're in an attribute context (inside a tag after element name)
+     */
+    private boolean isInAttributeContext(String textBeforeCaret) {
+        if (textBeforeCaret == null || textBeforeCaret.isEmpty()) return false;
+
+        // Look for pattern like: <element attr or <element attr1="value" attr
+        return textBeforeCaret.matches(".*<[a-zA-Z_][a-zA-Z0-9_:.-]*\\s+[^>]*[a-zA-Z_][a-zA-Z0-9_:.-]*$") ||
+                textBeforeCaret.matches(".*<[a-zA-Z_][a-zA-Z0-9_:.-]*\\s+$");
+    }
+
+    /**
+     * Check if we're in an attribute value context (inside quotes)
+     */
+    private boolean isInAttributeValueContext(String textBeforeCaret) {
+        if (textBeforeCaret == null || textBeforeCaret.isEmpty()) return false;
+
+        // Look for pattern like: attr="value or attr="
+        int lastQuote = textBeforeCaret.lastIndexOf('"');
+        int lastEquals = textBeforeCaret.lastIndexOf('=');
+
+        return lastEquals > lastQuote && textBeforeCaret.substring(lastEquals).matches("\\s*\"[^\"]*$");
+    }
+
+    /**
+     * Get current element from context (the element we're currently inside)
+     */
+    private String getCurrentElementFromContext() {
+        try {
+            int caretPos = codeArea.getCaretPosition();
+            String text = codeArea.getText(0, Math.min(caretPos, codeArea.getText().length()));
+
+            // Find the last unclosed element
+            Pattern openTag = Pattern.compile("<([a-zA-Z_][a-zA-Z0-9_:.-]*)(?:\\s+[^>]*)?(?:>|$)");
+            Pattern closeTag = Pattern.compile("</([a-zA-Z_][a-zA-Z0-9_:.-]*)>");
+
+            Stack<String> elementStack = new Stack<>();
+            Matcher openMatcher = openTag.matcher(text);
+            Matcher closeMatcher = closeTag.matcher(text);
+
+            List<TagMatch> allTags = new ArrayList<>();
+
+            // Find all opening tags
+            while (openMatcher.find()) {
+                allTags.add(new TagMatch(openMatcher.start(), openMatcher.group(1), true));
+            }
+
+            // Find all closing tags
+            while (closeMatcher.find()) {
+                allTags.add(new TagMatch(closeMatcher.start(), closeMatcher.group(1), false));
+            }
+
+            // Sort by position
+            allTags.sort((a, b) -> Integer.compare(a.position, b.position));
+
+            // Build element stack
+            for (TagMatch tag : allTags) {
+                if (tag.isOpening) {
+                    elementStack.push(tag.name);
+                } else {
+                    if (!elementStack.isEmpty() && elementStack.peek().equals(tag.name)) {
+                        elementStack.pop();
+                    }
+                }
+            }
+
+            return elementStack.isEmpty() ? null : elementStack.peek();
+
+        } catch (Exception e) {
+            logger.debug("Error determining current element: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Get current attribute from context (the attribute we're currently editing)
+     */
+    private String getCurrentAttributeFromContext() {
+        try {
+            int caretPos = codeArea.getCaretPosition();
+            String text = codeArea.getText(0, Math.min(caretPos, codeArea.getText().length()));
+
+            // Find the last attribute name before the caret
+            Pattern attrPattern = Pattern.compile("\\s+([a-zA-Z_][a-zA-Z0-9_:.-]*)\\s*=\\s*\"[^\"]*$");
+            Matcher matcher = attrPattern.matcher(text);
+
+            String lastMatch = null;
+            while (matcher.find()) {
+                lastMatch = matcher.group(1);
+            }
+
+            return lastMatch;
+
+        } catch (Exception e) {
+            logger.debug("Error determining current attribute: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+         * Helper class for tag matching
+         */
+        private record TagMatch(int position, String name, boolean isOpening) {
+    }
 
     /**
      * Shows the popup at the current cursor position.
@@ -1772,29 +2072,57 @@ public class XmlCodeEditor extends VBox {
             // Use a stack to track element nesting
             java.util.Stack<String> elementStack = new java.util.Stack<>();
 
-            // Use cached compiled patterns for better performance
-            Matcher openMatcher = OPEN_TAG_PATTERN.matcher(textBeforeCursor);
-            Matcher closeMatcher = CLOSE_TAG_PATTERN.matcher(textBeforeCursor);
+            // Create a list to store all tags with their positions
+            java.util.List<TagInfo> allTags = new java.util.ArrayList<>();
 
-            // Process all tags before cursor
+            // Find all opening tags
+            Matcher openMatcher = OPEN_TAG_PATTERN.matcher(textBeforeCursor);
             while (openMatcher.find()) {
                 String elementName = openMatcher.group(1);
-                elementStack.push(elementName);
+                // Skip self-closing tags
+                String fullMatch = openMatcher.group(0);
+                if (!fullMatch.endsWith("/>")) {
+                    allTags.add(new TagInfo(elementName, openMatcher.start(), true));
+                }
             }
 
+            // Find all closing tags
+            Matcher closeMatcher = CLOSE_TAG_PATTERN.matcher(textBeforeCursor);
             while (closeMatcher.find()) {
-                if (!elementStack.isEmpty()) {
-                    elementStack.pop();
+                String elementName = closeMatcher.group(1);
+                allTags.add(new TagInfo(elementName, closeMatcher.start(), false));
+            }
+
+            // Sort tags by position to process them chronologically
+            allTags.sort((a, b) -> Integer.compare(a.position, b.position));
+
+            // Process tags in chronological order
+            for (TagInfo tag : allTags) {
+                if (tag.isOpening) {
+                    elementStack.push(tag.name);
+                } else {
+                    // Find and remove matching opening tag
+                    if (!elementStack.isEmpty() && elementStack.peek().equals(tag.name)) {
+                        elementStack.pop();
+                    }
                 }
             }
 
             // Return the current parent element (top of stack)
-            return elementStack.isEmpty() ? null : elementStack.peek();
+            String result = elementStack.isEmpty() ? null : elementStack.peek();
+            logger.debug("getCurrentElementContext result: '{}' (stack size: {})", result, elementStack.size());
+            return result;
 
         } catch (Exception e) {
             logger.error("Error determining current context: {}", e.getMessage(), e);
             return null;
         }
+    }
+
+    /**
+         * Helper class to track tag information for context detection
+         */
+        private record TagInfo(String name, int position, boolean isOpening) {
     }
 
     /**
