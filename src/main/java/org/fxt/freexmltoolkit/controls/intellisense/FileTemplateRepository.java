@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -29,6 +30,50 @@ public class FileTemplateRepository implements TemplateEngine.TemplateRepository
             Files.createDirectories(repositoryPath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to create repository directory: " + repositoryPath, e);
+        }
+    }
+
+    /**
+     * Create a FileTemplateRepository using the central templates directory
+     */
+    public static FileTemplateRepository createWithCentralDirectory() {
+        Path templatesDir = getCentralTemplatesDirectory();
+        return new FileTemplateRepository(templatesDir, ".template");
+    }
+
+    /**
+     * Get the central templates directory path
+     */
+    private static Path getCentralTemplatesDirectory() {
+        // Try to find the project root and use release/examples/templates
+        Path currentDir = Paths.get(System.getProperty("user.dir"));
+
+        // Look for the templates directory in various possible locations
+        Path[] possiblePaths = {
+                currentDir.resolve("release/examples/templates"),
+                currentDir.resolve("../release/examples/templates"),
+                currentDir.resolve("templates"),
+                Paths.get(System.getProperty("user.home")).resolve(".freexmltoolkit/templates")
+        };
+
+        for (Path path : possiblePaths) {
+            if (Files.exists(path) || tryCreateDirectory(path)) {
+                return path;
+            }
+        }
+
+        // Fallback to user home if nothing else works
+        Path fallback = Paths.get(System.getProperty("user.home")).resolve(".freexmltoolkit/templates");
+        tryCreateDirectory(fallback);
+        return fallback;
+    }
+
+    private static boolean tryCreateDirectory(Path path) {
+        try {
+            Files.createDirectories(path);
+            return true;
+        } catch (IOException e) {
+            return false;
         }
     }
 

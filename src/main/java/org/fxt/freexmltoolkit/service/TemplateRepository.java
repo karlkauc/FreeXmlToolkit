@@ -31,10 +31,15 @@ public class TemplateRepository {
     // Template usage statistics
     private final Map<String, Integer> usageStatistics = new ConcurrentHashMap<>();
 
+    // File service for template persistence
+    private final TemplateFileService templateFileService = TemplateFileService.getInstance();
+
     private TemplateRepository() {
         initializeBuiltInTemplates();
+        loadTemplatesFromDirectory();
         buildSearchIndex();
-        logger.info("Template Repository initialized with {} templates", templates.size());
+        logger.info("Template Repository initialized with {} templates ({} from directory)",
+                templates.size(), countNonBuiltInTemplates());
     }
 
     public static synchronized TemplateRepository getInstance() {
@@ -50,6 +55,13 @@ public class TemplateRepository {
      * Add template to repository
      */
     public void addTemplate(XmlTemplate template) {
+        addTemplate(template, false);
+    }
+
+    /**
+     * Add template to repository with option to save to file
+     */
+    public void addTemplate(XmlTemplate template, boolean saveToFile) {
         if (template == null || template.getId() == null) {
             return;
         }
@@ -58,6 +70,16 @@ public class TemplateRepository {
         addToCategory(template);
         updateSearchIndex(template);
 
+        // Save to file if requested and template is not built-in
+        if (saveToFile && !template.isBuiltIn()) {
+            try {
+                templateFileService.saveTemplateToDirectory(template);
+                logger.debug("Saved template '{}' to file", template.getName());
+            } catch (Exception e) {
+                logger.error("Failed to save template '{}' to file: {}", template.getName(), e.getMessage());
+            }
+        }
+
         logger.debug("Added template '{}' to repository", template.getName());
     }
 
@@ -65,10 +87,26 @@ public class TemplateRepository {
      * Remove template from repository
      */
     public boolean removeTemplate(String templateId) {
+        return removeTemplate(templateId, false);
+    }
+
+    /**
+     * Remove template from repository with option to delete from file
+     */
+    public boolean removeTemplate(String templateId, boolean deleteFromFile) {
         XmlTemplate template = templates.remove(templateId);
         if (template != null) {
             removeFromCategory(template);
             removeFromSearchIndex(template);
+
+            // Delete from file if requested and template is not built-in
+            if (deleteFromFile && !template.isBuiltIn()) {
+                boolean deleted = templateFileService.deleteTemplateFromDirectory(templateId);
+                if (deleted) {
+                    logger.debug("Deleted template '{}' file", template.getName());
+                }
+            }
+            
             logger.debug("Removed template '{}' from repository", template.getName());
             return true;
         }
@@ -868,5 +906,106 @@ public class TemplateRepository {
         return templates.values().stream()
                 .filter(template -> template.getIndustry() == industry)
                 .collect(Collectors.toList());
+    }
+
+    // ========== File System Integration ==========
+
+    /**
+     * Load templates from the templates directory
+     */
+    private void loadTemplatesFromDirectory() {
+        try {
+            List<XmlTemplate> fileTemplates = templateFileService.loadTemplatesFromDirectory();
+
+            // Create default templates if directory is empty
+            if (fileTemplates.isEmpty()) {
+                templateFileService.createDefaultTemplatesIfEmpty();
+                fileTemplates = templateFileService.loadTemplatesFromDirectory();
+            }
+
+            for (XmlTemplate template : fileTemplates) {
+                templates.put(template.getId(), template);
+                addToCategory(template);
+            }
+
+            logger.info("Loaded {} templates from file system", fileTemplates.size());
+        } catch (Exception e) {
+            logger.error("Failed to load templates from directory: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Save a template to file system
+     */
+    public void saveTemplateToFile(XmlTemplate template) throws Exception {
+        if (template == null) {
+            throw new IllegalArgumentException("Template cannot be null");
+        }
+
+        templateFileService.saveTemplateToDirectory(template);
+
+        // Add to repository if not already present
+        if (!templates.containsKey(template.getId())) {
+            addTemplate(template, false); // Don't save again to avoid recursion
+        }
+    }
+
+    /**
+     * Create a new template and save it to the file system
+     */
+    public void createNewTemplate(String id, String name, String content, String category, String description) throws Exception {
+        if (templates.containsKey(id)) {
+            throw new IllegalArgumentException("Template with ID '" + id + "' already exists");
+        }
+
+        XmlTemplate template = new XmlTemplate(id, content, category);
+        template.setName(name);
+        template.setDescription(description);
+        template.setBuiltIn(false);
+
+        // Add to repository and save to file
+        addTemplate(template, true);
+
+        logger.info("Created new template '{}' (ID: {})", name, id);
+    }
+
+    /**
+     * Get templates directory path
+     */
+    public String getTemplatesDirectoryPath() {
+        return templateFileService.getTemplatesDirectoryPath().toString();
+    }
+
+    /**
+     * Count non-built-in templates
+     */
+    private long countNonBuiltInTemplates() {
+        return templates.values().stream()
+                .filter(template -> !template.isBuiltIn())
+                .count();
+    }
+
+    /**
+     * Refresh templates from directory
+     */
+    public void refreshTemplatesFromDirectory() {
+        // Remove all non-built-in templates
+        List<String> toRemove = templates.values().stream()
+                .filter(template -> !template.isBuiltIn())
+                .map(XmlTemplate::getId)
+                .collect(Collectors.toList());
+
+        for (String id : toRemove) {
+            removeTemplate(id, false); // Don't delete from file
+        }
+
+        // Reload from directory
+        loadTemplatesFromDirectory();
+
+        // Rebuild search index
+        buildSearchIndex();
+
+        logger.info("Refreshed templates from directory. Total: {} ({} from files)",
+                templates.size(), countNonBuiltInTemplates());
     }
 }

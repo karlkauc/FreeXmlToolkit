@@ -1,0 +1,12 @@
+# XML Template Definition
+# Generated at: 2025-08-27T11:19:26.425978
+
+id=c7171363-b8c1-41b4-a885-e89a795666fd
+name=file-simple-element
+description=Simple XML element template from file
+category=Basic
+tags=basic, element
+
+CONTENT_START
+<${elementName}>${content}</${elementName}>
+CONTENT_END

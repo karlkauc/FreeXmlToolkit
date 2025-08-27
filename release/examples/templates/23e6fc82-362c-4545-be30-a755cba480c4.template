@@ -1,0 +1,22 @@
+# XML Template Definition
+# Generated at: 2025-08-27T11:19:26.429068
+
+id=23e6fc82-362c-4545-be30-a755cba480c4
+name=file-soap-envelope
+description=SOAP envelope template from file
+category=Web Services
+tags=soap, webservice
+
+CONTENT_START
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Header>
+        <!-- Header elements -->
+    </soap:Header>
+    <soap:Body>
+        <${operationName}>
+            ${parameters}
+        </${operationName}>
+    </soap:Body>
+</soap:Envelope>
+CONTENT_END

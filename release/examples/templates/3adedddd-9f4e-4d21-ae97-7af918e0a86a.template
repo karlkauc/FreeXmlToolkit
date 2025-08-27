@@ -1,0 +1,20 @@
+# XML Template Definition
+# Generated at: 2025-08-27T11:19:26.430310
+
+id=3adedddd-9f4e-4d21-ae97-7af918e0a86a
+name=file-rest-response
+description=REST API response template from file
+category=Web Services
+tags=rest, api
+
+CONTENT_START
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+    <status>${status}</status>
+    <message>${message}</message>
+    <data>
+        ${data}
+    </data>
+    <timestamp>${timestamp}</timestamp>
+</response>
+CONTENT_END

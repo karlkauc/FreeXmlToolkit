@@ -24,11 +24,13 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.GridPane;
 import javafx.scene.web.WebView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,6 +44,7 @@ import java.awt.datatransfer.StringSelection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -497,8 +500,137 @@ public class TemplatesController {
 
     @FXML
     private void createTemplate() {
-        // TODO: Implement template creation dialog
-        showInfo("Create Template", "Template creation feature coming soon!");
+        try {
+            // Show template creation dialog
+            showCreateTemplateDialog();
+        } catch (Exception e) {
+            logger.error("Failed to create template", e);
+            showAlert("Template Creation Error", "Failed to create template: " + e.getMessage());
+        }
+    }
+
+    private void showCreateTemplateDialog() {
+        // Create dialog
+        Dialog<XmlTemplate> dialog = new Dialog<>();
+        dialog.setTitle("Create New Template");
+        dialog.setHeaderText("Create a new XML template and save it to the templates directory");
+
+        // Create form fields
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+
+        TextField idField = new TextField();
+        idField.setPromptText("Unique template ID (e.g., my-custom-template)");
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Display name for the template");
+
+        TextField categoryField = new TextField();
+        categoryField.setPromptText("Category (e.g., Custom, Configuration)");
+        categoryField.setText("Custom");
+
+        TextField descriptionField = new TextField();
+        descriptionField.setPromptText("Brief description of the template");
+
+        TextArea contentArea = new TextArea();
+        contentArea.setPromptText("Enter your XML template content here...\nYou can use ${parameterName} for parameters");
+        contentArea.setPrefRowCount(10);
+        contentArea.setPrefColumnCount(50);
+
+        // Add example content
+        contentArea.setText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<${rootElement}>\n" +
+                "    <${childElement}>${content}</${childElement}>\n" +
+                "</${rootElement}>");
+
+        grid.add(new Label("Template ID:"), 0, 0);
+        grid.add(idField, 1, 0);
+        grid.add(new Label("Name:"), 0, 1);
+        grid.add(nameField, 1, 1);
+        grid.add(new Label("Category:"), 0, 2);
+        grid.add(categoryField, 1, 2);
+        grid.add(new Label("Description:"), 0, 3);
+        grid.add(descriptionField, 1, 3);
+        grid.add(new Label("Content:"), 0, 4);
+        grid.add(contentArea, 1, 4);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Add buttons
+        ButtonType createButtonType = new ButtonType("Create Template", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
+
+        // Enable/disable create button based on input
+        javafx.scene.Node createButton = dialog.getDialogPane().lookupButton(createButtonType);
+        createButton.setDisable(true);
+
+        // Validation
+        idField.textProperty().addListener((observable, oldValue, newValue) -> {
+            createButton.setDisable(newValue.trim().isEmpty() || nameField.getText().trim().isEmpty());
+        });
+        nameField.textProperty().addListener((observable, oldValue, newValue) -> {
+            createButton.setDisable(newValue.trim().isEmpty() || idField.getText().trim().isEmpty());
+        });
+
+        // Focus on first field
+        Platform.runLater(() -> idField.requestFocus());
+
+        // Convert result when create button is clicked
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == createButtonType) {
+                try {
+                    String id = idField.getText().trim();
+                    String name = nameField.getText().trim();
+                    String category = categoryField.getText().trim();
+                    String description = descriptionField.getText().trim();
+                    String content = contentArea.getText().trim();
+
+                    if (id.isEmpty() || name.isEmpty()) {
+                        throw new IllegalArgumentException("Template ID and name are required");
+                    }
+
+                    if (content.isEmpty()) {
+                        content = "<template><!-- Your template content here --></template>";
+                    }
+
+                    // Create the template using the repository
+                    templateRepository.createNewTemplate(id, name, content, category, description);
+
+                    logger.info("Created new template: {} ({})", name, id);
+                    return templateRepository.getTemplate(id);
+
+                } catch (Exception e) {
+                    logger.error("Failed to create template", e);
+                    Platform.runLater(() -> showAlert("Template Creation Failed", e.getMessage()));
+                    return null;
+                }
+            }
+            return null;
+        });
+
+        // Show dialog and handle result
+        Optional<XmlTemplate> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            // Refresh templates list
+            loadTemplates();
+
+            // Show success message
+            showInfo("Template Created",
+                    "Template '" + result.get().getName() + "' has been created and saved to:\n" +
+                            templateRepository.getTemplatesDirectoryPath());
+
+            // Select the new template in the list
+            Platform.runLater(() -> {
+                for (int i = 0; i < templatesListView.getItems().size(); i++) {
+                    if (templatesListView.getItems().get(i).getId().equals(result.get().getId())) {
+                        templatesListView.getSelectionModel().select(i);
+                        break;
+                    }
+                }
+            });
+        }
     }
 
     // Utility Methods

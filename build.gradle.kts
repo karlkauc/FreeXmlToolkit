@@ -140,13 +140,6 @@ tasks.jar {
     exclude("META-INF/*.RSA", "META-INF/*.DSA", "META-INF/*.SF")
 }
 
-
-/*
-tasks.withType<JavaExec> {
-    mainClass.set("org.fxt.freexmltoolkit.FxtGui")
-}
- */
-
 tasks.test {
     useJUnitPlatform()
     maxHeapSize = "16G"
