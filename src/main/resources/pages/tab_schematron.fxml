@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.web.WebView?>
 <?import org.kordamp.ikonli.javafx.*?>
 <VBox prefHeight="768.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
       AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/11.0.14-internal"
@@ -216,7 +215,8 @@
 
                     <!-- Main Editor Area -->
                     <VBox fx:id="codeEditorContainer" spacing="0" SplitPane.resizableWithParent="true">
-                        <!-- Code editor will be added programmatically -->
+                        <org.fxt.freexmltoolkit.controls.SchematronCodeEditor fx:id="schematronCodeEditor"
+                                                                              VBox.vgrow="ALWAYS"/>
                     </VBox>
 
                     <!-- Sidebar -->
@@ -276,49 +276,7 @@
 
                         <!-- Rule Templates -->
                         <TitledPane fx:id="templatesPane" text="Rule Templates" expanded="false" collapsible="true">
-                            <VBox spacing="8" style="-fx-padding: 5;">
-                                <Label text="Frequently used rules:"
-                                       style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
-
-                                <!-- Template Buttons -->
-                                <VBox spacing="5">
-                                    <Button text="Required Field Rule" style="-fx-font-size: 10px;" maxWidth="Infinity">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-asterisk" iconColor="#dc3545" iconSize="10"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Insert rule for required fields"/>
-                                        </tooltip>
-                                    </Button>
-
-                                    <Button text="Format Validation" style="-fx-font-size: 10px;" maxWidth="Infinity">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-search" iconColor="#007bff" iconSize="10"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Insert rule for format validation (Email, Date, etc.)"/>
-                                        </tooltip>
-                                    </Button>
-
-                                    <Button text="Dependency Rule" style="-fx-font-size: 10px;" maxWidth="Infinity">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-link" iconColor="#28a745" iconSize="10"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Insert rule for conditional dependencies"/>
-                                        </tooltip>
-                                    </Button>
-
-                                    <Button text="Range Check" style="-fx-font-size: 10px;" maxWidth="Infinity">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-bar-chart" iconColor="#ffc107" iconSize="10"/>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="Insert rule for value range checking"/>
-                                        </tooltip>
-                                    </Button>
-                                </VBox>
-                            </VBox>
+                            <org.fxt.freexmltoolkit.controls.SchematronTemplateLibrary fx:id="templateLibrary"/>
                         </TitledPane>
 
                         <!-- XPath Helper -->
@@ -369,192 +327,7 @@
             <graphic>
                 <FontIcon iconLiteral="bi-diagram-3" iconColor="dodgerblue" iconSize="16"/>
             </graphic>
-            <ScrollPane fitToWidth="true" fitToHeight="true">
-                <VBox fx:id="visualBuilderContainer" spacing="15" style="-fx-padding: 20;">
-
-                    <!-- Header -->
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <FontIcon iconLiteral="bi-diagram-3" iconColor="dodgerblue" iconSize="32"/>
-                        <VBox spacing="5">
-                            <Label text="Visual Builder" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-                            <Label text="Create Schematron rules without XML knowledge"
-                                   style="-fx-text-fill: #6c757d;"/>
-                        </VBox>
-                    </HBox>
-
-                    <Separator/>
-
-                    <!-- Instructions -->
-                    <VBox spacing="10">
-                        <Label text="How the Visual Builder works:"
-                               style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-                        <VBox spacing="8">
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <FontIcon iconLiteral="bi-arrow-right-circle" iconColor="#007bff" iconSize="16"/>
-                                <Label text="Select the XML node for which you want to create a rule"
-                                       wrapText="true"/>
-                            </HBox>
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <FontIcon iconLiteral="bi-arrow-down-circle" iconColor="#007bff" iconSize="16"/>
-                                <Label text="Define the condition using simple dropdown menus"
-                                       wrapText="true"/>
-                            </HBox>
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <FontIcon iconLiteral="bi-exclamation-circle" iconColor="#007bff" iconSize="16"/>
-                                <Label text="Enter a clear error message" wrapText="true"/>
-                            </HBox>
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <FontIcon iconLiteral="bi-check-circle" iconColor="#007bff" iconSize="16"/>
-                                <Label text="The corresponding XML rule is automatically generated" wrapText="true"/>
-                            </HBox>
-                        </VBox>
-                    </VBox>
-
-                    <!-- Rule Builder Interface -->
-                    <VBox spacing="15" style="-fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-padding: 15;">
-                        <Label text="Create New Rule:" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
-
-                        <!-- Step 1: Select Context -->
-                        <VBox spacing="8">
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <FontIcon iconLiteral="bi-arrow-right-circle-fill" iconColor="#007bff" iconSize="16"/>
-                                <Label text="Select XML Element/Context:" style="-fx-font-weight: bold;"/>
-                            </HBox>
-                            <HBox spacing="10" alignment="CENTER_LEFT">
-                                <Label text="Apply rule to:" minWidth="120"/>
-                                <TextField promptText="e.g. //invoice/customer" prefWidth="200"
-                                           style="-fx-font-size: 12px;"/>
-                                <Button text="Select Element">
-                                    <graphic>
-                                        <FontIcon iconLiteral="bi-search" iconSize="12"/>
-                                    </graphic>
-                                </Button>
-                            </HBox>
-                        </VBox>
-
-                        <!-- Step 2: Define Condition -->
-                        <VBox spacing="8">
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <FontIcon iconLiteral="bi-arrow-down-circle-fill" iconColor="#007bff" iconSize="16"/>
-                                <Label text="Define Condition:" style="-fx-font-weight: bold;"/>
-                            </HBox>
-                            <HBox spacing="10" alignment="CENTER_LEFT">
-                                <ComboBox promptText="Select rule type..." prefWidth="150"
-                                          style="-fx-font-size: 12px;"/>
-                                <ComboBox promptText="Operator..." prefWidth="100" style="-fx-font-size: 12px;"/>
-                                <TextField promptText="Enter value..." prefWidth="150" style="-fx-font-size: 12px;"/>
-                            </HBox>
-                        </VBox>
-
-                        <!-- Step 3: Error Message -->
-                        <VBox spacing="8">
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <FontIcon iconLiteral="bi-exclamation-circle-fill" iconColor="#007bff" iconSize="16"/>
-                                <Label text="Error Message:" style="-fx-font-weight: bold;"/>
-                            </HBox>
-                            <TextArea promptText="Describe what should be displayed when the rule is violated..."
-                                      prefRowCount="2" style="-fx-font-size: 12px;"/>
-                        </VBox>
-
-                        <!-- Step 4: Rule Type -->
-                        <VBox spacing="8">
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <FontIcon iconLiteral="bi-check-circle-fill" iconColor="#007bff" iconSize="16"/>
-                                <Label text="Rule Type:" style="-fx-font-weight: bold;"/>
-                            </HBox>
-                            <HBox spacing="15">
-                                <RadioButton text="Assert (condition must be fulfilled)" selected="true">
-                                    <toggleGroup>
-                                        <ToggleGroup fx:id="ruleTypeGroup"/>
-                                    </toggleGroup>
-                                </RadioButton>
-                                <RadioButton text="Report (message when condition is fulfilled)"
-                                             toggleGroup="$ruleTypeGroup"/>
-                            </HBox>
-                        </VBox>
-
-                        <!-- Actions -->
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Button text="Generate Rule" style="-fx-font-weight: bold;">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-gear" iconColor="#28a745" iconSize="14"/>
-                                </graphic>
-                            </Button>
-                            <Button text="Preview">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-eye" iconSize="14"/>
-                                </graphic>
-                            </Button>
-                            <Button text="Reset">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="14"/>
-                                </graphic>
-                            </Button>
-                        </HBox>
-                    </VBox>
-
-                    <!-- Generated Rule Preview -->
-                    <VBox spacing="10">
-                        <Label text="Generated XML Rule:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-                        <TextArea editable="false" prefRowCount="6"
-                                  style="-fx-font-family: 'Courier New', monospace; -fx-font-size: 11px;"
-                                  promptText="The generated Schematron rule will be displayed here..."/>
-
-                        <HBox spacing="10">
-                            <Button text="Apply to Code Editor">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-arrow-right" iconColor="#007bff" iconSize="14"/>
-                                </graphic>
-                            </Button>
-                            <Button text="Copy Rule">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-clipboard" iconSize="14"/>
-                                </graphic>
-                            </Button>
-                        </HBox>
-                    </VBox>
-
-                    <!-- Common Patterns -->
-                    <VBox spacing="10">
-                        <Label text="Common Validation Patterns:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-                        <GridPane hgap="10" vgap="10">
-                            <columnConstraints>
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="50.0"/>
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="50.0"/>
-                            </columnConstraints>
-
-                            <Button text="Email Format" GridPane.columnIndex="0" GridPane.rowIndex="0"
-                                    maxWidth="Infinity">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-envelope" iconSize="12"/>
-                                </graphic>
-                            </Button>
-
-                            <Button text="Date Format" GridPane.columnIndex="1" GridPane.rowIndex="0"
-                                    maxWidth="Infinity">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-calendar" iconSize="12"/>
-                                </graphic>
-                            </Button>
-
-                            <Button text="Number Range" GridPane.columnIndex="0" GridPane.rowIndex="1"
-                                    maxWidth="Infinity">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-hash" iconSize="12"/>
-                                </graphic>
-                            </Button>
-
-                            <Button text="Text Length" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                                    maxWidth="Infinity">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-text-paragraph" iconSize="12"/>
-                                </graphic>
-                            </Button>
-                        </GridPane>
-                    </VBox>
-
-                </VBox>
-            </ScrollPane>
+            <org.fxt.freexmltoolkit.controls.SchematronVisualBuilder fx:id="visualBuilder"/>
         </Tab>
 
         <!-- Test Tab -->
@@ -562,8 +335,7 @@
             <graphic>
                 <FontIcon iconLiteral="bi-play-circle" iconColor="#ff6b6b" iconSize="16"/>
             </graphic>
-            <ScrollPane fitToWidth="true" fitToHeight="true">
-                <VBox fx:id="testingContainer" spacing="15" style="-fx-padding: 20;">
+            <VBox spacing="15" style="-fx-padding: 20;">
 
                     <!-- Header -->
                     <HBox alignment="CENTER_LEFT" spacing="10">
@@ -577,100 +349,60 @@
 
                     <Separator/>
 
-                    <!-- Testing Process -->
-                    <VBox spacing="15">
-                        <Label text="Test Process:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-
-                        <!-- Step 1: Load Schema -->
-                        <HBox spacing="15" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 15;">
-                            <VBox alignment="CENTER">
-                                <FontIcon iconLiteral="bi-arrow-right-circle-fill" iconColor="#28a745" iconSize="24"/>
-                            </VBox>
-                            <VBox spacing="8" HBox.hgrow="ALWAYS">
-                                <Label text="Load Schematron Schema"
-                                       style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
-                                <Label text="Load your Schematron schema (.sch file) or use the schema from the Code Editor"
-                                       wrapText="true" style="-fx-text-fill: #6c757d;"/>
-                                <HBox spacing="10">
-                                    <Button text="Load Schema from File">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                    <Button text="Use Current Schema">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-code-slash" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                </HBox>
-                            </VBox>
-                        </HBox>
-
-                        <!-- Step 2: Add Test Files -->
-                        <HBox spacing="15" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 15;">
-                            <VBox alignment="CENTER">
-                                <FontIcon iconLiteral="bi-arrow-down-circle-fill" iconColor="#ffc107" iconSize="24"/>
-                            </VBox>
-                            <VBox spacing="8" HBox.hgrow="ALWAYS">
-                                <Label text="Add Test XML Files"
-                                       style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
-                                <Label text="Add XML files that should be tested against your Schematron rules"
-                                       wrapText="true" style="-fx-text-fill: #6c757d;"/>
-                                <HBox spacing="10">
-                                    <Button text="Add XML File">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                    <Button text="Add Folder">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-folder-plus" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                    <Button text="Load Sample XMLs">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-lightbulb" iconColor="#ffc107" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                </HBox>
-                            </VBox>
-                        </HBox>
-
-                        <!-- Step 3: Run Tests -->
-                        <HBox spacing="15" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 15;">
-                            <VBox alignment="CENTER">
-                                <FontIcon iconLiteral="bi-exclamation-circle-fill" iconColor="#007bff" iconSize="24"/>
-                            </VBox>
-                            <VBox spacing="8" HBox.hgrow="ALWAYS">
-                                <Label text="Run Tests" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
-                                <Label text="Start validation and see results in real time"
-                                       wrapText="true" style="-fx-text-fill: #6c757d;"/>
-                                <HBox spacing="10">
-                                    <Button text="Run All Tests" style="-fx-font-weight: bold;">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-play-fill" iconColor="#28a745" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                    <Button text="Test Single File">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-play" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                </HBox>
-                            </VBox>
-                        </HBox>
-                    </VBox>
+                <!-- Control Buttons -->
+                <HBox spacing="10" style="-fx-padding: 10;">
+                    <Button fx:id="loadSchemaFromFileButton" text="Load Schema from File"
+                            onAction="#loadSchemaFromFile">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
+                        </graphic>
+                    </Button>
+                    <Button fx:id="useCurrentSchemaButton" text="Use Current Schema" onAction="#useCurrentSchema">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-code-slash" iconSize="14"/>
+                        </graphic>
+                    </Button>
+                    <Separator orientation="VERTICAL"/>
+                    <Button fx:id="addXmlFileButton" text="Add XML File" onAction="#addXmlFile">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-file-earmark-plus" iconSize="14"/>
+                        </graphic>
+                    </Button>
+                    <Button fx:id="addFolderButton" text="Add Folder" onAction="#addFolder">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-folder-plus" iconSize="14"/>
+                        </graphic>
+                    </Button>
+                    <Button fx:id="loadSampleXmlsButton" text="Load Sample XMLs" onAction="#loadSampleXmls">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-lightbulb" iconColor="#ffc107" iconSize="14"/>
+                        </graphic>
+                    </Button>
+                    <Separator orientation="VERTICAL"/>
+                    <Button fx:id="runAllTestsButton" text="Run All Tests" style="-fx-font-weight: bold;"
+                            onAction="#runAllTests">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-play-fill" iconColor="#28a745" iconSize="14"/>
+                        </graphic>
+                    </Button>
+                    <Button fx:id="testSingleFileButton" text="Test Single File" onAction="#testSingleFile">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-play" iconSize="14"/>
+                        </graphic>
+                    </Button>
+                </HBox>
 
                     <!-- Test Files Section -->
                     <VBox spacing="10">
                         <Label text="Test Files:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
 
-                        <TableView prefHeight="200" style="-fx-font-size: 12px;">
+                        <TableView fx:id="testFilesTable" prefHeight="200" style="-fx-font-size: 12px;">
                             <placeholder>
                                 <VBox alignment="CENTER" spacing="10">
                                     <FontIcon iconLiteral="bi-inbox" iconColor="#ced4da" iconSize="32"/>
                                     <Label text="No test files added" style="-fx-text-fill: #6c757d;"/>
-                                    <Button text="Add First XML File">
+                                    <Button fx:id="addFirstXmlFileButton" text="Add First XML File"
+                                            onAction="#addXmlFile">
                                         <graphic>
                                             <FontIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
                                         </graphic>
@@ -687,17 +419,17 @@
                         </TableView>
 
                         <HBox spacing="10">
-                            <Button text="Add File">
+                            <Button fx:id="addFileButton" text="Add File" onAction="#addXmlFile">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-plus-circle" iconSize="14"/>
                                 </graphic>
                             </Button>
-                            <Button text="Remove Selected">
+                            <Button fx:id="removeSelectedButton" text="Remove Selected" onAction="#removeSelected">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-dash-circle" iconColor="#dc3545" iconSize="14"/>
                                 </graphic>
                             </Button>
-                            <Button text="Remove All">
+                            <Button fx:id="removeAllButton" text="Remove All" onAction="#removeAll">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-trash" iconColor="#dc3545" iconSize="14"/>
                                 </graphic>
@@ -709,7 +441,7 @@
                     <VBox spacing="10">
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <Label text="Test Results:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-                            <Button text="Export Results">
+                            <Button fx:id="exportResultsButton" text="Export Results" onAction="#exportResults">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-download" iconSize="14"/>
                                 </graphic>
@@ -777,9 +509,7 @@
                                    style="-fx-text-fill: #0c5460; -fx-font-size: 12px;"/>
                         </VBox>
                     </VBox>
-
-                </VBox>
-            </ScrollPane>
+            </VBox>
         </Tab>
 
         <!-- Documentation Tab -->
@@ -787,269 +517,7 @@
             <graphic>
                 <FontIcon iconLiteral="bi-book" iconColor="#16a34a" iconSize="16"/>
             </graphic>
-            <ScrollPane fitToWidth="true" fitToHeight="true">
-                <VBox fx:id="documentationContainer" spacing="15" style="-fx-padding: 20;">
-
-                    <!-- Header -->
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <FontIcon iconLiteral="bi-book" iconColor="#16a34a" iconSize="32"/>
-                        <VBox spacing="5">
-                            <Label text="Schematron Dokumentation" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-                            <Label text="Automatically generate documentation for your Schematron rules"
-                                   style="-fx-text-fill: #6c757d;"/>
-                        </VBox>
-                    </HBox>
-
-                    <Separator/>
-
-                    <!-- Documentation Options -->
-                    <VBox spacing="15">
-                        <Label text="Documentation Options:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-
-                        <!-- HTML Documentation -->
-                        <HBox spacing="15" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 15;">
-                            <VBox alignment="CENTER">
-                                <FontIcon iconLiteral="bi-file-earmark-code" iconColor="#e67e22" iconSize="32"/>
-                            </VBox>
-                            <VBox spacing="8" HBox.hgrow="ALWAYS">
-                                <Label text="HTML Documentation" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
-                                <Label text="Create interactive HTML documentation with rule overview, examples and explanations"
-                                       wrapText="true" style="-fx-text-fill: #6c757d;"/>
-                                <HBox spacing="10">
-                                    <Button text="Generate HTML">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-file-earmark-code" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                    <Button text="Preview">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-eye" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                </HBox>
-                            </VBox>
-                        </HBox>
-
-                        <!-- PDF Documentation -->
-                        <HBox spacing="15" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 15;">
-                            <VBox alignment="CENTER">
-                                <FontIcon iconLiteral="bi-file-text" iconColor="#dc3545" iconSize="32"/>
-                            </VBox>
-                            <VBox spacing="8" HBox.hgrow="ALWAYS">
-                                <Label text="PDF Documentation" style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
-                                <Label text="Generate professional PDF documentation for printing and official documents"
-                                       wrapText="true" style="-fx-text-fill: #6c757d;"/>
-                                <HBox spacing="10">
-                                    <Button text="Generate PDF">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-file-text" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                    <Button text="Customize Template">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-gear" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                </HBox>
-                            </VBox>
-                        </HBox>
-
-                        <!-- Markdown Documentation -->
-                        <HBox spacing="15" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 15;">
-                            <VBox alignment="CENTER">
-                                <FontIcon iconLiteral="bi-file-earmark-text" iconColor="#007bff" iconSize="32"/>
-                            </VBox>
-                            <VBox spacing="8" HBox.hgrow="ALWAYS">
-                                <Label text="Markdown Documentation"
-                                       style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
-                                <Label text="Create Markdown files for GitHub, Wikis and other documentation platforms"
-                                       wrapText="true" style="-fx-text-fill: #6c757d;"/>
-                                <HBox spacing="10">
-                                    <Button text="Generate Markdown">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-file-earmark-text" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                    <Button text="Create README">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-file-text" iconSize="14"/>
-                                        </graphic>
-                                    </Button>
-                                </HBox>
-                            </VBox>
-                        </HBox>
-                    </VBox>
-
-                    <!-- Documentation Content Settings -->
-                    <VBox spacing="10"
-                          style="-fx-border-color: #f8f9fa; -fx-border-radius: 5; -fx-background-color: #f8f9fa; -fx-padding: 15;">
-                        <Label text="Configure Content:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-
-                        <GridPane hgap="15" vgap="10">
-                            <columnConstraints>
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="50.0"/>
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="50.0"/>
-                            </columnConstraints>
-
-                            <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                                <CheckBox text="Rule Overview" selected="true"/>
-                                <CheckBox text="XPath Explanations" selected="true"/>
-                                <CheckBox text="Error Messages" selected="true"/>
-                                <CheckBox text="Examples" selected="false"/>
-                            </VBox>
-
-                            <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                                <CheckBox text="Table of Contents" selected="true"/>
-                                <CheckBox text="Rule Statistics" selected="false"/>
-                                <CheckBox text="Best Practices" selected="false"/>
-                                <CheckBox text="FAQ Section" selected="false"/>
-                            </VBox>
-                        </GridPane>
-                    </VBox>
-
-                    <!-- Documentation Preview -->
-                    <VBox spacing="10">
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="Documentation Preview:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-                            <Button text="Refresh">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="14"/>
-                                </graphic>
-                            </Button>
-                        </HBox>
-
-                        <WebView prefHeight="300" style="-fx-border-color: #dee2e6; -fx-border-radius: 5;"/>
-
-                        <HBox spacing="10">
-                            <Button text="Fullscreen Preview">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-arrows-fullscreen" iconSize="14"/>
-                                </graphic>
-                            </Button>
-                            <Button text="Open in Browser">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/>
-                                </graphic>
-                            </Button>
-                        </HBox>
-                    </VBox>
-
-                    <!-- Schematron Reference -->
-                    <VBox spacing="10">
-                        <Label text="Schematron Reference:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-
-                        <Accordion>
-                            <panes>
-                                <!-- Basic Elements -->
-                                <TitledPane text="Basic Elements">
-                                    <VBox spacing="10" style="-fx-padding: 10;">
-                                        <VBox spacing="5">
-                                            <Label text="&lt;schema&gt;"
-                                                   style="-fx-font-weight: bold; -fx-font-family: monospace;"/>
-                                            <Label text="The root element of a Schematron schema"
-                                                   style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                                        </VBox>
-
-                                        <VBox spacing="5">
-                                            <Label text="&lt;pattern id='...'&gt;"
-                                                   style="-fx-font-weight: bold; -fx-font-family: monospace;"/>
-                                            <Label text="Groups related rules and defines the validation context"
-                                                   style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                                        </VBox>
-
-                                        <VBox spacing="5">
-                                            <Label text="&lt;rule context='...'&gt;"
-                                                   style="-fx-font-weight: bold; -fx-font-family: monospace;"/>
-                                            <Label text="Defines the XPath context to which the contained tests are applied"
-                                                   style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                                        </VBox>
-                                    </VBox>
-                                </TitledPane>
-
-                                <!-- Test Elements -->
-                                <TitledPane text="Test Elements">
-                                    <content>
-                                        <VBox spacing="10" style="-fx-padding: 10;">
-                                            <VBox spacing="5">
-                                                <Label text="&lt;assert test='...'&gt;"
-                                                       style="-fx-font-weight: bold; -fx-font-family: monospace;"/>
-                                                <Label text="Tests whether a condition is true. If false, an error message is displayed"
-                                                       style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                                            </VBox>
-
-                                            <VBox spacing="5">
-                                                <Label text="&lt;report test='...'&gt;"
-                                                       style="-fx-font-weight: bold; -fx-font-family: monospace;"/>
-                                                <Label text="Reports a finding when the condition is true"
-                                                       style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                                            </VBox>
-                                        </VBox>
-                                    </content>
-                                </TitledPane>
-
-                                <!-- Attributes -->
-                                <TitledPane text="Important Attributes">
-                                    <content>
-                                        <VBox spacing="10" style="-fx-padding: 10;">
-                                            <VBox spacing="5">
-                                                <Label text="id='...'"
-                                                       style="-fx-font-weight: bold; -fx-font-family: monospace;"/>
-                                                <Label text="Unique identifier for Patterns and Rules"
-                                                       style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                                            </VBox>
-
-                                            <VBox spacing="5">
-                                                <Label text="context='...'"
-                                                       style="-fx-font-weight: bold; -fx-font-family: monospace;"/>
-                                                <Label text="XPath expression that defines the context for a Rule"
-                                                       style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                                            </VBox>
-
-                                            <VBox spacing="5">
-                                                <Label text="test='...'"
-                                                       style="-fx-font-weight: bold; -fx-font-family: monospace;"/>
-                                                <Label text="XPath expression for the condition to be tested"
-                                                       style="-fx-font-size: 12px; -fx-text-fill: #6c757d;"/>
-                                            </VBox>
-                                        </VBox>
-                                    </content>
-                                </TitledPane>
-                            </panes>
-
-                        </Accordion>
-                    </VBox>
-
-                    <!-- Help Links -->
-                    <VBox spacing="10"
-                          style="-fx-border-color: #d4edda; -fx-border-radius: 5; -fx-background-color: #d4edda; -fx-padding: 15;">
-                        <HBox alignment="CENTER_LEFT" spacing="8">
-                            <FontIcon iconLiteral="bi-info-circle" iconColor="#155724" iconSize="20"/>
-                            <Label text="Further Help:" style="-fx-font-weight: bold; -fx-text-fill: #155724;"/>
-                        </HBox>
-                        <VBox spacing="5">
-                            <Button text="Schematron Specification (ISO)"
-                                    style="-fx-background-color: transparent; -fx-text-fill: #155724; -fx-underline: true;">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-box-arrow-up-right" iconColor="#155724" iconSize="12"/>
-                                </graphic>
-                            </Button>
-                            <Button text="XPath 2.0 Reference"
-                                    style="-fx-background-color: transparent; -fx-text-fill: #155724; -fx-underline: true;">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-box-arrow-up-right" iconColor="#155724" iconSize="12"/>
-                                </graphic>
-                            </Button>
-                            <Button text="Schematron Tutorial"
-                                    style="-fx-background-color: transparent; -fx-text-fill: #155724; -fx-underline: true;">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-box-arrow-up-right" iconColor="#155724" iconSize="12"/>
-                                </graphic>
-                            </Button>
-                        </VBox>
-                    </VBox>
-
-                </VBox>
-            </ScrollPane>
+            <org.fxt.freexmltoolkit.controls.SchematronDocumentationGenerator fx:id="docGenerator"/>
         </Tab>
 
     </TabPane>

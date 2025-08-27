@@ -1,9 +1,10 @@
 package org.fxt.freexmltoolkit.controls.intellisense;
 
 import java.io.File;
-import java.net.URL;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -32,10 +33,16 @@ public class MultiSchemaManager {
     private final XsdDocumentationExtractor documentationExtractor;
 
     public MultiSchemaManager() {
-        this.backgroundExecutor = Executors.newFixedThreadPool(3, r -> {
-            Thread t = new Thread(r, "MultiSchema-" + System.currentTimeMillis());
-            t.setDaemon(true);
-            return t;
+        this.backgroundExecutor = Executors.newFixedThreadPool(3, new ThreadFactory() {
+            private final AtomicInteger counter = new AtomicInteger(0);
+
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r, "MultiSchema-" + counter.incrementAndGet());
+                t.setDaemon(true);
+                t.setPriority(Thread.NORM_PRIORITY);
+                return t;
+            }
         });
         this.completionCache = new CompletionCache();
         this.documentationExtractor = new XsdDocumentationExtractor();
@@ -141,7 +148,7 @@ public class MultiSchemaManager {
         try {
             // Load and parse schema from URL
             XsdDocumentationExtractor.SchemaInfo extractedInfo =
-                    documentationExtractor.extractFromUrl(new URL(url));
+                    documentationExtractor.extractFromUrl(new URI(url).toURL());
 
             // Create schema info
             SchemaInfo schemaInfo = new SchemaInfo(
@@ -522,7 +529,21 @@ public class MultiSchemaManager {
      * Shutdown manager
      */
     public void shutdown() {
-        backgroundExecutor.shutdown();
+        try {
+            backgroundExecutor.shutdown();
+            // Wait for termination with timeout
+            if (!backgroundExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                backgroundExecutor.shutdownNow();
+                // Wait again after shutdownNow
+                if (!backgroundExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    System.err.println("MultiSchemaManager executor did not terminate");
+                }
+            }
+        } catch (InterruptedException e) {
+            backgroundExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        
         completionCache.shutdown();
         schemaRegistry.clear();
         namespaceToSchemaId.clear();

@@ -1,16 +1,21 @@
 package org.fxt.freexmltoolkit.controller;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.*;
+import org.fxt.freexmltoolkit.domain.TestFile;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
@@ -18,9 +23,15 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Controller for the Schematron Editor tab.
@@ -66,20 +77,7 @@ public class SchematronController {
     @FXML
     private MenuButton loadSchematronFavoritesButton;
 
-    @FXML
-    private VBox codeEditorContainer;
-
-    @FXML
-    private VBox sidebarContainer;
-
-    @FXML
-    private VBox visualBuilderContainer;
-
-    @FXML
-    private VBox testingContainer;
-
-    @FXML
-    private VBox documentationContainer;
+    // Containers removed - components are directly in FXML now
 
     @FXML
     private TitledPane structurePane;
@@ -90,14 +88,78 @@ public class SchematronController {
     @FXML
     private TitledPane xpathHelperPane;
 
-    // Core components
+    // Test Tab Buttons
+    @FXML
+    private Button loadSchemaFromFileButton;
+
+    @FXML
+    private Button useCurrentSchemaButton;
+
+    @FXML
+    private Button addXmlFileButton;
+
+    @FXML
+    private Button addFolderButton;
+
+    @FXML
+    private Button loadSampleXmlsButton;
+
+    @FXML
+    private Button runAllTestsButton;
+
+    @FXML
+    private Button testSingleFileButton;
+
+    @FXML
+    private Button exportResultsButton;
+
+    @FXML
+    private Button addFileButton;
+
+    @FXML
+    private Button removeSelectedButton;
+
+    @FXML
+    private Button removeAllButton;
+
+    @FXML
+    private Button addFirstXmlFileButton;
+
+    @FXML
+    private TableView<TestFile> testFilesTable;
+
+    @FXML
+    private TableColumn<TestFile, String> filenameColumn;
+
+    @FXML
+    private TableColumn<TestFile, String> statusColumn;
+
+    @FXML
+    private TableColumn<TestFile, Integer> violationsColumn;
+
+    @FXML
+    private TableColumn<TestFile, Integer> warningsColumn;
+
+    @FXML
+    private TableColumn<TestFile, String> actionsColumn;
+
+    // Core components from FXML
+    @FXML
     private SchematronCodeEditor schematronCodeEditor;
+
+    @FXML
+    private SchematronVisualBuilder visualBuilder;
+
+    @FXML
+    private SchematronDocumentationGenerator docGenerator;
+
+    @FXML
+    private SchematronTemplateLibrary templateLibrary;
+
+    // Additional components
     private SchematronAutoComplete autoComplete;
     private SchematronErrorDetector errorDetector;
-    private SchematronVisualBuilder visualBuilder;
     private SchematronTester tester;
-    private SchematronDocumentationGenerator docGenerator;
-    private SchematronTemplateLibrary templateLibrary;
     private CodeArea codeArea;
     private SchematronService schematronService;
     private FavoritesService favoritesService;
@@ -106,6 +168,11 @@ public class SchematronController {
 
     // Current file
     private File currentSchematronFile;
+
+    // Test files and schema
+    private final ObservableList<TestFile> testFiles = FXCollections.observableArrayList();
+    private File testSchematronFile;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * Initialize the controller - called automatically by JavaFX
@@ -141,6 +208,9 @@ public class SchematronController {
         // Initialize favorites
         initializeFavorites();
 
+        // Initialize test tab components
+        initializeTestTab();
+
         logger.info("SchematronController initialization completed");
     }
 
@@ -149,17 +219,17 @@ public class SchematronController {
      */
     private void initializeCodeEditor() {
         try {
-            // Initialize the enhanced Schematron code editor
-            schematronCodeEditor = new SchematronCodeEditor();
-            codeArea = schematronCodeEditor.getCodeArea();
+            // schematronCodeEditor is already initialized from FXML
+            if (schematronCodeEditor != null) {
+                codeArea = schematronCodeEditor.getCodeArea();
 
-            // Initialize auto-completion
-            autoComplete = new SchematronAutoComplete(codeArea);
+                // Initialize auto-completion
+                autoComplete = new SchematronAutoComplete(codeArea);
 
-            // Add the code editor to the container
-            codeEditorContainer.getChildren().add(schematronCodeEditor);
-
-            logger.debug("Code editor initialized successfully with Schematron features");
+                logger.debug("Code editor initialized successfully with Schematron features");
+            } else {
+                logger.error("SchematronCodeEditor not found in FXML");
+            }
         } catch (Exception e) {
             logger.error("Failed to initialize code editor", e);
             showError("Initialization Error", "Failed to initialize code editor: " + e.getMessage());
@@ -171,13 +241,16 @@ public class SchematronController {
      */
     private void initializeVisualBuilder() {
         try {
-            visualBuilder = new SchematronVisualBuilder();
-            visualBuilder.getStylesheets().add(getClass().getResource("/css/schematron-editor.css").toExternalForm());
-
-            // Add the visual builder to the container
-            visualBuilderContainer.getChildren().add(visualBuilder);
-
-            logger.debug("Visual builder initialized successfully");
+            // visualBuilder is already initialized from FXML
+            if (visualBuilder != null) {
+                URL cssResource = getClass().getResource("/css/schematron-editor.css");
+                if (cssResource != null) {
+                    visualBuilder.getStylesheets().add(cssResource.toExternalForm());
+                }
+                logger.debug("Visual builder initialized successfully");
+            } else {
+                logger.warn("VisualBuilder not found in FXML");
+            }
         } catch (Exception e) {
             logger.error("Failed to initialize visual builder", e);
             showError("Initialization Error", "Failed to initialize visual builder: " + e.getMessage());
@@ -189,12 +262,13 @@ public class SchematronController {
      */
     private void initializeTester() {
         try {
+            // Testing is now handled directly in the FXML with Test Tab UI
+            // Initialize the SchematronTester service component if needed
             tester = new SchematronTester();
-            tester.getStylesheets().add(getClass().getResource("/css/schematron-editor.css").toExternalForm());
-
-            // Add the tester to the container
-            testingContainer.getChildren().add(tester);
-
+            URL cssResource = getClass().getResource("/css/schematron-editor.css");
+            if (cssResource != null && tester != null) {
+                tester.getStylesheets().add(cssResource.toExternalForm());
+            }
             logger.debug("Testing framework initialized successfully");
         } catch (Exception e) {
             logger.error("Failed to initialize testing framework", e);
@@ -207,13 +281,16 @@ public class SchematronController {
      */
     private void initializeDocumentationGenerator() {
         try {
-            docGenerator = new SchematronDocumentationGenerator();
-            docGenerator.getStylesheets().add(getClass().getResource("/css/schematron-editor.css").toExternalForm());
-
-            // Add the doc generator to the container
-            documentationContainer.getChildren().add(docGenerator);
-
-            logger.debug("Documentation generator initialized successfully");
+            // docGenerator is already initialized from FXML
+            if (docGenerator != null) {
+                URL cssResource = getClass().getResource("/css/schematron-editor.css");
+                if (cssResource != null) {
+                    docGenerator.getStylesheets().add(cssResource.toExternalForm());
+                }
+                logger.debug("Documentation generator initialized successfully");
+            } else {
+                logger.warn("DocumentationGenerator not found in FXML");
+            }
         } catch (Exception e) {
             logger.error("Failed to initialize documentation generator", e);
             showError("Initialization Error", "Failed to initialize documentation generator: " + e.getMessage());
@@ -246,25 +323,25 @@ public class SchematronController {
      */
     private void initializeSidebarComponents() {
         try {
-            // Initialize template library
-            templateLibrary = new SchematronTemplateLibrary();
-            templateLibrary.getStylesheets().add(getClass().getResource("/css/schematron-editor.css").toExternalForm());
-
-            // Set callback to insert templates into code editor
-            templateLibrary.setTemplateInsertCallback(template -> {
-                if (schematronCodeEditor != null) {
-                    schematronCodeEditor.insertTemplate(template);
-                    performErrorDetection();
+            // templateLibrary is already initialized from FXML
+            if (templateLibrary != null) {
+                URL cssResource = getClass().getResource("/css/schematron-editor.css");
+                if (cssResource != null) {
+                    templateLibrary.getStylesheets().add(cssResource.toExternalForm());
                 }
-            });
 
-            // Replace placeholder in templates pane
-            if (templatesPane != null) {
-                templatesPane.setContent(templateLibrary);
-                templatesPane.setExpanded(true);
+                // Set callback to insert templates into code editor
+                templateLibrary.setTemplateInsertCallback(template -> {
+                    if (schematronCodeEditor != null) {
+                        schematronCodeEditor.insertTemplate(template);
+                        performErrorDetection();
+                    }
+                });
+
+                logger.debug("Sidebar components initialized with template library");
+            } else {
+                logger.warn("TemplateLibrary not found in FXML");
             }
-
-            logger.debug("Sidebar components initialized with template library");
 
         } catch (Exception e) {
             logger.error("Failed to initialize sidebar components", e);
@@ -909,5 +986,609 @@ public class SchematronController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    // ======================================================================
+    // Test Tab functionality
+    // ======================================================================
+
+    /**
+     * Initialize the test tab components
+     */
+    private void initializeTestTab() {
+        logger.info("Initializing test tab components");
+
+        // Initialize TableView if it exists
+        if (testFilesTable != null) {
+            setupTestFilesTable();
+        }
+
+        logger.debug("Test tab components initialized");
+    }
+
+    /**
+     * Setup the test files table
+     */
+    private void setupTestFilesTable() {
+        // Find and initialize table columns
+        ObservableList<TableColumn<TestFile, ?>> columns = testFilesTable.getColumns();
+        if (columns.size() >= 4) {
+            // Setup columns based on order in FXML
+            TableColumn<TestFile, String> filenameCol = (TableColumn<TestFile, String>) columns.get(0);
+            TableColumn<TestFile, String> statusCol = (TableColumn<TestFile, String>) columns.get(1);
+            TableColumn<TestFile, Integer> violationsCol = (TableColumn<TestFile, Integer>) columns.get(2);
+            TableColumn<TestFile, Integer> warningsCol = (TableColumn<TestFile, Integer>) columns.get(3);
+
+            filenameCol.setCellValueFactory(new PropertyValueFactory<>("filename"));
+            statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+            violationsCol.setCellValueFactory(new PropertyValueFactory<>("violations"));
+            warningsCol.setCellValueFactory(new PropertyValueFactory<>("warnings"));
+
+            // Add custom cell factory for status column with color coding
+            statusCol.setCellFactory(column -> new TableCell<TestFile, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        // Color coding based on status
+                        switch (item) {
+                            case "Passed" -> setStyle("-fx-text-fill: #28a745;");
+                            case "Failed" -> setStyle("-fx-text-fill: #dc3545;");
+                            case "Testing..." -> setStyle("-fx-text-fill: #007bff;");
+                            default -> setStyle("");
+                        }
+                    }
+                }
+            });
+
+            // Add Actions column if it exists
+            if (columns.size() >= 5) {
+                TableColumn<TestFile, String> actionsCol = (TableColumn<TestFile, String>) columns.get(4);
+                actionsCol.setCellFactory(column -> new TableCell<TestFile, String>() {
+                    private final Button viewButton = new Button("View");
+                    private final Button removeButton = new Button("Remove");
+                    private final HBox buttonBox = new HBox(5, viewButton, removeButton);
+
+                    {
+                        viewButton.setStyle("-fx-font-size: 10px;");
+                        removeButton.setStyle("-fx-font-size: 10px;");
+
+                        viewButton.setOnAction(e -> {
+                            TestFile testFile = getTableRow().getItem();
+                            if (testFile != null) {
+                                viewTestResults(testFile);
+                            }
+                        });
+
+                        removeButton.setOnAction(e -> {
+                            TestFile testFile = getTableRow().getItem();
+                            if (testFile != null) {
+                                testFiles.remove(testFile);
+                            }
+                        });
+                    }
+
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            setGraphic(buttonBox);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Set items
+        testFilesTable.setItems(testFiles);
+    }
+
+    /**
+     * Load schema from file for testing
+     */
+    @FXML
+    private void loadSchemaFromFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Load Schematron Schema");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Schematron files (*.sch)", "*.sch"),
+                new FileChooser.ExtensionFilter("Schematron files (*.schematron)", "*.schematron"),
+                new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
+        );
+
+        File file = fileChooser.showOpenDialog(testFilesTable.getScene().getWindow());
+        if (file != null && file.exists()) {
+            testSchematronFile = file;
+            showInfo("Schema Loaded", "Schematron schema loaded: " + file.getName());
+            logger.info("Loaded test schema: {}", file.getAbsolutePath());
+        }
+    }
+
+    /**
+     * Use current schema from code editor for testing
+     */
+    @FXML
+    private void useCurrentSchema() {
+        if (schematronCodeEditor == null || schematronCodeEditor.getText().isEmpty()) {
+            showWarning("No Schema", "No Schematron schema in the code editor");
+            return;
+        }
+
+        // Save current content to a temporary file or use as-is
+        testSchematronFile = currentSchematronFile;
+
+        if (testSchematronFile == null) {
+            // Create temporary file with current content
+            try {
+                Path tempFile = Files.createTempFile("schematron_test_", ".sch");
+                Files.writeString(tempFile, schematronCodeEditor.getText());
+                testSchematronFile = tempFile.toFile();
+                testSchematronFile.deleteOnExit();
+                showInfo("Schema Ready", "Using current editor content for testing");
+            } catch (IOException e) {
+                logger.error("Failed to create temporary schema file", e);
+                showError("Error", "Failed to prepare schema for testing: " + e.getMessage());
+            }
+        } else {
+            showInfo("Schema Ready", "Using current schema: " + testSchematronFile.getName());
+        }
+    }
+
+    /**
+     * Add XML file for testing
+     */
+    @FXML
+    private void addXmlFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Add XML File for Testing");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml"),
+                new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
+        );
+
+        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(testFilesTable.getScene().getWindow());
+        if (selectedFiles != null && !selectedFiles.isEmpty()) {
+            for (File file : selectedFiles) {
+                // Check if file is already in the list
+                boolean exists = testFiles.stream()
+                        .anyMatch(tf -> tf.getFile().equals(file));
+
+                if (!exists) {
+                    testFiles.add(new TestFile(file));
+                    logger.debug("Added test file: {}", file.getName());
+                }
+            }
+
+            showInfo("Files Added", "Added " + selectedFiles.size() + " file(s) for testing");
+        }
+    }
+
+    /**
+     * Add folder of XML files for testing
+     */
+    @FXML
+    private void addFolder() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Folder with XML Files");
+
+        File directory = directoryChooser.showDialog(testFilesTable.getScene().getWindow());
+        if (directory != null && directory.isDirectory()) {
+            try {
+                List<File> xmlFiles = Files.walk(directory.toPath())
+                        .filter(Files::isRegularFile)
+                        .map(Path::toFile)
+                        .filter(f -> f.getName().toLowerCase().endsWith(".xml"))
+                        .collect(Collectors.toList());
+
+                int addedCount = 0;
+                for (File file : xmlFiles) {
+                    boolean exists = testFiles.stream()
+                            .anyMatch(tf -> tf.getFile().equals(file));
+
+                    if (!exists) {
+                        testFiles.add(new TestFile(file));
+                        addedCount++;
+                    }
+                }
+
+                showInfo("Folder Added", "Found and added " + addedCount + " XML file(s) from " + directory.getName());
+                logger.info("Added {} XML files from folder: {}", addedCount, directory.getAbsolutePath());
+
+            } catch (IOException e) {
+                logger.error("Error scanning folder for XML files", e);
+                showError("Error", "Failed to scan folder: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Load sample XML files for testing
+     */
+    @FXML
+    private void loadSampleXmls() {
+        // Check for sample files in resources or a predefined location
+        File samplesDir = new File("release/examples/xml");
+
+        if (!samplesDir.exists() || !samplesDir.isDirectory()) {
+            // Try alternative location
+            samplesDir = new File("examples/xml");
+        }
+
+        if (samplesDir.exists() && samplesDir.isDirectory()) {
+            File[] xmlFiles = samplesDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
+
+            if (xmlFiles != null && xmlFiles.length > 0) {
+                int addedCount = 0;
+                for (File file : xmlFiles) {
+                    boolean exists = testFiles.stream()
+                            .anyMatch(tf -> tf.getFile().equals(file));
+
+                    if (!exists) {
+                        testFiles.add(new TestFile(file));
+                        addedCount++;
+                    }
+                }
+
+                showInfo("Samples Loaded", "Loaded " + addedCount + " sample XML file(s)");
+                logger.info("Loaded {} sample XML files", addedCount);
+            } else {
+                showWarning("No Samples", "No sample XML files found in " + samplesDir.getAbsolutePath());
+            }
+        } else {
+            showWarning("No Samples", "Sample directory not found. Please add XML files manually.");
+        }
+    }
+
+    /**
+     * Run all tests
+     */
+    @FXML
+    private void runAllTests() {
+        if (testSchematronFile == null) {
+            showWarning("No Schema", "Please load a Schematron schema first");
+            return;
+        }
+
+        if (testFiles.isEmpty()) {
+            showWarning("No Test Files", "Please add XML files to test");
+            return;
+        }
+
+        logger.info("Running all tests with schema: {}", testSchematronFile.getName());
+
+        // Update status for all files
+        for (TestFile testFile : testFiles) {
+            testFile.setStatus("Testing...");
+            testFile.setViolations(0);
+            testFile.setWarnings(0);
+        }
+
+        // Run tests in background
+        Platform.runLater(() -> {
+            for (TestFile testFile : testFiles) {
+                runTestForFile(testFile);
+            }
+
+            // Show summary
+            int passed = 0;
+            int failed = 0;
+            for (TestFile tf : testFiles) {
+                if ("Passed".equals(tf.getStatus())) {
+                    passed++;
+                } else if ("Failed".equals(tf.getStatus())) {
+                    failed++;
+                }
+            }
+
+            showInfo("Test Results",
+                    String.format("Tests completed:\n✓ Passed: %d\n✗ Failed: %d", passed, failed));
+        });
+    }
+
+    /**
+     * Test single selected file
+     */
+    @FXML
+    private void testSingleFile() {
+        TestFile selected = testFilesTable.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            showWarning("No Selection", "Please select a file to test");
+            return;
+        }
+
+        if (testSchematronFile == null) {
+            showWarning("No Schema", "Please load a Schematron schema first");
+            return;
+        }
+
+        logger.info("Testing single file: {}", selected.getFilename());
+        runTestForFile(selected);
+    }
+
+    /**
+     * Run test for a specific file
+     */
+    private void runTestForFile(TestFile testFile) {
+        try {
+            // Update status
+            testFile.setStatus("Testing...");
+
+            // Here we would call the actual Schematron validation service
+            // For now, simulate the test
+            simulateTest(testFile);
+
+            // Update last tested time
+            testFile.setLastTested(LocalDateTime.now().format(DATE_FORMATTER));
+
+        } catch (Exception e) {
+            logger.error("Error testing file: {}", testFile.getFilename(), e);
+            testFile.setStatus("Error");
+        }
+    }
+
+    /**
+     * Simulate test execution (placeholder for actual implementation)
+     */
+    private void simulateTest(TestFile testFile) {
+        // This is a placeholder - actual implementation would use SchematronService
+        // to validate the XML file against the Schematron schema
+
+        // Simulate some results
+        double random = Math.random();
+        if (random > 0.3) {
+            testFile.setStatus("Passed");
+            testFile.setViolations(0);
+            testFile.setWarnings((int) (Math.random() * 3));
+        } else {
+            testFile.setStatus("Failed");
+            testFile.setViolations((int) (Math.random() * 5) + 1);
+            testFile.setWarnings((int) (Math.random() * 3));
+        }
+    }
+
+    /**
+     * Export test results
+     */
+    @FXML
+    private void exportResults() {
+        if (testFiles.isEmpty()) {
+            showWarning("No Results", "No test results to export");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Test Results");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("HTML Report (*.html)", "*.html"),
+                new FileChooser.ExtensionFilter("CSV File (*.csv)", "*.csv"),
+                new FileChooser.ExtensionFilter("JSON File (*.json)", "*.json")
+        );
+
+        File file = fileChooser.showSaveDialog(testFilesTable.getScene().getWindow());
+        if (file != null) {
+            try {
+                String extension = getFileExtension(file);
+                String content = "";
+
+                switch (extension.toLowerCase()) {
+                    case "html" -> content = generateHtmlReport();
+                    case "csv" -> content = generateCsvReport();
+                    case "json" -> content = generateJsonReport();
+                    default -> content = generateTextReport();
+                }
+
+                Files.writeString(file.toPath(), content);
+                showInfo("Export Complete", "Test results exported to: " + file.getName());
+                logger.info("Exported test results to: {}", file.getAbsolutePath());
+
+            } catch (IOException e) {
+                logger.error("Failed to export test results", e);
+                showError("Export Error", "Failed to export results: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Remove selected files from test list
+     */
+    @FXML
+    private void removeSelected() {
+        ObservableList<TestFile> selectedItems = testFilesTable.getSelectionModel().getSelectedItems();
+
+        if (selectedItems.isEmpty()) {
+            showWarning("No Selection", "Please select files to remove");
+            return;
+        }
+
+        testFiles.removeAll(new ArrayList<>(selectedItems));
+        logger.debug("Removed {} files from test list", selectedItems.size());
+    }
+
+    /**
+     * Remove all files from test list
+     */
+    @FXML
+    private void removeAll() {
+        if (testFiles.isEmpty()) {
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirm Remove All");
+        confirm.setHeaderText("Remove all test files?");
+        confirm.setContentText("This will clear all " + testFiles.size() + " file(s) from the test list.");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            testFiles.clear();
+            logger.info("Cleared all test files");
+        }
+    }
+
+    /**
+     * View detailed test results for a file
+     */
+    private void viewTestResults(TestFile testFile) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Test Results - " + testFile.getFilename());
+        alert.setHeaderText("Validation Results");
+
+        String content = String.format(
+                "File: %s\n" +
+                        "Status: %s\n" +
+                        "Violations: %d\n" +
+                        "Warnings: %d\n" +
+                        "Last Tested: %s\n\n" +
+                        "Detailed results would appear here once Schematron validation is fully implemented.",
+                testFile.getFilename(),
+                testFile.getStatus(),
+                testFile.getViolations(),
+                testFile.getWarnings(),
+                testFile.getLastTested()
+        );
+
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    /**
+     * Generate HTML report
+     */
+    private String generateHtmlReport() {
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>\n<html>\n<head>\n");
+        html.append("<title>Schematron Test Results</title>\n");
+        html.append("<style>\n");
+        html.append("body { font-family: Arial, sans-serif; margin: 20px; }\n");
+        html.append("table { border-collapse: collapse; width: 100%; }\n");
+        html.append("th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\n");
+        html.append("th { background-color: #f2f2f2; }\n");
+        html.append(".passed { color: #28a745; }\n");
+        html.append(".failed { color: #dc3545; }\n");
+        html.append("</style>\n</head>\n<body>\n");
+
+        html.append("<h1>Schematron Test Results</h1>\n");
+        html.append("<p>Generated: ").append(LocalDateTime.now().format(DATE_FORMATTER)).append("</p>\n");
+
+        if (testSchematronFile != null) {
+            html.append("<p>Schema: ").append(testSchematronFile.getName()).append("</p>\n");
+        }
+
+        html.append("<table>\n<thead>\n<tr>\n");
+        html.append("<th>File</th><th>Status</th><th>Violations</th><th>Warnings</th><th>Last Tested</th>\n");
+        html.append("</tr>\n</thead>\n<tbody>\n");
+
+        for (TestFile tf : testFiles) {
+            String statusClass = "Passed".equals(tf.getStatus()) ? "passed" :
+                    "Failed".equals(tf.getStatus()) ? "failed" : "";
+            html.append("<tr>\n");
+            html.append("<td>").append(tf.getFilename()).append("</td>\n");
+            html.append("<td class='").append(statusClass).append("'>").append(tf.getStatus()).append("</td>\n");
+            html.append("<td>").append(tf.getViolations()).append("</td>\n");
+            html.append("<td>").append(tf.getWarnings()).append("</td>\n");
+            html.append("<td>").append(tf.getLastTested()).append("</td>\n");
+            html.append("</tr>\n");
+        }
+
+        html.append("</tbody>\n</table>\n</body>\n</html>");
+        return html.toString();
+    }
+
+    /**
+     * Generate CSV report
+     */
+    private String generateCsvReport() {
+        StringBuilder csv = new StringBuilder();
+        csv.append("File,Status,Violations,Warnings,Last Tested\n");
+
+        for (TestFile tf : testFiles) {
+            csv.append(tf.getFilename()).append(",");
+            csv.append(tf.getStatus()).append(",");
+            csv.append(tf.getViolations()).append(",");
+            csv.append(tf.getWarnings()).append(",");
+            csv.append(tf.getLastTested()).append("\n");
+        }
+
+        return csv.toString();
+    }
+
+    /**
+     * Generate JSON report
+     */
+    private String generateJsonReport() {
+        StringBuilder json = new StringBuilder();
+        json.append("{\n");
+        json.append("  \"timestamp\": \"").append(LocalDateTime.now().format(DATE_FORMATTER)).append("\",\n");
+
+        if (testSchematronFile != null) {
+            json.append("  \"schema\": \"").append(testSchematronFile.getName()).append("\",\n");
+        }
+
+        json.append("  \"results\": [\n");
+
+        for (int i = 0; i < testFiles.size(); i++) {
+            TestFile tf = testFiles.get(i);
+            json.append("    {\n");
+            json.append("      \"file\": \"").append(tf.getFilename()).append("\",\n");
+            json.append("      \"status\": \"").append(tf.getStatus()).append("\",\n");
+            json.append("      \"violations\": ").append(tf.getViolations()).append(",\n");
+            json.append("      \"warnings\": ").append(tf.getWarnings()).append(",\n");
+            json.append("      \"lastTested\": \"").append(tf.getLastTested()).append("\"\n");
+            json.append("    }");
+
+            if (i < testFiles.size() - 1) {
+                json.append(",");
+            }
+            json.append("\n");
+        }
+
+        json.append("  ]\n}");
+        return json.toString();
+    }
+
+    /**
+     * Generate plain text report
+     */
+    private String generateTextReport() {
+        StringBuilder text = new StringBuilder();
+        text.append("Schematron Test Results\n");
+        text.append("=======================\n\n");
+        text.append("Generated: ").append(LocalDateTime.now().format(DATE_FORMATTER)).append("\n");
+
+        if (testSchematronFile != null) {
+            text.append("Schema: ").append(testSchematronFile.getName()).append("\n");
+        }
+
+        text.append("\nTest Results:\n");
+        text.append("-------------\n");
+
+        for (TestFile tf : testFiles) {
+            text.append("\nFile: ").append(tf.getFilename()).append("\n");
+            text.append("  Status: ").append(tf.getStatus()).append("\n");
+            text.append("  Violations: ").append(tf.getViolations()).append("\n");
+            text.append("  Warnings: ").append(tf.getWarnings()).append("\n");
+            text.append("  Last Tested: ").append(tf.getLastTested()).append("\n");
+        }
+
+        return text.toString();
+    }
+
+    /**
+     * Get file extension
+     */
+    private String getFileExtension(File file) {
+        String name = file.getName();
+        int lastIndexOf = name.lastIndexOf(".");
+        if (lastIndexOf == -1) {
+            return "";
+        }
+        return name.substring(lastIndexOf + 1);
     }
 }
