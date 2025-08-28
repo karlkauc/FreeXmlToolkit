@@ -89,6 +89,24 @@ public class XsdDiagramView {
                     "-fx-background-color: #f8f9fa; -fx-padding: 2px 4px; -fx-background-radius: 3px; " +
                     "-fx-border-color: #dee2e6; -fx-border-width: 1px; -fx-border-radius: 3px;";
 
+    // Style for optional elements with dashed border
+    private static final String OPTIONAL_NODE_LABEL_STYLE =
+            "-fx-background-color: linear-gradient(to bottom, #ffffff, #f0f8ff); " +
+                    "-fx-border-color: #4a90e2; -fx-border-width: 2px; " +
+                    "-fx-border-radius: 4px; -fx-background-radius: 4px; " +
+                    "-fx-padding: 6px 8px; -fx-font-size: 12px; -fx-font-weight: bold; " +
+                    "-fx-text-fill: #2c5aa0; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 1, 1); " +
+                    "-fx-border-style: dashed;";
+
+    // Style for optional attributes with dashed border
+    private static final String OPTIONAL_ATTRIBUTE_LABEL_STYLE =
+            "-fx-background-color: linear-gradient(to bottom, #fff5e6, #ffe4b3); " +
+                    "-fx-border-color: #d4a147; -fx-border-width: 1px; " +
+                    "-fx-border-radius: 3px; -fx-background-radius: 3px; " +
+                    "-fx-padding: 4px 6px; -fx-font-size: 11px; -fx-font-weight: bold; " +
+                    "-fx-text-fill: #8b6914; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 1, 0, 0.5, 0.5); " +
+                    "-fx-border-style: dashed;";
+
     private static final String TOGGLE_BUTTON_STYLE =
             "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #4a90e2; " +
                     "-fx-background-color: #ffffff; -fx-border-color: #4a90e2; -fx-border-width: 1px; " +
@@ -207,7 +225,10 @@ public class XsdDiagramView {
         nameAndToggleRow.setAlignment(Pos.CENTER_LEFT);
 
         Label nameLabel = new Label(node.name());
-        nameLabel.setStyle(NODE_LABEL_STYLE);
+        // Use dashed border for optional elements (minOccurs="0")
+        boolean isOptional = "0".equals(node.minOccurs());
+        String labelStyle = isOptional ? OPTIONAL_NODE_LABEL_STYLE : NODE_LABEL_STYLE;
+        nameLabel.setStyle(labelStyle);
 
         // Add type-specific icon
         FontIcon elementIcon = createTypeSpecificIcon(node.type());
@@ -276,7 +297,10 @@ public class XsdDiagramView {
         attributeContainer.setAlignment(Pos.CENTER_LEFT);
 
         Label nameLabel = new Label(node.name());
-        nameLabel.setStyle(ATTRIBUTE_LABEL_STYLE);
+        // Use dashed border for optional attributes (minOccurs="0" or use="optional")
+        boolean isOptional = "0".equals(node.minOccurs());
+        String labelStyle = isOptional ? OPTIONAL_ATTRIBUTE_LABEL_STYLE : ATTRIBUTE_LABEL_STYLE;
+        nameLabel.setStyle(labelStyle);
 
         // Add attribute icon
         FontIcon attributeIcon = new FontIcon("bi-at");
