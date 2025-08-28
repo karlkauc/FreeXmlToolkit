@@ -98,6 +98,12 @@ dependencies {
     testImplementation("org.testfx:testfx-core:4.0.17")
     testImplementation("org.testfx:testfx-junit5:4.0.17")
     testImplementation("org.testfx:openjfx-monocle:jdk-12.0.1+2")
+
+    implementation("com.helger.schematron:ph-schematron-parent-pom:9.0.0")
+    implementation("com.helger.schematron:ph-schematron-api:9.0.0")
+    implementation("com.helger.schematron:ph-schematron-xslt:9.0.0")
+    implementation("com.helger.schematron:ph-schematron-pure:9.0.0")
+    implementation("com.helger.schematron:ph-schematron-schxslt:9.0.0")
 }
 
 tasks {

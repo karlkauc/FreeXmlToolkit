@@ -494,12 +494,12 @@
                             </Button>
                         </HBox>
 
-                        <TabPane prefHeight="300">
-                            <Tab text="Overview" closable="false">
+                        <TabPane fx:id="resultsTabPane" prefHeight="300">
+                            <Tab fx:id="overviewResultsTab" text="Overview" closable="false">
                                 <ScrollPane fitToWidth="true" fitToHeight="true">
-                                    <VBox spacing="10" style="-fx-padding: 10;">
+                                    <VBox fx:id="overviewContent" spacing="10" style="-fx-padding: 10;">
                                         <!-- Summary will be displayed here -->
-                                        <VBox alignment="CENTER" spacing="15">
+                                        <VBox fx:id="overviewPlaceholder" alignment="CENTER" spacing="15">
                                             <FontIcon iconLiteral="bi-graph-up" iconColor="#6c757d" iconSize="48"/>
                                             <Label text="Run tests to see an overview of results"
                                                    style="-fx-text-fill: #6c757d; -fx-font-size: 14px;"/>
@@ -508,11 +508,11 @@
                                 </ScrollPane>
                             </Tab>
 
-                            <Tab text="Details" closable="false">
+                            <Tab fx:id="detailsResultsTab" text="Details" closable="false">
                                 <ScrollPane fitToWidth="true" fitToHeight="true">
-                                    <VBox spacing="10" style="-fx-padding: 10;">
+                                    <VBox fx:id="detailsContent" spacing="10" style="-fx-padding: 10;">
                                         <!-- Detailed results will be displayed here -->
-                                        <VBox alignment="CENTER" spacing="15">
+                                        <VBox fx:id="detailsPlaceholder" alignment="CENTER" spacing="15">
                                             <FontIcon iconLiteral="bi-list-ul" iconColor="#6c757d" iconSize="48"/>
                                             <Label text="Detailed validation results will be displayed here"
                                                    style="-fx-text-fill: #6c757d; -fx-font-size: 14px;"/>
@@ -521,11 +521,11 @@
                                 </ScrollPane>
                             </Tab>
 
-                            <Tab text="Errors" closable="false">
+                            <Tab fx:id="errorsResultsTab" text="Errors" closable="false">
                                 <ScrollPane fitToWidth="true" fitToHeight="true">
-                                    <VBox spacing="10" style="-fx-padding: 10;">
+                                    <VBox fx:id="errorsContent" spacing="10" style="-fx-padding: 10;">
                                         <!-- Errors will be displayed here -->
-                                        <VBox alignment="CENTER" spacing="15">
+                                        <VBox fx:id="errorsPlaceholder" alignment="CENTER" spacing="15">
                                             <FontIcon iconLiteral="bi-exclamation-triangle" iconColor="#6c757d"
                                                       iconSize="48"/>
                                             <Label text="Validation errors and rule violations will be listed here"
@@ -538,12 +538,11 @@
                     </VBox>
 
                     <!-- Testing Tips -->
-                    <VBox spacing="10"
-                          style="-fx-border-color: #d1ecf1; -fx-border-radius: 5; -fx-background-color: #d1ecf1; -fx-padding: 15;">
-                        <HBox alignment="CENTER_LEFT" spacing="8">
-                            <FontIcon iconLiteral="bi-lightbulb" iconColor="#0c5460" iconSize="20"/>
-                            <Label text="Testing Tips:" style="-fx-font-weight: bold; -fx-text-fill: #0c5460;"/>
-                        </HBox>
+                <TitledPane text="Testing Tips" expanded="true" collapsible="true" animated="true">
+                    <graphic>
+                        <FontIcon iconLiteral="bi-lightbulb" iconColor="#0c5460" iconSize="16"/>
+                    </graphic>
+                    <VBox spacing="10" style="-fx-background-color: #d1ecf1; -fx-padding: 15;">
                         <VBox spacing="5">
                             <Label text="• Test both valid and invalid XML documents"
                                    style="-fx-text-fill: #0c5460; -fx-font-size: 12px;"/>
@@ -555,6 +554,7 @@
                                    style="-fx-text-fill: #0c5460; -fx-font-size: 12px;"/>
                         </VBox>
                     </VBox>
+                </TitledPane>
             </VBox>
         </Tab>
 

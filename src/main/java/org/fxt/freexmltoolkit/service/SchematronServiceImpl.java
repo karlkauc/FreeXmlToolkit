@@ -146,6 +146,16 @@ public class SchematronServiceImpl implements SchematronService {
                 String svrlResult = resultWriter.toString();
                 processSvrlResult(svrlResult, errors);
             } else {
+                // Add error indicating XSLT compilation failed
+                errors.add(new SchematronValidationError(
+                        "Schematron XSLT compilation failed due to namespace or syntax issues. The schema may contain advanced features not supported by the fallback validator.",
+                        "compilation-error",
+                        null,
+                        0,
+                        0,
+                        "error"
+                ));
+                
                 // Fallback to direct validation if XSLT compilation fails
                 logger.info("Using fallback direct validation for Schematron file: {}", schematronFile.getAbsolutePath());
                 validateDirectly(xmlFile, schematronFile, errors);
@@ -155,7 +165,7 @@ public class SchematronServiceImpl implements SchematronService {
             logger.error("Error during Schematron validation", e);
             errors.add(new SchematronValidationError(
                     "Validation error: " + e.getMessage(),
-                    null,
+                    "validation-error",
                     null,
                     0,
                     0,
@@ -243,6 +253,13 @@ public class SchematronServiceImpl implements SchematronService {
             logger.warn("Could not generate XSLT from Schematron file: {}", schematronFile.getAbsolutePath());
             return null;
 
+        } catch (SaxonApiException e) {
+            logger.error("Saxon XSLT compilation error for Schematron file: {}", schematronFile.getAbsolutePath(), e);
+            // Log the specific compilation errors
+            if (e.getCause() != null) {
+                logger.error("Compilation cause: {}", e.getCause().getMessage());
+            }
+            return null;
         } catch (Exception e) {
             logger.error("Error compiling Schematron to XSLT", e);
             return null;
@@ -271,8 +288,54 @@ public class SchematronServiceImpl implements SchematronService {
             DocumentBuilder schBuilder = schFactory.newDocumentBuilder();
             Document schDoc = schBuilder.parse(schematronFile);
 
-            // Create XPath evaluator
+            // Create XPath evaluator with namespace context
             XPath xpath = XPathFactory.newInstance().newXPath();
+
+            // Set up namespace context from Schematron document
+            xpath.setNamespaceContext(new javax.xml.namespace.NamespaceContext() {
+                @Override
+                public String getNamespaceURI(String prefix) {
+                    if (prefix == null) {
+                        throw new IllegalArgumentException("Prefix cannot be null");
+                    }
+
+                    // Default XML Schema namespace
+                    if ("xs".equals(prefix)) {
+                        return "http://www.w3.org/2001/XMLSchema";
+                    }
+
+                    // Extract from Schematron ns elements
+                    try {
+                        NodeList nsElements = schDoc.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "ns");
+                        if (nsElements.getLength() == 0) {
+                            nsElements = schDoc.getElementsByTagName("ns");
+                        }
+
+                        for (int i = 0; i < nsElements.getLength(); i++) {
+                            Element nsElement = (Element) nsElements.item(i);
+                            String nsPrefix = nsElement.getAttribute("prefix");
+                            String nsUri = nsElement.getAttribute("uri");
+                            if (prefix.equals(nsPrefix)) {
+                                return nsUri;
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.debug("Error getting namespace for prefix {}: {}", prefix, e.getMessage());
+                    }
+
+                    return javax.xml.XMLConstants.NULL_NS_URI;
+                }
+
+                @Override
+                public String getPrefix(String namespaceURI) {
+                    return null; // Not needed for our use case
+                }
+
+                @Override
+                public java.util.Iterator<String> getPrefixes(String namespaceURI) {
+                    return null; // Not needed for our use case
+                }
+            });
 
             // Find all patterns
             NodeList patterns = schDoc.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "pattern");
@@ -316,6 +379,20 @@ public class SchematronServiceImpl implements SchematronService {
                                     for (int l = 0; l < contextNodes.getLength(); l++) {
                                         Node contextNode = contextNodes.item(l);
                                         try {
+                                            // Check for XPath 2.0 features that aren't supported
+                                            if (test.contains("xs:") && !test.contains("xs:string")) {
+                                                // XPath 2.0 type functions not supported in fallback validation
+                                                errors.add(new SchematronValidationError(
+                                                        "XPath 2.0 type function '" + test + "' not supported in fallback validation. Original XSLT compilation failed.",
+                                                        assertId != null && !assertId.isEmpty() ? assertId : test,
+                                                        context,
+                                                        0,
+                                                        0,
+                                                        "error"
+                                                ));
+                                                continue;
+                                            }
+                                            
                                             Boolean result = (Boolean) xpath.evaluate(test, contextNode, XPathConstants.BOOLEAN);
                                             if (result == null || !result) {
                                                 // Assertion failed
@@ -330,12 +407,30 @@ public class SchematronServiceImpl implements SchematronService {
                                             }
                                         } catch (Exception e) {
                                             logger.debug("Error evaluating assertion '{}' on context '{}': {}", test, context, e.getMessage());
+                                            // Add error for invalid assertion test
+                                            errors.add(new SchematronValidationError(
+                                                    "Invalid assertion test '" + test + "': " + e.getMessage(),
+                                                    assertId != null && !assertId.isEmpty() ? assertId : test,
+                                                    context,
+                                                    0,
+                                                    0,
+                                                    "error"
+                                            ));
                                         }
                                     }
                                 }
                             }
                         } catch (Exception e) {
                             logger.debug("Error evaluating context '{}': {}", context, e.getMessage());
+                            // Add error for invalid XPath expressions
+                            errors.add(new SchematronValidationError(
+                                    "Invalid XPath expression in context '" + context + "': " + e.getMessage(),
+                                    "xpath-error",
+                                    context,
+                                    0,
+                                    0,
+                                    "error"
+                            ));
                         }
                     }
                 }
@@ -371,10 +466,45 @@ public class SchematronServiceImpl implements SchematronService {
             StringBuilder xslt = new StringBuilder();
             xslt.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             xslt.append("<xsl:stylesheet version=\"2.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" ");
-            xslt.append("xmlns:svrl=\"http://purl.oclc.org/dsdl/svrl\">\n");
+            xslt.append("xmlns:svrl=\"http://purl.oclc.org/dsdl/svrl\" ");
+            xslt.append("xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" ");
+            xslt.append("xmlns:fn=\"http://www.w3.org/2005/xpath-functions\"");
+
+            // Extract namespace declarations from the Schematron schema
+            NodeList nsElements = schematronDoc.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "ns");
+            if (nsElements.getLength() == 0) {
+                nsElements = schematronDoc.getElementsByTagName("ns");
+            }
+
+            for (int i = 0; i < nsElements.getLength(); i++) {
+                Element nsElement = (Element) nsElements.item(i);
+                String prefix = nsElement.getAttribute("prefix");
+                String uri = nsElement.getAttribute("uri");
+                if (prefix != null && !prefix.isEmpty() && uri != null && !uri.isEmpty()) {
+                    xslt.append(" xmlns:").append(prefix).append("=\"").append(escapeXml(uri)).append("\"");
+                }
+            }
+
+            xslt.append(">\n");
             xslt.append("<xsl:output method=\"xml\" indent=\"yes\"/>\n");
             xslt.append("<xsl:template match=\"/\">\n");
             xslt.append("<svrl:schematron-output>\n");
+
+            // First, extract any variable declarations from the schema
+            NodeList letElements = schematronDoc.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "let");
+            if (letElements.getLength() == 0) {
+                letElements = schematronDoc.getElementsByTagName("let");
+            }
+
+            // Add variable declarations to XSLT
+            for (int i = 0; i < letElements.getLength(); i++) {
+                Element letElement = (Element) letElements.item(i);
+                String name = letElement.getAttribute("name");
+                String value = letElement.getAttribute("value");
+                if (name != null && !name.isEmpty() && value != null && !value.isEmpty()) {
+                    xslt.append("<xsl:variable name=\"").append(name).append("\" select=\"").append(escapeXml(value)).append("\"/>\\n");
+                }
+            }
 
             // Parse Schematron patterns and rules
             NodeList patterns = schematronDoc.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "pattern");
@@ -398,6 +528,21 @@ public class SchematronServiceImpl implements SchematronService {
 
                     if (context != null && !context.isEmpty()) {
                         xslt.append("<xsl:for-each select=\"").append(escapeXml(context)).append("\">\n");
+
+                        // Add any let elements (variables) from within this rule
+                        NodeList ruleLetElements = rule.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "let");
+                        if (ruleLetElements.getLength() == 0) {
+                            ruleLetElements = rule.getElementsByTagName("let");
+                        }
+
+                        for (int l = 0; l < ruleLetElements.getLength(); l++) {
+                            Element letElement = (Element) ruleLetElements.item(l);
+                            String name = letElement.getAttribute("name");
+                            String value = letElement.getAttribute("value");
+                            if (name != null && !name.isEmpty() && value != null && !value.isEmpty()) {
+                                xslt.append("<xsl:variable name=\"").append(name).append("\" select=\"").append(escapeXml(value)).append("\"/>\n");
+                            }
+                        }
 
                         NodeList assertions = rule.getElementsByTagNameNS("http://purl.oclc.org/dsdl/schematron", "assert");
                         if (assertions.getLength() == 0) {

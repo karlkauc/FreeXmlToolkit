@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -149,6 +150,37 @@ public class SchematronController {
 
     @FXML
     private TableColumn<TestFile, String> actionsColumn;
+
+    // Test Results Tabs
+    @FXML
+    private TabPane resultsTabPane;
+
+    @FXML
+    private Tab overviewResultsTab;
+
+    @FXML
+    private Tab detailsResultsTab;
+
+    @FXML
+    private Tab errorsResultsTab;
+
+    @FXML
+    private VBox overviewContent;
+
+    @FXML
+    private VBox detailsContent;
+
+    @FXML
+    private VBox errorsContent;
+
+    @FXML
+    private VBox overviewPlaceholder;
+
+    @FXML
+    private VBox detailsPlaceholder;
+
+    @FXML
+    private VBox errorsPlaceholder;
 
     // Core components from FXML
     @FXML
@@ -1295,6 +1327,9 @@ public class SchematronController {
 
             showInfo("Test Results",
                     String.format("Tests completed:\n✓ Passed: %d\n✗ Failed: %d", passed, failed));
+
+            // Update results tabs
+            updateResultsTabs();
         });
     }
 
@@ -1317,6 +1352,9 @@ public class SchematronController {
 
         logger.info("Testing single file: {}", selected.getFilename());
         runTestForFile(selected);
+
+        // Update results tabs
+        updateResultsTabs();
     }
 
     /**
@@ -1327,9 +1365,56 @@ public class SchematronController {
             // Update status
             testFile.setStatus("Testing...");
 
-            // Here we would call the actual Schematron validation service
-            // For now, simulate the test
-            simulateTest(testFile);
+            long startTime = System.currentTimeMillis();
+
+            // Perform actual Schematron validation
+            List<SchematronService.SchematronValidationError> validationErrors =
+                    schematronService.validateXmlFile(testFile.getFile(), testSchematronFile);
+
+            // Clear previous detailed results
+            testFile.clearDetailedResults();
+
+            // Process validation results
+            int violations = 0;
+            int warnings = 0;
+
+            for (SchematronService.SchematronValidationError error : validationErrors) {
+                if ("error".equals(error.severity())) {
+                    violations++;
+                    // Convert to TestResult format
+                    TestFile.TestResult violation = new TestFile.TestResult(
+                            error.ruleId() != null ? error.ruleId() : "rule-" + violations,
+                            error.message(),
+                            error.context() != null ? error.context() : "unknown",
+                            "assert",
+                            "Schematron Rule",
+                            error.lineNumber()
+                    );
+                    testFile.addTestResult(violation);
+                } else if ("warning".equals(error.severity())) {
+                    warnings++;
+                    // Convert to TestResult format
+                    TestFile.TestResult warning = new TestFile.TestResult(
+                            error.ruleId() != null ? error.ruleId() : "rule-warn-" + warnings,
+                            error.message(),
+                            error.context() != null ? error.context() : "unknown",
+                            "report",
+                            "Schematron Rule",
+                            error.lineNumber()
+                    );
+                    testFile.addTestResult(warning);
+                }
+            }
+
+            // Update test file status
+            testFile.setViolations(violations);
+            testFile.setWarnings(warnings);
+            testFile.setStatus(violations > 0 ? "Failed" : "Passed");
+
+            // Calculate and set test duration
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            testFile.setTestDuration(duration + "ms");
 
             // Update last tested time
             testFile.setLastTested(LocalDateTime.now().format(DATE_FORMATTER));
@@ -1337,80 +1422,21 @@ public class SchematronController {
         } catch (Exception e) {
             logger.error("Error testing file: {}", testFile.getFilename(), e);
             testFile.setStatus("Error");
+
+            // Add error as a test result
+            TestFile.TestResult errorResult = new TestFile.TestResult(
+                    "error",
+                    "Validation error: " + e.getMessage(),
+                    "N/A",
+                    "error",
+                    "System Error",
+                    0
+            );
+            testFile.clearDetailedResults();
+            testFile.addTestResult(errorResult);
+            testFile.setViolations(1);
+            testFile.setWarnings(0);
         }
-    }
-
-    /**
-     * Simulate test execution (placeholder for actual implementation)
-     */
-    private void simulateTest(TestFile testFile) {
-        // This is a placeholder - actual implementation would use SchematronService
-        // to validate the XML file against the Schematron schema
-
-        long startTime = System.currentTimeMillis();
-
-        // Clear previous detailed results
-        testFile.clearDetailedResults();
-
-        // Simulate some results
-        double random = Math.random();
-        if (random > 0.3) {
-            testFile.setStatus("Passed");
-            testFile.setViolations(0);
-            int warningCount = (int) (Math.random() * 3);
-            testFile.setWarnings(warningCount);
-
-            // Add some sample warning details
-            for (int i = 0; i < warningCount; i++) {
-                TestFile.TestResult warning = new TestFile.TestResult(
-                        "rule-warn-" + (i + 1),
-                        "Sample warning message " + (i + 1) + " for demonstration",
-                        "/root/element[" + (i + 1) + "]",
-                        "report",
-                        "Sample Warning Pattern",
-                        15 + i * 10
-                );
-                testFile.addTestResult(warning);
-            }
-        } else {
-            testFile.setStatus("Failed");
-            int violationCount = (int) (Math.random() * 5) + 1;
-            int warningCount = (int) (Math.random() * 3);
-            testFile.setViolations(violationCount);
-            testFile.setWarnings(warningCount);
-
-            // Add some sample violation details
-            for (int i = 0; i < violationCount; i++) {
-                TestFile.TestResult violation = new TestFile.TestResult(
-                        "rule-err-" + (i + 1),
-                        "Sample error message " + (i + 1) + " - validation failed for demonstration",
-                        "/root/data/item[" + (i + 1) + "]",
-                        "assert",
-                        "Required Element Pattern",
-                        25 + i * 15
-                );
-                testFile.addTestResult(violation);
-            }
-
-            // Add some sample warning details  
-            for (int i = 0; i < warningCount; i++) {
-                TestFile.TestResult warning = new TestFile.TestResult(
-                        "rule-warn-" + (i + 1),
-                        "Sample warning message " + (i + 1) + " for demonstration",
-                        "/root/metadata[" + (i + 1) + "]",
-                        "report",
-                        "Best Practice Pattern",
-                        100 + i * 20
-                );
-                testFile.addTestResult(warning);
-            }
-        }
-
-        // Simulate test duration
-        long endTime = System.currentTimeMillis();
-        long actualDuration = endTime - startTime;
-        long simulatedDuration = actualDuration + (long) (Math.random() * 500); // Add some random time
-        testFile.setTestDuration(simulatedDuration + "ms");
     }
 
     /**
@@ -2000,5 +2026,304 @@ public class SchematronController {
             logger.error("Error saving Schematron file as: {}", e.getMessage(), e);
             showError("Save Error", "Failed to save Schematron file: " + e.getMessage());
         }
+    }
+
+    // ==================== RESULTS TABS IMPLEMENTATION ====================
+
+    /**
+     * Update all results tabs with current test data
+     */
+    private void updateResultsTabs() {
+        updateOverviewTab();
+        updateDetailsTab();
+        updateErrorsTab();
+    }
+
+    /**
+     * Update the Overview tab with summary statistics
+     */
+    private void updateOverviewTab() {
+        if (overviewContent == null) return;
+
+        // Clear existing content
+        overviewContent.getChildren().clear();
+
+        if (testFiles.isEmpty()) {
+            overviewContent.getChildren().add(overviewPlaceholder);
+            return;
+        }
+
+        // Calculate statistics
+        int total = testFiles.size();
+        int passed = 0;
+        int failed = 0;
+        int totalViolations = 0;
+        int totalWarnings = 0;
+
+        for (TestFile tf : testFiles) {
+            if ("Passed".equals(tf.getStatus())) {
+                passed++;
+            } else if ("Failed".equals(tf.getStatus())) {
+                failed++;
+            }
+            totalViolations += tf.getViolations();
+            totalWarnings += tf.getWarnings();
+        }
+
+        // Create overview content
+        VBox summaryBox = new VBox(15);
+        summaryBox.setStyle("-fx-padding: 20; -fx-alignment: center;");
+
+        // Header
+        Label headerLabel = new Label("Test Summary");
+        headerLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+
+        // Statistics grid
+        GridPane statsGrid = new GridPane();
+        statsGrid.setHgap(30);
+        statsGrid.setVgap(15);
+        statsGrid.setStyle("-fx-alignment: center;");
+
+        // Total tests
+        addStatistic(statsGrid, 0, 0, "Total Tests", String.valueOf(total), "#007bff");
+
+        // Passed tests
+        addStatistic(statsGrid, 1, 0, "Passed", String.valueOf(passed), "#28a745");
+
+        // Failed tests
+        addStatistic(statsGrid, 2, 0, "Failed", String.valueOf(failed), "#dc3545");
+
+        // Total violations
+        addStatistic(statsGrid, 0, 1, "Total Violations", String.valueOf(totalViolations), "#dc3545");
+
+        // Total warnings
+        addStatistic(statsGrid, 1, 1, "Total Warnings", String.valueOf(totalWarnings), "#ffc107");
+
+        // Success rate
+        double successRate = total > 0 ? (passed * 100.0 / total) : 0;
+        addStatistic(statsGrid, 2, 1, "Success Rate", String.format("%.1f%%", successRate), "#17a2b8");
+
+        summaryBox.getChildren().addAll(headerLabel, statsGrid);
+        overviewContent.getChildren().add(summaryBox);
+    }
+
+    /**
+     * Helper method to add a statistic to the grid
+     */
+    private void addStatistic(GridPane grid, int col, int row, String label, String value, String color) {
+        VBox statBox = new VBox(5);
+        statBox.setStyle("-fx-alignment: center;");
+
+        Label valueLabel = new Label(value);
+        valueLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+
+        Label labelLabel = new Label(label);
+        labelLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+
+        statBox.getChildren().addAll(valueLabel, labelLabel);
+        grid.add(statBox, col, row);
+    }
+
+    /**
+     * Update the Details tab with detailed test results
+     */
+    private void updateDetailsTab() {
+        if (detailsContent == null) return;
+
+        // Clear existing content
+        detailsContent.getChildren().clear();
+
+        if (testFiles.isEmpty()) {
+            detailsContent.getChildren().add(detailsPlaceholder);
+            return;
+        }
+
+        VBox detailsBox = new VBox(10);
+
+        for (TestFile testFile : testFiles) {
+            VBox fileBox = createFileDetailsBox(testFile);
+            detailsBox.getChildren().add(fileBox);
+        }
+
+        ScrollPane scrollPane = new ScrollPane(detailsBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+
+        detailsContent.getChildren().add(scrollPane);
+    }
+
+    /**
+     * Create a detailed view for a single test file
+     */
+    private VBox createFileDetailsBox(TestFile testFile) {
+        VBox fileBox = new VBox(8);
+        fileBox.setStyle("-fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-padding: 15; -fx-background-color: #f8f9fa;");
+
+        // File header
+        HBox headerBox = new HBox(10);
+        headerBox.setStyle("-fx-alignment: center-left;");
+
+        Label fileNameLabel = new Label(testFile.getFilename());
+        fileNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+
+        Label statusLabel = new Label(testFile.getStatus());
+        String statusColor = "Passed".equals(testFile.getStatus()) ? "#28a745" :
+                "Failed".equals(testFile.getStatus()) ? "#dc3545" : "#6c757d";
+        statusLabel.setStyle("-fx-text-fill: " + statusColor + "; -fx-font-weight: bold;");
+
+        headerBox.getChildren().addAll(fileNameLabel, statusLabel);
+
+        // File stats
+        HBox statsBox = new HBox(20);
+        statsBox.setStyle("-fx-alignment: center-left;");
+
+        Label violationsLabel = new Label("Violations: " + testFile.getViolations());
+        violationsLabel.setStyle("-fx-font-size: 12px;");
+
+        Label warningsLabel = new Label("Warnings: " + testFile.getWarnings());
+        warningsLabel.setStyle("-fx-font-size: 12px;");
+
+        Label durationLabel = new Label("Duration: " + testFile.getTestDuration());
+        durationLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6c757d;");
+
+        statsBox.getChildren().addAll(violationsLabel, warningsLabel, durationLabel);
+
+        fileBox.getChildren().addAll(headerBox, statsBox);
+
+        // Add detailed results if available
+        if (testFile.getDetailedResults() != null && !testFile.getDetailedResults().isEmpty()) {
+            VBox resultsBox = new VBox(5);
+
+            Label resultsHeader = new Label("Details:");
+            resultsHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #495057;");
+            resultsBox.getChildren().add(resultsHeader);
+
+            for (TestFile.TestResult result : testFile.getDetailedResults()) {
+                VBox resultBox = createResultBox(result);
+                resultsBox.getChildren().add(resultBox);
+            }
+
+            fileBox.getChildren().add(resultsBox);
+        }
+
+        return fileBox;
+    }
+
+    /**
+     * Create a box for a single test result
+     */
+    private VBox createResultBox(TestFile.TestResult result) {
+        VBox resultBox = new VBox(3);
+        resultBox.setStyle("-fx-padding: 8; -fx-background-color: #ffffff; -fx-border-color: #e9ecef; -fx-border-radius: 3;");
+
+        String typeColor = "assert".equals(result.type()) ? "#dc3545" : "#ffc107";
+
+        Label typeLabel = new Label("[" + result.type().toUpperCase() + "] " + result.message());
+        typeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: " + typeColor + ";");
+        typeLabel.setWrapText(true);
+
+        Label locationLabel = new Label("Location: " + result.location() + " (Line " + result.lineNumber() + ")");
+        locationLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic;");
+
+        resultBox.getChildren().addAll(typeLabel, locationLabel);
+
+        if (result.ruleId() != null && !result.ruleId().trim().isEmpty()) {
+            Label ruleLabel = new Label("Rule: " + result.ruleId());
+            ruleLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #6c757d;");
+            resultBox.getChildren().add(ruleLabel);
+        }
+
+        return resultBox;
+    }
+
+    /**
+     * Update the Errors tab with only errors and violations
+     */
+    private void updateErrorsTab() {
+        if (errorsContent == null) return;
+
+        // Clear existing content
+        errorsContent.getChildren().clear();
+
+        // Collect all errors and violations
+        List<TestFile.TestResult> allErrors = new ArrayList<>();
+
+        for (TestFile testFile : testFiles) {
+            if (testFile.getDetailedResults() != null) {
+                for (TestFile.TestResult result : testFile.getDetailedResults()) {
+                    if ("assert".equals(result.type()) || "error".equals(result.type())) {
+                        allErrors.add(result);
+                    }
+                }
+            }
+        }
+
+        if (allErrors.isEmpty()) {
+            VBox noErrorsBox = new VBox(15);
+            noErrorsBox.setStyle("-fx-alignment: center; -fx-padding: 50;");
+
+            Label iconLabel = new Label("✓");
+            iconLabel.setStyle("-fx-font-size: 48px; -fx-text-fill: #28a745;");
+
+            Label messageLabel = new Label("No errors found!");
+            messageLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #28a745; -fx-font-weight: bold;");
+
+            Label subLabel = new Label("All tests passed validation");
+            subLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #6c757d;");
+
+            noErrorsBox.getChildren().addAll(iconLabel, messageLabel, subLabel);
+            errorsContent.getChildren().add(noErrorsBox);
+            return;
+        }
+
+        VBox errorsBox = new VBox(10);
+
+        Label headerLabel = new Label("Validation Errors (" + allErrors.size() + ")");
+        headerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #dc3545;");
+
+        errorsBox.getChildren().add(headerLabel);
+
+        for (TestFile.TestResult error : allErrors) {
+            VBox errorBox = createErrorBox(error);
+            errorsBox.getChildren().add(errorBox);
+        }
+
+        ScrollPane scrollPane = new ScrollPane(errorsBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+
+        errorsContent.getChildren().add(scrollPane);
+    }
+
+    /**
+     * Create an error display box
+     */
+    private VBox createErrorBox(TestFile.TestResult error) {
+        VBox errorBox = new VBox(5);
+        errorBox.setStyle("-fx-padding: 12; -fx-background-color: #f8d7da; -fx-border-color: #dc3545; " +
+                "-fx-border-radius: 5; -fx-border-width: 1;");
+
+        Label messageLabel = new Label(error.message());
+        messageLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #721c24;");
+        messageLabel.setWrapText(true);
+
+        Label locationLabel = new Label("📍 " + error.location() + " (Line " + error.lineNumber() + ")");
+        locationLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #856a6d;");
+
+        errorBox.getChildren().addAll(messageLabel, locationLabel);
+
+        if (error.ruleId() != null && !error.ruleId().trim().isEmpty()) {
+            Label ruleLabel = new Label("🔖 Rule: " + error.ruleId());
+            ruleLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #856a6d;");
+            errorBox.getChildren().add(ruleLabel);
+        }
+
+        if (error.pattern() != null && !error.pattern().trim().isEmpty()) {
+            Label patternLabel = new Label("📋 Pattern: " + error.pattern());
+            patternLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #856a6d;");
+            errorBox.getChildren().add(patternLabel);
+        }
+
+        return errorBox;
     }
 }
