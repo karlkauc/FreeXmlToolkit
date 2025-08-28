@@ -209,10 +209,8 @@ public class XsdDiagramView {
         Label nameLabel = new Label(node.name());
         nameLabel.setStyle(NODE_LABEL_STYLE);
 
-        // Add element icon
-        FontIcon elementIcon = new FontIcon("bi-box");
-        elementIcon.setIconColor(javafx.scene.paint.Color.web("#4a90e2"));
-        elementIcon.setIconSize(14);
+        // Add type-specific icon
+        FontIcon elementIcon = createTypeSpecificIcon(node.type());
         nameLabel.setGraphic(elementIcon);
         
         nameLabel.setOnMouseClicked(event -> updateDetailPane(node));
@@ -676,5 +674,101 @@ public class XsdDiagramView {
 
         grid.add(label, 0, rowIndex);
         grid.add(value, 1, rowIndex);
+    }
+
+    /**
+     * Creates a type-specific icon based on XSD data type
+     *
+     * @param type The XSD type (e.g., "xs:string", "xs:date", etc.)
+     * @return FontIcon with appropriate icon and color
+     */
+    private FontIcon createTypeSpecificIcon(String type) {
+        String iconLiteral;
+        String iconColor;
+
+        if (type == null || type.isEmpty()) {
+            // Default icon for unknown/empty types
+            iconLiteral = "bi-box";
+            iconColor = "#4a90e2";
+        } else {
+            // Remove namespace prefix if present (xs:string -> string)
+            String cleanType = type.contains(":") ? type.substring(type.indexOf(":") + 1) : type;
+
+            switch (cleanType.toLowerCase()) {
+                // String types
+                case "string", "normalizedstring", "token", "nmtoken", "name", "ncname", "id", "idref", "idrefs",
+                     "entity", "entities" -> {
+                    iconLiteral = "bi-chat-quote";
+                    iconColor = "#28a745"; // Green
+                }
+
+                // Numeric types
+                case "int", "integer", "long", "short", "byte", "positiveinteger", "negativeinteger",
+                     "nonpositiveinteger", "nonnegativeinteger", "unsignedlong", "unsignedint",
+                     "unsignedshort", "unsignedbyte" -> {
+                    iconLiteral = "bi-plus-circle";
+                    iconColor = "#007bff"; // Blue
+                }
+
+                // Decimal/Float types
+                case "decimal", "float", "double" -> {
+                    iconLiteral = "bi-calculator";
+                    iconColor = "#007bff"; // Blue
+                }
+
+                // Date/Time types
+                case "date", "datetime", "time", "gyear", "gmonth", "gday", "gyearmonth", "gmonthday", "duration" -> {
+                    iconLiteral = "bi-calendar-date";
+                    iconColor = "#fd7e14"; // Orange
+                }
+
+                // Boolean type
+                case "boolean" -> {
+                    iconLiteral = "bi-check-square";
+                    iconColor = "#6f42c1"; // Purple
+                }
+
+                // Binary types
+                case "base64binary", "hexbinary" -> {
+                    iconLiteral = "bi-file-binary";
+                    iconColor = "#6c757d"; // Gray
+                }
+
+                // URI type
+                case "anyuri" -> {
+                    iconLiteral = "bi-link-45deg";
+                    iconColor = "#17a2b8"; // Cyan
+                }
+
+                // QName type
+                case "qname" -> {
+                    iconLiteral = "bi-tag";
+                    iconColor = "#e83e8c"; // Pink
+                }
+
+                // Language type
+                case "language" -> {
+                    iconLiteral = "bi-globe";
+                    iconColor = "#20c997"; // Teal
+                }
+
+                // Complex or custom types
+                default -> {
+                    if (cleanType.endsWith("type") || cleanType.contains("complex")) {
+                        iconLiteral = "bi-diagram-3";
+                        iconColor = "#dc3545"; // Red
+                    } else {
+                        // Default icon for unrecognized types
+                        iconLiteral = "bi-box";
+                        iconColor = "#4a90e2"; // Default blue
+                    }
+                }
+            }
+        }
+
+        FontIcon icon = new FontIcon(iconLiteral);
+        icon.setIconColor(javafx.scene.paint.Color.web(iconColor));
+        icon.setIconSize(14);
+        return icon;
     }
 }
