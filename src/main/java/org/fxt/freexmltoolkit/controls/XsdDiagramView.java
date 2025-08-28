@@ -499,6 +499,11 @@ public class XsdDiagramView {
             childrenContainer.setManaged(isExpanded[0]);
             toggleButton.setText(isExpanded[0] ? "−" : "+");
 
+            // Auto-expand sequence and choice nodes when expanding
+            if (isExpanded[0]) {
+                autoExpandSequenceAndChoiceNodes(childrenContainer);
+            }
+
             // Scrollt den neu sichtbaren Bereich in die Ansicht
             if (isExpanded[0]) {
                 // Platform.runLater stellt sicher, dass das Layout aktualisiert wurde,
@@ -887,6 +892,93 @@ public class XsdDiagramView {
         } catch (NumberFormatException e) {
             // If we can't parse it, assume single occurrence
             return false;
+        }
+    }
+
+    /**
+     * Automatically expands sequence and choice nodes within the given container
+     *
+     * @param container The container to search for sequence and choice nodes
+     */
+    private void autoExpandSequenceAndChoiceNodes(VBox container) {
+        // Use Platform.runLater to ensure the UI is updated after the initial expansion
+        Platform.runLater(() -> {
+            autoExpandSequenceAndChoiceNodesRecursive(container);
+        });
+    }
+
+    /**
+     * Recursively searches for and expands sequence and choice toggle buttons
+     *
+     * @param parent The parent node to search within
+     */
+    private void autoExpandSequenceAndChoiceNodesRecursive(javafx.scene.Node parent) {
+        if (parent instanceof VBox vbox) {
+            for (javafx.scene.Node child : vbox.getChildren()) {
+                autoExpandSequenceAndChoiceNodesRecursive(child);
+            }
+        } else if (parent instanceof HBox hbox) {
+            autoExpandSequenceAndChoiceHBox(hbox);
+        } else if (parent instanceof TitledPane titledPane) {
+            // Check if this is a sequence or choice node by examining the title
+            String title = titledPane.getText();
+            if (title != null && (title.contains("SEQUENCE") || title.contains("CHOICE"))) {
+                // Expand this titled pane
+                if (!titledPane.isExpanded()) {
+                    titledPane.setExpanded(true);
+                }
+            }
+            // Continue searching within the content
+            javafx.scene.Node content = titledPane.getContent();
+            if (content != null) {
+                autoExpandSequenceAndChoiceNodesRecursive(content);
+            }
+        }
+    }
+
+    /**
+     * Processes an HBox for auto-expansion of sequence/choice nodes
+     *
+     * @param hbox The HBox to process
+     */
+    private void autoExpandSequenceAndChoiceHBox(HBox hbox) {
+        Label toggleButton = null;
+        boolean isSequenceOrChoice = false;
+
+        // First pass: identify toggle buttons and sequence/choice indicators
+        for (javafx.scene.Node child : hbox.getChildren()) {
+            if (child instanceof Label label) {
+                String text = label.getText();
+                String style = label.getStyle();
+
+                // Check if this is a toggle button by style and text
+                if (("+".equals(text) || "−".equals(text)) &&
+                        style != null && style.contains("-fx-background-color: #ffffff")) {
+                    toggleButton = label;
+                }
+                // Check if this HBox represents a sequence or choice
+                else if (text != null && (text.contains("SEQUENCE") || text.contains("CHOICE"))) {
+                    isSequenceOrChoice = true;
+                }
+            }
+        }
+
+        // If we found a sequence/choice toggle button that's not expanded, expand it
+        if (toggleButton != null && isSequenceOrChoice && "+".equals(toggleButton.getText())) {
+            // Get the click handler from the toggle button and execute it
+            var handler = toggleButton.getOnMouseClicked();
+            if (handler != null) {
+                handler.handle(new javafx.scene.input.MouseEvent(
+                        javafx.scene.input.MouseEvent.MOUSE_CLICKED,
+                        0, 0, 0, 0, javafx.scene.input.MouseButton.PRIMARY, 1,
+                        false, false, false, false, false, false, false, false, false, false, null
+                ));
+            }
+        }
+
+        // Continue recursive search in children
+        for (javafx.scene.Node child : hbox.getChildren()) {
+            autoExpandSequenceAndChoiceNodesRecursive(child);
         }
     }
 }
