@@ -17,9 +17,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.*;
 import org.fxt.freexmltoolkit.domain.TestFile;
-import org.fxt.freexmltoolkit.service.FavoritesService;
-import org.fxt.freexmltoolkit.service.SchematronService;
-import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
+import org.fxt.freexmltoolkit.service.*;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
@@ -202,6 +200,7 @@ public class SchematronController {
     private CodeArea codeArea;
     private SchematronService schematronService;
     private FavoritesService favoritesService;
+    private PropertiesService propertiesService;
     private MainController parentController;
     private ProgressManager progressManager;
 
@@ -223,6 +222,7 @@ public class SchematronController {
         // Initialize services
         schematronService = new SchematronServiceImpl();
         favoritesService = FavoritesService.getInstance();
+        propertiesService = PropertiesServiceImpl.getInstance();
         progressManager = ProgressManager.getInstance();
         errorDetector = new SchematronErrorDetector();
 
@@ -442,6 +442,11 @@ public class SchematronController {
                 // Update current file reference
                 currentSchematronFile = file;
 
+                // Update last open directory
+                if (file.getParent() != null) {
+                    propertiesService.setLastOpenDirectory(file.getParent());
+                }
+
                 // Notify integration service of Schematron file change
                 if (parentController != null && parentController.getIntegrationService() != null) {
                     parentController.getIntegrationService().setCurrentSchematronFile(file);
@@ -506,9 +511,24 @@ public class SchematronController {
                 new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
         );
 
+        // Set initial directory from properties
+        String lastDirString = propertiesService.getLastOpenDirectory();
+        if (lastDirString != null) {
+            File lastDir = new File(lastDirString);
+            if (lastDir.exists() && lastDir.isDirectory()) {
+                fileChooser.setInitialDirectory(lastDir);
+            }
+        }
+
         File file = fileChooser.showSaveDialog(schematronCodeEditor.getScene().getWindow());
         if (file != null) {
             currentSchematronFile = file;
+
+            // Update last open directory
+            if (file.getParent() != null) {
+                propertiesService.setLastOpenDirectory(file.getParent());
+            }
+            
             saveSchematronFile();
         }
     }
@@ -1141,9 +1161,24 @@ public class SchematronController {
                 new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
         );
 
+        // Set initial directory from properties
+        String lastDirString = propertiesService.getLastOpenDirectory();
+        if (lastDirString != null) {
+            File lastDir = new File(lastDirString);
+            if (lastDir.exists() && lastDir.isDirectory()) {
+                fileChooser.setInitialDirectory(lastDir);
+            }
+        }
+
         File file = fileChooser.showOpenDialog(testFilesTable.getScene().getWindow());
         if (file != null && file.exists()) {
             testSchematronFile = file;
+
+            // Update last open directory
+            if (file.getParent() != null) {
+                propertiesService.setLastOpenDirectory(file.getParent());
+            }
+            
             showInfo("Schema Loaded", "Schematron schema loaded: " + file.getName());
             logger.info("Loaded test schema: {}", file.getAbsolutePath());
         }
@@ -1191,8 +1226,22 @@ public class SchematronController {
                 new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
         );
 
+        // Set initial directory from properties
+        String lastDirString = propertiesService.getLastOpenDirectory();
+        if (lastDirString != null) {
+            File lastDir = new File(lastDirString);
+            if (lastDir.exists() && lastDir.isDirectory()) {
+                fileChooser.setInitialDirectory(lastDir);
+            }
+        }
+
         List<File> selectedFiles = fileChooser.showOpenMultipleDialog(testFilesTable.getScene().getWindow());
         if (selectedFiles != null && !selectedFiles.isEmpty()) {
+            // Update last open directory from the first selected file
+            if (selectedFiles.get(0).getParent() != null) {
+                propertiesService.setLastOpenDirectory(selectedFiles.get(0).getParent());
+            }
+            
             for (File file : selectedFiles) {
                 // Check if file is already in the list
                 boolean exists = testFiles.stream()
@@ -1216,8 +1265,19 @@ public class SchematronController {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select Folder with XML Files");
 
+        // Set initial directory from properties
+        String lastDirString = propertiesService.getLastOpenDirectory();
+        if (lastDirString != null) {
+            File lastDir = new File(lastDirString);
+            if (lastDir.exists() && lastDir.isDirectory()) {
+                directoryChooser.setInitialDirectory(lastDir);
+            }
+        }
+
         File directory = directoryChooser.showDialog(testFilesTable.getScene().getWindow());
         if (directory != null && directory.isDirectory()) {
+            // Update last open directory
+            propertiesService.setLastOpenDirectory(directory.getAbsolutePath());
             try {
                 List<File> xmlFiles = Files.walk(directory.toPath())
                         .filter(Files::isRegularFile)
@@ -1463,6 +1523,15 @@ public class SchematronController {
                 new FileChooser.ExtensionFilter("JSON File (*.json)", "*.json")
         );
 
+        // Set initial directory from properties
+        String lastDirString = propertiesService.getLastOpenDirectory();
+        if (lastDirString != null) {
+            File lastDir = new File(lastDirString);
+            if (lastDir.exists() && lastDir.isDirectory()) {
+                fileChooser.setInitialDirectory(lastDir);
+            }
+        }
+
         File file = fileChooser.showSaveDialog(testFilesTable.getScene().getWindow());
         if (file != null) {
             try {
@@ -1477,6 +1546,12 @@ public class SchematronController {
                 }
 
                 Files.writeString(file.toPath(), content);
+
+                // Update last open directory
+                if (file.getParent() != null) {
+                    propertiesService.setLastOpenDirectory(file.getParent());
+                }
+                
                 showInfo("Export Complete", "Test results exported to: " + file.getName());
                 logger.info("Exported test results to: {} (detailed: {})", file.getAbsolutePath(), exportOptions.includeDetails);
 
@@ -1946,10 +2021,19 @@ public class SchematronController {
                     new FileChooser.ExtensionFilter("All files (*.*)", "*.*")
             );
 
-            // Set initial directory to user's Documents folder or current directory
-            File initialDir = new File(System.getProperty("user.home", "."));
-            if (initialDir.exists() && initialDir.isDirectory()) {
-                fileChooser.setInitialDirectory(initialDir);
+            // Set initial directory from properties
+            String lastDirString = propertiesService.getLastOpenDirectory();
+            if (lastDirString != null) {
+                File lastDir = new File(lastDirString);
+                if (lastDir.exists() && lastDir.isDirectory()) {
+                    fileChooser.setInitialDirectory(lastDir);
+                }
+            } else {
+                // Fallback to user's home directory
+                File initialDir = new File(System.getProperty("user.home", "."));
+                if (initialDir.exists() && initialDir.isDirectory()) {
+                    fileChooser.setInitialDirectory(initialDir);
+                }
             }
 
             File selectedFile = fileChooser.showOpenDialog(loadSchematronFileButton.getScene().getWindow());
@@ -1996,16 +2080,26 @@ public class SchematronController {
             );
 
             // Set initial directory and filename
-            File initialDir = new File(System.getProperty("user.home", "."));
             if (currentSchematronFile != null) {
-                initialDir = currentSchematronFile.getParentFile();
+                // Use current file's directory and name
+                fileChooser.setInitialDirectory(currentSchematronFile.getParentFile());
                 fileChooser.setInitialFileName(currentSchematronFile.getName());
             } else {
+                // Set initial directory from properties
+                String lastDirString = propertiesService.getLastOpenDirectory();
+                if (lastDirString != null) {
+                    File lastDir = new File(lastDirString);
+                    if (lastDir.exists() && lastDir.isDirectory()) {
+                        fileChooser.setInitialDirectory(lastDir);
+                    }
+                } else {
+                    // Fallback to user's home directory
+                    File initialDir = new File(System.getProperty("user.home", "."));
+                    if (initialDir.exists() && initialDir.isDirectory()) {
+                        fileChooser.setInitialDirectory(initialDir);
+                    }
+                }
                 fileChooser.setInitialFileName("schematron.sch");
-            }
-
-            if (initialDir != null && initialDir.exists() && initialDir.isDirectory()) {
-                fileChooser.setInitialDirectory(initialDir);
             }
 
             File selectedFile = fileChooser.showSaveDialog(saveSchematronButton.getScene().getWindow());
@@ -2017,6 +2111,12 @@ public class SchematronController {
                 }
 
                 currentSchematronFile = selectedFile;
+
+                // Update last open directory
+                if (selectedFile.getParent() != null) {
+                    propertiesService.setLastOpenDirectory(selectedFile.getParent());
+                }
+                
                 saveSchematronFile();
                 logger.info("Schematron file saved as: {}", selectedFile.getAbsolutePath());
                 showInfo("Save Successful", "Schematron file saved successfully.");
