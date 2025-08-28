@@ -107,6 +107,42 @@ public class XsdDiagramView {
                     "-fx-text-fill: #8b6914; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 1, 0, 0.5, 0.5); " +
                     "-fx-border-style: dashed;";
 
+    // Style for repeatable elements (maxOccurs > 1) with double border effect
+    private static final String REPEATABLE_NODE_LABEL_STYLE =
+            "-fx-background-color: linear-gradient(to bottom, #ffffff, #f0f8ff); " +
+                    "-fx-border-color: #4a90e2, #87ceeb; -fx-border-width: 2px, 1px; " +
+                    "-fx-border-radius: 4px; -fx-background-radius: 4px; " +
+                    "-fx-padding: 6px 8px; -fx-font-size: 12px; -fx-font-weight: bold; " +
+                    "-fx-text-fill: #2c5aa0; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 1, 1); " +
+                    "-fx-border-insets: 0, 2px;";
+
+    // Style for repeatable attributes (maxOccurs > 1) with double border effect
+    private static final String REPEATABLE_ATTRIBUTE_LABEL_STYLE =
+            "-fx-background-color: linear-gradient(to bottom, #fff5e6, #ffe4b3); " +
+                    "-fx-border-color: #d4a147, #f4c430; -fx-border-width: 1px, 1px; " +
+                    "-fx-border-radius: 3px; -fx-background-radius: 3px; " +
+                    "-fx-padding: 4px 6px; -fx-font-size: 11px; -fx-font-weight: bold; " +
+                    "-fx-text-fill: #8b6914; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 1, 0, 0.5, 0.5); " +
+                    "-fx-border-insets: 0, 1px;";
+
+    // Style for optional AND repeatable elements (minOccurs=0 AND maxOccurs>1) 
+    private static final String OPTIONAL_REPEATABLE_NODE_LABEL_STYLE =
+            "-fx-background-color: linear-gradient(to bottom, #ffffff, #f0f8ff); " +
+                    "-fx-border-color: #4a90e2, #87ceeb; -fx-border-width: 2px, 1px; " +
+                    "-fx-border-radius: 4px; -fx-background-radius: 4px; " +
+                    "-fx-padding: 6px 8px; -fx-font-size: 12px; -fx-font-weight: bold; " +
+                    "-fx-text-fill: #2c5aa0; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 1, 1); " +
+                    "-fx-border-style: dashed; -fx-border-insets: 0, 2px;";
+
+    // Style for optional AND repeatable attributes (minOccurs=0 AND maxOccurs>1)
+    private static final String OPTIONAL_REPEATABLE_ATTRIBUTE_LABEL_STYLE =
+            "-fx-background-color: linear-gradient(to bottom, #fff5e6, #ffe4b3); " +
+                    "-fx-border-color: #d4a147, #f4c430; -fx-border-width: 1px, 1px; " +
+                    "-fx-border-radius: 3px; -fx-background-radius: 3px; " +
+                    "-fx-padding: 4px 6px; -fx-font-size: 11px; -fx-font-weight: bold; " +
+                    "-fx-text-fill: #8b6914; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 1, 0, 0.5, 0.5); " +
+                    "-fx-border-style: dashed; -fx-border-insets: 0, 1px;";
+
     private static final String TOGGLE_BUTTON_STYLE =
             "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #4a90e2; " +
                     "-fx-background-color: #ffffff; -fx-border-color: #4a90e2; -fx-border-width: 1px; " +
@@ -225,9 +261,8 @@ public class XsdDiagramView {
         nameAndToggleRow.setAlignment(Pos.CENTER_LEFT);
 
         Label nameLabel = new Label(node.name());
-        // Use dashed border for optional elements (minOccurs="0")
-        boolean isOptional = "0".equals(node.minOccurs());
-        String labelStyle = isOptional ? OPTIONAL_NODE_LABEL_STYLE : NODE_LABEL_STYLE;
+        // Determine appropriate style based on cardinality
+        String labelStyle = determineNodeLabelStyle(node, false);
         nameLabel.setStyle(labelStyle);
 
         // Add type-specific icon
@@ -297,9 +332,8 @@ public class XsdDiagramView {
         attributeContainer.setAlignment(Pos.CENTER_LEFT);
 
         Label nameLabel = new Label(node.name());
-        // Use dashed border for optional attributes (minOccurs="0" or use="optional")
-        boolean isOptional = "0".equals(node.minOccurs());
-        String labelStyle = isOptional ? OPTIONAL_ATTRIBUTE_LABEL_STYLE : ATTRIBUTE_LABEL_STYLE;
+        // Determine appropriate style based on cardinality
+        String labelStyle = determineNodeLabelStyle(node, true);
         nameLabel.setStyle(labelStyle);
 
         // Add attribute icon
@@ -794,5 +828,65 @@ public class XsdDiagramView {
         icon.setIconColor(javafx.scene.paint.Color.web(iconColor));
         icon.setIconSize(14);
         return icon;
+    }
+
+    /**
+     * Determines the appropriate label style based on node cardinality (optional/required and single/repeatable)
+     *
+     * @param node        The XSD node
+     * @param isAttribute Whether this is an attribute (true) or element (false)
+     * @return The appropriate CSS style string
+     */
+    private String determineNodeLabelStyle(XsdNodeInfo node, boolean isAttribute) {
+        boolean isOptional = "0".equals(node.minOccurs());
+        boolean isRepeatable = isRepeatable(node.maxOccurs());
+
+        if (isAttribute) {
+            if (isOptional && isRepeatable) {
+                return OPTIONAL_REPEATABLE_ATTRIBUTE_LABEL_STYLE;
+            } else if (isOptional) {
+                return OPTIONAL_ATTRIBUTE_LABEL_STYLE;
+            } else if (isRepeatable) {
+                return REPEATABLE_ATTRIBUTE_LABEL_STYLE;
+            } else {
+                return ATTRIBUTE_LABEL_STYLE;
+            }
+        } else {
+            if (isOptional && isRepeatable) {
+                return OPTIONAL_REPEATABLE_NODE_LABEL_STYLE;
+            } else if (isOptional) {
+                return OPTIONAL_NODE_LABEL_STYLE;
+            } else if (isRepeatable) {
+                return REPEATABLE_NODE_LABEL_STYLE;
+            } else {
+                return NODE_LABEL_STYLE;
+            }
+        }
+    }
+
+    /**
+     * Checks if a maxOccurs value indicates the node can repeat (> 1 or "unbounded")
+     *
+     * @param maxOccurs The maxOccurs value from XSD
+     * @return true if the node can occur multiple times
+     */
+    private boolean isRepeatable(String maxOccurs) {
+        if (maxOccurs == null || maxOccurs.isEmpty()) {
+            return false;
+        }
+
+        // "unbounded" means infinite occurrences
+        if ("unbounded".equals(maxOccurs)) {
+            return true;
+        }
+
+        // Try to parse as integer and check if > 1
+        try {
+            int max = Integer.parseInt(maxOccurs);
+            return max > 1;
+        } catch (NumberFormatException e) {
+            // If we can't parse it, assume single occurrence
+            return false;
+        }
     }
 }
