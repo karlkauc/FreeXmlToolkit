@@ -47,6 +47,50 @@
 
                         <Separator/>
 
+                        <!-- Section: Quick Start with Favorites -->
+                        <HBox spacing="15" alignment="TOP_LEFT">
+                            <FontIcon iconLiteral="bi-star-fill" iconSize="24" iconColor="#ffc107"/>
+                            <VBox spacing="10" HBox.hgrow="ALWAYS">
+                                <Label styleClass="h3" text="Quick Start with Favorites"/>
+                                <Label wrapText="true"
+                                       text="Load your favorite XSD files quickly to get started:"/>
+
+                                <!-- Favorites Actions -->
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Button fx:id="loadXsdFavoritesOverview" style="-fx-font-size: 12px;"
+                                            text="Load from Favorites">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-star-fill" iconColor="#ffc107"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Select an XSD file from your favorites"/>
+                                        </tooltip>
+                                    </Button>
+
+                                    <Button onAction="#openXsdFileChooser" style="-fx-font-size: 12px;"
+                                            text="Browse Files">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-folder2-open" iconColor="#4a90e2"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Browse and select an XSD file"/>
+                                        </tooltip>
+                                    </Button>
+                                </HBox>
+
+                                <!-- Recent Favorites Display -->
+                                <VBox fx:id="recentFavoritesContainer" spacing="5"
+                                      style="-fx-background-color: #f8f9fa; -fx-padding: 10; -fx-background-radius: 5;">
+                                    <Label text="Recent Favorites:"
+                                           style="-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #6c757d;"/>
+                                    <ListView fx:id="recentFavoritesList" maxHeight="120"
+                                              style="-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-radius: 3;"/>
+                                </VBox>
+                            </VBox>
+                        </HBox>
+
+                        <Separator/>
+
                         <!-- Section: Text Tab -->
                         <HBox spacing="15" alignment="CENTER_LEFT">
                             <FontIcon iconLiteral="bi-card-text" iconSize="24" iconColor="#4a5568"/>
@@ -228,6 +272,40 @@
                                         </children>
                                     </VBox>
                                     <Region HBox.hgrow="ALWAYS"/>
+
+                                    <!-- Favorites Section for Graphic Tab -->
+                                    <Button fx:id="addXsdToFavoritesButtonGraphic" onAction="#addCurrentXsdToFavorites"
+                                            style="-fx-font-size: 11px;"
+                                            text="★ Add">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-star" iconColor="#ffc107"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Add current XSD file to favorites"/>
+                                        </tooltip>
+                                    </Button>
+
+                                    <MenuButton fx:id="loadXsdFavoritesButtonGraphic" style="-fx-font-size: 11px;"
+                                                text="Favorites">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-star-fill" iconColor="#ffc107"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Load from favorites"/>
+                                        </tooltip>
+                                    </MenuButton>
+
+                                    <ToggleButton fx:id="toggleFavoritesButtonGraphic" style="-fx-font-size: 11px;"
+                                                  text="Panel"
+                                                  onAction="#toggleFavoritesPanelGraphic">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-layout-sidebar-inset" iconColor="#6f42c1"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Toggle Favorites Panel"/>
+                                        </tooltip>
+                                    </ToggleButton>
+
                                     <Button onAction="#openXsdFileChooser" style="-fx-font-size: 11px;"
                                             text="Load another file...">
                                         <graphic>
@@ -240,25 +318,36 @@
                     </TitledPane>
                 </top>
                 <center>
-                    <StackPane fx:id="xsdStackPane" style="-fx-background-color: #f8f9fa;">
-                        <children>
-                            <VBox fx:id="noFileLoadedPane" alignment="CENTER" spacing="20.0">
+                    <SplitPane fx:id="graphicTabSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
+                        <items>
+                            <!-- Main content area -->
+                            <StackPane fx:id="xsdStackPane" style="-fx-background-color: #f8f9fa;">
                                 <children>
-                                    <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x" iconSize="64"/>
-                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
-                                           text="No XSD file loaded"/>
-                                    <Label style="-fx-text-fill: #6c757d;"
-                                           text="Please load an XSD file to see the graphical representation."/>
-                                    <Button onAction="#openXsdFileChooser" styleClass="button, :default" text="Load XSD File">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-folder2-open"/>
-                                        </graphic>
-                                    </Button>
+                                    <VBox fx:id="noFileLoadedPane" alignment="CENTER" spacing="20.0">
+                                        <children>
+                                            <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                                                      iconSize="64"/>
+                                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                                   text="No XSD file loaded"/>
+                                            <Label style="-fx-text-fill: #6c757d;"
+                                                   text="Please load an XSD file to see the graphical representation."/>
+                                            <Button onAction="#openXsdFileChooser" styleClass="button, :default"
+                                                    text="Load XSD File">
+                                                <graphic>
+                                                    <FontIcon iconLiteral="bi-folder2-open"/>
+                                                </graphic>
+                                            </Button>
+                                        </children>
+                                    </VBox>
+                                    <ProgressIndicator fx:id="xsdDiagramProgress" maxHeight="80" maxWidth="80"
+                                                       visible="false"/>
                                 </children>
-                            </VBox>
-                            <ProgressIndicator fx:id="xsdDiagramProgress" maxHeight="80" maxWidth="80" visible="false"/>
-                        </children>
-                    </StackPane>
+                            </StackPane>
+
+                            <!-- Favorites Panel for Graphic Tab -->
+                            <fx:include fx:id="favoritesPanelGraphic" source="controls/FavoritesPanel.fxml"/>
+                        </items>
+                    </SplitPane>
                 </center>
             </BorderPane>
         </Tab>

@@ -152,6 +152,26 @@ public class XsdController {
     @FXML
     private VBox favoritesPanel;
 
+    // Fields for the graphic tab favorites system
+    @FXML
+    private Button addXsdToFavoritesButtonGraphic;
+    @FXML
+    private MenuButton loadXsdFavoritesButtonGraphic;
+    @FXML
+    private ToggleButton toggleFavoritesButtonGraphic;
+    @FXML
+    private SplitPane graphicTabSplitPane;
+    @FXML
+    private VBox favoritesPanelGraphic;
+
+    // Fields for the overview tab favorites system
+    @FXML
+    private Button loadXsdFavoritesOverview;
+    @FXML
+    private VBox recentFavoritesContainer;
+    @FXML
+    private ListView<String> recentFavoritesList;
+
     // ======================================================================
     // Felder und Methoden für den "Documentation" Tab
     // ======================================================================
@@ -214,17 +234,31 @@ public class XsdController {
         }
 
         // Initialize favorites menu
-        Platform.runLater(() -> refreshXsdFavoritesMenu());
+        Platform.runLater(() -> {
+            refreshXsdFavoritesMenu();
+            setupOverviewFavorites();
+        });
 
-        // Initialize favorites panel visibility
+        // Initialize favorites panel visibility for text tab
         if (favoritesPanel != null) {
             favoritesPanel.setVisible(false);
             favoritesPanel.setManaged(false);
         }
 
+        // Initialize favorites panel visibility for graphic tab
+        if (favoritesPanelGraphic != null) {
+            favoritesPanelGraphic.setVisible(false);
+            favoritesPanelGraphic.setManaged(false);
+        }
+
         // Hide panel initially by removing it from split pane
         if (textTabSplitPane != null && favoritesPanel != null) {
             textTabSplitPane.getItems().remove(favoritesPanel);
+        }
+
+        // Hide graphic panel initially by removing it from split pane
+        if (graphicTabSplitPane != null && favoritesPanelGraphic != null) {
+            graphicTabSplitPane.getItems().remove(favoritesPanelGraphic);
         }
         
         xsdTab.setOnSelectionChanged(event -> {
@@ -1243,9 +1277,16 @@ public class XsdController {
     }
 
     private void refreshXsdFavoritesMenu() {
-        if (loadXsdFavoritesButton == null) return;
+        refreshXsdFavoritesMenuForButton(loadXsdFavoritesButton);
+        refreshXsdFavoritesMenuForButton(loadXsdFavoritesButtonGraphic);
+        // Also refresh the overview favorites list
+        Platform.runLater(this::populateRecentFavoritesList);
+    }
 
-        loadXsdFavoritesButton.getItems().clear();
+    private void refreshXsdFavoritesMenuForButton(MenuButton menuButton) {
+        if (menuButton == null) return;
+
+        menuButton.getItems().clear();
 
         // Get XSD favorites
         List<org.fxt.freexmltoolkit.domain.FileFavorite> xsdFavorites = favoritesService.getFavoritesByType(
@@ -1254,7 +1295,7 @@ public class XsdController {
         if (xsdFavorites.isEmpty()) {
             MenuItem noFavoritesItem = new MenuItem("No XSD favorites yet");
             noFavoritesItem.setDisable(true);
-            loadXsdFavoritesButton.getItems().add(noFavoritesItem);
+            menuButton.getItems().add(noFavoritesItem);
             return;
         }
 
@@ -1277,22 +1318,22 @@ public class XsdController {
                     categoryMenu.getItems().add(favoriteItem);
                 }
 
-                loadXsdFavoritesButton.getItems().add(categoryMenu);
+                menuButton.getItems().add(categoryMenu);
             } else {
                 // If only one category, add items directly
                 for (org.fxt.freexmltoolkit.domain.FileFavorite favorite : favoritesInCategory) {
                     MenuItem favoriteItem = createXsdFavoriteMenuItem(favorite);
-                    loadXsdFavoritesButton.getItems().add(favoriteItem);
+                    menuButton.getItems().add(favoriteItem);
                 }
             }
         }
 
         // Add separator and management options
-        loadXsdFavoritesButton.getItems().add(new SeparatorMenuItem());
+        menuButton.getItems().add(new SeparatorMenuItem());
 
         MenuItem manageFavoritesItem = new MenuItem("Manage Favorites...");
         manageFavoritesItem.setOnAction(e -> showXsdFavoritesManagement());
-        loadXsdFavoritesButton.getItems().add(manageFavoritesItem);
+        menuButton.getItems().add(manageFavoritesItem);
     }
 
     private MenuItem createXsdFavoriteMenuItem(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
@@ -1382,6 +1423,207 @@ public class XsdController {
         }
 
         logger.info("Favorites panel toggled: {}", isSelected ? "shown" : "hidden");
+    }
+
+    @FXML
+    private void toggleFavoritesPanelGraphic() {
+        if (favoritesPanelGraphic == null || graphicTabSplitPane == null) {
+            return;
+        }
+
+        boolean isSelected = toggleFavoritesButtonGraphic != null && toggleFavoritesButtonGraphic.isSelected();
+
+        // Toggle visibility of the favorites panel
+        favoritesPanelGraphic.setVisible(isSelected);
+        favoritesPanelGraphic.setManaged(isSelected);
+
+        if (isSelected) {
+            // Show the panel with proper divider position
+            if (!graphicTabSplitPane.getItems().contains(favoritesPanelGraphic)) {
+                graphicTabSplitPane.getItems().add(favoritesPanelGraphic);
+            }
+            graphicTabSplitPane.setDividerPositions(0.75);
+        } else {
+            // Hide the panel
+            graphicTabSplitPane.getItems().remove(favoritesPanelGraphic);
+        }
+
+        logger.info("Graphic tab favorites panel toggled: {}", isSelected ? "shown" : "hidden");
+    }
+
+    // ======================================================================
+    // Overview Tab Favorites Functionality
+    // ======================================================================
+
+    private void setupOverviewFavorites() {
+        // Setup the overview favorites button
+        if (loadXsdFavoritesOverview != null) {
+            loadXsdFavoritesOverview.setOnAction(e -> showOverviewFavoritesMenu());
+        }
+
+        // Populate the recent favorites list
+        populateRecentFavoritesList();
+
+        // Setup double-click handler for recent favorites list
+        if (recentFavoritesList != null) {
+            recentFavoritesList.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) {
+                    String selectedItem = recentFavoritesList.getSelectionModel().getSelectedItem();
+                    if (selectedItem != null) {
+                        loadFavoriteFromListItem(selectedItem);
+                    }
+                }
+            });
+        }
+    }
+
+    private void showOverviewFavoritesMenu() {
+        // Get XSD favorites
+        List<org.fxt.freexmltoolkit.domain.FileFavorite> xsdFavorites = favoritesService.getFavoritesByType(
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSD);
+
+        if (xsdFavorites.isEmpty()) {
+            showAlertDialog(Alert.AlertType.INFORMATION, "No Favorites",
+                    "You haven't added any XSD files to your favorites yet.\n\nUse the '★ Add' button in any tab to add files to favorites.");
+            return;
+        }
+
+        // Create a context menu to show favorites
+        ContextMenu favoritesMenu = new ContextMenu();
+
+        // Organize by categories
+        java.util.Map<String, List<org.fxt.freexmltoolkit.domain.FileFavorite>> favoritesByCategory =
+                xsdFavorites.stream().collect(java.util.stream.Collectors.groupingBy(
+                        org.fxt.freexmltoolkit.domain.FileFavorite::getFolderName));
+
+        for (java.util.Map.Entry<String, List<org.fxt.freexmltoolkit.domain.FileFavorite>> entry : favoritesByCategory.entrySet()) {
+            String categoryName = entry.getKey();
+            List<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesInCategory = entry.getValue();
+
+            if (favoritesByCategory.size() > 1) {
+                // If more than one category, create sub-menus
+                Menu categoryMenu = new Menu(categoryName);
+                for (org.fxt.freexmltoolkit.domain.FileFavorite favorite : favoritesInCategory) {
+                    MenuItem favoriteItem = createOverviewFavoriteMenuItem(favorite);
+                    categoryMenu.getItems().add(favoriteItem);
+                }
+                favoritesMenu.getItems().add(categoryMenu);
+            } else {
+                // If only one category, add items directly
+                for (org.fxt.freexmltoolkit.domain.FileFavorite favorite : favoritesInCategory) {
+                    MenuItem favoriteItem = createOverviewFavoriteMenuItem(favorite);
+                    favoritesMenu.getItems().add(favoriteItem);
+                }
+            }
+        }
+
+        // Show the context menu
+        favoritesMenu.show(loadXsdFavoritesOverview, javafx.geometry.Side.BOTTOM, 0, 0);
+    }
+
+    private MenuItem createOverviewFavoriteMenuItem(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
+        MenuItem item = new MenuItem(favorite.getName());
+        item.setGraphic(new FontIcon("bi-file-earmark-code"));
+
+        // Add file path as tooltip if it's different from the name
+        if (!favorite.getName().equals(favorite.getFilePath())) {
+            Tooltip tooltip = new Tooltip(favorite.getFilePath());
+            Tooltip.install(item.getGraphic(), tooltip);
+        }
+
+        item.setOnAction(e -> loadXsdFavoriteFromOverview(favorite));
+        return item;
+    }
+
+    private void populateRecentFavoritesList() {
+        if (recentFavoritesList == null) return;
+
+        List<org.fxt.freexmltoolkit.domain.FileFavorite> xsdFavorites = favoritesService.getFavoritesByType(
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSD);
+
+        // Sort by last accessed time (most recent first) and take up to 5
+        List<String> recentItems = xsdFavorites.stream()
+                .sorted((f1, f2) -> f2.getLastAccessed().compareTo(f1.getLastAccessed()))
+                .limit(5)
+                .map(favorite -> "📄 " + favorite.getName())
+                .toList();
+
+        recentFavoritesList.setItems(FXCollections.observableArrayList(recentItems));
+
+        // Hide the container if no favorites exist
+        if (recentFavoritesContainer != null) {
+            recentFavoritesContainer.setVisible(!recentItems.isEmpty());
+            recentFavoritesContainer.setManaged(!recentItems.isEmpty());
+        }
+    }
+
+    private void loadFavoriteFromListItem(String listItem) {
+        // Extract the name from the list item (remove the emoji prefix)
+        String favoriteName = listItem.replace("📄 ", "");
+
+        // Find the favorite by name
+        List<org.fxt.freexmltoolkit.domain.FileFavorite> xsdFavorites = favoritesService.getFavoritesByType(
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSD);
+
+        Optional<org.fxt.freexmltoolkit.domain.FileFavorite> favorite = xsdFavorites.stream()
+                .filter(f -> f.getName().equals(favoriteName))
+                .findFirst();
+
+        if (favorite.isPresent()) {
+            loadXsdFavoriteFromOverview(favorite.get());
+        }
+    }
+
+    private void loadXsdFavoriteFromOverview(org.fxt.freexmltoolkit.domain.FileFavorite favorite) {
+        File file = new File(favorite.getFilePath());
+
+        if (!file.exists() || !file.canRead()) {
+            showAlertDialog(Alert.AlertType.ERROR, "File Not Found",
+                    "The favorite file could not be found or is not readable:\n" + favorite.getFilePath() +
+                            "\n\nThe file may have been moved or deleted.");
+
+            // Optionally remove the favorite if file doesn't exist
+            Optional<ButtonType> result = showConfirmationDialog(
+                    "Remove Favorite?",
+                    "Would you like to remove this favorite since the file no longer exists?");
+
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                favoritesService.removeFavorite(favorite.getId());
+                refreshXsdFavoritesMenu();
+                populateRecentFavoritesList();
+            }
+            return;
+        }
+
+        try {
+            // Load the XSD file
+            openXsdFile(file);
+
+            // Update last accessed time
+            favoritesService.updateFavorite(favorite);
+
+            // Refresh the recent favorites list
+            populateRecentFavoritesList();
+
+            // Switch to Text tab to show the loaded content
+            if (tabPane != null && textTab != null) {
+                tabPane.getSelectionModel().select(textTab);
+            }
+
+            logger.info("Loaded favorite XSD file from overview: {}", favorite.getName());
+
+        } catch (Exception e) {
+            logger.error("Error loading favorite XSD file from overview: {}", favorite.getName(), e);
+            showAlertDialog(Alert.AlertType.ERROR, "Error", "Failed to load favorite XSD file:\n" + e.getMessage());
+        }
+    }
+
+    private Optional<ButtonType> showConfirmationDialog(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        return alert.showAndWait();
     }
 
     private void showAlertDialog(Alert.AlertType alertType, String title, String message) {
