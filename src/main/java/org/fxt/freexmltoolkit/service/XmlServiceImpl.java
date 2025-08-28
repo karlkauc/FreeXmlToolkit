@@ -102,6 +102,7 @@ public class XmlServiceImpl implements XmlService {
 
     private String remoteXsdLocation;
     private String xsltOutputMethod;
+    private String lastXsdError; // Store the last XSD loading error
 
     private String xmlContent;
 
@@ -292,10 +293,19 @@ public class XmlServiceImpl implements XmlService {
 
             this.rootElement = document.getDocumentElement();
             this.targetNamespace = rootElement.getAttribute("targetNamespace");
+            this.lastXsdError = null; // Clear any previous error on success
             logger.debug("Successfully set and parsed XSD file: {}", xsdFile.getAbsolutePath());
 
         } catch (SAXException | IOException | ParserConfigurationException e) {
             logger.error("Could not set current XSD File: {}", xsdFile.getAbsolutePath(), e);
+
+            // Store detailed error message
+            String errorMessage = e.getMessage();
+            if (e instanceof SAXException && e.getCause() != null) {
+                errorMessage = e.getCause().getMessage();
+            }
+            this.lastXsdError = errorMessage;
+            
             // Also reset state on failure to ensure consistency
             this.currentXsdFile = null;
             this.schema = null;
@@ -1105,5 +1115,10 @@ public class XmlServiceImpl implements XmlService {
         DOMSource source = new DOMSource(doc);
         StreamResult result = new StreamResult(file);
         transformer.transform(source, result);
+    }
+
+    @Override
+    public String getLastXsdError() {
+        return lastXsdError;
     }
 }

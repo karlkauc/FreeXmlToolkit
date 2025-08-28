@@ -145,6 +145,12 @@ public class XsdController {
     private Button addXsdToFavoritesButton;
     @FXML
     private MenuButton loadXsdFavoritesButton;
+    @FXML
+    private ToggleButton toggleFavoritesButton;
+    @FXML
+    private SplitPane textTabSplitPane;
+    @FXML
+    private VBox favoritesPanel;
 
     // ======================================================================
     // Felder und Methoden für den "Documentation" Tab
@@ -209,6 +215,17 @@ public class XsdController {
 
         // Initialize favorites menu
         Platform.runLater(() -> refreshXsdFavoritesMenu());
+
+        // Initialize favorites panel visibility
+        if (favoritesPanel != null) {
+            favoritesPanel.setVisible(false);
+            favoritesPanel.setManaged(false);
+        }
+
+        // Hide panel initially by removing it from split pane
+        if (textTabSplitPane != null && favoritesPanel != null) {
+            textTabSplitPane.getItems().remove(favoritesPanel);
+        }
         
         xsdTab.setOnSelectionChanged(event -> {
             if (xsdTab.isSelected()) {
@@ -409,29 +426,47 @@ public class XsdController {
      * @param file Die zu öffnende XSD-Datei.
      */
     public void openXsdFile(File file) {
-        // The file must be set FIRST in the service,
-        // so that all subsequent methods have the correct state.
-        xmlService.setCurrentXsdFile(file);
+        try {
+            // The file must be set FIRST in the service,
+            // so that all subsequent methods have the correct state.
+            xmlService.setCurrentXsdFile(file);
 
-        // Call the central method in the MainController.
-        // This not only adds the file to the list, but also updates the menu.
-        if (parentController != null) {
-            parentController.addFileToRecentFiles(file);
-        } else {
-            // Fallback in case the parent controller is not set for some reason.
-            propertiesService.addLastOpenFile(file);
+            // Check if the file was successfully loaded
+            if (xmlService.getCurrentXsdFile() == null) {
+                // File loading failed - get detailed error message
+                String errorMessage = xmlService.getLastXsdError();
+                if (errorMessage == null || errorMessage.isEmpty()) {
+                    errorMessage = "The XSD file could not be loaded. Please check if it's a valid XSD schema file.";
+                }
+                showXsdLoadingError(file, errorMessage);
+                return;
+            }
+
+            // Call the central method in the MainController.
+            // This not only adds the file to the list, but also updates the menu.
+            if (parentController != null) {
+                parentController.addFileToRecentFiles(file);
+            } else {
+                // Fallback in case the parent controller is not set for some reason.
+                propertiesService.addLastOpenFile(file);
+            }
+
+            if (file.getParent() != null) {
+                propertiesService.setLastOpenDirectory(file.getParent());
+            }
+            // Populate the file path fields on other tabs to keep the UI in sync
+            String absolutePath = file.getAbsolutePath();
+            xsdFilePath.setText(absolutePath);
+            xsdForSampleDataPath.setText(absolutePath);
+            xsdToFlattenPath.setText(absolutePath); // Also set for the Flatten tab
+
+            setupXsdDiagram();
+
+        } catch (Exception e) {
+            // Handle any unexpected exceptions
+            logger.error("Unexpected error opening XSD file: {}", file.getAbsolutePath(), e);
+            showXsdLoadingError(file, "An unexpected error occurred while loading the XSD file: " + e.getMessage());
         }
-
-        if (file.getParent() != null) {
-            propertiesService.setLastOpenDirectory(file.getParent());
-        }
-        // Populate the file path fields on other tabs to keep the UI in sync
-        String absolutePath = file.getAbsolutePath();
-        xsdFilePath.setText(absolutePath);
-        xsdForSampleDataPath.setText(absolutePath);
-        xsdToFlattenPath.setText(absolutePath); // Also set for the Flatten tab
-
-        setupXsdDiagram();
     }
 
     /**
@@ -1323,11 +1358,77 @@ public class XsdController {
         showAlertDialog(Alert.AlertType.INFORMATION, "Coming Soon", "Favorites management will be available in Settings.");
     }
 
+    @FXML
+    private void toggleFavoritesPanel() {
+        if (favoritesPanel == null || textTabSplitPane == null) {
+            return;
+        }
+
+        boolean isSelected = toggleFavoritesButton != null && toggleFavoritesButton.isSelected();
+
+        // Toggle visibility of the favorites panel
+        favoritesPanel.setVisible(isSelected);
+        favoritesPanel.setManaged(isSelected);
+
+        if (isSelected) {
+            // Show the panel with proper divider position
+            if (!textTabSplitPane.getItems().contains(favoritesPanel)) {
+                textTabSplitPane.getItems().add(favoritesPanel);
+            }
+            textTabSplitPane.setDividerPositions(0.75);
+        } else {
+            // Hide the panel
+            textTabSplitPane.getItems().remove(favoritesPanel);
+        }
+
+        logger.info("Favorites panel toggled: {}", isSelected ? "shown" : "hidden");
+    }
+
     private void showAlertDialog(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    /**
+     * Shows an error dialog when XSD file loading fails.
+     */
+    private void showXsdLoadingError(File file, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("XSD Loading Error");
+        alert.setHeaderText("Failed to load XSD file: " + file.getName());
+
+        // Create detailed error message
+        String detailedMessage = "Error details:\n" + message + "\n\nFile path: " + file.getAbsolutePath();
+
+        // For long error messages, use expandable content
+        if (message.length() > 150) {
+            alert.setContentText("The XSD file could not be loaded due to validation errors.");
+
+            // Create expandable Exception area
+            Label label = new Label("Error details:");
+            TextArea textArea = new TextArea(detailedMessage);
+            textArea.setEditable(false);
+            textArea.setWrapText(true);
+            textArea.setMaxWidth(Double.MAX_VALUE);
+            textArea.setMaxHeight(Double.MAX_VALUE);
+
+            VBox expandableContent = new VBox();
+            expandableContent.setMaxWidth(Double.MAX_VALUE);
+            expandableContent.getChildren().addAll(label, textArea);
+
+            alert.getDialogPane().setExpandableContent(expandableContent);
+        } else {
+            alert.setContentText(detailedMessage);
+        }
+
+        // Make the dialog resizable and set preferred size
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefWidth(600);
+
+        alert.showAndWait();
+        logger.info("Shown XSD loading error dialog for file: {}", file.getAbsolutePath());
     }
 }

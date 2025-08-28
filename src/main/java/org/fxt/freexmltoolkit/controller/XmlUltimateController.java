@@ -113,12 +113,14 @@ public class XmlUltimateController implements Initializable {
     private Button saveFile;
     @FXML
     private Button prettyPrint;
-    @FXML
-    private Button minifyButton;
+    // Removed from UI
+    // @FXML
+    // private Button minifyButton;
     @FXML
     private Button validateButton;
-    @FXML
-    private Button lintButton;
+    // Removed from UI
+    // @FXML
+    // private Button lintButton;
     @FXML
     private Button runXpathQuery;
     @FXML
@@ -127,8 +129,9 @@ public class XmlUltimateController implements Initializable {
     private Button schemaGeneratorButton;
     @FXML
     private Button xsltDeveloperButton;
-    @FXML
-    private ToggleButton treeViewToggle;
+    // Removed from UI
+    // @FXML
+    // private ToggleButton treeViewToggle;
     @FXML
     private Button addToFavoritesButton;
     @FXML
@@ -784,7 +787,8 @@ public class XmlUltimateController implements Initializable {
         }
     }
 
-    @FXML
+    // Removed from UI - method no longer used
+    // @FXML
     private void minifyXmlText() {
         logger.info("Minifying XML");
         logToConsole("Minifying XML...");
@@ -857,7 +861,8 @@ public class XmlUltimateController implements Initializable {
         }
     }
 
-    @FXML
+    // Removed from UI - method no longer used
+    // @FXML
     private void lintXml() {
         logger.info("Linting XML");
         logToConsole("Checking XML for potential issues...");
@@ -1036,10 +1041,13 @@ public class XmlUltimateController implements Initializable {
     /**
      * View Operations
      */
-    @FXML
+    // Removed from UI - method no longer used
+    // @FXML
     private void toggleTreeView() {
         logger.info("Toggling Tree View");
-        boolean selected = treeViewToggle.isSelected();
+        // treeViewToggle removed from UI
+        // boolean selected = treeViewToggle.isSelected();
+        boolean selected = false; // Default to false since button is removed
         logToConsole("Tree view " + (selected ? "enabled" : "disabled"));
 
         if (selected && documentTreeView != null) {

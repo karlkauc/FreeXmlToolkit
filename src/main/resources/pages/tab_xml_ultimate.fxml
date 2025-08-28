@@ -75,15 +75,6 @@
             </tooltip>
         </Button>
 
-        <Button fx:id="minifyButton" contentDisplay="TOP" onAction="#minifyXmlText" text="Minify">
-            <graphic>
-                <FontIcon iconColor="#6c757d" iconLiteral="bi-layout-text-window-reverse" iconSize="16"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Minify XML (remove whitespace)"/>
-            </tooltip>
-        </Button>
-
         <Separator orientation="VERTICAL" prefHeight="25"/>
 
         <!-- Validation Group -->
@@ -93,15 +84,6 @@
             </graphic>
             <tooltip>
                 <Tooltip text="Validate XML structure"/>
-            </tooltip>
-        </Button>
-
-        <Button fx:id="lintButton" onAction="#lintXml" text="Lint" styleClass="secondary-button">
-            <graphic>
-                <FontIcon iconColor="#dc3545" iconLiteral="bi-bug" iconSize="16"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Check XML for issues"/>
             </tooltip>
         </Button>
 
@@ -147,17 +129,6 @@
             </tooltip>
         </Button>
 
-        <Separator orientation="VERTICAL" prefHeight="25"/>
-
-        <!-- View Options Group -->
-        <ToggleButton fx:id="treeViewToggle" onAction="#toggleTreeView" text="Tree View" styleClass="secondary-button">
-            <graphic>
-                <FontIcon iconColor="#6f42c1" iconLiteral="bi-diagram-3" iconSize="16"/>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Toggle tree view"/>
-            </tooltip>
-        </ToggleButton>
     </HBox>
 
     <!-- NEW: SplitPane to make the editor and development panes resizable -->

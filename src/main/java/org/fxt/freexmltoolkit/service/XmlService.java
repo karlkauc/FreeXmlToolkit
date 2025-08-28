@@ -61,6 +61,8 @@ public interface XmlService {
     String getRemoteXsdLocation();
     void setCurrentXsdFile(File xsdFile);
 
+    String getLastXsdError();
+
     String performXsltTransformation();
 
     Document getXmlDocument();

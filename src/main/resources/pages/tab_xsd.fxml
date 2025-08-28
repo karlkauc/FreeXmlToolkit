@@ -140,6 +140,16 @@
                                 </tooltip>
                             </MenuButton>
 
+                            <ToggleButton fx:id="toggleFavoritesButton" style="-fx-font-size: 11px;" text="Panel"
+                                          onAction="#toggleFavoritesPanel">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-layout-sidebar-inset" iconColor="#6f42c1"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Toggle Favorites Panel"/>
+                                </tooltip>
+                            </ToggleButton>
+
                             <Button onAction="#openXsdFileChooser" style="-fx-font-size: 11px;"
                                     text="Load another file...">
                                 <graphic>
@@ -150,24 +160,37 @@
                     </HBox>
                 </top>
                 <center>
-                    <StackPane style="-fx-background-color: #f8f9fa;">
-                        <children>
-                            <VBox fx:id="noFileLoadedPaneText" alignment="CENTER" spacing="20.0">
+                    <SplitPane fx:id="textTabSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
+                        <items>
+                            <!-- Main content area -->
+                            <StackPane style="-fx-background-color: #f8f9fa;">
                                 <children>
-                                    <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x" iconSize="64"/>
-                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;" text="No XSD file loaded"/>
-                                    <Label style="-fx-text-fill: #6c757d;" text="Please load an XSD file to see the source code."/>
-                                    <Button onAction="#openXsdFileChooser" styleClass="button, :default" text="Load XSD File">
-                                        <graphic>
-                                            <FontIcon iconLiteral="bi-folder2-open"/>
-                                        </graphic>
-                                    </Button>
+                                    <VBox fx:id="noFileLoadedPaneText" alignment="CENTER" spacing="20.0">
+                                        <children>
+                                            <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                                                      iconSize="64"/>
+                                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                                   text="No XSD file loaded"/>
+                                            <Label style="-fx-text-fill: #6c757d;"
+                                                   text="Please load an XSD file to see the source code."/>
+                                            <Button onAction="#openXsdFileChooser" styleClass="button, :default"
+                                                    text="Load XSD File">
+                                                <graphic>
+                                                    <FontIcon iconLiteral="bi-folder2-open"/>
+                                                </graphic>
+                                            </Button>
+                                        </children>
+                                    </VBox>
+                                    <XmlCodeEditor fx:id="sourceCodeEditor" managed="false" visible="false"/>
+                                    <ProgressIndicator fx:id="textProgress" maxHeight="80" maxWidth="80"
+                                                       visible="false"/>
                                 </children>
-                            </VBox>
-                            <XmlCodeEditor fx:id="sourceCodeEditor" managed="false" visible="false"/>
-                            <ProgressIndicator fx:id="textProgress" maxHeight="80" maxWidth="80" visible="false"/>
-                        </children>
-                    </StackPane>
+                            </StackPane>
+
+                            <!-- Favorites Panel -->
+                            <fx:include fx:id="favoritesPanel" source="controls/FavoritesPanel.fxml"/>
+                        </items>
+                    </SplitPane>
                 </center>
             </BorderPane>
         </Tab>
