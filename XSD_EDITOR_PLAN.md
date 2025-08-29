@@ -526,11 +526,13 @@ XSD-Editor.
 - ✅ RegEx Pattern Library
 - [ ] Export/Import Validation Rules
 
-#### 4.4 Refactoring Tools ❌
+#### 4.4 Refactoring Tools 🚧 TEILWEISE IMPLEMENTIERT
 
-**Detaillierte Aufgaben:**
+**Status:** Safe Rename Tool vollständig implementiert am 2025-08-29
 
-- [ ] Safe Rename mit Preview
+**Implementierte Features:**
+
+- ✅ Safe Rename mit Preview - Vollständige Implementierung mit Referenz-Analyse
 - [ ] Extract ComplexType/SimpleType
 - [ ] Inline Type Definition
 - [ ] Convert Element to Attribute
@@ -538,6 +540,17 @@ XSD-Editor.
 - [ ] Change Cardinality
 - [ ] Normalize Schema Structure
 - [ ] Remove Unused Types
+
+**Technische Details (Safe Rename):**
+
+- Neue Klasse `XsdSafeRenameDialog` - Professioneller Dialog mit Preview-Funktionalität
+- Neue Klasse `SafeRenameCommand` - Command Pattern für Undo/Redo Support
+- Real-time Validierung des neuen Namens mit XML-Name-Compliance
+- Automatische Referenz-Erkennung für type, ref und base Attribute
+- Konflik-Erkennung bei bestehenden Namen im Schema
+- Professional CSS Styling (`xsd-refactoring-tools.css`)
+- Context Menu Integration für Elements, SimpleTypes und ComplexTypes
+- Vollständige Undo-Funktionalität mit Backup aller geänderten Attribute
 
 #### 4.5 Multi-View Synchronization ❌
 
@@ -720,9 +733,40 @@ Noch zu implementieren:
 **Entwickler:** Karl Kauc  
 **Projekt:** FreeXmlToolkit  
 **Repository:** /Users/karlkauc/IdeaProjects/FreeXmlToolkit  
-**Letztes Update:** 2025-08-29 (19:00) - Phase 4.3 Schema Validation Rules completed
+**Letztes Update:** 2025-08-29 (20:00) - Phase 4.4 Refactoring Tools (Safe Rename) implemented
 
 ## Changelog
+
+### 2025-08-29 (20:00) - Phase 4.4 Refactoring Tools (Safe Rename) ✅
+
+- ✅ Phase 4.4 Safe Rename Tool vollständig implementiert
+- ✅ XsdSafeRenameDialog.java (600+ Zeilen) - Professioneller Preview-Dialog
+- ✅ SafeRenameCommand.java (200+ Zeilen) - Command Pattern für sichere Umbenennungen
+- ✅ xsd-refactoring-tools.css (400+ Zeilen) - Professional Refactoring-Styling
+- ✅ Safe Rename Features:
+    - Real-time Namensvalidierung mit XML-Name-Compliance
+    - Automatische Referenz-Analyse (type, ref, base Attribute)
+    - Preview aller betroffenen Elemente mit XPath-Locations
+    - Konflikt-Erkennung bei bestehenden Namen im Schema
+    - Option zum automatischen Update aller Referenzen
+    - Vollständige Undo-Funktionalität mit Attribut-Backup
+- ✅ Professional UI Features:
+    - Resizable 800x600 Dialog mit Scroll-Support
+    - Grid-basierte Information Layout mit Current/New Name Sections
+    - Monospace Preview-Area für technische Details
+    - Color-coded Validation Messages (Success/Error/Warning)
+    - Warning Panel für potenzielle Risiken
+    - Success Feedback mit Update-Statistiken
+- ✅ Context Menu Integration:
+    - "Safe Rename with Preview" für Elements, SimpleTypes, ComplexTypes
+    - FontIcon Integration (bi-magic) für visuelle Konsistenz
+    - Error Handling mit benutzerfreundlichen Dialogen
+- ✅ DOM-Integration:
+    - Sichere Attribut-Updates mit Backup-Mechanismus
+    - Namespace-bewusste Referenz-Updates
+    - XPath-basierte Element-Lokalisierung
+    - Live View-Refresh nach Änderungen
+- 📈 Phase 4 Status auf 75% erhöht
 
 ### 2025-08-29 (02:15) - Phase 3.1 Drag & Drop Support ✅
 

@@ -1664,6 +1664,16 @@ public class XsdDiagramView {
         renameItem.setOnAction(e -> showRenameDialog(nodeInfo));
         contextMenu.getItems().add(renameItem);
 
+        // Safe Rename menu item (for elements and types)
+        if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT ||
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.SIMPLE_TYPE ||
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.COMPLEX_TYPE) {
+            MenuItem safeRenameItem = new MenuItem("Safe Rename with Preview");
+            safeRenameItem.setGraphic(new FontIcon("bi-stars"));
+            safeRenameItem.setOnAction(e -> showSafeRenameDialog(nodeInfo));
+            contextMenu.getItems().add(safeRenameItem);
+        }
+
         // Delete menu item
         MenuItem deleteItem = new MenuItem("Delete");
         deleteItem.setGraphic(new FontIcon("bi-trash"));
@@ -2911,6 +2921,82 @@ public class XsdDiagramView {
             showErrorAlert("Validation Rules Dialog Error",
                     "Failed to open validation rules dialog:\n" + e.getMessage());
         }
+    }
+
+    /**
+     * Shows safe rename dialog with preview of affected references
+     */
+    private void showSafeRenameDialog(XsdNodeInfo nodeInfo) {
+        try {
+            logger.info("Opening safe rename dialog for node: {} (type: {})", nodeInfo.name(), nodeInfo.nodeType());
+
+            // Create and configure the safe rename dialog
+            XsdSafeRenameDialog dialog = new XsdSafeRenameDialog(nodeInfo, domManipulator);
+            dialog.initOwner(treeScrollPane.getScene().getWindow());
+
+            // Show the dialog and handle the result
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()) {
+                String newName = result.get();
+                logger.info("Safe rename requested: '{}' -> '{}'", nodeInfo.name(), newName);
+
+                // Create and execute the safe rename command
+                SafeRenameCommand command = new SafeRenameCommand(
+                        domManipulator,
+                        nodeInfo,
+                        newName,
+                        dialog.getAffectedReferences(),
+                        dialog.shouldUpdateReferences()
+                );
+
+                if (command.execute()) {
+                    // Add command to undo stack if XsdController supports it
+                    if (controller != null) {
+                        // TODO: Add command to undo stack when XsdController supports it
+                        logger.debug("Command executed successfully, undo stack integration pending");
+                    }
+
+                    // Refresh the view to show changes
+                    refreshView();
+
+                    // Show success feedback
+                    int updatedRefs = command.getUpdatedReferencesCount();
+                    String message = String.format("Successfully renamed '%s' to '%s'",
+                            command.getOriginalName(), command.getNewName());
+                    if (updatedRefs > 0) {
+                        message += String.format("\n%d reference(s) were updated.", updatedRefs);
+                    }
+
+                    showSuccessAlert("Safe Rename Completed", message);
+
+                    logger.info("Successfully completed safe rename: '{}' -> '{}' with {} reference updates",
+                            command.getOriginalName(), command.getNewName(), updatedRefs);
+                } else {
+                    logger.error("Failed to execute safe rename for node: {}", nodeInfo.name());
+                    showErrorAlert("Safe Rename Error",
+                            "Failed to rename element '" + nodeInfo.name() + "'.\n" +
+                                    "Please check the element structure and try again.");
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error opening safe rename dialog for node: " + nodeInfo.name(), e);
+            showErrorAlert("Safe Rename Dialog Error",
+                    "Failed to open safe rename dialog:\n" + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows a success alert dialog
+     */
+    private void showSuccessAlert(String title, String message) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
     }
 
     /**

@@ -85,8 +85,11 @@ public class XsdValidationRulesEditor extends Dialog<ValidationRulesResult> {
     }
 
     private void initializeDialog() {
-        setTitle("Schema Validation Rules - " + targetNode.name());
-        setHeaderText("Configure validation constraints for element: " + targetNode.name());
+        String dataType = determineDataType();
+        String typeInfo = (dataType != null && !dataType.equals("unknown")) ? " (" + dataType + ")" : "";
+
+        setTitle("Schema Validation Rules - " + targetNode.name() + typeInfo);
+        setHeaderText("Configure validation constraints for element: " + targetNode.name() + typeInfo);
 
         // Set dialog properties
         setResizable(true);
@@ -113,14 +116,8 @@ public class XsdValidationRulesEditor extends Dialog<ValidationRulesResult> {
         tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
-        // Create tabs
-        createPatternTab();
-        createEnumerationTab();
-        createRangeTab();
-        createLengthTab();
-        createDecimalTab();
-        createWhitespaceTab();
-        createCustomFacetsTab();
+        // Create tabs based on data type compatibility
+        createTabsForDataType();
 
         // Add validation preview panel
         VBox mainContent = new VBox(10);
@@ -131,6 +128,124 @@ public class XsdValidationRulesEditor extends Dialog<ValidationRulesResult> {
         );
 
         getDialogPane().setContent(mainContent);
+    }
+
+    /**
+     * Creates tabs based on the data type of the target node
+     */
+    private void createTabsForDataType() {
+        String dataType = determineDataType();
+        logger.debug("Creating tabs for data type: {} (node: {})", dataType, targetNode.name());
+
+        // Always show these tabs for all data types
+        createPatternTab();      // RegEx patterns work for all string-based types
+        createEnumerationTab();  // Enumerations work for all types
+        createCustomFacetsTab(); // Custom facets are always possible
+
+        // Type-specific tabs
+        if (isStringType(dataType)) {
+            createLengthTab();
+            createWhitespaceTab();
+        }
+
+        if (isNumericType(dataType)) {
+            createRangeTab();
+        }
+
+        if (isDecimalType(dataType)) {
+            createDecimalTab();
+        }
+
+        // If no specific type is determined, show all tabs (fallback)
+        if (dataType == null || dataType.isEmpty() || "unknown".equals(dataType)) {
+            logger.debug("Unknown data type, showing all tabs as fallback");
+            if (!hasTab("Range")) createRangeTab();
+            if (!hasTab("Length")) createLengthTab();
+            if (!hasTab("Decimal")) createDecimalTab();
+            if (!hasTab("Whitespace")) createWhitespaceTab();
+        }
+    }
+
+    /**
+     * Determines the data type of the target node
+     */
+    private String determineDataType() {
+        // Get the type from the node info
+        String nodeType = targetNode.type();
+
+        if (nodeType == null || nodeType.isEmpty()) {
+            // Try to determine from node name or context
+            return "unknown";
+        }
+
+        // Normalize XSD type names
+        if (nodeType.startsWith("xs:") || nodeType.startsWith("xsd:")) {
+            return nodeType.substring(nodeType.indexOf(':') + 1).toLowerCase();
+        }
+
+        return nodeType.toLowerCase();
+    }
+
+    /**
+     * Checks if the given data type is a string-based type
+     */
+    private boolean isStringType(String dataType) {
+        if (dataType == null) return false;
+        return dataType.equals("string") ||
+                dataType.equals("normalizedstring") ||
+                dataType.equals("token") ||
+                dataType.equals("name") ||
+                dataType.equals("ncname") ||
+                dataType.equals("id") ||
+                dataType.equals("idref") ||
+                dataType.equals("idrefs") ||
+                dataType.equals("entity") ||
+                dataType.equals("entities") ||
+                dataType.equals("nmtoken") ||
+                dataType.equals("nmtokens") ||
+                dataType.equals("anyuri") ||
+                dataType.equals("language");
+    }
+
+    /**
+     * Checks if the given data type is numeric
+     */
+    private boolean isNumericType(String dataType) {
+        if (dataType == null) return false;
+        return dataType.equals("integer") ||
+                dataType.equals("int") ||
+                dataType.equals("long") ||
+                dataType.equals("short") ||
+                dataType.equals("byte") ||
+                dataType.equals("positiveinteger") ||
+                dataType.equals("negativeinteger") ||
+                dataType.equals("nonnegativeinteger") ||
+                dataType.equals("nonpositiveinteger") ||
+                dataType.equals("unsignedlong") ||
+                dataType.equals("unsignedint") ||
+                dataType.equals("unsignedshort") ||
+                dataType.equals("unsignedbyte") ||
+                dataType.equals("float") ||
+                dataType.equals("double") ||
+                dataType.equals("decimal");
+    }
+
+    /**
+     * Checks if the given data type is decimal-based (supports precision constraints)
+     */
+    private boolean isDecimalType(String dataType) {
+        if (dataType == null) return false;
+        return dataType.equals("decimal") ||
+                dataType.equals("float") ||
+                dataType.equals("double");
+    }
+
+    /**
+     * Checks if a tab with the given text already exists
+     */
+    private boolean hasTab(String tabText) {
+        return tabPane.getTabs().stream()
+                .anyMatch(tab -> tab.getText().equals(tabText));
     }
 
     private VBox createValidationPreviewPanel() {
