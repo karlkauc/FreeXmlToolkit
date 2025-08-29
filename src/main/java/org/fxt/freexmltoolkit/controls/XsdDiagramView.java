@@ -339,14 +339,14 @@ public class XsdDiagramView {
         detailPane.getChildren().add(placeholder);
 
         ScrollPane detailScrollPane = new ScrollPane(detailPane);
-        detailScrollPane.setFitToWidth(true);
-        detailScrollPane.setFitToHeight(true);
+        // detailScrollPane.setFitToWidth(true);
+        // detailScrollPane.setFitToHeight(true);
         detailScrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
-        detailsLayout.setCenter(detailScrollPane);
+        // detailsLayout.setCenter(detailScrollPane);
         
         Node editorPane = createEditorPane();
         BorderPane.setMargin(editorPane, new Insets(10, 0, 0, 0));
-        detailsLayout.setBottom(editorPane);
+        detailsLayout.setCenter(editorPane);
 
         detailsTab.setContent(detailsLayout);
 
@@ -1175,15 +1175,6 @@ public class XsdDiagramView {
             return;
         }
 
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(12);
-        int rowIndex = 0;
-
-        addDetailRow(grid, rowIndex++, "Name:", node.name());
-        addDetailRow(grid, rowIndex++, "Data Type:", node.type());
-
-        detailPane.getChildren().add(grid);
 
         if (node.documentation() != null && !node.documentation().isBlank()) {
             Label docHeader = new Label("Documentation:");
