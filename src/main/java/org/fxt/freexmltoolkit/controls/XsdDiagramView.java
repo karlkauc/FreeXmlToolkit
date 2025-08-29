@@ -1699,6 +1699,23 @@ public class XsdDiagramView {
         propertiesItem.setOnAction(e -> showPropertiesDialog(nodeInfo));
         contextMenu.getItems().add(propertiesItem);
 
+        // Move up/down menu items (for elements that can be reordered)
+        if (canMoveNode(nodeInfo)) {
+            contextMenu.getItems().add(new SeparatorMenuItem());
+
+            MenuItem moveUpItem = new MenuItem("Move Up");
+            moveUpItem.setGraphic(new FontIcon("bi-arrow-up"));
+            moveUpItem.setOnAction(e -> moveNodeUp(nodeInfo));
+            moveUpItem.setDisable(!MoveNodeUpCommand.canMoveUp(domManipulator, nodeInfo));
+            contextMenu.getItems().add(moveUpItem);
+
+            MenuItem moveDownItem = new MenuItem("Move Down");
+            moveDownItem.setGraphic(new FontIcon("bi-arrow-down"));
+            moveDownItem.setOnAction(e -> moveNodeDown(nodeInfo));
+            moveDownItem.setDisable(!MoveNodeDownCommand.canMoveDown(domManipulator, nodeInfo));
+            contextMenu.getItems().add(moveDownItem);
+        }
+
         // Copy/Paste menu items
         contextMenu.getItems().add(new SeparatorMenuItem());
 
@@ -1726,6 +1743,63 @@ public class XsdDiagramView {
         contextMenu.getItems().add(pasteItem);
 
         contextMenu.show(targetNode, javafx.geometry.Side.BOTTOM, 0, 0);
+    }
+
+    /**
+     * Determines if a node can be moved up or down in the order
+     */
+    private boolean canMoveNode(XsdNodeInfo nodeInfo) {
+        // Only elements, sequences, choices, and attributes within their parent can be reordered
+        return nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT ||
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.SEQUENCE ||
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.CHOICE ||
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE;
+    }
+
+    /**
+     * Moves a node up in the order within its parent
+     */
+    private void moveNodeUp(XsdNodeInfo nodeInfo) {
+        try {
+            MoveNodeUpCommand command = new MoveNodeUpCommand(domManipulator, nodeInfo);
+            if (command.execute()) {
+                // Add to command history for undo
+                undoManager.executeCommand(command);
+
+                // Refresh the view
+                refreshView();
+
+                logger.info("Node '{}' moved up successfully", nodeInfo.name());
+            } else {
+                logger.warn("Failed to move node '{}' up", nodeInfo.name());
+            }
+        } catch (Exception e) {
+            logger.error("Error moving node up: " + nodeInfo.name(), e);
+            showErrorAlert("Error", "Failed to move node up: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Moves a node down in the order within its parent
+     */
+    private void moveNodeDown(XsdNodeInfo nodeInfo) {
+        try {
+            MoveNodeDownCommand command = new MoveNodeDownCommand(domManipulator, nodeInfo);
+            if (command.execute()) {
+                // Add to command history for undo
+                undoManager.executeCommand(command);
+
+                // Refresh the view
+                refreshView();
+
+                logger.info("Node '{}' moved down successfully", nodeInfo.name());
+            } else {
+                logger.warn("Failed to move node '{}' down", nodeInfo.name());
+            }
+        } catch (Exception e) {
+            logger.error("Error moving node down: " + nodeInfo.name(), e);
+            showErrorAlert("Error", "Failed to move node down: " + e.getMessage());
+        }
     }
 
     private XsdNodeInfo copiedNode = null;

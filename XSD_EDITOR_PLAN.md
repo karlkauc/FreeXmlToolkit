@@ -528,11 +528,12 @@ XSD-Editor.
 
 #### 4.4 Refactoring Tools 🚧 TEILWEISE IMPLEMENTIERT
 
-**Status:** Safe Rename Tool vollständig implementiert am 2025-08-29
+**Status:** Safe Rename Tool und Move Up/Down vollständig implementiert am 2025-08-29
 
 **Implementierte Features:**
 
 - ✅ Safe Rename mit Preview - Vollständige Implementierung mit Referenz-Analyse
+- ✅ Move Node Up/Down - Knoten in DOM-Reihenfolge verschieben
 - [ ] Extract ComplexType/SimpleType
 - [ ] Inline Type Definition
 - [ ] Convert Element to Attribute
@@ -551,6 +552,16 @@ XSD-Editor.
 - Professional CSS Styling (`xsd-refactoring-tools.css`)
 - Context Menu Integration für Elements, SimpleTypes und ComplexTypes
 - Vollständige Undo-Funktionalität mit Backup aller geänderten Attribute
+
+**Technische Details (Move Up/Down):**
+
+- Neue Klasse `MoveNodeUpCommand` - DOM-Manipulation zum Verschieben nach oben
+- Neue Klasse `MoveNodeDownCommand` - DOM-Manipulation zum Verschieben nach unten
+- Intelligente Geschwister-Navigation mit Text-Node-Filterung
+- Vollständige Undo-Funktionalität mit Positions-Wiederherstellung
+- Context Menu Integration mit intelligenter Enable/Disable-Logik
+- Unterstützt Elements, Sequences, Choices und Attributes
+- Live-Refresh der Diagramm-Ansicht nach Verschiebung
 
 #### 4.5 Multi-View Synchronization ❌
 
@@ -733,9 +744,29 @@ Noch zu implementieren:
 **Entwickler:** Karl Kauc  
 **Projekt:** FreeXmlToolkit  
 **Repository:** /Users/karlkauc/IdeaProjects/FreeXmlToolkit  
-**Letztes Update:** 2025-08-29 (20:00) - Phase 4.4 Refactoring Tools (Safe Rename) implemented
+**Letztes Update:** 2025-08-29 (21:30) - Phase 4.4 Refactoring Tools (Move Up/Down) implemented
 
 ## Changelog
+
+### 2025-08-29 (21:30) - Phase 4.4 Refactoring Tools (Move Up/Down) ✅
+
+- ✅ Move Node Up/Down Funktionalität vollständig implementiert
+- ✅ MoveNodeUpCommand.java - Command für Verschiebung nach oben
+- ✅ MoveNodeDownCommand.java - Command für Verschiebung nach unten
+- ✅ Move Up/Down Features:
+    - Intelligente DOM-Manipulation mit Geschwister-Element-Navigation
+    - Automatische Text-Node-Filterung für saubere Element-Reihung
+    - Vollständige Undo-Funktionalität mit Positions-Backup
+    - canMoveUp/canMoveDown Static Helper Methods für UI-Status
+- ✅ Context Menu Integration:
+    - "Move Up" und "Move Down" Menü-Items mit Arrow-Icons
+    - Intelligente Enable/Disable-Logik basierend auf Position
+    - Unterstützung für Elements, Sequences, Choices, Attributes
+- ✅ XsdDiagramView Integration:
+    - canMoveNode() Helper Method für Typ-Prüfung
+    - moveNodeUp/moveNodeDown Methods mit Error Handling
+    - Live Diagram-Refresh nach erfolgreicher Verschiebung
+    - Command History Integration für Undo/Redo Support
 
 ### 2025-08-29 (20:00) - Phase 4.4 Refactoring Tools (Safe Rename) ✅
 
