@@ -1058,9 +1058,598 @@ public class XsdDomManipulator {
     }
 
     /**
+     * Get the current XSD content as XML string
+     */
+    public String getXmlContent() {
+        if (document == null) {
+            return null;
+        }
+
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(document), new StreamResult(writer));
+            return writer.toString();
+        } catch (Exception e) {
+            logger.error("Error converting DOM to XML string", e);
+            return null;
+        }
+    }
+
+    /**
      * Find a DOM node by XPath for undo/redo operations
      */
     public Node findNodeByPath(String xpath) {
         return findElementByXPath(xpath);
+    }
+
+    /**
+     * Get all global type definitions (simple and complex types) in the schema
+     */
+    public List<org.fxt.freexmltoolkit.domain.TypeInfo> getAllGlobalTypes() {
+        List<org.fxt.freexmltoolkit.domain.TypeInfo> types = new ArrayList<>();
+
+        if (document == null || schemaRoot == null) {
+            return types;
+        }
+
+        // Get all global simple types
+        NodeList simpleTypes = schemaRoot.getElementsByTagNameNS(XSD_NS, "simpleType");
+        for (int i = 0; i < simpleTypes.getLength(); i++) {
+            Element simpleType = (Element) simpleTypes.item(i);
+            String name = simpleType.getAttribute("name");
+
+            // Only include global types (those with a name attribute directly under schema)
+            if (name != null && !name.isEmpty() && simpleType.getParentNode() == schemaRoot) {
+                org.fxt.freexmltoolkit.domain.TypeInfo typeInfo = analyzeSimpleType(simpleType, name);
+                types.add(typeInfo);
+            }
+        }
+
+        // Get all global complex types
+        NodeList complexTypes = schemaRoot.getElementsByTagNameNS(XSD_NS, "complexType");
+        for (int i = 0; i < complexTypes.getLength(); i++) {
+            Element complexType = (Element) complexTypes.item(i);
+            String name = complexType.getAttribute("name");
+
+            // Only include global types (those with a name attribute directly under schema)
+            if (name != null && !name.isEmpty() && complexType.getParentNode() == schemaRoot) {
+                org.fxt.freexmltoolkit.domain.TypeInfo typeInfo = analyzeComplexType(complexType, name);
+                types.add(typeInfo);
+            }
+        }
+
+        return types;
+    }
+
+    /**
+     * Analyze a simple type element and create TypeInfo
+     */
+    private org.fxt.freexmltoolkit.domain.TypeInfo analyzeSimpleType(Element simpleType, String name) {
+        String baseType = extractSimpleTypeBase(simpleType);
+        String documentation = extractDocumentation(simpleType);
+        int usageCount = countTypeUsages(name);
+        String xpath = generateXPathForElement(simpleType);
+
+        return org.fxt.freexmltoolkit.domain.TypeInfo.simpleType(
+                name, baseType, usageCount, documentation, xpath);
+    }
+
+    /**
+     * Analyze a complex type element and create TypeInfo
+     */
+    private org.fxt.freexmltoolkit.domain.TypeInfo analyzeComplexType(Element complexType, String name) {
+        String baseType = extractComplexTypeBase(complexType);
+        String documentation = extractDocumentation(complexType);
+        int usageCount = countTypeUsages(name);
+        String xpath = generateXPathForElement(complexType);
+
+        boolean isAbstract = "true".equals(complexType.getAttribute("abstract"));
+        boolean isMixed = "true".equals(complexType.getAttribute("mixed"));
+
+        String derivationType = extractDerivationType(complexType);
+        String contentModel = extractContentModel(complexType);
+
+        return org.fxt.freexmltoolkit.domain.TypeInfo.complexType(
+                name, baseType, usageCount, documentation, xpath,
+                isAbstract, isMixed, derivationType, contentModel);
+    }
+
+    /**
+     * Extract the base type for a simple type
+     */
+    private String extractSimpleTypeBase(Element simpleType) {
+        // Check for restriction
+        NodeList restrictions = simpleType.getElementsByTagNameNS(XSD_NS, "restriction");
+        if (restrictions.getLength() > 0) {
+            Element restriction = (Element) restrictions.item(0);
+            String base = restriction.getAttribute("base");
+            if (base != null && !base.isEmpty()) {
+                return base;
+            }
+        }
+
+        // Check for list
+        NodeList lists = simpleType.getElementsByTagNameNS(XSD_NS, "list");
+        if (lists.getLength() > 0) {
+            Element list = (Element) lists.item(0);
+            String itemType = list.getAttribute("itemType");
+            if (itemType != null && !itemType.isEmpty()) {
+                return itemType + " (list)";
+            }
+        }
+
+        // Check for union
+        NodeList unions = simpleType.getElementsByTagNameNS(XSD_NS, "union");
+        if (unions.getLength() > 0) {
+            return "union";
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract the base type for a complex type
+     */
+    private String extractComplexTypeBase(Element complexType) {
+        // Check for extension or restriction in complexContent
+        NodeList complexContent = complexType.getElementsByTagNameNS(XSD_NS, "complexContent");
+        if (complexContent.getLength() > 0) {
+            Element content = (Element) complexContent.item(0);
+
+            NodeList extensions = content.getElementsByTagNameNS(XSD_NS, "extension");
+            if (extensions.getLength() > 0) {
+                Element extension = (Element) extensions.item(0);
+                return extension.getAttribute("base");
+            }
+
+            NodeList restrictions = content.getElementsByTagNameNS(XSD_NS, "restriction");
+            if (restrictions.getLength() > 0) {
+                Element restriction = (Element) restrictions.item(0);
+                return restriction.getAttribute("base");
+            }
+        }
+
+        // Check for extension or restriction in simpleContent
+        NodeList simpleContent = complexType.getElementsByTagNameNS(XSD_NS, "simpleContent");
+        if (simpleContent.getLength() > 0) {
+            Element content = (Element) simpleContent.item(0);
+
+            NodeList extensions = content.getElementsByTagNameNS(XSD_NS, "extension");
+            if (extensions.getLength() > 0) {
+                Element extension = (Element) extensions.item(0);
+                return extension.getAttribute("base");
+            }
+
+            NodeList restrictions = content.getElementsByTagNameNS(XSD_NS, "restriction");
+            if (restrictions.getLength() > 0) {
+                Element restriction = (Element) restrictions.item(0);
+                return restriction.getAttribute("base");
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract derivation type (extension, restriction, or null for no derivation)
+     */
+    private String extractDerivationType(Element complexType) {
+        NodeList complexContent = complexType.getElementsByTagNameNS(XSD_NS, "complexContent");
+        if (complexContent.getLength() > 0) {
+            Element content = (Element) complexContent.item(0);
+
+            if (content.getElementsByTagNameNS(XSD_NS, "extension").getLength() > 0) {
+                return "extension";
+            }
+            if (content.getElementsByTagNameNS(XSD_NS, "restriction").getLength() > 0) {
+                return "restriction";
+            }
+        }
+
+        NodeList simpleContent = complexType.getElementsByTagNameNS(XSD_NS, "simpleContent");
+        if (simpleContent.getLength() > 0) {
+            Element content = (Element) simpleContent.item(0);
+
+            if (content.getElementsByTagNameNS(XSD_NS, "extension").getLength() > 0) {
+                return "extension";
+            }
+            if (content.getElementsByTagNameNS(XSD_NS, "restriction").getLength() > 0) {
+                return "restriction";
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract content model type (sequence, choice, all, empty, simple)
+     */
+    private String extractContentModel(Element complexType) {
+        // Check for simple content
+        NodeList simpleContent = complexType.getElementsByTagNameNS(XSD_NS, "simpleContent");
+        if (simpleContent.getLength() > 0) {
+            return "simple";
+        }
+
+        // Check for sequence
+        NodeList sequences = complexType.getElementsByTagNameNS(XSD_NS, "sequence");
+        if (sequences.getLength() > 0) {
+            return "sequence";
+        }
+
+        // Check for choice
+        NodeList choices = complexType.getElementsByTagNameNS(XSD_NS, "choice");
+        if (choices.getLength() > 0) {
+            return "choice";
+        }
+
+        // Check for all
+        NodeList alls = complexType.getElementsByTagNameNS(XSD_NS, "all");
+        if (alls.getLength() > 0) {
+            return "all";
+        }
+
+        // Check if it has any child elements at all
+        NodeList elements = complexType.getElementsByTagNameNS(XSD_NS, "element");
+        NodeList attributes = complexType.getElementsByTagNameNS(XSD_NS, "attribute");
+
+        if (elements.getLength() == 0 && attributes.getLength() == 0) {
+            return "empty";
+        }
+
+        return "mixed";
+    }
+
+    /**
+     * Extract documentation from xs:annotation/xs:documentation
+     */
+    private String extractDocumentation(Element element) {
+        NodeList annotations = element.getElementsByTagNameNS(XSD_NS, "annotation");
+        if (annotations.getLength() > 0) {
+            Element annotation = (Element) annotations.item(0);
+            NodeList docs = annotation.getElementsByTagNameNS(XSD_NS, "documentation");
+            if (docs.getLength() > 0) {
+                Element doc = (Element) docs.item(0);
+                return doc.getTextContent();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Count how many times a type is used in the schema
+     */
+    private int countTypeUsages(String typeName) {
+        if (document == null) return 0;
+
+        int count = 0;
+        String[] typeAttributes = {"type", "base", "itemType", "memberTypes"};
+
+        for (String attrName : typeAttributes) {
+            // Find all elements with the type attribute
+            NodeList allElements = document.getElementsByTagName("*");
+            for (int i = 0; i < allElements.getLength(); i++) {
+                Element element = (Element) allElements.item(i);
+                String attrValue = element.getAttribute(attrName);
+
+                if (attrValue != null && !attrValue.isEmpty()) {
+                    // Handle namespaced types (remove prefix for comparison)
+                    String localType = attrValue.contains(":") ?
+                            attrValue.substring(attrValue.indexOf(":") + 1) : attrValue;
+
+                    if (typeName.equals(localType)) {
+                        count++;
+                    }
+                }
+            }
+        }
+
+        return count;
+    }
+
+    /**
+     * Generate XPath for an element (simplified version)
+     */
+    private String generateXPathForElement(Element element) {
+        StringBuilder xpath = new StringBuilder();
+        Node current = element;
+
+        while (current != null && current.getNodeType() == Node.ELEMENT_NODE) {
+            Element elem = (Element) current;
+            String name = elem.getLocalName() != null ? elem.getLocalName() : elem.getTagName();
+
+            if (elem == schemaRoot) {
+                xpath.insert(0, "/" + name);
+                break;
+            } else {
+                String nameAttr = elem.getAttribute("name");
+                if (nameAttr != null && !nameAttr.isEmpty()) {
+                    xpath.insert(0, "/" + name + "[@name='" + nameAttr + "']");
+                } else {
+                    xpath.insert(0, "/" + name);
+                }
+            }
+
+            current = current.getParentNode();
+        }
+
+        return xpath.toString();
+    }
+
+    /**
+     * Find all inline types that could be extracted to global types
+     */
+    public List<Element> findInlineTypes() {
+        List<Element> inlineTypes = new ArrayList<>();
+
+        if (document == null) return inlineTypes;
+
+        // Find unnamed simple types
+        NodeList simpleTypes = document.getElementsByTagNameNS(XSD_NS, "simpleType");
+        for (int i = 0; i < simpleTypes.getLength(); i++) {
+            Element simpleType = (Element) simpleTypes.item(i);
+            String name = simpleType.getAttribute("name");
+
+            // Include types without names (inline types)
+            if (name == null || name.isEmpty()) {
+                inlineTypes.add(simpleType);
+            }
+        }
+
+        // Find unnamed complex types
+        NodeList complexTypes = document.getElementsByTagNameNS(XSD_NS, "complexType");
+        for (int i = 0; i < complexTypes.getLength(); i++) {
+            Element complexType = (Element) complexTypes.item(i);
+            String name = complexType.getAttribute("name");
+
+            // Include types without names (inline types)
+            if (name == null || name.isEmpty()) {
+                inlineTypes.add(complexType);
+            }
+        }
+
+        return inlineTypes;
+    }
+
+    /**
+     * Check if a type can be safely deleted (no references exist)
+     */
+    public boolean canDeleteType(String typeName) {
+        return countTypeUsages(typeName) == 0;
+    }
+
+    /**
+     * Find all references to a specific type
+     */
+    public List<Element> findTypeReferences(String typeName) {
+        List<Element> references = new ArrayList<>();
+
+        if (document == null) return references;
+
+        String[] typeAttributes = {"type", "base", "itemType", "memberTypes"};
+
+        for (String attrName : typeAttributes) {
+            NodeList allElements = document.getElementsByTagName("*");
+            for (int i = 0; i < allElements.getLength(); i++) {
+                Element element = (Element) allElements.item(i);
+                String attrValue = element.getAttribute(attrName);
+
+                if (attrValue != null && !attrValue.isEmpty()) {
+                    String localType = attrValue.contains(":") ?
+                            attrValue.substring(attrValue.indexOf(":") + 1) : attrValue;
+
+                    if (typeName.equals(localType)) {
+                        references.add(element);
+                    }
+                }
+            }
+        }
+
+        return references;
+    }
+
+    /**
+     * Delete a global type from the schema
+     */
+    public boolean deleteGlobalType(String typeName) {
+        if (document == null || schemaRoot == null) return false;
+
+        // Find and remove simple types
+        NodeList simpleTypes = schemaRoot.getElementsByTagNameNS(XSD_NS, "simpleType");
+        for (int i = 0; i < simpleTypes.getLength(); i++) {
+            Element simpleType = (Element) simpleTypes.item(i);
+            if (typeName.equals(simpleType.getAttribute("name")) &&
+                    simpleType.getParentNode() == schemaRoot) {
+                schemaRoot.removeChild(simpleType);
+                logger.info("Deleted simple type: {}", typeName);
+                return true;
+            }
+        }
+
+        // Find and remove complex types
+        NodeList complexTypes = schemaRoot.getElementsByTagNameNS(XSD_NS, "complexType");
+        for (int i = 0; i < complexTypes.getLength(); i++) {
+            Element complexType = (Element) complexTypes.item(i);
+            if (typeName.equals(complexType.getAttribute("name")) &&
+                    complexType.getParentNode() == schemaRoot) {
+                schemaRoot.removeChild(complexType);
+                logger.info("Deleted complex type: {}", typeName);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Find a type definition by name
+     */
+    public Element findTypeDefinition(Document document, String typeName) {
+        Element root = document.getDocumentElement();
+
+        // Find simple types
+        NodeList simpleTypes = root.getElementsByTagNameNS(XSD_NS, "simpleType");
+        for (int i = 0; i < simpleTypes.getLength(); i++) {
+            Element simpleType = (Element) simpleTypes.item(i);
+            if (typeName.equals(simpleType.getAttribute("name")) &&
+                    simpleType.getParentNode() == root) {
+                return simpleType;
+            }
+        }
+
+        // Find complex types
+        NodeList complexTypes = root.getElementsByTagNameNS(XSD_NS, "complexType");
+        for (int i = 0; i < complexTypes.getLength(); i++) {
+            Element complexType = (Element) complexTypes.item(i);
+            if (typeName.equals(complexType.getAttribute("name")) &&
+                    complexType.getParentNode() == root) {
+                return complexType;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Find usages of a type in the document
+     */
+    public List<Element> findTypeUsages(Document document, String typeName) {
+        List<Element> usages = new ArrayList<>();
+        String[] typeAttributes = {"type", "base", "itemType", "memberTypes"};
+
+        for (String attrName : typeAttributes) {
+            NodeList allElements = document.getElementsByTagName("*");
+            for (int i = 0; i < allElements.getLength(); i++) {
+                Element element = (Element) allElements.item(i);
+                String attrValue = element.getAttribute(attrName);
+
+                if (attrValue != null && !attrValue.isEmpty()) {
+                    String localType = attrValue.contains(":") ?
+                            attrValue.substring(attrValue.indexOf(":") + 1) : attrValue;
+
+                    if (typeName.equals(localType)) {
+                        usages.add(element);
+                    }
+                }
+            }
+        }
+
+        return usages;
+    }
+
+    /**
+     * Inline a type definition into an element
+     */
+    public void inlineTypeDefinition(Element usage, Element typeDefinition) {
+        // Remove the type attribute
+        usage.removeAttribute("type");
+
+        // Clone the type definition content and add it as inline
+        Element inlineType = (Element) typeDefinition.cloneNode(true);
+        inlineType.removeAttribute("name"); // Remove name attribute for inline type
+        usage.appendChild(inlineType);
+    }
+
+    /**
+     * Find elements with inlined content (for undo operations)
+     */
+    public List<Element> findElementsWithInlinedContent(Document document, String originalTypeName) {
+        List<Element> elements = new ArrayList<>();
+
+        NodeList allElements = document.getElementsByTagName("*");
+        for (int i = 0; i < allElements.getLength(); i++) {
+            Element element = (Element) allElements.item(i);
+
+            // Check if element has inline type definitions
+            NodeList complexTypes = element.getElementsByTagNameNS(XSD_NS, "complexType");
+            NodeList simpleTypes = element.getElementsByTagNameNS(XSD_NS, "simpleType");
+
+            if ((complexTypes.getLength() > 0 || simpleTypes.getLength() > 0) &&
+                    !element.hasAttribute("type")) {
+                elements.add(element);
+            }
+        }
+
+        return elements;
+    }
+
+    /**
+     * Restore type reference (for undo operations)
+     */
+    public void restoreTypeReference(Element usage, String typeName) {
+        // Remove inline type definitions
+        NodeList complexTypes = usage.getElementsByTagNameNS(XSD_NS, "complexType");
+        for (int i = complexTypes.getLength() - 1; i >= 0; i--) {
+            Element child = (Element) complexTypes.item(i);
+            if (child.getParentNode() == usage) {
+                usage.removeChild(child);
+            }
+        }
+
+        NodeList simpleTypes = usage.getElementsByTagNameNS(XSD_NS, "simpleType");
+        for (int i = simpleTypes.getLength() - 1; i >= 0; i--) {
+            Element child = (Element) simpleTypes.item(i);
+            if (child.getParentNode() == usage) {
+                usage.removeChild(child);
+            }
+        }
+
+        // Restore type attribute
+        usage.setAttribute("type", typeName);
+    }
+
+    /**
+     * Get all type definitions (for remove unused types)
+     */
+    public List<Element> getAllTypeDefinitions(Document document) {
+        List<Element> types = new ArrayList<>();
+        Element root = document.getDocumentElement();
+
+        // Get simple types
+        NodeList simpleTypes = root.getElementsByTagNameNS(XSD_NS, "simpleType");
+        for (int i = 0; i < simpleTypes.getLength(); i++) {
+            Element simpleType = (Element) simpleTypes.item(i);
+            if (simpleType.getParentNode() == root && simpleType.hasAttribute("name")) {
+                types.add(simpleType);
+            }
+        }
+
+        // Get complex types
+        NodeList complexTypes = root.getElementsByTagNameNS(XSD_NS, "complexType");
+        for (int i = 0; i < complexTypes.getLength(); i++) {
+            Element complexType = (Element) complexTypes.item(i);
+            if (complexType.getParentNode() == root && complexType.hasAttribute("name")) {
+                types.add(complexType);
+            }
+        }
+
+        return types;
+    }
+
+    /**
+     * Get type definition as XML string for export
+     */
+    public String getTypeDefinitionAsString(Element typeElement) {
+        try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(typeElement), new StreamResult(writer));
+            return writer.toString();
+        } catch (Exception e) {
+            logger.error("Error converting type definition to string", e);
+            return null;
+        }
     }
 }

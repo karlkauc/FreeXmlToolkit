@@ -1,11 +1,7 @@
 # XSD Editor - Entwicklungsplan
 
 **Letzte Aktualisierung:** 2025-08-29  
-**Status:** Phase 1 zu 100% implementiert, Phase 2.1 Type Selection abgeschlossen, Phase 2.2 SimpleType Editor
-abgeschlossen, Phase 2.3 ComplexType Editor abgeschlossen, Phase 3.1 Drag & Drop abgeschlossen, Phase 3.2 Copy/Paste
-abgeschlossen, Phase 3.3 Undo/Redo
-abgeschlossen, Phase 3.4 Live Validation abgeschlossen, Phase 3.5 Search/Filter abgeschlossen, Phase 4.1 Namespace
-Management abgeschlossen
+**Status:** Phase 1-2 zu 100% implementiert, Phase 3.1-3.5 abgeschlossen, Phase 4.1 und 4.3-4.4 abgeschlossen
 
 ## Übersicht
 
@@ -161,30 +157,36 @@ XSD-Editor.
 - ✅ DOM-Manipulation funktioniert
 - ✅ `getXsdAsString()` in XsdDomManipulator vorhanden
 - ✅ Speichern in Datei implementiert
-- ✅ Backup vor Speichern (.bak Datei)
+- ✅ Backup vor Speichern (versionierte .bak Dateien)
 - ✅ UTF-8 Encoding
 - ✅ Änderungsverfolgung (hasUnsavedChanges)
 - ✅ Save-Button wird bei Änderungen aktiviert
 - ✅ Erfolgs-/Fehler-Dialoge
-- ❌ Pretty-Print Optionen (XML-Formatierung)
-- ❌ Save As... Dialog
-- ❌ Auto-Save Funktionalität
+- ✅ Pretty-Print Optionen (XML-Formatierung mit konfigurierbarer Indentation)
+- ✅ Save As... Dialog implementiert
+- ✅ Auto-Save Funktionalität (konfigurierbar in Settings)
+- ✅ Save-Features in beiden Views (Text und Graphic) verfügbar
 
 **Implementierte Funktionen:**
 
 - ✅ `saveXsdFile()` Methode in XsdController
-- ✅ `createBackup()` erstellt .bak Datei
-- ✅ `promptSaveIfNeeded()` für ungespeicherte Änderungen
-- ✅ Save-Button in Text-Tab Toolbar
+- ✅ `saveXsdFileAs()` mit FileChooser Dialog
+- ✅ `prettyPrintXsd()` für XML-Formatierung
+- ✅ `createBackupIfEnabled()` mit versionierten Backups (.bak1, .bak2, etc.)
+- ✅ `initializeAutoSave()` mit Timer-basierter Auto-Save
+- ✅ `checkForAutoSaveRecovery()` beim Öffnen von Dateien
+- ✅ Settings-Integration für Auto-Save, Backup und Pretty-Print
+- ✅ Save-Buttons in Text-Tab und Graphic-Tab Toolbar
 
-**Detaillierte Aufgaben für Vervollständigung:**
+**Erweiterte Features:**
 
-- [ ] Save As... Dialog implementieren
-- [ ] Auto-Save alle X Minuten
-- [ ] Pretty-Print mit Indentation-Optionen
-- [ ] Multiple Backup-Versionen (.bak1, .bak2, etc.)
+- ✅ Auto-Save alle X Minuten (1-60, konfigurierbar)
+- ✅ Multiple Backup-Versionen (1-10, konfigurierbar)
+- ✅ Pretty-Print on Save (optional)
+- ✅ Auto-Save Recovery Dialog
+- ✅ Indentation nutzt XML-Settings (1-10 Spaces)
 
-### Phase 2: Type System 🚧 TEILWEISE IMPLEMENTIERT
+### Phase 2: Type System ✅ VOLLSTÄNDIG IMPLEMENTIERT
 
 #### 2.1 Type Selection Dialog ✅ IMPLEMENTIERT
 
@@ -280,16 +282,47 @@ XSD-Editor.
 - ⏸️ Substitution Groups (für spätere Erweiterung)
 - ⏸️ Advanced Content Model Validation (für spätere Erweiterung)
 
-#### 2.4 Global Type Definitions ❌
+#### 2.4 Global Type Definitions ✅ IMPLEMENTIERT
 
-**Detaillierte Aufgaben:**
+**Status:** Vollständig implementiert am 2025-08-29
 
-- [ ] Extract to Global Type Refactoring
-- [ ] Type Library Panel
-- [ ] Import/Export von Type Libraries
-- [ ] Type Usage Analyzer
-- [ ] Inline Type Refactoring
-- [ ] Type Inheritance Visualizer
+**Implementierte Features:**
+
+- ✅ **Type Library Panel** - Vollständige Übersicht aller globalen Typen
+- ✅ **Extract to Global Type Refactoring** - Konvertierung von Inline-Types zu globalen Typen
+- ✅ **Type Usage Analyzer** - Umfassende Analyse der Type-Referenzen
+- ✅ **Type Operations** - Edit, Delete, Find Usages, Go to Definition
+- ✅ **Search & Filter** - Echtzeit-Suche in Type-Namen und Dokumentation
+- [ ] Import/Export von Type Libraries (für V2.0 geplant)
+- [ ] Type Inheritance Visualizer (für V2.0 geplant)
+
+**Implementierte Komponenten:**
+
+- ✅ `XsdTypeLibraryPanel.java` - Haupt-UI-Komponente mit TableView
+- ✅ `TypeInfo.java` - Domain-Klasse für Type-Metadaten
+- ✅ `DeleteTypeCommand.java` - Sichere Type-Löschung mit Referenz-Check
+- ✅ `FindTypeUsagesCommand.java` - Umfassende Usage-Analyse
+- ✅ `ExtractToGlobalTypeCommand.java` - Refactoring von Inline-Types
+- ✅ `xsd-type-library.css` - Professional UI-Styling
+- ✅ XsdDomManipulator erweitert mit Type-Analyse-Methoden
+
+**UI-Features:**
+
+- ✅ Neuer "Type Library" Tab im XSD Editor
+- ✅ TableView mit Spalten: Name, Category, Base Type, Usage Count, Documentation
+- ✅ Context Menu mit allen Type-Operationen
+- ✅ Echtzeit-Suche mit Filter-Funktionalität
+- ✅ Icons für Simple/Complex Types mit Bootstrap-Icons
+- ✅ Progress-Indikatoren für längere Operationen
+- ✅ Usage Count Badges mit Farb-Coding
+
+**Refactoring-Features:**
+
+- ✅ **Extract to Global Type**: Konvertiert Inline-Types zu wiederverwendbaren globalen Typen
+- ✅ **Safe Delete**: Prüft Referenzen vor Löschung und warnt Benutzer
+- ✅ **Find Usages**: Zeigt alle Stellen an, wo ein Type verwendet wird
+- ✅ **Usage Analysis**: Kategorisiert Usage-Typen (element type, base type, etc.)
+- ✅ **Reference Counting**: Automatische Berechnung der Verwendungshäufigkeit
 
 ### Phase 3: Erweiterte Features 🚧 TEILWEISE IMPLEMENTIERT
 
@@ -747,6 +780,51 @@ Noch zu implementieren:
 **Letztes Update:** 2025-08-29 (21:30) - Phase 4.4 Refactoring Tools (Move Up/Down) implemented
 
 ## Changelog
+
+### 2025-08-29 (Aktuell) - Phase 2.4 Global Type Definitions ✅
+
+- ✅ **Type Library Panel** vollständig implementiert:
+    - TableView mit Spalten für Name, Category, Base Type, Usage Count, Documentation
+    - Echtzeit-Suche und Filter-Funktionalität
+    - Context Menu mit Edit, Delete, Find Usages, Go to Definition
+    - Professional UI mit Bootstrap-Icons und modernem Styling
+- ✅ **Extract to Global Type Refactoring** implementiert:
+    - Konvertiert Inline-Types zu wiederverwendbaren globalen Typen
+    - Automatische Referenz-Updates und Namespace-Handling
+    - Command Pattern mit Undo/Redo Support
+- ✅ **Type Usage Analyzer** implementiert:
+    - Umfassende Analyse aller Type-Referenzen im Schema
+    - Kategorisierung der Usage-Arten (element type, base type, etc.)
+    - XPath-basierte Location-Tracking
+- ✅ **Safe Type Deletion** mit Referenz-Prüfung und Benutzer-Warnung
+- ✅ **XsdDomManipulator erweitert** mit 15+ neuen Type-Analyse-Methoden
+- ✅ **CSS Styling** (`xsd-type-library.css`) für professionelle UI
+- 🎯 **Phase 2 (Type System) zu 100% abgeschlossen!**
+
+### 2025-08-29 - Save Features Erweitert ✅
+
+- ✅ **Save As Dialog** implementiert - FileChooser zum Speichern unter neuem Namen
+- ✅ **Auto-Save Funktionalität** vollständig implementiert:
+    - Timer-basierte Auto-Save alle X Minuten (konfigurierbar 1-60)
+    - Auto-Save Recovery beim Öffnen von Dateien
+    - `.autosave_` Prefix für Auto-Save Dateien
+    - Automatische Bereinigung nach erfolgreichem manuellen Speichern
+- ✅ **Pretty-Print Feature** implementiert:
+    - Button in beiden Views (Text und Graphic)
+    - Nutzt XML-Indentation-Settings (1-10 Spaces)
+    - Optional: Pretty-Print on Save
+- ✅ **Multiple Backup-Versionen** implementiert:
+    - Versionierte Backups (.bak1, .bak2, etc.)
+    - Konfigurierbare Anzahl (1-10 Versionen)
+    - Automatische Rotation der Backups
+- ✅ **Settings-Integration** vollständig:
+    - Neue Settings-Sektion "XSD Editor Settings"
+    - Auto-Save Ein/Aus + Intervall
+    - Backup Ein/Aus + Anzahl Versionen
+    - Pretty-Print on Save Option
+- ✅ **PropertiesService erweitert** mit XSD-spezifischen Methoden
+- ✅ **Save-Features in Graphic View** - Alle Buttons auch in der Diagramm-Ansicht verfügbar
+- 🚧 Phase 2.4 (Global Type Definitions) als nächstes geplant
 
 ### 2025-08-29 (21:30) - Phase 4.4 Refactoring Tools (Move Up/Down) ✅
 

@@ -22,7 +22,9 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
+import org.fxt.freexmltoolkit.controls.XsdCommand;
 import org.fxt.freexmltoolkit.controls.XsdDiagramView;
+import org.fxt.freexmltoolkit.controls.XsdTypeLibraryPanel;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
 import org.jetbrains.annotations.NotNull;
@@ -119,6 +121,13 @@ public class XsdController {
     private WebView docWebView;
     private HttpServer docServer;
     private static final int DOC_SERVER_PORT = 8080;
+
+    // --- NEW: Fields for type library ---
+    @FXML
+    private Tab typeLibraryTab;
+    @FXML
+    private StackPane typeLibraryStackPane;
+    private XsdTypeLibraryPanel typeLibraryPanel;
 
 
 
@@ -289,6 +298,9 @@ public class XsdController {
         if (graphicTabSplitPane != null && favoritesPanelGraphic != null) {
             graphicTabSplitPane.getItems().remove(favoritesPanelGraphic);
         }
+
+        // Initialize type library
+        initializeTypeLibrary();
         
         xsdTab.setOnSelectionChanged(event -> {
             if (xsdTab.isSelected()) {
@@ -2755,4 +2767,117 @@ public class XsdController {
             }
         });
     }
+
+    // ======================================================================
+    // Type Library Methods
+    // ======================================================================
+
+    /**
+     * Initialize the type library panel
+     */
+    private void initializeTypeLibrary() {
+        // Set up type library tab selection handler
+        if (typeLibraryTab != null) {
+            typeLibraryTab.setOnSelectionChanged(event -> {
+                if (typeLibraryTab.isSelected()) {
+                    refreshTypeLibrary();
+                }
+            });
+        }
+    }
+
+    /**
+     * Create or refresh the type library panel
+     */
+    private void refreshTypeLibrary() {
+        if (typeLibraryStackPane == null) {
+            logger.warn("Type library stack pane is not initialized");
+            return;
+        }
+
+        try {
+            // Clear existing content
+            typeLibraryStackPane.getChildren().clear();
+
+            if (currentDomManipulator != null) {
+                // Create type library panel with command executor and refresh callback
+                typeLibraryPanel = new XsdTypeLibraryPanel(
+                        currentDomManipulator,
+                        this::executeTypeCommand,
+                        this::refreshTypeLibrary
+                );
+
+                // Add CSS styling
+                typeLibraryPanel.getStylesheets().add(
+                        getClass().getResource("/css/xsd-type-library.css").toExternalForm()
+                );
+
+                typeLibraryStackPane.getChildren().add(typeLibraryPanel);
+                logger.info("Type library panel initialized successfully");
+            } else {
+                // Show message when no XSD is loaded
+                Label noDataLabel = new Label("No XSD file loaded. Please open an XSD file to view type definitions.");
+                noDataLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 14px;");
+                StackPane.setAlignment(noDataLabel, javafx.geometry.Pos.CENTER);
+                typeLibraryStackPane.getChildren().add(noDataLabel);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error initializing type library panel", e);
+            Label errorLabel = new Label("Error loading type library: " + e.getMessage());
+            errorLabel.setStyle("-fx-text-fill: #dc3545; -fx-font-size: 14px;");
+            StackPane.setAlignment(errorLabel, javafx.geometry.Pos.CENTER);
+            typeLibraryStackPane.getChildren().add(errorLabel);
+        }
+    }
+
+    /**
+     * Execute a type-related command with proper undo support
+     */
+    private void executeTypeCommand(XsdCommand command) {
+        try {
+            logger.info("Executing type command: {}", command.getDescription());
+
+            boolean success = command.execute();
+            if (success) {
+                // Add to undo stack if the command supports it
+                if (command.canUndo()) {
+                    // TODO: Add to proper undo manager when available
+                    logger.debug("Command added to undo stack: {}", command.getDescription());
+                }
+
+                // Refresh UI components that depend on the schema
+                Platform.runLater(() -> {
+                    try {
+                        // Refresh the XSD diagram if it exists
+                        String updatedContent = currentDomManipulator.getXmlContent();
+                        if (updatedContent != null) {
+                            // Update the text editor
+                            // TODO: Add method to XmlCodeEditor to replace entire content
+                            // if (sourceCodeEditor != null) {
+                            //     sourceCodeEditor.replaceAllText(updatedContent);
+                            // }
+
+                            // Note: Diagram view refresh can be added later if needed
+
+                            // Refresh the type library
+                            if (typeLibraryPanel != null) {
+                                typeLibraryPanel.loadTypes();
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error refreshing UI after command execution", e);
+                    }
+                });
+
+                logger.info("Type command executed successfully: {}", command.getDescription());
+            } else {
+                logger.error("Type command execution failed: {}", command.getDescription());
+            }
+
+        } catch (Exception e) {
+            logger.error("Error executing type command: " + command.getDescription(), e);
+        }
+    }
+
 }

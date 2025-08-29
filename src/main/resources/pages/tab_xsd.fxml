@@ -557,6 +557,18 @@
 
         </Tab>
 
+        <!-- Type Library Tab -->
+        <Tab fx:id="typeLibraryTab" closable="false" text="Type Library">
+            <graphic>
+                <FontIcon iconLiteral="bi-collection"/>
+            </graphic>
+            <content>
+                <StackPane fx:id="typeLibraryStackPane" style="-fx-background-color: #fafafa;">
+                    <!-- Type library panel will be dynamically added here -->
+                </StackPane>
+            </content>
+        </Tab>
+
         <!-- NEU: Tab für die Live-Vorschau der Dokumentation -->
         <Tab fx:id="docPreviewTab" text="Preview">
             <content>
