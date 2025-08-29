@@ -82,6 +82,9 @@ public class XsdTypeSelector extends Dialog<String> {
     private ListView<String> recentTypesListView;
     private TabPane categoryTabPane;
 
+    // Store original tree structure for search reset
+    private TreeItem<TypeInfo> originalTreeRoot;
+
     // Data
     private final Document xsdDocument;
     private final Set<String> customTypes = new HashSet<>();
@@ -171,7 +174,7 @@ public class XsdTypeSelector extends Dialog<String> {
         searchField.setPrefWidth(300);
 
         Button clearButton = new Button();
-        clearButton.setGraphic(new FontIcon("fas-times"));
+        clearButton.setGraphic(new FontIcon("bi-x"));
         clearButton.setOnAction(e -> searchField.clear());
 
         searchBox.getChildren().addAll(searchLabel, searchField, clearButton);
@@ -383,6 +386,9 @@ public class XsdTypeSelector extends Dialog<String> {
 
         // Initialize recent types with commonly used types
         recentTypes.addAll(Arrays.asList("xs:string", "xs:int", "xs:boolean", "xs:dateTime"));
+
+        // Store the original tree structure for search reset
+        originalTreeRoot = cloneTreeItem(root);
     }
 
     /**
@@ -446,9 +452,110 @@ public class XsdTypeSelector extends Dialog<String> {
      * Filter types based on search text.
      */
     private void filterTypes(String searchText) {
-        // Implementation would filter the tree based on search text
-        // For now, this is a placeholder
         logger.debug("Filtering types with: {}", searchText);
+
+        TreeItem<TypeInfo> root = typeTreeView.getRoot();
+        if (root == null) return;
+
+        if (searchText == null || searchText.trim().isEmpty()) {
+            // Show all types when search is empty - restore original tree
+            if (originalTreeRoot != null) {
+                typeTreeView.setRoot(cloneTreeItem(originalTreeRoot));
+            }
+            return;
+        }
+
+        String searchLower = searchText.toLowerCase().trim();
+
+        // Create filtered tree
+        TreeItem<TypeInfo> filteredRoot = new TreeItem<>(root.getValue());
+        buildFilteredTree(root, filteredRoot, searchLower);
+
+        // Replace tree content
+        typeTreeView.setRoot(filteredRoot);
+
+        // Expand all categories that have matches
+        expandAllCategories(filteredRoot);
+    }
+
+    /**
+     * Build filtered tree recursively
+     */
+    private void buildFilteredTree(TreeItem<TypeInfo> source, TreeItem<TypeInfo> target, String searchLower) {
+        for (TreeItem<TypeInfo> child : source.getChildren()) {
+            TypeInfo childInfo = child.getValue();
+
+            // Check if this item matches
+            boolean matches = false;
+            if (childInfo.category.isSelectableType()) {
+                String nameLower = childInfo.name.toLowerCase();
+                String descLower = childInfo.description.toLowerCase();
+                String examplesLower = getTypeExamples(childInfo.name).toLowerCase();
+
+                // Priority 1: Exact name match or name contains search term
+                if (nameLower.contains(searchLower)) {
+                    matches = true;
+                }
+                // Priority 2: Description contains search term as whole word
+                else if (containsWholeWord(descLower, searchLower)) {
+                    matches = true;
+                }
+                // Priority 3: Examples contain search term
+                else if (examplesLower.contains(searchLower)) {
+                    matches = true;
+                }
+            }
+
+            // Check if any children match
+            TreeItem<TypeInfo> filteredChild = new TreeItem<>(childInfo);
+            buildFilteredTree(child, filteredChild, searchLower);
+            boolean hasMatchingChildren = !filteredChild.getChildren().isEmpty();
+
+            // Add this item if it matches or has matching children
+            if (matches || hasMatchingChildren) {
+                target.getChildren().add(filteredChild);
+            }
+        }
+    }
+
+    /**
+     * Expand all category nodes
+     */
+    private void expandAllCategories(TreeItem<TypeInfo> item) {
+        if (!item.getValue().category.isSelectableType()) {
+            item.setExpanded(true);
+        }
+
+        for (TreeItem<TypeInfo> child : item.getChildren()) {
+            expandAllCategories(child);
+        }
+    }
+
+    /**
+     * Clone a tree item and all its children
+     */
+    private TreeItem<TypeInfo> cloneTreeItem(TreeItem<TypeInfo> source) {
+        TreeItem<TypeInfo> clone = new TreeItem<>(source.getValue());
+        clone.setExpanded(source.isExpanded());
+
+        for (TreeItem<TypeInfo> child : source.getChildren()) {
+            clone.getChildren().add(cloneTreeItem(child));
+        }
+
+        return clone;
+    }
+
+    /**
+     * Check if text contains search term as a whole word
+     */
+    private boolean containsWholeWord(String text, String searchTerm) {
+        if (text == null || searchTerm == null) {
+            return false;
+        }
+
+        // Use word boundary regex to match whole words only
+        String pattern = "\\b" + java.util.regex.Pattern.quote(searchTerm) + "\\b";
+        return java.util.regex.Pattern.compile(pattern).matcher(text).find();
     }
 
     /**
@@ -634,11 +741,11 @@ public class XsdTypeSelector extends Dialog<String> {
 
                 // Set icon based on category
                 FontIcon icon = switch (item.category) {
-                    case BUILTIN -> new FontIcon("fas-cube");
-                    case CUSTOM -> new FontIcon("fas-cog");
-                    case IMPORTED -> new FontIcon("fas-download");
-                    case BUILTIN_CATEGORY, CUSTOM_CATEGORY, IMPORTED_CATEGORY -> new FontIcon("fas-folder");
-                    default -> new FontIcon("fas-question");
+                    case BUILTIN -> new FontIcon("bi-box");
+                    case CUSTOM -> new FontIcon("bi-gear");
+                    case IMPORTED -> new FontIcon("bi-download");
+                    case BUILTIN_CATEGORY, CUSTOM_CATEGORY, IMPORTED_CATEGORY -> new FontIcon("bi-folder");
+                    default -> new FontIcon("bi-question-circle");
                 };
 
                 // Set icon color
