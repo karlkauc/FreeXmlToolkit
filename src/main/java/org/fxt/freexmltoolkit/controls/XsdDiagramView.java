@@ -76,6 +76,7 @@ public class XsdDiagramView {
     private boolean isSearchActive = false;
     private final List<String> searchHistory = new ArrayList<>();
     private static final int MAX_SEARCH_HISTORY = 10;
+    private Timeline searchDebounceTimer;
 
     private VBox detailPane;
     private XsdNodeInfo selectedNode;
@@ -474,9 +475,19 @@ public class XsdDiagramView {
         searchField.setPrefWidth(200);
         searchField.setTooltip(new Tooltip("Search by name, type, or documentation"));
 
-        // Live search as user types
+        // Live search as user types with debounce
         searchField.textProperty().addListener((obs, oldText, newText) -> {
-            performSearch();
+            // Cancel previous timer if exists
+            if (searchDebounceTimer != null) {
+                searchDebounceTimer.stop();
+            }
+
+            // Create new timer with 300ms delay
+            searchDebounceTimer = new Timeline(new KeyFrame(
+                    Duration.millis(300),
+                    e -> performSearch()
+            ));
+            searchDebounceTimer.play();
         });
 
         // Clear search button
@@ -647,8 +658,11 @@ public class XsdDiagramView {
         currentSearchText = searchText != null ? searchText : "";
         isSearchActive = matchingNodes != null && !matchingNodes.isEmpty();
 
-        // Refresh the entire view to apply search highlighting
-        refreshView();
+        // Only rebuild diagram if search state has changed or we have matches
+        if (isSearchActive || (matchingNodes != null && matchingNodes.isEmpty())) {
+            // Rebuild the diagram to apply/remove search highlighting
+            rebuildDiagram();
+        }
 
         // If search is active and we have results, scroll to first result
         if (isSearchActive && !matchingNodes.isEmpty()) {
@@ -1167,7 +1181,6 @@ public class XsdDiagramView {
         int rowIndex = 0;
 
         addDetailRow(grid, rowIndex++, "Name:", node.name());
-        addDetailRow(grid, rowIndex++, "XPath:", node.xpath());
         addDetailRow(grid, rowIndex++, "Data Type:", node.type());
 
         detailPane.getChildren().add(grid);
@@ -2547,6 +2560,39 @@ public class XsdDiagramView {
                 controller.updateXsdContent(updatedXsd);
             }
         }
+    }
+
+    /**
+     * Rebuild the diagram view to reflect current search highlighting
+     */
+    private void rebuildDiagram() {
+        if (rootNode == null) return;
+
+        // Store current search text and caret position
+        String currentText = searchField != null ? searchField.getText() : "";
+        int caretPosition = searchField != null ? searchField.getCaretPosition() : 0;
+
+        // Find the diagram container
+        Platform.runLater(() -> {
+            try {
+                // Navigate to the diagram container (VBox inside ScrollPane)
+                if (treeScrollPane != null && treeScrollPane.getContent() instanceof VBox diagramContainer) {
+                    // Clear and rebuild the diagram
+                    diagramContainer.getChildren().clear();
+                    Node rootNodeView = createNodeView(rootNode);
+                    diagramContainer.getChildren().add(rootNodeView);
+
+                    // Restore focus and text to search field
+                    if (searchField != null) {
+                        searchField.setText(currentText);
+                        searchField.positionCaret(caretPosition);
+                        searchField.requestFocus();
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Error rebuilding diagram for search highlighting", e);
+            }
+        });
     }
 
     /**

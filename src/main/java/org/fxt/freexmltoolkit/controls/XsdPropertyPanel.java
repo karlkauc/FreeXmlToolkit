@@ -46,6 +46,7 @@ public class XsdPropertyPanel extends VBox {
     // UI Components
     private Label nodeTypeLabel;
     private TextField nameField;
+    private TextField xpathField;
     private ComboBox<String> typeComboBox;
     private TextField minOccursField;
     private TextField maxOccursField;
@@ -128,6 +129,14 @@ public class XsdPropertyPanel extends VBox {
         nameField = new TextField();
         nameField.setPromptText("Element/Attribute name");
         propertiesGrid.add(nameField, 1, row++);
+
+        // XPath field (read-only)
+        propertiesGrid.add(new Label("XPath:"), 0, row);
+        xpathField = new TextField();
+        xpathField.setPromptText("XPath location");
+        xpathField.setEditable(false);
+        xpathField.setStyle("-fx-background-color: #f8f9fa; -fx-text-fill: #495057;");
+        propertiesGrid.add(xpathField, 1, row++);
 
         // Type field
         propertiesGrid.add(new Label("Type:"), 0, row);
@@ -343,6 +352,7 @@ public class XsdPropertyPanel extends VBox {
 
         // Update fields with current values
         nameProperty.set(currentNode.name());
+        xpathField.setText(currentNode.xpath() != null ? currentNode.xpath() : "");
         typeProperty.set(currentNode.type() != null ? currentNode.type() : "");
         minOccursProperty.set(currentNode.minOccurs() != null ? currentNode.minOccurs() : "");
         maxOccursProperty.set(currentNode.maxOccurs() != null ? currentNode.maxOccurs() : "");
@@ -387,6 +397,7 @@ public class XsdPropertyPanel extends VBox {
 
     private void clearFields() {
         nameProperty.set("");
+        xpathField.setText("");
         typeProperty.set("");
         minOccursProperty.set("");
         maxOccursProperty.set("");
