@@ -1,0 +1,250 @@
+/**
+ * CSS styling for Import/Include Manager Dialog
+ * Professional styling with Bootstrap Icons support
+ */
+
+/* Main dialog styling */
+.import-include-manager-dialog {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 14px;
+}
+
+.import-include-manager-dialog .dialog-pane {
+    -fx-background-color: -fx-background;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+.import-include-manager-dialog .dialog-pane .header-panel {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 15px;
+}
+
+/* Tab pane styling */
+.import-include-manager-dialog .tab-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.import-include-manager-dialog .tab-pane .tab-header-area {
+    -fx-padding: 0 10px 0 10px;
+}
+
+.import-include-manager-dialog .tab {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1px 1px 0 1px;
+    -fx-border-radius: 8px 8px 0 0;
+    -fx-background-radius: 8px 8px 0 0;
+    -fx-padding: 10px 15px 8px 15px;
+    -fx-font-weight: bold;
+}
+
+.import-include-manager-dialog .tab:selected {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+}
+
+.import-include-manager-dialog .tab .tab-label {
+    -fx-text-fill: inherit;
+}
+
+.import-include-manager-dialog .tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+/* Toolbar styling */
+.import-include-manager-dialog .tool-bar {
+    -fx-background-color: linear-gradient(to bottom, -fx-control-inner-background, derive(-fx-control-inner-background, -10%));
+    -fx-border-color: -fx-outer-border;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 8px 10px;
+}
+
+.import-include-manager-dialog .tool-bar .button {
+    -fx-background-color: transparent;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 6px 12px;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fx-text-background-color;
+}
+
+.import-include-manager-dialog .tool-bar .button:hover {
+    -fx-background-color: derive(-fx-accent, 80%);
+}
+
+.import-include-manager-dialog .tool-bar .button:pressed {
+    -fx-background-color: derive(-fx-accent, 60%);
+}
+
+.import-include-manager-dialog .tool-bar .button:disabled {
+    -fx-opacity: 0.4;
+}
+
+/* Table styling */
+.import-include-manager-dialog .table-view {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-outer-border;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.import-include-manager-dialog .table-view .column-header {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-accent, 80%), derive(-fx-accent, 60%));
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-padding: 8px 10px;
+}
+
+.import-include-manager-dialog .table-view .column-header .label {
+    -fx-text-fill: white;
+}
+
+.import-include-manager-dialog .table-view .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.import-include-manager-dialog .table-view .table-row-cell:odd {
+    -fx-background-color: derive(-fx-control-inner-background, 5%);
+}
+
+.import-include-manager-dialog .table-view .table-row-cell:selected {
+    -fx-background-color: derive(-fx-accent, 80%);
+    -fx-text-fill: white;
+}
+
+.import-include-manager-dialog .table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+.import-include-manager-dialog .table-view .table-cell {
+    -fx-padding: 8px 10px;
+    -fx-font-size: 12px;
+    -fx-border-color: transparent transparent derive(-fx-outer-border, 50%) transparent;
+    -fx-border-width: 0 0 0.5px 0;
+}
+
+/* Empty table placeholder */
+.import-include-manager-dialog .table-view .placeholder .label {
+    -fx-text-fill: derive(-fx-text-background-color, 50%);
+    -fx-font-style: italic;
+    -fx-font-size: 13px;
+}
+
+/* Form dialog styling */
+.import-include-manager-dialog .grid-pane {
+    -fx-hgap: 10px;
+    -fx-vgap: 15px;
+    -fx-padding: 20px;
+}
+
+.import-include-manager-dialog .label {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-background-color;
+    -fx-font-size: 13px;
+}
+
+.import-include-manager-dialog .text-field {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-outer-border;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 10px;
+    -fx-font-size: 13px;
+}
+
+.import-include-manager-dialog .text-field:focused {
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 2px;
+}
+
+.import-include-manager-dialog .text-field:disabled {
+    -fx-background-color: derive(-fx-control-inner-background, -10%);
+    -fx-text-fill: derive(-fx-text-background-color, 50%);
+}
+
+/* Browse button styling */
+.import-include-manager-dialog .button {
+    -fx-background-color: linear-gradient(to bottom, -fx-accent, derive(-fx-accent, -10%));
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 12px;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.import-include-manager-dialog .button:hover {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-accent, 10%), -fx-accent);
+}
+
+.import-include-manager-dialog .button:pressed {
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-accent, -20%), derive(-fx-accent, -10%));
+}
+
+.import-include-manager-dialog .button:disabled {
+    -fx-background-color: derive(-fx-control-inner-background, -20%);
+    -fx-text-fill: derive(-fx-text-background-color, 50%);
+}
+
+/* Status column styling */
+.import-include-manager-dialog .table-cell.status-existing {
+    -fx-text-fill: derive(-fx-accent, -20%);
+    -fx-font-weight: bold;
+}
+
+.import-include-manager-dialog .table-cell.status-new {
+    -fx-text-fill: #28a745;
+    -fx-font-weight: bold;
+}
+
+/* Icon styling */
+.import-include-manager-dialog .ikonli-font-icon {
+    -fx-icon-size: 14px;
+    -fx-fill: currentColor;
+}
+
+.import-include-manager-dialog .tab .ikonli-font-icon {
+    -fx-icon-size: 12px;
+}
+
+.import-include-manager-dialog .tool-bar .button .ikonli-font-icon {
+    -fx-icon-size: 12px;
+    -fx-icon-color: currentColor;
+}
+
+/* Button spacing */
+.import-include-manager-dialog .tool-bar .button {
+    -fx-margin: 0 2px;
+}
+
+/* Separator styling */
+.import-include-manager-dialog .separator {
+    -fx-background-color: derive(-fx-outer-border, 50%);
+}
+
+/* HBox spacing for form elements */
+.import-include-manager-dialog .hbox {
+    -fx-spacing: 10px;
+    -fx-alignment: center-left;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 800px) {
+    .import-include-manager-dialog .table-view .table-column {
+        -fx-pref-width: 150px;
+    }
+}

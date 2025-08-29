@@ -424,8 +424,17 @@ public class XsdDomManipulator {
         // Start with the root element (first part after /)
         String rootName = parts[1];
         Element current = findRootElement(rootName);
+
+        // If not found as root element, try to find as global complexType or simpleType
         if (current == null) {
-            logger.warn("Root element '{}' not found", rootName);
+            current = findComplexTypeByName(rootName);
+            if (current == null) {
+                current = findSimpleTypeByName(rootName);
+            }
+        }
+
+        if (current == null) {
+            logger.warn("Element, complexType, or simpleType '{}' not found", rootName);
             return null;
         }
 
@@ -483,6 +492,40 @@ public class XsdDomManipulator {
 
         // Debug: Print parent structure
         debugPrintElement(parent, 1);
+
+        // Special handling for structural elements (sequence, choice, all)
+        if ("sequence".equals(childName) || "choice".equals(childName) || "all".equals(childName)) {
+            logger.debug("Looking for structural element: {}", childName);
+            // Look for direct structural children first
+            NodeList directChildren = parent.getChildNodes();
+            for (int i = 0; i < directChildren.getLength(); i++) {
+                Node child = directChildren.item(i);
+                if (child.getNodeType() == Node.ELEMENT_NODE) {
+                    Element childElement = (Element) child;
+                    if (childName.equals(childElement.getLocalName())) {
+                        logger.debug("Found direct structural child: {}", childName);
+                        return childElement;
+                    }
+                }
+            }
+
+            // Also check in complexType children if not found directly
+            NodeList complexTypes = parent.getElementsByTagNameNS(XSD_NS, "complexType");
+            for (int i = 0; i < complexTypes.getLength(); i++) {
+                Element complexType = (Element) complexTypes.item(i);
+                NodeList structuralChildren = complexType.getChildNodes();
+                for (int j = 0; j < structuralChildren.getLength(); j++) {
+                    Node child = structuralChildren.item(j);
+                    if (child.getNodeType() == Node.ELEMENT_NODE) {
+                        Element childElement = (Element) child;
+                        if (childName.equals(childElement.getLocalName())) {
+                            logger.debug("Found structural child in complexType: {}", childName);
+                            return childElement;
+                        }
+                    }
+                }
+            }
+        }
 
         // First check if this element has a 'type' attribute that references a complexType
         String typeAttr = parent.getAttribute("type");

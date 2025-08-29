@@ -314,6 +314,11 @@ public class XsdLiveValidationService {
      * Validiert Parent-Child Beziehungen.
      */
     private void validateParentChildRelationship(String parentName, String childName, Element childElement, ValidationResult result) {
+        // Skip validation if childName is null
+        if (childName == null) {
+            return;
+        }
+        
         // simpleType darf keine Elemente enthalten
         if ("simpleType".equals(parentName) && "element".equals(childName)) {
             result.addError("simpleType cannot contain element declarations", childElement);

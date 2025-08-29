@@ -18,8 +18,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.XsdController;
 import org.fxt.freexmltoolkit.controls.commands.*;
+import org.fxt.freexmltoolkit.controls.dialogs.ExtractComplexTypeDialog;
+import org.fxt.freexmltoolkit.controls.dialogs.ImportIncludeManagerDialog;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
+import org.fxt.freexmltoolkit.domain.command.ConvertAttributeToElementCommand;
 import org.fxt.freexmltoolkit.domain.command.ConvertElementToAttributeCommand;
+import org.fxt.freexmltoolkit.domain.command.ExtractComplexTypeCommand;
+import org.fxt.freexmltoolkit.domain.command.InlineTypeDefinitionCommand;
 import org.fxt.freexmltoolkit.service.XsdClipboardService;
 import org.fxt.freexmltoolkit.service.XsdDomManipulator;
 import org.fxt.freexmltoolkit.service.XsdLiveValidationService;
@@ -1594,6 +1599,11 @@ public class XsdDiagramView {
             namespaceManagerItem.setOnAction(e -> showNamespaceManagerDialog());
             contextMenu.getItems().add(namespaceManagerItem);
 
+            MenuItem importIncludeManagerItem = new MenuItem("Manage Imports & Includes");
+            importIncludeManagerItem.setGraphic(new FontIcon("bi-files"));
+            importIncludeManagerItem.setOnAction(e -> showImportIncludeManagerDialog());
+            contextMenu.getItems().add(importIncludeManagerItem);
+
             contextMenu.getItems().add(new SeparatorMenuItem());
         }
 
@@ -1737,6 +1747,22 @@ public class XsdDiagramView {
                 convertToElementItem.setGraphic(new FontIcon("bi-arrow-left"));
                 convertToElementItem.setOnAction(e -> convertAttributeToElement(nodeInfo));
                 contextMenu.getItems().add(convertToElementItem);
+            }
+
+            // Extract ComplexType (only for elements with inline complexTypes)
+            if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT) {
+                MenuItem extractComplexTypeItem = new MenuItem("Extract ComplexType");
+                extractComplexTypeItem.setGraphic(new FontIcon("bi-box-arrow-up"));
+                extractComplexTypeItem.setOnAction(e -> extractComplexType(nodeInfo));
+                extractComplexTypeItem.setDisable(!canExtractComplexType(nodeInfo));
+                contextMenu.getItems().add(extractComplexTypeItem);
+
+                // Inline Type Definition (only for elements with global type references)
+                MenuItem inlineTypeItem = new MenuItem("Inline Type Definition");
+                inlineTypeItem.setGraphic(new FontIcon("bi-box-arrow-in-down"));
+                inlineTypeItem.setOnAction(e -> inlineTypeDefinition(nodeInfo));
+                inlineTypeItem.setDisable(!canInlineTypeDefinition(nodeInfo));
+                contextMenu.getItems().add(inlineTypeItem);
             }
         }
 
@@ -1893,43 +1919,55 @@ public class XsdDiagramView {
     }
 
     private void addSequence(XsdNodeInfo parentNode) {
-        // Create and execute command
-        AddSequenceCommand command = new AddSequenceCommand(
-                domManipulator, parentNode, "1", "1"
-        );
+        // Show advanced sequence creation dialog
+        Dialog<SequenceCreationResult> dialog = createAdvancedSequenceDialog(parentNode);
 
-        if (undoManager.executeCommand(command)) {
-            refreshView();
-            triggerLiveValidation();
-        } else {
-            // Show error dialog if creation failed
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Cannot Add Sequence");
-            alert.setHeaderText("Cannot add sequence to " + parentNode.name());
-            alert.setContentText("This element has a simple type (like xs:string) and cannot contain child elements.\n\n" +
-                    "To add sequences, you need to change the element's type to a complex type first.");
-            alert.showAndWait();
-        }
+        Optional<SequenceCreationResult> result = dialog.showAndWait();
+        result.ifPresent(sequenceInfo -> {
+            // Create and execute command
+            AddSequenceCommand command = new AddSequenceCommand(
+                    domManipulator, parentNode, sequenceInfo.minOccurs(), sequenceInfo.maxOccurs()
+            );
+
+            if (undoManager.executeCommand(command)) {
+                refreshView();
+                triggerLiveValidation();
+            } else {
+                // Show error dialog if creation failed
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Cannot Add Sequence");
+                alert.setHeaderText("Cannot add sequence to " + parentNode.name());
+                alert.setContentText("This element has a simple type (like xs:string) and cannot contain child elements.\n\n" +
+                        "To add sequences, you need to change the element's type to a complex type first.");
+                alert.showAndWait();
+            }
+        });
     }
 
     private void addChoice(XsdNodeInfo parentNode) {
-        // Create and execute command
-        AddChoiceCommand command = new AddChoiceCommand(
-                domManipulator, parentNode, "1", "1"
-        );
+        // Show advanced choice creation dialog
+        Dialog<ChoiceCreationResult> dialog = createAdvancedChoiceDialog(parentNode);
 
-        if (undoManager.executeCommand(command)) {
-            refreshView();
-            triggerLiveValidation();
-        } else {
-            // Show error dialog if creation failed
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Cannot Add Choice");
-            alert.setHeaderText("Cannot add choice to " + parentNode.name());
-            alert.setContentText("This element has a simple type (like xs:string) and cannot contain child elements.\n\n" +
-                    "To add choices, you need to change the element's type to a complex type first.");
-            alert.showAndWait();
-        }
+        Optional<ChoiceCreationResult> result = dialog.showAndWait();
+        result.ifPresent(choiceInfo -> {
+            // Create and execute command
+            AddChoiceCommand command = new AddChoiceCommand(
+                    domManipulator, parentNode, choiceInfo.minOccurs(), choiceInfo.maxOccurs()
+            );
+
+            if (undoManager.executeCommand(command)) {
+                refreshView();
+                triggerLiveValidation();
+            } else {
+                // Show error dialog if creation failed
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Cannot Add Choice");
+                alert.setHeaderText("Cannot add choice to " + parentNode.name());
+                alert.setContentText("This element has a simple type (like xs:string) and cannot contain child elements.\n\n" +
+                        "To add choices, you need to change the element's type to a complex type first.");
+                alert.showAndWait();
+            }
+        });
     }
 
     private void showRenameDialog(XsdNodeInfo node) {
@@ -2332,12 +2370,156 @@ public class XsdDiagramView {
      * Convert an attribute to an element
      */
     private void convertAttributeToElement(XsdNodeInfo nodeInfo) {
-        // TODO: Implement ConvertAttributeToElementCommand
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Convert to Element");
-        alert.setHeaderText("Not implemented yet");
-        alert.setContentText("Attribute to element conversion will be implemented in the next phase.");
-        alert.showAndWait();
+        try {
+            // Get the DOM attribute from the node info
+            Element attribute = domManipulator.findElementByXPath(nodeInfo.xpath());
+            if (attribute == null) {
+                showErrorAlert("Convert to Element", "Could not find attribute in DOM");
+                return;
+            }
+
+            // Create and execute the conversion command
+            ConvertAttributeToElementCommand command = new ConvertAttributeToElementCommand(
+                    domManipulator.getDocument(), attribute, domManipulator);
+
+            if (undoManager.executeCommand(command)) {
+                refreshView();
+                triggerLiveValidation();
+                logger.info("Attribute '{}' converted to element successfully", nodeInfo.name());
+            } else {
+                showErrorAlert("Convert to Element", "Failed to convert attribute to element");
+            }
+
+        } catch (Exception e) {
+            logger.error("Error converting attribute to element", e);
+            showErrorAlert("Convert to Element", "Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Extract inline complexType to global complexType
+     */
+    private void extractComplexType(XsdNodeInfo nodeInfo) {
+        try {
+            // Get the DOM element from the node info
+            Element element = domManipulator.findElementByXPath(nodeInfo.xpath());
+            if (element == null) {
+                showErrorAlert("Extract ComplexType", "Could not find element in DOM");
+                return;
+            }
+
+            // Show dialog to get new type name
+            ExtractComplexTypeDialog dialog = new ExtractComplexTypeDialog(nodeInfo.name());
+            var result = dialog.showAndWait();
+
+            if (result.isPresent()) {
+                ExtractComplexTypeDialog.ExtractComplexTypeResult extractResult = result.get();
+
+                // Create and execute the extraction command
+                ExtractComplexTypeCommand command = new ExtractComplexTypeCommand(
+                        domManipulator.getDocument(), element, extractResult.typeName(), domManipulator);
+
+                if (undoManager.executeCommand(command)) {
+                    refreshView();
+                    triggerLiveValidation();
+                    logger.info("ComplexType extracted from element '{}' to global type '{}'",
+                            nodeInfo.name(), extractResult.typeName());
+                } else {
+                    showErrorAlert("Extract ComplexType", "Failed to extract complexType");
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error extracting complexType", e);
+            showErrorAlert("Extract ComplexType", "Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Check if an element can have its complexType extracted
+     */
+    private boolean canExtractComplexType(XsdNodeInfo nodeInfo) {
+        try {
+            // Get the DOM element
+            Element element = domManipulator.findElementByXPath(nodeInfo.xpath());
+            if (element == null) {
+                return false;
+            }
+
+            return ExtractComplexTypeCommand.canExtractComplexType(element);
+        } catch (Exception e) {
+            logger.error("Error checking if complexType can be extracted", e);
+            return false;
+        }
+    }
+
+    /**
+     * Inline a global type definition into the element
+     */
+    private void inlineTypeDefinition(XsdNodeInfo nodeInfo) {
+        try {
+            // Get the DOM element from the node info
+            Element element = domManipulator.findElementByXPath(nodeInfo.xpath());
+            if (element == null) {
+                showErrorAlert("Inline Type Definition", "Could not find element in DOM");
+                return;
+            }
+
+            // Get the type name from the element
+            String typeName = element.getAttribute("type");
+            if (typeName == null || typeName.isEmpty()) {
+                showErrorAlert("Inline Type Definition", "Element does not have a type reference");
+                return;
+            }
+
+            // Show confirmation dialog
+            Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmAlert.setTitle("Inline Type Definition");
+            confirmAlert.setHeaderText("Inline global type '" + typeName + "'");
+            confirmAlert.setContentText("This will convert the global type reference to an inline type definition. " +
+                    "The global type will remain available for other elements.\n\n" +
+                    "Do you want to continue?");
+
+            var confirmResult = confirmAlert.showAndWait();
+            if (confirmResult.isEmpty() || confirmResult.get() != ButtonType.OK) {
+                return;
+            }
+
+            // Create and execute the inline command
+            InlineTypeDefinitionCommand command = new InlineTypeDefinitionCommand(
+                    domManipulator.getDocument(), element, typeName, domManipulator);
+
+            if (undoManager.executeCommand(command)) {
+                refreshView();
+                triggerLiveValidation();
+                logger.info("Type '{}' inlined into element '{}' successfully",
+                        typeName, nodeInfo.name());
+            } else {
+                showErrorAlert("Inline Type Definition", "Failed to inline type definition");
+            }
+
+        } catch (Exception e) {
+            logger.error("Error inlining type definition", e);
+            showErrorAlert("Inline Type Definition", "Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Check if an element can have its type definition inlined
+     */
+    private boolean canInlineTypeDefinition(XsdNodeInfo nodeInfo) {
+        try {
+            // Get the DOM element
+            Element element = domManipulator.findElementByXPath(nodeInfo.xpath());
+            if (element == null) {
+                return false;
+            }
+
+            return InlineTypeDefinitionCommand.canInlineType(element, domManipulator);
+        } catch (Exception e) {
+            logger.error("Error checking if type can be inlined", e);
+            return false;
+        }
     }
 
     /**
@@ -2470,6 +2652,25 @@ public class XsdDiagramView {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText("Namespace Manager Error");
+            alert.setContentText("An unexpected error occurred: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    private void showImportIncludeManagerDialog() {
+        try {
+            ImportIncludeManagerDialog dialog = new ImportIncludeManagerDialog(domManipulator, undoManager);
+            dialog.showAndWait();
+
+            // Refresh the view to show any changes made to imports/includes
+            refreshView();
+            triggerLiveValidation();
+
+        } catch (Exception e) {
+            logger.error("Error showing import/include manager dialog", e);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Import/Include Manager Error");
             alert.setContentText("An unexpected error occurred: " + e.getMessage());
             alert.showAndWait();
         }
@@ -3045,6 +3246,18 @@ public class XsdDiagramView {
     }
 
     /**
+     * Result record for sequence creation
+     */
+    private record SequenceCreationResult(String minOccurs, String maxOccurs) {
+    }
+
+    /**
+     * Result record for choice creation
+     */
+    private record ChoiceCreationResult(String minOccurs, String maxOccurs) {
+    }
+
+    /**
      * Result record for attribute creation.
      */
     public record AttributeCreationResult(
@@ -3199,5 +3412,139 @@ public class XsdDiagramView {
             alert.setContentText(message);
             alert.showAndWait();
         });
+    }
+
+    /**
+     * Creates an advanced sequence creation dialog with cardinality selection.
+     */
+    private Dialog<SequenceCreationResult> createAdvancedSequenceDialog(XsdNodeInfo parentNode) {
+        Dialog<SequenceCreationResult> dialog = new Dialog<>();
+        dialog.setTitle("Add Sequence");
+        dialog.setHeaderText("Create new sequence in " + parentNode.name());
+        dialog.setResizable(true);
+
+        // Load CSS for styling
+        dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/css/xsd-type-selector.css").toExternalForm()
+        );
+
+        // Create form layout
+        GridPane grid = new GridPane();
+        grid.setHgap(15);
+        grid.setVgap(12);
+        grid.setPadding(new Insets(20));
+
+        // Cardinality fields
+        Label cardinalityLabel = new Label("Cardinality:");
+        HBox cardinalityBox = new HBox(10);
+
+        TextField minOccursField = new TextField("1");
+        minOccursField.setPrefWidth(80);
+        minOccursField.setPromptText("min");
+
+        Label toLabel = new Label("to");
+
+        ComboBox<String> maxOccursCombo = new ComboBox<>();
+        maxOccursCombo.getItems().addAll("1", "2", "5", "10", "unbounded");
+        maxOccursCombo.setValue("1");
+        maxOccursCombo.setPrefWidth(100);
+        maxOccursCombo.setEditable(true);
+
+        cardinalityBox.getChildren().addAll(minOccursField, toLabel, maxOccursCombo);
+
+        // Description
+        Label descLabel = new Label("Description:");
+        Label descText = new Label("A sequence requires elements to appear in the specified order.");
+        descText.setWrapText(true);
+        descText.setStyle("-fx-font-style: italic; -fx-text-fill: #666;");
+
+        // Add to grid
+        grid.add(cardinalityLabel, 0, 0);
+        grid.add(cardinalityBox, 1, 0);
+        grid.add(descLabel, 0, 1);
+        grid.add(descText, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Result converter
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType == ButtonType.OK) {
+                return new SequenceCreationResult(
+                        minOccursField.getText().trim().isEmpty() ? "1" : minOccursField.getText().trim(),
+                        maxOccursCombo.getValue() != null ? maxOccursCombo.getValue() : "1"
+                );
+            }
+            return null;
+        });
+
+        return dialog;
+    }
+
+    /**
+     * Creates an advanced choice creation dialog with cardinality selection.
+     */
+    private Dialog<ChoiceCreationResult> createAdvancedChoiceDialog(XsdNodeInfo parentNode) {
+        Dialog<ChoiceCreationResult> dialog = new Dialog<>();
+        dialog.setTitle("Add Choice");
+        dialog.setHeaderText("Create new choice in " + parentNode.name());
+        dialog.setResizable(true);
+
+        // Load CSS for styling
+        dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/css/xsd-type-selector.css").toExternalForm()
+        );
+
+        // Create form layout
+        GridPane grid = new GridPane();
+        grid.setHgap(15);
+        grid.setVgap(12);
+        grid.setPadding(new Insets(20));
+
+        // Cardinality fields
+        Label cardinalityLabel = new Label("Cardinality:");
+        HBox cardinalityBox = new HBox(10);
+
+        TextField minOccursField = new TextField("1");
+        minOccursField.setPrefWidth(80);
+        minOccursField.setPromptText("min");
+
+        Label toLabel = new Label("to");
+
+        ComboBox<String> maxOccursCombo = new ComboBox<>();
+        maxOccursCombo.getItems().addAll("1", "2", "5", "10", "unbounded");
+        maxOccursCombo.setValue("1");
+        maxOccursCombo.setPrefWidth(100);
+        maxOccursCombo.setEditable(true);
+
+        cardinalityBox.getChildren().addAll(minOccursField, toLabel, maxOccursCombo);
+
+        // Description
+        Label descLabel = new Label("Description:");
+        Label descText = new Label("A choice allows selection of one element from multiple alternatives.");
+        descText.setWrapText(true);
+        descText.setStyle("-fx-font-style: italic; -fx-text-fill: #666;");
+
+        // Add to grid
+        grid.add(cardinalityLabel, 0, 0);
+        grid.add(cardinalityBox, 1, 0);
+        grid.add(descLabel, 0, 1);
+        grid.add(descText, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Result converter
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType == ButtonType.OK) {
+                return new ChoiceCreationResult(
+                        minOccursField.getText().trim().isEmpty() ? "1" : minOccursField.getText().trim(),
+                        maxOccursCombo.getValue() != null ? maxOccursCombo.getValue() : "1"
+                );
+            }
+            return null;
+        });
+
+        return dialog;
     }
 }

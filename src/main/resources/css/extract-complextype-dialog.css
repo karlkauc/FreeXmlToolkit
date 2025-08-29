@@ -1,0 +1,165 @@
+/* Extract ComplexType Dialog Styling */
+.extract-complextype-dialog {
+    -fx-min-width: 600px;
+    -fx-min-height: 500px;
+    -fx-pref-width: 700px;
+    -fx-pref-height: 600px;
+}
+
+.extract-complextype-dialog .header-panel {
+    -fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    -fx-padding: 15;
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1 0;
+}
+
+.extract-complextype-dialog .form-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #495057;
+    -fx-font-size: 13px;
+}
+
+.extract-complextype-dialog .form-value {
+    -fx-text-fill: #212529;
+    -fx-font-size: 13px;
+}
+
+.extract-complextype-dialog .element-name {
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+    -fx-background-color: #f8f9fa;
+    -fx-padding: 4 8 4 8;
+    -fx-background-radius: 4;
+    -fx-border-color: #dee2e6;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+}
+
+.extract-complextype-dialog .form-field {
+    -fx-font-size: 13px;
+    -fx-padding: 8;
+    -fx-background-color: white;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+    -fx-background-radius: 4;
+    -fx-pref-width: 300px;
+}
+
+.extract-complextype-dialog .form-field:focused {
+    -fx-border-color: #80bdff;
+    -fx-background-color: #fff;
+    -fx-effect: dropshadow(gaussian, rgba(0, 123, 255, 0.25), 4, 0, 0, 0);
+}
+
+.extract-complextype-dialog .form-field.error {
+    -fx-border-color: #dc3545;
+    -fx-background-color: #fff5f5;
+}
+
+.extract-complextype-dialog .form-field.error:focused {
+    -fx-border-color: #dc3545;
+    -fx-effect: dropshadow(gaussian, rgba(220, 53, 69, 0.25), 4, 0, 0, 0);
+}
+
+.extract-complextype-dialog .validation-message {
+    -fx-font-size: 12px;
+    -fx-padding: 4 0 0 0;
+}
+
+.extract-complextype-dialog .validation-message.error {
+    -fx-text-fill: #dc3545;
+}
+
+.extract-complextype-dialog .validation-message.warning {
+    -fx-text-fill: #ffc107;
+}
+
+.extract-complextype-dialog .validation-message.success {
+    -fx-text-fill: #28a745;
+}
+
+.extract-complextype-dialog .preview-area {
+    -fx-font-family: "Consolas", "Monaco", "Courier New", monospace;
+    -fx-font-size: 12px;
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #dee2e6;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+    -fx-background-radius: 4;
+    -fx-padding: 12;
+    -fx-text-fill: #495057;
+}
+
+.extract-complextype-dialog .preview-area .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.extract-complextype-dialog .preview-area .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.extract-complextype-dialog .preview-area .scroll-pane .content {
+    -fx-background-color: transparent;
+}
+
+/* Button styling */
+.extract-complextype-dialog .button-bar .button {
+    -fx-font-size: 13px;
+    -fx-padding: 8 16 8 16;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+}
+
+.extract-complextype-dialog .button-bar .button:default {
+    -fx-background-color: linear-gradient(to bottom, #007bff, #0056b3);
+    -fx-text-fill: white;
+    -fx-border-color: #0056b3;
+    -fx-border-width: 1;
+}
+
+.extract-complextype-dialog .button-bar .button:default:hover {
+    -fx-background-color: linear-gradient(to bottom, #0056b3, #004085);
+}
+
+.extract-complextype-dialog .button-bar .button:default:disabled {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: #ffffff;
+    -fx-opacity: 0.6;
+    -fx-cursor: default;
+}
+
+.extract-complextype-dialog .button-bar .button:cancel-button {
+    -fx-background-color: linear-gradient(to bottom, #6c757d, #545b62);
+    -fx-text-fill: white;
+    -fx-border-color: #545b62;
+    -fx-border-width: 1;
+}
+
+.extract-complextype-dialog .button-bar .button:cancel-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #545b62, #3d4043);
+}
+
+/* Grid styling */
+.extract-complextype-dialog .grid-pane {
+    -fx-hgap: 12;
+    -fx-vgap: 12;
+    -fx-padding: 20;
+}
+
+/* Focus and hover effects */
+.extract-complextype-dialog .form-field:hover {
+    -fx-border-color: #adb5bd;
+}
+
+/* Typography */
+.extract-complextype-dialog .text {
+    -fx-font-family: -fx-font-family;
+    -fx-font-size: 13px;
+}
+
+/* Header text styling */
+.extract-complextype-dialog > .dialog-pane > .header-panel > .label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #495057;
+}
