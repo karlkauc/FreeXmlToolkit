@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.web.WebView;
@@ -37,6 +38,7 @@ import java.io.StringReader;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,8 +84,11 @@ public class XsdController {
     private final XmlService xmlService = new XmlServiceImpl();
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     private final FavoritesService favoritesService = FavoritesService.getInstance();
+    private XsdDomManipulator currentDomManipulator;
 
     private MainController parentController;
+    private boolean hasUnsavedChanges = false;
+    private File currentXsdFile;
 
     // --- NEW: Search and replace functionality ---
     private SearchReplaceController searchController;
@@ -147,6 +152,8 @@ public class XsdController {
     private MenuButton loadXsdFavoritesButton;
     @FXML
     private ToggleButton toggleFavoritesButton;
+    @FXML
+    private Button saveXsdButton;
     @FXML
     private SplitPane textTabSplitPane;
     @FXML
@@ -509,7 +516,7 @@ public class XsdController {
      * executed to avoid blocking the user interface.
      */
     private void setupXsdDiagram() {
-        File currentXsdFile = xmlService.getCurrentXsdFile();
+        currentXsdFile = xmlService.getCurrentXsdFile();
         if (currentXsdFile == null) {
             // Show the "No file loaded" placeholder
             noFileLoadedPane.setVisible(true);
@@ -584,6 +591,11 @@ public class XsdController {
 
             if (result.rootNode() != null) {
                 XsdDiagramView diagramView = new XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc());
+                diagramView.setXsdContent(result.fileContent());
+
+                // Store the manipulator reference
+                currentDomManipulator = diagramView.getDomManipulator();
+                
                 logger.debug("lade diagramm...");
                 xsdStackPane.getChildren().add(diagramView.build());
             } else {
@@ -702,6 +714,655 @@ public class XsdController {
             logger.debug("tabpane und texttab != null");
             tabPane.getSelectionModel().select(textTab);
         }
+    }
+
+    /**
+     * Updates the XSD content after editing operations
+     */
+    public void updateXsdContent(String updatedXsd) {
+        if (updatedXsd != null && sourceCodeEditor != null) {
+            // Update the text editor
+            sourceCodeEditor.getCodeArea().replaceText(updatedXsd);
+
+            // Rebuild the diagram view
+            loadXsdIntoGraphicView(updatedXsd);
+
+            // Mark as modified
+            hasUnsavedChanges = true;
+            statusText.setText("XSD modified - changes not saved to file");
+
+            // Enable save button
+            if (saveXsdButton != null) {
+                saveXsdButton.setDisable(false);
+            }
+
+            // Store the manipulator for saving
+            if (currentDomManipulator == null) {
+                currentDomManipulator = new XsdDomManipulator();
+                try {
+                    currentDomManipulator.loadXsd(updatedXsd);
+                } catch (Exception e) {
+                    logger.error("Failed to load XSD into manipulator", e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Analyzes XSD content and extracts structure and metadata
+     */
+    private DiagramData analyzeXsdContent(String xsdContent) throws Exception {
+        // Use service for tree and documentation
+        XsdViewService viewService = new XsdViewService();
+        XsdNodeInfo rootNode = viewService.buildLightweightTree(xsdContent);
+        XsdViewService.DocumentationParts docParts = viewService.extractDocumentationParts(xsdContent);
+
+        // Read metadata (targetNamespace, version) with JAXP/DOM
+        String targetNamespace = "Not defined";
+        String version = "Not specified";
+
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            factory.setXIncludeAware(false);
+            factory.setExpandEntityReferences(false);
+
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new StringReader(xsdContent)));
+
+            org.w3c.dom.Element schemaElement = doc.getDocumentElement();
+            if (schemaElement != null && "schema".equals(schemaElement.getLocalName())) {
+                if (schemaElement.hasAttribute("targetNamespace")) {
+                    targetNamespace = schemaElement.getAttribute("targetNamespace");
+                }
+                if (schemaElement.hasAttribute("version")) {
+                    version = schemaElement.getAttribute("version");
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Could not read metadata (targetNamespace, version).", e);
+        }
+
+        return new DiagramData(rootNode, targetNamespace, version, docParts.mainDocumentation(), docParts.javadocContent(), xsdContent);
+    }
+
+    /**
+     * Reloads the XSD diagram view with updated content
+     */
+    private void loadXsdIntoGraphicView(String xsdContent) {
+        Task<DiagramData> task = new Task<>() {
+            @Override
+            protected DiagramData call() throws Exception {
+                return analyzeXsdContent(xsdContent);
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+            DiagramData result = task.getValue();
+            xsdStackPane.getChildren().clear();
+
+            if (result.rootNode() != null) {
+                XsdDiagramView diagramView = new XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc());
+                diagramView.setXsdContent(xsdContent);
+
+                // Update the manipulator reference
+                currentDomManipulator = diagramView.getDomManipulator();
+
+                xsdStackPane.getChildren().add(diagramView.build());
+            } else {
+                Label infoLabel = new Label("No root element found in schema.");
+                xsdStackPane.getChildren().add(infoLabel);
+            }
+        });
+
+        task.setOnFailed(event -> {
+            logger.error("Failed to reload XSD diagram", task.getException());
+            statusText.setText("Error reloading XSD diagram");
+        });
+
+        executorService.submit(task);
+    }
+
+    // ======================================================================
+    // Save XSD functionality
+    // ======================================================================
+
+    /**
+     * Saves the modified XSD file
+     */
+    @FXML
+    private void createNewXsdFile() {
+        logger.info("Creating new XSD file");
+
+        // Show dialog to get schema details
+        Dialog<NewXsdResult> dialog = createNewXsdDialog();
+        Optional<NewXsdResult> result = dialog.showAndWait();
+
+        result.ifPresent(xsdInfo -> {
+            try {
+                // Generate XSD content based on user input
+                String xsdContent = generateXsdTemplate(xsdInfo);
+
+                // Load the new XSD content into the editor
+                loadXsdContent(xsdContent);
+
+                // Clear current file reference (this is a new unsaved file)
+                currentXsdFile = null;
+
+                // Update UI to show it's a new file
+                updateFileInfo("New XSD Schema", xsdInfo.targetNamespace(), "1.0");
+
+                // Switch to Text tab to show the new content
+                if (tabPane != null && textTab != null) {
+                    tabPane.getSelectionModel().select(textTab);
+                }
+
+                logger.info("New XSD file created successfully");
+
+            } catch (Exception e) {
+                logger.error("Error creating new XSD file", e);
+                showAlertDialog(Alert.AlertType.ERROR, "Error",
+                        "Failed to create new XSD file:\n" + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Data transfer object for new XSD creation parameters
+     */
+    private record NewXsdResult(String schemaName, String targetNamespace, String rootElement, String template) {
+    }
+
+    /**
+     * Creates a dialog for new XSD file creation
+     */
+    private Dialog<NewXsdResult> createNewXsdDialog() {
+        Dialog<NewXsdResult> dialog = new Dialog<>();
+        dialog.setTitle("Create New XSD Schema");
+        dialog.setHeaderText("Configure your new XML Schema Definition");
+
+        // Set icon
+        dialog.setGraphic(new FontIcon("bi-file-plus"));
+
+        // Create form fields
+        TextField schemaNameField = new TextField();
+        schemaNameField.setPromptText("e.g., MySchema");
+
+        TextField namespaceField = new TextField();
+        namespaceField.setPromptText("e.g., http://example.com/myschema");
+
+        TextField rootElementField = new TextField();
+        rootElementField.setPromptText("e.g., document, root, data");
+
+        ComboBox<String> templateComboBox = new ComboBox<>();
+        templateComboBox.getItems().addAll(
+                "Basic Schema",
+                "Document Structure",
+                "Data Collection",
+                "Configuration File",
+                "Empty Schema"
+        );
+        templateComboBox.setValue("Basic Schema");
+
+        // Create form layout
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        grid.add(new Label("Schema Name:"), 0, 0);
+        grid.add(schemaNameField, 1, 0);
+
+        grid.add(new Label("Target Namespace:"), 0, 1);
+        grid.add(namespaceField, 1, 1);
+
+        grid.add(new Label("Root Element:"), 0, 2);
+        grid.add(rootElementField, 1, 2);
+
+        grid.add(new Label("Template:"), 0, 3);
+        grid.add(templateComboBox, 1, 3);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // Add buttons
+        ButtonType createButtonType = new ButtonType("Create", ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
+
+        // Disable Create button if required fields are empty
+        Button createButton = (Button) dialog.getDialogPane().lookupButton(createButtonType);
+        createButton.setDisable(true);
+
+        // Validation
+        Runnable validation = () -> {
+            boolean valid = !schemaNameField.getText().trim().isEmpty() &&
+                    !rootElementField.getText().trim().isEmpty();
+            createButton.setDisable(!valid);
+        };
+
+        schemaNameField.textProperty().addListener((obs, oldVal, newVal) -> validation.run());
+        rootElementField.textProperty().addListener((obs, oldVal, newVal) -> validation.run());
+
+        // Set default values
+        schemaNameField.setText("MySchema");
+        rootElementField.setText("root");
+        namespaceField.setText("http://example.com/myschema");
+
+        // Focus on schema name field
+        Platform.runLater(() -> schemaNameField.requestFocus());
+
+        // Convert result
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == createButtonType) {
+                return new NewXsdResult(
+                        schemaNameField.getText().trim(),
+                        namespaceField.getText().trim(),
+                        rootElementField.getText().trim(),
+                        templateComboBox.getValue()
+                );
+            }
+            return null;
+        });
+
+        return dialog;
+    }
+
+    /**
+     * Generates XSD template based on user selections
+     */
+    private String generateXsdTemplate(NewXsdResult xsdInfo) {
+        StringBuilder xsd = new StringBuilder();
+
+        // XML declaration and schema opening
+        xsd.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xsd.append("<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"\n");
+
+        if (!xsdInfo.targetNamespace().isEmpty()) {
+            xsd.append("           targetNamespace=\"").append(xsdInfo.targetNamespace()).append("\"\n");
+            xsd.append("           xmlns=\"").append(xsdInfo.targetNamespace()).append("\"\n");
+        }
+
+        xsd.append("           elementFormDefault=\"qualified\">\n\n");
+
+        // Generate content based on template
+        switch (xsdInfo.template()) {
+            case "Basic Schema" -> generateBasicTemplate(xsd, xsdInfo);
+            case "Document Structure" -> generateDocumentTemplate(xsd, xsdInfo);
+            case "Data Collection" -> generateDataTemplate(xsd, xsdInfo);
+            case "Configuration File" -> generateConfigTemplate(xsd, xsdInfo);
+            case "Empty Schema" -> generateEmptyTemplate(xsd, xsdInfo);
+            default -> generateBasicTemplate(xsd, xsdInfo);
+        }
+
+        xsd.append("</xs:schema>");
+
+        return xsd.toString();
+    }
+
+    private void generateBasicTemplate(StringBuilder xsd, NewXsdResult xsdInfo) {
+        xsd.append("    <!-- Root element -->\n");
+        xsd.append("    <xs:element name=\"").append(xsdInfo.rootElement()).append("\" type=\"").append(xsdInfo.rootElement()).append("Type\"/>\n\n");
+
+        xsd.append("    <!-- Root element type -->\n");
+        xsd.append("    <xs:complexType name=\"").append(xsdInfo.rootElement()).append("Type\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"title\" type=\"xs:string\"/>\n");
+        xsd.append("            <xs:element name=\"content\" type=\"xs:string\" minOccurs=\"0\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("        <xs:attribute name=\"id\" type=\"xs:string\" use=\"optional\"/>\n");
+        xsd.append("    </xs:complexType>\n\n");
+    }
+
+    private void generateDocumentTemplate(StringBuilder xsd, NewXsdResult xsdInfo) {
+        xsd.append("    <!-- Root document element -->\n");
+        xsd.append("    <xs:element name=\"").append(xsdInfo.rootElement()).append("\" type=\"DocumentType\"/>\n\n");
+
+        xsd.append("    <!-- Document type with header, body, and footer -->\n");
+        xsd.append("    <xs:complexType name=\"DocumentType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"header\" type=\"HeaderType\"/>\n");
+        xsd.append("            <xs:element name=\"body\" type=\"BodyType\"/>\n");
+        xsd.append("            <xs:element name=\"footer\" type=\"FooterType\" minOccurs=\"0\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("        <xs:attribute name=\"version\" type=\"xs:string\" use=\"optional\"/>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:complexType name=\"HeaderType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"title\" type=\"xs:string\"/>\n");
+        xsd.append("            <xs:element name=\"subtitle\" type=\"xs:string\" minOccurs=\"0\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:complexType name=\"BodyType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"section\" type=\"SectionType\" maxOccurs=\"unbounded\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:complexType name=\"SectionType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"heading\" type=\"xs:string\"/>\n");
+        xsd.append("            <xs:element name=\"content\" type=\"xs:string\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("        <xs:attribute name=\"id\" type=\"xs:string\" use=\"optional\"/>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:complexType name=\"FooterType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"copyright\" type=\"xs:string\" minOccurs=\"0\"/>\n");
+        xsd.append("            <xs:element name=\"contact\" type=\"xs:string\" minOccurs=\"0\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("    </xs:complexType>\n\n");
+    }
+
+    private void generateDataTemplate(StringBuilder xsd, NewXsdResult xsdInfo) {
+        xsd.append("    <!-- Root data collection element -->\n");
+        xsd.append("    <xs:element name=\"").append(xsdInfo.rootElement()).append("\" type=\"DataCollectionType\"/>\n\n");
+
+        xsd.append("    <xs:complexType name=\"DataCollectionType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"metadata\" type=\"MetadataType\" minOccurs=\"0\"/>\n");
+        xsd.append("            <xs:element name=\"item\" type=\"ItemType\" maxOccurs=\"unbounded\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("        <xs:attribute name=\"version\" type=\"xs:string\" use=\"optional\"/>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:complexType name=\"MetadataType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"created\" type=\"xs:dateTime\"/>\n");
+        xsd.append("            <xs:element name=\"description\" type=\"xs:string\" minOccurs=\"0\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:complexType name=\"ItemType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"name\" type=\"xs:string\"/>\n");
+        xsd.append("            <xs:element name=\"value\" type=\"xs:string\"/>\n");
+        xsd.append("            <xs:element name=\"type\" type=\"xs:string\" minOccurs=\"0\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("        <xs:attribute name=\"id\" type=\"xs:string\" use=\"required\"/>\n");
+        xsd.append("    </xs:complexType>\n\n");
+    }
+
+    private void generateConfigTemplate(StringBuilder xsd, NewXsdResult xsdInfo) {
+        xsd.append("    <!-- Configuration root element -->\n");
+        xsd.append("    <xs:element name=\"").append(xsdInfo.rootElement()).append("\" type=\"ConfigurationType\"/>\n\n");
+
+        xsd.append("    <xs:complexType name=\"ConfigurationType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"settings\" type=\"SettingsType\"/>\n");
+        xsd.append("            <xs:element name=\"database\" type=\"DatabaseType\" minOccurs=\"0\"/>\n");
+        xsd.append("            <xs:element name=\"logging\" type=\"LoggingType\" minOccurs=\"0\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("        <xs:attribute name=\"environment\" type=\"xs:string\" use=\"optional\"/>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:complexType name=\"SettingsType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"property\" type=\"PropertyType\" maxOccurs=\"unbounded\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:complexType name=\"PropertyType\">\n");
+        xsd.append("        <xs:simpleContent>\n");
+        xsd.append("            <xs:extension base=\"xs:string\">\n");
+        xsd.append("                <xs:attribute name=\"name\" type=\"xs:string\" use=\"required\"/>\n");
+        xsd.append("                <xs:attribute name=\"type\" type=\"PropertyTypeEnum\" use=\"optional\" default=\"string\"/>\n");
+        xsd.append("            </xs:extension>\n");
+        xsd.append("        </xs:simpleContent>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:simpleType name=\"PropertyTypeEnum\">\n");
+        xsd.append("        <xs:restriction base=\"xs:string\">\n");
+        xsd.append("            <xs:enumeration value=\"string\"/>\n");
+        xsd.append("            <xs:enumeration value=\"integer\"/>\n");
+        xsd.append("            <xs:enumeration value=\"boolean\"/>\n");
+        xsd.append("        </xs:restriction>\n");
+        xsd.append("    </xs:simpleType>\n\n");
+
+        xsd.append("    <xs:complexType name=\"DatabaseType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"host\" type=\"xs:string\"/>\n");
+        xsd.append("            <xs:element name=\"port\" type=\"xs:int\"/>\n");
+        xsd.append("            <xs:element name=\"database\" type=\"xs:string\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:complexType name=\"LoggingType\">\n");
+        xsd.append("        <xs:sequence>\n");
+        xsd.append("            <xs:element name=\"level\" type=\"LogLevelEnum\"/>\n");
+        xsd.append("            <xs:element name=\"file\" type=\"xs:string\" minOccurs=\"0\"/>\n");
+        xsd.append("        </xs:sequence>\n");
+        xsd.append("    </xs:complexType>\n\n");
+
+        xsd.append("    <xs:simpleType name=\"LogLevelEnum\">\n");
+        xsd.append("        <xs:restriction base=\"xs:string\">\n");
+        xsd.append("            <xs:enumeration value=\"DEBUG\"/>\n");
+        xsd.append("            <xs:enumeration value=\"INFO\"/>\n");
+        xsd.append("            <xs:enumeration value=\"WARN\"/>\n");
+        xsd.append("            <xs:enumeration value=\"ERROR\"/>\n");
+        xsd.append("        </xs:restriction>\n");
+        xsd.append("    </xs:simpleType>\n\n");
+    }
+
+    private void generateEmptyTemplate(StringBuilder xsd, NewXsdResult xsdInfo) {
+        xsd.append("    <!-- Empty schema - add your elements here -->\n");
+        xsd.append("    <xs:element name=\"").append(xsdInfo.rootElement()).append("\" type=\"xs:string\"/>\n\n");
+    }
+
+    /**
+     * Sets up XSD diagram from content without requiring a physical file
+     */
+    private void setupXsdDiagramFromContent(String xsdContent) {
+        logger.debug("Setting up XSD diagram from content");
+
+        // Show the info pane instead of no file loaded pane
+        noFileLoadedPane.setVisible(false);
+        noFileLoadedPane.setManaged(false);
+        xsdInfoPane.setVisible(true);
+        xsdInfoPane.setManaged(true);
+
+        // Show loading indicator
+        xsdDiagramProgress.setVisible(true);
+        xsdStackPane.getChildren().clear();
+
+        Task<DiagramData> parseTask = new Task<>() {
+            @Override
+            protected DiagramData call() throws Exception {
+                return analyzeXsdContent(xsdContent);
+            }
+        };
+
+        parseTask.setOnSucceeded(e -> {
+            DiagramData result = parseTask.getValue();
+
+            // Update UI labels for new file
+            xsdInfoPathLabel.setText("New XSD Schema");
+            xsdInfoNamespaceLabel.setText(result.targetNamespace());
+            xsdInfoVersionLabel.setText(result.version());
+
+            if (result.rootNode() != null) {
+                XsdDiagramView diagramView = new XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc());
+                diagramView.setXsdContent(xsdContent);
+
+                // Store the manipulator reference
+                currentDomManipulator = diagramView.getDomManipulator();
+
+                logger.debug("Loading diagram for new XSD...");
+                xsdStackPane.getChildren().add(diagramView.build());
+            } else {
+                Label infoLabel = new Label("No root element found in schema.");
+                infoLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #888;");
+                xsdStackPane.getChildren().add(infoLabel);
+            }
+
+            xsdDiagramProgress.setVisible(false);
+        });
+
+        parseTask.setOnFailed(e -> {
+            logger.error("Failed to parse new XSD content", parseTask.getException());
+            xsdDiagramProgress.setVisible(false);
+
+            Label errorLabel = new Label("Failed to parse XSD content: " + parseTask.getException().getMessage());
+            errorLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #d32f2f;");
+            xsdStackPane.getChildren().add(errorLabel);
+        });
+
+        Thread thread = new Thread(parseTask);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    /**
+     * Updates file information in the UI
+     */
+    private void updateFileInfo(String filePath, String targetNamespace, String version) {
+        Platform.runLater(() -> {
+            if (textInfoPathLabel != null) {
+                textInfoPathLabel.setText(filePath);
+            }
+            if (xsdInfoPathLabel != null) {
+                xsdInfoPathLabel.setText(filePath);
+            }
+            if (xsdInfoNamespaceLabel != null) {
+                xsdInfoNamespaceLabel.setText(targetNamespace != null && !targetNamespace.isEmpty()
+                        ? targetNamespace : "No namespace");
+            }
+            if (xsdInfoVersionLabel != null) {
+                xsdInfoVersionLabel.setText(version != null && !version.isEmpty() ? version : "1.0");
+            }
+        });
+    }
+
+    /**
+     * Loads XSD content into the editor
+     */
+    private void loadXsdContent(String xsdContent) {
+        if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+            sourceCodeEditor.getCodeArea().replaceText(xsdContent);
+            sourceCodeEditor.setVisible(true);
+            sourceCodeEditor.setManaged(true);
+        }
+
+        // Load into DOM manipulator for graphic view
+        try {
+            currentDomManipulator = new XsdDomManipulator();
+            currentDomManipulator.loadXsd(xsdContent);
+
+            System.out.println("DEBUG: Loading XSD content into DOM manipulator");
+            System.out.println("DEBUG: XSD content length: " + xsdContent.length());
+            System.out.println("DEBUG: XSD loaded successfully into DOM manipulator");
+
+            // Update the graphic view immediately
+            Platform.runLater(() -> {
+                try {
+                    setupXsdDiagramFromContent(xsdContent);
+                    logger.info("Graphic view updated for new XSD content");
+                } catch (Exception ex) {
+                    logger.error("Error updating graphic view", ex);
+                }
+            });
+
+        } catch (Exception e) {
+            logger.error("Error loading XSD content into DOM manipulator", e);
+            showAlertDialog(Alert.AlertType.ERROR, "Error",
+                    "Failed to load XSD content:\n" + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void saveXsdFile() {
+        if (!hasUnsavedChanges || currentDomManipulator == null || currentXsdFile == null) {
+            return;
+        }
+
+        try {
+            // Create backup
+            createBackup(currentXsdFile);
+
+            // Get the updated XSD content
+            String updatedXsd = currentDomManipulator.getXsdAsString();
+            if (updatedXsd == null) {
+                showError("Failed to get XSD content", "Could not retrieve the modified XSD content.");
+                return;
+            }
+
+            // Save to file
+            Files.writeString(currentXsdFile.toPath(), updatedXsd, java.nio.charset.StandardCharsets.UTF_8);
+
+            // Update UI
+            hasUnsavedChanges = false;
+            saveXsdButton.setDisable(true);
+            statusText.setText("XSD saved successfully: " + currentXsdFile.getName());
+
+            // Show success notification
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Save Successful");
+            alert.setHeaderText(null);
+            alert.setContentText("XSD file saved successfully!");
+            alert.showAndWait();
+
+        } catch (IOException e) {
+            logger.error("Failed to save XSD file", e);
+            showError("Save Failed", "Failed to save XSD file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Creates a backup of the XSD file before saving
+     */
+    private void createBackup(File file) throws IOException {
+        if (file.exists()) {
+            Path sourcePath = file.toPath();
+            Path backupPath = sourcePath.resolveSibling(file.getName() + ".bak");
+            Files.copy(sourcePath, backupPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            logger.info("Backup created: {}", backupPath);
+        }
+    }
+
+    /**
+     * Shows an error dialog
+     */
+    private void showError(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    /**
+     * Prompts to save unsaved changes
+     */
+    public boolean promptSaveIfNeeded() {
+        if (hasUnsavedChanges) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Unsaved Changes");
+            alert.setHeaderText("You have unsaved changes in the XSD editor.");
+            alert.setContentText("Do you want to save your changes?");
+
+            ButtonType saveButton = new ButtonType("Save");
+            ButtonType discardButton = new ButtonType("Discard");
+            ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(saveButton, discardButton, cancelButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent()) {
+                if (result.get() == saveButton) {
+                    saveXsdFile();
+                    return true;
+                } else if (result.get() == discardButton) {
+                    hasUnsavedChanges = false;
+                    return true;
+                } else {
+                    return false; // Cancel
+                }
+            }
+        }
+        return true;
     }
 
     // ======================================================================
@@ -1385,6 +2046,8 @@ public class XsdController {
             openXsdFile(file);
 
             // Update last accessed time
+            favorite.setLastAccessed(LocalDateTime.now());
+            favorite.setAccessCount(favorite.getAccessCount() + 1);
             favoritesService.updateFavorite(favorite);
 
             logger.info("Loaded favorite XSD file: {}", favorite.getName());
@@ -1542,8 +2205,14 @@ public class XsdController {
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSD);
 
         // Sort by last accessed time (most recent first) and take up to 5
+        // Handle null lastAccessed values safely
         List<String> recentItems = xsdFavorites.stream()
-                .sorted((f1, f2) -> f2.getLastAccessed().compareTo(f1.getLastAccessed()))
+                .sorted((f1, f2) -> {
+                    if (f1.getLastAccessed() == null && f2.getLastAccessed() == null) return 0;
+                    if (f1.getLastAccessed() == null) return 1;  // f1 goes to end
+                    if (f2.getLastAccessed() == null) return -1; // f2 goes to end
+                    return f2.getLastAccessed().compareTo(f1.getLastAccessed());
+                })
                 .limit(5)
                 .map(favorite -> "📄 " + favorite.getName())
                 .toList();
@@ -1600,6 +2269,8 @@ public class XsdController {
             openXsdFile(file);
 
             // Update last accessed time
+            favorite.setLastAccessed(LocalDateTime.now());
+            favorite.setAccessCount(favorite.getAccessCount() + 1);
             favoritesService.updateFavorite(favorite);
 
             // Refresh the recent favorites list
@@ -1672,5 +2343,30 @@ public class XsdController {
 
         alert.showAndWait();
         logger.info("Shown XSD loading error dialog for file: {}", file.getAbsolutePath());
+    }
+
+    /**
+     * Updates the validation status in the UI.
+     * Called by XsdDiagramView when live validation results are available.
+     */
+    public void updateValidationStatus(String statusMessage, boolean hasErrors) {
+        Platform.runLater(() -> {
+            try {
+                // Update status in a status label if available
+                // This could be integrated into the existing status bar or info label
+                logger.debug("Validation status update: {} (errors: {})", statusMessage, hasErrors);
+
+                // TODO: Add actual status label update when UI component is available
+                // For now, log the validation status
+                if (hasErrors) {
+                    logger.warn("XSD validation has errors: {}", statusMessage);
+                } else {
+                    logger.info("XSD validation status: {}", statusMessage);
+                }
+
+            } catch (Exception e) {
+                logger.error("Error updating validation status", e);
+            }
+        });
     }
 }

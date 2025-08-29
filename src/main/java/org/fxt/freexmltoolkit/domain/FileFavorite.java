@@ -187,7 +187,8 @@ public class FileFavorite {
     }
 
     public LocalDateTime getLastAccessed() {
-        return lastAccessed;
+        // Return addedDate as fallback if lastAccessed is null
+        return lastAccessed != null ? lastAccessed : addedDate;
     }
 
     public void setLastAccessed(LocalDateTime lastAccessed) {

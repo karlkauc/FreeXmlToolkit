@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
@@ -7,31 +9,68 @@ import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.web.WebView;
+import javafx.util.Duration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.XsdController;
+import org.fxt.freexmltoolkit.controls.commands.*;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
+import org.fxt.freexmltoolkit.service.XsdClipboardService;
+import org.fxt.freexmltoolkit.service.XsdDomManipulator;
+import org.fxt.freexmltoolkit.service.XsdLiveValidationService;
 import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.w3c.dom.Element;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.StringWriter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class XsdDiagramView {
+
+    private static final Logger logger = LogManager.getLogger(XsdDiagramView.class);
 
     private final XsdNodeInfo rootNode;
     private final XsdController controller;
     private final String initialDoc;
     private final String initialJavadoc;
+    private final XsdDomManipulator domManipulator;
+    private String currentXsdContent;
+
+    // Live validation
+    private final XsdLiveValidationService validationService;
+    private final List<Node> validationErrorNodes = new ArrayList<>();
+
+    // Undo/Redo system
+    private final XsdUndoManager undoManager;
+    private Button undoButton;
+    private Button redoButton;
+
+    // Search/Filter system
+    private TextField searchField;
+    private ComboBox<String> filterComboBox;
+    private Button clearSearchButton;
+    private final List<XsdNodeInfo> allNodes = new ArrayList<>();
+    private final List<XsdNodeInfo> filteredNodes = new ArrayList<>();
+    private final Map<XsdNodeInfo, Node> nodeViewCache = new HashMap<>();
+    private String currentSearchText = "";
+    private boolean isSearchActive = false;
+    private final List<String> searchHistory = new ArrayList<>();
+    private static final int MAX_SEARCH_HISTORY = 10;
 
     private VBox detailPane;
     private XsdNodeInfo selectedNode;
+    private XsdPropertyPanel propertyPanel;
 
     // Editor components
     private TextArea documentationTextArea;
@@ -158,12 +197,84 @@ public class XsdDiagramView {
     private static final String DETAIL_LABEL_STYLE = "-fx-font-weight: bold; -fx-text-fill: #333;";
     private static final String DETAIL_PANE_STYLE = "-fx-padding: 15px; -fx-background-color: #ffffff; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 0 1px;";
 
+    // Search highlighting styles
+    private static final String SEARCH_HIGHLIGHT_STYLE =
+            "-fx-background-color: linear-gradient(to bottom, #fff3cd, #ffeaa7); " +
+                    "-fx-border-color: #ff6b35; -fx-border-width: 2px; " +
+                    "-fx-border-radius: 4px; -fx-background-radius: 4px; " +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(255,107,53,0.4), 4, 0, 0, 0); " +
+                    "-fx-padding: 6px 8px; -fx-font-weight: bold;";
+
+    private static final String SEARCH_HIGHLIGHT_TEXT_STYLE = "-fx-fill: #d63031; -fx-font-weight: bold;";
+
 
     public XsdDiagramView(XsdNodeInfo rootNode, XsdController controller, String initialDoc, String initialJavadoc) {
         this.rootNode = rootNode;
         this.controller = controller;
         this.initialDoc = initialDoc;
         this.initialJavadoc = initialJavadoc;
+        this.domManipulator = new XsdDomManipulator();
+        this.validationService = XsdLiveValidationService.getInstance();
+
+        // Initialize undo/redo system
+        this.undoManager = new XsdUndoManager();
+        this.undoManager.setListener(new XsdUndoManager.UndoRedoListener() {
+            @Override
+            public void onUndoRedoStateChanged(boolean canUndo, boolean canRedo) {
+                Platform.runLater(() -> {
+                    if (undoButton != null) {
+                        undoButton.setDisable(!canUndo);
+                        undoButton.setTooltip(new Tooltip(canUndo ? "Undo: " + undoManager.getUndoDescription() : "Nothing to undo"));
+                    }
+                    if (redoButton != null) {
+                        redoButton.setDisable(!canRedo);
+                        redoButton.setTooltip(new Tooltip(canRedo ? "Redo: " + undoManager.getRedoDescription() : "Nothing to redo"));
+                    }
+                });
+            }
+        });
+
+        // Setup validation listener
+        this.validationService.addValidationListener(new XsdLiveValidationService.ValidationListener() {
+            @Override
+            public void onValidationComplete(XsdLiveValidationService.ValidationResult result) {
+                updateValidationUI(result);
+            }
+
+            @Override
+            public void onElementValidated(XsdLiveValidationService.ValidationResult result, Element element) {
+                updateElementValidationUI(result, element);
+            }
+        });
+    }
+
+    public void setXsdContent(String xsdContent) {
+        this.currentXsdContent = xsdContent;
+        try {
+            System.out.println("DEBUG: Loading XSD content into DOM manipulator");
+            System.out.println("DEBUG: XSD content length: " + (xsdContent != null ? xsdContent.length() : "null"));
+
+            domManipulator.loadXsd(xsdContent);
+
+            System.out.println("DEBUG: XSD loaded successfully into DOM manipulator");
+
+            // Update property panel with DOM manipulator
+            if (propertyPanel != null) {
+                propertyPanel.setDomManipulator(domManipulator);
+                System.out.println("DEBUG: Property panel updated with DOM manipulator");
+            }
+
+            // Trigger live validation
+            triggerLiveValidation();
+
+        } catch (Exception e) {
+            System.out.println("DEBUG: Error loading XSD: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public XsdDomManipulator getDomManipulator() {
+        return domManipulator;
     }
 
     public Node build() {
@@ -172,8 +283,16 @@ public class XsdDiagramView {
         }
 
         SplitPane splitPane = new SplitPane();
-        splitPane.setDividerPositions(0.75);
+        splitPane.setDividerPositions(0.5);
 
+        // Create main left container with toolbar and diagram
+        VBox leftContainer = new VBox();
+
+        // Create toolbar with undo/redo buttons
+        HBox toolbar = createToolbar();
+        toolbar.setPadding(new Insets(5, 10, 5, 10));
+        toolbar.setStyle("-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1px 0;");
+        
         VBox diagramContainer = new VBox();
         diagramContainer.setPadding(new Insets(10));
         diagramContainer.setAlignment(Pos.TOP_CENTER); // Root-Node zentrieren
@@ -184,9 +303,20 @@ public class XsdDiagramView {
         treeScrollPane.setFitToWidth(false);
         treeScrollPane.setFitToHeight(false);
 
-        BorderPane rightPaneLayout = new BorderPane();
-        rightPaneLayout.setStyle(DETAIL_PANE_STYLE);
+        leftContainer.getChildren().addAll(toolbar, treeScrollPane);
+        VBox.setVgrow(treeScrollPane, javafx.scene.layout.Priority.ALWAYS);
 
+        // Create tabbed right pane with Details and Properties
+        TabPane rightTabPane = new TabPane();
+        rightTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+
+        // Details Tab
+        Tab detailsTab = new Tab("Details");
+        detailsTab.setGraphic(new FontIcon("bi-info-circle"));
+
+        BorderPane detailsLayout = new BorderPane();
+        detailsLayout.setStyle(DETAIL_PANE_STYLE);
+        
         detailPane = new VBox(10);
         Label placeholder = new Label("Click on a node to view details.");
         detailPane.getChildren().add(placeholder);
@@ -195,14 +325,410 @@ public class XsdDiagramView {
         detailScrollPane.setFitToWidth(true);
         detailScrollPane.setFitToHeight(true);
         detailScrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
-        rightPaneLayout.setCenter(detailScrollPane);
-
+        detailsLayout.setCenter(detailScrollPane);
+        
         Node editorPane = createEditorPane();
         BorderPane.setMargin(editorPane, new Insets(10, 0, 0, 0));
-        rightPaneLayout.setBottom(editorPane);
+        detailsLayout.setBottom(editorPane);
 
-        splitPane.getItems().addAll(treeScrollPane, rightPaneLayout);
+        detailsTab.setContent(detailsLayout);
+
+        // Properties Tab
+        Tab propertiesTab = new Tab("Properties");
+        propertiesTab.setGraphic(new FontIcon("bi-gear"));
+
+        propertyPanel = new XsdPropertyPanel();
+        propertyPanel.setDomManipulator(domManipulator);
+        propertyPanel.setOnPropertyChanged(message -> {
+            // Refresh the view when properties change
+            refreshView();
+            triggerLiveValidation();
+        });
+
+        // Set up command-based property changes (we'll need to modify XsdPropertyPanel for this)
+        // For now, the existing callback will work, but ideally we'd integrate commands here too
+
+        ScrollPane propertyScrollPane = new ScrollPane(propertyPanel);
+        propertyScrollPane.setFitToWidth(true);
+        propertyScrollPane.setFitToHeight(true);
+        propertyScrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
+
+        propertiesTab.setContent(propertyScrollPane);
+
+        rightTabPane.getTabs().addAll(detailsTab, propertiesTab);
+
+        splitPane.getItems().addAll(leftContainer, rightTabPane);
         return splitPane;
+    }
+
+    /**
+     * Creates the toolbar with undo/redo buttons
+     */
+    private HBox createToolbar() {
+        HBox toolbar = new HBox(8);
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+
+        // Undo button
+        undoButton = new Button();
+        undoButton.setGraphic(new FontIcon("bi-arrow-counterclockwise"));
+        undoButton.setTooltip(new Tooltip("Nothing to undo"));
+        undoButton.setDisable(true);
+        undoButton.setOnAction(e -> {
+            if (undoManager.undo()) {
+                refreshView();
+                triggerLiveValidation();
+            }
+        });
+
+        // Redo button
+        redoButton = new Button();
+        redoButton.setGraphic(new FontIcon("bi-arrow-clockwise"));
+        redoButton.setTooltip(new Tooltip("Nothing to redo"));
+        redoButton.setDisable(true);
+        redoButton.setOnAction(e -> {
+            if (undoManager.redo()) {
+                refreshView();
+                triggerLiveValidation();
+            }
+        });
+
+        // Style buttons
+        String buttonStyle = "-fx-background-color: transparent; -fx-border-color: #6c757d; " +
+                "-fx-border-width: 1px; -fx-border-radius: 3px; " +
+                "-fx-padding: 4px 8px; -fx-cursor: hand;";
+        String buttonHoverStyle = buttonStyle + "-fx-background-color: #e9ecef;";
+
+        undoButton.setStyle(buttonStyle);
+        undoButton.setOnMouseEntered(e -> undoButton.setStyle(buttonHoverStyle));
+        undoButton.setOnMouseExited(e -> undoButton.setStyle(buttonStyle));
+
+        redoButton.setStyle(buttonStyle);
+        redoButton.setOnMouseEntered(e -> redoButton.setStyle(buttonHoverStyle));
+        redoButton.setOnMouseExited(e -> redoButton.setStyle(buttonStyle));
+
+        // Separator
+        Separator separator = new Separator();
+        separator.setOrientation(javafx.geometry.Orientation.VERTICAL);
+
+        // Status label
+        Label statusLabel = new Label("XSD Editor");
+        statusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #495057;");
+
+        // Second separator for search section
+        Separator separator2 = new Separator();
+        separator2.setOrientation(javafx.geometry.Orientation.VERTICAL);
+
+        // Search components
+        HBox searchBox = createSearchComponents();
+
+        // Spacer to push search to the right
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+        toolbar.getChildren().addAll(
+                undoButton, redoButton, separator, statusLabel,
+                spacer, separator2, searchBox
+        );
+
+        return toolbar;
+    }
+
+    /**
+     * Create search and filter components
+     */
+    private HBox createSearchComponents() {
+        HBox searchBox = new HBox(5);
+        searchBox.setAlignment(Pos.CENTER_LEFT);
+
+        // Filter ComboBox
+        filterComboBox = new ComboBox<>();
+        filterComboBox.getItems().addAll(
+                "All Types", "Elements", "Attributes", "Sequences", "Choices",
+                "SimpleTypes", "ComplexTypes", "Any"
+        );
+        filterComboBox.setValue("All Types");
+        filterComboBox.setPrefWidth(120);
+        filterComboBox.setPromptText("Filter");
+        filterComboBox.setTooltip(new Tooltip("Filter by node type"));
+        filterComboBox.setOnAction(e -> performSearch());
+
+        // Search TextField
+        searchField = new TextField();
+        searchField.setPromptText("Search nodes...");
+        searchField.setPrefWidth(200);
+        searchField.setTooltip(new Tooltip("Search by name, type, or documentation"));
+
+        // Live search as user types
+        searchField.textProperty().addListener((obs, oldText, newText) -> {
+            performSearch();
+        });
+
+        // Clear search button
+        clearSearchButton = new Button();
+        clearSearchButton.setGraphic(new FontIcon("bi-x-circle"));
+        clearSearchButton.setTooltip(new Tooltip("Clear search"));
+        clearSearchButton.setDisable(true);
+        clearSearchButton.setOnAction(e -> clearSearch());
+
+        // Style components
+        String searchStyle = "-fx-background-color: #ffffff; -fx-border-color: #ced4da; " +
+                "-fx-border-width: 1px; -fx-border-radius: 4px; " +
+                "-fx-padding: 4px 8px; -fx-font-size: 12px;";
+
+        String buttonStyle = "-fx-background-color: transparent; -fx-border-color: #6c757d; " +
+                "-fx-border-width: 1px; -fx-border-radius: 3px; " +
+                "-fx-padding: 4px 8px; -fx-cursor: hand;";
+
+        searchField.setStyle(searchStyle);
+        filterComboBox.setStyle(searchStyle);
+        clearSearchButton.setStyle(buttonStyle);
+
+        // Add focus styling
+        searchField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (isNowFocused) {
+                searchField.setStyle(searchStyle + "-fx-border-color: #80bdff; -fx-effect: dropshadow(three-pass-box, rgba(0,123,255,.25), 0, 0, 0, 2);");
+            } else {
+                searchField.setStyle(searchStyle);
+            }
+        });
+
+        searchBox.getChildren().addAll(
+                new Label("Filter:"), filterComboBox,
+                new Label("Search:"), searchField, clearSearchButton
+        );
+
+        return searchBox;
+    }
+
+    /**
+     * Perform search and filter operation
+     */
+    private void performSearch() {
+        String searchText = searchField.getText().toLowerCase().trim();
+        String filterType = filterComboBox.getValue();
+
+        // Enable/disable clear button
+        boolean hasSearch = !searchText.isEmpty() || !"All Types".equals(filterType);
+        clearSearchButton.setDisable(!hasSearch);
+
+        if (!hasSearch) {
+            // No search/filter active, show all nodes normally
+            refreshNodeVisibility(null, null);
+            return;
+        }
+
+        // Build list of all nodes
+        allNodes.clear();
+        collectAllNodes(rootNode, allNodes);
+
+        // Filter nodes based on criteria
+        filteredNodes.clear();
+        for (XsdNodeInfo node : allNodes) {
+            if (matchesFilter(node, searchText, filterType)) {
+                filteredNodes.add(node);
+            }
+        }
+
+        // Add to search history if it's a meaningful search
+        if (!searchText.isEmpty() && searchText.length() > 1) {
+            addToSearchHistory(searchText);
+        }
+
+        // Update UI to highlight matching nodes
+        refreshNodeVisibility(searchText, filteredNodes);
+
+        logger.info("Search '{}' with filter '{}' found {} results",
+                searchText, filterType, filteredNodes.size());
+    }
+
+    /**
+     * Clear search and show all nodes
+     */
+    private void clearSearch() {
+        searchField.clear();
+        filterComboBox.setValue("All Types");
+        clearSearchButton.setDisable(true);
+        refreshNodeVisibility(null, null);
+        logger.info("Search cleared");
+    }
+
+    /**
+     * Check if node matches search and filter criteria
+     */
+    private boolean matchesFilter(XsdNodeInfo node, String searchText, String filterType) {
+        // Filter by node type first
+        if (!"All Types".equals(filterType)) {
+            boolean typeMatch = switch (filterType) {
+                case "Elements" -> node.nodeType() == XsdNodeInfo.NodeType.ELEMENT;
+                case "Attributes" -> node.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE;
+                case "Sequences" -> node.nodeType() == XsdNodeInfo.NodeType.SEQUENCE;
+                case "Choices" -> node.nodeType() == XsdNodeInfo.NodeType.CHOICE;
+                case "SimpleTypes" -> node.nodeType() == XsdNodeInfo.NodeType.ELEMENT &&
+                        node.type() != null && !node.type().startsWith("xs:") &&
+                        node.type().toLowerCase().contains("type");
+                case "ComplexTypes" -> node.nodeType() == XsdNodeInfo.NodeType.ELEMENT &&
+                        node.type() != null && !node.type().startsWith("xs:") &&
+                        !node.type().toLowerCase().contains("type");
+                case "Any" -> node.nodeType() == XsdNodeInfo.NodeType.ANY;
+                default -> true;
+            };
+            if (!typeMatch) return false;
+        }
+
+        // If no search text, type filter is enough
+        if (searchText.isEmpty()) return true;
+
+        // Search in node name
+        if (node.name() != null && node.name().toLowerCase().contains(searchText)) {
+            return true;
+        }
+
+        // Search in type
+        if (node.type() != null && node.type().toLowerCase().contains(searchText)) {
+            return true;
+        }
+
+        // Search in documentation
+        if (node.documentation() != null && node.documentation().toLowerCase().contains(searchText)) {
+            return true;
+        }
+
+        // Fuzzy search in name (allow some typos)
+        return node.name() != null && fuzzyMatch(node.name().toLowerCase(), searchText);
+    }
+
+    /**
+     * Simple fuzzy matching algorithm
+     */
+    private boolean fuzzyMatch(String text, String pattern) {
+        if (pattern.length() > text.length()) return false;
+
+        int patternIdx = 0;
+        for (int i = 0; i < text.length() && patternIdx < pattern.length(); i++) {
+            if (text.charAt(i) == pattern.charAt(patternIdx)) {
+                patternIdx++;
+            }
+        }
+        return patternIdx == pattern.length();
+    }
+
+    /**
+     * Collect all nodes recursively for search
+     */
+    private void collectAllNodes(XsdNodeInfo node, List<XsdNodeInfo> result) {
+        result.add(node);
+        if (node.children() != null) {
+            for (XsdNodeInfo child : node.children()) {
+                collectAllNodes(child, result);
+            }
+        }
+    }
+
+    /**
+     * Update node visibility and highlighting based on search results
+     */
+    private void refreshNodeVisibility(String searchText, List<XsdNodeInfo> matchingNodes) {
+        currentSearchText = searchText != null ? searchText : "";
+        isSearchActive = matchingNodes != null && !matchingNodes.isEmpty();
+
+        // Refresh the entire view to apply search highlighting
+        refreshView();
+
+        // If search is active and we have results, scroll to first result
+        if (isSearchActive && !matchingNodes.isEmpty()) {
+            Platform.runLater(() -> scrollToFirstSearchResult(matchingNodes.get(0)));
+        }
+    }
+
+    /**
+     * Scroll to and highlight the first search result
+     */
+    private void scrollToFirstSearchResult(XsdNodeInfo firstResult) {
+        // Find the node view for the first result and scroll to it
+        if (treeScrollPane != null) {
+            // Simple scroll to top for now - could be enhanced to find specific node
+            treeScrollPane.setVvalue(0.0);
+            logger.info("Scrolled to first search result: {}", firstResult.name());
+        }
+    }
+
+    /**
+     * Check if a node matches current search criteria (for highlighting)
+     */
+    private boolean isNodeHighlighted(XsdNodeInfo node) {
+        if (!isSearchActive || currentSearchText.isEmpty()) {
+            return false;
+        }
+        return filteredNodes.contains(node);
+    }
+
+    /**
+     * Apply search highlighting to a label if the node matches search criteria
+     */
+    private void applySearchHighlighting(Label label, XsdNodeInfo node) {
+        if (isNodeHighlighted(node)) {
+            String currentStyle = label.getStyle();
+            label.setStyle(currentStyle + "; " + SEARCH_HIGHLIGHT_STYLE);
+            label.setTextFill(javafx.scene.paint.Color.valueOf("#d63031"));
+
+            // Add a subtle animation to draw attention
+            Platform.runLater(() -> {
+                label.setScaleX(1.1);
+                label.setScaleY(1.1);
+
+                Timeline timeline = new Timeline(
+                        new KeyFrame(Duration.millis(200),
+                                e -> {
+                                    label.setScaleX(1.0);
+                                    label.setScaleY(1.0);
+                                })
+                );
+                timeline.play();
+            });
+        }
+    }
+
+    /**
+     * Create a highlighted text if it matches search criteria
+     */
+    private Label createHighlightedLabel(String text, XsdNodeInfo node) {
+        Label label = new Label(text);
+        applySearchHighlighting(label, node);
+        return label;
+    }
+
+    /**
+     * Add search term to history, avoiding duplicates and maintaining max size
+     */
+    private void addToSearchHistory(String searchTerm) {
+        // Remove if already exists
+        searchHistory.remove(searchTerm);
+
+        // Add to front
+        searchHistory.add(0, searchTerm);
+
+        // Maintain max size
+        while (searchHistory.size() > MAX_SEARCH_HISTORY) {
+            searchHistory.remove(searchHistory.size() - 1);
+        }
+
+        // Update search field with history (could add autocomplete later)
+        updateSearchFieldTooltip();
+    }
+
+    /**
+     * Update search field tooltip with recent searches
+     */
+    private void updateSearchFieldTooltip() {
+        if (searchHistory.isEmpty()) {
+            searchField.setTooltip(new Tooltip("Search by name, type, or documentation"));
+        } else {
+            StringBuilder tooltipText = new StringBuilder("Search by name, type, or documentation\nRecent searches:\n");
+            for (int i = 0; i < Math.min(5, searchHistory.size()); i++) {
+                tooltipText.append("• ").append(searchHistory.get(i)).append("\n");
+            }
+            searchField.setTooltip(new Tooltip(tooltipText.toString()));
+        }
     }
 
     /**
@@ -260,16 +786,25 @@ public class XsdDiagramView {
         HBox nameAndToggleRow = new HBox(5);
         nameAndToggleRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label nameLabel = new Label(node.name());
+        Label nameLabel = createHighlightedLabel(node.name(), node);
         // Determine appropriate style based on cardinality
         String labelStyle = determineNodeLabelStyle(node, false);
         nameLabel.setStyle(labelStyle);
 
+        // Apply additional search highlighting if needed
+        applySearchHighlighting(nameLabel, node);
+
         // Add type-specific icon
         FontIcon elementIcon = createTypeSpecificIcon(node.type());
         nameLabel.setGraphic(elementIcon);
-        
-        nameLabel.setOnMouseClicked(event -> updateDetailPane(node));
+
+        nameLabel.setOnMouseClicked(event -> {
+            if (event.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
+                showContextMenu(nameLabel, node);
+            } else {
+                updateDetailPane(node);
+            }
+        });
 
         String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
         if (!cardinality.isEmpty()) {
@@ -331,18 +866,27 @@ public class XsdDiagramView {
         HBox attributeContainer = new HBox(5);
         attributeContainer.setAlignment(Pos.CENTER_LEFT);
 
-        Label nameLabel = new Label(node.name());
+        Label nameLabel = createHighlightedLabel(node.name(), node);
         // Determine appropriate style based on cardinality
         String labelStyle = determineNodeLabelStyle(node, true);
         nameLabel.setStyle(labelStyle);
+
+        // Apply additional search highlighting if needed
+        applySearchHighlighting(nameLabel, node);
 
         // Add attribute icon
         FontIcon attributeIcon = new FontIcon("bi-at");
         attributeIcon.setIconColor(javafx.scene.paint.Color.web("#d4a147"));
         attributeIcon.setIconSize(12);
         nameLabel.setGraphic(attributeIcon);
-        
-        nameLabel.setOnMouseClicked(event -> updateDetailPane(node));
+
+        nameLabel.setOnMouseClicked(event -> {
+            if (event.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
+                showContextMenu(nameLabel, node);
+            } else {
+                updateDetailPane(node);
+            }
+        });
 
         String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
         if (!cardinality.isEmpty()) {
@@ -455,8 +999,14 @@ public class XsdDiagramView {
         anyIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
         anyIcon.setIconSize(12);
         nameLabel.setGraphic(anyIcon);
-        
-        nameLabel.setOnMouseClicked(event -> updateDetailPane(node));
+
+        nameLabel.setOnMouseClicked(event -> {
+            if (event.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
+                showContextMenu(nameLabel, node);
+            } else {
+                updateDetailPane(node);
+            }
+        });
 
         String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
         if (!cardinality.isEmpty()) {
@@ -468,6 +1018,7 @@ public class XsdDiagramView {
         }
         return nodeContainer;
     }
+
 
     /**
      * Fügt einen Toggle-Button hinzu, der die Kind-Knoten erst dann erstellt (lazy loading),
@@ -605,6 +1156,11 @@ public class XsdDiagramView {
 
         this.exampleListView.getItems().setAll(node.exampleValues());
         this.exampleEditorPane.setDisable(false);
+
+        // Update property panel
+        if (propertyPanel != null) {
+            propertyPanel.setSelectedNode(node);
+        }
     }
 
     private Node createEditorPane() {
@@ -980,5 +1536,1205 @@ public class XsdDiagramView {
         for (javafx.scene.Node child : hbox.getChildren()) {
             autoExpandSequenceAndChoiceNodesRecursive(child);
         }
+    }
+
+    /**
+     * Shows context menu for XSD nodes with editing options
+     */
+    private void showContextMenu(Node targetNode, XsdNodeInfo nodeInfo) {
+        ContextMenu contextMenu = new ContextMenu();
+
+        // Schema-level menu items - only show for root elements that represent the schema
+        boolean isSchemaRoot = nodeInfo.xpath().equals("/" + nodeInfo.name()) && nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT;
+        if (isSchemaRoot) {
+            MenuItem addSimpleTypeItem = new MenuItem("Add SimpleType");
+            addSimpleTypeItem.setGraphic(new FontIcon("bi-type"));
+            addSimpleTypeItem.setOnAction(e -> showAddSimpleTypeDialog(createSchemaNodeInfo()));
+            contextMenu.getItems().add(addSimpleTypeItem);
+
+            MenuItem addComplexTypeItem = new MenuItem("Add ComplexType");
+            addComplexTypeItem.setGraphic(new FontIcon("bi-diagram-3"));
+            addComplexTypeItem.setOnAction(e -> showAddComplexTypeDialog(createSchemaNodeInfo()));
+            contextMenu.getItems().add(addComplexTypeItem);
+
+            contextMenu.getItems().add(new SeparatorMenuItem());
+        }
+
+        // Type-based editing options - check if element uses a custom SimpleType or ComplexType
+        if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT && nodeInfo.type() != null) {
+            String type = nodeInfo.type();
+            // Check if it's a custom type (not built-in XSD type)
+            if (!type.startsWith("xs:") && !type.startsWith("xsd:")) {
+                // Try to determine if it's a SimpleType or ComplexType by checking the XSD
+                XsdNodeInfo typeNodeInfo = findTypeNodeInfo(nodeInfo, type);
+                if (typeNodeInfo != null) {
+                    if (typeNodeInfo.nodeType() == XsdNodeInfo.NodeType.SIMPLE_TYPE) {
+                        MenuItem editSimpleTypeItem = new MenuItem("Edit SimpleType '" + type + "'");
+                        editSimpleTypeItem.setGraphic(new FontIcon("bi-pencil"));
+                        editSimpleTypeItem.setOnAction(e -> showEditSimpleTypeDialog(typeNodeInfo));
+                        contextMenu.getItems().add(editSimpleTypeItem);
+                    } else if (typeNodeInfo.nodeType() == XsdNodeInfo.NodeType.COMPLEX_TYPE) {
+                        MenuItem editComplexTypeItem = new MenuItem("Edit ComplexType '" + type + "'");
+                        editComplexTypeItem.setGraphic(new FontIcon("bi-pencil"));
+                        editComplexTypeItem.setOnAction(e -> showEditComplexTypeDialog(typeNodeInfo));
+                        contextMenu.getItems().add(editComplexTypeItem);
+                    }
+                    contextMenu.getItems().add(new SeparatorMenuItem());
+                }
+            }
+        }
+
+
+        // Add Element menu item
+        if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT ||
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.SEQUENCE ||
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.CHOICE) {
+
+            // Check if this element can have children (not a simple type)
+            boolean canHaveChildren = canNodeHaveChildren(nodeInfo);
+
+            MenuItem addElementItem = new MenuItem("Add Element");
+            addElementItem.setGraphic(new FontIcon("bi-plus-circle"));
+            addElementItem.setOnAction(e -> showAddElementDialog(nodeInfo));
+            addElementItem.setDisable(!canHaveChildren);
+            contextMenu.getItems().add(addElementItem);
+
+            MenuItem addAttributeItem = new MenuItem("Add Attribute");
+            addAttributeItem.setGraphic(new FontIcon("bi-at"));
+            addAttributeItem.setOnAction(e -> showAddAttributeDialog(nodeInfo));
+            addAttributeItem.setDisable(!canHaveChildren);
+            contextMenu.getItems().add(addAttributeItem);
+
+            if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT) {
+                MenuItem addSequenceItem = new MenuItem("Add Sequence");
+                addSequenceItem.setGraphic(new FontIcon("bi-list-ol"));
+                addSequenceItem.setOnAction(e -> addSequence(nodeInfo));
+                addSequenceItem.setDisable(!canHaveChildren);
+                contextMenu.getItems().add(addSequenceItem);
+
+                MenuItem addChoiceItem = new MenuItem("Add Choice");
+                addChoiceItem.setGraphic(new FontIcon("bi-option"));
+                addChoiceItem.setOnAction(e -> addChoice(nodeInfo));
+                addChoiceItem.setDisable(!canHaveChildren);
+                contextMenu.getItems().add(addChoiceItem);
+            }
+
+            contextMenu.getItems().add(new SeparatorMenuItem());
+        }
+
+        // Rename menu item
+        MenuItem renameItem = new MenuItem("Rename");
+        renameItem.setGraphic(new FontIcon("bi-pencil"));
+        renameItem.setOnAction(e -> showRenameDialog(nodeInfo));
+        contextMenu.getItems().add(renameItem);
+
+        // Delete menu item
+        MenuItem deleteItem = new MenuItem("Delete");
+        deleteItem.setGraphic(new FontIcon("bi-trash"));
+        deleteItem.setOnAction(e -> deleteNode(nodeInfo));
+        contextMenu.getItems().add(deleteItem);
+
+        contextMenu.getItems().add(new SeparatorMenuItem());
+
+        // Properties menu item
+        MenuItem propertiesItem = new MenuItem("Properties");
+        propertiesItem.setGraphic(new FontIcon("bi-gear"));
+        propertiesItem.setOnAction(e -> showPropertiesDialog(nodeInfo));
+        contextMenu.getItems().add(propertiesItem);
+
+        // Copy/Paste menu items
+        contextMenu.getItems().add(new SeparatorMenuItem());
+
+        MenuItem copyItem = new MenuItem("Copy");
+        copyItem.setGraphic(new FontIcon("bi-files"));
+        copyItem.setOnAction(e -> copyNode(nodeInfo));
+        contextMenu.getItems().add(copyItem);
+
+        // Paste menu item with dynamic status
+        MenuItem pasteItem = new MenuItem("Paste");
+        pasteItem.setGraphic(new FontIcon("bi-clipboard"));
+        pasteItem.setOnAction(e -> pasteNode(nodeInfo));
+
+        // Enable/disable based on clipboard content and show what's in clipboard
+        boolean hasContent = XsdClipboardService.hasClipboardContent();
+        pasteItem.setDisable(!hasContent);
+
+        if (hasContent) {
+            String clipboardDesc = XsdClipboardService.getClipboardDescription();
+            pasteItem.setText("Paste (" + clipboardDesc + ")");
+        } else {
+            pasteItem.setText("Paste");
+        }
+
+        contextMenu.getItems().add(pasteItem);
+
+        contextMenu.show(targetNode, javafx.geometry.Side.BOTTOM, 0, 0);
+    }
+
+    private XsdNodeInfo copiedNode = null;
+
+    private void showAddElementDialog(XsdNodeInfo parentNode) {
+        // Create advanced element creation dialog
+        Dialog<ElementCreationResult> dialog = createAdvancedElementDialog(parentNode);
+
+        Optional<ElementCreationResult> result = dialog.showAndWait();
+        result.ifPresent(elementInfo -> {
+            String name = elementInfo.name();
+            String type = elementInfo.type();
+            String minOccurs = elementInfo.minOccurs();
+            String maxOccurs = elementInfo.maxOccurs();
+            // Create and execute command
+            AddElementCommand command = new AddElementCommand(
+                    domManipulator, parentNode, name,
+                    type != null && !type.trim().isEmpty() ? type : null,
+                    minOccurs != null && !minOccurs.trim().isEmpty() ? minOccurs : "1",
+                    maxOccurs != null && !maxOccurs.trim().isEmpty() ? maxOccurs : "1"
+            );
+
+            if (undoManager.executeCommand(command)) {
+                refreshView();
+                triggerLiveValidation();
+            } else {
+                // Show error dialog if creation failed
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Cannot Add Element");
+                alert.setHeaderText("Cannot add element to " + parentNode.name());
+                alert.setContentText("This element has a simple type (like xs:string) and cannot contain child elements.\n\n" +
+                        "To add child elements, you need to change the element's type to a complex type first.");
+                alert.showAndWait();
+            }
+        });
+    }
+
+    private void showAddAttributeDialog(XsdNodeInfo parentNode) {
+        // Create advanced attribute creation dialog
+        Dialog<AttributeCreationResult> dialog = createAdvancedAttributeDialog(parentNode);
+
+        Optional<AttributeCreationResult> result = dialog.showAndWait();
+        result.ifPresent(attributeInfo -> {
+            String name = attributeInfo.name();
+            String type = attributeInfo.type();
+            String use = attributeInfo.use();
+            // Create and execute command
+            AddAttributeCommand command = new AddAttributeCommand(
+                    domManipulator, parentNode, name,
+                    type != null && !type.trim().isEmpty() ? type : null,
+                    use != null && !use.trim().isEmpty() ? use : "optional"
+            );
+
+            if (undoManager.executeCommand(command)) {
+                refreshView();
+                triggerLiveValidation();
+            } else {
+                // Show error dialog if creation failed
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Cannot Add Attribute");
+                alert.setHeaderText("Cannot add attribute to " + parentNode.name());
+                alert.setContentText("This element has a simple type (like xs:string) and cannot contain attributes.\n\n" +
+                        "To add attributes, you need to change the element's type to a complex type first.");
+                alert.showAndWait();
+            }
+        });
+    }
+
+    private void addSequence(XsdNodeInfo parentNode) {
+        // Create and execute command
+        AddSequenceCommand command = new AddSequenceCommand(
+                domManipulator, parentNode, "1", "1"
+        );
+
+        if (undoManager.executeCommand(command)) {
+            refreshView();
+            triggerLiveValidation();
+        } else {
+            // Show error dialog if creation failed
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Cannot Add Sequence");
+            alert.setHeaderText("Cannot add sequence to " + parentNode.name());
+            alert.setContentText("This element has a simple type (like xs:string) and cannot contain child elements.\n\n" +
+                    "To add sequences, you need to change the element's type to a complex type first.");
+            alert.showAndWait();
+        }
+    }
+
+    private void addChoice(XsdNodeInfo parentNode) {
+        // Create and execute command
+        AddChoiceCommand command = new AddChoiceCommand(
+                domManipulator, parentNode, "1", "1"
+        );
+
+        if (undoManager.executeCommand(command)) {
+            refreshView();
+            triggerLiveValidation();
+        } else {
+            // Show error dialog if creation failed
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Cannot Add Choice");
+            alert.setHeaderText("Cannot add choice to " + parentNode.name());
+            alert.setContentText("This element has a simple type (like xs:string) and cannot contain child elements.\n\n" +
+                    "To add choices, you need to change the element's type to a complex type first.");
+            alert.showAndWait();
+        }
+    }
+
+    private void showRenameDialog(XsdNodeInfo node) {
+        TextInputDialog dialog = new TextInputDialog(node.name());
+        dialog.setTitle("Rename");
+        dialog.setHeaderText("Rename " + node.name());
+        dialog.setContentText("New name:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(newName -> {
+            // Create and execute command
+            RenameNodeCommand command = new RenameNodeCommand(
+                    domManipulator, node, newName
+            );
+
+            if (undoManager.executeCommand(command)) {
+                refreshView();
+                triggerLiveValidation();
+            }
+        });
+    }
+
+    private void deleteNode(XsdNodeInfo node) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Confirmation");
+        alert.setHeaderText("Delete " + node.name());
+        alert.setContentText("Are you sure you want to delete this node and all its children?");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            // Create and execute command
+            DeleteNodeCommand command = new DeleteNodeCommand(
+                    domManipulator, node
+            );
+
+            if (undoManager.executeCommand(command)) {
+                refreshView();
+                triggerLiveValidation();
+            }
+        }
+    }
+
+    private void showPropertiesDialog(XsdNodeInfo node) {
+        // Switch to Properties tab and select the node
+        updateDetailPane(node);
+
+        // Find the properties tab and select it
+        if (propertyPanel != null && propertyPanel.getParent() != null) {
+            Node parent = propertyPanel.getParent();
+            while (parent != null && !(parent instanceof TabPane)) {
+                parent = parent.getParent();
+            }
+            if (parent instanceof TabPane tabPane) {
+                // Select the Properties tab (should be the second tab)
+                if (tabPane.getTabs().size() > 1) {
+                    tabPane.getSelectionModel().select(1);
+                }
+            }
+        }
+    }
+
+    /**
+     * Show dialog to add a new SimpleType
+     */
+    private void showAddSimpleTypeDialog(XsdNodeInfo parentNode) {
+        XsdSimpleTypeEditor editor = new XsdSimpleTypeEditor();
+        editor.setTitle("Add SimpleType");
+        editor.setHeaderText("Create a new XSD SimpleType definition");
+
+        Optional<SimpleTypeResult> result = editor.showAndWait();
+        if (result.isPresent()) {
+            AddSimpleTypeCommand command = new AddSimpleTypeCommand(domManipulator, parentNode, result.get());
+
+            if (undoManager.executeCommand(command)) {
+                // Refresh the diagram view
+                Platform.runLater(() -> {
+                    try {
+                        // Serialize document to string and update controller
+                        String updatedXsd = serializeDocumentToString();
+                        controller.updateXsdContent(updatedXsd);
+                        logger.info("SimpleType '{}' added successfully", result.get().name());
+                    } catch (Exception e) {
+                        logger.error("Error refreshing view after adding SimpleType", e);
+                    }
+                });
+            } else {
+                logger.error("Failed to add SimpleType: {}", result.get().name());
+                // Show error dialog
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Failed to add SimpleType");
+                alert.setContentText("Could not add the SimpleType '" + result.get().name() + "'. Check the log for details.");
+                alert.showAndWait();
+            }
+        }
+    }
+
+    /**
+     * Show dialog to edit an existing SimpleType
+     */
+    private void showEditSimpleTypeDialog(XsdNodeInfo simpleTypeNode) {
+        // Extract current SimpleType information for editing
+        Element simpleTypeElement = (Element) domManipulator.findNodeByPath(simpleTypeNode.xpath());
+        if (simpleTypeElement == null) {
+            logger.error("SimpleType element not found: {}", simpleTypeNode.xpath());
+            return;
+        }
+
+        // Create editor with current values
+        XsdSimpleTypeEditor editor = new XsdSimpleTypeEditor();
+        editor.setTitle("Edit SimpleType");
+        editor.setHeaderText("Edit XSD SimpleType definition: " + simpleTypeNode.name());
+
+        // TODO: Populate editor with current values from simpleTypeElement
+        // This requires parsing the existing restriction and facets
+
+        Optional<SimpleTypeResult> result = editor.showAndWait();
+        if (result.isPresent()) {
+            EditSimpleTypeCommand command = new EditSimpleTypeCommand(domManipulator, simpleTypeNode, result.get());
+
+            if (undoManager.executeCommand(command)) {
+                // Refresh the diagram view
+                Platform.runLater(() -> {
+                    try {
+                        // Serialize document to string and update controller
+                        String updatedXsd = serializeDocumentToString();
+                        controller.updateXsdContent(updatedXsd);
+                        logger.info("SimpleType '{}' edited successfully", result.get().name());
+                    } catch (Exception e) {
+                        logger.error("Error refreshing view after editing SimpleType", e);
+                    }
+                });
+            } else {
+                logger.error("Failed to edit SimpleType: {}", result.get().name());
+                // Show error dialog
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Failed to edit SimpleType");
+                alert.setContentText("Could not edit the SimpleType '" + result.get().name() + "'. Check the log for details.");
+                alert.showAndWait();
+            }
+        }
+    }
+
+    /**
+     * Show dialog to add a new ComplexType
+     */
+    private void showAddComplexTypeDialog(XsdNodeInfo parentNode) {
+        XsdComplexTypeEditor editor = new XsdComplexTypeEditor(domManipulator.getDocument());
+        editor.setTitle("Add ComplexType");
+        editor.setHeaderText("Create a new XSD ComplexType definition");
+
+        Optional<ComplexTypeResult> result = editor.showAndWait();
+        if (result.isPresent()) {
+            AddComplexTypeCommand command = new AddComplexTypeCommand(domManipulator, parentNode, result.get());
+
+            if (undoManager.executeCommand(command)) {
+                // Refresh the diagram view
+                Platform.runLater(() -> {
+                    try {
+                        // Serialize document to string and update controller
+                        String updatedXsd = serializeDocumentToString();
+                        controller.updateXsdContent(updatedXsd);
+                        logger.info("ComplexType '{}' added successfully", result.get().name());
+                    } catch (Exception e) {
+                        logger.error("Error refreshing view after adding ComplexType", e);
+                    }
+                });
+            } else {
+                logger.error("Failed to add ComplexType: {}", result.get().name());
+                // Show error dialog
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Failed to add ComplexType");
+                alert.setContentText("Could not add the ComplexType '" + result.get().name() + "'. Check the log for details.");
+                alert.showAndWait();
+            }
+        }
+    }
+
+    /**
+     * Show dialog to edit an existing ComplexType
+     */
+    private void showEditComplexTypeDialog(XsdNodeInfo complexTypeNode) {
+        // Extract current ComplexType information for editing
+        Element complexTypeElement = (Element) domManipulator.findNodeByPath(complexTypeNode.xpath());
+        if (complexTypeElement == null) {
+            logger.error("ComplexType element not found: {}", complexTypeNode.xpath());
+            return;
+        }
+
+        // Create editor with current values
+        XsdComplexTypeEditor editor = new XsdComplexTypeEditor(domManipulator.getDocument(), complexTypeElement);
+        editor.setTitle("Edit ComplexType");
+        editor.setHeaderText("Edit XSD ComplexType definition: " + complexTypeNode.name());
+
+        Optional<ComplexTypeResult> result = editor.showAndWait();
+        if (result.isPresent()) {
+            EditComplexTypeCommand command = new EditComplexTypeCommand(domManipulator, complexTypeNode, result.get());
+
+            if (undoManager.executeCommand(command)) {
+                // Refresh the diagram view
+                Platform.runLater(() -> {
+                    try {
+                        // Serialize document to string and update controller
+                        String updatedXsd = serializeDocumentToString();
+                        controller.updateXsdContent(updatedXsd);
+                        logger.info("ComplexType '{}' edited successfully", result.get().name());
+                    } catch (Exception e) {
+                        logger.error("Error refreshing view after editing ComplexType", e);
+                    }
+                });
+            } else {
+                logger.error("Failed to edit ComplexType: {}", result.get().name());
+                // Show error dialog
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Failed to edit ComplexType");
+                alert.setContentText("Could not edit the ComplexType '" + result.get().name() + "'. Check the log for details.");
+                alert.showAndWait();
+            }
+        }
+    }
+
+    private void copyNode(XsdNodeInfo node) {
+        // Use command pattern for consistency, though copy doesn't modify document
+        CopyNodeCommand command = new CopyNodeCommand(domManipulator, node);
+
+        if (undoManager.executeCommand(command)) {
+            // Also keep legacy reference for backward compatibility
+            copiedNode = node;
+            logger.info("Node copied to clipboard: {}", node.name());
+        }
+    }
+
+    private void pasteNode(XsdNodeInfo targetNode) {
+        // Check if there's content to paste
+        if (!XsdClipboardService.hasClipboardContent()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Paste");
+            alert.setHeaderText("Nothing to paste");
+            alert.setContentText("The clipboard is empty. Copy a node first to paste it here.");
+            alert.showAndWait();
+            return;
+        }
+
+        // Get clipboard data
+        XsdClipboardService.XsdClipboardData clipboardData = XsdClipboardService.getClipboardData();
+        if (clipboardData == null) {
+            return;
+        }
+
+        // Show paste options dialog if there might be conflicts
+        boolean resolveConflicts = true;
+        if (hasNameConflict(targetNode, clipboardData.getNodeInfo())) {
+            resolveConflicts = showPasteOptionsDialog(clipboardData.getNodeInfo(), targetNode);
+            if (!resolveConflicts && !confirmOverwrite(clipboardData.getNodeInfo(), targetNode)) {
+                return; // User cancelled
+            }
+        }
+
+        // Create and execute paste command
+        PasteNodeCommand command = new PasteNodeCommand(domManipulator, targetNode, clipboardData, resolveConflicts);
+
+        if (undoManager.executeCommand(command)) {
+            refreshView();
+            triggerLiveValidation();
+            logger.info("Node pasted successfully: {} -> {}",
+                    clipboardData.getNodeInfo().name(), targetNode.name());
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Paste Failed");
+            alert.setHeaderText("Could not paste " + clipboardData.getNodeInfo().name());
+            alert.setContentText("The paste operation failed. This might be due to schema constraints or invalid target location.");
+            alert.showAndWait();
+        }
+    }
+
+    /**
+     * Check if pasting the source node into target would create a name conflict
+     */
+    private boolean hasNameConflict(XsdNodeInfo targetParent, XsdNodeInfo sourceNode) {
+        // Check if any child of the target parent has the same name as the source node
+        return targetParent.children().stream()
+                .anyMatch(child -> sourceNode.name().equals(child.name()));
+    }
+
+    /**
+     * Show paste options dialog for conflict resolution
+     */
+    private boolean showPasteOptionsDialog(XsdNodeInfo sourceNode, XsdNodeInfo targetParent) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Paste Options");
+        alert.setHeaderText("Name conflict detected");
+        alert.setContentText(String.format(
+                "An element named '%s' already exists in '%s'.\n\n" +
+                        "Choose how to handle this conflict:",
+                sourceNode.name(), targetParent.name()
+        ));
+
+        ButtonType renameButton = new ButtonType("Rename automatically");
+        ButtonType overwriteButton = new ButtonType("Overwrite existing");
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(renameButton, overwriteButton, cancelButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+
+        if (result.isPresent()) {
+            if (result.get() == renameButton) {
+                return true; // Resolve conflicts by renaming
+            } else if (result.get() == overwriteButton) {
+                return false; // Don't resolve conflicts (overwrite)
+            }
+        }
+
+        return false; // Default or cancelled
+    }
+
+    /**
+     * Confirm overwrite operation
+     */
+    private boolean confirmOverwrite(XsdNodeInfo sourceNode, XsdNodeInfo targetParent) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Confirm Overwrite");
+        alert.setHeaderText("Overwrite existing element?");
+        alert.setContentText(String.format(
+                "This will replace the existing '%s' element in '%s' with the copied one.\n\n" +
+                        "This action cannot be easily undone. Continue?",
+                sourceNode.name(), targetParent.name()
+        ));
+
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
+    }
+
+    private void refreshView() {
+        // Get updated XSD content and rebuild view
+        if (domManipulator != null && controller != null) {
+            String updatedXsd = domManipulator.getXsdAsString();
+            if (updatedXsd != null) {
+                controller.updateXsdContent(updatedXsd);
+            }
+        }
+    }
+
+    /**
+     * Check if a node can have children based on its type
+     */
+    private boolean canNodeHaveChildren(XsdNodeInfo node) {
+        if (node.nodeType() == XsdNodeInfo.NodeType.SEQUENCE ||
+                node.nodeType() == XsdNodeInfo.NodeType.CHOICE) {
+            return true; // Structural elements can always have children
+        }
+
+        if (node.nodeType() == XsdNodeInfo.NodeType.ELEMENT) {
+            String type = node.type();
+            if (type == null || type.isEmpty()) {
+                return true; // No type specified, assume it can have children
+            }
+
+            // Check if it's a built-in simple type
+            return !type.startsWith("xs:") && !type.startsWith("xsd:"); // Built-in simple types cannot have children
+
+            // Check if it's a simple type (no complex type)
+            // For now, assume it can have children unless it's clearly a simple type
+        }
+
+        return false; // Other node types cannot have children
+    }
+
+    /**
+     * Creates a virtual schema node info for schema-level operations
+     */
+    private XsdNodeInfo createSchemaNodeInfo() {
+        return new XsdNodeInfo("schema", "schema", "/xs:schema", "XSD Schema Root",
+                Collections.emptyList(), Collections.emptyList(), "1", "1", XsdNodeInfo.NodeType.SCHEMA);
+    }
+
+    /**
+     * Finds the type definition node info for a given type name
+     */
+    private XsdNodeInfo findTypeNodeInfo(XsdNodeInfo contextNode, String typeName) {
+        // This is a simplified implementation
+        // In a real scenario, we would query the XSD service to find the type definition
+
+        // Strip namespace prefix
+        String cleanTypeName = typeName.contains(":") ? typeName.substring(typeName.indexOf(":") + 1) : typeName;
+
+        // Create appropriate node info based on type name
+        // This is a heuristic - in practice we'd need to query the actual XSD
+        String xpath = "/xs:schema/xs:complexType[@name='" + cleanTypeName + "']";
+        XsdNodeInfo.NodeType nodeType = XsdNodeInfo.NodeType.COMPLEX_TYPE;
+
+        // Simple heuristic: if type name contains certain patterns, assume it's a simpleType
+        if (cleanTypeName.toLowerCase().contains("type") && !cleanTypeName.toLowerCase().contains("complex")) {
+            xpath = "/xs:schema/xs:simpleType[@name='" + cleanTypeName + "']";
+            nodeType = XsdNodeInfo.NodeType.SIMPLE_TYPE;
+        }
+
+        return new XsdNodeInfo(cleanTypeName, typeName, xpath, "",
+                Collections.emptyList(), Collections.emptyList(), "1", "1", nodeType);
+    }
+
+    // === Live Validation Methods ===
+
+    /**
+     * Triggers live validation of the current XSD document.
+     */
+    private void triggerLiveValidation() {
+        if (domManipulator != null && domManipulator.getDocument() != null) {
+            validationService.validateLive(domManipulator.getDocument());
+        }
+    }
+
+    /**
+     * Updates the UI with validation results.
+     */
+    private void updateValidationUI(XsdLiveValidationService.ValidationResult result) {
+        // Clear previous validation indicators
+        clearValidationIndicators();
+
+        // Add new validation indicators
+        for (XsdLiveValidationService.ValidationIssue issue : result.getAllIssues()) {
+            addValidationIndicator(issue);
+        }
+
+        // Update status in controller if available
+        if (controller != null) {
+            String statusMessage = createValidationStatusMessage(result);
+            Platform.runLater(() -> controller.updateValidationStatus(statusMessage, result.hasErrors()));
+        }
+    }
+
+    /**
+     * Updates UI for a specific element validation.
+     */
+    private void updateElementValidationUI(XsdLiveValidationService.ValidationResult result, Element element) {
+        // Find corresponding visual node and update it
+        if (result.hasErrors()) {
+            highlightElementErrors(element, result.getErrors());
+        }
+    }
+
+    /**
+     * Clears all validation indicators from the UI.
+     */
+    private void clearValidationIndicators() {
+        // Remove all validation error nodes
+        for (Node errorNode : validationErrorNodes) {
+            if (errorNode.getParent() instanceof VBox) {
+                ((VBox) errorNode.getParent()).getChildren().remove(errorNode);
+            }
+        }
+        validationErrorNodes.clear();
+
+        // Reset node styles
+        resetNodeStyles();
+    }
+
+    /**
+     * Adds a validation indicator to the UI.
+     */
+    private void addValidationIndicator(XsdLiveValidationService.ValidationIssue issue) {
+        Element element = issue.element();
+        if (element == null) return;
+
+        // Create validation indicator
+        Label indicator = createValidationIndicator(issue);
+
+        // Find the corresponding visual node to attach indicator
+        Node visualNode = findVisualNodeForElement(element);
+        if (visualNode != null && visualNode.getParent() instanceof VBox parent) {
+            parent.getChildren().add(parent.getChildren().indexOf(visualNode) + 1, indicator);
+            validationErrorNodes.add(indicator);
+        }
+
+        // Update node style based on issue severity
+        updateNodeStyleForIssue(visualNode, issue);
+    }
+
+    /**
+     * Creates a validation indicator label.
+     */
+    private Label createValidationIndicator(XsdLiveValidationService.ValidationIssue issue) {
+        Label indicator = new Label();
+        indicator.setText(issue.message());
+        indicator.setWrapText(true);
+        indicator.setMaxWidth(300);
+
+        switch (issue.severity()) {
+            case ERROR:
+                indicator.setStyle("-fx-background-color: #ffebee; -fx-text-fill: #c62828; " +
+                        "-fx-border-color: #ef5350; -fx-border-width: 1px; " +
+                        "-fx-border-radius: 3px; -fx-background-radius: 3px; " +
+                        "-fx-padding: 4px 8px; -fx-font-size: 11px;");
+                indicator.setGraphic(new FontIcon("bi-exclamation-circle-fill"));
+                break;
+            case WARNING:
+                indicator.setStyle("-fx-background-color: #fff8e1; -fx-text-fill: #f57f17; " +
+                        "-fx-border-color: #ffca28; -fx-border-width: 1px; " +
+                        "-fx-border-radius: 3px; -fx-background-radius: 3px; " +
+                        "-fx-padding: 4px 8px; -fx-font-size: 11px;");
+                indicator.setGraphic(new FontIcon("bi-exclamation-triangle-fill"));
+                break;
+            case INFO:
+                indicator.setStyle("-fx-background-color: #e3f2fd; -fx-text-fill: #1976d2; " +
+                        "-fx-border-color: #42a5f5; -fx-border-width: 1px; " +
+                        "-fx-border-radius: 3px; -fx-background-radius: 3px; " +
+                        "-fx-padding: 4px 8px; -fx-font-size: 11px;");
+                indicator.setGraphic(new FontIcon("bi-info-circle-fill"));
+                break;
+        }
+
+        return indicator;
+    }
+
+    /**
+     * Creates validation status message.
+     */
+    private String createValidationStatusMessage(XsdLiveValidationService.ValidationResult result) {
+        int errors = result.getErrors().size();
+        int warnings = result.getWarnings().size();
+
+        if (errors == 0 && warnings == 0) {
+            return "✓ XSD is valid";
+        } else if (errors > 0) {
+            return String.format("✗ %d error%s, %d warning%s",
+                    errors, errors == 1 ? "" : "s",
+                    warnings, warnings == 1 ? "" : "s");
+        } else {
+            return String.format("⚠ %d warning%s", warnings, warnings == 1 ? "" : "s");
+        }
+    }
+
+    /**
+     * Highlights element errors visually.
+     */
+    private void highlightElementErrors(Element element, List<XsdLiveValidationService.ValidationIssue> errors) {
+        Node visualNode = findVisualNodeForElement(element);
+        if (visualNode != null) {
+            // Add error style
+            String currentStyle = visualNode.getStyle();
+            String errorStyle = "-fx-border-color: #f44336; -fx-border-width: 2px; ";
+            if (!currentStyle.contains("border-color")) {
+                visualNode.setStyle(currentStyle + errorStyle);
+            }
+
+            // Add tooltip with error messages
+            String errorText = errors.stream()
+                    .map(XsdLiveValidationService.ValidationIssue::message)
+                    .collect(Collectors.joining("\n"));
+            Tooltip tooltip = new Tooltip(errorText);
+            if (visualNode instanceof Control) {
+                ((Control) visualNode).setTooltip(tooltip);
+            } else {
+                Tooltip.install(visualNode, tooltip);
+            }
+        }
+    }
+
+    /**
+     * Finds the visual node corresponding to an XSD element.
+     */
+    private Node findVisualNodeForElement(Element element) {
+        // This is a simplified implementation
+        // In a real implementation, we would maintain a mapping between XSD elements and visual nodes
+        String elementName = element.getAttribute("name");
+        if (!elementName.isEmpty()) {
+            return findNodeByName(treeScrollPane, elementName);
+        }
+        return null;
+    }
+
+    /**
+     * Finds a node by name in the visual tree (recursive).
+     */
+    private Node findNodeByName(Node parent, String name) {
+        if (parent instanceof Label label) {
+            if (label.getText().contains(name)) {
+                return label;
+            }
+        }
+
+        if (parent instanceof javafx.scene.Parent) {
+            for (Node child : ((javafx.scene.Parent) parent).getChildrenUnmodifiable()) {
+                Node found = findNodeByName(child, name);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Updates node style based on validation issue.
+     */
+    private void updateNodeStyleForIssue(Node node, XsdLiveValidationService.ValidationIssue issue) {
+        if (node == null) return;
+
+        String currentStyle = node.getStyle();
+        String issueStyle;
+
+        switch (issue.severity()) {
+            case ERROR:
+                issueStyle = "-fx-border-color: #f44336; -fx-border-width: 2px; ";
+                break;
+            case WARNING:
+                issueStyle = "-fx-border-color: #ff9800; -fx-border-width: 1px; ";
+                break;
+            case INFO:
+                issueStyle = "-fx-border-color: #2196f3; -fx-border-width: 1px; ";
+                break;
+            default:
+                return;
+        }
+
+        // Merge styles
+        if (!currentStyle.contains("border-color")) {
+            node.setStyle(currentStyle + issueStyle);
+        }
+    }
+
+    /**
+     * Resets all node styles to remove validation indicators.
+     */
+    private void resetNodeStyles() {
+        resetNodeStylesRecursive(treeScrollPane);
+    }
+
+    /**
+     * Recursively resets node styles.
+     */
+    private void resetNodeStylesRecursive(Node parent) {
+        if (parent instanceof Label label) {
+            String currentStyle = label.getStyle();
+            // Remove validation-specific styles
+            String cleanStyle = currentStyle
+                    .replaceAll("-fx-border-color: #[a-fA-F0-9]{6};", "")
+                    .replaceAll("-fx-border-width: [0-9]+px;", "")
+                    .replaceAll("\\s+", " ")
+                    .trim();
+            label.setStyle(cleanStyle);
+
+            // Remove validation tooltips
+            Tooltip tooltip = label.getTooltip();
+            if (tooltip != null && tooltip.getText() != null &&
+                    (tooltip.getText().contains("error") || tooltip.getText().contains("warning"))) {
+                label.setTooltip(null);
+            }
+        }
+
+        if (parent instanceof javafx.scene.Parent) {
+            for (Node child : ((javafx.scene.Parent) parent).getChildrenUnmodifiable()) {
+                resetNodeStylesRecursive(child);
+            }
+        }
+    }
+
+    /**
+     * Validates a specific element after editing.
+     */
+    public void validateElement(Element element) {
+        if (element != null && domManipulator != null && domManipulator.getDocument() != null) {
+            validationService.validateElementLive(element, domManipulator.getDocument());
+        }
+    }
+
+    /**
+     * Creates an advanced element creation dialog with type selection.
+     */
+    private Dialog<ElementCreationResult> createAdvancedElementDialog(XsdNodeInfo parentNode) {
+        Dialog<ElementCreationResult> dialog = new Dialog<>();
+        dialog.setTitle("Add Element");
+        dialog.setHeaderText("Create new element in " + parentNode.name());
+        dialog.setResizable(true);
+
+        // Load CSS for styling
+        dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/css/xsd-type-selector.css").toExternalForm()
+        );
+
+        // Create form layout
+        GridPane grid = new GridPane();
+        grid.setHgap(15);
+        grid.setVgap(12);
+        grid.setPadding(new Insets(20));
+
+        // Name field
+        Label nameLabel = new Label("Name:");
+        TextField nameField = new TextField();
+        nameField.setPromptText("Element name (required)");
+        nameField.setPrefWidth(200);
+
+        // Type selection
+        Label typeLabel = new Label("Type:");
+        HBox typeBox = new HBox(10);
+        TextField typeField = new TextField("xs:string");
+        typeField.setPrefWidth(200);
+        typeField.setPromptText("Element type");
+
+        Button typeButton = new Button("Browse...");
+        typeButton.setGraphic(new FontIcon("bi-search"));
+        typeButton.setOnAction(e -> {
+            XsdTypeSelector typeSelector = new XsdTypeSelector(domManipulator != null ? domManipulator.getDocument() : null);
+            Optional<String> selectedType = typeSelector.showAndWait();
+            selectedType.ifPresent(typeField::setText);
+        });
+
+        typeBox.getChildren().addAll(typeField, typeButton);
+
+        // Cardinality fields
+        Label cardinalityLabel = new Label("Cardinality:");
+        HBox cardinalityBox = new HBox(10);
+
+        TextField minOccursField = new TextField("1");
+        minOccursField.setPrefWidth(80);
+        minOccursField.setPromptText("min");
+
+        Label toLabel = new Label("to");
+
+        ComboBox<String> maxOccursCombo = new ComboBox<>();
+        maxOccursCombo.getItems().addAll("1", "2", "5", "10", "unbounded");
+        maxOccursCombo.setValue("1");
+        maxOccursCombo.setPrefWidth(100);
+        maxOccursCombo.setEditable(true);
+
+        cardinalityBox.getChildren().addAll(minOccursField, toLabel, maxOccursCombo);
+
+        // Options
+        Label optionsLabel = new Label("Options:");
+        VBox optionsBox = new VBox(8);
+
+        CheckBox nillableCheck = new CheckBox("Nillable");
+        CheckBox abstractCheck = new CheckBox("Abstract");
+
+        optionsBox.getChildren().addAll(nillableCheck, abstractCheck);
+
+        // Documentation
+        Label docLabel = new Label("Documentation:");
+        TextArea docArea = new TextArea();
+        docArea.setPromptText("Element documentation (optional)");
+        docArea.setPrefRowCount(3);
+        docArea.setWrapText(true);
+
+        // Add to grid
+        grid.add(nameLabel, 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(typeLabel, 0, 1);
+        grid.add(typeBox, 1, 1);
+        grid.add(cardinalityLabel, 0, 2);
+        grid.add(cardinalityBox, 1, 2);
+        grid.add(optionsLabel, 0, 3);
+        grid.add(optionsBox, 1, 3);
+        grid.add(docLabel, 0, 4);
+        grid.add(docArea, 1, 4);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Validation
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.setDisable(true);
+
+        // Enable OK when name is provided
+        nameField.textProperty().addListener((obs, oldVal, newVal) -> {
+            okButton.setDisable(newVal == null || newVal.trim().isEmpty());
+        });
+
+        // Result converter
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType == ButtonType.OK) {
+                return new ElementCreationResult(
+                        nameField.getText().trim(),
+                        typeField.getText().trim(),
+                        minOccursField.getText().trim(),
+                        maxOccursCombo.getValue(),
+                        nillableCheck.isSelected(),
+                        abstractCheck.isSelected(),
+                        docArea.getText().trim()
+                );
+            }
+            return null;
+        });
+
+        return dialog;
+    }
+
+    /**
+     * Creates an advanced attribute creation dialog with type selection.
+     */
+    private Dialog<AttributeCreationResult> createAdvancedAttributeDialog(XsdNodeInfo parentNode) {
+        Dialog<AttributeCreationResult> dialog = new Dialog<>();
+        dialog.setTitle("Add Attribute");
+        dialog.setHeaderText("Create new attribute in " + parentNode.name());
+        dialog.setResizable(true);
+
+        // Load CSS for styling
+        dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/css/xsd-type-selector.css").toExternalForm()
+        );
+
+        // Create form layout
+        GridPane grid = new GridPane();
+        grid.setHgap(15);
+        grid.setVgap(12);
+        grid.setPadding(new Insets(20));
+
+        // Name field
+        Label nameLabel = new Label("Name:");
+        TextField nameField = new TextField();
+        nameField.setPromptText("Attribute name (required)");
+        nameField.setPrefWidth(200);
+
+        // Type selection
+        Label typeLabel = new Label("Type:");
+        HBox typeBox = new HBox(10);
+        TextField typeField = new TextField("xs:string");
+        typeField.setPrefWidth(200);
+        typeField.setPromptText("Attribute type");
+
+        Button typeButton = new Button("Browse...");
+        typeButton.setGraphic(new FontIcon("bi-search"));
+        typeButton.setOnAction(e -> {
+            XsdTypeSelector typeSelector = new XsdTypeSelector(domManipulator != null ? domManipulator.getDocument() : null);
+            Optional<String> selectedType = typeSelector.showAndWait();
+            selectedType.ifPresent(typeField::setText);
+        });
+
+        typeBox.getChildren().addAll(typeField, typeButton);
+
+        // Use field
+        Label useLabel = new Label("Use:");
+        ComboBox<String> useCombo = new ComboBox<>();
+        useCombo.getItems().addAll("optional", "required", "prohibited");
+        useCombo.setValue("optional");
+        useCombo.setPrefWidth(120);
+
+        // Default/Fixed value
+        Label valueLabel = new Label("Value:");
+        VBox valueBox = new VBox(8);
+
+        RadioButton defaultRadio = new RadioButton("Default:");
+        RadioButton fixedRadio = new RadioButton("Fixed:");
+        RadioButton noValueRadio = new RadioButton("No default value");
+
+        ToggleGroup valueGroup = new ToggleGroup();
+        defaultRadio.setToggleGroup(valueGroup);
+        fixedRadio.setToggleGroup(valueGroup);
+        noValueRadio.setToggleGroup(valueGroup);
+        noValueRadio.setSelected(true);
+
+        TextField valueField = new TextField();
+        valueField.setPromptText("Value");
+        valueField.setDisable(true);
+
+        // Enable/disable value field based on selection
+        valueGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
+            valueField.setDisable(newVal == noValueRadio);
+        });
+
+        valueBox.getChildren().addAll(noValueRadio,
+                new HBox(10, defaultRadio, new Label("Value:")),
+                new HBox(10, fixedRadio, valueField));
+
+        // Documentation
+        Label docLabel = new Label("Documentation:");
+        TextArea docArea = new TextArea();
+        docArea.setPromptText("Attribute documentation (optional)");
+        docArea.setPrefRowCount(3);
+        docArea.setWrapText(true);
+
+        // Add to grid
+        grid.add(nameLabel, 0, 0);
+        grid.add(nameField, 1, 0);
+        grid.add(typeLabel, 0, 1);
+        grid.add(typeBox, 1, 1);
+        grid.add(useLabel, 0, 2);
+        grid.add(useCombo, 1, 2);
+        grid.add(valueLabel, 0, 3);
+        grid.add(valueBox, 1, 3);
+        grid.add(docLabel, 0, 4);
+        grid.add(docArea, 1, 4);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Validation
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.setDisable(true);
+
+        // Enable OK when name is provided
+        nameField.textProperty().addListener((obs, oldVal, newVal) -> {
+            okButton.setDisable(newVal == null || newVal.trim().isEmpty());
+        });
+
+        // Result converter
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType == ButtonType.OK) {
+                String valueType = noValueRadio.isSelected() ? null :
+                        defaultRadio.isSelected() ? "default" : "fixed";
+                String value = noValueRadio.isSelected() ? null : valueField.getText().trim();
+
+                return new AttributeCreationResult(
+                        nameField.getText().trim(),
+                        typeField.getText().trim(),
+                        useCombo.getValue(),
+                        valueType,
+                        value,
+                        docArea.getText().trim()
+                );
+            }
+            return null;
+        });
+
+        return dialog;
+    }
+
+    // Result Records for Dialog Data Transfer
+
+    /**
+     * Result record for element creation.
+     */
+    public record ElementCreationResult(
+            String name,
+            String type,
+            String minOccurs,
+            String maxOccurs,
+            boolean nillable,
+            boolean abstractElement,
+            String documentation
+    ) {
+    }
+
+    /**
+     * Result record for attribute creation.
+     */
+    public record AttributeCreationResult(
+            String name,
+            String type,
+            String use,
+            String valueType, // "default", "fixed", or null
+            String value,
+            String documentation
+    ) {
+    }
+
+    /**
+     * Serialize the current DOM document to XML string
+     */
+    private String serializeDocumentToString() throws TransformerException {
+        TransformerFactory factory = TransformerFactory.newInstance();
+        Transformer transformer = factory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+
+        StringWriter writer = new StringWriter();
+        transformer.transform(new DOMSource(domManipulator.getDocument()), new StreamResult(writer));
+        return writer.toString();
     }
 }

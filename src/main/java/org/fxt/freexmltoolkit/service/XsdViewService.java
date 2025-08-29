@@ -143,6 +143,8 @@ public class XsdViewService {
                 case "attribute" -> processAttribute(node, currentXPath);
                 case "sequence", "choice", "all" -> processParticle(node, currentXPath, visitedOnPath);
                 case "any" -> processAny(node, currentXPath);
+                case "simpleType" -> processSimpleType(node, currentXPath);
+                case "complexType" -> processComplexType(node, currentXPath, visitedOnPath);
                 default -> {
                     logger.trace("Unhandled node type in tree: {}", node.getLocalName());
                     yield null;
@@ -275,6 +277,56 @@ public class XsdViewService {
         DocumentationParts docParts = extractDocumentationFromAnnotation(getDirectChildElement(anyNode, "annotation"));
 
         return new XsdNodeInfo("any", type, currentXPath, docParts.mainDocumentation(), Collections.emptyList(), Collections.emptyList(), minOccurs, maxOccurs, NodeType.ANY);
+    }
+
+    private XsdNodeInfo processSimpleType(Node simpleTypeNode, String currentXPath) {
+        String name = getAttributeValue(simpleTypeNode, "name");
+        if (name.isEmpty()) {
+            name = "anonymous";
+        }
+        DocumentationParts docParts = extractDocumentationFromAnnotation(getDirectChildElement(simpleTypeNode, "annotation"));
+
+        // Check if it's a restriction, list, or union
+        String type = "simpleType";
+        Node restriction = getDirectChildElement(simpleTypeNode, "restriction");
+        if (restriction != null) {
+            String base = getAttributeValue(restriction, "base");
+            if (!base.isEmpty()) {
+                type = "restriction of " + stripNamespace(base);
+            }
+        }
+        Node list = getDirectChildElement(simpleTypeNode, "list");
+        if (list != null) {
+            String itemType = getAttributeValue(list, "itemType");
+            if (!itemType.isEmpty()) {
+                type = "list of " + stripNamespace(itemType);
+            }
+        }
+        Node union = getDirectChildElement(simpleTypeNode, "union");
+        if (union != null) {
+            String memberTypes = getAttributeValue(union, "memberTypes");
+            if (!memberTypes.isEmpty()) {
+                type = "union of " + memberTypes;
+            }
+        }
+
+        return new XsdNodeInfo(name, type, currentXPath, docParts.mainDocumentation(), Collections.emptyList(), Collections.emptyList(), "1", "1", NodeType.SIMPLE_TYPE);
+    }
+
+    private XsdNodeInfo processComplexType(Node complexTypeNode, String currentXPath, Set<Node> visitedOnPath) {
+        String name = getAttributeValue(complexTypeNode, "name");
+        if (name.isEmpty()) {
+            name = "anonymous";
+        }
+        DocumentationParts docParts = extractDocumentationFromAnnotation(getDirectChildElement(complexTypeNode, "annotation"));
+
+        // Process the content of the complex type
+        List<XsdNodeInfo> children = processComplexTypeContent(complexTypeNode, currentXPath, visitedOnPath);
+
+        String mixed = getAttributeValue(complexTypeNode, "mixed");
+        String type = "complexType" + ("true".equals(mixed) ? " (mixed)" : "");
+
+        return new XsdNodeInfo(name, type, currentXPath, docParts.mainDocumentation(), children, Collections.emptyList(), "1", "1", NodeType.COMPLEX_TYPE);
     }
 
     // =================================================================================

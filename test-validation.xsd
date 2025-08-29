@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://example.com/test"
+           elementFormDefault="qualified">
+
+    <!-- This XSD contains various validation errors for testing -->
+
+    <!-- Error 1: Duplicate global element names -->
+    <xs:element name="person" type="xs:string"/>
+    <xs:element name="person" type="xs:int"/>
+
+    <!-- Error 2: Invalid cardinality (maxOccurs < minOccurs) -->
+    <xs:element name="invalidCardinality" minOccurs="5" maxOccurs="2"/>
+
+    <!-- Error 3: Reference to non-existent type -->
+    <xs:element name="missingType" type="nonExistentType"/>
+
+    <!-- Error 4: Element in simpleType (invalid structure) -->
+    <xs:simpleType name="invalidSimpleType">
+        <xs:restriction base="xs:string">
+            <!-- This should not be here -->
+            <xs:element name="shouldNotBeHere"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Error 5: Invalid name (starts with number) -->
+    <xs:element name="123invalidName" type="xs:string"/>
+
+    <!-- Error 6: Both default and fixed values -->
+    <xs:attribute name="invalidAttribute" type="xs:string" default="test" fixed="fixed"/>
+
+    <!-- Warning: No content model in complexType -->
+    <xs:complexType name="emptyComplexType">
+        <!-- No content defined -->
+    </xs:complexType>
+
+    <!-- Valid elements for comparison -->
+    <xs:element name="validElement">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="child" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="id" type="xs:ID" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

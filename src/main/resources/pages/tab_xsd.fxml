@@ -57,6 +57,16 @@
 
                                 <!-- Favorites Actions -->
                                 <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Button onAction="#createNewXsdFile" style="-fx-font-size: 12px;"
+                                            text="New XSD File">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Create a new XSD schema file"/>
+                                        </tooltip>
+                                    </Button>
+
                                     <Button fx:id="loadXsdFavoritesOverview" style="-fx-font-size: 12px;"
                                             text="Load from Favorites">
                                         <graphic>
@@ -162,6 +172,31 @@
                                 </children>
                             </VBox>
                             <Region HBox.hgrow="ALWAYS"/>
+
+                            <!-- New XSD Button -->
+                            <Button onAction="#createNewXsdFile" style="-fx-font-size: 11px;"
+                                    text="New XSD">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Create a new XSD schema file"/>
+                                </tooltip>
+                            </Button>
+
+                            <!-- Save Button -->
+                            <Button fx:id="saveXsdButton" onAction="#saveXsdFile"
+                                    style="-fx-font-size: 11px; -fx-font-weight: bold;"
+                                    text="Save XSD" disable="true">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-save" iconColor="#28a745"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Save changes to XSD file"/>
+                                </tooltip>
+                            </Button>
+
+                            <Separator orientation="VERTICAL" style="-fx-padding: 0 5 0 5;"/>
 
                             <!-- Favorites Section -->
                             <Button fx:id="addXsdToFavoritesButton" onAction="#addCurrentXsdToFavorites"
@@ -272,6 +307,17 @@
                                         </children>
                                     </VBox>
                                     <Region HBox.hgrow="ALWAYS"/>
+
+                                    <!-- New XSD Button for Graphic Tab -->
+                                    <Button onAction="#createNewXsdFile" style="-fx-font-size: 11px;"
+                                            text="New XSD">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Create a new XSD schema file"/>
+                                        </tooltip>
+                                    </Button>
 
                                     <!-- Favorites Section for Graphic Tab -->
                                     <Button fx:id="addXsdToFavoritesButtonGraphic" onAction="#addCurrentXsdToFavorites"

@@ -25,6 +25,9 @@ public record XsdNodeInfo(
         ATTRIBUTE,
         SEQUENCE,
         CHOICE,
-        ANY
+        ANY,
+        SIMPLE_TYPE,
+        COMPLEX_TYPE,
+        SCHEMA
     }
 }
