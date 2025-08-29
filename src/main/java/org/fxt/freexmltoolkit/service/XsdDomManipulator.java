@@ -399,7 +399,7 @@ public class XsdDomManipulator {
 
     // Helper methods
 
-    private Element findElementByXPath(String xpath) {
+    public Element findElementByXPath(String xpath) {
         logger.debug("Finding element by XPath: {}", xpath);
 
         // For now, use simple path resolution since XSD structure is predictable

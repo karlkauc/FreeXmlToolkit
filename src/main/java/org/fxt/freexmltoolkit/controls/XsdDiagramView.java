@@ -56,6 +56,9 @@ public class XsdDiagramView {
     private Button undoButton;
     private Button redoButton;
 
+    // Drag & Drop system
+    private final XsdDragDropManager dragDropManager;
+
     // Search/Filter system
     private TextField searchField;
     private ComboBox<String> filterComboBox;
@@ -209,11 +212,15 @@ public class XsdDiagramView {
 
 
     public XsdDiagramView(XsdNodeInfo rootNode, XsdController controller, String initialDoc, String initialJavadoc) {
+        this(rootNode, controller, initialDoc, initialJavadoc, null);
+    }
+
+    public XsdDiagramView(XsdNodeInfo rootNode, XsdController controller, String initialDoc, String initialJavadoc, XsdDomManipulator existingManipulator) {
         this.rootNode = rootNode;
         this.controller = controller;
         this.initialDoc = initialDoc;
         this.initialJavadoc = initialJavadoc;
-        this.domManipulator = new XsdDomManipulator();
+        this.domManipulator = existingManipulator != null ? existingManipulator : new XsdDomManipulator();
         this.validationService = XsdLiveValidationService.getInstance();
 
         // Initialize undo/redo system
@@ -233,6 +240,9 @@ public class XsdDiagramView {
                 });
             }
         });
+
+        // Initialize drag & drop system
+        this.dragDropManager = new XsdDragDropManager(this, domManipulator, undoManager);
 
         // Setup validation listener
         this.validationService.addValidationListener(new XsdLiveValidationService.ValidationListener() {
@@ -806,6 +816,10 @@ public class XsdDiagramView {
             }
         });
 
+        // Enable drag and drop for this node
+        dragDropManager.makeDraggable(nameLabel, node);
+        dragDropManager.makeDropTarget(nameLabel, node);
+
         String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
         if (!cardinality.isEmpty()) {
             Label cardinalityLabel = new Label(cardinality);
@@ -888,6 +902,9 @@ public class XsdDiagramView {
             }
         });
 
+        // Enable drag and drop for attributes
+        dragDropManager.makeDraggable(nameLabel, node);
+
         String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
         if (!cardinality.isEmpty()) {
             Label cardinalityLabel = new Label(cardinality);
@@ -929,6 +946,17 @@ public class XsdDiagramView {
         }
         structuralIcon.setIconSize(12);
         titleLabel.setGraphic(structuralIcon);
+
+        // Enable drag and drop for structural elements
+        titleLabel.setOnMouseClicked(event -> {
+            if (event.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
+                showContextMenu(titleLabel, node);
+            } else {
+                updateDetailPane(node);
+            }
+        });
+        dragDropManager.makeDraggable(titleLabel, node);
+        dragDropManager.makeDropTarget(titleLabel, node);
 
         String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
         if (!cardinality.isEmpty()) {
@@ -1007,6 +1035,9 @@ public class XsdDiagramView {
                 updateDetailPane(node);
             }
         });
+
+        // Enable drag and drop for any elements
+        dragDropManager.makeDraggable(nameLabel, node);
 
         String cardinality = formatCardinality(node.minOccurs(), node.maxOccurs());
         if (!cardinality.isEmpty()) {
@@ -1557,6 +1588,11 @@ public class XsdDiagramView {
             addComplexTypeItem.setOnAction(e -> showAddComplexTypeDialog(createSchemaNodeInfo()));
             contextMenu.getItems().add(addComplexTypeItem);
 
+            MenuItem namespaceManagerItem = new MenuItem("Manage Namespaces");
+            namespaceManagerItem.setGraphic(new FontIcon("bi-diagram-2"));
+            namespaceManagerItem.setOnAction(e -> showNamespaceManagerDialog());
+            contextMenu.getItems().add(namespaceManagerItem);
+
             contextMenu.getItems().add(new SeparatorMenuItem());
         }
 
@@ -1635,6 +1671,17 @@ public class XsdDiagramView {
         contextMenu.getItems().add(deleteItem);
 
         contextMenu.getItems().add(new SeparatorMenuItem());
+
+        // Validation Rules menu item
+        if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT ||
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE) {
+            MenuItem validationRulesItem = new MenuItem("Validation Rules");
+            validationRulesItem.setGraphic(new FontIcon("bi-shield-check"));
+            validationRulesItem.setOnAction(e -> showValidationRulesDialog(nodeInfo));
+            contextMenu.getItems().add(validationRulesItem);
+
+            contextMenu.getItems().add(new SeparatorMenuItem());
+        }
 
         // Properties menu item
         MenuItem propertiesItem = new MenuItem("Properties");
@@ -2111,7 +2158,7 @@ public class XsdDiagramView {
         return result.isPresent() && result.get() == ButtonType.OK;
     }
 
-    private void refreshView() {
+    public void refreshView() {
         // Get updated XSD content and rebuild view
         if (domManipulator != null && controller != null) {
             String updatedXsd = domManipulator.getXsdAsString();
@@ -2179,12 +2226,99 @@ public class XsdDiagramView {
                 Collections.emptyList(), Collections.emptyList(), "1", "1", nodeType);
     }
 
+    /**
+     * Shows the Namespace Manager dialog
+     */
+    private void showNamespaceManagerDialog() {
+        try {
+            // Extract current namespace configuration from DOM
+            NamespaceResult currentConfig = extractCurrentNamespaceConfiguration();
+
+            // Show namespace editor dialog
+            XsdNamespaceEditor namespaceEditor = new XsdNamespaceEditor(currentConfig);
+            Optional<NamespaceResult> result = namespaceEditor.showAndWait();
+
+            result.ifPresent(namespaceConfig -> {
+                // Create and execute update command
+                UpdateNamespacesCommand command = new UpdateNamespacesCommand(domManipulator, namespaceConfig);
+                boolean success = undoManager.executeCommand(command);
+
+                if (success) {
+                    // Refresh the view to show updated namespaces
+                    refreshView();
+                    triggerLiveValidation();
+
+                    // Show success message
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Namespace Update");
+                    alert.setHeaderText("Namespaces Updated Successfully");
+                    alert.setContentText("The namespace configuration has been updated. " +
+                            "Use Undo (Ctrl+Z) if you want to revert the changes.");
+                    alert.show();
+                } else {
+                    // Show error message
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Update Failed");
+                    alert.setHeaderText("Failed to Update Namespaces");
+                    alert.setContentText("An error occurred while updating the namespace configuration. " +
+                            "Please check the XSD structure and try again.");
+                    alert.showAndWait();
+                }
+            });
+
+        } catch (Exception e) {
+            logger.error("Error showing namespace manager dialog", e);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Namespace Manager Error");
+            alert.setContentText("An unexpected error occurred: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    /**
+     * Extracts current namespace configuration from the DOM
+     */
+    private NamespaceResult extractCurrentNamespaceConfiguration() {
+        if (domManipulator == null || domManipulator.getDocument() == null) {
+            return NamespaceResult.createDefault();
+        }
+
+        org.w3c.dom.Document doc = domManipulator.getDocument();
+        org.w3c.dom.Element schemaElement = doc.getDocumentElement();
+
+        if (schemaElement == null || !"schema".equals(schemaElement.getLocalName())) {
+            return NamespaceResult.createDefault();
+        }
+
+        String targetNamespace = schemaElement.getAttribute("targetNamespace");
+        String defaultNamespace = schemaElement.getAttribute("xmlns");
+
+        boolean elementFormDefault = "qualified".equals(schemaElement.getAttribute("elementFormDefault"));
+        boolean attributeFormDefault = "qualified".equals(schemaElement.getAttribute("attributeFormDefault"));
+
+        Map<String, String> mappings = new HashMap<>();
+        org.w3c.dom.NamedNodeMap attributes = schemaElement.getAttributes();
+
+        for (int i = 0; i < attributes.getLength(); i++) {
+            org.w3c.dom.Node attr = attributes.item(i);
+            String attrName = attr.getNodeName();
+
+            if (attrName.startsWith("xmlns:")) {
+                String prefix = attrName.substring(6);
+                mappings.put(prefix, attr.getNodeValue());
+            }
+        }
+
+        return new NamespaceResult(targetNamespace, defaultNamespace, elementFormDefault, attributeFormDefault, mappings);
+    }
+
     // === Live Validation Methods ===
 
     /**
      * Triggers live validation of the current XSD document.
      */
-    private void triggerLiveValidation() {
+    public void triggerLiveValidation() {
         if (domManipulator != null && domManipulator.getDocument() != null) {
             validationService.validateLive(domManipulator.getDocument());
         }
@@ -2736,5 +2870,59 @@ public class XsdDiagramView {
         StringWriter writer = new StringWriter();
         transformer.transform(new DOMSource(domManipulator.getDocument()), new StreamResult(writer));
         return writer.toString();
+    }
+
+    /**
+     * Shows validation rules dialog for editing XSD validation constraints
+     */
+    private void showValidationRulesDialog(XsdNodeInfo nodeInfo) {
+        try {
+            logger.info("Opening validation rules dialog for node: {} (type: {})", nodeInfo.name(), nodeInfo.nodeType());
+
+            // Create and configure the validation rules editor
+            XsdValidationRulesEditor editor = new XsdValidationRulesEditor(nodeInfo);
+            editor.initOwner(treeScrollPane.getScene().getWindow());
+
+            // Show the dialog and handle the result
+            Optional<ValidationRulesResult> result = editor.showAndWait();
+            if (result.isPresent()) {
+                ValidationRulesResult validationRules = result.get();
+                logger.info("Validation rules updated: {}", validationRules.getSummary());
+
+                // Create and execute the update command
+                UpdateValidationRulesCommand command = new UpdateValidationRulesCommand(
+                        domManipulator, nodeInfo, validationRules);
+
+                if (command.execute()) {
+                    // Refresh the view to show changes
+                    refreshView();
+
+                    logger.info("Successfully applied validation rules to node: {}", nodeInfo.name());
+                } else {
+                    logger.error("Failed to apply validation rules to node: {}", nodeInfo.name());
+                    showErrorAlert("Validation Rules Error",
+                            "Failed to apply validation rules to element '" + nodeInfo.name() + "'.\n" +
+                                    "Please check the element structure and try again.");
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error opening validation rules dialog for node: " + nodeInfo.name(), e);
+            showErrorAlert("Validation Rules Dialog Error",
+                    "Failed to open validation rules dialog:\n" + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows an error alert dialog
+     */
+    private void showErrorAlert(String title, String message) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
     }
 }

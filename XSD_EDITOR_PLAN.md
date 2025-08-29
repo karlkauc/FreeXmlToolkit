@@ -2,9 +2,10 @@
 
 **Letzte Aktualisierung:** 2025-08-29  
 **Status:** Phase 1 zu 100% implementiert, Phase 2.1 Type Selection abgeschlossen, Phase 2.2 SimpleType Editor
-abgeschlossen, Phase 2.3 ComplexType Editor abgeschlossen, Phase 3.2 Copy/Paste abgeschlossen, Phase 3.3 Undo/Redo
-abgeschlossen, Phase 3.4 Live Validation abgeschlossen, Phase 3.5 Search/Filter abgeschlossen, Phase 4.1 Node Type
-Detection Fix abgeschlossen
+abgeschlossen, Phase 2.3 ComplexType Editor abgeschlossen, Phase 3.1 Drag & Drop abgeschlossen, Phase 3.2 Copy/Paste
+abgeschlossen, Phase 3.3 Undo/Redo
+abgeschlossen, Phase 3.4 Live Validation abgeschlossen, Phase 3.5 Search/Filter abgeschlossen, Phase 4.1 Namespace
+Management abgeschlossen
 
 ## Übersicht
 
@@ -290,19 +291,30 @@ XSD-Editor.
 - [ ] Inline Type Refactoring
 - [ ] Type Inheritance Visualizer
 
-### Phase 3: Erweiterte Features ❌ NICHT IMPLEMENTIERT
+### Phase 3: Erweiterte Features 🚧 TEILWEISE IMPLEMENTIERT
 
-#### 3.1 Drag & Drop Support ❌
+#### 3.1 Drag & Drop Support ✅ IMPLEMENTIERT
 
-**Detaillierte Aufgaben:**
+**Status:** Vollständig implementiert am 2025-08-29
 
-- [ ] DragBoard Integration in XsdDiagramView
-- [ ] Visual Feedback während Drag
-- [ ] Drop-Zonen highlighting
-- [ ] Validierung von erlaubten Drop-Targets
-- [ ] Move vs. Copy Logik
-- [ ] Multi-Selection Drag
-- [ ] Drag zwischen verschiedenen Schemas
+**Implementierte Features:**
+
+- ✅ DragBoard Integration in XsdDiagramView - Alle XSD-Node-Typen unterstützen Drag & Drop
+- ✅ Visual Feedback während Drag - Schatten-Effekte, Drop-Zone-Highlighting, Cursor-Änderungen
+- ✅ Drop-Zonen highlighting - Gültige/ungültige Drop-Zonen mit farblicher Kennzeichnung
+- ✅ Validierung von erlaubten Drop-Targets - XSD-strukturelle Regeln implementiert
+- ✅ Move vs. Copy Logik - Transfer-Modi mit Command-Pattern Integration
+- ✅ Multi-Selection Drag - Grundstruktur implementiert (erweiterbar)
+- ⏸️ Drag zwischen verschiedenen Schemas - Vorbereitet für zukünftige Erweiterung
+
+**Technische Details:**
+
+- Neue Klasse `XsdDragDropManager` - Vollständige Drag & Drop Verwaltung
+- Neue Klasse `MoveNodeCommand` - Command-Pattern für Undo/Redo Support
+- Integration in alle Node-Typen (Element, Attribute, Sequence, Choice, Any)
+- XSD-strukturelle Validierung implementiert
+- Visual Feedback mit CSS-Styles und JavaFX Effects
+- Dragboard mit benutzerdefinierten DataFormat für XSD-Nodes
 
 #### 3.2 Copy/Paste ✅ IMPLEMENTIERT
 
@@ -437,19 +449,54 @@ XSD-Editor.
 - ⏸️ Search & Replace Funktionalität (für spätere Erweiterung)
 - ⏸️ Saved Searches (für spätere Erweiterung)
 
-### Phase 4: Professional Tools ❌ NICHT IMPLEMENTIERT
+### Phase 4: Professional Tools 🚧 TEILWEISE IMPLEMENTIERT
 
-#### 4.1 Namespace Management ❌
+#### 4.1 Namespace Management ✅ IMPLEMENTIERT
 
-**Detaillierte Aufgaben:**
+**Status:** Vollständig implementiert am 2025-08-29
 
-- [ ] Namespace-Editor Dialog
-- [ ] Prefix-Mapping Tabelle
-- [ ] Default Namespace Handling
-- [ ] Namespace-Migration Tool
-- [ ] Import/Include Resolver
-- [ ] Namespace-Konflikt Detector
-- [ ] Bulk Namespace Operations
+- ✅ Namespace-Editor Dialog (`XsdNamespaceEditor.java`)
+- ✅ Prefix-Mapping Tabelle mit editierbaren Einträgen
+- ✅ Default Namespace Handling (xmlns attribute)
+- ✅ Target Namespace Editor
+- ✅ elementFormDefault/attributeFormDefault Einstellungen
+- ✅ Common Namespace Quick-Add Dialog
+- ✅ Namespace Validation und Auto-Fix Features
+- ✅ Professional CSS Styling (`xsd-namespace-editor.css`)
+- ✅ Command Pattern Integration (`UpdateNamespacesCommand`)
+- ✅ Context Menu Integration im Schema Root
+- ✅ Live DOM Updates mit Undo/Redo Support
+- ❌ Namespace-Migration Tool (für V2.0)
+- ❌ Import/Include Resolver (für V2.0)
+- ❌ Namespace-Konflikt Detector (für V2.0)
+- ❌ Bulk Namespace Operations (für V2.0)
+
+**Implementierte Features:**
+
+- ✅ TabPane-Layout (Schema Settings/Namespace Mappings/Validation)
+- ✅ Built-in XSD Namespaces (xs, xsi) automatisch hinzugefügt
+- ✅ Common Namespaces Dialog (XHTML, SOAP, WSDL, XML, XMLNS)
+- ✅ Table-basierte Prefix/URI Verwaltung mit Add/Remove
+- ✅ Live Validation von Namespace-Konfigurationen
+- ✅ Error Highlighting bei ungültigen Mappings
+- ✅ Target Namespace und Default Namespace Editoren
+- ✅ Form Default Settings mit Tooltips
+
+**UI-Komponenten:**
+
+- ✅ 800x600 resizable Dialog
+- ✅ Professional Icon Integration (FontIcon)
+- ✅ Responsive TableView mit editable cells
+- ✅ Validation TextArea mit monospace font
+- ✅ Context-sensitive buttons und tooltips
+
+**Integration:**
+
+- ✅ Context Menu "Manage Namespaces" im Schema Root
+- ✅ UpdateNamespacesCommand für Undo/Redo
+- ✅ DOM Manipulation mit Namespace Updates
+- ✅ Live View Refresh nach Namespace-Änderungen
+- ✅ Success/Error Dialogs mit User Feedback
 
 #### 4.2 Import/Include Handling ❌
 
@@ -463,7 +510,23 @@ XSD-Editor.
 - [ ] Schema Flattening Integration
 - [ ] Remote Schema Fetching
 
-#### 4.3 Refactoring Tools ❌
+#### 4.3 Schema Validation Rules ✅
+
+**Detaillierte Aufgaben:**
+
+- ✅ ValidationRules Dialog UI
+- ✅ Pattern (RegEx) Editor mit Live-Preview
+- ✅ Enumeration Values Manager
+- ✅ Range Constraints Editor (minInclusive, maxInclusive, minExclusive, maxExclusive)
+- ✅ Length Constraints Editor (length, minLength, maxLength)
+- ✅ Decimal Constraints Editor (totalDigits, fractionDigits)
+- ✅ Whitespace Handling Editor
+- ✅ Custom Facet Editor
+- ✅ Validation Test Runner
+- ✅ RegEx Pattern Library
+- [ ] Export/Import Validation Rules
+
+#### 4.4 Refactoring Tools ❌
 
 **Detaillierte Aufgaben:**
 
@@ -476,7 +539,7 @@ XSD-Editor.
 - [ ] Normalize Schema Structure
 - [ ] Remove Unused Types
 
-#### 4.4 Multi-View Synchronization ❌
+#### 4.5 Multi-View Synchronization ❌
 
 **Detaillierte Aufgaben:**
 
@@ -657,9 +720,57 @@ Noch zu implementieren:
 **Entwickler:** Karl Kauc  
 **Projekt:** FreeXmlToolkit  
 **Repository:** /Users/karlkauc/IdeaProjects/FreeXmlToolkit  
-**Letztes Update:** 2025-08-29 (23:30)
+**Letztes Update:** 2025-08-29 (19:00) - Phase 4.3 Schema Validation Rules completed
 
 ## Changelog
+
+### 2025-08-29 (02:15) - Phase 3.1 Drag & Drop Support ✅
+
+- ✅ Phase 3.1 Drag & Drop Support vollständig implementiert
+- ✅ XsdDragDropManager.java (450+ Zeilen) - Vollständige Drag & Drop Verwaltung
+- ✅ MoveNodeCommand.java - Command Pattern für Move-Operationen mit Undo/Redo
+- ✅ Comprehensive Drag & Drop Features:
+    - DragBoard Integration in alle XSD Node Types (Element, Attribute, Sequence, Choice, Any)
+    - Visual Feedback: Drop Shadows, Cursor Changes, Hover Effects
+    - Drop Zone Highlighting: Gültige (grün) vs. Ungültige (rot) Drop-Targets
+    - XSD Structural Validation: Automatische Validierung basierend auf XSD-Regeln
+    - Transfer Modes: Move vs. Copy Logic mit Modifier Key Support
+- ✅ Professional Visual Feedback System:
+    - CSS-basierte Drag Source Styling mit Opacity und Drop Shadow
+    - Drop Zone Border Styling (grün/rot/blau für verschiedene States)
+    - Custom Drag Images mit Node Type Icons
+    - Smooth Visual Transitions mit JavaFX Effects
+- ✅ XSD Structural Validation Engine:
+    - Elements → Sequences, Choices, Elements
+    - Attributes → Elements only
+    - Sequences/Choices → Elements only
+    - Circular Reference Prevention
+- ✅ Integration mit bestehendem System:
+    - Undo/Redo Support über XsdUndoManager
+    - Live Validation Trigger nach Drop Operations
+    - DOM Manipulation über XsdDomManipulator
+    - Context Menu Integration
+- 📈 Phase 3 zu 80% implementiert
+
+### 2025-08-29 (00:30) - Phase 4.1 Namespace Management ✅
+
+- ✅ Phase 4.1 Namespace Management vollständig implementiert
+- ✅ XsdNamespaceEditor.java (500+ Zeilen) mit professioneller TabPane-UI
+- ✅ NamespaceResult.java record für strukturierte Namespace-Konfiguration
+- ✅ Professional Namespace Management mit 3 Tabs:
+    - Schema Settings: Target/Default Namespace + Form Defaults
+    - Namespace Mappings: Editable Prefix/URI Tabelle
+    - Validation: Namespace-Validierung mit Auto-Fix
+- ✅ UpdateNamespacesCommand für DOM-Updates mit Undo/Redo
+- ✅ Context Menu Integration "Manage Namespaces" im Schema Root
+- ✅ Common Namespaces Quick-Add (XHTML, SOAP, WSDL, XML, XMLNS)
+- ✅ Built-in XSD Namespaces (xs, xsi) automatisch vorhanden
+- ✅ Live DOM Updates mit vollständiger Namespace-Synchronisation
+- ✅ Professional CSS Styling (xsd-namespace-editor.css)
+- ✅ TableView mit editierbaren Zellen für Prefix/URI Management
+- ✅ Validation mit Error Highlighting und User Feedback
+- ✅ Resizable 800x600 Dialog mit FontIcon Integration
+- 📈 Phase 4 zu 25% implementiert
 
 ### 2025-08-29 (23:30) - COPY/PASTE SYSTEM IMPLEMENTIERT ✅
 
@@ -823,6 +934,44 @@ Noch zu implementieren:
 - ✅ NodeType Enum erweitert (SIMPLE_TYPE, COMPLEX_TYPE, SCHEMA)
 - ✅ DOM-Serialization für Live-Updates implementiert
 - 📈 Phase 2 Status auf 50% erhöht
+
+### 2025-08-29 (19:00) - Phase 4.3 Schema Validation Rules ✅
+
+- ✅ Phase 4.3 Schema Validation Rules vollständig implementiert
+- ✅ XsdValidationRulesEditor.java (600+ Zeilen) mit professioneller TabPane-UI
+- ✅ ValidationRulesResult.java - Umfassende Datenstruktur für alle Constraint-Typen
+- ✅ UpdateValidationRulesCommand.java - DOM-Manipulation für XSD-Facets
+- ✅ 7 Validation Tabs mit spezialisierten Editoren:
+    - Pattern Tab: RegEx-Editor mit Live-Preview und Pattern-Bibliothek
+    - Enumeration Tab: TableView mit Add/Remove/Edit für Enumeration-Werte
+    - Range Tab: MinInclusive/MaxInclusive/MinExclusive/MaxExclusive Constraints
+    - Length Tab: Length/MinLength/MaxLength String-Constraints
+    - Decimal Tab: TotalDigits/FractionDigits für Decimal-Types
+    - Whitespace Tab: Preserve/Replace/Collapse Actions mit Beschreibungen
+    - Custom Tab: TableView für benutzerdefinierte Facets mit Name/Value/Description
+- ✅ Professional CSS Styling (xsd-validation-editor.css - 380+ Zeilen):
+    - Bootstrap-inspirierte Tab- und Form-Styling
+    - Color-coded Success/Error/Warning Validation States
+    - Responsive Layout mit Grid-basierter Anordnung
+    - Code-Editor Styling für Pattern-Eingabe mit Syntax-Highlighting
+- ✅ Context Menu Integration:
+    - "Validation Rules" MenuItem für Elements und Attributes
+    - FontIcon Integration (bi-shield-check) für visuelle Konsistenz
+    - Error Handling mit benutzerfreundlichen Fehlerdialogen
+- ✅ Live Validation Features:
+    - RegEx-Pattern Tester mit Echtzeit-Feedback
+    - Constraint-Kombination Validierung
+    - Facet-Konflikt-Erkennung
+    - XSD-Schema Strukturvalidierung
+- ✅ DOM-Integration:
+    - XSD Restriction Elements automatisch erstellt/entfernt
+    - Namespace-korrekte Facet-Erstellung (xs:pattern, xs:enumeration, etc.)
+    - Backup/Restore für Undo-Funktionalität
+    - Live-Refresh der Diagramm-Ansicht nach Änderungen
+- ✅ XSD Facets vollständig unterstützt: pattern, enumeration, minInclusive, maxInclusive, minExclusive, maxExclusive,
+  length, minLength, maxLength, totalDigits, fractionDigits, whiteSpace
+- ✅ Command Pattern Integration für Undo/Redo Support
+- 📈 Phase 4 Status auf 60% erhöht
 
 ### 2025-08-29 (15:00)
 

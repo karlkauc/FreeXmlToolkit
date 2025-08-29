@@ -804,11 +804,13 @@ public class XsdController {
             xsdStackPane.getChildren().clear();
 
             if (result.rootNode() != null) {
-                XsdDiagramView diagramView = new XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc());
+                XsdDiagramView diagramView = new XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc(), currentDomManipulator);
                 diagramView.setXsdContent(xsdContent);
 
-                // Update the manipulator reference
-                currentDomManipulator = diagramView.getDomManipulator();
+                // Keep the existing manipulator reference (don't overwrite it)
+                if (currentDomManipulator == null) {
+                    currentDomManipulator = diagramView.getDomManipulator();
+                }
 
                 xsdStackPane.getChildren().add(diagramView.build());
             } else {
