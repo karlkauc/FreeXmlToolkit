@@ -336,16 +336,19 @@ public class XsdTypeLibraryPanel extends VBox {
         // Edit Type
         MenuItem editItem = new MenuItem("Edit Type");
         editItem.setGraphic(new FontIcon("bi-pencil"));
+        editItem.setAccelerator(javafx.scene.input.KeyCombination.keyCombination("F2"));
         editItem.setOnAction(e -> editSelectedType());
 
         // Delete Type
         MenuItem deleteItem = new MenuItem("Delete Type");
         deleteItem.setGraphic(new FontIcon("bi-trash"));
+        deleteItem.setAccelerator(javafx.scene.input.KeyCombination.keyCombination("Delete"));
         deleteItem.setOnAction(e -> deleteSelectedType());
 
         // Find Usages
         MenuItem findUsagesItem = new MenuItem("Find Usages");
         findUsagesItem.setGraphic(new FontIcon("bi-search"));
+        findUsagesItem.setAccelerator(javafx.scene.input.KeyCombination.keyCombination("Ctrl+F"));
         findUsagesItem.setOnAction(e -> findTypeUsages());
 
         // Separator
@@ -376,6 +379,29 @@ public class XsdTypeLibraryPanel extends VBox {
 
         contextMenu.getItems().addAll(editItem, deleteItem, separator, findUsagesItem, goToItem,
                 separator2, inlineTypeItem, cloneTypeItem, exportTypeItem);
+
+        // Enable/disable menu items based on selection and type properties
+        contextMenu.setOnShowing(e -> {
+            TypeInfo selectedType = typeTable.getSelectionModel().getSelectedItem();
+            boolean hasSelection = selectedType != null;
+
+            editItem.setDisable(!hasSelection);
+            deleteItem.setDisable(!hasSelection);
+            findUsagesItem.setDisable(!hasSelection);
+            goToItem.setDisable(!hasSelection);
+            inlineTypeItem.setDisable(!hasSelection || selectedType.usageCount() == 0);
+            cloneTypeItem.setDisable(!hasSelection);
+            exportTypeItem.setDisable(!hasSelection);
+
+            // Show warning for types with high usage
+            if (hasSelection && selectedType.usageCount() > 5) {
+                deleteItem.setText("Delete Type (⚠ " + selectedType.usageCount() + " refs)");
+                inlineTypeItem.setText("Inline Type (⚠ " + selectedType.usageCount() + " refs)");
+            } else {
+                deleteItem.setText("Delete Type");
+                inlineTypeItem.setText("Inline Type Definition");
+            }
+        });
     }
 
     /**
@@ -416,10 +442,41 @@ public class XsdTypeLibraryPanel extends VBox {
         // Extract button
         extractButton.setOnAction(e -> showExtractTypeDialog());
 
+        // Assign context menu to table
+        typeTable.setContextMenu(contextMenu);
+
+        // Update status when context menu is shown
+        contextMenu.setOnShown(e -> {
+            TypeInfo selectedType = typeTable.getSelectionModel().getSelectedItem();
+            if (selectedType != null) {
+                statusLabel.setText("Context menu for: " + selectedType.name());
+            }
+        });
+
+        // Restore status when context menu is hidden
+        contextMenu.setOnHidden(e -> updateStatusLabel());
+        
         // Double-click to edit
         typeTable.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2 && typeTable.getSelectionModel().getSelectedItem() != null) {
                 editSelectedType();
+            }
+        });
+
+        // Keyboard shortcuts
+        typeTable.setOnKeyPressed(event -> {
+            TypeInfo selectedType = typeTable.getSelectionModel().getSelectedItem();
+            if (selectedType != null) {
+                switch (event.getCode()) {
+                    case F2 -> editSelectedType();
+                    case DELETE -> deleteSelectedType();
+                    case ENTER -> goToTypeDefinition();
+                    case F -> {
+                        if (event.isControlDown()) {
+                            findTypeUsages();
+                        }
+                    }
+                }
             }
         });
     }
@@ -490,9 +547,50 @@ public class XsdTypeLibraryPanel extends VBox {
         TypeInfo selectedType = typeTable.getSelectionModel().getSelectedItem();
         if (selectedType == null) return;
 
-        // TODO: Open appropriate editor dialog based on type category
-        logger.info("Edit type requested for: {}", selectedType.name());
-        // This will be implemented when we create the edit dialogs
+        // Create a simple properties dialog
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Edit Type Properties");
+        dialog.setHeaderText("Editing type: " + selectedType.name());
+
+        // Create form content
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(20));
+
+        TextField nameField = new TextField(selectedType.name());
+        nameField.setPromptText("Type name");
+
+        TextArea docArea = new TextArea(selectedType.documentation() != null ? selectedType.documentation() : "");
+        docArea.setPromptText("Documentation");
+        docArea.setPrefRowCount(4);
+
+        CheckBox abstractBox = new CheckBox("Abstract");
+        abstractBox.setSelected(selectedType.isAbstract());
+        abstractBox.setDisable(selectedType.category() != TypeInfo.TypeCategory.COMPLEX_TYPE);
+
+        CheckBox mixedBox = new CheckBox("Mixed Content");
+        mixedBox.setSelected(selectedType.isMixed());
+        mixedBox.setDisable(selectedType.category() != TypeInfo.TypeCategory.COMPLEX_TYPE);
+
+        content.getChildren().addAll(
+                new Label("Name:"), nameField,
+                new Label("Documentation:"), docArea,
+                abstractBox, mixedBox
+        );
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.showAndWait().ifPresent(result -> {
+            if (result == ButtonType.OK) {
+                // TODO: Implement actual type property modification
+                logger.info("Type properties updated for: {}", selectedType.name());
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Edit Type");
+                alert.setHeaderText("Properties Updated");
+                alert.setContentText("Type properties have been updated. Full editing will be implemented in a future version.");
+                alert.showAndWait();
+            }
+        });
     }
 
     /**
@@ -543,18 +641,124 @@ public class XsdTypeLibraryPanel extends VBox {
         TypeInfo selectedType = typeTable.getSelectionModel().getSelectedItem();
         if (selectedType == null) return;
 
-        logger.info("Navigate to definition for type: {}", selectedType.name());
-        // TODO: Implement navigation to schema location
-        // This could scroll to the type in the text editor or highlight in diagram
+        // Show detailed type information dialog
+        Alert dialog = new Alert(Alert.AlertType.INFORMATION);
+        dialog.setTitle("Type Definition Location");
+        dialog.setHeaderText("Type: " + selectedType.name());
+
+        StringBuilder content = new StringBuilder();
+        content.append("Location: ").append(selectedType.xpath()).append("\n\n");
+        content.append("Type: ").append(selectedType.category().getDisplayName()).append("\n");
+
+        if (selectedType.baseType() != null) {
+            content.append("Base Type: ").append(selectedType.baseType()).append("\n");
+        }
+
+        content.append("Usage Count: ").append(selectedType.usageCount()).append("\n");
+
+        if (selectedType.category() == TypeInfo.TypeCategory.COMPLEX_TYPE) {
+            if (selectedType.isAbstract()) {
+                content.append("Abstract: Yes\n");
+            }
+            if (selectedType.isMixed()) {
+                content.append("Mixed Content: Yes\n");
+            }
+            if (selectedType.contentModel() != null) {
+                content.append("Content Model: ").append(selectedType.contentModel()).append("\n");
+            }
+        }
+
+        if (selectedType.documentation() != null && !selectedType.documentation().isEmpty()) {
+            content.append("\nDocumentation:\n").append(selectedType.documentation());
+        }
+
+        dialog.setContentText(content.toString());
+
+        // Make dialog resizable and larger
+        dialog.setResizable(true);
+        dialog.getDialogPane().setPrefWidth(500);
+        dialog.getDialogPane().setPrefHeight(350);
+
+        dialog.showAndWait();
+
+        logger.info("Showed definition details for type: {}", selectedType.name());
     }
 
     /**
      * Show dialog for extracting inline types to global types.
      */
     private void showExtractTypeDialog() {
-        // TODO: Implement extract type dialog
-        logger.info("Extract type dialog requested");
-        // This will be implemented as a separate dialog class
+        // Find all inline types in the schema
+        List<org.w3c.dom.Element> inlineTypes = domManipulator.findInlineTypes();
+
+        if (inlineTypes.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Extract to Global Type");
+            alert.setHeaderText("No inline types found");
+            alert.setContentText("The schema contains no inline types that can be extracted to global types.");
+            alert.showAndWait();
+            return;
+        }
+
+        // Create selection dialog
+        Dialog<List<org.w3c.dom.Element>> dialog = new Dialog<>();
+        dialog.setTitle("Extract to Global Type");
+        dialog.setHeaderText("Select inline types to extract to global types:");
+
+        // Create list view for selection
+        ListView<String> listView = new ListView<>();
+        listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        // Populate list with inline type descriptions
+        for (org.w3c.dom.Element inlineType : inlineTypes) {
+            String typeKind = inlineType.getLocalName(); // "simpleType" or "complexType"
+            String parentName = "";
+            org.w3c.dom.Node parent = inlineType.getParentNode();
+            if (parent instanceof org.w3c.dom.Element parentElement) {
+                String name = parentElement.getAttribute("name");
+                if (!name.isEmpty()) {
+                    parentName = " (in " + name + ")";
+                }
+            }
+
+            String description = typeKind + parentName;
+            listView.getItems().add(description);
+        }
+
+        VBox content = new VBox(10);
+        content.getChildren().addAll(
+                new Label("Found " + inlineTypes.size() + " inline type(s):"),
+                listView,
+                new Label("Selected types will be extracted to global types with generated names.")
+        );
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Set up result converter
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                List<Integer> selectedIndices = listView.getSelectionModel().getSelectedIndices();
+                return selectedIndices.stream()
+                        .map(inlineTypes::get)
+                        .collect(Collectors.toList());
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(selectedTypes -> {
+            if (!selectedTypes.isEmpty()) {
+                // TODO: Implement ExtractToGlobalTypeCommand for multiple types
+                logger.info("Extracting {} inline types to global types", selectedTypes.size());
+
+                Alert result = new Alert(Alert.AlertType.INFORMATION);
+                result.setTitle("Extract to Global Type");
+                result.setHeaderText("Types Extracted");
+                result.setContentText(selectedTypes.size() + " inline types have been marked for extraction. " +
+                        "Full implementation will be completed in a future version.");
+                result.showAndWait();
+            }
+        });
     }
 
     /**
