@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.XsdController;
 import org.fxt.freexmltoolkit.controls.commands.*;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
+import org.fxt.freexmltoolkit.domain.command.ConvertElementToAttributeCommand;
 import org.fxt.freexmltoolkit.service.XsdClipboardService;
 import org.fxt.freexmltoolkit.service.XsdDomManipulator;
 import org.fxt.freexmltoolkit.service.XsdLiveValidationService;
@@ -1716,6 +1717,29 @@ public class XsdDiagramView {
             contextMenu.getItems().add(moveDownItem);
         }
 
+        // Refactoring Tools
+        if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT ||
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE) {
+            contextMenu.getItems().add(new SeparatorMenuItem());
+
+            // Convert Element to Attribute (only for elements)
+            if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT) {
+                MenuItem convertToAttributeItem = new MenuItem("Convert to Attribute");
+                convertToAttributeItem.setGraphic(new FontIcon("bi-arrow-right"));
+                convertToAttributeItem.setOnAction(e -> convertElementToAttribute(nodeInfo));
+                convertToAttributeItem.setDisable(!canConvertElementToAttribute(nodeInfo));
+                contextMenu.getItems().add(convertToAttributeItem);
+            }
+
+            // Convert Attribute to Element (only for attributes)
+            if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE) {
+                MenuItem convertToElementItem = new MenuItem("Convert to Element");
+                convertToElementItem.setGraphic(new FontIcon("bi-arrow-left"));
+                convertToElementItem.setOnAction(e -> convertAttributeToElement(nodeInfo));
+                contextMenu.getItems().add(convertToElementItem);
+            }
+        }
+
         // Copy/Paste menu items
         contextMenu.getItems().add(new SeparatorMenuItem());
 
@@ -2223,6 +2247,97 @@ public class XsdDiagramView {
         }
 
         return false; // Default or cancelled
+    }
+
+    /**
+     * Convert an element to an attribute
+     */
+    private void convertElementToAttribute(XsdNodeInfo nodeInfo) {
+        try {
+            // Get the DOM element from the node info
+            Element element = domManipulator.findElementByXPath(nodeInfo.xpath());
+            if (element == null) {
+                showErrorAlert("Convert to Attribute", "Could not find element in DOM");
+                return;
+            }
+
+            // Create and execute the conversion command
+            ConvertElementToAttributeCommand command = new ConvertElementToAttributeCommand(
+                    domManipulator.getDocument(), element, domManipulator);
+
+            if (undoManager.executeCommand(command)) {
+                refreshView();
+                triggerLiveValidation();
+                logger.info("Element '{}' converted to attribute successfully", nodeInfo.name());
+            } else {
+                showErrorAlert("Convert to Attribute", "Failed to convert element to attribute");
+            }
+
+        } catch (Exception e) {
+            logger.error("Error converting element to attribute", e);
+            showErrorAlert("Convert to Attribute", "Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Check if an element can be converted to an attribute
+     */
+    private boolean canConvertElementToAttribute(XsdNodeInfo nodeInfo) {
+        try {
+            // Get the DOM element
+            Element element = domManipulator.findElementByXPath(nodeInfo.xpath());
+            if (element == null) {
+                return false;
+            }
+
+            // Use the same logic as in ConvertElementToAttributeCommand
+            // Element must not have child elements (complex content)
+            var childElements = element.getElementsByTagName("*");
+
+            // Check for inline complexType or simpleType that would indicate complex content
+            for (int i = 0; i < childElements.getLength(); i++) {
+                Element child = (Element) childElements.item(i);
+                String localName = child.getLocalName();
+
+                // If it has complexType with content model, it cannot be an attribute
+                if ("complexType".equals(localName) || "sequence".equals(localName) ||
+                        "choice".equals(localName) || "all".equals(localName) ||
+                        "element".equals(localName)) {
+                    return false;
+                }
+            }
+
+            // Element should not have maxOccurs > 1 (attributes can't repeat)
+            String maxOccurs = element.getAttribute("maxOccurs");
+            if (maxOccurs != null && !maxOccurs.isEmpty() &&
+                    !("1".equals(maxOccurs) || "unbounded".equals(maxOccurs))) {
+                try {
+                    int max = Integer.parseInt(maxOccurs);
+                    if (max > 1) {
+                        return false;
+                    }
+                } catch (NumberFormatException e) {
+                    return false;
+                }
+            }
+
+            return true;
+        } catch (Exception e) {
+            logger.error("Error checking if element can be converted to attribute", e);
+            return false;
+        }
+    }
+
+    /**
+     * Convert an attribute to an element
+     */
+    private void convertAttributeToElement(XsdNodeInfo nodeInfo) {
+        // TODO: Implement ConvertAttributeToElementCommand
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Convert to Element");
+        alert.setHeaderText("Not implemented yet");
+        alert.setContentText("Attribute to element conversion will be implemented in the next phase.");
+        alert.showAndWait();
     }
 
     /**
