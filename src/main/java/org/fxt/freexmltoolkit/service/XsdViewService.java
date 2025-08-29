@@ -224,8 +224,20 @@ public class XsdViewService {
         for (Node child : getDirectChildElements(parentNode)) {
             String localName = child.getLocalName();
             if ("sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName)) {
-                // Add particle container directly as child
-                children.add(buildLightweightNodeRecursive(child, parentXPath, visitedOnPath));
+                // For particles in global complexTypes, use the complexType name as XPath base
+                String particleXPath = parentXPath;
+
+                // Check if we're in a global complexType definition
+                Node complexTypeParent = findComplexTypeParent(parentNode);
+                if (complexTypeParent != null) {
+                    String complexTypeName = getAttributeValue(complexTypeParent, "name");
+                    if (!complexTypeName.isEmpty()) {
+                        // Use complexType name as XPath base for better DOM resolution
+                        particleXPath = "/" + complexTypeName + "/" + localName;
+                    }
+                }
+
+                children.add(buildLightweightNodeRecursive(child, particleXPath, visitedOnPath));
             } else if ("attribute".equals(localName) || "attributeGroup".equals(localName)) {
                 String attrName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
                 XsdNodeInfo attrNode = buildLightweightNodeRecursive(child, parentXPath + "/@" + attrName, visitedOnPath);
@@ -235,6 +247,20 @@ public class XsdViewService {
             }
         }
         return children;
+    }
+
+    /**
+     * Finds the complexType parent of a given node
+     */
+    private Node findComplexTypeParent(Node node) {
+        Node current = node;
+        while (current != null) {
+            if ("complexType".equals(current.getLocalName())) {
+                return current;
+            }
+            current = current.getParentNode();
+        }
+        return null;
     }
 
     private XsdNodeInfo processAttribute(Node attributeNode, String currentXPath) {
