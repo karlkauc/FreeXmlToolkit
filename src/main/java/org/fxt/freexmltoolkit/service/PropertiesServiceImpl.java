@@ -234,4 +234,69 @@ public class PropertiesServiceImpl implements PropertiesService {
         saveProperties(properties);
         logger.debug("Set XML autoformat after loading to: {}", autoFormat);
     }
+
+    // XSD-specific settings implementation
+
+    @Override
+    public boolean isXsdAutoSaveEnabled() {
+        return Boolean.parseBoolean(properties.getProperty("xsd.autoSave.enabled", "false"));
+    }
+
+    @Override
+    public void setXsdAutoSaveEnabled(boolean enabled) {
+        properties.setProperty("xsd.autoSave.enabled", String.valueOf(enabled));
+        saveProperties(properties);
+    }
+
+    @Override
+    public int getXsdAutoSaveInterval() {
+        try {
+            return Integer.parseInt(properties.getProperty("xsd.autoSave.interval", "5"));
+        } catch (NumberFormatException e) {
+            return 5;
+        }
+    }
+
+    @Override
+    public void setXsdAutoSaveInterval(int minutes) {
+        properties.setProperty("xsd.autoSave.interval", String.valueOf(minutes));
+        saveProperties(properties);
+    }
+
+    @Override
+    public boolean isXsdBackupEnabled() {
+        return Boolean.parseBoolean(properties.getProperty("xsd.backup.enabled", "true"));
+    }
+
+    @Override
+    public void setXsdBackupEnabled(boolean enabled) {
+        properties.setProperty("xsd.backup.enabled", String.valueOf(enabled));
+        saveProperties(properties);
+    }
+
+    @Override
+    public int getXsdBackupVersions() {
+        try {
+            return Integer.parseInt(properties.getProperty("xsd.backup.versions", "3"));
+        } catch (NumberFormatException e) {
+            return 3;
+        }
+    }
+
+    @Override
+    public void setXsdBackupVersions(int versions) {
+        properties.setProperty("xsd.backup.versions", String.valueOf(versions));
+        saveProperties(properties);
+    }
+
+    @Override
+    public boolean isXsdPrettyPrintOnSave() {
+        return Boolean.parseBoolean(properties.getProperty("xsd.prettyPrint.onSave", "true"));
+    }
+
+    @Override
+    public void setXsdPrettyPrintOnSave(boolean enabled) {
+        properties.setProperty("xsd.prettyPrint.onSave", String.valueOf(enabled));
+        saveProperties(properties);
+    }
 }

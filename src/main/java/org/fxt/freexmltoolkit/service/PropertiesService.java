@@ -68,4 +68,76 @@ public interface PropertiesService {
      * @param autoFormat true to enable autoformat, false to disable
      */
     void setXmlAutoFormatAfterLoading(boolean autoFormat);
+
+    // XSD-specific settings
+
+    /**
+     * Gets whether XSD files should be auto-saved periodically.
+     *
+     * @return true if auto-save is enabled, false otherwise (default: false)
+     */
+    boolean isXsdAutoSaveEnabled();
+
+    /**
+     * Sets whether XSD files should be auto-saved periodically.
+     *
+     * @param enabled true to enable auto-save, false to disable
+     */
+    void setXsdAutoSaveEnabled(boolean enabled);
+
+    /**
+     * Gets the auto-save interval in minutes.
+     *
+     * @return the auto-save interval in minutes (default: 5)
+     */
+    int getXsdAutoSaveInterval();
+
+    /**
+     * Sets the auto-save interval in minutes.
+     *
+     * @param minutes the auto-save interval in minutes
+     */
+    void setXsdAutoSaveInterval(int minutes);
+
+    /**
+     * Gets whether backup files should be created when saving XSD files.
+     *
+     * @return true if backup is enabled, false otherwise (default: true)
+     */
+    boolean isXsdBackupEnabled();
+
+    /**
+     * Sets whether backup files should be created when saving XSD files.
+     *
+     * @param enabled true to enable backup, false to disable
+     */
+    void setXsdBackupEnabled(boolean enabled);
+
+    /**
+     * Gets the number of backup versions to keep.
+     *
+     * @return the number of backup versions (default: 3)
+     */
+    int getXsdBackupVersions();
+
+    /**
+     * Sets the number of backup versions to keep.
+     *
+     * @param versions the number of backup versions
+     */
+    void setXsdBackupVersions(int versions);
+
+    /**
+     * Gets whether XSD files should be pretty-printed on save.
+     *
+     * @return true if pretty-print is enabled, false otherwise (default: true)
+     */
+    boolean isXsdPrettyPrintOnSave();
+
+    /**
+     * Sets whether XSD files should be pretty-printed on save.
+     *
+     * @param enabled true to enable pretty-print, false to disable
+     */
+    void setXsdPrettyPrintOnSave(boolean enabled);
 }

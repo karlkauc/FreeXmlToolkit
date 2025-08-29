@@ -126,7 +126,55 @@
                 </content>
             </TitledPane>
 
-            <!-- Section 3: File & Folder Settings -->
+            <!-- Section 3: XSD Editor Settings -->
+            <TitledPane animated="true" expanded="false" text="XSD Editor Settings"
+                        style="-fx-background-color: #ffffff; -fx-border-color: #e0e8ff; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px;">
+                <graphic>
+                    <FontIcon iconLiteral="bi-file-earmark-code" iconSize="16" iconColor="#4a90e2"/>
+                </graphic>
+                <content>
+                    <VBox style="-fx-padding: 12px; -fx-background-color: #ffffff;" spacing="12">
+                        <GridPane hgap="12" vgap="10">
+                            <!-- Auto-save settings -->
+                            <Label text="Auto-Save Settings" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0;"/>
+
+                            <CheckBox fx:id="xsdAutoSaveEnabled" text="Enable Auto-Save"
+                                      GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+
+                            <Label text="Auto-Save Interval (minutes):" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                            <Spinner fx:id="xsdAutoSaveInterval" editable="true" initialValue="5" min="1" max="60"
+                                     prefWidth="100" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                            <!-- Backup settings -->
+                            <Label text="Backup Settings" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0; -fx-padding: 10 0 0 0;"/>
+
+                            <CheckBox fx:id="xsdBackupEnabled" text="Create Backup Files on Save"
+                                      GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+
+                            <Label text="Number of Backup Versions:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                            <Spinner fx:id="xsdBackupVersions" editable="true" initialValue="3" min="1" max="10"
+                                     prefWidth="100" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+                            <!-- Pretty Print settings -->
+                            <Label text="Formatting" GridPane.columnIndex="0" GridPane.rowIndex="6"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0; -fx-padding: 10 0 0 0;"/>
+
+                            <CheckBox fx:id="xsdPrettyPrintOnSave"
+                                      text="Pretty-Print on Save (uses XML indent settings)"
+                                      GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.columnSpan="2"/>
+
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="NEVER" minWidth="200.0"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+                        </GridPane>
+                    </VBox>
+                </content>
+            </TitledPane>
+
+            <!-- Section 4: File & Folder Settings -->
             <TitledPane animated="true" expanded="false" text="File &amp; Folder Settings"
                         style="-fx-background-color: #ffffff; -fx-border-color: #e0e8ff; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px;">
                 <graphic>

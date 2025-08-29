@@ -52,6 +52,13 @@ public class SettingsController {
     @FXML
     CheckBox autoFormatXmlAfterLoading;
 
+    // XSD Editor Settings
+    @FXML
+    CheckBox xsdAutoSaveEnabled, xsdBackupEnabled, xsdPrettyPrintOnSave;
+
+    @FXML
+    Spinner<Integer> xsdAutoSaveInterval, xsdBackupVersions;
+
     @FXML
     TextField customTempFolder, httpProxyHost, httpProxyUser, noProxyHost;
 
@@ -98,6 +105,10 @@ public class SettingsController {
         xmlIndentSpaces.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 4));
         xmlFontSize.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(8, 24, 12));
 
+        // Initialize XSD settings spinners
+        xsdAutoSaveInterval.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 60, 5));
+        xsdBackupVersions.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 3));
+
         // Initialize XML theme combo box
         ModernXmlThemeManager themeManager = ModernXmlThemeManager.getInstance();
         xmlThemeComboBox.getItems().addAll(themeManager.getThemeNames());
@@ -110,6 +121,14 @@ public class SettingsController {
         // Listener to enable/disable input fields
         manualProxy.selectedProperty().addListener((observable, oldValue, newValue) -> enableProxyFields(newValue));
         useCustomTempFolder.selectedProperty().addListener((observable, oldValue, newValue) -> enableTempFolderFields(newValue));
+
+        // XSD auto-save interval only enabled when auto-save is enabled
+        xsdAutoSaveEnabled.selectedProperty().addListener((observable, oldValue, newValue) ->
+                xsdAutoSaveInterval.setDisable(!newValue));
+
+        // XSD backup versions only enabled when backup is enabled
+        xsdBackupEnabled.selectedProperty().addListener((observable, oldValue, newValue) ->
+                xsdBackupVersions.setDisable(!newValue));
     }
 
     private void enableTempFolderFields(boolean enable) {
@@ -198,6 +217,13 @@ public class SettingsController {
             props.setProperty("xml.indent.spaces", xmlIndentSpaces.getValue().toString());
             props.setProperty("xml.autoformat.after.loading", String.valueOf(autoFormatXmlAfterLoading.isSelected()));
 
+            // Save XSD Editor settings
+            props.setProperty("xsd.autoSave.enabled", String.valueOf(xsdAutoSaveEnabled.isSelected()));
+            props.setProperty("xsd.autoSave.interval", xsdAutoSaveInterval.getValue().toString());
+            props.setProperty("xsd.backup.enabled", String.valueOf(xsdBackupEnabled.isSelected()));
+            props.setProperty("xsd.backup.versions", xsdBackupVersions.getValue().toString());
+            props.setProperty("xsd.prettyPrint.onSave", String.valueOf(xsdPrettyPrintOnSave.isSelected()));
+
             // Save UI settings
             props.setProperty("ui.theme", darkTheme.isSelected() ? "dark" : "light");
             props.setProperty("ui.xml.font.size", xmlFontSize.getValue().toString());
@@ -280,6 +306,17 @@ public class SettingsController {
         // Load XML autoformat setting
         boolean autoFormat = Boolean.parseBoolean(props.getProperty("xml.autoformat.after.loading", "false"));
         autoFormatXmlAfterLoading.setSelected(autoFormat);
+
+        // Load XSD Editor settings
+        xsdAutoSaveEnabled.setSelected(propertiesService.isXsdAutoSaveEnabled());
+        xsdAutoSaveInterval.getValueFactory().setValue(propertiesService.getXsdAutoSaveInterval());
+        xsdAutoSaveInterval.setDisable(!propertiesService.isXsdAutoSaveEnabled());
+
+        xsdBackupEnabled.setSelected(propertiesService.isXsdBackupEnabled());
+        xsdBackupVersions.getValueFactory().setValue(propertiesService.getXsdBackupVersions());
+        xsdBackupVersions.setDisable(!propertiesService.isXsdBackupEnabled());
+
+        xsdPrettyPrintOnSave.setSelected(propertiesService.isXsdPrettyPrintOnSave());
 
         // Load UI settings
         String theme = props.getProperty("ui.theme", "light");

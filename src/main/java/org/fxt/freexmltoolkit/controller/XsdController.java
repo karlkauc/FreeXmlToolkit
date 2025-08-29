@@ -32,15 +32,23 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,6 +64,10 @@ public class XsdController {
     private Tab xsdTab;
     @FXML
     private Label statusText;
+    @FXML
+    private Button saveAsXsdButton;
+    @FXML
+    private Button prettyPrintButton;
 
     // schema flattening
     @FXML
@@ -93,6 +105,10 @@ public class XsdController {
     // --- NEW: Search and replace functionality ---
     private SearchReplaceController searchController;
     private PopOver searchPopOver;
+
+    // --- Auto-save functionality ---
+    private Timer autoSaveTimer;
+    private static final String AUTO_SAVE_PREFIX = ".autosave_";
 
     private enum SearchMode {SEARCH, REPLACE}
 
@@ -166,6 +182,12 @@ public class XsdController {
     private MenuButton loadXsdFavoritesButtonGraphic;
     @FXML
     private ToggleButton toggleFavoritesButtonGraphic;
+    @FXML
+    private Button saveXsdButtonGraphic;
+    @FXML
+    private Button saveAsXsdButtonGraphic;
+    @FXML
+    private Button prettyPrintButtonGraphic;
     @FXML
     private SplitPane graphicTabSplitPane;
     @FXML
@@ -468,6 +490,9 @@ public class XsdController {
      */
     public void openXsdFile(File file) {
         try {
+            // Check for auto-save recovery first
+            checkForAutoSaveRecovery(file);
+            
             // The file must be set FIRST in the service,
             // so that all subsequent methods have the correct state.
             xmlService.setCurrentXsdFile(file);
@@ -495,6 +520,10 @@ public class XsdController {
             if (file.getParent() != null) {
                 propertiesService.setLastOpenDirectory(file.getParent());
             }
+
+            // Initialize auto-save for this file
+            initializeAutoSave();
+            
             // Populate the file path fields on other tabs to keep the UI in sync
             String absolutePath = file.getAbsolutePath();
             xsdFilePath.setText(absolutePath);
@@ -731,9 +760,12 @@ public class XsdController {
             hasUnsavedChanges = true;
             statusText.setText("XSD modified - changes not saved to file");
 
-            // Enable save button
+            // Enable save buttons
             if (saveXsdButton != null) {
                 saveXsdButton.setDisable(false);
+            }
+            if (saveXsdButtonGraphic != null) {
+                saveXsdButtonGraphic.setDisable(false);
             }
 
             // Store the manipulator for saving
@@ -1279,25 +1311,98 @@ public class XsdController {
         if (!hasUnsavedChanges || currentDomManipulator == null || currentXsdFile == null) {
             return;
         }
+        saveXsdToFile(currentXsdFile);
+    }
 
+    /**
+     * Save As functionality - prompts user to select a new file location
+     */
+    @FXML
+    private void saveXsdFileAs() {
+        if (currentDomManipulator == null && (sourceCodeEditor == null || sourceCodeEditor.getCodeArea().getText().isEmpty())) {
+            showError("No XSD Content", "There is no XSD content to save.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save XSD Schema As");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Files", "*.xsd"));
+
+        // Set initial directory and filename
+        if (currentXsdFile != null) {
+            fileChooser.setInitialDirectory(currentXsdFile.getParentFile());
+            fileChooser.setInitialFileName(currentXsdFile.getName());
+        } else {
+            String lastDirString = propertiesService.getLastOpenDirectory();
+            if (lastDirString != null) {
+                File lastDir = new File(lastDirString);
+                if (lastDir.exists() && lastDir.isDirectory()) {
+                    fileChooser.setInitialDirectory(lastDir);
+                }
+            }
+            fileChooser.setInitialFileName("schema.xsd");
+        }
+
+        File selectedFile = fileChooser.showSaveDialog(tabPane.getScene().getWindow());
+        if (selectedFile != null) {
+            saveXsdToFile(selectedFile);
+            currentXsdFile = selectedFile;
+
+            // Update recent files
+            if (parentController != null) {
+                parentController.addFileToRecentFiles(selectedFile);
+            } else {
+                propertiesService.addLastOpenFile(selectedFile);
+            }
+
+            if (selectedFile.getParent() != null) {
+                propertiesService.setLastOpenDirectory(selectedFile.getParent());
+            }
+        }
+    }
+
+    /**
+     * Common save logic for both Save and Save As
+     */
+    private void saveXsdToFile(File file) {
         try {
-            // Create backup
-            createBackup(currentXsdFile);
+            // Create backup if enabled
+            createBackupIfEnabled(file);
 
-            // Get the updated XSD content
-            String updatedXsd = currentDomManipulator.getXsdAsString();
-            if (updatedXsd == null) {
-                showError("Failed to get XSD content", "Could not retrieve the modified XSD content.");
+            // Get the XSD content
+            String updatedXsd;
+            if (currentDomManipulator != null) {
+                updatedXsd = currentDomManipulator.getXsdAsString();
+            } else if (sourceCodeEditor != null) {
+                updatedXsd = sourceCodeEditor.getCodeArea().getText();
+            } else {
+                showError("Failed to get XSD content", "Could not retrieve the XSD content.");
                 return;
             }
 
+            if (updatedXsd == null || updatedXsd.isEmpty()) {
+                showError("Failed to get XSD content", "XSD content is empty.");
+                return;
+            }
+
+            // Pretty print if enabled
+            if (propertiesService.isXsdPrettyPrintOnSave()) {
+                updatedXsd = formatXsd(updatedXsd);
+            }
+
             // Save to file
-            Files.writeString(currentXsdFile.toPath(), updatedXsd, java.nio.charset.StandardCharsets.UTF_8);
+            Files.writeString(file.toPath(), updatedXsd, java.nio.charset.StandardCharsets.UTF_8);
 
             // Update UI
             hasUnsavedChanges = false;
             saveXsdButton.setDisable(true);
-            statusText.setText("XSD saved successfully: " + currentXsdFile.getName());
+            if (saveXsdButtonGraphic != null) {
+                saveXsdButtonGraphic.setDisable(true);
+            }
+            statusText.setText("XSD saved successfully: " + file.getName());
+
+            // Clean up auto-save file after successful save
+            cleanupAutoSave();
 
             // Show success notification
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -1325,6 +1430,126 @@ public class XsdController {
     }
 
     /**
+     * Creates backup with versioning if enabled in settings
+     */
+    private void createBackupIfEnabled(File file) throws IOException {
+        if (!file.exists() || !propertiesService.isXsdBackupEnabled()) {
+            return;
+        }
+
+        int backupVersions = propertiesService.getXsdBackupVersions();
+        if (backupVersions <= 0) {
+            return;
+        }
+
+        Path sourcePath = file.toPath();
+        String baseName = file.getName();
+
+        // Rotate existing backups (e.g., .bak3 -> .bak4, .bak2 -> .bak3, etc.)
+        for (int i = backupVersions - 1; i > 0; i--) {
+            Path oldBackup = sourcePath.resolveSibling(baseName + ".bak" + i);
+            Path newBackup = sourcePath.resolveSibling(baseName + ".bak" + (i + 1));
+            if (Files.exists(oldBackup)) {
+                if (i == backupVersions - 1) {
+                    // Delete the oldest backup if we're at max versions
+                    Files.deleteIfExists(newBackup);
+                }
+                Files.move(oldBackup, newBackup, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+
+        // Create the new backup as .bak1
+        Path newBackupPath = sourcePath.resolveSibling(baseName + ".bak1");
+        Files.copy(sourcePath, newBackupPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        logger.info("Backup created: {}", newBackupPath);
+    }
+
+    /**
+     * Pretty prints the current XSD content in the editor
+     */
+    @FXML
+    private void prettyPrintXsd() {
+        try {
+            String xsdContent = null;
+
+            // Get content from the appropriate source
+            if (tabPane.getSelectionModel().getSelectedItem() == textTab && sourceCodeEditor != null) {
+                xsdContent = sourceCodeEditor.getCodeArea().getText();
+            } else if (currentDomManipulator != null) {
+                xsdContent = currentDomManipulator.getXsdAsString();
+            }
+
+            if (xsdContent == null || xsdContent.trim().isEmpty()) {
+                showError("No Content", "There is no XSD content to format.");
+                return;
+            }
+
+            // Format the XSD
+            String formattedXsd = formatXsd(xsdContent);
+
+            // Update the appropriate editor
+            if (tabPane.getSelectionModel().getSelectedItem() == textTab && sourceCodeEditor != null) {
+                sourceCodeEditor.getCodeArea().replaceText(formattedXsd);
+                hasUnsavedChanges = true;
+                saveXsdButton.setDisable(false);
+                if (saveXsdButtonGraphic != null) {
+                    saveXsdButtonGraphic.setDisable(false);
+                }
+            } else {
+                // If in diagram view, switch to text view and update
+                tabPane.getSelectionModel().select(textTab);
+                if (sourceCodeEditor != null) {
+                    sourceCodeEditor.getCodeArea().replaceText(formattedXsd);
+                    hasUnsavedChanges = true;
+                    saveXsdButton.setDisable(false);
+                    if (saveXsdButtonGraphic != null) {
+                        saveXsdButtonGraphic.setDisable(false);
+                    }
+                }
+            }
+
+            statusText.setText("XSD formatted successfully");
+
+        } catch (Exception e) {
+            logger.error("Failed to format XSD", e);
+            showError("Format Error", "Failed to format XSD: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Formats XSD content with pretty printing using XML indentation settings
+     */
+    private String formatXsd(String xsdContent) {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new InputSource(new StringReader(xsdContent)));
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+
+            // Use indentation settings from properties
+            int indentSpaces = propertiesService.getXmlIndentSpaces();
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indentSpaces));
+
+            DOMSource source = new DOMSource(doc);
+            StringWriter writer = new StringWriter();
+            StreamResult result = new StreamResult(writer);
+            transformer.transform(source, result);
+
+            return writer.toString();
+        } catch (Exception e) {
+            logger.error("Failed to format XSD content", e);
+            // Return original content if formatting fails
+            return xsdContent;
+        }
+    }
+
+    /**
      * Shows an error dialog
      */
     private void showError(String title, String content) {
@@ -1333,6 +1558,165 @@ public class XsdController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    // ======================================================================
+    // Auto-save functionality
+    // ======================================================================
+
+    /**
+     * Initializes the auto-save timer if enabled in settings
+     */
+    private void initializeAutoSave() {
+        stopAutoSave(); // Stop any existing timer
+
+        if (!propertiesService.isXsdAutoSaveEnabled()) {
+            return;
+        }
+
+        int intervalMinutes = propertiesService.getXsdAutoSaveInterval();
+        if (intervalMinutes <= 0) {
+            return;
+        }
+
+        autoSaveTimer = new Timer("XSD-AutoSave", true);
+        autoSaveTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> performAutoSave());
+            }
+        }, intervalMinutes * 60 * 1000L, intervalMinutes * 60 * 1000L);
+
+        logger.info("Auto-save initialized with interval: {} minutes", intervalMinutes);
+    }
+
+    /**
+     * Performs auto-save of the current XSD file
+     */
+    private void performAutoSave() {
+        if (!hasUnsavedChanges || currentXsdFile == null) {
+            return;
+        }
+
+        try {
+            // Get the XSD content
+            String xsdContent;
+            if (currentDomManipulator != null) {
+                xsdContent = currentDomManipulator.getXsdAsString();
+            } else if (sourceCodeEditor != null) {
+                xsdContent = sourceCodeEditor.getCodeArea().getText();
+            } else {
+                return;
+            }
+
+            if (xsdContent == null || xsdContent.isEmpty()) {
+                return;
+            }
+
+            // Create auto-save file
+            Path autoSavePath = currentXsdFile.toPath().resolveSibling(
+                    AUTO_SAVE_PREFIX + currentXsdFile.getName()
+            );
+
+            // Pretty print if enabled
+            if (propertiesService.isXsdPrettyPrintOnSave()) {
+                xsdContent = formatXsd(xsdContent);
+            }
+
+            Files.writeString(autoSavePath, xsdContent, java.nio.charset.StandardCharsets.UTF_8);
+            logger.info("Auto-saved XSD to: {}", autoSavePath);
+
+            // Update status
+            Platform.runLater(() -> {
+                statusText.setText("Auto-saved at " + LocalDateTime.now().format(
+                        java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
+                ));
+            });
+
+        } catch (Exception e) {
+            logger.error("Auto-save failed", e);
+        }
+    }
+
+    /**
+     * Stops the auto-save timer
+     */
+    private void stopAutoSave() {
+        if (autoSaveTimer != null) {
+            autoSaveTimer.cancel();
+            autoSaveTimer = null;
+        }
+    }
+
+    /**
+     * Recovers from auto-save file if it exists
+     */
+    private void checkForAutoSaveRecovery(File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
+
+        Path autoSavePath = file.toPath().resolveSibling(AUTO_SAVE_PREFIX + file.getName());
+        if (!Files.exists(autoSavePath)) {
+            return;
+        }
+
+        try {
+            // Check if auto-save is newer than the actual file
+            long fileTime = Files.getLastModifiedTime(file.toPath()).toMillis();
+            long autoSaveTime = Files.getLastModifiedTime(autoSavePath).toMillis();
+
+            if (autoSaveTime > fileTime) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Auto-Save Recovery");
+                alert.setHeaderText("An auto-saved version of this file was found.");
+                alert.setContentText("The auto-saved version is newer than the file. Do you want to recover from the auto-save?");
+
+                ButtonType recoverButton = new ButtonType("Recover");
+                ButtonType discardButton = new ButtonType("Discard Auto-Save");
+                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+                alert.getButtonTypes().setAll(recoverButton, discardButton, cancelButton);
+
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.isPresent()) {
+                    if (result.get() == recoverButton) {
+                        // Load auto-save content
+                        String autoSaveContent = Files.readString(autoSavePath);
+                        loadXsdContent(autoSaveContent);
+                        hasUnsavedChanges = true;
+                        logger.info("Recovered from auto-save: {}", autoSavePath);
+                    } else if (result.get() == discardButton) {
+                        // Delete auto-save file
+                        Files.deleteIfExists(autoSavePath);
+                        logger.info("Discarded auto-save: {}", autoSavePath);
+                    }
+                }
+            } else {
+                // Auto-save is older, delete it
+                Files.deleteIfExists(autoSavePath);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to check auto-save recovery", e);
+        }
+    }
+
+    /**
+     * Cleans up auto-save file after successful save
+     */
+    private void cleanupAutoSave() {
+        if (currentXsdFile == null) {
+            return;
+        }
+
+        try {
+            Path autoSavePath = currentXsdFile.toPath().resolveSibling(
+                    AUTO_SAVE_PREFIX + currentXsdFile.getName()
+            );
+            Files.deleteIfExists(autoSavePath);
+        } catch (Exception e) {
+            logger.warn("Failed to cleanup auto-save file", e);
+        }
     }
 
     /**

@@ -196,6 +196,30 @@
                                 </tooltip>
                             </Button>
 
+                            <!-- Save As Button -->
+                            <Button fx:id="saveAsXsdButton" onAction="#saveXsdFileAs"
+                                    style="-fx-font-size: 11px; -fx-font-weight: bold;"
+                                    text="Save As...">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-save-fill" iconColor="#17a2b8"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Save XSD file with a new name"/>
+                                </tooltip>
+                            </Button>
+
+                            <!-- Pretty Print Button -->
+                            <Button fx:id="prettyPrintButton" onAction="#prettyPrintXsd"
+                                    style="-fx-font-size: 11px; -fx-font-weight: bold;"
+                                    text="Pretty Print">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-code" iconColor="#6610f2"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Format XSD with proper indentation"/>
+                                </tooltip>
+                            </Button>
+
                             <Separator orientation="VERTICAL" style="-fx-padding: 0 5 0 5;"/>
 
                             <!-- Favorites Section -->
@@ -318,6 +342,44 @@
                                             <Tooltip text="Create a new XSD schema file"/>
                                         </tooltip>
                                     </Button>
+
+                                    <!-- Save Button for Graphic Tab -->
+                                    <Button fx:id="saveXsdButtonGraphic" onAction="#saveXsdFile"
+                                            style="-fx-font-size: 11px; -fx-font-weight: bold;"
+                                            text="Save XSD" disable="true">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-save" iconColor="#28a745"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Save changes to XSD file"/>
+                                        </tooltip>
+                                    </Button>
+
+                                    <!-- Save As Button for Graphic Tab -->
+                                    <Button fx:id="saveAsXsdButtonGraphic" onAction="#saveXsdFileAs"
+                                            style="-fx-font-size: 11px; -fx-font-weight: bold;"
+                                            text="Save As...">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-save-fill" iconColor="#17a2b8"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Save XSD file with a new name"/>
+                                        </tooltip>
+                                    </Button>
+
+                                    <!-- Pretty Print Button for Graphic Tab -->
+                                    <Button fx:id="prettyPrintButtonGraphic" onAction="#prettyPrintXsd"
+                                            style="-fx-font-size: 11px; -fx-font-weight: bold;"
+                                            text="Pretty Print">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-code" iconColor="#6610f2"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Format XSD with proper indentation"/>
+                                        </tooltip>
+                                    </Button>
+
+                                    <Separator orientation="VERTICAL" style="-fx-padding: 0 5 0 5;"/>
 
                                     <!-- Favorites Section for Graphic Tab -->
                                     <Button fx:id="addXsdToFavoritesButtonGraphic" onAction="#addCurrentXsdToFavorites"
