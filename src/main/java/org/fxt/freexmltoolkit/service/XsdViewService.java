@@ -227,15 +227,8 @@ public class XsdViewService {
                 // For particles in global complexTypes, use the complexType name as XPath base
                 String particleXPath = parentXPath;
 
-                // Check if we're in a global complexType definition
-                Node complexTypeParent = findComplexTypeParent(parentNode);
-                if (complexTypeParent != null) {
-                    String complexTypeName = getAttributeValue(complexTypeParent, "name");
-                    if (!complexTypeName.isEmpty()) {
-                        // Use complexType name as XPath base for better DOM resolution
-                        particleXPath = "/" + complexTypeName + "/" + localName;
-                    }
-                }
+                // For particles, don't add the particle name to the XPath since particles are structural containers
+                // Keep the parent's XPath as the base for child elements
 
                 children.add(buildLightweightNodeRecursive(child, particleXPath, visitedOnPath));
             } else if ("attribute".equals(localName) || "attributeGroup".equals(localName)) {
@@ -283,8 +276,9 @@ public class XsdViewService {
         List<XsdNodeInfo> children = new ArrayList<>();
         for (Node child : getDirectChildElements(particleNode)) {
             String childName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
+            // For particles, pass the parent's XPath to children, not the particle's own XPath
             String childXPath = currentXPath;
-            if ("element".equals(child.getLocalName())) {
+            if ("element".equals(child.getLocalName()) && !childName.isEmpty()) {
                 childXPath += "/" + childName;
             }
             XsdNodeInfo childInfo = buildLightweightNodeRecursive(child, childXPath, visitedOnPath);
@@ -292,6 +286,7 @@ public class XsdViewService {
                 children.add(childInfo);
             }
         }
+        // Use parent's XPath for particles, not currentXPath which includes the particle name
         return new XsdNodeInfo(name, "Container", currentXPath, "", children, Collections.emptyList(), minOccurs, maxOccurs, nodeType);
     }
 

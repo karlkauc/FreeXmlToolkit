@@ -991,6 +991,112 @@ public class XmlServiceImpl implements XmlService {
     }
 
     @Override
+    public void updateElementDocumentation(File xsdFile, String elementXpath, String documentation, String javadoc) throws Exception {
+        // 1. Parse the document
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse(xsdFile);
+        Element root = doc.getDocumentElement();
+
+        // 2. Define namespaces
+        final String xsdNs = "http://www.w3.org/2001/XMLSchema";
+
+        // 3. Find the target element using XPath resolution logic
+        if (elementXpath == null || !elementXpath.startsWith("/")) {
+            throw new IllegalArgumentException("Invalid XPath provided (must start with '/'): " + elementXpath);
+        }
+
+        String[] parts = elementXpath.substring(1).split("/");
+        if (parts.length == 0 || parts[0].isEmpty()) {
+            throw new IllegalArgumentException("Invalid XPath provided (empty): " + elementXpath);
+        }
+
+        // Use the same robust XPath resolution logic as updateExampleValues
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        Node contextNode = doc; // Start from the document root
+
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+
+            String query = getQuery(part);
+            Node foundNode = (Node) xpath.compile(query).evaluate(contextNode, XPathConstants.NODE);
+
+            // If not found, it might be in a referenced type.
+            if (foundNode == null && contextNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element contextElement = (Element) contextNode;
+                String typeAttr = contextElement.getAttribute("type");
+                if (!typeAttr.isEmpty()) {
+                    // We have a type reference, e.g., "tns:PurchaseOrderType"
+                    String typeName = typeAttr.contains(":") ? typeAttr.split(":")[1] : typeAttr;
+
+                    // Find the type definition anywhere in the document.
+                    String typeQuery = "//*[local-name()='complexType' or local-name()='simpleType'][@name='" + typeName + "']";
+                    Node typeDefinitionNode = (Node) xpath.compile(typeQuery).evaluate(doc, XPathConstants.NODE);
+
+                    if (typeDefinitionNode != null) {
+                        // Search for our part inside this type definition.
+                        foundNode = (Node) xpath.compile(query).evaluate(typeDefinitionNode, XPathConstants.NODE);
+                    }
+                }
+            }
+
+            if (foundNode == null) {
+                throw new IllegalArgumentException("Could not resolve path segment: '" + part + "' in XPath: " + elementXpath);
+            }
+            contextNode = foundNode;
+        }
+
+        Node targetNode = contextNode;
+        if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
+            throw new IllegalArgumentException("Could not find element for XPath: " + elementXpath);
+        }
+        Element targetElement = (Element) targetNode;
+
+        // 4. Find or create xs:annotation
+        NodeList annotationList = targetElement.getElementsByTagNameNS(xsdNs, "annotation");
+        Element annotation = (annotationList.getLength() > 0)
+                ? (Element) annotationList.item(0)
+                : (Element) targetElement.insertBefore(doc.createElementNS(xsdNs, "xs:annotation"), targetElement.getFirstChild());
+
+        // 5. Update documentation
+        if (documentation != null && !documentation.trim().isEmpty()) {
+            // Find or create xs:documentation element
+            NodeList docList = annotation.getElementsByTagNameNS(xsdNs, "documentation");
+            Element docElement = (docList.getLength() > 0)
+                    ? (Element) docList.item(0)
+                    : (Element) annotation.appendChild(doc.createElementNS(xsdNs, "xs:documentation"));
+            docElement.setTextContent(documentation.trim());
+        }
+
+        // 6. Update javadoc in appinfo elements
+        if (javadoc != null && !javadoc.trim().isEmpty()) {
+            // Remove existing javadoc appinfo elements (those with source attribute containing @)
+            NodeList appinfoList = annotation.getElementsByTagNameNS(xsdNs, "appinfo");
+            for (int i = appinfoList.getLength() - 1; i >= 0; i--) {
+                Element appinfoEl = (Element) appinfoList.item(i);
+                String source = appinfoEl.getAttribute("source");
+                if (source.startsWith("@")) {
+                    annotation.removeChild(appinfoEl);
+                }
+            }
+
+            // Add new javadoc appinfo elements
+            String[] javadocLines = javadoc.trim().split("\n");
+            for (String line : javadocLines) {
+                if (!line.trim().isEmpty()) {
+                    Element appinfo = doc.createElementNS(xsdNs, "xs:appinfo");
+                    appinfo.setAttribute("source", line.trim());
+                    annotation.appendChild(appinfo);
+                }
+            }
+        }
+
+        // 7. Save the document
+        writeDocumentToFile(doc, xsdFile);
+    }
+
+    @Override
     public void updateExampleValues(File xsdFile, String elementXpath, List<String> exampleValues) throws Exception {
         // 1. Parse the document
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

@@ -11,10 +11,12 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controller.XsdController;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.XsdDomManipulator;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -41,6 +43,7 @@ public class XsdPropertyPanel extends VBox {
 
     private XsdNodeInfo currentNode;
     private XsdDomManipulator domManipulator;
+    private XsdController controller;
     private Consumer<String> onPropertyChanged;
 
     // UI Components
@@ -54,6 +57,9 @@ public class XsdPropertyPanel extends VBox {
     private TextField defaultValueField;
     private TextField fixedValueField;
     private TextArea documentationTextArea;
+    private TextArea javadocTextArea;
+    private ListView<String> exampleListView;
+    private TextField newExampleField;
     private CheckBox nilableCheckBox;
     private CheckBox abstractCheckBox;
 
@@ -74,6 +80,13 @@ public class XsdPropertyPanel extends VBox {
      */
     public void setDomManipulator(XsdDomManipulator manipulator) {
         this.domManipulator = manipulator;
+    }
+
+    /**
+     * Sets the controller for saving javadoc and example values
+     */
+    public void setController(XsdController controller) {
+        this.controller = controller;
     }
 
     /**
@@ -215,6 +228,44 @@ public class XsdPropertyPanel extends VBox {
         documentationTextArea.setWrapText(true);
         getChildren().add(documentationTextArea);
 
+        // Javadoc section
+        Label javadocLabel = new Label("Javadoc:");
+        javadocLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #495057;");
+        getChildren().add(javadocLabel);
+
+        javadocTextArea = new TextArea();
+        javadocTextArea.setPromptText("Enter Javadoc tags here, e.g.:\n@since 4.0.0\n@see {@link /path/to/element}\n@deprecated Use alternative instead");
+        javadocTextArea.setPrefRowCount(3);
+        javadocTextArea.setWrapText(true);
+        getChildren().add(javadocTextArea);
+
+        // Example Values section
+        Label exampleLabel = new Label("Example Values:");
+        exampleLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #495057;");
+        getChildren().add(exampleLabel);
+
+        exampleListView = new ListView<>();
+        exampleListView.setPrefHeight(80);
+        exampleListView.setPlaceholder(new Label("No example values defined"));
+        getChildren().add(exampleListView);
+
+        // Add example controls
+        HBox addExampleBox = new HBox(5);
+        newExampleField = new TextField();
+        newExampleField.setPromptText("Enter new example value");
+        HBox.setHgrow(newExampleField, Priority.ALWAYS);
+
+        Button addExampleButton = new Button("Add");
+        addExampleButton.setGraphic(new FontIcon("bi-plus-circle"));
+        addExampleButton.setOnAction(e -> addExampleValue());
+
+        Button removeExampleButton = new Button("Remove");
+        removeExampleButton.setGraphic(new FontIcon("bi-dash-circle"));
+        removeExampleButton.setOnAction(e -> removeSelectedExample());
+
+        addExampleBox.getChildren().addAll(newExampleField, addExampleButton, removeExampleButton);
+        getChildren().add(addExampleBox);
+
         // Action buttons
         HBox buttonBox = new HBox(10);
         buttonBox.setPadding(new Insets(10, 0, 0, 0));
@@ -224,11 +275,21 @@ public class XsdPropertyPanel extends VBox {
         applyButton.setStyle("-fx-background-color: #28a745; -fx-text-fill: white;");
         applyButton.setOnAction(e -> applyChanges());
 
+        Button saveDocButton = new Button("Save Doc");
+        saveDocButton.setGraphic(new FontIcon("bi-save"));
+        saveDocButton.setTooltip(new Tooltip("Save documentation and javadoc"));
+        saveDocButton.setOnAction(e -> saveDocumentation());
+
+        Button saveExamplesButton = new Button("Save Examples");
+        saveExamplesButton.setGraphic(new FontIcon("bi-save"));
+        saveExamplesButton.setTooltip(new Tooltip("Save example values"));
+        saveExamplesButton.setOnAction(e -> saveExampleValues());
+
         Button resetButton = new Button("Reset");
         resetButton.setGraphic(new FontIcon("bi-arrow-clockwise"));
         resetButton.setOnAction(e -> updateFields());
 
-        buttonBox.getChildren().addAll(applyButton, resetButton);
+        buttonBox.getChildren().addAll(applyButton, saveDocButton, saveExamplesButton, resetButton);
         getChildren().add(buttonBox);
     }
 
@@ -375,6 +436,16 @@ public class XsdPropertyPanel extends VBox {
         // Update documentation
         documentationTextArea.setText(currentNode.documentation() != null ? currentNode.documentation() : "");
 
+        // Update javadoc (currently not available in XsdNodeInfo - would need to be extracted separately from the XSD)
+        // For now, leave javadoc field empty as it needs to be managed separately
+        javadocTextArea.setText("");
+
+        // Update example values
+        exampleListView.getItems().clear();
+        if (currentNode.exampleValues() != null && !currentNode.exampleValues().isEmpty()) {
+            exampleListView.getItems().addAll(currentNode.exampleValues());
+        }
+
         // Hide cardinality fields for attributes (they use 'use' instead)
         minOccursField.setVisible(!isAttribute);
         minOccursField.setManaged(!isAttribute);
@@ -405,10 +476,28 @@ public class XsdPropertyPanel extends VBox {
         defaultValueField.setText("");
         fixedValueField.setText("");
         documentationTextArea.setText("");
+        javadocTextArea.setText("");
+        exampleListView.getItems().clear();
+        newExampleField.clear();
         nilableCheckBox.setSelected(false);
         abstractCheckBox.setSelected(false);
         nodeTypeLabel.setText("");
         nodeTypeLabel.setGraphic(null);
+    }
+
+    private void addExampleValue() {
+        String newValue = newExampleField.getText();
+        if (newValue != null && !newValue.trim().isEmpty()) {
+            exampleListView.getItems().add(newValue);
+            newExampleField.clear();
+        }
+    }
+
+    private void removeSelectedExample() {
+        String selected = exampleListView.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            exampleListView.getItems().remove(selected);
+        }
     }
 
     private void applyChanges() {
@@ -470,6 +559,49 @@ public class XsdPropertyPanel extends VBox {
             alert.setTitle("Update Failed");
             alert.setContentText("Failed to update properties: " + e.getMessage());
             alert.showAndWait();
+        }
+    }
+
+    /**
+     * Gets the current javadoc text
+     */
+    public String getJavadocText() {
+        return javadocTextArea != null ? javadocTextArea.getText() : "";
+    }
+
+    /**
+     * Gets the current list of example values
+     */
+    public List<String> getExampleValues() {
+        return exampleListView != null ? new ArrayList<>(exampleListView.getItems()) : new ArrayList<>();
+    }
+
+    /**
+     * Gets the current documentation text
+     */
+    public String getDocumentationText() {
+        return documentationTextArea != null ? documentationTextArea.getText() : "";
+    }
+
+    /**
+     * Saves the documentation and javadoc to the XSD file
+     */
+    private void saveDocumentation() {
+        if (controller != null && currentNode != null) {
+            String doc = documentationTextArea.getText();
+            String javadoc = javadocTextArea.getText();
+            String xpath = currentNode.xpath();
+            controller.saveElementDocumentation(xpath, doc, javadoc);
+        }
+    }
+
+    /**
+     * Saves the example values to the XSD file
+     */
+    private void saveExampleValues() {
+        if (controller != null && currentNode != null) {
+            List<String> examples = new ArrayList<>(exampleListView.getItems());
+            controller.saveExampleValues(currentNode.xpath(), examples);
         }
     }
 }

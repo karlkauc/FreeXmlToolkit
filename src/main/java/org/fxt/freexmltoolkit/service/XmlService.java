@@ -250,5 +250,7 @@ public interface XmlService {
 
     void updateRootDocumentation(File xsdFile, String documentationContent) throws Exception;
 
+    void updateElementDocumentation(File xsdFile, String elementXpath, String documentation, String javadoc) throws Exception;
+
     void updateExampleValues(File xsdFile, String elementXpath, List<String> exampleValues) throws Exception;
 }

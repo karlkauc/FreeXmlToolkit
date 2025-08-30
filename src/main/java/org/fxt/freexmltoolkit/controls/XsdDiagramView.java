@@ -9,10 +9,12 @@ import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.web.WebView;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,7 +30,6 @@ import org.fxt.freexmltoolkit.domain.command.InlineTypeDefinitionCommand;
 import org.fxt.freexmltoolkit.service.XsdClipboardService;
 import org.fxt.freexmltoolkit.service.XsdDomManipulator;
 import org.fxt.freexmltoolkit.service.XsdLiveValidationService;
-import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Element;
 
@@ -48,10 +49,7 @@ public class XsdDiagramView {
 
     private final XsdNodeInfo rootNode;
     private final XsdController controller;
-    private final String initialDoc;
-    private final String initialJavadoc;
     private final XsdDomManipulator domManipulator;
-    private String currentXsdContent;
 
     // Live validation
     private final XsdLiveValidationService validationService;
@@ -78,17 +76,8 @@ public class XsdDiagramView {
     private static final int MAX_SEARCH_HISTORY = 10;
     private Timeline searchDebounceTimer;
 
-    private VBox detailPane;
     private XsdNodeInfo selectedNode;
     private XsdPropertyPanel propertyPanel;
-
-    // Editor components
-    private TextArea documentationTextArea;
-    private TextArea javadocTextArea;
-    private Button saveDocumentationButton;
-    private ListView<String> exampleListView;
-    private VBox exampleEditorPane;
-    private boolean isEditingSchemaDoc = true;
 
     private ScrollPane treeScrollPane;
 
@@ -205,7 +194,6 @@ public class XsdDiagramView {
                     "-fx-border-width: 0 0 0 3px; -fx-border-radius: 0 3px 3px 0;";
 
     private static final String DETAIL_LABEL_STYLE = "-fx-font-weight: bold; -fx-text-fill: #333;";
-    private static final String DETAIL_PANE_STYLE = "-fx-padding: 15px; -fx-background-color: #ffffff; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 0 1px;";
 
     // Search highlighting styles
     private static final String SEARCH_HIGHLIGHT_STYLE =
@@ -225,8 +213,7 @@ public class XsdDiagramView {
     public XsdDiagramView(XsdNodeInfo rootNode, XsdController controller, String initialDoc, String initialJavadoc, XsdDomManipulator existingManipulator) {
         this.rootNode = rootNode;
         this.controller = controller;
-        this.initialDoc = initialDoc;
-        this.initialJavadoc = initialJavadoc;
+        // initialDoc and initialJavadoc are no longer used since they're handled in propertyPanel
         this.domManipulator = existingManipulator != null ? existingManipulator : new XsdDomManipulator();
         this.validationService = XsdLiveValidationService.getInstance();
 
@@ -266,7 +253,7 @@ public class XsdDiagramView {
     }
 
     public void setXsdContent(String xsdContent) {
-        this.currentXsdContent = xsdContent;
+        // Store the XSD content in the DOM manipulator
         try {
             System.out.println("DEBUG: Loading XSD content into DOM manipulator");
             System.out.println("DEBUG: XSD content length: " + (xsdContent != null ? xsdContent.length() : "null"));
@@ -323,32 +310,9 @@ public class XsdDiagramView {
         leftContainer.getChildren().addAll(toolbar, treeScrollPane);
         VBox.setVgrow(treeScrollPane, javafx.scene.layout.Priority.ALWAYS);
 
-        // Create tabbed right pane with Details and Properties
+        // Create tabbed right pane with Properties
         TabPane rightTabPane = new TabPane();
         rightTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-
-        // Details Tab
-        Tab detailsTab = new Tab("Details");
-        detailsTab.setGraphic(new FontIcon("bi-info-circle"));
-
-        BorderPane detailsLayout = new BorderPane();
-        detailsLayout.setStyle(DETAIL_PANE_STYLE);
-        
-        detailPane = new VBox(10);
-        Label placeholder = new Label("Click on a node to view details.");
-        detailPane.getChildren().add(placeholder);
-
-        ScrollPane detailScrollPane = new ScrollPane(detailPane);
-        // detailScrollPane.setFitToWidth(true);
-        // detailScrollPane.setFitToHeight(true);
-        detailScrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
-        // detailsLayout.setCenter(detailScrollPane);
-        
-        Node editorPane = createEditorPane();
-        BorderPane.setMargin(editorPane, new Insets(10, 0, 0, 0));
-        detailsLayout.setCenter(editorPane);
-
-        detailsTab.setContent(detailsLayout);
 
         // Properties Tab
         Tab propertiesTab = new Tab("Properties");
@@ -356,6 +320,7 @@ public class XsdDiagramView {
 
         propertyPanel = new XsdPropertyPanel();
         propertyPanel.setDomManipulator(domManipulator);
+        propertyPanel.setController(controller);
         propertyPanel.setOnPropertyChanged(message -> {
             // Refresh the view when properties change
             refreshView();
@@ -372,7 +337,7 @@ public class XsdDiagramView {
 
         propertiesTab.setContent(propertyScrollPane);
 
-        rightTabPane.getTabs().addAll(detailsTab, propertiesTab);
+        rightTabPane.getTabs().add(propertiesTab);
 
         splitPane.getItems().addAll(leftContainer, rightTabPane);
         return splitPane;
@@ -1169,154 +1134,12 @@ public class XsdDiagramView {
     }
 
     private void updateDetailPane(XsdNodeInfo node) {
-        detailPane.getChildren().clear();
-        if (node == null) {
-            detailPane.getChildren().add(new Label("Please select a node."));
-            return;
-        }
-
-
-        if (node.documentation() != null && !node.documentation().isBlank()) {
-            Label docHeader = new Label("Documentation:");
-            docHeader.setStyle(DETAIL_LABEL_STYLE);
-            detailPane.getChildren().add(docHeader);
-
-            WebView docView = new WebView();
-            docView.getEngine().loadContent("<html><body style='font-family: sans-serif; font-size: 13px;'>" + node.documentation() + "</body></html>");
-            docView.setPrefHeight(200);
-            detailPane.getChildren().add(docView);
-        }
-
         this.selectedNode = node;
-        isEditingSchemaDoc = false;
-        this.documentationTextArea.setText(node.documentation() != null ? node.documentation() : "");
-        this.javadocTextArea.setText("");
-        this.documentationTextArea.setEditable(false);
-        this.javadocTextArea.setEditable(false);
-        this.saveDocumentationButton.setDisable(true);
-
-        this.exampleListView.getItems().setAll(node.exampleValues());
-        this.exampleEditorPane.setDisable(false);
 
         // Update property panel
         if (propertyPanel != null) {
             propertyPanel.setSelectedNode(node);
         }
-    }
-
-    private Node createEditorPane() {
-        TitledPane titledPane = new TitledPane("Edit Documentation & Javadoc", null);
-        titledPane.setAnimated(true);
-        titledPane.setExpanded(false);
-
-        VBox editorContent = new VBox(15);
-        editorContent.setPadding(new Insets(10, 5, 5, 5));
-
-        Label docLabel = new Label("Documentation");
-        docLabel.getStyleClass().add("h3");
-        this.documentationTextArea = new TextArea(initialDoc);
-        documentationTextArea.setPrefHeight(100.0);
-        documentationTextArea.setWrapText(true);
-        documentationTextArea.setPromptText("General documentation for the schema...");
-        VBox docSection = new VBox(5, docLabel, documentationTextArea);
-        docSection.setStyle("-fx-background-color: #f0f4f8; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #dfe6ee; -fx-border-radius: 8;");
-
-        Label javadocLabel = new Label("Javadoc");
-        javadocLabel.getStyleClass().add("h3");
-        this.javadocTextArea = new TextArea(initialJavadoc);
-        javadocTextArea.setPrefHeight(100.0);
-        javadocTextArea.setWrapText(true);
-        javadocTextArea.setPromptText("Enter Javadoc tags here, e.g.:\n@version 1.2.3\n@see http://example.com/docs\n@deprecated This schema is outdated.");
-
-        VBox javadocSection = new VBox(5, javadocLabel, javadocTextArea);
-        javadocSection.setStyle("-fx-background-color: #f0f8f0; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #dff0df; -fx-border-radius: 8;");
-
-        this.saveDocumentationButton = new Button("Save Documentation");
-        saveDocumentationButton.setGraphic(new FontIcon("bi-save"));
-        saveDocumentationButton.setDisable(true);
-        saveDocumentationButton.setOnAction(event -> controller.saveDocumentation(documentationTextArea.getText(), javadocTextArea.getText()));
-
-        this.exampleEditorPane = new VBox(10);
-        exampleEditorPane.setDisable(true);
-        exampleEditorPane.setStyle("-fx-background-color: #fffaf0; -fx-padding: 10; -fx-background-radius: 8; -fx-border-color: #faebd7; -fx-border-radius: 8;");
-
-        Label exampleValuesLabel = new Label("Example Values");
-        exampleValuesLabel.getStyleClass().add("h3");
-
-        this.exampleListView = new ListView<>();
-        exampleListView.setPrefHeight(80);
-        exampleListView.setPlaceholder(new Label("No example values defined for this element."));
-
-        HBox addExampleBox = new HBox(5);
-        TextField newExampleField = new TextField();
-        newExampleField.setPromptText("Enter a new example value and press Add");
-        HBox.setHgrow(newExampleField, javafx.scene.layout.Priority.ALWAYS);
-        Button addExampleButton = new Button("Add");
-        addExampleButton.setOnAction(e -> {
-            String newValue = newExampleField.getText();
-            if (newValue != null && !newValue.isBlank()) {
-                exampleListView.getItems().add(newValue);
-                newExampleField.clear();
-            }
-        });
-        addExampleBox.getChildren().addAll(newExampleField, addExampleButton);
-
-        Button removeExampleButton = new Button("Remove Selected");
-        removeExampleButton.setOnAction(e -> {
-            String selected = exampleListView.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                exampleListView.getItems().remove(selected);
-            }
-        });
-
-        exampleEditorPane.getChildren().addAll(exampleValuesLabel, exampleListView, addExampleBox, removeExampleButton);
-
-        Runnable updateSaveButtonState = () -> {
-            if (isEditingSchemaDoc) {
-                boolean docChanged = !java.util.Objects.equals(documentationTextArea.getText(), initialDoc);
-                boolean javadocChanged = !java.util.Objects.equals(javadocTextArea.getText(), initialJavadoc);
-                boolean isDirty = docChanged || javadocChanged;
-                saveDocumentationButton.setDisable(!isDirty || controller == null);
-            } else {
-                saveDocumentationButton.setDisable(true);
-            }
-        };
-
-        documentationTextArea.textProperty().addListener((obs, ov, nv) -> updateSaveButtonState.run());
-        javadocTextArea.textProperty().addListener((obs, ov, nv) -> updateSaveButtonState.run());
-
-        Button editSchemaDocButton = getButton(updateSaveButtonState);
-
-        Button saveExamplesButton = new Button("Save Examples");
-        saveExamplesButton.setGraphic(new FontIcon("bi-save"));
-        saveExamplesButton.setOnAction(e -> {
-            if (selectedNode != null && controller != null) {
-                controller.saveExampleValues(selectedNode.xpath(), new ArrayList<>(exampleListView.getItems()));
-            }
-        });
-
-        HBox buttonBar = new HBox(10, saveDocumentationButton, saveExamplesButton, editSchemaDocButton);
-        buttonBar.setStyle("-fx-margin-top: 10;");
-
-        editorContent.getChildren().addAll(docSection, javadocSection, exampleEditorPane, buttonBar);
-
-        titledPane.setContent(editorContent);
-        return titledPane;
-    }
-
-    private @NotNull Button getButton(Runnable updateSaveButtonState) {
-        Button editSchemaDocButton = new Button("Edit Schema Doc");
-        editSchemaDocButton.setTooltip(new Tooltip("Switches to editing the main schema documentation, keeping the current text."));
-        editSchemaDocButton.setOnAction(e -> {
-            this.selectedNode = null;
-            isEditingSchemaDoc = true;
-            documentationTextArea.setEditable(true);
-            javadocTextArea.setEditable(true);
-            exampleEditorPane.setDisable(true);
-            exampleListView.getItems().clear();
-            updateSaveButtonState.run();
-        });
-        return editSchemaDocButton;
     }
 
     private void addDetailRow(GridPane grid, int rowIndex, String labelText, String valueText) {

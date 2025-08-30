@@ -710,6 +710,41 @@ public class XsdController {
         executeTask(saveTask);
     }
 
+    public void saveElementDocumentation(String xpath, String documentation, String javadoc) {
+        File currentXsdFile = xmlService.getCurrentXsdFile();
+        if (currentXsdFile == null || !currentXsdFile.exists()) {
+            new Alert(Alert.AlertType.WARNING, "No XSD file loaded to save to.").showAndWait();
+            return;
+        }
+        if (xpath == null || xpath.isBlank()) {
+            new Alert(Alert.AlertType.WARNING, "No element selected to save documentation for.").showAndWait();
+            return;
+        }
+
+        Task<Void> saveDocTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                updateMessage("Saving element documentation...");
+                // Save documentation for the specific element
+                xmlService.updateElementDocumentation(currentXsdFile, xpath, documentation, javadoc);
+                return null;
+            }
+        };
+
+        saveDocTask.setOnSucceeded(event -> {
+            statusText.setText("Element documentation saved successfully.");
+            // Reload the view to reflect the changes
+            setupXsdDiagram();
+        });
+
+        saveDocTask.setOnFailed(event -> {
+            logger.error("Failed to save element documentation", saveDocTask.getException());
+            statusText.setText("Failed to save element documentation.");
+        });
+
+        executeTask(saveDocTask);
+    }
+
     public void saveExampleValues(String xpath, List<String> exampleValues) {
         File currentXsdFile = xmlService.getCurrentXsdFile();
         if (currentXsdFile == null || !currentXsdFile.exists()) {

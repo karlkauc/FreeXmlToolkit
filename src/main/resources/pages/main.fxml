@@ -175,11 +175,13 @@
                             </Button>
 
                             <!-- Revolutionary Features Separator -->
+                            <!--
                             <Separator
                                     style="-fx-background-color: #4a90e2; -fx-pref-height: 2px; -fx-margin: 10 0 5 0;"/>
+
                             <Label text="🚀 Revolutionary Features" styleClass="revolutionary-section-header"
                                    style="-fx-text-fill: #4a90e2; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 5 0 5 0;"/>
-
+                            -->
                             <Button fx:id="templates" mnemonicParsing="false" onAction="#loadPage"
                                     styleClass="menu_button" text="Smart Templates" VBox.vgrow="ALWAYS">
                                 <graphic>
