@@ -289,8 +289,57 @@ public class XmlUltimateController implements Initializable {
             consoleOutput.appendText("All revolutionary features are available.\n");
         }
 
+        // Initialize validation results list with double-click navigation
+        if (validationResultsList != null) {
+            validationResultsList.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) {
+                    String selectedError = validationResultsList.getSelectionModel().getSelectedItem();
+                    if (selectedError != null) {
+                        navigateToValidationError(selectedError);
+                    }
+                }
+            });
+        }
+
         // Initialize drag and drop functionality for XML files
         initializeDragAndDrop();
+    }
+
+    /**
+     * Navigate to the line number specified in a validation error message
+     */
+    private void navigateToValidationError(String errorMessage) {
+        logger.debug("Navigating to validation error: {}", errorMessage);
+
+        // Extract line number from error message (various formats)
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("line\\s*(\\d+)|Line\\s*(\\d+)|:(\\d+):");
+        java.util.regex.Matcher matcher = pattern.matcher(errorMessage);
+
+        if (matcher.find()) {
+            String lineNumberStr = matcher.group(1);
+            if (lineNumberStr == null) lineNumberStr = matcher.group(2);
+            if (lineNumberStr == null) lineNumberStr = matcher.group(3);
+
+            try {
+                int lineNumber = Integer.parseInt(lineNumberStr);
+                navigateToLine(lineNumber);
+                logger.debug("Navigated to line: {}", lineNumber);
+            } catch (NumberFormatException e) {
+                logger.warn("Could not parse line number from error: {}", errorMessage);
+            }
+        } else {
+            logger.warn("No line number found in error message: {}", errorMessage);
+        }
+    }
+
+    /**
+     * Navigate to a specific line in the current XML editor
+     */
+    private void navigateToLine(int lineNumber) {
+        XmlEditor currentEditor = getCurrentEditor();
+        if (currentEditor != null) {
+            currentEditor.navigateToLine(lineNumber);
+        }
     }
 
     /**

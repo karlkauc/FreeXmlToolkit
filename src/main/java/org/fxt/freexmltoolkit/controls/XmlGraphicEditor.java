@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Parent;
@@ -20,13 +21,9 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 /**
@@ -856,16 +853,51 @@ public class XmlGraphicEditor extends VBox {
         addSiblingBeforeMenuItem.setGraphic(createIcon("ADD_BEFORE"));
         addSiblingBeforeMenuItem.setOnAction(e -> addSiblingNode(domNode, false));
 
+        MenuItem moveUpMenuItem = new MenuItem("Move Up");
+        moveUpMenuItem.setGraphic(createIcon("MOVE_UP"));
+        moveUpMenuItem.setOnAction(e -> moveNodeUp(domNode));
+
+        MenuItem moveDownMenuItem = new MenuItem("Move Down");
+        moveDownMenuItem.setGraphic(createIcon("MOVE_DOWN"));
+        moveDownMenuItem.setOnAction(e -> moveNodeDown(domNode));
+
         MenuItem deleteMenuItem = new MenuItem("Delete: " + domNode.getNodeName());
         deleteMenuItem.setGraphic(createIcon("DELETE"));
         deleteMenuItem.setOnAction(e -> deleteNode(domNode));
 
-        contextMenu.getItems().addAll(
-                addSiblingAfterMenuItem,
-                addSiblingBeforeMenuItem,
-                new SeparatorMenuItem(),
-                deleteMenuItem
-        );
+        // Attribute management menu items (only for elements)
+        if (domNode.getNodeType() == Node.ELEMENT_NODE) {
+            MenuItem addAttributeMenuItem = new MenuItem("Add Attribute");
+            addAttributeMenuItem.setGraphic(createIcon("ADD_ATTRIBUTE"));
+            addAttributeMenuItem.setOnAction(e -> addAttributeToElement(domNode));
+
+            MenuItem editAttributesMenuItem = new MenuItem("Edit Attributes");
+            editAttributesMenuItem.setGraphic(createIcon("EDIT_ATTRIBUTE"));
+            editAttributesMenuItem.setOnAction(e -> editElementAttributes(domNode));
+
+            contextMenu.getItems().addAll(
+                    addSiblingAfterMenuItem,
+                    addSiblingBeforeMenuItem,
+                    new SeparatorMenuItem(),
+                    moveUpMenuItem,
+                    moveDownMenuItem,
+                    new SeparatorMenuItem(),
+                    addAttributeMenuItem,
+                    editAttributesMenuItem,
+                    new SeparatorMenuItem(),
+                    deleteMenuItem
+            );
+        } else {
+            contextMenu.getItems().addAll(
+                    addSiblingAfterMenuItem,
+                    addSiblingBeforeMenuItem,
+                    new SeparatorMenuItem(),
+                    moveUpMenuItem,
+                    moveDownMenuItem,
+                    new SeparatorMenuItem(),
+                    deleteMenuItem
+            );
+        }
 
         uiContainer.setOnContextMenuRequested(e -> {
             logger.debug("Context menu requested for UI container. DOM node: {}", domNode.getNodeName());
@@ -1585,6 +1617,10 @@ public class XmlGraphicEditor extends VBox {
             case "ADD_CHILD" -> createAddChildIcon();
             case "ADD_AFTER" -> createAddAfterIcon();
             case "ADD_BEFORE" -> createAddBeforeIcon();
+            case "MOVE_UP" -> createMoveUpIcon();
+            case "MOVE_DOWN" -> createMoveDownIcon();
+            case "ADD_ATTRIBUTE" -> createAddAttributeIcon();
+            case "EDIT_ATTRIBUTE" -> createEditAttributeIcon();
             case "DELETE" -> createDeleteIcon();
             default -> createDefaultIcon();
         };
@@ -1687,12 +1723,306 @@ public class XmlGraphicEditor extends VBox {
         return group;
     }
 
+    private javafx.scene.Node createMoveUpIcon() {
+        Group group = new Group();
+
+        // Arrow pointing up
+        Line line1 = new Line(8, 3, 5, 8);
+        line1.setStroke(Color.DARKBLUE);
+        line1.setStrokeWidth(2);
+
+        Line line2 = new Line(8, 3, 11, 8);
+        line2.setStroke(Color.DARKBLUE);
+        line2.setStrokeWidth(2);
+
+        // Vertical line
+        Line line3 = new Line(8, 3, 8, 13);
+        line3.setStroke(Color.DARKBLUE);
+        line3.setStrokeWidth(2);
+
+        group.getChildren().addAll(line1, line2, line3);
+        return group;
+    }
+
+    private javafx.scene.Node createMoveDownIcon() {
+        Group group = new Group();
+
+        // Arrow pointing down
+        Line line1 = new Line(8, 13, 5, 8);
+        line1.setStroke(Color.DARKBLUE);
+        line1.setStrokeWidth(2);
+
+        Line line2 = new Line(8, 13, 11, 8);
+        line2.setStroke(Color.DARKBLUE);
+        line2.setStrokeWidth(2);
+
+        // Vertical line
+        Line line3 = new Line(8, 3, 8, 13);
+        line3.setStroke(Color.DARKBLUE);
+        line3.setStrokeWidth(2);
+
+        group.getChildren().addAll(line1, line2, line3);
+        return group;
+    }
+
+    private void moveNodeUp(Node domNode) {
+        Node parent = domNode.getParentNode();
+        if (parent == null) {
+            logger.debug("Cannot move root node up");
+            return;
+        }
+
+        Node previousSibling = domNode.getPreviousSibling();
+        if (previousSibling == null) {
+            logger.debug("Node is already at the top");
+            return;
+        }
+
+        // Skip text nodes (whitespace)
+        while (previousSibling != null && previousSibling.getNodeType() == Node.TEXT_NODE) {
+            previousSibling = previousSibling.getPreviousSibling();
+        }
+
+        if (previousSibling == null) {
+            logger.debug("No valid previous sibling found");
+            return;
+        }
+
+        // Move the node up by inserting it before the previous sibling
+        parent.removeChild(domNode);
+        parent.insertBefore(domNode, previousSibling);
+
+        // Refresh the UI
+        refreshWholeView();
+        logger.debug("Moved node '{}' up", domNode.getNodeName());
+    }
+
+    private void moveNodeDown(Node domNode) {
+        Node parent = domNode.getParentNode();
+        if (parent == null) {
+            logger.debug("Cannot move root node down");
+            return;
+        }
+
+        Node nextSibling = domNode.getNextSibling();
+        if (nextSibling == null) {
+            logger.debug("Node is already at the bottom");
+            return;
+        }
+
+        // Skip text nodes (whitespace)
+        while (nextSibling != null && nextSibling.getNodeType() == Node.TEXT_NODE) {
+            nextSibling = nextSibling.getNextSibling();
+        }
+
+        if (nextSibling == null) {
+            logger.debug("No valid next sibling found");
+            return;
+        }
+
+        // Get the node after the next sibling
+        Node nodeAfterNext = nextSibling.getNextSibling();
+
+        // Move the node down by inserting it after the next sibling
+        parent.removeChild(domNode);
+        if (nodeAfterNext != null) {
+            parent.insertBefore(domNode, nodeAfterNext);
+        } else {
+            parent.appendChild(domNode);
+        }
+
+        // Refresh the UI
+        refreshWholeView();
+        logger.debug("Moved node '{}' down", domNode.getNodeName());
+    }
+
+    private javafx.scene.Node createAddAttributeIcon() {
+        Group group = new Group();
+
+        // @ symbol for attribute
+        Circle circle = new Circle(8, 8, 6);
+        circle.setFill(Color.TRANSPARENT);
+        circle.setStroke(Color.DARKORANGE);
+        circle.setStrokeWidth(2);
+
+        // @ character representation
+        Rectangle topArc = new Rectangle(6, 2);
+        topArc.setFill(Color.DARKORANGE);
+        topArc.setX(5);
+        topArc.setY(6);
+
+        Rectangle bottomArc = new Rectangle(6, 2);
+        bottomArc.setFill(Color.DARKORANGE);
+        bottomArc.setX(5);
+        bottomArc.setY(9);
+
+        group.getChildren().addAll(circle, topArc, bottomArc);
+        return group;
+    }
+
+    private javafx.scene.Node createEditAttributeIcon() {
+        Group group = new Group();
+
+        // Pencil icon for editing
+        Line shaft = new Line(3, 13, 10, 6);
+        shaft.setStroke(Color.DARKGOLDENROD);
+        shaft.setStrokeWidth(2);
+
+        // Pencil tip
+        Polygon tip = new Polygon();
+        tip.getPoints().addAll(
+                10.0, 6.0,   // tip point
+                12.0, 4.0,   // top
+                13.0, 7.0    // bottom
+        );
+        tip.setFill(Color.DARKGOLDENROD);
+
+        group.getChildren().addAll(shaft, tip);
+        return group;
+    }
+
     private javafx.scene.Node createDefaultIcon() {
         // Simple circle
         Circle circle = new Circle(8, 8, 6);
         circle.setFill(Color.LIGHTGRAY);
         circle.setStroke(Color.GRAY);
         return circle;
+    }
+
+    private void addAttributeToElement(Node elementNode) {
+        if (elementNode.getNodeType() != Node.ELEMENT_NODE) {
+            logger.warn("Cannot add attribute to non-element node: {}", elementNode.getNodeName());
+            return;
+        }
+
+        // Create dialog for attribute input
+        TextInputDialog nameDialog = new TextInputDialog();
+        nameDialog.setTitle("Add Attribute");
+        nameDialog.setHeaderText("Add new attribute to element: " + elementNode.getNodeName());
+        nameDialog.setContentText("Attribute name:");
+
+        Optional<String> nameResult = nameDialog.showAndWait();
+        if (nameResult.isPresent() && !nameResult.get().trim().isEmpty()) {
+            String attributeName = nameResult.get().trim();
+
+            // Check if attribute already exists
+            if (((Element) elementNode).hasAttribute(attributeName)) {
+                showAttributeExistsWarning(attributeName);
+                return;
+            }
+
+            TextInputDialog valueDialog = new TextInputDialog();
+            valueDialog.setTitle("Add Attribute");
+            valueDialog.setHeaderText("Set value for attribute: " + attributeName);
+            valueDialog.setContentText("Attribute value:");
+
+            Optional<String> valueResult = valueDialog.showAndWait();
+            if (valueResult.isPresent()) {
+                String attributeValue = valueResult.get();
+
+                // Add the attribute
+                ((Element) elementNode).setAttribute(attributeName, attributeValue);
+
+                // Refresh the UI
+                refreshWholeView();
+                logger.debug("Added attribute '{}={}' to element '{}'", attributeName, attributeValue, elementNode.getNodeName());
+            }
+        }
+    }
+
+    private void editElementAttributes(Node elementNode) {
+        if (elementNode.getNodeType() != Node.ELEMENT_NODE) {
+            logger.warn("Cannot edit attributes of non-element node: {}", elementNode.getNodeName());
+            return;
+        }
+
+        Element element = (Element) elementNode;
+        NamedNodeMap attributes = element.getAttributes();
+
+        if (attributes.getLength() == 0) {
+            showNoAttributesInfo();
+            return;
+        }
+
+        // Create custom dialog for attribute editing
+        createAttributeEditDialog(element).showAndWait();
+    }
+
+    private void showAttributeExistsWarning(String attributeName) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Attribute Exists");
+        alert.setHeaderText("Attribute already exists");
+        alert.setContentText("The attribute '" + attributeName + "' already exists on this element.");
+        alert.showAndWait();
+    }
+
+    private void showNoAttributesInfo() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("No Attributes");
+        alert.setHeaderText("No attributes found");
+        alert.setContentText("This element has no attributes to edit.");
+        alert.showAndWait();
+    }
+
+    private Dialog<Void> createAttributeEditDialog(Element element) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Edit Attributes");
+        dialog.setHeaderText("Edit attributes for element: " + element.getNodeName());
+
+        // Create content
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(20));
+
+        NamedNodeMap attributes = element.getAttributes();
+        List<HBox> attributeRows = new ArrayList<>();
+
+        for (int i = 0; i < attributes.getLength(); i++) {
+            Node attr = attributes.item(i);
+
+            HBox row = new HBox(10);
+            row.setAlignment(Pos.CENTER_LEFT);
+
+            Label nameLabel = new Label(attr.getNodeName() + ":");
+            nameLabel.setMinWidth(100);
+
+            TextField valueField = new TextField(attr.getNodeValue());
+            valueField.setMinWidth(200);
+
+            Button deleteBtn = new Button("Delete");
+            deleteBtn.setOnAction(e -> {
+                element.removeAttribute(attr.getNodeName());
+                content.getChildren().remove(row);
+                refreshWholeView();
+            });
+
+            row.getChildren().addAll(nameLabel, valueField, deleteBtn);
+            attributeRows.add(row);
+            content.getChildren().add(row);
+        }
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Handle OK button
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType == ButtonType.OK) {
+                // Update attribute values
+                for (int i = 0; i < attributeRows.size() && i < attributes.getLength(); i++) {
+                    HBox row = attributeRows.get(i);
+                    TextField valueField = (TextField) row.getChildren().get(1);
+                    String newValue = valueField.getText();
+
+                    Node attr = attributes.item(i);
+                    attr.setNodeValue(newValue);
+                }
+
+                refreshWholeView();
+                logger.debug("Updated attributes for element: {}", element.getNodeName());
+            }
+            return null;
+        });
+
+        return dialog;
     }
 
     /**
