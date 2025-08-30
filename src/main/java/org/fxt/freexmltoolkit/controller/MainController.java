@@ -87,6 +87,9 @@ public class MainController implements Initializable {
     CheckMenuItem xpathQueryPaneMenuItem;
 
     @FXML
+    CheckMenuItem codeMinimapMenuItem;
+
+    @FXML
     Label menuText1, menuText2;
 
     @FXML
@@ -115,6 +118,7 @@ public class MainController implements Initializable {
         loadLastOpenFiles();
         loadXmlEditorSidebarPreference();
         loadXPathQueryPanePreference();
+        loadCodeMinimapPreference();
         loadXmlEditorTheme();
         loadPageFromPath("/pages/welcome.fxml");
         Platform.runLater(this::applyTheme);
@@ -176,6 +180,17 @@ public class MainController implements Initializable {
         }
 
         logger.debug("Loaded XPath Query Pane preference: {}", isVisible);
+    }
+
+    private void loadCodeMinimapPreference() {
+        String minimapVisible = propertiesService.get("codeMinimap.visible");
+        boolean isVisible = Boolean.parseBoolean(minimapVisible);
+
+        if (codeMinimapMenuItem != null) {
+            codeMinimapMenuItem.setSelected(isVisible);
+        }
+
+        logger.debug("Loaded Code Minimap preference: {}", isVisible);
     }
 
     private void updateMemoryUsage() {
@@ -587,6 +602,27 @@ public class MainController implements Initializable {
     public boolean isXPathQueryPaneVisible() {
         String paneVisible = propertiesService.get("xpathQueryPane.visible");
         return paneVisible == null || Boolean.parseBoolean(paneVisible);
+    }
+
+    @FXML
+    private void toggleCodeMinimap() {
+        boolean isVisible = codeMinimapMenuItem.isSelected();
+        logger.debug("Toggle Code Minimap: {}", isVisible);
+
+        // Save preference
+        propertiesService.set("codeMinimap.visible", String.valueOf(isVisible));
+
+        // Apply to current XML editor if available
+        if (xmlUltimateController != null) {
+            xmlUltimateController.toggleMinimapForCurrentEditor(isVisible);
+        } else {
+            logger.debug("XML Ultimate Controller not yet available - preference saved, will be applied when XML tab is loaded");
+        }
+    }
+
+    public boolean isCodeMinimapVisible() {
+        String minimapVisible = propertiesService.get("codeMinimap.visible");
+        return Boolean.parseBoolean(minimapVisible);
     }
 
     @FXML

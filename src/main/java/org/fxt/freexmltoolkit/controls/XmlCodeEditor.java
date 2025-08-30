@@ -8,12 +8,14 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -109,6 +111,19 @@ public class XmlCodeEditor extends VBox {
 
     // Background task for syntax highlighting
     private javafx.concurrent.Task<StyleSpans<Collection<String>>> syntaxHighlightingTask;
+
+    // Live error highlighting
+    private javafx.animation.PauseTransition errorHighlightingDebouncer;
+    private javafx.concurrent.Task<List<org.xml.sax.SAXParseException>> validationTask;
+    private final Map<Integer, String> currentErrors = new HashMap<>();
+    private Tooltip errorTooltip;
+    private int lastTooltipLine = -1;
+
+    // Minimap component
+    private MinimapView minimapView;
+    private HBox editorContainer;
+    private boolean minimapVisible = false;
+    private boolean minimapInitialized = false;
 
     // Performance optimization: Cache compiled patterns
     private static final Pattern OPEN_TAG_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\b[^>]*>");
@@ -229,10 +244,11 @@ public class XmlCodeEditor extends VBox {
         initializeXmlIntelliSenseEngine();
         initializeCodeFoldingManager();
 
-        // Set up the main layout
-        VBox.setVgrow(virtualizedScrollPane, Priority.ALWAYS);
+        // Set up the main layout with minimap
+        setupLayoutWithMinimap();
 
-        this.getChildren().addAll(virtualizedScrollPane, statusLine);
+        // Set up VBox growth
+        VBox.setVgrow(editorContainer, Priority.ALWAYS);
 
         // Initialize status line
         initializeStatusLine();
@@ -257,11 +273,24 @@ public class XmlCodeEditor extends VBox {
             }
         });
 
+        // Initialize debouncer for error highlighting
+        errorHighlightingDebouncer = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
+        errorHighlightingDebouncer.setOnFinished(event -> {
+            String currentText = codeArea.getText();
+            if (currentText != null && !currentText.isEmpty()) {
+                performLiveValidation(currentText);
+            }
+        });
+
         // Text change listener for syntax highlighting with debouncing
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             // Reset the debouncer timer
             syntaxHighlightingDebouncer.stop();
             syntaxHighlightingDebouncer.playFromStart();
+
+            // Reset the error highlighting debouncer timer
+            errorHighlightingDebouncer.stop();
+            errorHighlightingDebouncer.playFromStart();
 
             // Handle automatic tag completion
             handleAutomaticTagCompletion(oldText, newText);
@@ -374,6 +403,195 @@ public class XmlCodeEditor extends VBox {
 
         // Run the task in background
         new Thread(syntaxHighlightingTask).start();
+    }
+
+    /**
+     * Performs live XML validation and applies error highlighting.
+     */
+    private void performLiveValidation(String text) {
+        if (text == null || text.isEmpty()) {
+            currentErrors.clear();
+            return;
+        }
+
+        // Cancel any running validation task
+        if (validationTask != null && validationTask.isRunning()) {
+            validationTask.cancel();
+        }
+
+        // Create new background task for validation
+        validationTask = new javafx.concurrent.Task<List<org.xml.sax.SAXParseException>>() {
+            @Override
+            protected List<org.xml.sax.SAXParseException> call() throws Exception {
+                if (isCancelled()) {
+                    return new ArrayList<>();
+                }
+
+                // Get XML service from parent editor
+                if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
+                    var xmlService = xmlEditor.getXmlService();
+                    if (xmlService != null) {
+                        try {
+                            return xmlService.validateText(text);
+                        } catch (Exception e) {
+                            logger.debug("Validation error during live validation: {}", e.getMessage());
+                            return new ArrayList<>();
+                        }
+                    }
+                }
+                return new ArrayList<>();
+            }
+        };
+
+        validationTask.setOnSucceeded(event -> {
+            List<org.xml.sax.SAXParseException> errors = validationTask.getValue();
+            if (errors != null) {
+                Platform.runLater(() -> applyErrorHighlighting(errors));
+            }
+        });
+
+        validationTask.setOnFailed(event -> {
+            logger.debug("Live validation task failed: {}", validationTask.getException().getMessage());
+        });
+
+        // Run the validation task in background
+        new Thread(validationTask).start();
+    }
+
+    /**
+     * Applies error highlighting to the CodeArea based on validation errors.
+     */
+    private void applyErrorHighlighting(List<org.xml.sax.SAXParseException> errors) {
+        currentErrors.clear();
+
+        if (errors == null || errors.isEmpty()) {
+            return;
+        }
+
+        // Process errors and store for tooltip functionality
+        for (org.xml.sax.SAXParseException error : errors) {
+            int lineNumber = error.getLineNumber();
+            String errorMessage = error.getMessage();
+
+            if (lineNumber > 0 && lineNumber <= codeArea.getParagraphs().size()) {
+                currentErrors.put(lineNumber, errorMessage);
+            }
+        }
+
+        // Re-apply syntax highlighting with error information
+        String currentText = codeArea.getText();
+        if (currentText != null && !currentText.isEmpty()) {
+            applySyntaxHighlightingWithErrors(currentText);
+        }
+
+        // Update minimap with new errors (only if initialized and visible)
+        if (minimapView != null && minimapVisible) {
+            minimapView.updateErrors();
+        }
+    }
+
+    /**
+     * Applies syntax highlighting combined with error highlighting.
+     */
+    private void applySyntaxHighlightingWithErrors(String text) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
+        // Cancel any running syntax highlighting task
+        if (syntaxHighlightingTask != null && syntaxHighlightingTask.isRunning()) {
+            syntaxHighlightingTask.cancel();
+        }
+
+        // Create new background task for combined highlighting
+        syntaxHighlightingTask = new javafx.concurrent.Task<StyleSpans<Collection<String>>>() {
+            @Override
+            protected StyleSpans<Collection<String>> call() throws Exception {
+                if (isCancelled()) {
+                    return null;
+                }
+
+                // Compute base syntax highlighting with enumeration
+                StyleSpans<Collection<String>> baseHighlighting = computeHighlightingWithEnumeration(text);
+
+                // Add error highlighting as additional styles
+                return addErrorStylesToHighlighting(baseHighlighting, text);
+            }
+        };
+
+        syntaxHighlightingTask.setOnSucceeded(event -> {
+            StyleSpans<Collection<String>> highlighting = syntaxHighlightingTask.getValue();
+            if (highlighting != null) {
+                codeArea.setStyleSpans(0, highlighting);
+                // Update paragraph graphics to show error markers
+                Platform.runLater(() -> codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory()));
+            }
+        });
+
+        syntaxHighlightingTask.setOnFailed(event -> {
+            logger.error("Syntax highlighting with errors failed", syntaxHighlightingTask.getException());
+            // Fallback to basic highlighting
+            StyleSpans<Collection<String>> basicHighlighting = computeHighlighting(text);
+            codeArea.setStyleSpans(0, basicHighlighting);
+        });
+
+        // Run the task in background
+        new Thread(syntaxHighlightingTask).start();
+    }
+
+    /**
+     * Adds error styles to existing syntax highlighting.
+     */
+    private StyleSpans<Collection<String>> addErrorStylesToHighlighting(
+            StyleSpans<Collection<String>> baseHighlighting, String text) {
+
+        if (currentErrors.isEmpty()) {
+            return baseHighlighting;
+        }
+
+        // Use overlay to add error styles
+        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+
+        // Split text into lines to identify error lines
+        String[] lines = text.split("\n", -1);
+        int position = 0;
+
+        for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            String line = lines[lineIndex];
+            int lineNumber = lineIndex + 1;
+            int lineLength = line.length();
+
+            if (currentErrors.containsKey(lineNumber)) {
+                // This line has errors - add error styling
+                Collection<String> errorStyles = new ArrayList<>();
+                errorStyles.add("diagnostic-error");
+                spansBuilder.add(errorStyles, lineLength);
+            } else {
+                // No error - use empty styles (syntax highlighting will be preserved)
+                spansBuilder.add(Collections.emptyList(), lineLength);
+            }
+
+            position += lineLength;
+
+            // Add newline character styling if not the last line
+            if (lineIndex < lines.length - 1) {
+                spansBuilder.add(Collections.emptyList(), 1);
+                position += 1;
+            }
+        }
+
+        StyleSpans<Collection<String>> errorHighlighting = spansBuilder.create();
+
+        // Use overlay method to combine syntax and error highlighting
+        return baseHighlighting.overlay(errorHighlighting, (syntaxStyles, errorStyles) -> {
+            if (errorStyles.isEmpty()) {
+                return syntaxStyles;
+            }
+            // Combine syntax highlighting with error styles
+            Collection<String> combined = new ArrayList<>(syntaxStyles);
+            combined.addAll(errorStyles);
+            return combined;
+        });
     }
 
     /**
@@ -512,6 +730,18 @@ public class XmlCodeEditor extends VBox {
                 event.consume();
             }
         });
+
+        // Mouse hover for error tooltips
+        codeArea.setOnMouseMoved(event -> {
+            var hit = codeArea.hit(event.getX(), event.getY());
+            int characterIndex = hit.getCharacterIndex().orElse(-1);
+            if (characterIndex >= 0) {
+                int lineNumber = codeArea.offsetToPosition(characterIndex, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() + 1;
+                showErrorTooltipIfPresent(lineNumber, event.getScreenX(), event.getScreenY());
+            }
+        });
+
+        codeArea.setOnMouseExited(event -> hideErrorTooltip());
 
         // Handler for keyboard shortcuts
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -1117,9 +1347,19 @@ public class XmlCodeEditor extends VBox {
 
 
             Node lineNumberNode = createCompactLineNumber(lineIndex);
-            HBox hbox = new HBox(lineNumberNode, iconWrapper);
+
+            // Create error marker if this line has errors
+            Region errorMarker = new Region();
+            errorMarker.getStyleClass().add("error-marker");
+            errorMarker.setPrefSize(8, 8);
+            errorMarker.setMaxSize(8, 8);
+            errorMarker.setMinSize(8, 8);
+            boolean hasError = currentErrors.containsKey(lineIndex + 1);
+            errorMarker.setVisible(hasError);
+
+            HBox hbox = new HBox(errorMarker, lineNumberNode, iconWrapper);
             hbox.setAlignment(Pos.TOP_LEFT); // TOP_LEFT for seamless alignment
-            hbox.setSpacing(0); // Remove spacing between line number and folding icons
+            hbox.setSpacing(2); // Small spacing for error marker
             hbox.setPadding(Insets.EMPTY); // No padding in the HBox
             hbox.setFillHeight(true); // Fill full height
 
@@ -3856,5 +4096,99 @@ public class XmlCodeEditor extends VBox {
         }
 
         return indentation.toString();
+    }
+
+    /**
+     * Sets up the layout with minimap support.
+     */
+    private void setupLayoutWithMinimap() {
+        // Create horizontal container for editor and optional minimap
+        editorContainer = new HBox();
+        editorContainer.setSpacing(2);
+
+        // Add editor (takes most space)
+        HBox.setHgrow(virtualizedScrollPane, Priority.ALWAYS);
+        editorContainer.getChildren().add(virtualizedScrollPane);
+
+        // Add container and status line to main VBox
+        this.getChildren().addAll(editorContainer, statusLine);
+    }
+
+    /**
+     * Initializes the minimap component when first needed.
+     */
+    private void initializeMinimap() {
+        if (!minimapInitialized) {
+            minimapView = new MinimapView(codeArea, virtualizedScrollPane, currentErrors);
+            minimapView.setMinimapVisible(false); // Start hidden
+            minimapInitialized = true;
+            logger.debug("Minimap initialized");
+        }
+    }
+
+    /**
+     * Toggles minimap visibility and initializes it if needed.
+     */
+    public void toggleMinimap() {
+        minimapVisible = !minimapVisible;
+
+        if (minimapVisible) {
+            // Initialize minimap if not already done
+            initializeMinimap();
+
+            // Add to layout if not already added
+            if (!editorContainer.getChildren().contains(minimapView)) {
+                editorContainer.getChildren().add(minimapView);
+            }
+
+            minimapView.setMinimapVisible(true);
+        } else {
+            // Hide minimap
+            if (minimapView != null) {
+                minimapView.setMinimapVisible(false);
+                editorContainer.getChildren().remove(minimapView);
+            }
+        }
+
+        logger.debug("Minimap visibility toggled: {}", minimapVisible);
+    }
+
+    /**
+     * Gets current minimap visibility state.
+     */
+    public boolean isMinimapVisible() {
+        return minimapVisible && minimapView != null && minimapView.isMinimapVisible();
+    }
+
+    /**
+     * Shows error tooltip if there's an error on the specified line.
+     */
+    private void showErrorTooltipIfPresent(int lineNumber, double screenX, double screenY) {
+        if (currentErrors.containsKey(lineNumber) && lastTooltipLine != lineNumber) {
+            hideErrorTooltip();
+
+            String errorMessage = currentErrors.get(lineNumber);
+            errorTooltip = new Tooltip(errorMessage);
+            errorTooltip.setShowDelay(Duration.millis(100));
+            errorTooltip.setHideDelay(Duration.millis(3000));
+            errorTooltip.setAutoHide(true);
+            errorTooltip.setStyle("-fx-background-color: #ffe6e6; -fx-text-fill: #d32f2f; -fx-border-color: #d32f2f; -fx-border-width: 1px;");
+
+            lastTooltipLine = lineNumber;
+            errorTooltip.show(codeArea, screenX + 10, screenY - 30);
+        } else if (!currentErrors.containsKey(lineNumber)) {
+            hideErrorTooltip();
+        }
+    }
+
+    /**
+     * Hides the error tooltip if it's currently shown.
+     */
+    private void hideErrorTooltip() {
+        if (errorTooltip != null && errorTooltip.isShowing()) {
+            errorTooltip.hide();
+            errorTooltip = null;
+        }
+        lastTooltipLine = -1;
     }
 }
