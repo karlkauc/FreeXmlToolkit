@@ -53,6 +53,18 @@
                         </graphic>
                     </MenuItem>
                 </Menu>
+                <Menu text="Edit">
+                    <MenuItem fx:id="menuItemUndo" onAction="#handleUndo" text="Undo" accelerator="Shortcut+Z">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
+                        </graphic>
+                    </MenuItem>
+                    <MenuItem fx:id="menuItemRedo" onAction="#handleRedo" text="Redo" accelerator="Shortcut+Shift+Z">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                        </graphic>
+                    </MenuItem>
+                </Menu>
                 <Menu fx:id="lastOpenFilesMenu" text="last open Files">
                 </Menu>
                 <Menu text="Windows">
