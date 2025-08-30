@@ -78,6 +78,7 @@ public class XsdDiagramView {
 
     private XsdNodeInfo selectedNode;
     private XsdPropertyPanel propertyPanel;
+    private XsdValidationPanel validationPanel;
 
     private ScrollPane treeScrollPane;
 
@@ -310,7 +311,7 @@ public class XsdDiagramView {
         leftContainer.getChildren().addAll(toolbar, treeScrollPane);
         VBox.setVgrow(treeScrollPane, javafx.scene.layout.Priority.ALWAYS);
 
-        // Create tabbed right pane with Properties
+        // Create tabbed right pane with Properties and Validation
         TabPane rightTabPane = new TabPane();
         rightTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
@@ -337,7 +338,20 @@ public class XsdDiagramView {
 
         propertiesTab.setContent(propertyScrollPane);
 
-        rightTabPane.getTabs().add(propertiesTab);
+        // Validation Tab
+        Tab validationTab = new Tab("Validation");
+        validationTab.setGraphic(new FontIcon("bi-shield-check"));
+
+        validationPanel = new XsdValidationPanel();
+
+        ScrollPane validationScrollPane = new ScrollPane(validationPanel);
+        validationScrollPane.setFitToWidth(true);
+        validationScrollPane.setFitToHeight(true);
+        validationScrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
+
+        validationTab.setContent(validationScrollPane);
+
+        rightTabPane.getTabs().addAll(propertiesTab, validationTab);
 
         splitPane.getItems().addAll(leftContainer, rightTabPane);
         return splitPane;
@@ -1139,6 +1153,11 @@ public class XsdDiagramView {
         // Update property panel
         if (propertyPanel != null) {
             propertyPanel.setSelectedNode(node);
+        }
+
+        // Update validation panel
+        if (validationPanel != null) {
+            validationPanel.updateForNode(node);
         }
     }
 
