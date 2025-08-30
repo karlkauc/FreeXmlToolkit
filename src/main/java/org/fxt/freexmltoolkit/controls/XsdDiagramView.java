@@ -60,6 +60,10 @@ public class XsdDiagramView {
     private Button undoButton;
     private Button redoButton;
 
+    public XsdUndoManager getUndoManager() {
+        return undoManager;
+    }
+
     // Drag & Drop system
     private final XsdDragDropManager dragDropManager;
 

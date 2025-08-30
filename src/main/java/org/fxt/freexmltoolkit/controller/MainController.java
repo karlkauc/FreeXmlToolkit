@@ -94,6 +94,13 @@ public class MainController implements Initializable {
 
     @FXML
     ImageView logoImageView;
+
+    @FXML
+    MenuItem menuItemUndo;
+
+    @FXML
+    MenuItem menuItemRedo;
+    
     List<File> lastOpenFiles = new LinkedList<>();
 
     Boolean showMenu = true;
@@ -588,6 +595,26 @@ public class MainController implements Initializable {
         });
     }
 
+    @FXML
+    private void handleUndo() {
+        logger.debug("Undo action triggered");
+
+        // Check if XSD tab is active and has undo capability
+        if (xsdController != null && xsdController.isXsdTabActive()) {
+            xsdController.performUndo();
+        }
+    }
+
+    @FXML
+    private void handleRedo() {
+        logger.debug("Redo action triggered");
+
+        // Check if XSD tab is active and has redo capability
+        if (xsdController != null && xsdController.isXsdTabActive()) {
+            xsdController.performRedo();
+        }
+    }
+    
     @FXML
     private void handleOpenFile() {
         logger.debug("Open file action triggered");

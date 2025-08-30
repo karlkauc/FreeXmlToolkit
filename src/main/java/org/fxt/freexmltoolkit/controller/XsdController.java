@@ -58,6 +58,8 @@ import java.util.concurrent.TimeUnit;
 
 public class XsdController {
 
+    private XsdDiagramView currentDiagramView;
+    
     @FXML
     private TabPane tabPane;
     @FXML
@@ -137,6 +139,37 @@ public class XsdController {
      */
     public void setParentController(MainController parentController) {
         this.parentController = parentController;
+    }
+
+    /**
+     * Check if the XSD tab is currently active
+     */
+    public boolean isXsdTabActive() {
+        return tabPane != null && tabPane.getSelectionModel().getSelectedItem() == xsdTab;
+    }
+
+    /**
+     * Perform undo operation on current XSD diagram
+     */
+    public void performUndo() {
+        if (currentDiagramView != null && currentDiagramView.getUndoManager() != null) {
+            if (currentDiagramView.getUndoManager().undo()) {
+                // The diagram view will handle the refresh internally
+                logger.debug("Undo operation performed in XSD editor");
+            }
+        }
+    }
+
+    /**
+     * Perform redo operation on current XSD diagram
+     */
+    public void performRedo() {
+        if (currentDiagramView != null && currentDiagramView.getUndoManager() != null) {
+            if (currentDiagramView.getUndoManager().redo()) {
+                // The diagram view will handle the refresh internally
+                logger.debug("Redo operation performed in XSD editor");
+            }
+        }
     }
 
 
@@ -636,6 +669,7 @@ public class XsdController {
 
                 // Store the manipulator reference
                 currentDomManipulator = diagramView.getDomManipulator();
+                currentDiagramView = diagramView;
                 
                 logger.debug("lade diagramm...");
                 xsdStackPane.getChildren().add(diagramView.build());
@@ -890,6 +924,7 @@ public class XsdController {
                 if (currentDomManipulator == null) {
                     currentDomManipulator = diagramView.getDomManipulator();
                 }
+                currentDiagramView = diagramView;
 
                 xsdStackPane.getChildren().add(diagramView.build());
             } else {
@@ -1270,6 +1305,7 @@ public class XsdController {
 
                 // Store the manipulator reference
                 currentDomManipulator = diagramView.getDomManipulator();
+                currentDiagramView = diagramView;
 
                 logger.debug("Loading diagram for new XSD...");
                 xsdStackPane.getChildren().add(diagramView.build());
