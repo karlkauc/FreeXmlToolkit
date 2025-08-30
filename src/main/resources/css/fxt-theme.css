@@ -582,6 +582,25 @@
   -fx-background-color: #e9ecef;
 }
 
+.menu_button_collapsed {
+    -fx-pref-height: 50;
+    -fx-min-width: 50;
+    -fx-pref-width: 50;
+    -fx-max-width: 50;
+    -fx-alignment: center;
+    -fx-background-color: transparent;
+    -fx-border-width: 0px;
+    -fx-padding: 5px;
+}
+
+.menu_button_collapsed:hover {
+    -fx-background-color: rgba(233, 236, 239, 0.3);
+}
+
+.menu_button_collapsed:pressed {
+    -fx-background-color: rgba(233, 236, 239, 0.5);
+}
+
 .button:default {
   -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2b8aff, #0969da);
   -fx-text-fill: white;

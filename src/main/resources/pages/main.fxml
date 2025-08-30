@@ -26,7 +26,6 @@
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.*?>
 <AnchorPane prefHeight="800.0" prefWidth="1400.0"
-
             stylesheets="@../css/fxt-theme.css"
             xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.fxt.freexmltoolkit.controller.MainController">
@@ -131,15 +130,6 @@
                 <BorderPane VBox.vgrow="ALWAYS">
                     <top>
                         <VBox BorderPane.alignment="CENTER" alignment="CENTER">
-                            <!--
-                            <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
-                                    text="XML Editor" fx:id="xml">
-                                <graphic>
-                                    <FontIcon iconLiteral="bi-code-slash" iconSize="16"/>
-                                </graphic>
-                            </Button>
-                            -->
-
                             <Button mnemonicParsing="false" onAction="#loadPage" styleClass="menu_button"
                                     text="XML Editor" fx:id="xmlUltimate">
                                 <graphic>

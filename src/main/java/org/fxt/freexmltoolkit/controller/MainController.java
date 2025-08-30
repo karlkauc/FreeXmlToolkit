@@ -489,10 +489,10 @@ public class MainController implements Initializable {
         logger.debug("Show Menu: {}", showMenu);
         if (showMenu) {
             setMenuSize(50, ">>", "", 15, 75);
-            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button_collapsed", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, templates, schemaGenerator, xsltDeveloper);
         } else {
             setMenuSize(200, "FundsXML Toolkit", "Enterprise Edition", 75, 100);
-            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature);
+            setButtonSize("menu_button", xmlUltimate, xsd, xsdValidation, schematron, xslt, fop, help, settings, exit, signature, templates, schemaGenerator, xsltDeveloper);
         }
         showMenu = !showMenu;
     }
@@ -512,7 +512,31 @@ public class MainController implements Initializable {
             button.getStyleClass().remove("menu_button");
             button.getStyleClass().remove("menu_button_collapsed");
             button.getStyleClass().add(styleClass);
+
+            // Hide/show button text based on collapsed state
+            if (styleClass.equals("menu_button_collapsed")) {
+                button.setText("");
+            } else {
+                // Restore original text based on button ID
+                restoreButtonText(button);
+            }
         }
+    }
+
+    private void restoreButtonText(Button button) {
+        if (button == xmlUltimate) button.setText("XML Editor");
+        else if (button == xsd) button.setText("XSD Editor");
+        else if (button == xsdValidation) button.setText("XSD Validation");
+        else if (button == schematron) button.setText("Schematron Editor");
+        else if (button == xslt) button.setText("XSLT Viewer");
+        else if (button == fop) button.setText("FOP");
+        else if (button == signature) button.setText("Signature");
+        else if (button == help) button.setText("Help");
+        else if (button == settings) button.setText("Settings");
+        else if (button == exit) button.setText("Exit");
+        else if (button == xsltDeveloper) button.setText("XSLT Developer");
+        else if (button == schemaGenerator) button.setText("Schema Generator");
+        else if (button == templates) button.setText("Smart Templates");
     }
 
     @FXML
