@@ -440,6 +440,7 @@ public class XmlUltimateController implements Initializable {
 
         // Create new XML editor tab
         XmlEditor xmlEditor = new XmlEditor();
+        xmlEditor.setMainController(parentController);
         xmlEditor.setText(file.getName());
         xmlEditor.codeArea.replaceText(content);
 
@@ -598,6 +599,7 @@ public class XmlUltimateController implements Initializable {
     private void createInitialTab() {
         if (xmlFilesPane != null) {
             XmlEditor xmlEditor = new XmlEditor();
+            xmlEditor.setMainController(parentController);
             xmlEditor.setText("Untitled.xml");
             xmlEditor.codeArea.replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>");
 
@@ -646,6 +648,7 @@ public class XmlUltimateController implements Initializable {
 
         if (xmlFilesPane != null) {
             XmlEditor xmlEditor = new XmlEditor();
+            xmlEditor.setMainController(parentController);
             xmlEditor.setText("Untitled" + (xmlFilesPane.getTabs().size() + 1) + ".xml");
             xmlEditor.codeArea.replaceText("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>");
 
@@ -681,6 +684,7 @@ public class XmlUltimateController implements Initializable {
 
                 if (xmlFilesPane != null) {
                     XmlEditor xmlEditor = new XmlEditor();
+                    xmlEditor.setMainController(parentController);
                     xmlEditor.setText(file.getName());
                     xmlEditor.codeArea.replaceText(content);
 
@@ -743,6 +747,7 @@ public class XmlUltimateController implements Initializable {
 
             if (xmlFilesPane != null) {
                 XmlEditor xmlEditor = new XmlEditor();
+                xmlEditor.setMainController(parentController);
                 xmlEditor.setText(file.getName());
                 xmlEditor.codeArea.replaceText(content);
 
@@ -1940,6 +1945,7 @@ public class XmlUltimateController implements Initializable {
 
                 if (xmlFilesPane != null) {
                     XmlEditor xmlEditor = new XmlEditor();
+                    xmlEditor.setMainController(parentController);
                     xmlEditor.setText(file.getName());
                     xmlEditor.codeArea.replaceText(content);
 

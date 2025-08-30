@@ -1044,3 +1044,17 @@
     -fx-border-color: #495057;
     -fx-text-fill: #495057;
 }
+
+/* Go-to-Definition Styles */
+.xml-element-clickable {
+    -fx-text-fill: #0066cc;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+.xml-element-hover {
+    -fx-background-color: rgba(0, 102, 204, 0.1);
+    -fx-border-color: #0066cc;
+    -fx-border-width: 1px;
+    -fx-border-style: dashed;
+}

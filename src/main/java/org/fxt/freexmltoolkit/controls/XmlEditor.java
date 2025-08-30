@@ -134,6 +134,10 @@ public class XmlEditor extends Tab {
         }
     }
 
+    public MainController getMainController() {
+        return mainController;
+    }
+
 
     private void init() {
         try {

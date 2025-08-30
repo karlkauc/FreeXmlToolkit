@@ -837,6 +837,15 @@ public class XmlGraphicEditor extends VBox {
 
         ContextMenu contextMenu = new ContextMenu();
 
+        // Navigation actions (only for elements)
+        if (domNode.getNodeType() == Node.ELEMENT_NODE) {
+            MenuItem goToDefinitionMenuItem = new MenuItem("Go to XSD Definition");
+            goToDefinitionMenuItem.setGraphic(createIcon("GO_TO_DEFINITION"));
+            goToDefinitionMenuItem.setOnAction(e -> navigateToXsdDefinitionFromGraphicEditor(domNode));
+            contextMenu.getItems().add(goToDefinitionMenuItem);
+            contextMenu.getItems().add(new SeparatorMenuItem());
+        }
+
         // Only show "Add Child" if the node can have child elements
         if (canHaveChildren(domNode)) {
             MenuItem addChildMenuItem = new MenuItem("Add Child to: " + domNode.getNodeName());
@@ -1621,6 +1630,7 @@ public class XmlGraphicEditor extends VBox {
             case "MOVE_DOWN" -> createMoveDownIcon();
             case "ADD_ATTRIBUTE" -> createAddAttributeIcon();
             case "EDIT_ATTRIBUTE" -> createEditAttributeIcon();
+            case "GO_TO_DEFINITION" -> createGoToDefinitionIcon();
             case "DELETE" -> createDeleteIcon();
             default -> createDefaultIcon();
         };
@@ -1877,6 +1887,25 @@ public class XmlGraphicEditor extends VBox {
         );
         tip.setFill(Color.DARKGOLDENROD);
 
+        group.getChildren().addAll(shaft, tip);
+        return group;
+    }
+
+    private javafx.scene.Node createGoToDefinitionIcon() {
+        // Navigation arrow icon
+        Group group = new Group();
+        // Arrow shaft
+        Rectangle shaft = new Rectangle(2, 8);
+        shaft.setFill(Color.DARKBLUE);
+        shaft.setX(2);
+        shaft.setY(4);
+        // Arrow tip
+        Polygon tip = new Polygon();
+        tip.getPoints().addAll(10.0, 8.0,  // tip
+                6.0, 5.0,   // top
+                6.0, 11.0   // bottom
+        );
+        tip.setFill(Color.DARKBLUE);
         group.getChildren().addAll(shaft, tip);
         return group;
     }
@@ -2619,5 +2648,176 @@ public class XmlGraphicEditor extends VBox {
             }
             parent = parent.getParent();
         }
+    }
+
+    /**
+     * Navigates to the XSD definition of the specified DOM element.
+     * This method is called from the context menu in the graphic editor.
+     */
+    private void navigateToXsdDefinitionFromGraphicEditor(Node domNode) {
+        if (domNode.getNodeType() != Node.ELEMENT_NODE) {
+            logger.debug("Go-to-Definition only available for element nodes, got: {}", domNode.getNodeType());
+            return;
+        }
+
+        String elementName = domNode.getNodeName();
+        logger.info("Go-to-Definition triggered from graphic editor for element: {}", elementName);
+
+        try {
+            var xsdDocumentationData = xmlEditor.getXsdDocumentationData();
+            if (xsdDocumentationData == null) {
+                logger.debug("XSD documentation data not yet loaded - showing user notification");
+                javafx.application.Platform.runLater(() -> {
+                    var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+                    alert.setTitle("Go-to-Definition");
+                    alert.setHeaderText("XSD Schema Loading");
+                    alert.setContentText("XSD schema is still being processed. Please wait a moment and try again.");
+                    alert.showAndWait();
+                });
+                return;
+            }
+
+            // Look for element in the extended element map
+            var extendedElementMap = xsdDocumentationData.getExtendedXsdElementMap();
+            org.fxt.freexmltoolkit.domain.XsdExtendedElement targetElement = null;
+
+            // Search for element by name
+            for (var entry : extendedElementMap.entrySet()) {
+                var element = entry.getValue();
+                if (elementName.equals(element.getElementName())) {
+                    targetElement = element;
+                    break;
+                }
+            }
+
+            if (targetElement == null) {
+                // Also check global elements
+                for (org.w3c.dom.Node globalElement : xsdDocumentationData.getGlobalElements()) {
+                    String name = getElementNameFromNode(globalElement);
+                    if (elementName.equals(name)) {
+                        // Found in global elements - navigate to XSD
+                        navigateToXsdFile(globalElement, elementName);
+                        return;
+                    }
+                }
+
+                logger.debug("Element '{}' not found in XSD documentation", elementName);
+                showElementNotFoundMessage(elementName);
+                return;
+            }
+
+            logger.debug("Found element '{}' in XSD documentation, showing definition info", elementName);
+            showXsdDefinitionInfo(targetElement, elementName);
+
+        } catch (Exception e) {
+            logger.error("Error in Go-to-Definition from graphic editor: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Navigates to the XSD file and highlights the element definition.
+     */
+    private void navigateToXsdFile(org.w3c.dom.Node targetNode, String elementName) {
+        try {
+            var mainController = xmlEditor.getMainController();
+
+            // Try to get MainController through sidebar controller if direct access fails
+            if (mainController == null && sidebarController != null) {
+                try {
+                    var sidebarClass = sidebarController.getClass();
+                    var getMainControllerMethod = sidebarClass.getMethod("getMainController");
+                    mainController = (org.fxt.freexmltoolkit.controller.MainController) getMainControllerMethod.invoke(sidebarController);
+                    logger.debug("Retrieved MainController through sidebar controller");
+                } catch (Exception e) {
+                    logger.debug("Could not get MainController through sidebar: {}", e.getMessage());
+                }
+            }
+
+            if (mainController == null) {
+                logger.error("MainController not available for navigation - tried both xmlEditor and sidebarController");
+                javafx.application.Platform.runLater(() -> {
+                    var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+                    alert.setTitle("Go-to-Definition");
+                    alert.setHeaderText("Navigation Error");
+                    alert.setContentText("Unable to navigate to XSD definition. Please ensure both XML and XSD files are loaded.");
+                    alert.showAndWait();
+                });
+                return;
+            }
+
+            // Use reflection to access XSD controller and navigate
+            var mainControllerClass = mainController.getClass();
+            var getXsdControllerMethod = mainControllerClass.getMethod("getXsdUltimateController");
+            var xsdController = getXsdControllerMethod.invoke(mainController);
+
+            if (xsdController != null) {
+                logger.debug("Navigating to XSD tab for element: {}", elementName);
+
+                // Switch to XSD tab
+                var showXsdTabMethod = mainControllerClass.getMethod("showXsdTab");
+                showXsdTabMethod.invoke(mainController);
+
+                logger.debug("Successfully navigated to XSD definition for element: {}", elementName);
+            } else {
+                logger.debug("XSD controller not available");
+            }
+        } catch (Exception e) {
+            logger.error("Error navigating to XSD file: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Extracts element name from a DOM node.
+     */
+    private String getElementNameFromNode(org.w3c.dom.Node node) {
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            return node.getNodeName();
+        }
+        return "";
+    }
+
+    /**
+     * Shows XSD definition information for the element in a dialog.
+     */
+    private void showXsdDefinitionInfo(org.fxt.freexmltoolkit.domain.XsdExtendedElement element, String elementName) {
+        javafx.application.Platform.runLater(() -> {
+            var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.setTitle("XSD Definition - " + elementName);
+            alert.setHeaderText("Element: " + elementName);
+
+            StringBuilder content = new StringBuilder();
+            content.append("Type: ").append(element.getElementType() != null ? element.getElementType() : "Not specified").append("\n");
+            content.append("XPath: ").append(element.getCurrentXpath() != null ? element.getCurrentXpath() : "Unknown").append("\n");
+            content.append("Mandatory: ").append(element.isMandatory() ? "Yes" : "No").append("\n");
+
+            if (element.getDocumentationAsHtml() != null && !element.getDocumentationAsHtml().trim().isEmpty()) {
+                content.append("\nDocumentation:\n").append(element.getDocumentationAsHtml().replaceAll("<[^>]*>", ""));
+            }
+
+            if (element.getXsdRestrictionString() != null && !element.getXsdRestrictionString().trim().isEmpty()) {
+                content.append("\nRestrictions:\n").append(element.getXsdRestrictionString().replaceAll("<[^>]*>", ""));
+            }
+
+            alert.setContentText(content.toString());
+            alert.getDialogPane().setPrefWidth(500);
+            alert.showAndWait();
+
+            // Also try to navigate to XSD tab if possible
+            navigateToXsdFile(element.getCurrentNode(), elementName);
+        });
+    }
+
+    /**
+     * Shows a message when an element definition is not found.
+     */
+    private void showElementNotFoundMessage(String elementName) {
+        javafx.application.Platform.runLater(() -> {
+            logger.debug("Element '{}' definition not found in associated XSD", elementName);
+            var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.setTitle("Go-to-Definition");
+            alert.setHeaderText("Element Not Found");
+            alert.setContentText("Definition for element '" + elementName + "' was not found in the associated XSD schema.");
+            alert.showAndWait();
+        });
     }
 }

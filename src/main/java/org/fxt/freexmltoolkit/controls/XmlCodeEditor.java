@@ -731,17 +731,42 @@ public class XmlCodeEditor extends VBox {
             }
         });
 
-        // Mouse hover for error tooltips
+        // Mouse hover for error tooltips and Go-to-Definition cursor
         codeArea.setOnMouseMoved(event -> {
-            var hit = codeArea.hit(event.getX(), event.getY());
-            int characterIndex = hit.getCharacterIndex().orElse(-1);
-            if (characterIndex >= 0) {
-                int lineNumber = codeArea.offsetToPosition(characterIndex, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() + 1;
-                showErrorTooltipIfPresent(lineNumber, event.getScreenX(), event.getScreenY());
+            if (event.isControlDown()) {
+                // Show hand cursor when Ctrl is held over XML elements
+                String elementAtCursor = getElementNameAtPosition(event.getX(), event.getY());
+                if (elementAtCursor != null && !elementAtCursor.isEmpty()) {
+                    codeArea.setCursor(Cursor.HAND);
+                } else {
+                    codeArea.setCursor(Cursor.DEFAULT);
+                }
+            } else {
+                codeArea.setCursor(Cursor.DEFAULT);
+                // Handle error tooltips
+                var hit = codeArea.hit(event.getX(), event.getY());
+                int characterIndex = hit.getCharacterIndex().orElse(-1);
+                if (characterIndex >= 0) {
+                    int lineNumber = codeArea.offsetToPosition(characterIndex, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() + 1;
+                    showErrorTooltipIfPresent(lineNumber, event.getScreenX(), event.getScreenY());
+                }
             }
         });
 
-        codeArea.setOnMouseExited(event -> hideErrorTooltip());
+        codeArea.setOnMouseExited(event -> {
+            hideErrorTooltip();
+            codeArea.setCursor(Cursor.DEFAULT);
+        });
+
+        // Ctrl+Click for Go-to-Definition (use addEventHandler to avoid conflicts)
+        codeArea.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_CLICKED, event -> {
+            logger.debug("Mouse clicked - Ctrl: {}, Clicks: {}", event.isControlDown(), event.getClickCount());
+            if (event.isControlDown() && event.getClickCount() == 1) {
+                logger.debug("Ctrl+Click detected - triggering Go-to-Definition");
+                handleGoToDefinition(event);
+                event.consume();
+            }
+        });
 
         // Handler for keyboard shortcuts
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -763,6 +788,20 @@ public class XmlCodeEditor extends VBox {
                     default -> {
                     }
                 }
+            }
+        });
+
+        // Handle Ctrl key events for Go-to-Definition visual feedback
+        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.CONTROL) {
+                logger.debug("Ctrl pressed - Go-to-Definition mode active");
+            }
+        });
+
+        codeArea.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+            if (event.getCode() == KeyCode.CONTROL) {
+                codeArea.setCursor(Cursor.DEFAULT);
+                logger.debug("Ctrl released - Go-to-Definition mode inactive");
             }
         });
 
@@ -4190,5 +4229,254 @@ public class XmlCodeEditor extends VBox {
             errorTooltip = null;
         }
         lastTooltipLine = -1;
+    }
+
+    /**
+     * Gets the XML element name at the specified screen position.
+     */
+    private String getElementNameAtPosition(double x, double y) {
+        try {
+            var hit = codeArea.hit(x, y);
+            int characterIndex = hit.getCharacterIndex().orElse(-1);
+            logger.debug("Hit test result: characterIndex = {}", characterIndex);
+
+            if (characterIndex < 0) {
+                logger.debug("No character at position ({}, {})", x, y);
+                return null;
+            }
+
+            String text = codeArea.getText();
+            if (text == null || characterIndex >= text.length()) {
+                logger.debug("Invalid text or character index: text={}, index={}", (text != null ? text.length() : "null"), characterIndex);
+                return null;
+            }
+
+            logger.debug("Character at position {}: '{}'", characterIndex, text.charAt(characterIndex));
+
+            // Find the XML element at this position
+            String elementName = extractElementNameAtPosition(text, characterIndex);
+            logger.debug("Extracted element name: '{}'", elementName);
+            return elementName;
+        } catch (Exception e) {
+            logger.error("Error getting element name at position: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Extracts the XML element name at the given character position.
+     */
+    private String extractElementNameAtPosition(String text, int position) {
+        logger.debug("Extracting element name at position {}", position);
+
+        // Look backwards to find opening '<'
+        int tagStart = -1;
+        for (int i = position; i >= 0; i--) {
+            if (text.charAt(i) == '<') {
+                tagStart = i;
+                break;
+            } else if (text.charAt(i) == '>') {
+                // We're outside a tag
+                logger.debug("Found '>' before '<' - cursor is outside a tag");
+                return null;
+            }
+        }
+
+        if (tagStart == -1) {
+            logger.debug("No opening '<' found before position");
+            return null;
+        }
+
+        // Look forwards to find closing '>'
+        int tagEnd = -1;
+        for (int i = position; i < text.length(); i++) {
+            if (text.charAt(i) == '>') {
+                tagEnd = i;
+                break;
+            }
+        }
+
+        if (tagEnd == -1) {
+            logger.debug("No closing '>' found after position");
+            return null;
+        }
+
+        // Extract tag content
+        String tagContent = text.substring(tagStart + 1, tagEnd);
+        logger.debug("Tag content: '{}'", tagContent);
+
+        // Skip closing tags and comments
+        if (tagContent.startsWith("/") || tagContent.startsWith("!")) {
+            logger.debug("Skipping closing tag or comment: '{}'", tagContent);
+            return null;
+        }
+
+        // Extract element name (first word)
+        String[] parts = tagContent.split("\\s+");
+        logger.debug("Tag content split into {} parts: {}", parts.length, Arrays.toString(parts));
+        if (parts.length > 0) {
+            String elementName = parts[0];
+            logger.debug("Raw element name: '{}'", elementName);
+
+            // Remove namespace prefix for lookup
+            int colonIndex = elementName.indexOf(':');
+            if (colonIndex > 0) {
+                elementName = elementName.substring(colonIndex + 1);
+                logger.debug("Element name after removing namespace: '{}'", elementName);
+            }
+            return elementName;
+        }
+
+        logger.debug("No element name found in tag content");
+        return null;
+    }
+
+    /**
+     * Handles Ctrl+Click to navigate to XSD element definition.
+     */
+    private void handleGoToDefinition(javafx.scene.input.MouseEvent event) {
+        try {
+            logger.debug("handleGoToDefinition called at position ({}, {})", event.getX(), event.getY());
+
+            String elementName = getElementNameAtPosition(event.getX(), event.getY());
+            logger.debug("Extracted element name: '{}'", elementName);
+
+            if (elementName == null || elementName.isEmpty()) {
+                logger.debug("No element name found at position");
+                return;
+            }
+
+            logger.info("Go-to-Definition triggered for element: {}", elementName);
+
+            // Find element definition in XSD
+            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
+                logger.debug("Parent XmlEditor found, navigating to XSD definition");
+                navigateToXsdDefinition(xmlEditor, elementName);
+            } else {
+                logger.debug("Parent XmlEditor not available: {}", parentXmlEditor);
+            }
+        } catch (Exception e) {
+            logger.error("Error in Go-to-Definition: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Navigates to the XSD definition of the specified element.
+     */
+    private void navigateToXsdDefinition(org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor, String elementName) {
+        try {
+            var xsdDocumentationData = xmlEditor.getXsdDocumentationData();
+            if (xsdDocumentationData == null) {
+                logger.debug("XSD documentation data not yet loaded - showing user notification");
+                Platform.runLater(() -> {
+                    var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+                    alert.setTitle("Go-to-Definition");
+                    alert.setHeaderText("XSD Schema Loading");
+                    alert.setContentText("XSD schema is still being processed. Please wait a moment and try again.");
+                    alert.showAndWait();
+                });
+                return;
+            }
+
+            // Look for element in the extended element map
+            var extendedElementMap = xsdDocumentationData.getExtendedXsdElementMap();
+            org.fxt.freexmltoolkit.domain.XsdExtendedElement targetElement = null;
+
+            // Search for element by name
+            for (var entry : extendedElementMap.entrySet()) {
+                var element = entry.getValue();
+                if (elementName.equals(element.getElementName())) {
+                    targetElement = element;
+                    break;
+                }
+            }
+
+            if (targetElement == null) {
+                // Also check global elements
+                for (org.w3c.dom.Node globalElement : xsdDocumentationData.getGlobalElements()) {
+                    String name = getElementNameFromNode(globalElement);
+                    if (elementName.equals(name)) {
+                        // Found in global elements - navigate to XSD
+                        navigateToXsdFile(xmlEditor, globalElement, elementName);
+                        return;
+                    }
+                }
+
+                logger.debug("Element '{}' not found in XSD documentation", elementName);
+                showElementNotFoundMessage(elementName);
+                return;
+            }
+
+            // Navigate to the XSD definition
+            navigateToXsdFile(xmlEditor, targetElement.getCurrentNode(), elementName);
+
+        } catch (Exception e) {
+            logger.error("Error navigating to XSD definition: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Gets the element name from a DOM Node.
+     */
+    private String getElementNameFromNode(org.w3c.dom.Node node) {
+        if (node == null) {
+            return null;
+        }
+
+        // For XSD elements, check the 'name' attribute
+        if (node.hasAttributes()) {
+            org.w3c.dom.Node nameAttr = node.getAttributes().getNamedItem("name");
+            if (nameAttr != null) {
+                return nameAttr.getNodeValue();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Navigates to the XSD file and highlights the element definition.
+     */
+    private void navigateToXsdFile(org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor, org.w3c.dom.Node elementNode, String elementName) {
+        try {
+            // Get the main controller to switch to XSD tab
+            if (xmlEditor.getMainController() != null) {
+                var mainController = xmlEditor.getMainController();
+
+                // Trigger XSD tab by firing the xsd button
+                Platform.runLater(() -> {
+                    try {
+                        // Access the XSD button and fire it to switch tabs
+                        var xsdButton = mainController.getClass().getDeclaredField("xsd");
+                        xsdButton.setAccessible(true);
+                        javafx.scene.control.Button xsdBtn = (javafx.scene.control.Button) xsdButton.get(mainController);
+                        if (xsdBtn != null) {
+                            xsdBtn.fire();
+                            logger.info("Go-to-Definition: Navigated to XSD tab for element '{}'", elementName);
+                        }
+                    } catch (Exception e) {
+                        logger.debug("Could not access XSD button via reflection: {}", e.getMessage());
+                        // Fallback: just log the navigation
+                        logger.info("Go-to-Definition: Element '{}' found in XSD", elementName);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            logger.error("Error in XSD navigation: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Shows a message when an element definition is not found.
+     */
+    private void showElementNotFoundMessage(String elementName) {
+        Platform.runLater(() -> {
+            logger.debug("Element '{}' definition not found in associated XSD", elementName);
+            var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.setTitle("Go-to-Definition");
+            alert.setHeaderText("Element Not Found");
+            alert.setContentText("Definition for element '" + elementName + "' was not found in the associated XSD schema.");
+            alert.showAndWait();
+        });
     }
 }
