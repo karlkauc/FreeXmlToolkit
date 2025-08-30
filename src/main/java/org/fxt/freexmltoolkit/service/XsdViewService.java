@@ -167,6 +167,7 @@ public class XsdViewService {
         String maxOccurs = getAttributeValue(elementNode, "maxOccurs", "1");
 
         DocumentationParts docParts = extractDocumentationFromAnnotation(getDirectChildElement(elementNode, "annotation"));
+        List<String> exampleValues = extractExampleValues(getDirectChildElement(elementNode, "annotation"));
         List<XsdNodeInfo> children = new ArrayList<>();
 
         // Find the type definition (either inline or globally referenced)
@@ -183,7 +184,7 @@ public class XsdViewService {
             type = "xs:anyType";
         }
 
-        return new XsdNodeInfo(name, type, currentXPath, docParts.mainDocumentation(), children, Collections.emptyList(), minOccurs, maxOccurs, NodeType.ELEMENT);
+        return new XsdNodeInfo(name, type, currentXPath, docParts.mainDocumentation(), children, exampleValues, minOccurs, maxOccurs, NodeType.ELEMENT);
     }
 
     private List<XsdNodeInfo> processComplexTypeContent(Node complexTypeNode, String parentXPath, Set<Node> visitedOnPath) {
@@ -263,8 +264,9 @@ public class XsdViewService {
         String minOccurs = "required".equals(use) ? "1" : "0";
 
         DocumentationParts docParts = extractDocumentationFromAnnotation(getDirectChildElement(attributeNode, "annotation"));
+        List<String> exampleValues = extractExampleValues(getDirectChildElement(attributeNode, "annotation"));
 
-        return new XsdNodeInfo(name, type, currentXPath, docParts.mainDocumentation(), Collections.emptyList(), Collections.emptyList(), minOccurs, "1", NodeType.ATTRIBUTE);
+        return new XsdNodeInfo(name, type, currentXPath, docParts.mainDocumentation(), Collections.emptyList(), exampleValues, minOccurs, "1", NodeType.ATTRIBUTE);
     }
 
     private XsdNodeInfo processParticle(Node particleNode, String currentXPath, Set<Node> visitedOnPath) {
@@ -447,6 +449,39 @@ public class XsdViewService {
             }
         }
         return new DocumentationParts(mainDocBuilder.toString().trim(), javadocBuilder.toString().trim());
+    }
+
+    /**
+     * Extracts example values from altova:exampleValues elements in an annotation
+     */
+    private List<String> extractExampleValues(Node annotationNode) {
+        List<String> exampleValues = new ArrayList<>();
+        if (annotationNode == null) {
+            return exampleValues;
+        }
+
+        // Look for xs:appinfo elements containing altova:exampleValues
+        for (Node child : getDirectChildElements(annotationNode)) {
+            if ("appinfo".equals(child.getLocalName())) {
+                // Look for altova:exampleValues inside appinfo
+                for (Node appinfoChild : getDirectChildElements(child)) {
+                    if ("exampleValues".equals(appinfoChild.getLocalName()) &&
+                            "http://www.altova.com".equals(appinfoChild.getNamespaceURI())) {
+                        // Extract altova:example elements
+                        for (Node exampleNode : getDirectChildElements(appinfoChild)) {
+                            if ("example".equals(exampleNode.getLocalName()) &&
+                                    "http://www.altova.com".equals(exampleNode.getNamespaceURI())) {
+                                String value = getAttributeValue(exampleNode, "value");
+                                if (!value.isEmpty()) {
+                                    exampleValues.add(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return exampleValues;
     }
 
     // =================================================================================

@@ -60,6 +60,8 @@ public class XsdPropertyPanel extends VBox {
     private TextArea javadocTextArea;
     private ListView<String> exampleListView;
     private TextField newExampleField;
+    private Button saveDocButton;
+    private Button saveExamplesButton;
     private CheckBox nilableCheckBox;
     private CheckBox abstractCheckBox;
 
@@ -275,14 +277,16 @@ public class XsdPropertyPanel extends VBox {
         applyButton.setStyle("-fx-background-color: #28a745; -fx-text-fill: white;");
         applyButton.setOnAction(e -> applyChanges());
 
-        Button saveDocButton = new Button("Save Doc");
+        saveDocButton = new Button("Save Doc");
         saveDocButton.setGraphic(new FontIcon("bi-save"));
         saveDocButton.setTooltip(new Tooltip("Save documentation and javadoc"));
+        saveDocButton.setDisable(true); // Initially disabled
         saveDocButton.setOnAction(e -> saveDocumentation());
 
-        Button saveExamplesButton = new Button("Save Examples");
+        saveExamplesButton = new Button("Save Examples");
         saveExamplesButton.setGraphic(new FontIcon("bi-save"));
         saveExamplesButton.setTooltip(new Tooltip("Save example values"));
+        saveExamplesButton.setDisable(true); // Initially disabled
         saveExamplesButton.setOnAction(e -> saveExampleValues());
 
         Button resetButton = new Button("Reset");
@@ -302,6 +306,9 @@ public class XsdPropertyPanel extends VBox {
 
         // Add validation listeners
         setupValidation();
+
+        // Add change listeners for save button activation
+        setupChangeListeners();
     }
 
     private void setupValidation() {
@@ -325,6 +332,44 @@ public class XsdPropertyPanel extends VBox {
                 validateCardinality();
             }
         });
+    }
+
+    private void setupChangeListeners() {
+        // Track changes in documentation/javadoc to enable save button
+        documentationTextArea.textProperty().addListener((obs, oldVal, newVal) -> updateSaveDocButtonState());
+        javadocTextArea.textProperty().addListener((obs, oldVal, newVal) -> updateSaveDocButtonState());
+
+        // Track changes in example values to enable save button
+        exampleListView.getItems().addListener((javafx.collections.ListChangeListener<String>) change -> updateSaveExamplesButtonState());
+    }
+
+    private void updateSaveDocButtonState() {
+        if (currentNode == null || saveDocButton == null) {
+            return;
+        }
+
+        String currentDoc = documentationTextArea.getText();
+        String currentJavadoc = javadocTextArea.getText();
+        String originalDoc = currentNode.documentation() != null ? currentNode.documentation() : "";
+
+        // Enable if either documentation or javadoc has changed
+        boolean docChanged = !currentDoc.equals(originalDoc);
+        boolean javadocChanged = !currentJavadoc.trim().isEmpty(); // Enable if any javadoc is entered
+
+        saveDocButton.setDisable(!(docChanged || javadocChanged));
+    }
+
+    private void updateSaveExamplesButtonState() {
+        if (currentNode == null || saveExamplesButton == null) {
+            return;
+        }
+
+        List<String> currentExamples = new ArrayList<>(exampleListView.getItems());
+        List<String> originalExamples = currentNode.exampleValues() != null ? currentNode.exampleValues() : new ArrayList<>();
+
+        // Enable if example values have changed
+        boolean examplesChanged = !currentExamples.equals(originalExamples);
+        saveExamplesButton.setDisable(!examplesChanged);
     }
 
     private boolean validateName() {
@@ -451,6 +496,10 @@ public class XsdPropertyPanel extends VBox {
         minOccursField.setManaged(!isAttribute);
         maxOccursField.setVisible(!isAttribute);
         maxOccursField.setManaged(!isAttribute);
+
+        // Update save button states
+        updateSaveDocButtonState();
+        updateSaveExamplesButtonState();
     }
 
     private FontIcon getNodeTypeIcon() {
@@ -483,6 +532,10 @@ public class XsdPropertyPanel extends VBox {
         abstractCheckBox.setSelected(false);
         nodeTypeLabel.setText("");
         nodeTypeLabel.setGraphic(null);
+
+        // Reset save button states
+        if (saveDocButton != null) saveDocButton.setDisable(true);
+        if (saveExamplesButton != null) saveExamplesButton.setDisable(true);
     }
 
     private void addExampleValue() {
@@ -490,6 +543,7 @@ public class XsdPropertyPanel extends VBox {
         if (newValue != null && !newValue.trim().isEmpty()) {
             exampleListView.getItems().add(newValue);
             newExampleField.clear();
+            updateSaveExamplesButtonState();
         }
     }
 
@@ -497,6 +551,7 @@ public class XsdPropertyPanel extends VBox {
         String selected = exampleListView.getSelectionModel().getSelectedItem();
         if (selected != null) {
             exampleListView.getItems().remove(selected);
+            updateSaveExamplesButtonState();
         }
     }
 
@@ -592,6 +647,8 @@ public class XsdPropertyPanel extends VBox {
             String javadoc = javadocTextArea.getText();
             String xpath = currentNode.xpath();
             controller.saveElementDocumentation(xpath, doc, javadoc);
+            // Disable button after successful save
+            saveDocButton.setDisable(true);
         }
     }
 
@@ -602,6 +659,8 @@ public class XsdPropertyPanel extends VBox {
         if (controller != null && currentNode != null) {
             List<String> examples = new ArrayList<>(exampleListView.getItems());
             controller.saveExampleValues(currentNode.xpath(), examples);
+            // Disable button after successful save
+            saveExamplesButton.setDisable(true);
         }
     }
 }
