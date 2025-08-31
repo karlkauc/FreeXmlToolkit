@@ -726,6 +726,26 @@
   -fx-background-color: #0969da;
 }
 
+/* Override for table cells to keep black text when selected */
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #24292f !important;
+}
+
+/* More specific override for focused table cells */
+.table-row-cell:selected:focused .table-cell {
+    -fx-text-fill: #24292f !important;
+}
+
+/* Ensure all table cell content is readable when selected */
+.table-view .table-row-cell:selected .table-cell .text {
+    -fx-fill: #24292f !important;
+}
+
+/* Override for specific table cell content types */
+.table-row-cell:selected .table-cell .label {
+    -fx-text-fill: #24292f !important;
+}
+
 .tree-cell > .tree-disclosure-node > .arrow {
   -fx-background-color: #57606a;
 }

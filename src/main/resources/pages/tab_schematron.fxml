@@ -119,17 +119,19 @@
                     <VBox spacing="10">
                         <Label text="Quick Actions:" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
                         <HBox spacing="10">
-                            <Button text="Create New Schema">
+                            <Button fx:id="overviewCreateNewButton" text="Create New Schema"
+                                    onAction="#overviewCreateNew">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-plus-circle" iconColor="#28a745" iconSize="14"/>
                                 </graphic>
                             </Button>
-                            <Button text="Load Schema">
+                            <Button fx:id="overviewLoadSchemaButton" text="Load Schema" onAction="#overviewLoadSchema">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                 </graphic>
                             </Button>
-                            <Button text="Show Examples">
+                            <Button fx:id="overviewShowExamplesButton" text="Show Examples"
+                                    onAction="#overviewShowExamples">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-lightbulb" iconColor="#ffc107" iconSize="14"/>
                                 </graphic>
@@ -158,12 +160,30 @@
                         </tooltip>
                     </Button>
 
+                    <Button fx:id="newSchematronFileButton" text="New File" onAction="#newSchematronFile">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-file-earmark-plus" iconColor="#28a745" iconSize="14"/>
+                        </graphic>
+                        <tooltip>
+                            <Tooltip text="Create a new empty Schematron file"/>
+                        </tooltip>
+                    </Button>
+
                     <Button fx:id="saveSchematronButton" text="Save" onAction="#saveSchematron">
                         <graphic>
                             <FontIcon iconLiteral="bi-save" iconColor="#6c757d" iconSize="14"/>
                         </graphic>
                         <tooltip>
                             <Tooltip text="Save current Schematron file"/>
+                        </tooltip>
+                    </Button>
+
+                    <Button fx:id="saveAsSchematronButton" text="Save As" onAction="#saveAsSchematron">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-hdd-fill" iconColor="#17a2b8" iconSize="14"/>
+                        </graphic>
+                        <tooltip>
+                            <Tooltip text="Save Schematron file with new name"/>
                         </tooltip>
                     </Button>
 
@@ -235,8 +255,8 @@
 
                     <!-- Main Editor Area -->
                     <VBox fx:id="codeEditorContainer" spacing="0" SplitPane.resizableWithParent="true">
-                        <org.fxt.freexmltoolkit.controls.SchematronCodeEditor fx:id="schematronCodeEditor"
-                                                                              VBox.vgrow="ALWAYS"/>
+                        <org.fxt.freexmltoolkit.controls.XmlCodeEditor fx:id="xmlCodeEditor"
+                                                                       VBox.vgrow="ALWAYS"/>
                     </VBox>
 
                     <!-- Sidebar -->
@@ -374,10 +394,11 @@
                     <Separator/>
 
                 <!-- Testing Process -->
-                <VBox spacing="15">
+                <HBox spacing="15">
 
                     <!-- Step 1: Load Schema -->
-                    <VBox spacing="8" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 10;">
+                    <VBox spacing="8" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 10;"
+                          HBox.hgrow="ALWAYS">
                         <Label text="1. Schema Selection" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
                         <Label text="Choose a Schematron schema for validation"
                                style="-fx-text-fill: #6c757d; -fx-font-size: 11px;" wrapText="true"/>
@@ -398,7 +419,8 @@
                     </VBox>
 
                     <!-- Step 2: Add Test Files -->
-                    <VBox spacing="8" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 10;">
+                    <VBox spacing="8" style="-fx-border-color: #e9ecef; -fx-border-radius: 5; -fx-padding: 10;"
+                          HBox.hgrow="ALWAYS">
                         <Label text="2. Test Files" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
                         <Label text="Add XML files to validate against the schema"
                                style="-fx-text-fill: #6c757d; -fx-font-size: 11px;" wrapText="true"/>
@@ -421,7 +443,7 @@
                         </HBox>
                     </VBox>
 
-                </VBox>
+                </HBox>
 
                     <!-- Test Files Section -->
                     <VBox spacing="10">

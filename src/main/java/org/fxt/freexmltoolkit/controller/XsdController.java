@@ -2918,6 +2918,11 @@ public class XsdController {
 
             boolean success = command.execute();
             if (success) {
+                // Handle specific command types that need result display
+                if (command instanceof org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand findCommand) {
+                    displayTypeUsageResults(findCommand);
+                }
+                
                 // Add to undo stack if the command supports it
                 if (command.canUndo()) {
                     // TODO: Add to proper undo manager when available
@@ -3031,6 +3036,69 @@ public class XsdController {
                 }
             });
         }
+    }
+
+    /**
+     * Display the results of a find type usages command
+     */
+    private void displayTypeUsageResults(org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand findCommand) {
+        List<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage> usages = findCommand.getFoundUsages();
+
+        if (usages.isEmpty()) {
+            // Show info dialog when no usages found
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Find Type Usages");
+            alert.setHeaderText("No usages found");
+            alert.setContentText("Type '" + findCommand.getTypeInfo().name() + "' is not used anywhere in the schema.");
+            alert.showAndWait();
+            return;
+        }
+
+        // Create dialog to display usage results
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Find Type Usages - " + findCommand.getTypeInfo().name());
+        dialog.setHeaderText("Found " + usages.size() + " usage(s) of type '" + findCommand.getTypeInfo().name() + "'");
+
+        // Create table to display usage results
+        TableView<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage> usageTable = new TableView<>();
+        usageTable.setPrefSize(600, 300);
+
+        // Create columns
+        TableColumn<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage, String> elementColumn = new TableColumn<>("Element");
+        elementColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getElementName()));
+        elementColumn.setPrefWidth(120);
+
+        TableColumn<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage, String> usageTypeColumn = new TableColumn<>("Usage Type");
+        usageTypeColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getUsageType().getDescription()));
+        usageTypeColumn.setPrefWidth(120);
+
+        TableColumn<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage, String> contextColumn = new TableColumn<>("Context");
+        contextColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getUsageContext()));
+        contextColumn.setPrefWidth(150);
+
+        TableColumn<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage, String> xpathColumn = new TableColumn<>("XPath");
+        xpathColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getXPath()));
+        xpathColumn.setPrefWidth(200);
+
+        usageTable.getColumns().addAll(elementColumn, usageTypeColumn, contextColumn, xpathColumn);
+
+        // Add data to table
+        usageTable.getItems().addAll(usages);
+
+        // Create content for dialog
+        VBox content = new VBox(10);
+        content.getChildren().addAll(
+                new Label("Click on a row to see more details:"),
+                usageTable
+        );
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        // Show the dialog
+        dialog.showAndWait();
+
+        logger.info("Displayed {} type usages for '{}'", usages.size(), findCommand.getTypeInfo().name());
     }
 
 }

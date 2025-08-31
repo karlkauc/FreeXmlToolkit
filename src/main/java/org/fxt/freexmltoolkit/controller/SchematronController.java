@@ -63,7 +63,13 @@ public class SchematronController {
     private Button loadSchematronFileButton;
 
     @FXML
+    private Button newSchematronFileButton;
+
+    @FXML
     private Button saveSchematronButton;
+
+    @FXML
+    private Button saveAsSchematronButton;
 
     @FXML
     private Button newRuleButton;
@@ -82,6 +88,16 @@ public class SchematronController {
 
     @FXML
     private MenuButton loadSchematronFavoritesButton;
+
+    // Overview Tab Buttons
+    @FXML
+    private Button overviewCreateNewButton;
+
+    @FXML
+    private Button overviewLoadSchemaButton;
+
+    @FXML
+    private Button overviewShowExamplesButton;
 
     // Containers removed - components are directly in FXML now
 
@@ -182,7 +198,7 @@ public class SchematronController {
 
     // Core components from FXML
     @FXML
-    private SchematronCodeEditor schematronCodeEditor;
+    private XmlCodeEditor xmlCodeEditor;
 
     @FXML
     private SchematronVisualBuilder visualBuilder;
@@ -250,6 +266,15 @@ public class SchematronController {
         // Initialize test tab components
         initializeTestTab();
 
+        // Add tab selection listener to refresh syntax highlighting
+        if (tabPane != null && xmlCodeEditor != null) {
+            tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+                if (newTab == codeTab) {
+                    Platform.runLater(() -> xmlCodeEditor.refreshHighlighting());
+                }
+            });
+        }
+
         logger.info("SchematronController initialization completed");
     }
 
@@ -258,9 +283,9 @@ public class SchematronController {
      */
     private void initializeCodeEditor() {
         try {
-            // schematronCodeEditor is already initialized from FXML
-            if (schematronCodeEditor != null) {
-                codeArea = schematronCodeEditor.getCodeArea();
+            // xmlCodeEditor is already initialized from FXML
+            if (xmlCodeEditor != null) {
+                codeArea = xmlCodeEditor.getCodeArea();
 
                 // Initialize auto-completion
                 autoComplete = new SchematronAutoComplete(codeArea);
@@ -371,8 +396,8 @@ public class SchematronController {
 
                 // Set callback to insert templates into code editor
                 templateLibrary.setTemplateInsertCallback(template -> {
-                    if (schematronCodeEditor != null) {
-                        schematronCodeEditor.insertTemplate(template);
+                    if (xmlCodeEditor != null) {
+                        xmlCodeEditor.getCodeArea().insertText(xmlCodeEditor.getCodeArea().getCaretPosition(), template);
                         performErrorDetection();
                     }
                 });
@@ -436,8 +461,9 @@ public class SchematronController {
      */
     private void loadSchematronContent(File file, String content) {
         Platform.runLater(() -> {
-            if (schematronCodeEditor != null) {
-                schematronCodeEditor.setText(content);
+            if (xmlCodeEditor != null) {
+                xmlCodeEditor.setText(content);
+                xmlCodeEditor.refreshHighlighting();
 
                 // Update current file reference
                 currentSchematronFile = file;
@@ -450,6 +476,11 @@ public class SchematronController {
                 // Notify integration service of Schematron file change
                 if (parentController != null && parentController.getIntegrationService() != null) {
                     parentController.getIntegrationService().setCurrentSchematronFile(file);
+                }
+
+                // Add file to recent files
+                if (parentController != null) {
+                    parentController.addFileToRecentFiles(file);
                 }
 
                 // Update tab title to show filename
@@ -478,6 +509,83 @@ public class SchematronController {
     }
 
     /**
+     * Create a new empty Schematron file
+     */
+    @FXML
+    private void newSchematronFile() {
+        createNewSchematron();
+    }
+
+    /**
+     * Save As button action - enhanced version with current file pre-population
+     */
+    @FXML
+    private void saveAsSchematron() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Schematron File As");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Schematron files (*.sch)", "*.sch"),
+                new FileChooser.ExtensionFilter("Schematron files (*.schematron)", "*.schematron"),
+                new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
+        );
+
+        // Set initial directory and filename from current file if available
+        if (currentSchematronFile != null) {
+            // Set directory from current file
+            if (currentSchematronFile.getParent() != null) {
+                File parentDir = new File(currentSchematronFile.getParent());
+                if (parentDir.exists() && parentDir.isDirectory()) {
+                    fileChooser.setInitialDirectory(parentDir);
+                }
+            }
+            // Set initial filename
+            fileChooser.setInitialFileName(currentSchematronFile.getName());
+        } else {
+            // Fallback to last open directory if no current file
+            String lastDirString = propertiesService.getLastOpenDirectory();
+            if (lastDirString != null) {
+                File lastDir = new File(lastDirString);
+                if (lastDir.exists() && lastDir.isDirectory()) {
+                    fileChooser.setInitialDirectory(lastDir);
+                }
+            }
+        }
+
+        File selectedFile = fileChooser.showSaveDialog(xmlCodeEditor.getScene().getWindow());
+        if (selectedFile != null) {
+            try {
+                String content = xmlCodeEditor.getText();
+                Files.writeString(selectedFile.toPath(), content);
+
+                // Update current file reference
+                currentSchematronFile = selectedFile;
+
+                // Update last open directory
+                if (selectedFile.getParent() != null) {
+                    propertiesService.setLastOpenDirectory(selectedFile.getParent());
+                }
+
+                // Add file to recent files
+                if (parentController != null) {
+                    parentController.addFileToRecentFiles(selectedFile);
+                }
+
+                // Update tab title
+                if (tabPane != null && codeTab != null) {
+                    codeTab.setText("Code - " + selectedFile.getName());
+                }
+
+                logger.info("Schematron file saved as: {}", selectedFile.getAbsolutePath());
+                showInfo("File Saved", "File saved as: " + selectedFile.getName());
+
+            } catch (IOException e) {
+                logger.error("Failed to save Schematron file as", e);
+                showError("Save Error", "Failed to save file: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
      * Save the current Schematron file
      */
     public void saveSchematronFile() {
@@ -487,7 +595,7 @@ public class SchematronController {
         }
 
         try {
-            String content = schematronCodeEditor.getText();
+            String content = xmlCodeEditor.getText();
             Files.writeString(currentSchematronFile.toPath(), content);
 
             logger.info("Schematron file saved: {}", currentSchematronFile.getAbsolutePath());
@@ -511,22 +619,40 @@ public class SchematronController {
                 new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
         );
 
-        // Set initial directory from properties
-        String lastDirString = propertiesService.getLastOpenDirectory();
-        if (lastDirString != null) {
-            File lastDir = new File(lastDirString);
-            if (lastDir.exists() && lastDir.isDirectory()) {
-                fileChooser.setInitialDirectory(lastDir);
+        // Set initial directory and filename from current file if available
+        if (currentSchematronFile != null) {
+            // Set directory from current file
+            if (currentSchematronFile.getParent() != null) {
+                File parentDir = new File(currentSchematronFile.getParent());
+                if (parentDir.exists() && parentDir.isDirectory()) {
+                    fileChooser.setInitialDirectory(parentDir);
+                }
+            }
+            // Set initial filename
+            fileChooser.setInitialFileName(currentSchematronFile.getName());
+        } else {
+            // Fallback to last open directory if no current file
+            String lastDirString = propertiesService.getLastOpenDirectory();
+            if (lastDirString != null) {
+                File lastDir = new File(lastDirString);
+                if (lastDir.exists() && lastDir.isDirectory()) {
+                    fileChooser.setInitialDirectory(lastDir);
+                }
             }
         }
 
-        File file = fileChooser.showSaveDialog(schematronCodeEditor.getScene().getWindow());
+        File file = fileChooser.showSaveDialog(xmlCodeEditor.getScene().getWindow());
         if (file != null) {
             currentSchematronFile = file;
 
             // Update last open directory
             if (file.getParent() != null) {
                 propertiesService.setLastOpenDirectory(file.getParent());
+            }
+
+            // Add file to recent files
+            if (parentController != null) {
+                parentController.addFileToRecentFiles(file);
             }
             
             saveSchematronFile();
@@ -540,7 +666,8 @@ public class SchematronController {
         String template = generateBasicSchematronTemplate();
 
         Platform.runLater(() -> {
-            schematronCodeEditor.setText(template);
+            xmlCodeEditor.setText(template);
+            xmlCodeEditor.refreshHighlighting();
 
             currentSchematronFile = null;
             codeTab.setText("Code - New Schematron");
@@ -569,7 +696,7 @@ public class SchematronController {
      */
     private void insertNewRule() {
         String ruleTemplate = generateRuleTemplate();
-        schematronCodeEditor.insertTemplate(ruleTemplate);
+        xmlCodeEditor.getCodeArea().insertText(xmlCodeEditor.getCodeArea().getCaretPosition(), ruleTemplate);
         performErrorDetection();
         logger.debug("New rule template inserted");
     }
@@ -579,7 +706,7 @@ public class SchematronController {
      */
     private void insertNewPattern() {
         String patternTemplate = generatePatternTemplate();
-        schematronCodeEditor.insertTemplate(patternTemplate);
+        xmlCodeEditor.getCodeArea().insertText(xmlCodeEditor.getCodeArea().getCaretPosition(), patternTemplate);
         performErrorDetection();
         logger.debug("New pattern template inserted");
     }
@@ -588,13 +715,13 @@ public class SchematronController {
      * Validate the current Schematron file
      */
     private void validateSchematron() {
-        if (schematronCodeEditor == null || schematronCodeEditor.getText().isEmpty()) {
+        if (xmlCodeEditor == null || xmlCodeEditor.getText().isEmpty()) {
             showWarning("Validation", "No Schematron content to validate");
             return;
         }
 
         try {
-            String content = schematronCodeEditor.getText();
+            String content = xmlCodeEditor.getText();
             SchematronErrorDetector.SchematronErrorResult result = errorDetector.detectErrors(content);
 
             // Display validation results
@@ -691,8 +818,8 @@ public class SchematronController {
      * Perform error detection on current content
      */
     private void performErrorDetection() {
-        if (schematronCodeEditor != null && errorDetector != null) {
-            String content = schematronCodeEditor.getText();
+        if (xmlCodeEditor != null && errorDetector != null) {
+            String content = xmlCodeEditor.getText();
             if (!content.trim().isEmpty()) {
                 // Run validation in background to avoid UI blocking
                 Platform.runLater(() -> {
@@ -759,9 +886,9 @@ public class SchematronController {
      * Transfer code from visual builder to code editor
      */
     public void transferFromVisualBuilder() {
-        if (visualBuilder != null && schematronCodeEditor != null) {
+        if (visualBuilder != null && xmlCodeEditor != null) {
             String generatedCode = visualBuilder.getGeneratedCode();
-            schematronCodeEditor.setText(generatedCode);
+            xmlCodeEditor.setText(generatedCode);
 
             // Switch to code tab to show result
             if (tabPane != null && codeTab != null) {
@@ -1189,7 +1316,7 @@ public class SchematronController {
      */
     @FXML
     private void useCurrentSchema() {
-        if (schematronCodeEditor == null || schematronCodeEditor.getText().isEmpty()) {
+        if (xmlCodeEditor == null || xmlCodeEditor.getText().isEmpty()) {
             showWarning("No Schema", "No Schematron schema in the code editor");
             return;
         }
@@ -1201,7 +1328,7 @@ public class SchematronController {
             // Create temporary file with current content
             try {
                 Path tempFile = Files.createTempFile("schematron_test_", ".sch");
-                Files.writeString(tempFile, schematronCodeEditor.getText());
+                Files.writeString(tempFile, xmlCodeEditor.getText());
                 testSchematronFile = tempFile.toFile();
                 testSchematronFile.deleteOnExit();
                 showInfo("Schema Ready", "Using current editor content for testing");
@@ -2425,5 +2552,96 @@ public class SchematronController {
         }
 
         return errorBox;
+    }
+
+    // Overview Tab Button Actions
+
+    /**
+     * Create new schema from Overview tab
+     */
+    @FXML
+    private void overviewCreateNew() {
+        // Switch to Code tab
+        if (tabPane != null && codeTab != null) {
+            tabPane.getSelectionModel().select(codeTab);
+        }
+        // Create new Schematron
+        createNewSchematron();
+    }
+
+    /**
+     * Load schema from Overview tab
+     */
+    @FXML
+    private void overviewLoadSchema() {
+        // Switch to Code tab
+        if (tabPane != null && codeTab != null) {
+            tabPane.getSelectionModel().select(codeTab);
+        }
+        // Load Schematron file
+        loadSchematronFile();
+    }
+
+    /**
+     * Show examples from Overview tab
+     */
+    @FXML
+    private void overviewShowExamples() {
+        // Switch to Code tab and show a basic example
+        if (tabPane != null && codeTab != null) {
+            tabPane.getSelectionModel().select(codeTab);
+        }
+
+        // Create a more comprehensive example schema
+        String exampleSchema = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <schema xmlns="http://purl.oclc.org/dsdl/schematron" queryBinding="xslt2">
+                    <title>Example Schematron Schema</title>
+                    <ns prefix="xs" uri="http://www.w3.org/2001/XMLSchema"/>
+                
+                    <!-- Example Pattern: Document Structure -->
+                    <pattern id="document-structure">
+                        <title>Document Structure Rules</title>
+                
+                        <rule context="document">
+                            <assert test="@version">Document must have a version attribute</assert>
+                            <assert test="string-length(@version) > 0">Version attribute cannot be empty</assert>
+                        </rule>
+                
+                        <rule context="document/header">
+                            <assert test="title">Document header must contain a title</assert>
+                            <assert test="string-length(title) >= 3">Title must be at least 3 characters long</assert>
+                        </rule>
+                    </pattern>
+                
+                    <!-- Example Pattern: Business Rules -->
+                    <pattern id="business-rules">
+                        <title>Business Logic Validation</title>
+                
+                        <rule context="order">
+                            <assert test="@order-date">Orders must have a date</assert>
+                            <assert test="count(item) >= 1">Order must contain at least one item</assert>
+                            <report test="@total-amount &lt; 0">Negative total amount detected: <value-of select="@total-amount"/></report>
+                        </rule>
+                
+                        <rule context="item">
+                            <assert test="@quantity and @quantity > 0">Item quantity must be positive</assert>
+                            <assert test="price">Each item must have a price</assert>
+                        </rule>
+                    </pattern>
+                </schema>""";
+
+        Platform.runLater(() -> {
+            if (xmlCodeEditor != null) {
+                xmlCodeEditor.setText(exampleSchema);
+                xmlCodeEditor.refreshHighlighting();
+
+                // Clear current file reference since this is an example
+                currentSchematronFile = null;
+                codeTab.setText("Code - Example Schema");
+
+                showInfo("Example Loaded", "Example Schematron schema loaded in Code tab");
+            }
+        });
     }
 }
