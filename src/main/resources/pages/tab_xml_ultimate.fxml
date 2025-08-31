@@ -43,6 +43,15 @@
             </tooltip>
         </Button>
 
+        <Button fx:id="saveAsFile" contentDisplay="TOP" onAction="#saveAsFile" text="Save As">
+            <graphic>
+                <FontIcon iconColor="#17a2b8" iconLiteral="bi-hdd-fill" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Save document with new name"/>
+            </tooltip>
+        </Button>
+
         <!-- Favorites Group -->
         <Button fx:id="addToFavoritesButton" contentDisplay="TOP" onAction="#addCurrentFileToFavorites" text="★ Add">
             <graphic>
