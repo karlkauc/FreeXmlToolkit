@@ -857,8 +857,8 @@ public class XmlEditor extends Tab {
             if (elementInfo != null) {
                 List<String> childElements = elementInfo.getChildren();
                 if (childElements != null && !childElements.isEmpty()) {
-                    // Format child elements to show only names and types, not full XPaths
-                    List<String> formattedChildren = formatChildElementsForDisplay(childElements);
+                    // Format child elements to show names and types for sidebar, not full XPaths
+                    List<String> formattedChildren = formatChildElementsForDisplay(childElements, true);
                     sidebarController.setPossibleChildElements(formattedChildren);
                 } else {
                     sidebarController.setPossibleChildElements(Collections.singletonList("No child elements defined for this element"));
@@ -869,8 +869,8 @@ public class XmlEditor extends Tab {
                 if (elementName != null) {
                     List<String> childElements = getChildElementsFromXsdByName(elementName);
                     if (!childElements.isEmpty()) {
-                        // Format child elements to show only names and types, not full XPaths
-                        List<String> formattedChildren = formatChildElementsForDisplay(childElements);
+                        // Format child elements to show names and types for sidebar, not full XPaths
+                        List<String> formattedChildren = formatChildElementsForDisplay(childElements, true);
                         sidebarController.setPossibleChildElements(formattedChildren);
                     } else {
                         sidebarController.setPossibleChildElements(Collections.singletonList("No child elements found for: " + elementName));
@@ -893,6 +893,13 @@ public class XmlEditor extends Tab {
      * @return List of formatted strings with element names and types
      */
     private List<String> formatChildElementsForDisplay(List<String> childElements) {
+        return formatChildElementsForDisplay(childElements, false);
+    }
+
+    /**
+     * Formats child elements with option to include type information for display
+     */
+    private List<String> formatChildElementsForDisplay(List<String> childElements, boolean includeTypes) {
         List<String> formattedElements = new ArrayList<>();
 
         for (String childXPath : childElements) {
@@ -900,15 +907,19 @@ public class XmlEditor extends Tab {
                 // Extract element name from XPath (get the last part after the last '/')
                 String elementName = getElementNameFromXPath(childXPath);
                 if (elementName != null) {
-                    // Try to get type information from the XSD documentation data
-                    String elementType = getElementTypeFromXsdData(childXPath);
-
                     String displayText;
-                    if (elementType != null && !elementType.isEmpty() && !elementType.equals("xs:string")) {
-                        // Show element name with type if available and not default string type
-                        displayText = elementName + " (" + elementType + ")";
+                    if (includeTypes) {
+                        // Try to get type information from the XSD documentation data
+                        String elementType = getElementTypeFromXsdData(childXPath);
+                        if (elementType != null && !elementType.isEmpty() && !elementType.equals("xs:string")) {
+                            // Show element name with type if available and not default string type
+                            displayText = elementName + " (" + elementType + ")";
+                        } else {
+                            // Just show element name if no specific type info
+                            displayText = elementName;
+                        }
                     } else {
-                        // Just show element name if no specific type info
+                        // IntelliSense mode: only show element name
                         displayText = elementName;
                     }
 
