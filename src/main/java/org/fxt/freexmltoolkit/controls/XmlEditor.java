@@ -1988,7 +1988,7 @@ public class XmlEditor extends Tab {
                     try {
                         String formattedText = XmlService.prettyFormat(currentText, propertiesService.getXmlIndentSpaces());
                         if (formattedText != null && !formattedText.isEmpty()) {
-                            codeArea.replaceText(0, codeArea.getLength(), formattedText);
+                            xmlCodeEditor.setText(formattedText);
                             logger.debug("XML content auto-formatted successfully");
                         }
                     } catch (Exception e) {
@@ -2053,7 +2053,7 @@ public class XmlEditor extends Tab {
         }
         try {
             final String content = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
-            codeArea.replaceText(content);
+            xmlCodeEditor.setText(content);
 
             // Also initialize the DOM when loading a file
             if (!content.isEmpty()) {
@@ -2065,7 +2065,7 @@ public class XmlEditor extends Tab {
                 }
             }
         } catch (IOException e) {
-            codeArea.replaceText("Error: Could not read file.\n" + e.getMessage());
+            xmlCodeEditor.setText("Error: Could not read file.\n" + e.getMessage());
             document = null;
         }
     }
@@ -2110,7 +2110,7 @@ public class XmlEditor extends Tab {
 
                 // Update the text editor with the new content
                 String newXmlContent = writer.toString();
-                codeArea.replaceText(newXmlContent);
+                xmlCodeEditor.setText(newXmlContent);
 
                 // Update the file if it exists
                 if (xmlFile != null && xmlFile.exists()) {

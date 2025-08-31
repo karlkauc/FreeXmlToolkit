@@ -295,6 +295,42 @@ public class XmlCodeEditor extends VBox {
             // Handle automatic tag completion
             handleAutomaticTagCompletion(oldText, newText);
         });
+
+        // Add scene change listener to restore syntax highlighting when tab becomes visible
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                Platform.runLater(() -> {
+                    String currentText = codeArea.getText();
+                    if (currentText != null && !currentText.isEmpty()) {
+                        applySyntaxHighlighting(currentText);
+                    }
+                });
+            }
+        });
+
+        // Add parent change listener to restore syntax highlighting when moved between containers
+        parentProperty().addListener((obs, oldParent, newParent) -> {
+            if (newParent != null) {
+                Platform.runLater(() -> {
+                    String currentText = codeArea.getText();
+                    if (currentText != null && !currentText.isEmpty()) {
+                        applySyntaxHighlighting(currentText);
+                    }
+                });
+            }
+        });
+
+        // Add focus listener to restore highlighting when CodeArea gains focus
+        codeArea.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (isFocused) {
+                Platform.runLater(() -> {
+                    String currentText = codeArea.getText();
+                    if (currentText != null && !currentText.isEmpty()) {
+                        applySyntaxHighlighting(currentText);
+                    }
+                });
+            }
+        });
     }
 
     /**
@@ -1508,6 +1544,36 @@ public class XmlCodeEditor extends VBox {
      */
     public CodeArea getCodeArea() {
         return codeArea;
+    }
+
+    /**
+     * Sets the text content and immediately applies syntax highlighting
+     */
+    public void setText(String text) {
+        codeArea.replaceText(text);
+        Platform.runLater(() -> {
+            if (text != null && !text.isEmpty()) {
+                applySyntaxHighlighting(text);
+                updateFoldingRegions(text);
+            }
+        });
+    }
+
+    /**
+     * Gets the current text content
+     */
+    public String getText() {
+        return codeArea.getText();
+    }
+
+    /**
+     * Forces syntax highlighting refresh - useful when tab becomes visible
+     */
+    public void refreshHighlighting() {
+        String currentText = codeArea.getText();
+        if (currentText != null && !currentText.isEmpty()) {
+            Platform.runLater(() -> applySyntaxHighlighting(currentText));
+        }
     }
 
     /**
