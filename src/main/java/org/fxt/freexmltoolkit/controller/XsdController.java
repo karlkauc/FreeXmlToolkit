@@ -828,12 +828,21 @@ public class XsdController {
      * Updates the XSD content after editing operations
      */
     public void updateXsdContent(String updatedXsd) {
+        updateXsdContent(updatedXsd, true);
+    }
+
+    /**
+     * Updates the XSD content with option to skip diagram rebuild
+     */
+    public void updateXsdContent(String updatedXsd, boolean rebuildDiagram) {
         if (updatedXsd != null && sourceCodeEditor != null) {
             // Update the text editor
             sourceCodeEditor.getCodeArea().replaceText(updatedXsd);
 
-            // Rebuild the diagram view
-            loadXsdIntoGraphicView(updatedXsd);
+            // Rebuild the diagram view only if requested
+            if (rebuildDiagram) {
+                loadXsdIntoGraphicView(updatedXsd);
+            }
 
             // Mark as modified
             hasUnsavedChanges = true;
@@ -862,7 +871,7 @@ public class XsdController {
     /**
      * Analyzes XSD content and extracts structure and metadata
      */
-    private DiagramData analyzeXsdContent(String xsdContent) throws Exception {
+    public DiagramData analyzeXsdContent(String xsdContent) throws Exception {
         // Use service for tree and documentation
         XsdViewService viewService = new XsdViewService();
         XsdNodeInfo rootNode = viewService.buildLightweightTree(xsdContent);

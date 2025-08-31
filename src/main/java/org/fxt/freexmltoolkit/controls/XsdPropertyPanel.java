@@ -481,6 +481,68 @@ public class XsdPropertyPanel extends VBox {
     }
 
     /**
+     * Forces update of all fields from current DOM values
+     * This is used when the DOM has been updated but the XsdNodeInfo hasn't been refreshed
+     */
+    public void forceUpdateFromDOM() {
+        if (currentNode == null || domManipulator == null) {
+            return;
+        }
+
+        try {
+            // Get the current DOM element for this node
+            Element element = domManipulator.findElementByXPath(currentNode.xpath());
+            if (element == null) {
+                logger.warn("Could not find DOM element for XPath: {}", currentNode.xpath());
+                return;
+            }
+
+            // Update type field with current DOM value
+            String currentType = element.getAttribute("type");
+            // Always update the type field, even if it's empty (to clear old values)
+            typeProperty.set(currentType != null ? currentType : "");
+            // Also update the combo box directly
+            if (typeComboBox != null) {
+                typeComboBox.setValue(currentType != null ? currentType : "");
+            }
+            logger.debug("Updated type field from DOM: {}", currentType);
+
+            // Update minOccurs field
+            String currentMinOccurs = element.getAttribute("minOccurs");
+            minOccursProperty.set(currentMinOccurs != null ? currentMinOccurs : "");
+            if (minOccursField != null) {
+                minOccursField.setText(currentMinOccurs != null ? currentMinOccurs : "");
+            }
+
+            // Update maxOccurs field
+            String currentMaxOccurs = element.getAttribute("maxOccurs");
+            maxOccursProperty.set(currentMaxOccurs != null ? currentMaxOccurs : "");
+            if (maxOccursField != null) {
+                maxOccursField.setText(currentMaxOccurs != null ? currentMaxOccurs : "");
+            }
+
+            // Update use field for attributes
+            if (currentNode.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE) {
+                String currentUse = element.getAttribute("use");
+                useComboBox.setValue(currentUse != null ? currentUse : "optional");
+            }
+
+            // Update default value
+            String currentDefault = element.getAttribute("default");
+            defaultValueField.setText(currentDefault != null ? currentDefault : "");
+
+            // Update fixed value
+            String currentFixed = element.getAttribute("fixed");
+            fixedValueField.setText(currentFixed != null ? currentFixed : "");
+
+            logger.debug("Force updated property panel fields from DOM for node: {}", currentNode.name());
+
+        } catch (Exception e) {
+            logger.error("Error force updating property panel from DOM", e);
+        }
+    }
+
+    /**
      * Refresh the type dropdown when schema changes
      */
     public void refreshTypes() {
@@ -491,7 +553,7 @@ public class XsdPropertyPanel extends VBox {
         }
     }
 
-    private void updateFields() {
+    public void updateFields() {
         if (currentNode == null) {
             return;
         }
@@ -622,9 +684,14 @@ public class XsdPropertyPanel extends VBox {
                 domManipulator.renameElement(xpath, nameField.getText());
             }
 
-            // Update type if changed
-            if (!typeComboBox.getValue().equals(currentNode.type())) {
-                domManipulator.updateElementProperties(xpath, "type", typeComboBox.getValue());
+            // Update type if changed (commit editor text for editable ComboBox)
+            String newTypeValue = typeComboBox.isEditable() ? typeComboBox.getEditor().getText() : typeComboBox.getValue();
+            newTypeValue = newTypeValue != null ? newTypeValue.trim() : "";
+            String oldTypeValue = currentNode.type() != null ? currentNode.type().trim() : "";
+            if (!newTypeValue.equals(oldTypeValue)) {
+                // Commit to ComboBox value so UI reflects the change
+                typeComboBox.setValue(newTypeValue);
+                domManipulator.updateElementProperties(xpath, "type", newTypeValue);
             }
 
             // Update cardinality for elements
@@ -637,7 +704,12 @@ public class XsdPropertyPanel extends VBox {
                 }
             } else {
                 // For attributes, update 'use' instead
-                String currentUse = "required".equals(useComboBox.getValue()) ? "required" : "optional";
+                // Read current selection/editor text
+                String useValue = useComboBox.getValue();
+                if (useComboBox.isEditable() && useComboBox.getEditor() != null && !useComboBox.getEditor().getText().isEmpty()) {
+                    useValue = useComboBox.getEditor().getText();
+                }
+                String currentUse = "required".equals(useValue) ? "required" : "optional";
                 domManipulator.updateElementProperties(xpath, "use", currentUse);
             }
 
@@ -645,10 +717,17 @@ public class XsdPropertyPanel extends VBox {
             domManipulator.updateElementProperties(xpath, "default", defaultValueField.getText());
             domManipulator.updateElementProperties(xpath, "fixed", fixedValueField.getText());
 
-            // Notify that changes were made
+            // Notify that changes were made (this will trigger selective refresh and save to file)
             if (onPropertyChanged != null) {
                 onPropertyChanged.accept("Properties updated for " + currentNode.name());
             }
+
+            // Show success message
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setTitle("Changes Applied");
+            successAlert.setHeaderText("Properties Updated Successfully");
+            successAlert.setContentText("The changes have been applied to the XSD file.");
+            successAlert.showAndWait();
 
             logger.info("Applied property changes for node: {}", currentNode.name());
 

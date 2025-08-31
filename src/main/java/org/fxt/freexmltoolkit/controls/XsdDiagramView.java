@@ -30,6 +30,7 @@ import org.fxt.freexmltoolkit.domain.command.InlineTypeDefinitionCommand;
 import org.fxt.freexmltoolkit.service.XsdClipboardService;
 import org.fxt.freexmltoolkit.service.XsdDomManipulator;
 import org.fxt.freexmltoolkit.service.XsdLiveValidationService;
+import org.fxt.freexmltoolkit.service.XsdViewService;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Element;
 
@@ -47,7 +48,7 @@ public class XsdDiagramView {
 
     private static final Logger logger = LogManager.getLogger(XsdDiagramView.class);
 
-    private final XsdNodeInfo rootNode;
+    private XsdNodeInfo rootNode;
     private final XsdController controller;
     private final XsdDomManipulator domManipulator;
 
@@ -327,8 +328,18 @@ public class XsdDiagramView {
         propertyPanel.setDomManipulator(domManipulator);
         propertyPanel.setController(controller);
         propertyPanel.setOnPropertyChanged(message -> {
-            // Refresh the view when properties change
-            refreshView();
+            System.out.println("DEBUG: Property changed callback triggered: " + message);
+
+            // Use selective refresh instead of full rebuild to preserve expansion states
+            String updatedXsd = domManipulator.getXsdAsString();
+            if (updatedXsd != null) {
+                // Update text editor only, don't rebuild diagram
+                controller.updateXsdContent(updatedXsd, false);
+
+                // Perform selective refresh of only the changed node
+                performSelectiveNodeRefresh();
+            }
+            
             triggerLiveValidation();
         });
 
@@ -748,7 +759,7 @@ public class XsdDiagramView {
      * Haupt-Dispatch-Methode, die entscheidet, welche Art von Ansicht für einen Knoten erstellt wird.
      */
     private Node createNodeView(XsdNodeInfo node) {
-        return switch (node.nodeType()) {
+        Node viewNode = switch (node.nodeType()) {
             case ELEMENT -> createElementNodeView(node);
             case ATTRIBUTE -> createAttributeNodeView(node);
             case ANY -> createAnyNodeView(node);
@@ -756,6 +767,10 @@ public class XsdDiagramView {
             case CHOICE -> createStructuralNodeView(node, "CHOICE", CHOICE_NODE_STYLE);
             default -> new Label("Unknown Node Type: " + node.name());
         };
+
+        nodeViewCache.put(node, viewNode);
+
+        return viewNode;
     }
 
     /**
@@ -1152,12 +1167,21 @@ public class XsdDiagramView {
     }
 
     private void updateDetailPane(XsdNodeInfo node) {
+        // Resolve the freshest node by XPath against the current root tree
+        if (node != null && node.xpath() != null && this.rootNode != null) {
+            XsdNodeInfo resolved = findNodeByXPath(this.rootNode, node.xpath());
+            if (resolved != null) {
+                node = resolved;
+            }
+        }
+
         this.selectedNode = node;
 
-        // Update property panel
+        // Update property panel with current data and force DOM sync
         if (propertyPanel != null) {
-            propertyPanel.refreshTypes();
             propertyPanel.setSelectedNode(node);
+            propertyPanel.refreshTypes();
+            propertyPanel.forceUpdateFromDOM();
         }
 
         // Update validation panel
@@ -2401,13 +2425,357 @@ public class XsdDiagramView {
     }
 
     public void refreshView() {
-        // Get updated XSD content and rebuild view
+        refreshView(false);
+    }
+
+    public void refreshView(boolean forceFullRebuild) {
+        System.out.println("DEBUG: refreshView called with forceFullRebuild=" + forceFullRebuild);
         if (domManipulator != null && controller != null) {
-            String updatedXsd = domManipulator.getXsdAsString();
-            if (updatedXsd != null) {
-                controller.updateXsdContent(updatedXsd);
+            if (forceFullRebuild) {
+                System.out.println("DEBUG: Performing FULL rebuild");
+                String updatedXsd = domManipulator.getXsdAsString();
+                if (updatedXsd != null) {
+                    controller.updateXsdContent(updatedXsd);
+                }
+            } else {
+                System.out.println("DEBUG: Performing SELECTIVE refresh");
+                refreshViewSelectively();
             }
         }
+    }
+
+    private void refreshViewSelectively() {
+        System.out.println("DEBUG: refreshViewSelectively called");
+        try {
+            String updatedXsd = domManipulator.getXsdAsString();
+            if (updatedXsd == null) return;
+
+            System.out.println("DEBUG: Updating text editor only (no diagram rebuild)");
+            controller.updateXsdContent(updatedXsd, false);
+
+            System.out.println("DEBUG: Building new tree structure for comparison");
+            XsdViewService viewService = new XsdViewService();
+            XsdNodeInfo newRootNode = viewService.buildLightweightTree(updatedXsd);
+            if (newRootNode != null) {
+                System.out.println("DEBUG: Updating changed nodes selectively");
+                updateChangedNodes(rootNode, newRootNode);
+                triggerLiveValidation();
+
+                if (propertyPanel != null) {
+                    propertyPanel.refreshTypes();
+                }
+                System.out.println("DEBUG: Selective refresh completed successfully");
+            }
+        } catch (Exception e) {
+            System.out.println("DEBUG: Selective refresh FAILED, falling back to full rebuild: " + e.getMessage());
+            logger.warn("Selective refresh failed, falling back to full rebuild", e);
+            String updatedXsd = domManipulator.getXsdAsString();
+            if (updatedXsd != null) {
+                controller.updateXsdContent(updatedXsd, true);
+            }
+        }
+    }
+
+    private void updateChangedNodes(XsdNodeInfo oldNode, XsdNodeInfo newNode) {
+        if (oldNode == null || newNode == null) return;
+
+        if (!nodesAreEqual(oldNode, newNode)) {
+            System.out.println("DEBUG: Node changed: " + oldNode.name() + " (type: " + oldNode.type() + " -> " + newNode.type() + ")");
+            Node visualNode = nodeViewCache.get(oldNode);
+            if (visualNode != null) {
+                System.out.println("DEBUG: Updating visual node for: " + oldNode.name());
+                updateSingleNodeView(visualNode, newNode);
+                nodeViewCache.put(newNode, visualNode);
+                nodeViewCache.remove(oldNode);
+            } else {
+                System.out.println("DEBUG: No visual node found in cache for: " + oldNode.name());
+            }
+        }
+
+        if (oldNode.children() != null && newNode.children() != null) {
+            Map<String, XsdNodeInfo> oldChildrenMap = new HashMap<>();
+            for (XsdNodeInfo child : oldNode.children()) {
+                String key = child.xpath() != null ? child.xpath() : child.name();
+                oldChildrenMap.put(key, child);
+            }
+
+            Map<String, XsdNodeInfo> newChildrenMap = new HashMap<>();
+            for (XsdNodeInfo child : newNode.children()) {
+                String key = child.xpath() != null ? child.xpath() : child.name();
+                if (!newChildrenMap.containsKey(key)) {
+                    newChildrenMap.put(key, child);
+                }
+            }
+
+            for (Map.Entry<String, XsdNodeInfo> newChild : newChildrenMap.entrySet()) {
+                XsdNodeInfo oldChild = oldChildrenMap.get(newChild.getKey());
+                updateChangedNodes(oldChild, newChild.getValue());
+            }
+        }
+    }
+
+    private boolean nodesAreEqual(XsdNodeInfo oldNode, XsdNodeInfo newNode) {
+        return Objects.equals(oldNode.name(), newNode.name()) &&
+                Objects.equals(oldNode.type(), newNode.type()) &&
+                Objects.equals(oldNode.documentation(), newNode.documentation()) &&
+                Objects.equals(oldNode.minOccurs(), newNode.minOccurs()) &&
+                Objects.equals(oldNode.maxOccurs(), newNode.maxOccurs()) &&
+                Objects.equals(oldNode.nodeType(), newNode.nodeType());
+    }
+
+    private void updateSingleNodeView(Node visualNode, XsdNodeInfo newNodeInfo) {
+        Platform.runLater(() -> {
+            if (visualNode instanceof VBox nodeContainer) {
+                for (Node child : nodeContainer.getChildren()) {
+                    if (child instanceof HBox headerBox) {
+                        for (Node headerChild : headerBox.getChildren()) {
+                            if (headerChild instanceof Label nameLabel && nameLabel.getStyleClass().contains("node-name")) {
+                                nameLabel.setText(newNodeInfo.name());
+                            }
+                            if (headerChild instanceof Label typeLabel && typeLabel.getStyleClass().contains("node-type")) {
+                                typeLabel.setText(newNodeInfo.type());
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Performs selective refresh of only the currently selected node
+     * This preserves expansion states and only updates what changed
+     */
+    private void performSelectiveNodeRefresh() {
+        if (selectedNode == null) {
+            System.out.println("DEBUG: No selected node for selective refresh");
+            return;
+        }
+
+        System.out.println("DEBUG: Performing selective refresh for node: " + selectedNode.name());
+
+        try {
+            // Get the updated node info from the DOM
+            String updatedXsd = domManipulator.getXsdAsString();
+            if (updatedXsd == null) return;
+
+            // Build new tree structure to get updated node info
+            XsdViewService viewService = new XsdViewService();
+            XsdNodeInfo newRootNode = viewService.buildLightweightTree(updatedXsd);
+            if (newRootNode == null) return;
+
+            // Find the corresponding node in the new tree
+            XsdNodeInfo updatedNodeInfo = findNodeByXPath(newRootNode, selectedNode.xpath());
+            if (updatedNodeInfo == null) {
+                System.out.println("DEBUG: Could not find updated node info, falling back to full refresh");
+                refreshView();
+                return;
+            }
+
+            // Update the rootNode reference to the new tree
+            this.rootNode = newRootNode;
+
+            // Update the visual representation of the selected node
+            updateSingleNodeVisual(selectedNode, updatedNodeInfo);
+
+            // Update the selectedNode reference to the new info
+            selectedNode = updatedNodeInfo;
+
+            // Update property panel with fresh data from DOM
+            if (propertyPanel != null) {
+                // Force refresh of property panel with updated node info
+                propertyPanel.setSelectedNode(updatedNodeInfo);
+                // Also refresh types to ensure all available types are up to date
+                propertyPanel.refreshTypes();
+
+                // Force update of property panel fields with current DOM values
+                Platform.runLater(() -> {
+                    propertyPanel.forceUpdateFromDOM();
+                    // Also force a complete field update to ensure all values are current
+                    propertyPanel.updateFields();
+                });
+            }
+
+            System.out.println("DEBUG: Selective refresh completed successfully");
+
+        } catch (Exception e) {
+            System.out.println("DEBUG: Selective refresh failed, falling back to full refresh: " + e.getMessage());
+            logger.warn("Selective refresh failed, falling back to full refresh", e);
+            refreshView();
+        }
+    }
+
+    /**
+     * Finds a node by XPath in the tree structure
+     */
+    private XsdNodeInfo findNodeByXPath(XsdNodeInfo rootNode, String targetXPath) {
+        if (rootNode == null || targetXPath == null) return null;
+
+        if (targetXPath.equals(rootNode.xpath())) {
+            return rootNode;
+        }
+
+        if (rootNode.children() != null) {
+            for (XsdNodeInfo child : rootNode.children()) {
+                XsdNodeInfo found = findNodeByXPath(child, targetXPath);
+                if (found != null) return found;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Updates the visual representation of a single node
+     */
+    private void updateSingleNodeVisual(XsdNodeInfo oldNodeInfo, XsdNodeInfo newNodeInfo) {
+        Node visualNode = nodeViewCache.get(oldNodeInfo);
+        if (visualNode == null) {
+            System.out.println("DEBUG: No visual node found in cache for: " + oldNodeInfo.name() +
+                    " - node may not be expanded yet");
+            // If the node is not in cache, it means it's not currently visible (not expanded)
+            // In this case, we just skip the visual update since the node is not visible
+            return;
+        }
+
+        System.out.println("DEBUG: Updating visual node for: " + oldNodeInfo.name());
+
+        // Update the visual node with new information
+        Platform.runLater(() -> {
+            updateNodeLabel(visualNode, newNodeInfo);
+            updateNodeStyle(visualNode, newNodeInfo);
+
+            // Update cache mapping
+            nodeViewCache.remove(oldNodeInfo);
+            nodeViewCache.put(newNodeInfo, visualNode);
+        });
+    }
+
+    /**
+     * Updates the label text and content of a visual node
+     */
+    private void updateNodeLabel(Node visualNode, XsdNodeInfo nodeInfo) {
+        // Handle different visual node types
+        if (visualNode instanceof HBox hbox) {
+            updateHBoxNodeLabel(hbox, nodeInfo);
+        } else if (visualNode instanceof VBox vbox) {
+            updateVBoxNodeLabel(vbox, nodeInfo);
+        }
+    }
+
+    /**
+     * Updates HBox-based node labels (most common case)
+     */
+    private void updateHBoxNodeLabel(HBox hbox, XsdNodeInfo nodeInfo) {
+        for (Node child : hbox.getChildren()) {
+            if (child instanceof Label label) {
+                // Check if this is the main name label
+                if (isMainNameLabel(label, nodeInfo)) {
+                    updateMainLabel(label, nodeInfo);
+                    updateCardinalityLabel(hbox, nodeInfo);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Updates VBox-based node labels (for complex structures)
+     */
+    private void updateVBoxNodeLabel(VBox vbox, XsdNodeInfo nodeInfo) {
+        // Find the first HBox in the VBox that contains the main label
+        for (Node child : vbox.getChildren()) {
+            if (child instanceof HBox hbox) {
+                updateHBoxNodeLabel(hbox, nodeInfo);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Checks if a label is the main name label for the node
+     */
+    private boolean isMainNameLabel(Label label, XsdNodeInfo nodeInfo) {
+        String text = label.getText();
+        String style = label.getStyle();
+
+        // Check by text content
+        if (text != null && text.equals(nodeInfo.name())) {
+            return true;
+        }
+
+        // Check by style (look for node or attribute label styles)
+        return style != null && (
+                style.contains("NODE_LABEL_STYLE") ||
+                        style.contains("ATTRIBUTE_LABEL_STYLE") ||
+                        style.contains("SEQUENCE_NODE_STYLE") ||
+                        style.contains("CHOICE_NODE_STYLE") ||
+                        style.contains("ANY_NODE_STYLE"));
+    }
+
+    /**
+     * Updates the main label with new node information
+     */
+    private void updateMainLabel(Label label, XsdNodeInfo nodeInfo) {
+        // Update text
+        label.setText(nodeInfo.name());
+
+        // Update type icon
+        FontIcon newIcon = createTypeSpecificIcon(nodeInfo.type());
+        label.setGraphic(newIcon);
+
+        // Update style based on node type and cardinality
+        String newStyle = determineNodeLabelStyle(nodeInfo,
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE);
+        label.setStyle(newStyle);
+
+        // Update tooltip
+        String tooltipText = nodeInfo.name();
+        if (nodeInfo.type() != null && !nodeInfo.type().isEmpty()) {
+            tooltipText += " (" + nodeInfo.type() + ")";
+        }
+        label.setTooltip(new Tooltip(tooltipText));
+    }
+
+    /**
+     * Updates the cardinality label in an HBox
+     */
+    private void updateCardinalityLabel(HBox hbox, XsdNodeInfo nodeInfo) {
+        String cardinality = formatCardinality(nodeInfo.minOccurs(), nodeInfo.maxOccurs());
+
+        // Find existing cardinality label
+        Label cardinalityLabel = null;
+        for (Node child : hbox.getChildren()) {
+            if (child instanceof Label label &&
+                    label.getStyle().contains("CARDINALITY_LABEL_STYLE")) {
+                cardinalityLabel = label;
+                break;
+            }
+        }
+
+        if (cardinality.isEmpty()) {
+            // Remove cardinality label if not needed
+            if (cardinalityLabel != null) {
+                hbox.getChildren().remove(cardinalityLabel);
+            }
+        } else {
+            // Add or update cardinality label
+            if (cardinalityLabel == null) {
+                cardinalityLabel = new Label(cardinality);
+                cardinalityLabel.setStyle(CARDINALITY_LABEL_STYLE);
+                hbox.getChildren().add(cardinalityLabel);
+            } else {
+                cardinalityLabel.setText(cardinality);
+            }
+        }
+    }
+
+    /**
+     * Updates the style of a visual node based on node info
+     */
+    private void updateNodeStyle(Node visualNode, XsdNodeInfo nodeInfo) {
+        // Style updates are handled in updateNodeLabel for labels
+        // Additional style updates can be added here if needed
     }
 
     /**
@@ -2419,6 +2787,12 @@ public class XsdDiagramView {
         // Store current search text and caret position
         String currentText = searchField != null ? searchField.getText() : "";
         int caretPosition = searchField != null ? searchField.getCaretPosition() : 0;
+
+        // Store expansion state before rebuilding
+        Map<String, Boolean> expansionState = saveExpansionState();
+
+        // Clear caches before rebuilding
+        nodeViewCache.clear();
 
         // Refresh property panel types when diagram rebuilds
         if (propertyPanel != null) {
@@ -2435,6 +2809,9 @@ public class XsdDiagramView {
                     Node rootNodeView = createNodeView(rootNode);
                     diagramContainer.getChildren().add(rootNodeView);
 
+                    // Restore expansion state after rebuild
+                    restoreExpansionState(diagramContainer, expansionState);
+
                     // Restore focus and text to search field
                     if (searchField != null) {
                         searchField.setText(currentText);
@@ -2446,6 +2823,130 @@ public class XsdDiagramView {
                 logger.error("Error rebuilding diagram for search highlighting", e);
             }
         });
+    }
+
+    /**
+     * Save the current expansion state of all nodes in the tree
+     */
+    private Map<String, Boolean> saveExpansionState() {
+        Map<String, Boolean> expansionState = new HashMap<>();
+        if (treeScrollPane != null && treeScrollPane.getContent() instanceof VBox diagramContainer) {
+            saveExpansionStateRecursive(diagramContainer, expansionState);
+        }
+        return expansionState;
+    }
+
+    /**
+     * Recursively save expansion state of nodes
+     */
+    private void saveExpansionStateRecursive(javafx.scene.Parent parent, Map<String, Boolean> expansionState) {
+        for (javafx.scene.Node child : parent.getChildrenUnmodifiable()) {
+            if (child instanceof VBox nodeView) {
+                // Find the node label to get the XPath
+                String xpath = getXPathFromNodeView(nodeView);
+                if (xpath != null) {
+                    // Check if children container is visible (expanded)
+                    VBox childrenContainer = findChildrenContainer(nodeView);
+                    if (childrenContainer != null) {
+                        boolean isExpanded = childrenContainer.isVisible();
+                        expansionState.put(xpath, isExpanded);
+
+                        // Recursively save children expansion states
+                        if (isExpanded) {
+                            saveExpansionStateRecursive(childrenContainer, expansionState);
+                        }
+                    }
+                }
+            } else if (child instanceof javafx.scene.Parent parentChild) {
+                saveExpansionStateRecursive(parentChild, expansionState);
+            }
+        }
+    }
+
+    /**
+     * Restore the expansion state of nodes after rebuild
+     */
+    private void restoreExpansionState(VBox diagramContainer, Map<String, Boolean> expansionState) {
+        Platform.runLater(() -> restoreExpansionStateRecursive(diagramContainer, expansionState));
+    }
+
+    /**
+     * Recursively restore expansion state of nodes
+     */
+    private void restoreExpansionStateRecursive(javafx.scene.Parent parent, Map<String, Boolean> expansionState) {
+        for (javafx.scene.Node child : parent.getChildrenUnmodifiable()) {
+            if (child instanceof VBox nodeView) {
+                String xpath = getXPathFromNodeView(nodeView);
+                if (xpath != null && expansionState.containsKey(xpath)) {
+                    boolean shouldExpand = expansionState.get(xpath);
+
+                    // Find toggle button and children container
+                    Label toggleButton = findToggleButton(nodeView);
+                    VBox childrenContainer = findChildrenContainer(nodeView);
+
+                    if (toggleButton != null && childrenContainer != null && shouldExpand) {
+                        // Simulate click to expand
+                        toggleButton.fireEvent(new javafx.scene.input.MouseEvent(
+                                javafx.scene.input.MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                                javafx.scene.input.MouseButton.PRIMARY, 1,
+                                false, false, false, false, false, false, false, false, false, false, null
+                        ));
+
+                        // Recursively restore children
+                        if (childrenContainer.isVisible()) {
+                            restoreExpansionStateRecursive(childrenContainer, expansionState);
+                        }
+                    }
+                }
+            } else if (child instanceof javafx.scene.Parent parentChild) {
+                restoreExpansionStateRecursive(parentChild, expansionState);
+            }
+        }
+    }
+
+    /**
+     * Get XPath from a node view by examining its label
+     */
+    private String getXPathFromNodeView(VBox nodeView) {
+        for (javafx.scene.Node child : nodeView.getChildren()) {
+            if (child instanceof HBox headerBox) {
+                for (javafx.scene.Node headerChild : headerBox.getChildren()) {
+                    if (headerChild instanceof Label label && label.getUserData() instanceof XsdNodeInfo nodeInfo) {
+                        return nodeInfo.xpath();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find the toggle button in a node view
+     */
+    private Label findToggleButton(VBox nodeView) {
+        for (javafx.scene.Node child : nodeView.getChildren()) {
+            if (child instanceof HBox headerBox) {
+                for (javafx.scene.Node headerChild : headerBox.getChildren()) {
+                    if (headerChild instanceof Label label &&
+                            ("+".equals(label.getText()) || "−".equals(label.getText()))) {
+                        return label;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find the children container in a node view
+     */
+    private VBox findChildrenContainer(VBox nodeView) {
+        for (javafx.scene.Node child : nodeView.getChildren()) {
+            if (child instanceof VBox vbox && child != nodeView.getChildren().get(0)) {
+                return vbox;
+            }
+        }
+        return null;
     }
 
     /**
