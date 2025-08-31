@@ -37,6 +37,12 @@ public class AddSimpleTypeCommand implements XsdCommand {
             Document doc = domManipulator.getDocument();
             Element parent = (Element) domManipulator.findNodeByPath(parentNode.xpath());
 
+            // If parent not found via XPath, try to find the schema element directly
+            if (parent == null && parentNode.nodeType() == org.fxt.freexmltoolkit.domain.XsdNodeInfo.NodeType.SCHEMA) {
+                parent = doc.getDocumentElement(); // This should be the schema element
+                logger.debug("Using document root element as schema parent");
+            }
+
             if (parent == null) {
                 logger.error("Parent node not found: {}", parentNode.xpath());
                 return false;

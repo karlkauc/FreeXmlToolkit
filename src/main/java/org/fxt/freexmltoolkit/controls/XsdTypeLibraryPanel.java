@@ -128,6 +128,22 @@ public class XsdTypeLibraryPanel extends VBox {
         extractButton.setTooltip(new Tooltip("Extract inline type to global type"));
         extractButton.getStyleClass().addAll("button", "primary");
 
+        // Create SimpleType button
+        Button createSimpleTypeButton = new Button("Simple");
+        FontIcon createSimpleIcon = new FontIcon("bi-circle-fill");
+        createSimpleTypeButton.setGraphic(createSimpleIcon);
+        createSimpleTypeButton.setTooltip(new Tooltip("Create new SimpleType"));
+        createSimpleTypeButton.getStyleClass().addAll("button", "success");
+        createSimpleTypeButton.setOnAction(e -> createNewSimpleType());
+
+        // Create ComplexType button
+        Button createComplexTypeButton = new Button("Complex");
+        FontIcon createComplexIcon = new FontIcon("bi-square-fill");
+        createComplexTypeButton.setGraphic(createComplexIcon);
+        createComplexTypeButton.setTooltip(new Tooltip("Create new ComplexType"));
+        createComplexTypeButton.getStyleClass().addAll("button", "success");
+        createComplexTypeButton.setOnAction(e -> createNewComplexType());
+
         // Remove unused types button
         Button removeUnusedButton = new Button();
         FontIcon removeUnusedIcon = new FontIcon("bi-trash");
@@ -174,7 +190,7 @@ public class XsdTypeLibraryPanel extends VBox {
         header.getChildren().addAll(titleLabel, spacer, progressIndicator,
                 inheritanceButton, statsButton, removeUnusedButton,
                 importButton, exportButton,
-                extractButton, refreshButton);
+                createSimpleTypeButton, createComplexTypeButton, extractButton, refreshButton);
         this.getChildren().add(header);
     }
 
@@ -1064,5 +1080,81 @@ public class XsdTypeLibraryPanel extends VBox {
      */
     public void clearSearch() {
         searchField.clear();
+    }
+
+    /**
+     * Create a new SimpleType using the existing editor
+     */
+    private void createNewSimpleType() {
+        try {
+            // Show SimpleType editor dialog
+            XsdSimpleTypeEditor editor = new XsdSimpleTypeEditor(domManipulator.getDocument());
+            editor.setTitle("Create SimpleType");
+            editor.setHeaderText("Create a new XSD SimpleType definition");
+
+            Optional<org.fxt.freexmltoolkit.controls.SimpleTypeResult> result = editor.showAndWait();
+            if (result.isPresent()) {
+                // Create schema node for command
+                org.fxt.freexmltoolkit.domain.XsdNodeInfo schemaNode =
+                        new org.fxt.freexmltoolkit.domain.XsdNodeInfo(
+                                "schema", "schema", "/xs:schema", null,
+                                null, null, null, null,
+                                org.fxt.freexmltoolkit.domain.XsdNodeInfo.NodeType.SCHEMA
+                        );
+
+                org.fxt.freexmltoolkit.controls.commands.AddSimpleTypeCommand command =
+                        new org.fxt.freexmltoolkit.controls.commands.AddSimpleTypeCommand(domManipulator, schemaNode, result.get());
+                commandExecutor.accept(command);
+                loadTypes(); // Refresh the type library
+                if (refreshCallback != null) {
+                    refreshCallback.run(); // Refresh the main diagram
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error creating new SimpleType", e);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Create SimpleType Error");
+            alert.setHeaderText("Failed to create SimpleType");
+            alert.setContentText("Error: " + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    /**
+     * Create a new ComplexType using the existing editor
+     */
+    private void createNewComplexType() {
+        try {
+            // Show ComplexType editor dialog
+            XsdComplexTypeEditor editor = new XsdComplexTypeEditor(domManipulator.getDocument());
+            editor.setTitle("Create ComplexType");
+            editor.setHeaderText("Create a new XSD ComplexType definition");
+
+            Optional<org.fxt.freexmltoolkit.controls.ComplexTypeResult> result = editor.showAndWait();
+            if (result.isPresent()) {
+                // Create schema node for command
+                org.fxt.freexmltoolkit.domain.XsdNodeInfo schemaNode =
+                        new org.fxt.freexmltoolkit.domain.XsdNodeInfo(
+                                "schema", "schema", "/xs:schema", null,
+                                null, null, null, null,
+                                org.fxt.freexmltoolkit.domain.XsdNodeInfo.NodeType.SCHEMA
+                        );
+
+                org.fxt.freexmltoolkit.controls.commands.AddComplexTypeCommand command =
+                        new org.fxt.freexmltoolkit.controls.commands.AddComplexTypeCommand(domManipulator, schemaNode, result.get());
+                commandExecutor.accept(command);
+                loadTypes(); // Refresh the type library
+                if (refreshCallback != null) {
+                    refreshCallback.run(); // Refresh the main diagram
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error creating new ComplexType", e);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Create ComplexType Error");
+            alert.setHeaderText("Failed to create ComplexType");
+            alert.setContentText("Error: " + e.getMessage());
+            alert.showAndWait();
+        }
     }
 }

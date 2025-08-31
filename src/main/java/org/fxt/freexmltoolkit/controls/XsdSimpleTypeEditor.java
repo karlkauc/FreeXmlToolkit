@@ -183,6 +183,7 @@ public class XsdSimpleTypeEditor extends Dialog<SimpleTypeResult> {
         nameField = new TextField();
         nameField.setPromptText("Enter simple type name (e.g., 'EmailType')");
         nameField.setPrefWidth(300);
+        nameField.textProperty().addListener((obs, oldVal, newVal) -> updatePreview());
         HBox.setHgrow(nameField, Priority.ALWAYS);
 
         nameBox.getChildren().addAll(nameLabel, nameField);
@@ -210,6 +211,7 @@ public class XsdSimpleTypeEditor extends Dialog<SimpleTypeResult> {
         );
         baseTypeCombo.setValue("xs:string");
         baseTypeCombo.setPrefWidth(300);
+        baseTypeCombo.valueProperty().addListener((obs, oldVal, newVal) -> updatePreview());
 
         Button typeInfoButton = new Button();
         typeInfoButton.setGraphic(new FontIcon("bi-info-circle"));
@@ -238,7 +240,7 @@ public class XsdSimpleTypeEditor extends Dialog<SimpleTypeResult> {
 
         // Pattern Tab
         Tab patternTab = new Tab("Pattern");
-        patternTab.setGraphic(new FontIcon("bi-regex"));
+        patternTab.setGraphic(new FontIcon("bi-asterisk"));
         patternTab.setContent(createPatternTab());
 
         // Enumeration Tab
@@ -253,7 +255,7 @@ public class XsdSimpleTypeEditor extends Dialog<SimpleTypeResult> {
 
         // Numeric Tab
         Tab numericTab = new Tab("Numeric");
-        numericTab.setGraphic(new FontIcon("bi-123"));
+        numericTab.setGraphic(new FontIcon("bi-hash"));
         numericTab.setContent(createNumericTab());
 
         // String Tab
@@ -753,7 +755,7 @@ public class XsdSimpleTypeEditor extends Dialog<SimpleTypeResult> {
         xsd.append("<xs:simpleType name=\"").append(typeName).append("\">\n");
 
         // Add documentation if present
-        String doc = documentationArea.getText().trim();
+        String doc = (documentationArea != null) ? documentationArea.getText().trim() : "";
         if (!doc.isEmpty()) {
             xsd.append("  <xs:annotation>\n");
             xsd.append("    <xs:documentation>").append(doc).append("</xs:documentation>\n");
@@ -805,7 +807,9 @@ public class XsdSimpleTypeEditor extends Dialog<SimpleTypeResult> {
         xsd.append("  </xs:restriction>\n");
         xsd.append("</xs:simpleType>");
 
-        previewArea.setText(xsd.toString());
+        if (previewArea != null) {
+            previewArea.setText(xsd.toString());
+        }
     }
 
     /**

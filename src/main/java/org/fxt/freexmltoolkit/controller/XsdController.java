@@ -21,15 +21,13 @@ import org.controlsfx.control.PopOver;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
-import org.fxt.freexmltoolkit.controls.XmlCodeEditor;
-import org.fxt.freexmltoolkit.controls.XsdCommand;
-import org.fxt.freexmltoolkit.controls.XsdDiagramView;
-import org.fxt.freexmltoolkit.controls.XsdTypeLibraryPanel;
+import org.fxt.freexmltoolkit.controls.*;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
 import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -2948,6 +2946,81 @@ public class XsdController {
 
         } catch (Exception e) {
             logger.error("Error executing type command: " + command.getDescription(), e);
+        }
+    }
+
+    /**
+     * Opens a specific XSD type (simple or complex) in a dedicated graphic editor tab
+     */
+    public void openTypeInGraphicEditor(Element typeElement) {
+        try {
+            String typeName = typeElement.getAttribute("name");
+            boolean isSimpleType = "simpleType".equals(typeElement.getLocalName());
+
+            logger.info("Opening {} type '{}' in dedicated graphic editor",
+                    isSimpleType ? "simple" : "complex", typeName);
+
+            // Create the type editor tab
+            XsdTypeEditor typeEditor = new XsdTypeEditor(typeElement, this);
+
+            // Add to the main tab pane
+            if (tabPane != null) {
+                Platform.runLater(() -> {
+                    tabPane.getTabs().add(typeEditor);
+                    tabPane.getSelectionModel().select(typeEditor);
+                });
+
+                logger.info("Type editor tab created and selected for type: {}", typeName);
+            } else {
+                logger.error("TabPane not available for adding type editor");
+
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("UI Error");
+                    alert.setHeaderText("Cannot Open Type Editor");
+                    alert.setContentText("The tab panel is not available to open the type editor.");
+                    alert.showAndWait();
+                });
+            }
+
+        } catch (Exception e) {
+            logger.error("Failed to open type in graphic editor", e);
+
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Type Editor Error");
+                alert.setHeaderText("Failed to Open Type Editor");
+                alert.setContentText("Error: " + e.getMessage());
+                alert.showAndWait();
+            });
+        }
+    }
+
+    /**
+     * Marks the current XSD as modified and updates UI accordingly
+     */
+    public void markAsModified() {
+        // Log that the XSD is marked as modified
+        logger.debug("XSD marked as modified");
+
+        // TODO: Implement proper modified state tracking if needed
+        // This might involve updating the main tab title or status indicators
+    }
+
+    /**
+     * Refreshes the main diagram view
+     */
+    public void refreshDiagramView() {
+        if (currentDiagramView != null) {
+            Platform.runLater(() -> {
+                try {
+                    // Trigger a refresh of the diagram
+                    currentDiagramView.refreshView();
+                    logger.debug("Diagram view refreshed");
+                } catch (Exception e) {
+                    logger.error("Failed to refresh diagram view", e);
+                }
+            });
         }
     }
 

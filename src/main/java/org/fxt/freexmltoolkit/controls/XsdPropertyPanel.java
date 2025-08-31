@@ -15,6 +15,8 @@ import org.fxt.freexmltoolkit.controller.XsdController;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.XsdDomManipulator;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -155,7 +157,7 @@ public class XsdPropertyPanel extends VBox {
 
         // Type field
         propertiesGrid.add(new Label("Type:"), 0, row);
-        typeComboBox = new ComboBox<>(FXCollections.observableList(BUILTIN_TYPES));
+        typeComboBox = new ComboBox<>(FXCollections.observableList(getAllAvailableTypes()));
         typeComboBox.setEditable(true);
         typeComboBox.setPromptText("Select or enter type");
         HBox.setHgrow(typeComboBox, Priority.ALWAYS);
@@ -445,6 +447,48 @@ public class XsdPropertyPanel extends VBox {
     private void clearFieldError(Control field) {
         field.setStyle("");
         Tooltip.uninstall(field, field.getTooltip());
+    }
+
+    /**
+     * Get all available types including built-in XSD types and custom types from schema
+     */
+    private List<String> getAllAvailableTypes() {
+        List<String> allTypes = new ArrayList<>(BUILTIN_TYPES);
+
+        if (domManipulator != null) {
+            // Add custom simpleTypes
+            NodeList simpleTypes = domManipulator.getDocument().getElementsByTagName("xs:simpleType");
+            for (int i = 0; i < simpleTypes.getLength(); i++) {
+                Element simpleType = (Element) simpleTypes.item(i);
+                String name = simpleType.getAttribute("name");
+                if (name != null && !name.trim().isEmpty()) {
+                    allTypes.add(name);
+                }
+            }
+
+            // Add custom complexTypes
+            NodeList complexTypes = domManipulator.getDocument().getElementsByTagName("xs:complexType");
+            for (int i = 0; i < complexTypes.getLength(); i++) {
+                Element complexType = (Element) complexTypes.item(i);
+                String name = complexType.getAttribute("name");
+                if (name != null && !name.trim().isEmpty()) {
+                    allTypes.add(name);
+                }
+            }
+        }
+
+        return allTypes;
+    }
+
+    /**
+     * Refresh the type dropdown when schema changes
+     */
+    public void refreshTypes() {
+        if (typeComboBox != null) {
+            String currentValue = typeComboBox.getValue();
+            typeComboBox.setItems(FXCollections.observableList(getAllAvailableTypes()));
+            typeComboBox.setValue(currentValue);
+        }
     }
 
     private void updateFields() {

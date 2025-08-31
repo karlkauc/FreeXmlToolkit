@@ -1156,6 +1156,7 @@ public class XsdDiagramView {
 
         // Update property panel
         if (propertyPanel != null) {
+            propertyPanel.refreshTypes();
             propertyPanel.setSelectedNode(node);
         }
 
@@ -1524,6 +1525,16 @@ public class XsdDiagramView {
         renameItem.setGraphic(new FontIcon("bi-pencil"));
         renameItem.setOnAction(e -> showRenameDialog(nodeInfo));
         contextMenu.getItems().add(renameItem);
+
+        // Type-specific editing options for simple and complex types
+        if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.SIMPLE_TYPE ||
+                nodeInfo.nodeType() == XsdNodeInfo.NodeType.COMPLEX_TYPE) {
+            MenuItem editTypeInGraphicEditor = new MenuItem("Edit Type in Graphic Editor");
+            editTypeInGraphicEditor.setGraphic(new FontIcon("bi-diagram-3"));
+            editTypeInGraphicEditor.setOnAction(e -> openTypeInGraphicEditor(nodeInfo));
+            contextMenu.getItems().add(editTypeInGraphicEditor);
+            contextMenu.getItems().add(new SeparatorMenuItem());
+        }
 
         // Safe Rename menu item (for elements and types)
         if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT ||
@@ -2409,6 +2420,11 @@ public class XsdDiagramView {
         String currentText = searchField != null ? searchField.getText() : "";
         int caretPosition = searchField != null ? searchField.getCaretPosition() : 0;
 
+        // Refresh property panel types when diagram rebuilds
+        if (propertyPanel != null) {
+            propertyPanel.refreshTypes();
+        }
+
         // Find the diagram container
         Platform.runLater(() -> {
             try {
@@ -2469,25 +2485,30 @@ public class XsdDiagramView {
      * Finds the type definition node info for a given type name
      */
     private XsdNodeInfo findTypeNodeInfo(XsdNodeInfo contextNode, String typeName) {
-        // This is a simplified implementation
-        // In a real scenario, we would query the XSD service to find the type definition
-
         // Strip namespace prefix
         String cleanTypeName = typeName.contains(":") ? typeName.substring(typeName.indexOf(":") + 1) : typeName;
 
-        // Create appropriate node info based on type name
-        // This is a heuristic - in practice we'd need to query the actual XSD
-        String xpath = "/xs:schema/xs:complexType[@name='" + cleanTypeName + "']";
-        XsdNodeInfo.NodeType nodeType = XsdNodeInfo.NodeType.COMPLEX_TYPE;
+        // First try to find it as a complexType
+        String complexTypeXPath = "/xs:schema/xs:complexType[@name='" + cleanTypeName + "']";
+        Element complexTypeElement = domManipulator.findElementByXPath(complexTypeXPath);
 
-        // Simple heuristic: if type name contains certain patterns, assume it's a simpleType
-        if (cleanTypeName.toLowerCase().contains("type") && !cleanTypeName.toLowerCase().contains("complex")) {
-            xpath = "/xs:schema/xs:simpleType[@name='" + cleanTypeName + "']";
-            nodeType = XsdNodeInfo.NodeType.SIMPLE_TYPE;
+        if (complexTypeElement != null) {
+            return new XsdNodeInfo(cleanTypeName, typeName, complexTypeXPath, "",
+                    Collections.emptyList(), Collections.emptyList(), "1", "1", XsdNodeInfo.NodeType.COMPLEX_TYPE);
         }
 
-        return new XsdNodeInfo(cleanTypeName, typeName, xpath, "",
-                Collections.emptyList(), Collections.emptyList(), "1", "1", nodeType);
+        // If not found as complexType, try simpleType
+        String simpleTypeXPath = "/xs:schema/xs:simpleType[@name='" + cleanTypeName + "']";
+        Element simpleTypeElement = domManipulator.findElementByXPath(simpleTypeXPath);
+
+        if (simpleTypeElement != null) {
+            return new XsdNodeInfo(cleanTypeName, typeName, simpleTypeXPath, "",
+                    Collections.emptyList(), Collections.emptyList(), "1", "1", XsdNodeInfo.NodeType.SIMPLE_TYPE);
+        }
+
+        // Type not found
+        logger.debug("Type '{}' not found in XSD", cleanTypeName);
+        return null;
     }
 
     /**
@@ -3429,5 +3450,63 @@ public class XsdDiagramView {
         });
 
         return dialog;
+    }
+
+    /**
+     * Opens the specified type in a dedicated graphic editor tab
+     */
+    private void openTypeInGraphicEditor(XsdNodeInfo typeNodeInfo) {
+        try {
+            logger.info("Opening type '{}' in graphic editor", typeNodeInfo.name());
+
+            // Find the actual DOM element for this type
+            Element typeElement = findTypeElement(typeNodeInfo);
+            if (typeElement == null) {
+                logger.warn("Could not find DOM element for type: {}", typeNodeInfo.name());
+                showErrorAlert("Type Not Found",
+                        "Could not find the DOM element for type '" + typeNodeInfo.name() + "'");
+                return;
+            }
+
+            // Delegate to controller to open the type editor
+            if (controller != null) {
+                controller.openTypeInGraphicEditor(typeElement);
+            } else {
+                logger.error("Controller not available for opening type editor");
+                showErrorAlert("Controller Error",
+                        "Cannot open type editor: Controller not available");
+            }
+
+        } catch (Exception e) {
+            logger.error("Failed to open type '{}' in graphic editor", typeNodeInfo.name(), e);
+            showErrorAlert("Error Opening Type Editor",
+                    "Failed to open type editor: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Finds the DOM element for the given type node info
+     */
+    private Element findTypeElement(XsdNodeInfo typeNodeInfo) {
+        if (domManipulator == null || domManipulator.getDocument() == null) {
+            return null;
+        }
+
+        try {
+            // Use XPath to find the type element
+            String xpath = typeNodeInfo.xpath();
+            if (xpath == null || xpath.isEmpty()) {
+                // Fallback: search by name and type
+                String elementName = typeNodeInfo.nodeType() == XsdNodeInfo.NodeType.SIMPLE_TYPE ?
+                        "simpleType" : "complexType";
+                xpath = "//xs:" + elementName + "[@name='" + typeNodeInfo.name() + "']";
+            }
+
+            return domManipulator.findElementByXPath(xpath);
+
+        } catch (Exception e) {
+            logger.warn("Failed to find type element using XPath: {}", typeNodeInfo.xpath(), e);
+            return null;
+        }
     }
 }

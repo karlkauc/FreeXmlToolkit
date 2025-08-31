@@ -139,10 +139,11 @@ public class XsdComplexTypeEditor extends Dialog<ComplexTypeResult> {
         // Add buttons
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        // Style the dialog
-        getDialogPane().getStylesheets().add(
-                getClass().getResource("/css/atlantafx-base.css").toExternalForm()
-        );
+        // Style the dialog - check if CSS exists first
+        var cssResource = getClass().getResource("/css/atlantafx-base.css");
+        if (cssResource != null) {
+            getDialogPane().getStylesheets().add(cssResource.toExternalForm());
+        }
 
         // Enable/disable OK button based on validation
         Button okButton = (Button) getDialogPane().lookupButton(ButtonType.OK);
