@@ -994,10 +994,10 @@
 
 .diagnostic-error {
   -fx-underline: true;
-  -fx-stroke: red;
+    -fx-stroke: #ff6b6b;
   -fx-stroke-type: outside;
   -fx-stroke-width: 1;
-  -fx-stroke-dash-array: 1 2;
+    -fx-stroke-dash-array: 2 3;
 }
 
 .diagnostic-warning {
@@ -1017,9 +1017,9 @@
 }
 
 .diagnostic-error {
-    -rtfx-underline-color: #d32f2f;
-    -rtfx-underline-width: 2px;
-    -rtfx-underline-dash-array: 2 2;
+    -rtfx-underline-color: #ff6b6b;
+    -rtfx-underline-width: 1px;
+    -rtfx-underline-dash-array: 3 2;
 }
 
 /* Code Minimap Styles */

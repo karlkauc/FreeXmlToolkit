@@ -112,6 +112,8 @@ public class XmlUltimateController implements Initializable {
     @FXML
     private Button saveFile;
     @FXML
+    private Button saveAsFile;
+    @FXML
     private Button prettyPrint;
     // Removed from UI
     // @FXML
@@ -271,6 +273,7 @@ public class XmlUltimateController implements Initializable {
         loadTemplates();
         createInitialTab();
         initializeFavorites();
+        updateButtonStates();
         logger.info("Ultimate XML Controller initialized successfully");
     }
 
@@ -289,12 +292,13 @@ public class XmlUltimateController implements Initializable {
             consoleOutput.appendText("All revolutionary features are available.\n");
         }
 
-        // Add tab selection listener to refresh syntax highlighting
+        // Add tab selection listener to refresh syntax highlighting and update button states
         if (xmlFilesPane != null) {
             xmlFilesPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
                 if (newTab instanceof XmlEditor xmlEditor) {
                     Platform.runLater(() -> {
                         xmlEditor.getXmlCodeEditor().refreshHighlighting();
+                        updateButtonStates();
                     });
                 }
             });
@@ -622,6 +626,7 @@ public class XmlUltimateController implements Initializable {
             
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
+            updateButtonStates();
         }
     }
 
@@ -671,6 +676,7 @@ public class XmlUltimateController implements Initializable {
             
             xmlFilesPane.getTabs().add(xmlEditor);
             xmlFilesPane.getSelectionModel().select(xmlEditor);
+            updateButtonStates();
         }
     }
 
@@ -805,22 +811,89 @@ public class XmlUltimateController implements Initializable {
         Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
         if (currentTab != null && currentTab instanceof XmlEditor editor) {
             currentXmlContent = editor.getXmlCodeEditor().getText();
+            File editorFile = editor.getXmlFile();
 
-            if (currentXmlFile == null) {
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle("Save XML File");
-                fileChooser.getExtensionFilters().addAll(
-                        new FileChooser.ExtensionFilter("XML Files", "*.xml"),
-                        new FileChooser.ExtensionFilter("All Files", "*.*")
-                );
-                currentXmlFile = fileChooser.showSaveDialog(null);
+            if (editorFile == null) {
+                // No file associated, redirect to Save As
+                saveAsFile();
+                return;
             }
 
-            if (currentXmlFile != null) {
+            try {
+                Files.writeString(editorFile.toPath(), currentXmlContent);
+                currentTab.setText(editorFile.getName());
+                logToConsole("Saved file: " + editorFile.getAbsolutePath());
+            } catch (IOException e) {
+                showError("Save Error", "Could not save file: " + e.getMessage());
+                logger.error("Failed to save file", e);
+            }
+        }
+    }
+
+    @FXML
+    private void saveAsFile() {
+        logger.info("Saving XML document as...");
+        logToConsole("Saving XML document as...");
+
+        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
+        if (currentTab != null && currentTab instanceof XmlEditor editor) {
+            currentXmlContent = editor.getXmlCodeEditor().getText();
+
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save XML File As");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("XML Files", "*.xml"),
+                    new FileChooser.ExtensionFilter("All Files", "*.*")
+            );
+
+            // Set initial directory and filename from current file if available
+            File currentFile = editor.getXmlFile();
+            if (currentFile != null) {
+                // Set directory from current file
+                if (currentFile.getParent() != null) {
+                    File parentDir = new File(currentFile.getParent());
+                    if (parentDir.exists() && parentDir.isDirectory()) {
+                        fileChooser.setInitialDirectory(parentDir);
+                    }
+                }
+                // Set initial filename
+                fileChooser.setInitialFileName(currentFile.getName());
+            } else {
+                // Fallback to last open directory if no current file
+                String lastDir = propertiesService.getLastOpenDirectory();
+                if (lastDir != null) {
+                    File initialDir = new File(lastDir);
+                    if (initialDir.exists() && initialDir.isDirectory()) {
+                        fileChooser.setInitialDirectory(initialDir);
+                    }
+                }
+            }
+
+            File selectedFile = fileChooser.showSaveDialog(null);
+            if (selectedFile != null) {
                 try {
-                    Files.writeString(currentXmlFile.toPath(), currentXmlContent);
-                    currentTab.setText(currentXmlFile.getName());
-                    logToConsole("Saved file: " + currentXmlFile.getAbsolutePath());
+                    Files.writeString(selectedFile.toPath(), currentXmlContent);
+
+                    // Update the editor with the new file
+                    editor.setXmlFile(selectedFile);
+                    editor.setUserData(selectedFile);
+                    currentTab.setText(selectedFile.getName());
+                    currentXmlFile = selectedFile;
+
+                    // Update last open directory
+                    if (selectedFile.getParent() != null) {
+                        propertiesService.setLastOpenDirectory(selectedFile.getParent());
+                    }
+
+                    // Add to recent files
+                    if (parentController != null) {
+                        parentController.addFileToRecentFiles(selectedFile);
+                    }
+
+                    // Update button states
+                    updateButtonStates();
+
+                    logToConsole("Saved file as: " + selectedFile.getAbsolutePath());
                 } catch (IOException e) {
                     showError("Save Error", "Could not save file: " + e.getMessage());
                     logger.error("Failed to save file", e);
@@ -2007,5 +2080,21 @@ public class XmlUltimateController implements Initializable {
             }
         }
         return null;
+    }
+
+    /**
+     * Update button states based on current file association status
+     */
+    private void updateButtonStates() {
+        XmlEditor currentEditor = getCurrentEditor();
+        boolean hasAssociatedFile = currentEditor != null && currentEditor.getXmlFile() != null;
+
+        if (saveFile != null) {
+            saveFile.setDisable(!hasAssociatedFile);
+        }
+        if (saveAsFile != null) {
+            // Save As is always enabled when there's an editor
+            saveAsFile.setDisable(currentEditor == null);
+        }
     }
 }
