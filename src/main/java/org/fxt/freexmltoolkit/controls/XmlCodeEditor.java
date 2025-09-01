@@ -6,6 +6,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tooltip;
@@ -16,6 +18,8 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -26,6 +30,7 @@ import org.fxt.freexmltoolkit.controls.intellisense.*;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
+import java.io.File;
 import java.util.*;
 import java.util.function.IntFunction;
 import java.util.regex.Matcher;
@@ -124,6 +129,14 @@ public class XmlCodeEditor extends VBox {
     private HBox editorContainer;
     private boolean minimapVisible = false;
     private boolean minimapInitialized = false;
+
+    // File monitoring for external changes
+    private File currentFile;
+    private long lastModifiedTime = -1;
+    private javafx.animation.Timeline fileMonitorTimer;
+    private static final int FILE_MONITOR_INTERVAL_SECONDS = 2;
+    private boolean isFileMonitoringEnabled = true;
+    private boolean ignoreNextChange = false; // Flag to ignore changes we made ourselves
 
     // Performance optimization: Cache compiled patterns
     private static final Pattern OPEN_TAG_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\b[^>]*>");
@@ -331,6 +344,172 @@ public class XmlCodeEditor extends VBox {
                 });
             }
         });
+
+        // Initialize file monitoring
+        initializeFileMonitoring();
+    }
+
+    /**
+     * Initializes the file monitoring system to detect external changes.
+     */
+    private void initializeFileMonitoring() {
+        // Create timer for checking file modifications
+        fileMonitorTimer = new Timeline(new KeyFrame(
+            Duration.seconds(FILE_MONITOR_INTERVAL_SECONDS),
+            event -> checkForExternalChanges()
+        ));
+        fileMonitorTimer.setCycleCount(Timeline.INDEFINITE);
+        
+        logger.debug("File monitoring system initialized");
+    }
+
+    /**
+     * Sets the current file being monitored and starts monitoring.
+     * 
+     * @param file The file to monitor, or null to stop monitoring
+     */
+    public void setCurrentFile(File file) {
+        stopFileMonitoring();
+        
+        this.currentFile = file;
+        if (file != null && file.exists()) {
+            this.lastModifiedTime = file.lastModified();
+            startFileMonitoring();
+            logger.debug("Started monitoring file: {}", file.getAbsolutePath());
+        } else {
+            this.lastModifiedTime = -1;
+            logger.debug("File monitoring stopped");
+        }
+    }
+
+    /**
+     * Starts the file monitoring timer.
+     */
+    private void startFileMonitoring() {
+        if (isFileMonitoringEnabled && fileMonitorTimer != null && currentFile != null) {
+            fileMonitorTimer.play();
+        }
+    }
+
+    /**
+     * Stops the file monitoring timer.
+     */
+    private void stopFileMonitoring() {
+        if (fileMonitorTimer != null) {
+            fileMonitorTimer.stop();
+        }
+    }
+
+    /**
+     * Checks if the current file has been modified externally.
+     */
+    private void checkForExternalChanges() {
+        if (currentFile == null || !currentFile.exists() || ignoreNextChange) {
+            if (ignoreNextChange) {
+                ignoreNextChange = false; // Reset the flag
+            }
+            return;
+        }
+
+        long currentModifiedTime = currentFile.lastModified();
+        if (currentModifiedTime > lastModifiedTime) {
+            // File has been modified externally
+            Platform.runLater(() -> showExternalChangeDialog(currentModifiedTime));
+        }
+    }
+
+    /**
+     * Shows a dialog asking the user if they want to reload the externally modified file.
+     * 
+     * @param newModifiedTime The new last modified time of the file
+     */
+    private void showExternalChangeDialog(long newModifiedTime) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("File Modified Externally");
+        alert.setHeaderText("The file has been modified by another program");
+        alert.setContentText("The file '" + currentFile.getName() + "' has been changed outside the editor.\n\n" +
+                            "Do you want to reload the changes from the file system?");
+
+        alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+        
+        alert.showAndWait().ifPresent(buttonType -> {
+            if (buttonType == ButtonType.YES) {
+                reloadFileFromDisk(newModifiedTime);
+            } else {
+                // User chose not to reload, update the timestamp to avoid repeated dialogs
+                lastModifiedTime = newModifiedTime;
+                logger.debug("User chose not to reload external changes, updating timestamp");
+            }
+        });
+    }
+
+    /**
+     * Reloads the file content from disk.
+     * 
+     * @param newModifiedTime The new last modified time to set
+     */
+    private void reloadFileFromDisk(long newModifiedTime) {
+        try {
+            // Read the new content from the file
+            String newContent = java.nio.file.Files.readString(currentFile.toPath(), 
+                java.nio.charset.StandardCharsets.UTF_8);
+            
+            // Set the flag to ignore the next change notification (from our reload)
+            ignoreNextChange = true;
+            
+            // Update the editor content
+            Platform.runLater(() -> {
+                codeArea.replaceText(newContent);
+                lastModifiedTime = newModifiedTime;
+                logger.info("Successfully reloaded file from disk: {}", currentFile.getAbsolutePath());
+            });
+            
+        } catch (Exception e) {
+            logger.error("Error reloading file from disk: {}", e.getMessage(), e);
+            
+            Platform.runLater(() -> {
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Error Reloading File");
+                errorAlert.setHeaderText("Failed to reload file from disk");
+                errorAlert.setContentText("An error occurred while reloading the file:\n" + e.getMessage());
+                errorAlert.showAndWait();
+            });
+        }
+    }
+
+    /**
+     * Enables or disables file monitoring.
+     * 
+     * @param enabled True to enable monitoring, false to disable
+     */
+    public void setFileMonitoringEnabled(boolean enabled) {
+        this.isFileMonitoringEnabled = enabled;
+        if (enabled && currentFile != null) {
+            startFileMonitoring();
+        } else {
+            stopFileMonitoring();
+        }
+        logger.debug("File monitoring enabled: {}", enabled);
+    }
+
+    /**
+     * Returns whether file monitoring is currently enabled.
+     * 
+     * @return True if monitoring is enabled
+     */
+    public boolean isFileMonitoringEnabled() {
+        return isFileMonitoringEnabled;
+    }
+
+    /**
+     * Should be called when the user saves the file to update the timestamp
+     * and avoid triggering the external change dialog for our own save.
+     */
+    public void notifyFileSaved() {
+        if (currentFile != null && currentFile.exists()) {
+            lastModifiedTime = currentFile.lastModified();
+            logger.debug("File save notification received, updated timestamp");
+        }
     }
 
     /**
@@ -4544,5 +4723,16 @@ public class XmlCodeEditor extends VBox {
             alert.setContentText("Definition for element '" + elementName + "' was not found in the associated XSD schema.");
             alert.showAndWait();
         });
+    }
+
+    /**
+     * Cleanup method to stop file monitoring and release resources.
+     * Should be called when the editor is no longer needed.
+     */
+    public void cleanup() {
+        stopFileMonitoring();
+        currentFile = null;
+        lastModifiedTime = -1;
+        logger.debug("XmlCodeEditor cleanup completed");
     }
 }
