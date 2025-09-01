@@ -2434,4 +2434,70 @@ public class XmlEditor extends Tab {
         }
         return count;
     }
+
+    /**
+     * Saves the current XML content to the associated file.
+     * If no file is associated, this method does nothing.
+     *
+     * @return true if the file was saved successfully, false otherwise
+     */
+    public boolean saveFile() {
+        if (xmlFile == null) {
+            return false;
+        }
+
+        try {
+            String content = xmlCodeEditor.getText();
+            Files.writeString(xmlFile.toPath(), content, StandardCharsets.UTF_8);
+            xmlCodeEditor.notifyFileSaved();
+            logger.info("File saved: {}", xmlFile.getAbsolutePath());
+            return true;
+        } catch (Exception e) {
+            logger.error("Error saving file: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Shows a Save As dialog and saves the current XML content to the selected file.
+     *
+     * @return true if the file was saved successfully, false otherwise
+     */
+    public boolean saveAsFile() {
+        try {
+            javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+            fileChooser.setTitle("Save XML File As");
+            fileChooser.getExtensionFilters().addAll(
+                    new javafx.stage.FileChooser.ExtensionFilter("XML Files", "*.xml"),
+                    new javafx.stage.FileChooser.ExtensionFilter("All Files", "*.*")
+            );
+
+            // Set initial directory and filename from current file if available
+            if (xmlFile != null) {
+                if (xmlFile.getParent() != null) {
+                    File parentDir = new File(xmlFile.getParent());
+                    if (parentDir.exists() && parentDir.isDirectory()) {
+                        fileChooser.setInitialDirectory(parentDir);
+                    }
+                }
+                fileChooser.setInitialFileName(xmlFile.getName());
+            }
+
+            File selectedFile = fileChooser.showSaveDialog(xmlCodeEditor.getScene().getWindow());
+            if (selectedFile != null) {
+                String content = xmlCodeEditor.getText();
+                Files.writeString(selectedFile.toPath(), content, StandardCharsets.UTF_8);
+
+                // Update this editor with the new file
+                setXmlFile(selectedFile);
+
+                logger.info("File saved as: {}", selectedFile.getAbsolutePath());
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error("Error in Save As: {}", e.getMessage(), e);
+        }
+
+        return false;
+    }
 }

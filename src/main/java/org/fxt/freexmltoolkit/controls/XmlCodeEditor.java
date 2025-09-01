@@ -1,16 +1,14 @@
 package org.fxt.freexmltoolkit.controls;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
@@ -18,8 +16,6 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -513,6 +509,34 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
+     * Handles Ctrl+S keyboard shortcut to save the current file.
+     * Saves the content to the current file or triggers Save As dialog if no file is associated.
+     */
+    private void handleSaveFile() {
+        if (parentXmlEditor != null) {
+            // Use parent editor's save functionality
+            if (!parentXmlEditor.saveFile()) {
+                // If save failed (probably no file associated), try Save As
+                parentXmlEditor.saveAsFile();
+            }
+        } else {
+            logger.warn("Cannot save: no parent editor available");
+        }
+    }
+
+    /**
+     * Requests the parent editor to show Save As dialog.
+     * This is called when Ctrl+Shift+S is pressed.
+     */
+    private void requestSaveAs() {
+        if (parentXmlEditor != null) {
+            parentXmlEditor.saveAsFile();
+        } else {
+            logger.warn("Cannot save as: no parent editor available");
+        }
+    }
+
+    /**
      * Loads CSS stylesheets for syntax highlighting.
      */
     private void loadCssStylesheets() {
@@ -998,6 +1022,16 @@ public class XmlCodeEditor extends VBox {
                     }
                     case NUMPAD0, DIGIT0 -> {
                         resetFontSize();
+                        event.consume();
+                    }
+                    case S -> {
+                        if (event.isShiftDown()) {
+                            // Ctrl+Shift+S = Save As
+                            requestSaveAs();
+                        } else {
+                            // Ctrl+S = Save
+                            handleSaveFile();
+                        }
                         event.consume();
                     }
                     default -> {
