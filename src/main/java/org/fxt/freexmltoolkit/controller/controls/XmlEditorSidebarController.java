@@ -35,6 +35,9 @@ public class XmlEditorSidebarController {
     private CheckBox continuousValidationCheckBox;
 
     @FXML
+    private Button manualValidateButton;
+
+    @FXML
     private TextField xpathField;
 
     @FXML
@@ -129,6 +132,15 @@ public class XmlEditorSidebarController {
 
         // Initialize Schematron errors list view
         initializeSchematronErrorsList();
+
+        // Setup manual validate button
+        if (manualValidateButton != null) {
+            manualValidateButton.setOnAction(event -> {
+                if (xmlEditor != null) {
+                    xmlEditor.validateXml();
+                }
+            });
+        }
 
         changeXsdButton.setOnAction(event -> {
             FileChooser fileChooser = new FileChooser();

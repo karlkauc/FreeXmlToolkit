@@ -25,7 +25,10 @@
                     <Button fx:id="changeXsdButton" text="..."/>
                 </HBox>
                 <Label fx:id="validationStatusLabel" text="Validation status: Unknown" wrapText="true"/>
-                <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"/>
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"/>
+                    <Button fx:id="manualValidateButton" text="Validate" prefWidth="70"/>
+                </HBox>
             </VBox>
         </TitledPane>
 
