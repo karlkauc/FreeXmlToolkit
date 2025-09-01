@@ -100,6 +100,9 @@ dependencies {
     testImplementation("org.testfx:openjfx-monocle:jdk-12.0.1+2")
 
     implementation("com.helger.schematron:ph-schematron-parent-pom:9.0.0")
+    implementation("com.helger.commons:ph-io:12.0.0")
+    // implementation("com.helger.commons:ph-commons:12.0.0")
+    // implementation("com.helger.commons:ph-xml:12.0.0")
     implementation("com.helger.schematron:ph-schematron-api:9.0.0")
     implementation("com.helger.schematron:ph-schematron-xslt:9.0.0")
     implementation("com.helger.schematron:ph-schematron-pure:9.0.0")
