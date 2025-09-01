@@ -428,29 +428,60 @@
                 <center>
                     <SplitPane fx:id="graphicTabSplitPane" orientation="HORIZONTAL" dividerPositions="0.75">
                         <items>
-                            <!-- Main content area -->
-                            <StackPane fx:id="xsdStackPane" style="-fx-background-color: #f8f9fa;">
+                            <!-- Main content area with visualization options -->
+                            <VBox style="-fx-background-color: #f8f9fa;">
                                 <children>
-                                    <VBox fx:id="noFileLoadedPane" alignment="CENTER" spacing="20.0">
+                                    <!-- Visualization Selection Toolbar -->
+                                    <HBox fx:id="visualizationToolbar" spacing="10" alignment="CENTER_LEFT"
+                                          style="-fx-padding: 10; -fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;"
+                                          managed="false" visible="false">
                                         <children>
-                                            <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
-                                                      iconSize="64"/>
-                                            <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
-                                                   text="No XSD file loaded"/>
-                                            <Label style="-fx-text-fill: #6c757d;"
-                                                   text="Please load an XSD file to see the graphical representation."/>
-                                            <Button onAction="#openXsdFileChooser" styleClass="button, :default"
-                                                    text="Load XSD File">
+                                            <Label text="View:" style="-fx-font-weight: bold;"/>
+                                            <ToggleButton fx:id="treeViewToggle" text="Tree View" selected="true">
                                                 <graphic>
-                                                    <FontIcon iconLiteral="bi-folder2-open"/>
+                                                    <FontIcon iconLiteral="bi-diagram-3"/>
                                                 </graphic>
-                                            </Button>
+                                            </ToggleButton>
+                                            <ToggleButton fx:id="umlViewToggle" text="UML View">
+                                                <graphic>
+                                                    <FontIcon iconLiteral="bi-diagram-2"/>
+                                                </graphic>
+                                            </ToggleButton>
                                         </children>
-                                    </VBox>
-                                    <ProgressIndicator fx:id="xsdDiagramProgress" maxHeight="80" maxWidth="80"
-                                                       visible="false"/>
+                                    </HBox>
+
+                                    <!-- Content Area -->
+                                    <StackPane VBox.vgrow="ALWAYS">
+                                        <children>
+                                            <VBox fx:id="noFileLoadedPane" alignment="CENTER" spacing="20.0">
+                                                <children>
+                                                    <FontIcon iconColor="#ced4da" iconLiteral="bi-file-earmark-x"
+                                                              iconSize="64"/>
+                                                    <Label style="-fx-font-size: 18px; -fx-text-fill: #6c757d;"
+                                                           text="No XSD file loaded"/>
+                                                    <Label style="-fx-text-fill: #6c757d;"
+                                                           text="Please load an XSD file to see the graphical representation."/>
+                                                    <Button onAction="#openXsdFileChooser" styleClass="button, :default"
+                                                            text="Load XSD File">
+                                                        <graphic>
+                                                            <FontIcon iconLiteral="bi-folder2-open"/>
+                                                        </graphic>
+                                                    </Button>
+                                                </children>
+                                            </VBox>
+
+                                            <!-- Tree View Container -->
+                                            <StackPane fx:id="xsdStackPane" managed="false" visible="false"/>
+
+                                            <!-- UML View Container -->
+                                            <StackPane fx:id="umlViewContainer" managed="false" visible="false"/>
+
+                                            <ProgressIndicator fx:id="xsdDiagramProgress" maxHeight="80" maxWidth="80"
+                                                               visible="false"/>
+                                        </children>
+                                    </StackPane>
                                 </children>
-                            </StackPane>
+                            </VBox>
 
                             <!-- Favorites Panel for Graphic Tab -->
                             <fx:include fx:id="favoritesPanelGraphic" source="controls/FavoritesPanel.fxml"/>

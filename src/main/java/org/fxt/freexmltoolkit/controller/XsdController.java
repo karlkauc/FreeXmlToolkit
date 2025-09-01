@@ -57,6 +57,7 @@ import java.util.concurrent.TimeUnit;
 public class XsdController {
 
     private XsdDiagramView currentDiagramView;
+    private XsdUmlView currentUmlView;
     
     @FXML
     private TabPane tabPane;
@@ -184,6 +185,19 @@ public class XsdController {
     private ProgressIndicator xsdDiagramProgress;
     @FXML
     private Label xsdInfoPathLabel, xsdInfoNamespaceLabel, xsdInfoVersionLabel;
+
+    // New fields for UML visualization
+    @FXML
+    private HBox visualizationToolbar;
+    @FXML
+    private ToggleButton treeViewToggle;
+    @FXML
+    private ToggleButton umlViewToggle;
+    @FXML
+    private StackPane umlViewContainer;
+
+    // Toggle group created programmatically
+    private ToggleGroup visualizationToggleGroup;
     @FXML
     private ProgressIndicator progressSampleData;
 
@@ -369,6 +383,9 @@ public class XsdController {
         if (docPreviewTab != null) {
             docPreviewTab.setDisable(true);
         }
+
+        // Initialize visualization toggle buttons
+        setupVisualizationToggleButtons();
 
         applyEditorSettings();
     }
@@ -671,6 +688,15 @@ public class XsdController {
                 
                 logger.debug("lade diagramm...");
                 xsdStackPane.getChildren().add(diagramView.build());
+
+                // Show visualization toolbar now that content is loaded
+                if (visualizationToolbar != null) {
+                    visualizationToolbar.setVisible(true);
+                    visualizationToolbar.setManaged(true);
+                }
+
+                // Update visualization views
+                updateVisualizationViews();
             } else {
                 Label infoLabel = new Label("No root element found in schema.");
                 xsdStackPane.getChildren().add(infoLabel);
@@ -934,6 +960,15 @@ public class XsdController {
                 currentDiagramView = diagramView;
 
                 xsdStackPane.getChildren().add(diagramView.build());
+
+                // Show visualization toolbar now that content is loaded
+                if (visualizationToolbar != null) {
+                    visualizationToolbar.setVisible(true);
+                    visualizationToolbar.setManaged(true);
+                }
+
+                // Update visualization views
+                updateVisualizationViews();
             } else {
                 Label infoLabel = new Label("No root element found in schema.");
                 xsdStackPane.getChildren().add(infoLabel);
@@ -3099,6 +3134,102 @@ public class XsdController {
         dialog.showAndWait();
 
         logger.info("Displayed {} type usages for '{}'", usages.size(), findCommand.getTypeInfo().name());
+    }
+
+    /**
+     * Setup visualization toggle buttons for switching between tree and UML views
+     */
+    private void setupVisualizationToggleButtons() {
+        if (treeViewToggle != null && umlViewToggle != null) {
+            // Create toggle group programmatically
+            visualizationToggleGroup = new ToggleGroup();
+
+            // Add buttons to toggle group
+            treeViewToggle.setToggleGroup(visualizationToggleGroup);
+            umlViewToggle.setToggleGroup(visualizationToggleGroup);
+
+            // Set up toggle button actions
+            treeViewToggle.setOnAction(event -> showTreeView());
+            umlViewToggle.setOnAction(event -> showUmlView());
+
+            // Initially select tree view
+            treeViewToggle.setSelected(true);
+
+            // Set up toggle group listener to ensure only one is selected
+            visualizationToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue == null) {
+                    // Prevent deselecting all toggles
+                    if (oldValue != null) {
+                        oldValue.setSelected(true);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Show the tree diagram view
+     */
+    private void showTreeView() {
+        if (xsdStackPane != null && umlViewContainer != null) {
+            xsdStackPane.setVisible(true);
+            xsdStackPane.setManaged(true);
+            umlViewContainer.setVisible(false);
+            umlViewContainer.setManaged(false);
+        }
+    }
+
+    /**
+     * Show the UML diagram view
+     */
+    private void showUmlView() {
+        if (xsdStackPane != null && umlViewContainer != null) {
+            xsdStackPane.setVisible(false);
+            xsdStackPane.setManaged(false);
+            umlViewContainer.setVisible(true);
+            umlViewContainer.setManaged(true);
+
+            // Initialize UML view if not already done
+            if (currentUmlView == null && currentDomManipulator != null) {
+                initializeUmlView();
+            }
+        }
+    }
+
+    /**
+     * Initialize the UML view with current DOM manipulator
+     */
+    private void initializeUmlView() {
+        if (currentDomManipulator != null && umlViewContainer != null) {
+            try {
+                currentUmlView = new XsdUmlView(currentDomManipulator);
+                umlViewContainer.getChildren().clear();
+                umlViewContainer.getChildren().add(currentUmlView);
+                logger.info("UML view initialized successfully");
+            } catch (Exception e) {
+                logger.error("Failed to initialize UML view", e);
+                Label errorLabel = new Label("Failed to load UML view: " + e.getMessage());
+                errorLabel.setStyle("-fx-text-fill: red;");
+                umlViewContainer.getChildren().clear();
+                umlViewContainer.getChildren().add(errorLabel);
+            }
+        }
+    }
+
+    /**
+     * Update visualization views when XSD content changes
+     */
+    private void updateVisualizationViews() {
+        // Reset UML view so it gets recreated with new content
+        currentUmlView = null;
+        if (umlViewContainer != null) {
+            umlViewContainer.getChildren().clear();
+        }
+
+        // If UML view is currently selected, reinitialize it
+        if (umlViewToggle != null && umlViewToggle.isSelected()) {
+            initializeUmlView();
+        }
     }
 
 }

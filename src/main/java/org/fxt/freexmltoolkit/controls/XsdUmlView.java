@@ -35,6 +35,12 @@ public class XsdUmlView extends BorderPane {
 
     private final List<UmlElement> umlElements = new ArrayList<>();
 
+    // Zoom and scaling variables
+    private double currentScale = 1.0;
+    private static final double ZOOM_FACTOR = 1.2;
+    private static final double MIN_SCALE = 0.1;
+    private static final double MAX_SCALE = 5.0;
+
     public XsdUmlView(XsdDomManipulator domManipulator) {
         this.domManipulator = domManipulator;
         this.diagramCanvas = new Canvas(800, 600);
@@ -71,6 +77,9 @@ public class XsdUmlView extends BorderPane {
         canvasScrollPane.setFitToWidth(false);
         canvasScrollPane.setFitToHeight(false);
         canvasScrollPane.getStyleClass().add("uml-canvas-scroll");
+
+        // Add mouse zoom support
+        setupMouseZoom();
 
         // Layout
         setTop(toolbar);
@@ -258,17 +267,90 @@ public class XsdUmlView extends BorderPane {
 
     private void zoomIn() {
         logger.info("Zooming in UML diagram");
-        // Placeholder for zoom functionality
+        if (currentScale < MAX_SCALE) {
+            currentScale *= ZOOM_FACTOR;
+            applyScale();
+        }
     }
 
     private void zoomOut() {
         logger.info("Zooming out UML diagram");
-        // Placeholder for zoom functionality
+        if (currentScale > MIN_SCALE) {
+            currentScale /= ZOOM_FACTOR;
+            applyScale();
+        }
     }
 
     private void fitToWindow() {
         logger.info("Fitting UML diagram to window");
-        // Placeholder for fit-to-window functionality
+
+        // Calculate scale to fit canvas in viewport
+        double viewportWidth = canvasScrollPane.getViewportBounds().getWidth();
+        double viewportHeight = canvasScrollPane.getViewportBounds().getHeight();
+
+        if (viewportWidth > 0 && viewportHeight > 0) {
+            double canvasWidth = diagramCanvas.getWidth();
+            double canvasHeight = diagramCanvas.getHeight();
+
+            // Calculate scale factors for width and height
+            double scaleX = viewportWidth / canvasWidth;
+            double scaleY = viewportHeight / canvasHeight;
+
+            // Use the smaller scale to ensure everything fits
+            currentScale = Math.min(scaleX, scaleY) * 0.95; // 95% to leave some margin
+            currentScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale));
+
+            applyScale();
+
+            // Center the canvas
+            centerCanvas();
+        }
+    }
+
+    /**
+     * Apply the current scale to the canvas
+     */
+    private void applyScale() {
+        diagramCanvas.getTransforms().clear();
+        if (currentScale != 1.0) {
+            javafx.scene.transform.Scale scale = new javafx.scene.transform.Scale(currentScale, currentScale);
+            diagramCanvas.getTransforms().add(scale);
+        }
+        logger.debug("Applied scale: {}", currentScale);
+    }
+
+    /**
+     * Center the canvas in the scroll pane
+     */
+    private void centerCanvas() {
+        canvasScrollPane.setHvalue(0.5);
+        canvasScrollPane.setVvalue(0.5);
+    }
+
+    /**
+     * Setup mouse zoom support for the canvas
+     */
+    private void setupMouseZoom() {
+        diagramCanvas.setOnScroll(event -> {
+            if (event.isControlDown()) {
+                event.consume();
+
+                double deltaY = event.getDeltaY();
+                if (deltaY > 0) {
+                    // Zoom in
+                    if (currentScale < MAX_SCALE) {
+                        currentScale *= ZOOM_FACTOR;
+                        applyScale();
+                    }
+                } else if (deltaY < 0) {
+                    // Zoom out
+                    if (currentScale > MIN_SCALE) {
+                        currentScale /= ZOOM_FACTOR;
+                        applyScale();
+                    }
+                }
+            }
+        });
     }
 
     // Property accessor
