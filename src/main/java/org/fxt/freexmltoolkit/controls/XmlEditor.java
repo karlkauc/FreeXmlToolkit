@@ -2038,6 +2038,7 @@ public class XmlEditor extends Tab {
         if (xmlCodeEditor != null) {
             xmlCodeEditor.setDocumentUri(xmlFile.toURI().toString());
             xmlCodeEditor.setParentXmlEditor(this);
+            xmlCodeEditor.setCurrentFile(xmlFile);
         }
 
         // Auto-format XML if setting is enabled
@@ -2140,6 +2141,7 @@ public class XmlEditor extends Tab {
                 if (xmlFile != null && xmlFile.exists()) {
                     try {
                         Files.writeString(xmlFile.toPath(), newXmlContent, StandardCharsets.UTF_8);
+                        xmlCodeEditor.notifyFileSaved();
                     } catch (IOException e) {
                         logger.error("Failed to write updated XML to file", e);
                     }

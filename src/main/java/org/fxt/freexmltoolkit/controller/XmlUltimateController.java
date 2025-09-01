@@ -821,6 +821,7 @@ public class XmlUltimateController implements Initializable {
 
             try {
                 Files.writeString(editorFile.toPath(), currentXmlContent);
+                editor.getXmlCodeEditor().notifyFileSaved();
                 currentTab.setText(editorFile.getName());
                 logToConsole("Saved file: " + editorFile.getAbsolutePath());
             } catch (IOException e) {
@@ -873,6 +874,7 @@ public class XmlUltimateController implements Initializable {
             if (selectedFile != null) {
                 try {
                     Files.writeString(selectedFile.toPath(), currentXmlContent);
+                    editor.getXmlCodeEditor().notifyFileSaved();
 
                     // Update the editor with the new file
                     editor.setXmlFile(selectedFile);
