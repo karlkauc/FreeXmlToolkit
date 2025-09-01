@@ -196,6 +196,9 @@ public class SchematronController {
     @FXML
     private VBox errorsPlaceholder;
 
+    @FXML
+    private Label loadedSchemaLabel;
+
     // Core components from FXML
     @FXML
     private XmlCodeEditor xmlCodeEditor;
@@ -265,6 +268,12 @@ public class SchematronController {
 
         // Initialize test tab components
         initializeTestTab();
+        
+        // Initialize the loaded schema label
+        if (loadedSchemaLabel != null) {
+            loadedSchemaLabel.setText("None");
+            loadedSchemaLabel.setTooltip(new Tooltip("No schema loaded yet"));
+        }
 
         // Add tab selection listener to refresh syntax highlighting
         if (tabPane != null && xmlCodeEditor != null) {
@@ -1306,6 +1315,12 @@ public class SchematronController {
                 propertiesService.setLastOpenDirectory(file.getParent());
             }
             
+            // Update the label to show the loaded file
+            if (loadedSchemaLabel != null) {
+                loadedSchemaLabel.setText(file.getName());
+                loadedSchemaLabel.setTooltip(new Tooltip(file.getAbsolutePath()));
+            }
+            
             showInfo("Schema Loaded", "Schematron schema loaded: " + file.getName());
             logger.info("Loaded test schema: {}", file.getAbsolutePath());
         }
@@ -1331,12 +1346,25 @@ public class SchematronController {
                 Files.writeString(tempFile, xmlCodeEditor.getText());
                 testSchematronFile = tempFile.toFile();
                 testSchematronFile.deleteOnExit();
+                
+                // Update the label to show current editor is being used
+                if (loadedSchemaLabel != null) {
+                    loadedSchemaLabel.setText("Current Editor Content (temp)");
+                    loadedSchemaLabel.setTooltip(new Tooltip("Using temporary file from current editor content"));
+                }
+                
                 showInfo("Schema Ready", "Using current editor content for testing");
             } catch (IOException e) {
                 logger.error("Failed to create temporary schema file", e);
                 showError("Error", "Failed to prepare schema for testing: " + e.getMessage());
             }
         } else {
+            // Update the label to show the current file
+            if (loadedSchemaLabel != null) {
+                loadedSchemaLabel.setText(testSchematronFile.getName());
+                loadedSchemaLabel.setTooltip(new Tooltip(testSchematronFile.getAbsolutePath()));
+            }
+            
             showInfo("Schema Ready", "Using current schema: " + testSchematronFile.getName());
         }
     }
