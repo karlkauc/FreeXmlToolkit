@@ -58,6 +58,7 @@ public class XsdController {
 
     private XsdDiagramView currentDiagramView;
     private XsdUmlView currentUmlView;
+    private XsdGridView currentGridView;
     
     @FXML
     private TabPane tabPane;
@@ -186,7 +187,7 @@ public class XsdController {
     @FXML
     private Label xsdInfoPathLabel, xsdInfoNamespaceLabel, xsdInfoVersionLabel;
 
-    // New fields for UML visualization
+    // New fields for visualization (UML, Grid)
     @FXML
     private HBox visualizationToolbar;
     @FXML
@@ -194,7 +195,11 @@ public class XsdController {
     @FXML
     private ToggleButton umlViewToggle;
     @FXML
+    private ToggleButton gridViewToggle;
+    @FXML
     private StackPane umlViewContainer;
+    @FXML
+    private StackPane gridViewContainer;
 
     // Toggle group created programmatically
     private ToggleGroup visualizationToggleGroup;
@@ -1410,15 +1415,24 @@ public class XsdController {
             currentDomManipulator = new XsdDomManipulator();
             currentDomManipulator.loadXsd(xsdContent);
 
-            System.out.println("DEBUG: Loading XSD content into DOM manipulator");
-            System.out.println("DEBUG: XSD content length: " + xsdContent.length());
-            System.out.println("DEBUG: XSD loaded successfully into DOM manipulator");
+            logger.info("Loading XSD content into DOM manipulator");
+            logger.info("XSD content length: {}", xsdContent.length());
+            logger.info("XSD loaded successfully into DOM manipulator");
+
+            // Update existing views with new DOM manipulator
+            if (currentGridView != null) {
+                currentGridView.updateDomManipulator(currentDomManipulator);
+                logger.info("Grid view updated with new DOM manipulator");
+            }
 
             // Update the graphic view immediately
             Platform.runLater(() -> {
                 try {
                     setupXsdDiagramFromContent(xsdContent);
                     logger.info("Graphic view updated for new XSD content");
+
+                    // Update visualization views if they exist
+                    updateVisualizationViews();
                 } catch (Exception ex) {
                     logger.error("Error updating graphic view", ex);
                 }
@@ -3137,20 +3151,22 @@ public class XsdController {
     }
 
     /**
-     * Setup visualization toggle buttons for switching between tree and UML views
+     * Setup visualization toggle buttons for switching between tree, UML, and grid views
      */
     private void setupVisualizationToggleButtons() {
-        if (treeViewToggle != null && umlViewToggle != null) {
+        if (treeViewToggle != null && umlViewToggle != null && gridViewToggle != null) {
             // Create toggle group programmatically
             visualizationToggleGroup = new ToggleGroup();
 
             // Add buttons to toggle group
             treeViewToggle.setToggleGroup(visualizationToggleGroup);
             umlViewToggle.setToggleGroup(visualizationToggleGroup);
+            gridViewToggle.setToggleGroup(visualizationToggleGroup);
 
             // Set up toggle button actions
             treeViewToggle.setOnAction(event -> showTreeView());
             umlViewToggle.setOnAction(event -> showUmlView());
+            gridViewToggle.setOnAction(event -> showGridView());
 
             // Initially select tree view
             treeViewToggle.setSelected(true);
@@ -3171,11 +3187,13 @@ public class XsdController {
      * Show the tree diagram view
      */
     private void showTreeView() {
-        if (xsdStackPane != null && umlViewContainer != null) {
+        if (xsdStackPane != null && umlViewContainer != null && gridViewContainer != null) {
             xsdStackPane.setVisible(true);
             xsdStackPane.setManaged(true);
             umlViewContainer.setVisible(false);
             umlViewContainer.setManaged(false);
+            gridViewContainer.setVisible(false);
+            gridViewContainer.setManaged(false);
         }
     }
 
@@ -3183,15 +3201,36 @@ public class XsdController {
      * Show the UML diagram view
      */
     private void showUmlView() {
-        if (xsdStackPane != null && umlViewContainer != null) {
+        if (xsdStackPane != null && umlViewContainer != null && gridViewContainer != null) {
             xsdStackPane.setVisible(false);
             xsdStackPane.setManaged(false);
             umlViewContainer.setVisible(true);
             umlViewContainer.setManaged(true);
+            gridViewContainer.setVisible(false);
+            gridViewContainer.setManaged(false);
 
             // Initialize UML view if not already done
             if (currentUmlView == null && currentDomManipulator != null) {
                 initializeUmlView();
+            }
+        }
+    }
+
+    /**
+     * Show the grid table view
+     */
+    private void showGridView() {
+        if (xsdStackPane != null && umlViewContainer != null && gridViewContainer != null) {
+            xsdStackPane.setVisible(false);
+            xsdStackPane.setManaged(false);
+            umlViewContainer.setVisible(false);
+            umlViewContainer.setManaged(false);
+            gridViewContainer.setVisible(true);
+            gridViewContainer.setManaged(true);
+
+            // Initialize Grid view if not already done
+            if (currentGridView == null && currentDomManipulator != null) {
+                initializeGridView();
             }
         }
     }
@@ -3217,18 +3256,65 @@ public class XsdController {
     }
 
     /**
+     * Initialize the Grid view with current DOM manipulator
+     */
+    private void initializeGridView() {
+        if (currentDomManipulator != null && gridViewContainer != null) {
+            try {
+                currentGridView = new XsdGridView(currentDomManipulator);
+                gridViewContainer.getChildren().clear();
+                gridViewContainer.getChildren().add(currentGridView);
+                logger.info("Grid view initialized successfully");
+            } catch (Exception e) {
+                logger.error("Failed to initialize Grid view", e);
+                Label errorLabel = new Label("Failed to load Grid view: " + e.getMessage());
+                errorLabel.setStyle("-fx-text-fill: red;");
+                gridViewContainer.getChildren().clear();
+                gridViewContainer.getChildren().add(errorLabel);
+            }
+        }
+    }
+
+    /**
      * Update visualization views when XSD content changes
      */
     private void updateVisualizationViews() {
-        // Reset UML view so it gets recreated with new content
-        currentUmlView = null;
-        if (umlViewContainer != null) {
-            umlViewContainer.getChildren().clear();
+        // Update existing views with new DOM manipulator if possible
+        if (currentDomManipulator != null) {
+            if (currentUmlView != null) {
+                // UML view doesn't have updateDomManipulator method, so recreate it
+                currentUmlView = null;
+                if (umlViewContainer != null) {
+                    umlViewContainer.getChildren().clear();
+                }
+            }
+
+            if (currentGridView != null) {
+                // Update grid view with new DOM manipulator
+                currentGridView.updateDomManipulator(currentDomManipulator);
+                logger.info("Grid view updated with new DOM manipulator");
+            }
+        } else {
+            // Reset views if no DOM manipulator
+            currentUmlView = null;
+            if (umlViewContainer != null) {
+                umlViewContainer.getChildren().clear();
+            }
+
+            currentGridView = null;
+            if (gridViewContainer != null) {
+                gridViewContainer.getChildren().clear();
+            }
         }
 
         // If UML view is currently selected, reinitialize it
         if (umlViewToggle != null && umlViewToggle.isSelected()) {
             initializeUmlView();
+        }
+
+        // If Grid view is currently selected, reinitialize it
+        if (gridViewToggle != null && gridViewToggle.isSelected()) {
+            initializeGridView();
         }
     }
 
