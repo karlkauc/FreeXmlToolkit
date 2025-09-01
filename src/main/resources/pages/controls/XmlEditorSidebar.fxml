@@ -24,6 +24,15 @@
                     <TextField fx:id="xsdPathField" HBox.hgrow="ALWAYS" promptText="XSD Schema" editable="false"/>
                     <Button fx:id="changeXsdButton" text="..."/>
                 </HBox>
+                <HBox spacing="3" alignment="CENTER_LEFT">
+                    <Label text="Favorites:" prefWidth="55"/>
+                    <ComboBox fx:id="xsdFavoritesComboBox" HBox.hgrow="ALWAYS" promptText="Select XSD from favorites"/>
+                    <Button fx:id="resetXsdButton" text="↺" prefWidth="25" maxWidth="25" style="-fx-font-size: 10px;">
+                        <tooltip>
+                            <Tooltip text="Reset to original XSD"/>
+                        </tooltip>
+                    </Button>
+                </HBox>
                 <Label fx:id="validationStatusLabel" text="Validation status: Unknown" wrapText="true"/>
                 <HBox spacing="5" alignment="CENTER_LEFT">
                     <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"/>

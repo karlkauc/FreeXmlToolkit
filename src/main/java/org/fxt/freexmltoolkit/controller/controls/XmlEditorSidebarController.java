@@ -11,7 +11,9 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.domain.ValidationError;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.SchematronService;
 
 import java.io.File;
@@ -36,6 +38,12 @@ public class XmlEditorSidebarController {
 
     @FXML
     private Button manualValidateButton;
+
+    @FXML
+    private ComboBox<String> xsdFavoritesComboBox;
+
+    @FXML
+    private Button resetXsdButton;
 
     @FXML
     private TextField xpathField;
@@ -96,6 +104,12 @@ public class XmlEditorSidebarController {
 
     private XmlEditor xmlEditor;
 
+    // Services
+    private final FavoritesService favoritesService = FavoritesService.getInstance();
+
+    // XSD management
+    private File originalXsdFile; // Store the original linked XSD
+
     private String xsdPath;
 
     private boolean sidebarVisible = true;
@@ -140,6 +154,14 @@ public class XmlEditorSidebarController {
                     xmlEditor.validateXml();
                 }
             });
+        }
+
+        // Setup XSD favorites dropdown
+        setupXsdFavoritesDropdown();
+
+        // Setup reset XSD button
+        if (resetXsdButton != null) {
+            resetXsdButton.setOnAction(event -> resetToOriginalXsd());
         }
 
         changeXsdButton.setOnAction(event -> {
@@ -683,6 +705,126 @@ public class XmlEditorSidebarController {
         };
     }
 
+    /**
+     * Setup XSD favorites dropdown with available XSD files
+     */
+    private void setupXsdFavoritesDropdown() {
+        if (xsdFavoritesComboBox == null) {
+            return;
+        }
+
+        // Load XSD favorites
+        refreshXsdFavorites();
+
+        // Handle selection
+        xsdFavoritesComboBox.setOnAction(event -> {
+            String selectedItem = xsdFavoritesComboBox.getSelectionModel().getSelectedItem();
+            if (selectedItem != null && !selectedItem.isEmpty()) {
+                applyFavoriteXsd(selectedItem);
+            }
+        });
+    }
+
+    /**
+     * Refresh the XSD favorites dropdown
+     */
+    private void refreshXsdFavorites() {
+        if (xsdFavoritesComboBox == null) {
+            return;
+        }
+
+        xsdFavoritesComboBox.getItems().clear();
+
+        // Get XSD favorites from service
+        List<FileFavorite> xsdFavorites = favoritesService.getFavoritesByType(FileFavorite.FileType.XSD);
+
+        for (FileFavorite favorite : xsdFavorites) {
+            // Display format: "name (folder)" or just "name" if no folder
+            String displayName = favorite.getName();
+            if (favorite.getFolderName() != null && !favorite.getFolderName().isEmpty()) {
+                displayName += " (" + favorite.getFolderName() + ")";
+            }
+            xsdFavoritesComboBox.getItems().add(displayName);
+        }
+
+        logger.debug("Loaded {} XSD favorites into dropdown", xsdFavorites.size());
+    }
+
+    /**
+     * Apply selected favorite XSD schema
+     */
+    private void applyFavoriteXsd(String selectedDisplayName) {
+        // Find the favorite by display name
+        List<FileFavorite> xsdFavorites = favoritesService.getFavoritesByType(FileFavorite.FileType.XSD);
+
+        FileFavorite selectedFavorite = null;
+        for (FileFavorite favorite : xsdFavorites) {
+            String displayName = favorite.getName();
+            if (favorite.getFolderName() != null && !favorite.getFolderName().isEmpty()) {
+                displayName += " (" + favorite.getFolderName() + ")";
+            }
+
+            if (displayName.equals(selectedDisplayName)) {
+                selectedFavorite = favorite;
+                break;
+            }
+        }
+
+        if (selectedFavorite != null) {
+            File newXsdFile = new File(selectedFavorite.getFilePath());
+            if (newXsdFile.exists()) {
+                // Store original XSD if not already stored
+                if (originalXsdFile == null && xmlEditor != null && xmlEditor.getXsdFile() != null) {
+                    originalXsdFile = xmlEditor.getXsdFile();
+                }
+
+                // Apply new XSD
+                if (xmlEditor != null) {
+                    xmlEditor.setXsdFile(newXsdFile);
+                    xsdPathField.setText(newXsdFile.getAbsolutePath());
+
+                    // Trigger validation with new schema
+                    xmlEditor.validateXml();
+
+                    logger.info("Applied XSD favorite: {}", selectedFavorite.getName());
+                }
+            } else {
+                logger.warn("Selected XSD favorite file does not exist: {}", selectedFavorite.getFilePath());
+                showAlert("XSD File Not Found", "The selected XSD file no longer exists:\n" + selectedFavorite.getFilePath());
+            }
+        }
+    }
+
+    /**
+     * Reset to original XSD schema
+     */
+    private void resetToOriginalXsd() {
+        if (originalXsdFile != null && xmlEditor != null) {
+            xmlEditor.setXsdFile(originalXsdFile);
+            xsdPathField.setText(originalXsdFile.getAbsolutePath());
+
+            // Clear dropdown selection
+            xsdFavoritesComboBox.getSelectionModel().clearSelection();
+
+            // Trigger validation with original schema
+            xmlEditor.validateXml();
+
+            logger.info("Reset to original XSD: {}", originalXsdFile.getName());
+        } else {
+            logger.debug("No original XSD to reset to");
+        }
+    }
+
+    /**
+     * Show alert dialog
+     */
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
 
     /**
      * Initializes the Schematron errors list view with custom cell factory
