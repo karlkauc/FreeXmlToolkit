@@ -1497,23 +1497,36 @@ public class SchematronController {
 
         // Run tests in background
         Platform.runLater(() -> {
+            boolean schematronLoadError = false;
             for (TestFile testFile : testFiles) {
                 runTestForFile(testFile);
-            }
-
-            // Show summary
-            int passed = 0;
-            int failed = 0;
-            for (TestFile tf : testFiles) {
-                if ("Passed".equals(tf.getStatus())) {
-                    passed++;
-                } else if ("Failed".equals(tf.getStatus())) {
-                    failed++;
+                // Check if we encountered a Schematron load error
+                if ("Error".equals(testFile.getStatus()) && 
+                    testFile.getDetailedResults() != null && 
+                    !testFile.getDetailedResults().isEmpty() &&
+                    testFile.getDetailedResults().get(0).message().contains("Schematron load error")) {
+                    schematronLoadError = true;
+                    // Stop processing other files
+                    break;
                 }
             }
 
-            showInfo("Test Results",
-                    String.format("Tests completed:\n✓ Passed: %d\n✗ Failed: %d", passed, failed));
+            // Only show summary if we didn't encounter a Schematron load error
+            if (!schematronLoadError) {
+                // Show summary
+                int passed = 0;
+                int failed = 0;
+                for (TestFile tf : testFiles) {
+                    if ("Passed".equals(tf.getStatus())) {
+                        passed++;
+                    } else if ("Failed".equals(tf.getStatus())) {
+                        failed++;
+                    }
+                }
+
+                showInfo("Test Results",
+                        String.format("Tests completed:\n✓ Passed: %d\n✗ Failed: %d", passed, failed));
+            }
 
             // Update results tabs
             updateResultsTabs();
@@ -1606,6 +1619,34 @@ public class SchematronController {
             // Update last tested time
             testFile.setLastTested(LocalDateTime.now().format(DATE_FORMATTER));
 
+        } catch (SchematronLoadException e) {
+            // Show error popup for Schematron loading issues
+            logger.error("Failed to load Schematron file: {}", testSchematronFile.getName(), e);
+            testFile.setStatus("Error");
+            
+            // Show error dialog to user
+            Platform.runLater(() -> {
+                showError("Schematron Loading Error", 
+                    "Failed to load or compile the Schematron file:\n\n" + e.getMessage() + 
+                    "\n\nPlease check that the Schematron file is valid and try again.");
+            });
+            
+            // Add error as a test result
+            TestFile.TestResult errorResult = new TestFile.TestResult(
+                    "error",
+                    "Schematron load error: " + e.getMessage(),
+                    "N/A",
+                    "error",
+                    "Schematron Load Error",
+                    0
+            );
+            testFile.clearDetailedResults();
+            testFile.addTestResult(errorResult);
+            testFile.setViolations(1);
+            testFile.setWarnings(0);
+            
+            // Don't continue validation for other files if Schematron cannot be loaded
+            return;
         } catch (Exception e) {
             logger.error("Error testing file: {}", testFile.getFilename(), e);
             testFile.setStatus("Error");

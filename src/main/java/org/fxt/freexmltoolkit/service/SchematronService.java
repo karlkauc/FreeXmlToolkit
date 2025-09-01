@@ -16,8 +16,9 @@ public interface SchematronService {
      * @param xmlContent     The XML content to validate
      * @param schematronFile The Schematron file containing validation rules
      * @return List of validation errors, empty if validation passes
+     * @throws SchematronLoadException if the Schematron file cannot be loaded or compiled
      */
-    List<SchematronValidationError> validateXml(String xmlContent, File schematronFile);
+    List<SchematronValidationError> validateXml(String xmlContent, File schematronFile) throws SchematronLoadException;
 
     /**
      * Validates an XML file against a Schematron file.
@@ -25,8 +26,9 @@ public interface SchematronService {
      * @param xmlFile        The XML file to validate
      * @param schematronFile The Schematron file containing validation rules
      * @return List of validation errors, empty if validation passes
+     * @throws SchematronLoadException if the Schematron file cannot be loaded or compiled
      */
-    List<SchematronValidationError> validateXmlFile(File xmlFile, File schematronFile);
+    List<SchematronValidationError> validateXmlFile(File xmlFile, File schematronFile) throws SchematronLoadException;
 
     /**
      * Validates an XML file against a Schematron file with comprehensive result.
@@ -34,8 +36,9 @@ public interface SchematronService {
      * @param xmlFile        The XML file to validate
      * @param schematronFile The Schematron file containing validation rules
      * @return Comprehensive validation result
+     * @throws SchematronLoadException if the Schematron file cannot be loaded or compiled
      */
-    SchematronValidationResult validateXmlWithSchematron(File xmlFile, File schematronFile);
+    SchematronValidationResult validateXmlWithSchematron(File xmlFile, File schematronFile) throws SchematronLoadException;
 
     /**
      * Checks if a file is a valid Schematron file.

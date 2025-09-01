@@ -1160,6 +1160,19 @@ public class XmlEditor extends Tab {
                             error.message(), error.lineNumber(), error.columnNumber(), error.ruleId());
                 }
             }
+        } catch (SchematronLoadException e) {
+            // Handle Schematron loading errors specifically
+            sidebarController.updateSchematronValidationStatus("Failed to load Schematron", "red", null);
+            logger.error("Failed to load Schematron file: {}", schematronFile.getName(), e);
+            
+            // Show error dialog to the user
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Schematron Loading Error");
+                alert.setHeaderText("Failed to load or compile Schematron file");
+                alert.setContentText(e.getMessage() + "\n\nPlease check that the Schematron file is valid and try again.");
+                alert.showAndWait();
+            });
         } catch (Exception e) {
             sidebarController.updateSchematronValidationStatus("Error during validation", "red", null);
             logger.error("Error during Schematron validation", e);

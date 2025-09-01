@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
+import org.fxt.freexmltoolkit.service.SchematronLoadException;
 import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -83,6 +84,8 @@ class XmlEditorFeaturesTest {
             // For now, we just verify the service doesn't crash
         } catch (IOException e) {
             fail("Failed to read test files: " + e.getMessage());
+        } catch (SchematronLoadException e) {
+            fail("Failed to load Schematron file: " + e.getMessage());
         }
     }
 

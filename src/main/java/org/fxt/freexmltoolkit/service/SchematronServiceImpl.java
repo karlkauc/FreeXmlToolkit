@@ -51,17 +51,19 @@ public class SchematronServiceImpl implements SchematronService {
     }
 
     @Override
-    public List<SchematronValidationError> validateXml(String xmlContent, File schematronFile) {
+    public List<SchematronValidationError> validateXml(String xmlContent, File schematronFile) throws SchematronLoadException {
         if (xmlContent == null || xmlContent.trim().isEmpty()) {
             return List.of(new SchematronValidationError(
                     "XML content is null or empty", null, null, 0, 0, "error"));
         }
         if (schematronFile == null || !schematronFile.exists()) {
-            return List.of(new SchematronValidationError(
-                    "Schematron file is null or does not exist", null, null, 0, 0, "error"));
+            throw new SchematronLoadException("Schematron file is null or does not exist: " + 
+                    (schematronFile != null ? schematronFile.getAbsolutePath() : "null"));
         }
         try {
             return performValidation(new StreamSource(new StringReader(xmlContent)), schematronFile);
+        } catch (SchematronLoadException e) {
+            throw e; // Re-throw SchematronLoadException
         } catch (Exception e) {
             logger.error("Error during Schematron validation", e);
             return List.of(new SchematronValidationError(
@@ -70,17 +72,19 @@ public class SchematronServiceImpl implements SchematronService {
     }
 
     @Override
-    public List<SchematronValidationError> validateXmlFile(File xmlFile, File schematronFile) {
+    public List<SchematronValidationError> validateXmlFile(File xmlFile, File schematronFile) throws SchematronLoadException {
         if (xmlFile == null || !xmlFile.exists()) {
             return List.of(new SchematronValidationError(
                     "XML file is null or does not exist", null, null, 0, 0, "error"));
         }
         if (schematronFile == null || !schematronFile.exists()) {
-            return List.of(new SchematronValidationError(
-                    "Schematron file is null or does not exist", null, null, 0, 0, "error"));
+            throw new SchematronLoadException("Schematron file is null or does not exist: " + 
+                    (schematronFile != null ? schematronFile.getAbsolutePath() : "null"));
         }
         try {
             return performValidation(new StreamSource(xmlFile), schematronFile);
+        } catch (SchematronLoadException e) {
+            throw e; // Re-throw SchematronLoadException
         } catch (Exception e) {
             logger.error("Error during Schematron validation", e);
             return List.of(new SchematronValidationError(
@@ -92,19 +96,25 @@ public class SchematronServiceImpl implements SchematronService {
      * Compiles a Schematron file into a validation stylesheet (XSLT).
      * This is a multi-step process using the ISO Schematron skeletons.
      */
-    private XsltExecutable compileSchematron(File schematronFile) throws SaxonApiException {
+    private XsltExecutable compileSchematron(File schematronFile) throws SchematronLoadException {
         if (compiledSchematronCache.containsKey(schematronFile)) {
             return compiledSchematronCache.get(schematronFile);
         }
 
-        XdmNode schematronNode = SAXON_PROCESSOR.newDocumentBuilder().build(new StreamSource(schematronFile));
+        XdmNode schematronNode;
+        try {
+            schematronNode = SAXON_PROCESSOR.newDocumentBuilder().build(new StreamSource(schematronFile));
+        } catch (SaxonApiException e) {
+            throw new SchematronLoadException("Failed to parse Schematron file: " + schematronFile.getAbsolutePath() + 
+                    ". Reason: " + e.getMessage(), e);
+        }
 
         XdmNode currentResult = schematronNode;
 
         for (String skeletonPath : SCHEMATRON_SKELETONS) {
             try (InputStream skeletonStream = SchematronServiceImpl.class.getResourceAsStream(skeletonPath)) {
                 if (skeletonStream == null) {
-                    throw new SaxonApiException("Cannot find Schematron skeleton on classpath: " + skeletonPath);
+                    throw new SchematronLoadException("Cannot find Schematron skeleton on classpath: " + skeletonPath);
                 }
                 XsltExecutable skeleton = XSLT_COMPILER.compile(new StreamSource(skeletonStream));
                 XsltTransformer transformer = skeleton.load();
@@ -113,17 +123,26 @@ public class SchematronServiceImpl implements SchematronService {
                 transformer.setDestination(resultDestination);
                 transformer.transform();
                 currentResult = resultDestination.getXdmNode();
+            } catch (SchematronLoadException e) {
+                throw e;
             } catch (Exception e) {
-                throw new SaxonApiException("Failed to apply Schematron skeleton " + skeletonPath, e);
+                throw new SchematronLoadException("Failed to apply Schematron skeleton " + skeletonPath + 
+                        ". Reason: " + e.getMessage(), e);
             }
         }
 
-        XsltExecutable validationStylesheet = XSLT_COMPILER.compile(currentResult.asSource());
+        XsltExecutable validationStylesheet;
+        try {
+            validationStylesheet = XSLT_COMPILER.compile(currentResult.asSource());
+        } catch (SaxonApiException e) {
+            throw new SchematronLoadException("Failed to compile Schematron to XSLT. The Schematron file may contain invalid rules or syntax. " +
+                    "File: " + schematronFile.getAbsolutePath() + ". Reason: " + e.getMessage(), e);
+        }
         compiledSchematronCache.put(schematronFile, validationStylesheet);
         return validationStylesheet;
     }
 
-    private List<SchematronValidationError> performValidation(Source xmlSource, File schematronFile) {
+    private List<SchematronValidationError> performValidation(Source xmlSource, File schematronFile) throws SchematronLoadException {
         List<SchematronValidationError> validationEvents = new ArrayList<>();
         try {
             XsltExecutable validationXslt = compileSchematron(schematronFile);
@@ -144,6 +163,8 @@ public class SchematronServiceImpl implements SchematronService {
                 parseSvrlReport(svrlDocument, validationEvents);
             }
 
+        } catch (SchematronLoadException e) {
+            throw e; // Re-throw SchematronLoadException
         } catch (Exception e) {
             logger.error("Error in Saxon-based Schematron validation", e);
             validationEvents.add(new SchematronValidationError(
@@ -181,7 +202,7 @@ public class SchematronServiceImpl implements SchematronService {
     }
 
     @Override
-    public SchematronValidationResult validateXmlWithSchematron(File xmlFile, File schematronFile) {
+    public SchematronValidationResult validateXmlWithSchematron(File xmlFile, File schematronFile) throws SchematronLoadException {
         SchematronValidationResult result = new SchematronValidationResult();
         List<SchematronValidationError> errors = validateXmlFile(xmlFile, schematronFile);
         for (SchematronValidationError error : errors) {

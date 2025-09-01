@@ -24,7 +24,39 @@ class SchematronServiceImplTest {
     }
 
     @Test
-    void testValidateXmlWithMultipleErrors() throws IOException {
+    void testInvalidSchematronFileThrowsException() throws IOException {
+        // Create an invalid Schematron file (not proper XML)
+        Path invalidSchematronFile = tempDir.resolve("invalid.sch");
+        Files.writeString(invalidSchematronFile, "This is not valid XML/Schematron content");
+
+        // Create a valid XML file to test
+        String xmlContent = "<?xml version=\"1.0\"?><root>Test</root>";
+
+        // Test that SchematronLoadException is thrown for invalid Schematron file
+        assertThrows(SchematronLoadException.class, () -> {
+            schematronService.validateXml(xmlContent, invalidSchematronFile.toFile());
+        });
+    }
+
+    @Test
+    void testNonExistentSchematronFileThrowsException() {
+        // Create a non-existent Schematron file
+        Path nonExistentSchematronFile = tempDir.resolve("nonexistent.sch");
+
+        // Create a valid XML file to test
+        String xmlContent = "<?xml version=\"1.0\"?><root>Test</root>";
+
+        // Test that SchematronLoadException is thrown for non-existent Schematron file
+        SchematronLoadException exception = assertThrows(SchematronLoadException.class, () -> {
+            schematronService.validateXml(xmlContent, nonExistentSchematronFile.toFile());
+        });
+
+        // Verify the exception message contains useful information
+        assertTrue(exception.getMessage().contains("does not exist"));
+    }
+
+    @Test
+    void testValidateXmlWithMultipleErrors() throws IOException, SchematronLoadException {
         // Create test Schematron file
         String schematronContent = """
                 <?xml version="1.0" encoding="UTF-8"?>
@@ -82,7 +114,7 @@ class SchematronServiceImplTest {
     }
 
     @Test
-    void testValidXmlReturnsNoErrors() throws IOException {
+    void testValidXmlReturnsNoErrors() throws IOException, SchematronLoadException {
         // Create test Schematron file
         String schematronContent = """
                 <?xml version="1.0" encoding="UTF-8"?>
@@ -123,7 +155,7 @@ class SchematronServiceImplTest {
     }
 
     @Test
-    void testValidateXmlWithComplexXPathExpressions() throws IOException {
+    void testValidateXmlWithComplexXPathExpressions() throws IOException, SchematronLoadException {
         // Create test Schematron file with XPath expressions that contain < and > operators
         String schematronContent = """
                 <?xml version="1.0" encoding="UTF-8"?>

@@ -28,7 +28,7 @@ class SchematronServiceTest {
     }
 
     @Test
-    void testValidateXmlWithNullContent() throws IOException {
+    void testValidateXmlWithNullContent() throws IOException, SchematronLoadException {
         // Create a simple Schematron file
         File schematronFile = createSimpleSchematronFile();
 
@@ -40,7 +40,7 @@ class SchematronServiceTest {
     }
 
     @Test
-    void testValidateXmlWithEmptyContent() throws IOException {
+    void testValidateXmlWithEmptyContent() throws IOException, SchematronLoadException {
         // Create a simple Schematron file
         File schematronFile = createSimpleSchematronFile();
 
@@ -55,11 +55,12 @@ class SchematronServiceTest {
     void testValidateXmlWithNullSchematronFile() {
         String xmlContent = "<root><element>test</element></root>";
 
-        List<SchematronService.SchematronValidationError> errors = schematronService.validateXml(xmlContent, null);
+        // Now expect a SchematronLoadException to be thrown instead
+        SchematronLoadException exception = assertThrows(SchematronLoadException.class, () -> {
+            schematronService.validateXml(xmlContent, null);
+        });
 
-        assertNotNull(errors);
-        assertEquals(1, errors.size());
-        assertEquals("Schematron file is null or does not exist", errors.get(0).message());
+        assertTrue(exception.getMessage().contains("does not exist"));
     }
 
     @Test
@@ -67,11 +68,12 @@ class SchematronServiceTest {
         String xmlContent = "<root><element>test</element></root>";
         File nonExistentFile = new File("non-existent-file.sch");
 
-        List<SchematronService.SchematronValidationError> errors = schematronService.validateXml(xmlContent, nonExistentFile);
+        // Now expect a SchematronLoadException to be thrown instead
+        SchematronLoadException exception = assertThrows(SchematronLoadException.class, () -> {
+            schematronService.validateXml(xmlContent, nonExistentFile);
+        });
 
-        assertNotNull(errors);
-        assertEquals(1, errors.size());
-        assertEquals("Schematron file is null or does not exist", errors.get(0).message());
+        assertTrue(exception.getMessage().contains("does not exist"));
     }
 
     @Test
