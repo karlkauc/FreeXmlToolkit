@@ -78,6 +78,9 @@ public class SchematronController {
     private Button newPatternButton;
 
     @FXML
+    private Button formatButton;
+
+    @FXML
     private Button validateButton;
 
     @FXML
@@ -471,7 +474,23 @@ public class SchematronController {
     private void loadSchematronContent(File file, String content) {
         Platform.runLater(() -> {
             if (xmlCodeEditor != null) {
-                xmlCodeEditor.setText(content);
+                // Check if auto-format is enabled for Schematron files
+                String contentToLoad = content;
+                if (propertiesService.isSchematronPrettyPrintOnLoad()) {
+                    try {
+                        // Format the content before loading
+                        String formattedContent = XmlService.prettyFormat(content, 2);
+                        if (formattedContent != null) {
+                            contentToLoad = formattedContent;
+                            logger.info("Schematron file auto-formatted on load");
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Could not auto-format Schematron file on load: {}", e.getMessage());
+                        // Use original content if formatting fails
+                    }
+                }
+                
+                xmlCodeEditor.setText(contentToLoad);
                 xmlCodeEditor.refreshHighlighting();
 
                 // Update current file reference
@@ -718,6 +737,43 @@ public class SchematronController {
         xmlCodeEditor.getCodeArea().insertText(xmlCodeEditor.getCodeArea().getCaretPosition(), patternTemplate);
         performErrorDetection();
         logger.debug("New pattern template inserted");
+    }
+
+    /**
+     * Format the current Schematron file
+     */
+    @FXML
+    private void formatSchematron() {
+        if (xmlCodeEditor == null || xmlCodeEditor.getText().isEmpty()) {
+            showWarning("Format", "No Schematron content to format");
+            return;
+        }
+
+        try {
+            String currentContent = xmlCodeEditor.getText();
+            
+            // Check if auto-format is enabled for Schematron files
+            int indentSize = propertiesService.isSchematronPrettyPrintOnLoad() ? 2 : 2; // Default to 2 spaces
+            
+            // Use the XmlService pretty format method
+            String formattedContent = XmlService.prettyFormat(currentContent, indentSize);
+            
+            if (formattedContent != null && !formattedContent.equals(currentContent)) {
+                // Update the editor with formatted content
+                xmlCodeEditor.setText(formattedContent);
+                xmlCodeEditor.refreshHighlighting();
+                
+                showInfo("Format", "Schematron file formatted successfully");
+                logger.info("Schematron file formatted");
+            } else if (formattedContent == null) {
+                showError("Format Error", "Failed to format Schematron file. Please check the XML syntax.");
+            } else {
+                showInfo("Format", "Schematron file is already properly formatted");
+            }
+        } catch (Exception e) {
+            logger.error("Error formatting Schematron file", e);
+            showError("Format Error", "Failed to format: " + e.getMessage());
+        }
     }
 
     /**

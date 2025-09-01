@@ -140,4 +140,18 @@ public interface PropertiesService {
      * @param enabled true to enable pretty-print, false to disable
      */
     void setXsdPrettyPrintOnSave(boolean enabled);
+
+    /**
+     * Gets whether Schematron files should be pretty-printed on load.
+     *
+     * @return true if pretty-print is enabled, false otherwise (default: false)
+     */
+    boolean isSchematronPrettyPrintOnLoad();
+
+    /**
+     * Sets whether Schematron files should be pretty-printed on load.
+     *
+     * @param enabled true to enable pretty-print, false to disable
+     */
+    void setSchematronPrettyPrintOnLoad(boolean enabled);
 }

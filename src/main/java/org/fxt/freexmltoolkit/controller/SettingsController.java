@@ -52,6 +52,9 @@ public class SettingsController {
     @FXML
     CheckBox autoFormatXmlAfterLoading;
 
+    @FXML
+    CheckBox schematronPrettyPrintOnLoad;
+
     // XSD Editor Settings
     @FXML
     CheckBox xsdAutoSaveEnabled, xsdBackupEnabled, xsdPrettyPrintOnSave;
@@ -217,6 +220,9 @@ public class SettingsController {
             props.setProperty("xml.indent.spaces", xmlIndentSpaces.getValue().toString());
             props.setProperty("xml.autoformat.after.loading", String.valueOf(autoFormatXmlAfterLoading.isSelected()));
 
+            // Save Schematron settings
+            propertiesService.setSchematronPrettyPrintOnLoad(schematronPrettyPrintOnLoad.isSelected());
+
             // Save XSD Editor settings
             props.setProperty("xsd.autoSave.enabled", String.valueOf(xsdAutoSaveEnabled.isSelected()));
             props.setProperty("xsd.autoSave.interval", xsdAutoSaveInterval.getValue().toString());
@@ -306,6 +312,9 @@ public class SettingsController {
         // Load XML autoformat setting
         boolean autoFormat = Boolean.parseBoolean(props.getProperty("xml.autoformat.after.loading", "false"));
         autoFormatXmlAfterLoading.setSelected(autoFormat);
+
+        // Load Schematron autoformat setting
+        schematronPrettyPrintOnLoad.setSelected(propertiesService.isSchematronPrettyPrintOnLoad());
 
         // Load XSD Editor settings
         xsdAutoSaveEnabled.setSelected(propertiesService.isXsdAutoSaveEnabled());

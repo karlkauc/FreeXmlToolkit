@@ -299,4 +299,15 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("xsd.prettyPrint.onSave", String.valueOf(enabled));
         saveProperties(properties);
     }
+
+    @Override
+    public boolean isSchematronPrettyPrintOnLoad() {
+        return Boolean.parseBoolean(properties.getProperty("schematron.prettyPrint.onLoad", "false"));
+    }
+
+    @Override
+    public void setSchematronPrettyPrintOnLoad(boolean enabled) {
+        properties.setProperty("schematron.prettyPrint.onLoad", String.valueOf(enabled));
+        saveProperties(properties);
+    }
 }

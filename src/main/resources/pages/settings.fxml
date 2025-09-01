@@ -117,6 +117,9 @@
                             <CheckBox fx:id="autoFormatXmlAfterLoading" text="Autoformat XML after loading"
                                       GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2"/>
 
+                            <CheckBox fx:id="schematronPrettyPrintOnLoad" text="Autoformat Schematron files after loading"
+                                      GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2"/>
+
                             <columnConstraints>
                                 <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
                                 <ColumnConstraints hgrow="ALWAYS"/>
