@@ -72,7 +72,8 @@
                             <FontIcon iconLiteral="bi-menu-up" iconSize="16"/>
                         </graphic>
                     </CheckMenuItem>
-                    <SeparatorMenuItem/>
+                </Menu>
+                <Menu text="XML">
                     <CheckMenuItem fx:id="xmlEditorSidebarMenuItem" onAction="#toggleXmlEditorSidebar"
                                    text="XML Editor Sidebar" selected="true">
                         <graphic>
@@ -87,7 +88,7 @@
                     </CheckMenuItem>
                     <SeparatorMenuItem/>
                     <CheckMenuItem fx:id="codeMinimapMenuItem" onAction="#toggleCodeMinimap"
-                                   text="Code Minimap" selected="false">
+                                   text="Code Minimap">
                         <graphic>
                             <FontIcon iconLiteral="bi-map" iconSize="16"/>
                         </graphic>
