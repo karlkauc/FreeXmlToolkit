@@ -526,6 +526,27 @@ tasks.register<Zip>("zipMacOSAppImage") {
     }
 }
 
+tasks.register<Zip>("zipLinuxAppImage") {
+    description = "Zippt das erstellte Linux App Image und löscht das Originalverzeichnis."
+    dependsOn(tasks.named("createLinuxAppImage"))
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
+
+    val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit")
+    from(sourceDirProvider)
+    archiveFileName.set("FreeXmlToolkit-linux-app-image-$version.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("dist"))
+
+    // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux && sourceDirProvider.get().asFile.exists() }
+
+    // Nach dem Zippen das Originalverzeichnis löschen
+    doLast {
+        val sourceDir = sourceDirProvider.get().asFile
+        logger.lifecycle("Lösche originales Linux AppImage-Verzeichnis nach dem Zippen: ${sourceDir.path}")
+        sourceDir.deleteRecursively()
+    }
+}
+
 tasks.named("createAllExecutables") {
     dependsOn(
         "createWindowsExecutable",
@@ -536,7 +557,7 @@ tasks.named("createAllExecutables") {
         "zipMacOSAppImage",
         "createLinuxDeb",
         "createLinuxRpm",
-        "createLinuxAppImage"
+        "zipLinuxAppImage"
     )
 }
 
@@ -553,7 +574,7 @@ tasks.register("createMacOSPackages") {
 
 tasks.register("createLinuxPackages") {
     description = "Erstellt alle Linux-Pakete (deb, rpm, app-image)"
-    dependsOn("createLinuxDeb", "createLinuxRpm", "createLinuxAppImage")
+    dependsOn("createLinuxDeb", "createLinuxRpm", "zipLinuxAppImage")
 }
 
 // Task to create only installers (no app-images)
@@ -575,6 +596,6 @@ tasks.register("createAllAppImages") {
     dependsOn(
         "zipWindowsAppImage",
         "zipMacOSAppImage",
-        "createLinuxAppImage"
+        "zipLinuxAppImage"
     )
 }
