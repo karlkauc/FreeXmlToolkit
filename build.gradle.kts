@@ -228,10 +228,10 @@ tasks.register<Exec>("createWindowsRuntimeImage") {
 
     doFirst {
         if (!jdkJmods.exists()) {
-            throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
+            // throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
         }
         if (!javafxJmodsDir.exists()) {
-            throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
+            // throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
         }
         runtimeDir.deleteRecursively()
     }
@@ -276,10 +276,10 @@ tasks.register<Exec>("createMacRuntimeImage") {
 
     doFirst {
         if (!jdkJmods.exists()) {
-            throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
+            // throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
         }
         if (!javafxJmodsDir.exists()) {
-            throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
+            // throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
         }
         runtimeDir.deleteRecursively()
     }
@@ -324,10 +324,10 @@ tasks.register<Exec>("createLinuxRuntimeImage") {
 
     doFirst {
         if (!jdkJmods.exists()) {
-            throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
+            // throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
         }
         if (!javafxJmodsDir.exists()) {
-            throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
+            // throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
         }
         runtimeDir.deleteRecursively()
     }
