@@ -224,20 +224,16 @@ tasks.register<Exec>("createWindowsRuntimeImage") {
     val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
     val javaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
     val jdkJmods = File(javaHome, "jmods")
-    val javafxJmodsDir = project.rootDir.resolve("jmods/javafx-jmods-21.0.8-win")
 
     doFirst {
         if (!jdkJmods.exists()) {
             // throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
         }
-        if (!javafxJmodsDir.exists()) {
-            // throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
-        }
         runtimeDir.deleteRecursively()
     }
 
     workingDir = layout.buildDirectory.get().asFile
-    val modulePath = listOf(jdkJmods.absolutePath, javafxJmodsDir.absolutePath).joinToString(File.pathSeparator)
+    val modulePath = jdkJmods.absolutePath
     val modules = listOf(
         "java.base",
         "java.logging",
@@ -272,20 +268,16 @@ tasks.register<Exec>("createMacRuntimeImage") {
     val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
     val javaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
     val jdkJmods = File(javaHome, "jmods")
-    val javafxJmodsDir = project.rootDir.resolve("jmods/javafx-jmods-21.0.8-osx")
 
     doFirst {
         if (!jdkJmods.exists()) {
             // throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
         }
-        if (!javafxJmodsDir.exists()) {
-            // throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
-        }
         runtimeDir.deleteRecursively()
     }
 
     workingDir = layout.buildDirectory.get().asFile
-    val modulePath = listOf(jdkJmods.absolutePath, javafxJmodsDir.absolutePath).joinToString(File.pathSeparator)
+    val modulePath = jdkJmods.absolutePath
     val modules = listOf(
         "java.base",
         "java.logging",
@@ -320,20 +312,16 @@ tasks.register<Exec>("createLinuxRuntimeImage") {
     val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
     val javaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
     val jdkJmods = File(javaHome, "jmods")
-    val javafxJmodsDir = project.rootDir.resolve("jmods/javafx-jmods-21.0.8-linux")
 
     doFirst {
         if (!jdkJmods.exists()) {
             // throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
         }
-        if (!javafxJmodsDir.exists()) {
-            // throw GradleException("JavaFX jmods Verzeichnis nicht gefunden: $javafxJmodsDir")
-        }
         runtimeDir.deleteRecursively()
     }
 
     workingDir = layout.buildDirectory.get().asFile
-    val modulePath = listOf(jdkJmods.absolutePath, javafxJmodsDir.absolutePath).joinToString(File.pathSeparator)
+    val modulePath = jdkJmods.absolutePath
     val modules = listOf(
         "java.base",
         "java.logging",
@@ -428,10 +416,9 @@ tasks.register<Exec>("createLinuxDeb") {
         "--type", "deb",
         "--vendor", "Karl Kauc",
         "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
+        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
         "--linux-package-name", "freexmltoolkit",
         "--linux-deb-maintainer", "karl.kauc@gmail.com",
-        // "--linux-app-category", "Development",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
         "--java-options", "--enable-preview"
@@ -452,10 +439,9 @@ tasks.register<Exec>("createLinuxRpm") {
         "--type", "rpm",
         "--vendor", "Karl Kauc",
         "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
+        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
         "--linux-package-name", "freexmltoolkit",
         "--linux-rpm-license-type", "Apache 2.0",
-        // "--linux-app-category", "Development",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
         "--java-options", "--enable-preview"
@@ -476,8 +462,7 @@ tasks.register<Exec>("createLinuxAppImage") {
         "--type", "app-image",
         "--vendor", "Karl Kauc",
         "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
-        // "--linux-app-category", "Development",
+        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
         "--java-options", "--enable-preview"
@@ -498,8 +483,7 @@ tasks.register<Exec>("createLinuxTar") {
         "--type", "tgz",
         "--vendor", "Karl Kauc",
         "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
-        // "--linux-app-category", "Development",
+        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
         "--java-options", "--enable-preview"
@@ -593,7 +577,7 @@ tasks.register<Exec>("createWindowsAppImage") {
         "--type", "app-image",
         "--vendor", "Karl Kauc",
         "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
+        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
         "--java-options", "--enable-preview"
@@ -620,6 +604,26 @@ tasks.register<Zip>("zipWindowsAppImage") {
     }
 }
 
+tasks.register<Zip>("zipMacOSAppImage") {
+    description = "Zippt das erstellte macOS App Bundle und löscht das Originalverzeichnis."
+    dependsOn(tasks.named("createMacOSAppImage"))
+
+    val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit.app")
+    from(sourceDirProvider)
+    archiveFileName.set("FreeXmlToolkit-macos-app-image-$version.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("dist"))
+
+    // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
+    onlyIf { sourceDirProvider.get().asFile.exists() }
+
+    // Nach dem Zippen das Originalverzeichnis löschen
+    doLast {
+        val sourceDir = sourceDirProvider.get().asFile
+        logger.lifecycle("Lösche originales App Bundle nach dem Zippen: ${sourceDir.path}")
+        sourceDir.deleteRecursively()
+    }
+}
+
 tasks.named("createAllExecutables") {
     dependsOn(
         "createWindowsExecutable",
@@ -627,7 +631,7 @@ tasks.named("createAllExecutables") {
         "zipWindowsAppImage",
         "createMacOSExecutable",
         "createMacOSPkg",
-        "createMacOSAppImage",
+        "zipMacOSAppImage",
         "createLinuxDeb",
         "createLinuxRpm",
         "createLinuxAppImage",
@@ -643,7 +647,7 @@ tasks.register("createWindowsPackages") {
 
 tasks.register("createMacOSPackages") {
     description = "Erstellt alle macOS-Pakete (dmg, pkg, app-image)"
-    dependsOn("createMacOSExecutable", "createMacOSPkg", "createMacOSAppImage")
+    dependsOn("createMacOSExecutable", "createMacOSPkg", "zipMacOSAppImage")
 }
 
 tasks.register("createLinuxPackages") {
@@ -669,7 +673,7 @@ tasks.register("createAllAppImages") {
     description = "Erstellt alle App-Image-Pakete (portable Versionen)"
     dependsOn(
         "zipWindowsAppImage",
-        "createMacOSAppImage",
+        "zipMacOSAppImage",
         "createLinuxAppImage",
         "createLinuxTar"
     )
