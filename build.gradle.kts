@@ -431,7 +431,7 @@ tasks.register<Exec>("createLinuxDeb") {
         "--icon", project.projectDir.resolve("release/logo.ico"),
         "--linux-package-name", "freexmltoolkit",
         "--linux-deb-maintainer", "karl.kauc@gmail.com",
-        "--linux-app-category", "Development",
+        // "--linux-app-category", "Development",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
         "--java-options", "--enable-preview"
