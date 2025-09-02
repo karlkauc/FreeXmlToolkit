@@ -481,6 +481,7 @@ tasks.register<Exec>("createWindowsAppImage") {
 tasks.register<Zip>("zipWindowsAppImage") {
     description = "Zippt das erstellte Windows App Image und löscht das Originalverzeichnis."
     dependsOn(tasks.named("createWindowsAppImage"))
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
 
     val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit")
     from(sourceDirProvider)
@@ -488,7 +489,7 @@ tasks.register<Zip>("zipWindowsAppImage") {
     destinationDirectory.set(layout.buildDirectory.dir("dist"))
 
     // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
-    onlyIf { sourceDirProvider.get().asFile.exists() }
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows && sourceDirProvider.get().asFile.exists() }
 
     // Nach dem Zippen das Originalverzeichnis löschen
     doLast {
@@ -501,6 +502,7 @@ tasks.register<Zip>("zipWindowsAppImage") {
 tasks.register<Zip>("zipMacOSAppImage") {
     description = "Zippt das erstellte macOS App Bundle und löscht das Originalverzeichnis."
     dependsOn(tasks.named("createMacOSAppImage"))
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
 
     val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit.app")
     val distDirProvider = layout.buildDirectory.dir("dist")
@@ -514,7 +516,7 @@ tasks.register<Zip>("zipMacOSAppImage") {
     destinationDirectory.set(layout.buildDirectory.dir("dist"))
 
     // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
-    onlyIf { sourceDirProvider.get().asFile.exists() }
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX && sourceDirProvider.get().asFile.exists() }
 
     // Nach dem Zippen das Originalverzeichnis löschen
     doLast {
