@@ -24,11 +24,13 @@ plugins {
     id("com.github.ben-manes.versions") version "0.52.0"
 }
 
+/*
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(24))
     }
 }
+ */
 
 version = "1.0.0"
 group = "org.fxt"
