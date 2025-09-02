@@ -455,7 +455,7 @@ tasks.register<Exec>("createLinuxRpm") {
         "--icon", project.projectDir.resolve("release/logo.ico"),
         "--linux-package-name", "freexmltoolkit",
         "--linux-rpm-license-type", "Apache 2.0",
-        "--linux-app-category", "Development",
+        // "--linux-app-category", "Development",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
         "--java-options", "--enable-preview"
@@ -477,7 +477,7 @@ tasks.register<Exec>("createLinuxAppImage") {
         "--vendor", "Karl Kauc",
         "--app-version", version,
         "--icon", project.projectDir.resolve("release/logo.ico"),
-        "--linux-app-category", "Development",
+        // "--linux-app-category", "Development",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
         "--java-options", "--enable-preview"
@@ -499,7 +499,7 @@ tasks.register<Exec>("createLinuxTar") {
         "--vendor", "Karl Kauc",
         "--app-version", version,
         "--icon", project.projectDir.resolve("release/logo.ico"),
-        "--linux-app-category", "Development",
+        // "--linux-app-category", "Development",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
         "--java-options", "--enable-preview"
