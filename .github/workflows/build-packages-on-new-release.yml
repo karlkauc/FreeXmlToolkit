@@ -14,26 +14,26 @@ jobs:
           # Windows builds
           - os: windows-latest
             arch: x64
-            gradle-tasks: "createWindowsExecutableX64 createWindowsMsiX64 createWindowsAppImageX64"
+            gradle-tasks: "createWindowsExecutableX64 createWindowsMsiX64 zipWindowsAppImageX64"
           - os: windows-latest
             arch: arm64
-            gradle-tasks: "createWindowsExecutableArm64 createWindowsMsiArm64 createWindowsAppImageArm64"
+            gradle-tasks: "createWindowsExecutableArm64 createWindowsMsiArm64 zipWindowsAppImageArm64"
           
           # macOS builds
           - os: macos-13  # Intel runners
             arch: x64
-            gradle-tasks: "createMacOSDmgX64 createMacOSPkgX64 createMacOSAppImageX64"
+            gradle-tasks: "createMacOSExecutableX64 createMacOSPkgX64 zipMacOSAppImageX64"
           - os: macos-latest  # ARM runners
             arch: arm64
-            gradle-tasks: "createMacOSDmgArm64 createMacOSPkgArm64 createMacOSAppImageArm64"
+            gradle-tasks: "createMacOSExecutableArm64 createMacOSPkgArm64 zipMacOSAppImageArm64"
           
           # Linux builds
           - os: ubuntu-latest
             arch: x64
-            gradle-tasks: "createLinuxDebX64 createLinuxRpmX64 createLinuxAppImageX64"
+            gradle-tasks: "createLinuxDebX64 createLinuxRpmX64 zipLinuxAppImageX64"
           - os: ubuntu-latest
             arch: arm64
-            gradle-tasks: "createLinuxDebArm64 createLinuxRpmArm64 createLinuxAppImageArm64"
+            gradle-tasks: "createLinuxDebArm64 createLinuxRpmArm64 zipLinuxAppImageArm64"
 
     # Der Job wird auf dem in der Matrix definierten Betriebssystem ausgeführt
     runs-on: ${{ matrix.os }}
