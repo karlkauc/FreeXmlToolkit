@@ -299,8 +299,11 @@ public class SchematronController {
             if (xmlCodeEditor != null) {
                 codeArea = xmlCodeEditor.getCodeArea();
 
-                // Initialize auto-completion
-                autoComplete = new SchematronAutoComplete(codeArea);
+                // Enable Schematron mode in the XmlCodeEditor (this activates the built-in SchematronAutoComplete)
+                xmlCodeEditor.setSchematronMode(true);
+
+                // Get reference to the auto-completion instance
+                autoComplete = xmlCodeEditor.getSchematronAutoComplete();
 
                 logger.debug("Code editor initialized successfully with Schematron features");
             } else {
@@ -753,7 +756,7 @@ public class SchematronController {
             String currentContent = xmlCodeEditor.getText();
             
             // Check if auto-format is enabled for Schematron files
-            int indentSize = propertiesService.isSchematronPrettyPrintOnLoad() ? 2 : 2; // Default to 2 spaces
+            int indentSize = 2; // Default to 2 spaces
             
             // Use the XmlService pretty format method
             String formattedContent = XmlService.prettyFormat(currentContent, indentSize);
@@ -1730,7 +1733,6 @@ public class SchematronController {
             testFile.setWarnings(0);
             
             // Don't continue validation for other files if Schematron cannot be loaded
-            return;
         } catch (Exception e) {
             logger.error("Error testing file: {}", testFile.getFilename(), e);
             testFile.setStatus("Error");

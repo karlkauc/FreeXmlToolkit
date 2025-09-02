@@ -84,6 +84,19 @@ public class XmlCodeEditor extends VBox {
     // Enumeration completion support
     private ElementTextInfo currentElementTextInfo;
 
+    // Specialized Auto-Completion
+    private SchematronAutoComplete schematronAutoComplete;
+    private XsdAutoComplete xsdAutoComplete;
+
+    // Editor modes (only one can be active at a time)
+    public enum EditorMode {
+        XML,        // Standard XML with IntelliSense
+        SCHEMATRON, // Schematron-specific auto-completion
+        XSD         // XSD-specific auto-completion
+    }
+
+    private EditorMode currentMode = EditorMode.XML;
+
     // Cache for enumeration elements from XsdDocumentationData
     // Key: XPath-like context, Value: Set of element names with enumeration
     private final Map<String, Set<String>> enumerationElementsByContext = new HashMap<>();
@@ -252,6 +265,7 @@ public class XmlCodeEditor extends VBox {
         initializeEnhancedIntelliSense();
         initializeXmlIntelliSenseEngine();
         initializeCodeFoldingManager();
+        initializeSpecializedAutoComplete();
 
         // Set up the main layout with minimap
         setupLayoutWithMinimap();
@@ -1273,6 +1287,146 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
+     * Initialize specialized Auto-Completion components (Schematron and XSD)
+     */
+    private void initializeSpecializedAutoComplete() {
+        try {
+            logger.debug("Initializing specialized Auto-Completion components...");
+
+            // Initialize Schematron auto-completion
+            schematronAutoComplete = new SchematronAutoComplete(codeArea);
+            logger.debug("Schematron Auto-Complete initialized");
+
+            // Initialize XSD auto-completion  
+            xsdAutoComplete = new XsdAutoComplete(codeArea);
+            logger.debug("XSD Auto-Complete initialized");
+
+            // Initially disable both - they will be enabled when the appropriate mode is set
+            schematronAutoComplete.setEnabled(false);
+            xsdAutoComplete.setEnabled(false);
+
+            logger.info("Specialized Auto-Complete components initialized successfully");
+        } catch (Exception e) {
+            logger.error("Failed to initialize specialized Auto-Complete components: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Sets the editor mode, which determines which type of auto-completion is active.
+     *
+     * @param mode The editor mode to activate
+     */
+    public void setEditorMode(EditorMode mode) {
+        if (this.currentMode == mode) {
+            return; // Already in the requested mode
+        }
+
+        // Disable all auto-completion systems first
+        disableAllAutoCompletion();
+
+        // Set new mode and enable appropriate auto-completion
+        this.currentMode = mode;
+
+        switch (mode) {
+            case XML -> {
+                // XML mode uses the standard IntelliSense system
+                logger.debug("Switched to XML mode - standard IntelliSense active");
+            }
+            case SCHEMATRON -> {
+                if (schematronAutoComplete != null) {
+                    schematronAutoComplete.setEnabled(true);
+                    logger.debug("Switched to Schematron mode - Schematron auto-completion active");
+                } else {
+                    logger.warn("Cannot enable Schematron mode: SchematronAutoComplete not initialized");
+                }
+            }
+            case XSD -> {
+                if (xsdAutoComplete != null) {
+                    xsdAutoComplete.setEnabled(true);
+                    logger.debug("Switched to XSD mode - XSD auto-completion active");
+                } else {
+                    logger.warn("Cannot enable XSD mode: XsdAutoComplete not initialized");
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets the current editor mode.
+     *
+     * @return The current editor mode
+     */
+    public EditorMode getEditorMode() {
+        return currentMode;
+    }
+
+    /**
+     * Disables all auto-completion systems.
+     */
+    private void disableAllAutoCompletion() {
+        if (schematronAutoComplete != null) {
+            schematronAutoComplete.setEnabled(false);
+        }
+        if (xsdAutoComplete != null) {
+            xsdAutoComplete.setEnabled(false);
+        }
+    }
+
+    /**
+     * Convenience method to enable Schematron mode.
+     *
+     * @param enabled True to enable Schematron mode, false to return to XML mode
+     */
+    public void setSchematronMode(boolean enabled) {
+        setEditorMode(enabled ? EditorMode.SCHEMATRON : EditorMode.XML);
+    }
+
+    /**
+     * Returns whether Schematron mode is currently active.
+     *
+     * @return True if Schematron auto-completion is active
+     */
+    public boolean isSchematronMode() {
+        return currentMode == EditorMode.SCHEMATRON;
+    }
+
+    /**
+     * Convenience method to enable XSD mode.
+     *
+     * @param enabled True to enable XSD mode, false to return to XML mode
+     */
+    public void setXsdMode(boolean enabled) {
+        setEditorMode(enabled ? EditorMode.XSD : EditorMode.XML);
+    }
+
+    /**
+     * Returns whether XSD mode is currently active.
+     *
+     * @return True if XSD auto-completion is active
+     */
+    public boolean isXsdMode() {
+        return currentMode == EditorMode.XSD;
+    }
+
+    /**
+     * Gets the Schematron auto-completion instance for advanced configuration.
+     *
+     * @return The SchematronAutoComplete instance, or null if not initialized
+     */
+    public SchematronAutoComplete getSchematronAutoComplete() {
+        return schematronAutoComplete;
+    }
+
+    /**
+     * Gets the XSD auto-completion instance for advanced configuration.
+     *
+     * @return The XsdAutoComplete instance, or null if not initialized
+     */
+    public XsdAutoComplete getXsdAutoComplete() {
+        return xsdAutoComplete;
+    }
+
+    /**
      * Finds the next or previous occurrence of the specified text in the editor.
      *
      * @param text    The text to search for
@@ -1398,6 +1552,84 @@ public class XmlCodeEditor extends VBox {
         debugCssStatus();
 
         logger.debug("=== Enumeration Test completed ===");
+    }
+
+    /**
+     * Test method to verify editor mode switching and specialized auto-completion.
+     * This method tests all three modes: XML, Schematron, and XSD.
+     */
+    public void testEditorModes() {
+        logger.debug("=== Testing Editor Mode Switching ===");
+
+        // Test XML Mode
+        logger.debug("Testing XML Mode...");
+        setEditorMode(EditorMode.XML);
+        logger.debug("Current mode: {}", getEditorMode());
+        logger.debug("XML IntelliSense should be active");
+
+        // Test Schematron Mode
+        logger.debug("Testing Schematron Mode...");
+        setEditorMode(EditorMode.SCHEMATRON);
+        String testSchematron = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <sch:schema xmlns:sch="http://purl.oclc.org/dsdl/schematron">
+                    <sch:pattern>
+                        <sch:rule context="test">
+                            <sch:assert test="@id">Element must have ID</sch:assert>
+                        </sch:rule>
+                    </sch:pattern>
+                </sch:schema>""";
+        codeArea.replaceText(testSchematron);
+        logger.debug("Current mode: {}, Schematron AutoComplete active: {}",
+                getEditorMode(), schematronAutoComplete != null);
+
+        // Test XSD Mode
+        logger.debug("Testing XSD Mode...");
+        setEditorMode(EditorMode.XSD);
+        String testXsd = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           targetNamespace="http://example.com/schema"
+                           elementFormDefault="qualified">
+                    <xs:element name="root" type="xs:string"/>
+                </xs:schema>""";
+        codeArea.replaceText(testXsd);
+        logger.debug("Current mode: {}, XSD AutoComplete active: {}",
+                getEditorMode(), xsdAutoComplete != null);
+
+        // Reset to XML mode
+        setEditorMode(EditorMode.XML);
+        logger.debug("Reset to XML mode");
+        logger.debug("=== Editor Mode Testing completed ===");
+    }
+
+    /**
+     * Test method to verify Schematron auto-completion functionality.
+     * This method tests if Schematron mode activates correctly and auto-completion works.
+     */
+    public void testSchematronAutoCompletion() {
+        logger.debug("=== Testing Schematron Auto-Completion ===");
+
+        // Enable Schematron mode
+        setSchematronMode(true);
+
+        // Test Schematron content
+        String testSchematron = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <sch:schema xmlns:sch="http://purl.oclc.org/dsdl/schematron">
+                    <sch:pattern>
+                        <sch:rule context="test">
+                            <sch:assert test="@id">Element must have ID</sch:assert>
+                        </sch:rule>
+                    </sch:pattern>
+                </sch:schema>""";
+
+        codeArea.replaceText(testSchematron);
+
+        logger.debug("Schematron mode enabled: {}", isSchematronMode());
+        logger.debug("SchematronAutoComplete initialized: {}", schematronAutoComplete != null);
+        logger.debug("Current editor mode: {}", getEditorMode());
+        logger.debug("=== Schematron Auto-Completion Test completed ===");
     }
 
     /**
@@ -1764,12 +1996,79 @@ public class XmlCodeEditor extends VBox {
      */
     public void setText(String text) {
         codeArea.replaceText(text);
+
+        // Auto-detect editor mode based on content
+        autoDetectEditorMode(text);
+
         Platform.runLater(() -> {
             if (text != null && !text.isEmpty()) {
                 applySyntaxHighlighting(text);
                 updateFoldingRegions(text);
             }
         });
+    }
+
+    /**
+     * Auto-detects the appropriate editor mode based on the document content.
+     * This method analyzes the XML content to determine if it's a Schematron or XSD file.
+     *
+     * @param content The document content to analyze
+     */
+    public void autoDetectEditorMode(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return;
+        }
+
+        String lowerContent = content.toLowerCase();
+
+        // Check for Schematron namespace and elements
+        if (lowerContent.contains("http://purl.oclc.org/dsdl/schematron") ||
+                lowerContent.contains("sch:schema") ||
+                lowerContent.contains("schematron")) {
+
+            logger.debug("Auto-detected Schematron content - switching to Schematron mode");
+            setEditorMode(EditorMode.SCHEMATRON);
+            return;
+        }
+
+        // Check for XSD namespace and elements
+        if (lowerContent.contains("http://www.w3.org/2001/xmlschema") ||
+                lowerContent.contains("xs:schema") ||
+                lowerContent.contains("xsd:schema") ||
+                (lowerContent.contains("<schema") && lowerContent.contains("xmlns"))) {
+
+            logger.debug("Auto-detected XSD content - switching to XSD mode");
+            setEditorMode(EditorMode.XSD);
+            return;
+        }
+
+        // Default to XML mode
+        if (currentMode != EditorMode.XML) {
+            logger.debug("No special content detected - switching to XML mode");
+            setEditorMode(EditorMode.XML);
+        }
+    }
+
+    /**
+     * Sets the document file path and automatically detects the editor mode based on file extension.
+     *
+     * @param filePath The file path of the document
+     */
+    public void setDocumentFilePath(String filePath) {
+        if (filePath != null) {
+            String lowerPath = filePath.toLowerCase();
+
+            if (lowerPath.endsWith(".sch") || lowerPath.contains("schematron")) {
+                logger.debug("Schematron file detected: {} - switching to Schematron mode", filePath);
+                setEditorMode(EditorMode.SCHEMATRON);
+            } else if (lowerPath.endsWith(".xsd") || lowerPath.contains("schema")) {
+                logger.debug("XSD file detected: {} - switching to XSD mode", filePath);
+                setEditorMode(EditorMode.XSD);
+            } else {
+                logger.debug("XML file detected: {} - switching to XML mode", filePath);
+                setEditorMode(EditorMode.XML);
+            }
+        }
     }
 
     /**
@@ -1995,6 +2294,13 @@ public class XmlCodeEditor extends VBox {
         try {
             String character = event.getCharacter();
             logger.debug("handleIntelliSenseTrigger called with character: '{}'", character);
+
+            // If we're in a specialized mode (Schematron or XSD), don't handle XML IntelliSense
+            if (currentMode != EditorMode.XML) {
+                logger.debug("{} mode is active, skipping XML IntelliSense", currentMode);
+                // The specialized auto-completion handles the event through its own listeners
+                return false;
+            }
 
             // Handle "<" trigger for element completion
             if ("<".equals(character)) {
@@ -3043,6 +3349,20 @@ public class XmlCodeEditor extends VBox {
      */
     private boolean handleManualCompletion() {
         try {
+            // If we're in a specialized mode, delegate to the appropriate auto-completion
+            if (currentMode == EditorMode.SCHEMATRON && schematronAutoComplete != null) {
+                logger.debug("Schematron mode is active, delegating manual completion to SchematronAutoComplete");
+                schematronAutoComplete.triggerAutoComplete();
+                return true;
+            } else if (currentMode == EditorMode.XSD && xsdAutoComplete != null) {
+                logger.debug("XSD mode is active, delegating manual completion to XsdAutoComplete");
+                xsdAutoComplete.triggerAutoComplete();
+                return true;
+            } else if (currentMode != EditorMode.XML) {
+                logger.debug("{} mode is active, but auto-completion not available", currentMode);
+                return false;
+            }
+
             int caretPosition = codeArea.getCaretPosition();
             String text = codeArea.getText();
 
