@@ -25,9 +25,9 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          # java-package: 'jdk+fx'
+          java-package: 'jdk+fx'
           java-version: '24'
-          distribution: 'temurin'
+          distribution: 'liberica'
 
       # Schritt 3: Gradle Wrapper ausführbar machen (wichtig für Linux/macOS)
       - name: Make Gradle wrapper executable
