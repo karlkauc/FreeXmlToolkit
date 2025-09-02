@@ -25,7 +25,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '23' # Ändere dies auf deine benötigte JDK-Version
+          java-version: '24' # Ändere dies auf deine benötigte JDK-Version
           distribution: 'temurin' # Oder eine andere Distribution wie 'zulu', 'corretto'
 
       # Schritt 3: Gradle Wrapper ausführbar machen (wichtig für Linux/macOS)
