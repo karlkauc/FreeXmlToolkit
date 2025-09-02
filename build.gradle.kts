@@ -24,15 +24,7 @@ plugins {
     id("com.github.ben-manes.versions") version "0.52.0"
 }
 
-/*
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(24))
-    }
-}
- */
-
-version = "1.0.0"
+version = "0.9.0"
 group = "org.fxt"
 
 repositories {
@@ -118,11 +110,11 @@ tasks {
     }
 
     withType<Test> {
-        jvmArgs("--enable-preview")
+        jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED", "--enable-native-access=javafx.graphics")
     }
 
     withType<JavaExec> {
-        jvmArgs("--enable-preview")
+        jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED", "--enable-native-access=javafx.graphics")
     }
 }
 
@@ -217,23 +209,16 @@ tasks.register("createAllExecutables") {
     description = "Erstellt native Executables für alle unterstützten Betriebssysteme"
 }
 
-tasks.register<Exec>("createWindowsRuntimeImage") {
-    description = "Erstellt ein benutzerdefiniertes Runtime-Image mit JavaFX-Modulen (Windows)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
+tasks.register<Exec>("createRuntimeImage") {
+    description = "Erstellt ein benutzerdefiniertes Runtime-Image für alle Plattformen"
 
     val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
-    val javaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
-    val jdkJmods = File(javaHome, "jmods")
 
     doFirst {
-        if (!jdkJmods.exists()) {
-            // throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
-        }
         runtimeDir.deleteRecursively()
     }
 
     workingDir = layout.buildDirectory.get().asFile
-    val modulePath = jdkJmods.absolutePath
     val modules = listOf(
         "java.base",
         "java.logging",
@@ -252,95 +237,6 @@ tasks.register<Exec>("createWindowsRuntimeImage") {
 
     commandLine(
         "jlink",
-        "--module-path", modulePath,
-        "--add-modules", modules,
-        "--strip-debug",
-        "--no-header-files",
-        "--no-man-pages",
-        "--compress", "zip-6",
-        "--output", runtimeDir.absolutePath
-    )
-}
-tasks.register<Exec>("createMacRuntimeImage") {
-    description = "Erstellt ein benutzerdefiniertes Runtime-Image mit JavaFX-Modulen (macOS)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
-
-    val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
-    val javaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
-    val jdkJmods = File(javaHome, "jmods")
-
-    doFirst {
-        if (!jdkJmods.exists()) {
-            // throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
-        }
-        runtimeDir.deleteRecursively()
-    }
-
-    workingDir = layout.buildDirectory.get().asFile
-    val modulePath = jdkJmods.absolutePath
-    val modules = listOf(
-        "java.base",
-        "java.logging",
-        "java.xml",
-        "java.desktop",
-        "jdk.unsupported",
-        "jdk.crypto.ec",
-        "java.sql",
-        "java.naming",
-        "java.scripting",
-        "javafx.controls",
-        "javafx.fxml",
-        "javafx.web",
-        "javafx.swing"
-    ).joinToString(",")
-
-    commandLine(
-        "jlink",
-        "--module-path", modulePath,
-        "--add-modules", modules,
-        "--strip-debug",
-        "--no-header-files",
-        "--no-man-pages",
-        "--compress", "zip-6",
-        "--output", runtimeDir.absolutePath
-    )
-}
-tasks.register<Exec>("createLinuxRuntimeImage") {
-    description = "Erstellt ein benutzerdefiniertes Runtime-Image mit JavaFX-Modulen (Linux)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
-
-    val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
-    val javaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
-    val jdkJmods = File(javaHome, "jmods")
-
-    doFirst {
-        if (!jdkJmods.exists()) {
-            // throw GradleException("JDK jmods nicht gefunden: $jdkJmods. Setze JAVA_HOME korrekt.")
-        }
-        runtimeDir.deleteRecursively()
-    }
-
-    workingDir = layout.buildDirectory.get().asFile
-    val modulePath = jdkJmods.absolutePath
-    val modules = listOf(
-        "java.base",
-        "java.logging",
-        "java.xml",
-        "java.desktop",
-        "jdk.unsupported",
-        "jdk.crypto.ec",
-        "java.sql",
-        "java.naming",
-        "java.scripting",
-        "javafx.controls",
-        "javafx.fxml",
-        "javafx.web",
-        "javafx.swing"
-    ).joinToString(",")
-
-    commandLine(
-        "jlink",
-        "--module-path", modulePath,
         "--add-modules", modules,
         "--strip-debug",
         "--no-header-files",
@@ -350,7 +246,7 @@ tasks.register<Exec>("createLinuxRuntimeImage") {
     )
 }
 tasks.register<Exec>("createWindowsExecutable") {
-    dependsOn("copyDistributionFiles", "createWindowsRuntimeImage")
+    dependsOn("copyDistributionFiles", "createRuntimeImage")
     description = "Erstellt Windows Executable für benutzerbezogene Installation"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
     workingDir = layout.buildDirectory.get().asFile
@@ -373,13 +269,15 @@ tasks.register<Exec>("createWindowsExecutable") {
         // "--win-dialog-image", "${projectDir}/release/win-dialog.png",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview"
+        "--java-options", "--enable-preview",
+        "--java-options", "--enable-native-access=ALL-UNNAMED",
+        "--java-options", "--enable-native-access=javafx.graphics"
         // , "--win-console"
     )
 }
 
 tasks.register<Exec>("createMacOSExecutable") {
-    dependsOn("copyDistributionFiles", "createMacRuntimeImage")
+    dependsOn("copyDistributionFiles", "createRuntimeImage")
     description = "Erstellt macOS App Bundle für benutzerbezogene Installation"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
     workingDir = layout.buildDirectory.get().asFile
@@ -397,13 +295,15 @@ tasks.register<Exec>("createMacOSExecutable") {
         "--mac-package-identifier", "org.fxt.freexmltoolkit",
         "--java-options", "-Djavafx.css.dump.lookup.errors=true",
         "--java-options", "--enable-preview",
+        "--java-options", "--enable-native-access=ALL-UNNAMED",
+        "--java-options", "--enable-native-access=javafx.graphics",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
     )
 }
 
 tasks.register<Exec>("createLinuxDeb") {
-    dependsOn("copyDistributionFiles", "createLinuxRuntimeImage")
+    dependsOn("copyDistributionFiles", "createRuntimeImage")
     description = "Erstellt ein .deb-Paket für Debian-basierte Linux-Distributionen"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
     workingDir = layout.buildDirectory.get().asFile
@@ -421,12 +321,14 @@ tasks.register<Exec>("createLinuxDeb") {
         "--linux-deb-maintainer", "karl.kauc@gmail.com",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview"
+        "--java-options", "--enable-preview",
+        "--java-options", "--enable-native-access=ALL-UNNAMED",
+        "--java-options", "--enable-native-access=javafx.graphics"
     )
 }
 
 tasks.register<Exec>("createLinuxRpm") {
-    dependsOn("copyDistributionFiles", "createLinuxRuntimeImage")
+    dependsOn("copyDistributionFiles", "createRuntimeImage")
     description = "Erstellt ein .rpm-Paket für Red Hat-basierte Linux-Distributionen"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
     workingDir = layout.buildDirectory.get().asFile
@@ -444,12 +346,14 @@ tasks.register<Exec>("createLinuxRpm") {
         "--linux-rpm-license-type", "Apache 2.0",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview"
+        "--java-options", "--enable-preview",
+        "--java-options", "--enable-native-access=ALL-UNNAMED",
+        "--java-options", "--enable-native-access=javafx.graphics"
     )
 }
 
 tasks.register<Exec>("createLinuxAppImage") {
-    dependsOn("copyDistributionFiles", "createLinuxRuntimeImage")
+    dependsOn("copyDistributionFiles", "createRuntimeImage")
     description = "Erstellt ein AppImage für Linux-Distributionen"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
     workingDir = layout.buildDirectory.get().asFile
@@ -465,33 +369,15 @@ tasks.register<Exec>("createLinuxAppImage") {
         "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview"
+        "--java-options", "--enable-preview",
+        "--java-options", "--enable-native-access=ALL-UNNAMED",
+        "--java-options", "--enable-native-access=javafx.graphics"
     )
 }
 
-tasks.register<Exec>("createLinuxTar") {
-    dependsOn("copyDistributionFiles", "createLinuxRuntimeImage")
-    description = "Erstellt ein tar.gz Archiv für Linux"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "tgz",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview"
-    )
-}
 
 tasks.register<Exec>("createMacOSPkg") {
-    dependsOn("copyDistributionFiles", "createMacRuntimeImage")
+    dependsOn("copyDistributionFiles", "createRuntimeImage")
     description = "Erstellt ein .pkg Installer für macOS"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
     workingDir = layout.buildDirectory.get().asFile
@@ -509,13 +395,15 @@ tasks.register<Exec>("createMacOSPkg") {
         "--mac-package-identifier", "org.fxt.freexmltoolkit",
         "--java-options", "-Djavafx.css.dump.lookup.errors=true",
         "--java-options", "--enable-preview",
+        "--java-options", "--enable-native-access=ALL-UNNAMED",
+        "--java-options", "--enable-native-access=javafx.graphics",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
     )
 }
 
 tasks.register<Exec>("createMacOSAppImage") {
-    dependsOn("copyDistributionFiles", "createMacRuntimeImage")
+    dependsOn("copyDistributionFiles", "createRuntimeImage")
     description = "Erstellt ein App Bundle für macOS (ohne Installer)"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
     workingDir = layout.buildDirectory.get().asFile
@@ -533,13 +421,15 @@ tasks.register<Exec>("createMacOSAppImage") {
         "--mac-package-identifier", "org.fxt.freexmltoolkit",
         "--java-options", "-Djavafx.css.dump.lookup.errors=true",
         "--java-options", "--enable-preview",
+        "--java-options", "--enable-native-access=ALL-UNNAMED",
+        "--java-options", "--enable-native-access=javafx.graphics",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
     )
 }
 
 tasks.register<Exec>("createWindowsMsi") {
-    dependsOn("copyDistributionFiles", "createWindowsRuntimeImage")
+    dependsOn("copyDistributionFiles", "createRuntimeImage")
     description = "Erstellt Windows MSI Installer für systemweite Installation"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
     workingDir = layout.buildDirectory.get().asFile
@@ -559,12 +449,14 @@ tasks.register<Exec>("createWindowsMsi") {
         "--win-menu-group", "FreeXmlToolkit",
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview"
+        "--java-options", "--enable-preview",
+        "--java-options", "--enable-native-access=ALL-UNNAMED",
+        "--java-options", "--enable-native-access=javafx.graphics"
     )
 }
 
 tasks.register<Exec>("createWindowsAppImage") {
-    dependsOn("copyDistributionFiles", "createWindowsRuntimeImage")
+    dependsOn("copyDistributionFiles", "createRuntimeImage")
     description = "Erstellt Windows App Image (ohne Installer)"
     onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
     workingDir = layout.buildDirectory.get().asFile
@@ -577,10 +469,12 @@ tasks.register<Exec>("createWindowsAppImage") {
         "--type", "app-image",
         "--vendor", "Karl Kauc",
         "--app-version", version,
-        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
+        "--icon", project.projectDir.resolve("release/logo.ico"),
         "--dest", "dist",
         "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview"
+        "--java-options", "--enable-preview",
+        "--java-options", "--enable-native-access=ALL-UNNAMED",
+        "--java-options", "--enable-native-access=javafx.graphics"
     )
 }
 
@@ -609,7 +503,13 @@ tasks.register<Zip>("zipMacOSAppImage") {
     dependsOn(tasks.named("createMacOSAppImage"))
 
     val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit.app")
-    from(sourceDirProvider)
+    val distDirProvider = layout.buildDirectory.dir("dist")
+
+    // Das komplette .app Bundle als einzelnen Eintrag ins Zip
+    from(distDirProvider) {
+        include("FreeXmlToolkit.app/**")
+    }
+    
     archiveFileName.set("FreeXmlToolkit-macos-app-image-$version.zip")
     destinationDirectory.set(layout.buildDirectory.dir("dist"))
 
@@ -634,8 +534,7 @@ tasks.named("createAllExecutables") {
         "zipMacOSAppImage",
         "createLinuxDeb",
         "createLinuxRpm",
-        "createLinuxAppImage",
-        "createLinuxTar"
+        "createLinuxAppImage"
     )
 }
 
@@ -651,8 +550,8 @@ tasks.register("createMacOSPackages") {
 }
 
 tasks.register("createLinuxPackages") {
-    description = "Erstellt alle Linux-Pakete (deb, rpm, app-image, tar.gz)"
-    dependsOn("createLinuxDeb", "createLinuxRpm", "createLinuxAppImage", "createLinuxTar")
+    description = "Erstellt alle Linux-Pakete (deb, rpm, app-image)"
+    dependsOn("createLinuxDeb", "createLinuxRpm", "createLinuxAppImage")
 }
 
 // Task to create only installers (no app-images)
@@ -674,7 +573,6 @@ tasks.register("createAllAppImages") {
     dependsOn(
         "zipWindowsAppImage",
         "zipMacOSAppImage",
-        "createLinuxAppImage",
-        "createLinuxTar"
+        "createLinuxAppImage"
     )
 }
