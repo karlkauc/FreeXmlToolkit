@@ -1113,6 +1113,14 @@ public class XmlCodeEditor extends VBox {
             String character = event.getCharacter();
             if (character != null && !character.isEmpty()) {
                 logger.debug("KEY_TYPED event - character: '{}' (code: {})", character, (int) character.charAt(0));
+                
+                // If we're in specialized mode (Schematron or XSD), completely skip XML IntelliSense
+                if (currentMode != EditorMode.XML) {
+                    logger.debug("{} mode is active, skipping XML IntelliSense completely", currentMode);
+                    // Don't call handleIntelliSenseTrigger - let only the specialized auto-completion handle it
+                    return;
+                }
+                
                 if (handleIntelliSenseTrigger(event)) {
                     logger.debug("IntelliSense trigger handled for: {}", character);
                 }
@@ -1124,7 +1132,7 @@ public class XmlCodeEditor extends VBox {
         // Handle Ctrl+Space for manual completion (including enumeration completion)
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.isControlDown() && event.getCode() == KeyCode.SPACE) {
-                logger.debug("Ctrl+Space pressed for manual completion");
+                logger.debug("Ctrl+Space pressed for manual completion in mode: {}", currentMode);
                 if (handleManualCompletion()) {
                     event.consume();
                 }
@@ -1366,9 +1374,11 @@ public class XmlCodeEditor extends VBox {
     private void disableAllAutoCompletion() {
         if (schematronAutoComplete != null) {
             schematronAutoComplete.setEnabled(false);
+            logger.debug("Disabled Schematron auto-completion");
         }
         if (xsdAutoComplete != null) {
             xsdAutoComplete.setEnabled(false);
+            logger.debug("Disabled XSD auto-completion");
         }
     }
 
@@ -1378,7 +1388,10 @@ public class XmlCodeEditor extends VBox {
      * @param enabled True to enable Schematron mode, false to return to XML mode
      */
     public void setSchematronMode(boolean enabled) {
+        logger.debug("setSchematronMode called with enabled = {}", enabled);
         setEditorMode(enabled ? EditorMode.SCHEMATRON : EditorMode.XML);
+        logger.debug("After setSchematronMode: current mode = {}, schematronAutoComplete enabled = {}", 
+                currentMode, schematronAutoComplete != null ? schematronAutoComplete.isEnabled() : "null");
     }
 
     /**
@@ -2016,6 +2029,9 @@ public class XmlCodeEditor extends VBox {
      */
     public void autoDetectEditorMode(String content) {
         if (content == null || content.trim().isEmpty()) {
+            // For empty content, don't change the mode - let the caller decide
+            // This prevents overriding explicitly set modes (e.g., when SchematronController sets Schematron mode)
+            logger.debug("Empty content detected - keeping current editor mode: {}", currentMode);
             return;
         }
 
@@ -2413,6 +2429,12 @@ public class XmlCodeEditor extends VBox {
      * Delegates to the XmlIntelliSenseEngine for smart context-aware completions.
      */
     private void requestCompletions() {
+        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
+        if (currentMode != EditorMode.XML) {
+            logger.debug("Skipping XML IntelliSense: current mode is {}", currentMode);
+            return;
+        }
+        
         logger.debug("IntelliSense requested - using intelligent completion system");
 
         // Use the new intelligent IntelliSense Engine
@@ -2431,6 +2453,12 @@ public class XmlCodeEditor extends VBox {
      * Shows intelligent completions using the enhanced IntelliSense system
      */
     private void showEnhancedIntelliSenseCompletions() {
+        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
+        if (currentMode != EditorMode.XML) {
+            logger.debug("Skipping enhanced XML IntelliSense: current mode is {}", currentMode);
+            return;
+        }
+        
         try {
             // Get current context
             int caretPos = codeArea.getCaretPosition();
@@ -2461,6 +2489,12 @@ public class XmlCodeEditor extends VBox {
      * Show enhanced element completions with XSD integration
      */
     private void showEnhancedElementCompletions() {
+        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
+        if (currentMode != EditorMode.XML) {
+            logger.debug("Skipping enhanced element completions: current mode is {}", currentMode);
+            return;
+        }
+        
         List<String> suggestions = new ArrayList<>();
 
         // Get current XPath context using the same method as the sidebar
@@ -2518,6 +2552,12 @@ public class XmlCodeEditor extends VBox {
      * Show enhanced attribute completions
      */
     private void showEnhancedAttributeCompletions() {
+        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
+        if (currentMode != EditorMode.XML) {
+            logger.debug("Skipping enhanced attribute completions: current mode is {}", currentMode);
+            return;
+        }
+        
         List<String> suggestions = new ArrayList<>();
         String currentElement = getCurrentElementFromContext();
 
@@ -2543,6 +2583,12 @@ public class XmlCodeEditor extends VBox {
      * Show enhanced attribute value completions
      */
     private void showEnhancedAttributeValueCompletions() {
+        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
+        if (currentMode != EditorMode.XML) {
+            logger.debug("Skipping enhanced attribute value completions: current mode is {}", currentMode);
+            return;
+        }
+        
         List<String> suggestions = new ArrayList<>();
         String currentElement = getCurrentElementFromContext();
         String currentAttribute = getCurrentAttributeFromContext();
@@ -2756,6 +2802,12 @@ public class XmlCodeEditor extends VBox {
      * Shows basic IntelliSense popup without XSD schema (fallback mode).
      */
     private void showBasicIntelliSensePopup() {
+        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
+        if (currentMode != EditorMode.XML) {
+            logger.debug("Skipping basic XML IntelliSense: current mode is {}", currentMode);
+            return;
+        }
+        
         logger.debug("Showing basic IntelliSense popup without XSD context");
 
         // Even without XSD, try to get context-specific elements if any context mapping exists
@@ -2790,6 +2842,12 @@ public class XmlCodeEditor extends VBox {
      * Shows IntelliSense popup with XSD-based completion.
      */
     private void showManualIntelliSensePopup() {
+        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
+        if (currentMode != EditorMode.XML) {
+            logger.debug("Skipping manual XML IntelliSense: current mode is {}", currentMode);
+            return;
+        }
+        
         if (enhancedIntelliSenseEnabled) {
             showEnhancedIntelliSensePopup();
         } else {
@@ -2801,6 +2859,12 @@ public class XmlCodeEditor extends VBox {
      * Shows the enhanced IntelliSense popup with all advanced features
      */
     private void showEnhancedIntelliSensePopup() {
+        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
+        if (currentMode != EditorMode.XML) {
+            logger.debug("Skipping enhanced XML IntelliSense popup: current mode is {}", currentMode);
+            return;
+        }
+        
         try {
             logger.debug("Triggering Enhanced IntelliSense popup");
 

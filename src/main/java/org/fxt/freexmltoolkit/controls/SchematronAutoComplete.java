@@ -53,6 +53,7 @@ public class SchematronAutoComplete {
 
     // State management
     private boolean isActive = false;
+    private boolean isEnabled = false;
     private String currentPrefix = "";
     private int completionStart = -1;
 
@@ -84,11 +85,14 @@ public class SchematronAutoComplete {
      * Set up event handlers for auto-completion functionality
      */
     private void setupEventHandlers() {
-        // Handle key presses in code area
-        codeArea.setOnKeyPressed(event -> {
+        // Handle key presses in code area for popup navigation
+        codeArea.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
             if (isActive && autoCompletePopup.isShowing()) {
                 switch (event.getCode()) {
-                    case ESCAPE -> hideAutoComplete();
+                    case ESCAPE -> {
+                        hideAutoComplete();
+                        event.consume();
+                    }
                     case ENTER -> {
                         event.consume();
                         selectCurrentSuggestion();
@@ -105,15 +109,17 @@ public class SchematronAutoComplete {
             }
         });
 
-        // Handle text changes for triggering auto-completion
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText.length() > oldText.length()) {
-                // Text was added
-                char lastChar = newText.charAt(newText.length() - 1);
-                handleTextInput(lastChar);
-            } else if (isActive) {
-                // Text was removed - update suggestions
-                updateSuggestions();
+        // Handle typed characters for triggering auto-completion
+        codeArea.addEventFilter(javafx.scene.input.KeyEvent.KEY_TYPED, event -> {
+            if (!isEnabled) {
+                return; // Don't handle if disabled
+            }
+            
+            String character = event.getCharacter();
+            if (character != null && !character.isEmpty()) {
+                char inputChar = character.charAt(0);
+                logger.debug("Schematron auto-completion: KEY_TYPED event with character '{}'", inputChar);
+                handleTextInput(inputChar);
             }
         });
 
@@ -143,18 +149,27 @@ public class SchematronAutoComplete {
      * Handle text input and determine if auto-completion should be triggered
      */
     private void handleTextInput(char inputChar) {
+        if (!isEnabled) {
+            return; // Don't handle input if auto-completion is disabled
+        }
+        
         int caretPos = codeArea.getCaretPosition();
 
         // Trigger auto-completion on specific characters
         switch (inputChar) {
-            case '<' -> triggerElementCompletion(caretPos);
+            case '<' -> {
+                logger.debug("Schematron auto-completion: Detected '<' character, triggering element completion");
+                triggerElementCompletion(caretPos);
+            }
             case ' ' -> {
                 if (isInsideElement(caretPos)) {
+                    logger.debug("Schematron auto-completion: Detected space inside element, triggering attribute completion");
                     triggerAttributeCompletion(caretPos);
                 }
             }
             case '"', '\'' -> {
                 if (isInsideAttributeValue(caretPos)) {
+                    logger.debug("Schematron auto-completion: Detected quote inside attribute value, triggering value completion");
                     triggerValueCompletion(caretPos);
                 }
             }
@@ -522,18 +537,41 @@ public class SchematronAutoComplete {
      * Enable or disable auto-completion
      */
     public void setEnabled(boolean enabled) {
+        this.isEnabled = enabled;
         if (!enabled && isActive) {
             hideAutoComplete();
         }
-        logger.debug("Auto-completion enabled: {}", enabled);
+        logger.debug("Schematron auto-completion enabled: {}", enabled);
+    }
+
+    /**
+     * Check if auto-completion is enabled
+     */
+    public boolean isEnabled() {
+        return isEnabled;
     }
 
     /**
      * Manually trigger auto-completion
      */
     public void triggerAutoComplete() {
+        if (!isEnabled) {
+            logger.debug("Schematron auto-completion: triggerAutoComplete called but auto-completion is disabled");
+            return;
+        }
+        
+        logger.debug("Schematron auto-completion: Manual trigger requested");
         int caretPos = codeArea.getCaretPosition();
-        handleTextInput('\0'); // Trigger with null character
+        
+        // Determine context and trigger appropriate completion
+        String text = codeArea.getText();
+        if (caretPos > 0 && text.charAt(caretPos - 1) == '<') {
+            triggerElementCompletion(caretPos);
+        } else if (isInsideElement(caretPos)) {
+            triggerAttributeCompletion(caretPos);
+        } else {
+            triggerElementCompletion(caretPos);
+        }
     }
 
     /**

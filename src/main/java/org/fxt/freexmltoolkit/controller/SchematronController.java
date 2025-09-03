@@ -306,6 +306,9 @@ public class SchematronController {
                 autoComplete = xmlCodeEditor.getSchematronAutoComplete();
 
                 logger.debug("Code editor initialized successfully with Schematron features");
+                
+                // Test the auto-completion setup
+                testAutoCompletionSetup();
             } else {
                 logger.error("SchematronCodeEditor not found in FXML");
             }
@@ -313,6 +316,27 @@ public class SchematronController {
             logger.error("Failed to initialize code editor", e);
             showError("Initialization Error", "Failed to initialize code editor: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Test method to verify that Schematron auto-completion is correctly set up
+     */
+    private void testAutoCompletionSetup() {
+        logger.debug("=== Testing Schematron Auto-Completion Setup ===");
+        if (xmlCodeEditor != null) {
+            logger.debug("XmlCodeEditor: {}", xmlCodeEditor.getClass().getSimpleName());
+            logger.debug("Current editor mode: {}", xmlCodeEditor.getEditorMode());
+            logger.debug("Is Schematron mode active: {}", xmlCodeEditor.isSchematronMode());
+            
+            var schematronAC = xmlCodeEditor.getSchematronAutoComplete();
+            logger.debug("SchematronAutoComplete instance: {}", schematronAC != null ? "Available" : "NULL");
+            if (schematronAC != null) {
+                logger.debug("SchematronAutoComplete enabled: {}", schematronAC.isEnabled());
+            }
+        } else {
+            logger.warn("xmlCodeEditor is null in SchematronController");
+        }
+        logger.debug("=== End Schematron Auto-Completion Setup Test ===");
     }
 
     /**
@@ -477,6 +501,9 @@ public class SchematronController {
     private void loadSchematronContent(File file, String content) {
         Platform.runLater(() -> {
             if (xmlCodeEditor != null) {
+                // Ensure Schematron mode is active before setting content
+                xmlCodeEditor.setSchematronMode(true);
+                
                 // Check if auto-format is enabled for Schematron files
                 String contentToLoad = content;
                 if (propertiesService.isSchematronPrettyPrintOnLoad()) {
@@ -691,12 +718,42 @@ public class SchematronController {
     }
 
     /**
+     * Create a completely empty Schematron file (for users who want to start from scratch)
+     */
+    public void createEmptySchematron() {
+        Platform.runLater(() -> {
+            // Ensure Schematron mode is active before setting empty content
+            xmlCodeEditor.setSchematronMode(true);
+            
+            xmlCodeEditor.setText("");
+            
+            currentSchematronFile = null;
+            codeTab.setText("Code - Empty Schematron");
+
+            // Clear tester file reference
+            if (tester != null) {
+                tester.setSchematronFile(null);
+            }
+
+            // Clear documentation generator file reference
+            if (docGenerator != null) {
+                docGenerator.setSchematronFile(null);
+            }
+
+            logger.info("Empty Schematron file created - Schematron mode active for IntelliSense");
+        });
+    }
+
+    /**
      * Create a new Schematron file from template
      */
     public void createNewSchematron() {
         String template = generateBasicSchematronTemplate();
 
         Platform.runLater(() -> {
+            // Ensure Schematron mode is active before setting text
+            xmlCodeEditor.setSchematronMode(true);
+            
             xmlCodeEditor.setText(template);
             xmlCodeEditor.refreshHighlighting();
 
