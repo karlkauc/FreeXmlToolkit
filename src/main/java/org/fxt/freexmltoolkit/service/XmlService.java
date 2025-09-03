@@ -25,9 +25,6 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXParseException;
 
-import javax.xml.stream.*;
-import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.*;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.sax.SAXTransformerFactory;
@@ -162,86 +159,6 @@ public interface XmlService {
         return writer.toString();
     }
 
-    /**
-     * Konvertiert einen XML-String in eine einzige Zeile unter Verwendung eines performanten StAX-Parsers.
-     * Diese Methode ist deutlich schneller als der XSLT-Ansatz.
-     *
-     * @param xml Der zu minifizierende XML-String.
-     * @return Der minifizierte XML-String in einer Zeile.
-     * @throws XMLStreamException bei einem Fehler während des Parsens.
-     */
-    static String convertXmlToOneLineFast(String xml) throws XMLStreamException {
-        if (xml == null || xml.isBlank()) {
-            return xml;
-        }
-
-        XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-        // Die Coalescing-Eigenschaft ist hier sehr hilfreich, sie fasst benachbarte Zeichendaten zusammen.
-        inputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
-
-        XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
-        XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-
-        XMLEventReader reader = inputFactory.createXMLEventReader(new StringReader(xml));
-        StringWriter writer = new StringWriter();
-        XMLEventWriter eventWriter = outputFactory.createXMLEventWriter(writer);
-
-        while (reader.hasNext()) {
-            XMLEvent event = reader.nextEvent();
-
-            if (event.isCharacters()) {
-                Characters chars = event.asCharacters();
-                String text = chars.getData();
-
-                // Diese benutzerdefinierte Normalisierung ist schneller als Regex.
-                String normalizedText = normalizeWhitespace(text);
-
-                // Wenn der Text nach der Normalisierung nicht leer ist, wird er ausgeschrieben.
-                // Dies behandelt sowohl Text innerhalb von Elementen als auch das Entfernen von reinen Leerraum-Knoten.
-                if (!normalizedText.isEmpty()) {
-                    eventWriter.add(eventFactory.createCharacters(normalizedText));
-                }
-            } else {
-                // Alle anderen Ereignisse (Start-/End-Elemente, Attribute usw.) werden wie besehen geschrieben.
-                eventWriter.add(event);
-            }
-        }
-
-        eventWriter.close();
-        return writer.toString();
-    }
-
-    /**
-     * Eine schnelle, non-regex Implementierung zur Normalisierung von Leerräumen in einem String.
-     * Sie entfernt führende/nachfolgende Leerzeichen und reduziert interne Leerraumsequenzen auf ein einziges Leerzeichen.
-     *
-     * @param input Der zu normalisierende String.
-     * @return Der normalisierte String.
-     */
-    private static String normalizeWhitespace(String input) {
-        if (input == null) {
-            return "";
-        }
-        String trimmed = input.trim();
-        if (trimmed.isEmpty()) {
-            return "";
-        }
-
-        StringBuilder sb = new StringBuilder(trimmed.length());
-        boolean inWhitespace = false;
-        for (char c : trimmed.toCharArray()) {
-            if (Character.isWhitespace(c)) {
-                if (!inWhitespace) {
-                    sb.append(' ');
-                    inWhitespace = true;
-                }
-            } else {
-                sb.append(c);
-                inWhitespace = false;
-            }
-        }
-        return sb.toString();
-    }
 
 
     String removeBom(String s);

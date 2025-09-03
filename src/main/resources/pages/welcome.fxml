@@ -59,14 +59,14 @@
                     </columnConstraints>
 
                     <children>
-                        <!-- Feature: XML Editor -->
+                        <!-- Feature: Advanced XML Editor -->
                         <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <FontIcon iconColor="#4f46e5" iconLiteral="bi-file-earmark-code" iconSize="24"/>
-                                    <Label styleClass="h3" text="Powerful XML Editor"/>
+                                    <Label styleClass="h3" text="Advanced XML Editor"/>
                                 </HBox>
-                                <Label text="View and edit your XML files with syntax highlighting, automatic formatting, and real-time validation."
+                                <Label text="Professional XML editing with IntelliSense auto-completion, XSD-aware suggestions, syntax highlighting, instant validation, and smart formatting."
                                        wrapText="true"/>
                             </children>
                         </VBox>
@@ -76,9 +76,9 @@
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <FontIcon iconColor="#16a34a" iconLiteral="bi-book" iconSize="24"/>
-                                    <Label styleClass="h3" text="XSD Documentation"/>
+                                    <Label styleClass="h3" text="XSD Documentation Generator"/>
                                 </HBox>
-                                <Label text="Automatically create comprehensive HTML documentation from your XSD files, including graphical diagrams."
+                                <Label text="Generate comprehensive HTML documentation from XSD schemas with interactive diagrams, element relationships, and detailed type information."
                                        wrapText="true"/>
                             </children>
                         </VBox>
@@ -88,33 +88,33 @@
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <FontIcon iconColor="#ca8a04" iconLiteral="bi-search" iconSize="24"/>
-                                    <Label styleClass="h3" text="XPath &amp; XQuery Tester"/>
+                                    <Label styleClass="h3" text="XPath &amp; XQuery Engine"/>
                                 </HBox>
-                                <Label text="Test your XPath expressions and XQuery queries directly on your loaded XML documents."
+                                <Label text="Execute XPath expressions and XQuery statements with Saxon HE support, real-time results preview, and advanced query debugging capabilities."
                                        wrapText="true"/>
                             </children>
                         </VBox>
 
-                        <!-- XSD Validator -->
+                        <!-- Schema Validation -->
                         <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <FontIcon iconColor="#be185d" iconLiteral="bi-shield-check" iconSize="24"/>
-                                    <Label styleClass="h3" text="XSD Validator"/>
+                                    <Label styleClass="h3" text="Multi-Schema Validation"/>
                                 </HBox>
-                                <Label text="Validate your XML files against single or multiple XSD schemas with detailed error reporting."
+                                <Label text="Validate XML against XSD schemas and Schematron rules with detailed error reporting, line-by-line feedback, and validation rule customization."
                                        wrapText="true"/>
                             </children>
                         </VBox>
 
-                        <!-- XSLT Viewer -->
+                        <!-- XSLT Transformation -->
                         <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#0284c7" iconLiteral="bi-file-earmark-play" iconSize="24"/>
-                                    <Label styleClass="h3" text="XSLT Viewer"/>
+                                    <FontIcon iconColor="#0284c7" iconLiteral="bi-arrow-repeat" iconSize="24"/>
+                                    <Label styleClass="h3" text="XSLT 3.0 Transformation"/>
                                 </HBox>
-                                <Label text="Apply XSLT transformations to your XML documents and instantly view the results."
+                                <Label text="Transform XML documents with XSLT 3.0 support, live preview, multiple output formats, and integrated development environment for stylesheets."
                                        wrapText="true"/>
                             </children>
                         </VBox>
@@ -123,22 +123,34 @@
                         <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <FontIcon iconColor="#ea580c" iconLiteral="bi-file-earmark-code" iconSize="24"/>
-                                    <Label styleClass="h3" text="FOP Processing"/>
+                                    <FontIcon iconColor="#ea580c" iconLiteral="bi-file-earmark-text" iconSize="24"/>
+                                    <Label styleClass="h3" text="PDF Generation"/>
                                 </HBox>
-                                <Label text="Generate PDF documents from XML data using XSL-FO stylesheets with the integrated Apache FOP."
+                                <Label text="Create professional PDF documents from XML using Apache FOP with XSL-FO stylesheets, custom formatting, and embedded graphics support."
                                        wrapText="true"/>
                             </children>
                         </VBox>
 
-                        <!-- XML Signature -->
+                        <!-- XML Digital Signature -->
                         <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="0" GridPane.rowIndex="3">
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <FontIcon iconColor="#7e22ce" iconLiteral="bi-patch-check-fill" iconSize="24"/>
-                                    <Label styleClass="h3" text="XML Signature"/>
+                                    <Label styleClass="h3" text="XML Digital Signature"/>
                                 </HBox>
-                                <Label text="Sign and verify XML documents using the XML Digital Signature standard for data integrity."
+                                <Label text="Sign and verify XML documents using XML-DSig standards with certificate management, signature validation, and cryptographic security features."
+                                       wrapText="true"/>
+                            </children>
+                        </VBox>
+
+                        <!-- Template System -->
+                        <VBox styleClass="feature-box" spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                    <FontIcon iconColor="#059669" iconLiteral="bi-files" iconSize="24"/>
+                                    <Label styleClass="h3" text="Smart Template System"/>
+                                </HBox>
+                                <Label text="Create and manage reusable XML templates with parameter substitution, validation rules, and quick generation of structured documents."
                                        wrapText="true"/>
                             </children>
                         </VBox>

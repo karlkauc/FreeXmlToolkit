@@ -259,15 +259,6 @@ public class QuickActionsMenu {
                 .priority(150)
                 .build());
 
-        addAction(new QuickAction.Builder("minify-xml", "Minify XML", context -> {
-            String minified = context.fullText.replaceAll(">\\s+<", "><").trim();
-            return QuickAction.ActionResult.success(minified, 0);
-        })
-                .description("Remove whitespace and create compact XML")
-                .type(QuickAction.QuickActionType.XML_FORMATTING)
-                .icon("compress")
-                .priority(140)
-                .build());
 
         // Element Operations
         addAction(new QuickAction.Builder("wrap-element", "Wrap with Element", context -> {

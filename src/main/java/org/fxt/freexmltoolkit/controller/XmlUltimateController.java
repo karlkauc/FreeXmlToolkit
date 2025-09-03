@@ -927,26 +927,6 @@ public class XmlUltimateController implements Initializable {
         }
     }
 
-    // Removed from UI - method no longer used
-    // @FXML
-    private void minifyXmlText() {
-        logger.info("Minifying XML");
-        logToConsole("Minifying XML...");
-
-        Tab currentTab = xmlFilesPane != null ? xmlFilesPane.getSelectionModel().getSelectedItem() : null;
-        if (currentTab != null && currentTab instanceof XmlEditor editor) {
-            String xml = editor.getXmlCodeEditor().getText();
-
-            try {
-                String minified = xml.replaceAll(">\\s+<", "><").trim();
-                editor.codeArea.replaceText(minified);
-                logToConsole("XML minified successfully");
-            } catch (Exception e) {
-                showError("Minify Error", "Could not minify XML: " + e.getMessage());
-                logger.error("Failed to minify XML", e);
-            }
-        }
-    }
 
     /**
      * Validation Operations

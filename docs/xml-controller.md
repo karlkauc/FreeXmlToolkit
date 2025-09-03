@@ -18,40 +18,55 @@ The XML Editor is the core feature of the Free XML Toolkit. It provides a powerf
 ### Editing Experience
 
 - **Dual-Mode Editing:** Switch between text editor and grid editor modes for different editing styles
-    - **Text Mode:** Traditional code editor with syntax highlighting and advanced features
-    - **Grid Mode:** Table-like interface for structured data editing
-- **Graphical Tree View:** Visual representation of XML structure with interactive editing capabilities
-- **Syntax Highlighting:** The editor automatically colors different parts of your XML, making it easier to read and
-  understand the structure
-- **Code Folding:** Collapse and expand XML sections to better navigate large files
-- **IntelliSense/Auto-Completion:** Smart code completion that suggests only valid XML elements based on your loaded XSD
-  schema
-- **Line Numbers:** Each line is numbered, which is helpful for navigating large files and identifying specific
-  locations
-- **Font Size Control:** You can increase or decrease the font size for better readability
+    - **Text Mode:** Traditional code editor with advanced syntax highlighting and IntelliSense
+    - **Grid Mode:** Table-like interface for structured data editing with direct cell manipulation
+- **Graphical Tree View:** Interactive visual representation of XML structure with drag-and-drop editing capabilities
+- **Advanced Syntax Highlighting:** Enhanced syntax highlighting with RichTextFX integration, supporting XML namespaces, attributes, and nested structures
+- **Code Folding:** Intelligent collapse and expand functionality for XML sections to navigate large documents efficiently
+- **Context-Sensitive IntelliSense:** Smart auto-completion that shows only relevant child elements based on your current XML context and loaded XSD schema, with ENTER key selection support
+- **XSD Auto-Completion:** Automatic schema detection and element suggestions with full namespace support
+- **Line Numbers:** Each line is numbered with advanced navigation support for large files
+- **Font Size Control:** Dynamic font scaling with zoom controls for better readability
+- **Search and Replace:** Powerful find-and-replace functionality with regex support and multi-file operations
+- **Template Integration:** Access to XML templates, snippets, and XPath expressions with parameter substitution
 
 ### Formatting Tools
 - **Pretty Print:** With a single click, you can format your XML into a clean, indented structure. This is useful for making messy or unformatted XML readable.
 - **Minify:** This tool compresses your XML into a single line by removing all whitespace. This is useful for reducing file size for transmission or storage.
 
 ### Validation
-- **Well-Formedness Check:** The editor automatically checks if your XML is "well-formed," meaning it follows the basic syntax rules of XML.
+- **Well-Formedness Check:** Automatic real-time validation ensuring your XML follows basic syntax rules with immediate error highlighting
 - **Schema Validation:** Support for multiple validation methods:
-    - **XSD (XML Schema Definition):** Validate against W3C XML Schema files for structure and data type validation
-    - **Schematron:** Validate against business rules and custom constraints
+    - **XSD (XML Schema Definition):** Advanced validation against W3C XML Schema files with detailed error reporting and line-by-line feedback
+    - **Schematron:** Business rule validation with custom constraints and advanced pattern matching
 - **Schema Features:**
-    - **Automatic Schema Detection:** The tool can often find the schema reference within the XML file
-    - **Manual Schema Selection:** You can manually select schema files from your computer to validate against
-    - **Continuous Validation:** Get real-time feedback on your XML's validity as you type. The validation status is
-      always visible
+    - **Automatic Schema Detection:** Intelligent detection of schema references within XML files (xsi:schemaLocation, xsi:noNamespaceSchemaLocation)
+    - **Manual Schema Selection:** Browse and select schema files with support for multiple schemas and namespaces
+    - **Continuous Validation:** Real-time validation feedback as you type with error markers and status indicators
+    - **Validation Panel:** Dedicated validation results panel with clickable error navigation
+- **Advanced Validation Features:**
+    - **Multi-Schema Support:** Validate against multiple XSD files simultaneously
+    - **Namespace-Aware Validation:** Full XML namespace support with prefix resolution
+    - **Schematron Integration:** Visual Schematron rule builder with template library and testing capabilities
 - **Supported Schema Formats:**
-    - ✅ XSD (XML Schema Definition)
-    - ✅ Schematron
+    - ✅ XSD (XML Schema Definition) - Full W3C compliance
+    - ✅ Schematron - Complete implementation with visual rule builder
     - ❌ DTD (Document Type Definition) - not supported
     - ❌ RelaxNG - not supported
 
-### Querying
-- **XPath & XQuery:** The editor includes dedicated tabs for running XPath and XQuery expressions. This allows you to search, filter, and extract specific data from your XML documents.
+### Querying and Analysis
+- **XPath & XQuery:** Advanced query capabilities with dedicated tabs for running XPath and XQuery expressions using Saxon HE 12.8 engine
+- **XPath Execution Engine:** Powerful XPath processing with result highlighting and multi-format output support
+- **Query Results:** Interactive result panels with syntax highlighting and export capabilities
+- **XPath Snippets:** Pre-built XPath expressions library with parameter substitution and validation
+- **Performance Profiling:** Built-in performance analysis for complex queries with execution time metrics
+
+### Advanced Features
+- **Memory Management:** Built-in memory monitoring with configurable thresholds and automatic cleanup
+- **File Encoding Detection:** Comprehensive BOM and encoding detection with automatic handling of different character sets
+- **Multi-Tab Support:** Work with multiple XML files simultaneously with session persistence
+- **Background Processing:** Heavy operations run on separate threads to prevent UI blocking
+- **Error Recovery:** Advanced error recovery mechanisms with intelligent suggestions for common XML mistakes
 
 ---
 
