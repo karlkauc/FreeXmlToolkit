@@ -70,32 +70,57 @@ public class XsdDocumentationImageService {
     final int boxPadding = 12;
     final int borderRadius = 8;
 
-    // XMLSpy-inspired color palette
-    private static final String COLOR_BG = "#ffffff";                    // Pure white background
-    private static final String COLOR_BOX_FILL_ELEMENT = "#f0f8ff";      // Light blue for elements
-    private static final String COLOR_BOX_FILL_ATTRIBUTE = "#fffef7";    // Light yellow for attributes
-    private static final String COLOR_BOX_FILL_STRUCTURAL = "#f8f9fa";   // Light gray for structural
-    private static final String COLOR_BOX_FILL_HOVER = "#e2e8f0";        // Hover color
-    private static final String COLOR_STROKE_ELEMENT = "#4a90e2";        // Blue for elements
-    private static final String COLOR_STROKE_ATTRIBUTE = "#d4a147";      // Orange for attributes
-    private static final String COLOR_STROKE_STRUCTURAL = "#6c757d";     // Gray for structural
-    private static final String COLOR_STROKE_OPTIONAL = "#94a3b8";       // Lighter for optional
+    // Colors matching XsdDiagramView styles
+    private static final String COLOR_BG = "#f0f8ff";                    // Background matching XsdDiagramView
+    private static final String COLOR_BOX_FILL_ELEMENT = "#f0f8ff";      // Element background
+    private static final String COLOR_BOX_FILL_ATTRIBUTE = "#f9f5e7";    // Attribute background
+    private static final String COLOR_BOX_FILL_SEQUENCE = "#e9ecef";     // Sequence background
+    private static final String COLOR_BOX_FILL_CHOICE = "#fff3cd";       // Choice background
+    private static final String COLOR_BOX_FILL_ANY = "#dee2e6";          // Any background
+    private static final String COLOR_STROKE_ELEMENT = "#4a90e2";        // Element border
+    private static final String COLOR_STROKE_ATTRIBUTE = "#d4a147";      // Attribute border
+    private static final String COLOR_STROKE_SEQUENCE = "#6c757d";       // Sequence border
+    private static final String COLOR_STROKE_CHOICE = "#ff8c00";         // Choice border
+    private static final String COLOR_STROKE_ANY = "#adb5bd";            // Any border
+    private static final String COLOR_STROKE_OPTIONAL = "#94a3b8";       // Optional elements
     private static final String COLOR_STROKE_SEPARATOR = "#dee2e6";      // Separator lines
-    private static final String COLOR_TEXT_PRIMARY = "#2c5aa0";          // Blue text for elements
-    private static final String COLOR_TEXT_SECONDARY = "#6c757d";        // Gray secondary text
-    private static final String COLOR_TEXT_ATTRIBUTE = "#8b6914";        // Brown for attributes
-    private static final String COLOR_ICON = "#4a90e2";                  // Blue icons
-    private static final String COLOR_ACCENT = "#ff8c00";                // Orange accent
-    private static final String COLOR_SHADOW = "rgba(0, 0, 0, 0.15)";    // Deeper shadow
+    private static final String COLOR_TEXT_PRIMARY = "#2c5aa0";          // Element text
+    private static final String COLOR_TEXT_SECONDARY = "#6c757d";        // Secondary text
+    private static final String COLOR_TEXT_ATTRIBUTE = "#8b6914";        // Attribute text
+    private static final String COLOR_TEXT_SEQUENCE = "#495057";         // Sequence text
+    private static final String COLOR_TEXT_CHOICE = "#b45309";           // Choice text
+    private static final String COLOR_SHADOW = "rgba(0, 0, 0, 0.2)";     // Drop shadow
 
-    // XMLSpy-inspired style strings with gradients
-    final static String ELEMENT_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: url(#elementGradient);";
-    final static String ELEMENT_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 1.5; stroke-dasharray: 5, 5; fill: url(#elementGradient);";
-    final static String ATTRIBUTE_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ATTRIBUTE + "; stroke-width: 1.5; fill: url(#attributeGradient);";
-    final static String ATTRIBUTE_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 1; stroke-dasharray: 3, 3; fill: url(#attributeGradient);";
-    final static String STRUCTURAL_FORMAT = "stroke: " + COLOR_STROKE_STRUCTURAL + "; stroke-width: 2; fill: url(#structuralGradient);";
-    final static String CONNECTION_LINE = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 1.5; fill: none;";
+    // Type-specific colors from XsdDiagramView
+    private static final String COLOR_STRING_TYPE = "#28a745";
+    private static final String COLOR_NUMERIC_TYPE = "#007bff";
+    private static final String COLOR_DATE_TYPE = "#fd7e14";
+    private static final String COLOR_BOOLEAN_TYPE = "#6f42c1";
+    private static final String COLOR_BINARY_TYPE = "#6c757d";
+    private static final String COLOR_URI_TYPE = "#17a2b8";
+    private static final String COLOR_QNAME_TYPE = "#e83e8c";
+    private static final String COLOR_LANGUAGE_TYPE = "#20c997";
+    private static final String COLOR_COMPLEX_TYPE = "#dc3545";
+    private static final String COLOR_DEFAULT_TYPE = "#4a90e2";
+
+    // Legacy compatibility
+    private static final String COLOR_ICON = COLOR_STROKE_ELEMENT;
+    private static final String COLOR_ACCENT = COLOR_STROKE_CHOICE;
+    private static final String COLOR_BOX_FILL_STRUCTURAL = COLOR_BOX_FILL_SEQUENCE;
+
+    // Style strings matching XsdDiagramView
+    final static String ELEMENT_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);";
+    final static String ELEMENT_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; stroke-dasharray: 5, 2; fill: url(#elementGradient); filter: url(#dropShadow);";
+    final static String ELEMENT_REPEATABLE_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);";
+    final static String ATTRIBUTE_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ATTRIBUTE + "; stroke-width: 1.5; fill: url(#attributeGradient); filter: url(#dropShadow);";
+    final static String ATTRIBUTE_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_ATTRIBUTE + "; stroke-width: 1; stroke-dasharray: 5, 2; fill: url(#attributeGradient); filter: url(#dropShadow);";
+    final static String SEQUENCE_FORMAT = "stroke: " + COLOR_STROKE_SEQUENCE + "; stroke-width: 2; fill: url(#sequenceGradient); filter: url(#dropShadow);";
+    final static String CHOICE_FORMAT = "stroke: " + COLOR_STROKE_CHOICE + "; stroke-width: 2; stroke-dasharray: 5, 5; fill: url(#choiceGradient); filter: url(#dropShadow);";
+    final static String ANY_FORMAT = "stroke: " + COLOR_STROKE_ANY + "; stroke-width: 1.5; stroke-dasharray: 3, 3; fill: url(#anyGradient); filter: url(#dropShadow);";
+    final static String CONNECTION_LINE = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: none;";
     final static String CONNECTION_LINE_OPTIONAL = "stroke: " + COLOR_STROKE_OPTIONAL + "; stroke-width: 1; stroke-dasharray: 5, 5; fill: none;";
+    final static String CONNECTION_LINE_SEQUENCE = "stroke: " + COLOR_STROKE_SEQUENCE + "; stroke-width: 2; fill: none;";
+    final static String CONNECTION_LINE_CHOICE = "stroke: " + COLOR_STROKE_CHOICE + "; stroke-width: 2; stroke-dasharray: 5, 5; fill: none;";
 
     Font font;
     FontRenderContext frc;
@@ -276,6 +301,9 @@ public class XsdDocumentationImageService {
         plusIcon.appendChild(line2);
         defs.appendChild(plusIcon);
 
+        // Type-specific icon definitions from XsdDiagramView
+        addTypeSpecificIcons(document, defs);
+
         svgRoot.appendChild(defs);
 
         if (rootElement == null) {
@@ -404,8 +432,47 @@ public class XsdDocumentationImageService {
             Element rightBox = createModernSvgRect(document, childElement.getCurrentXpath(), totalContentHeight,
                     maxChildWidth, String.valueOf(finalRightStartX), String.valueOf(elementY));
             rightBox.setAttribute("filter", "url(#xmlspy-shadow)");
-            rightBox.setAttribute("style", childElement.isMandatory() ? ELEMENT_MANDATORY_FORMAT : ELEMENT_OPTIONAL_FORMAT);
+            // Apply cardinality-based styling
+            rightBox.setAttribute("style", determineNodeLabelStyle(childElement));
             rightBox.setAttribute("class", "hoverable-rect");
+
+            // Optional overlay dashed border for optional elements (like OPTIONAL_NODE_LABEL_STYLE)
+            org.w3c.dom.Node childDomNode = childElement.getCurrentNode();
+            String minOccurs = getAttributeValue(childDomNode, "minOccurs", "1");
+            boolean isOptional = "0".equals(minOccurs);
+            String maxOccurs = getAttributeValue(childDomNode, "maxOccurs", "1");
+            boolean isRepeatable = "unbounded".equals(maxOccurs) || (maxOccurs != null && !"1".equals(maxOccurs) && !"0".equals(maxOccurs));
+
+            if (isRepeatable) {
+                // Inner secondary border (double border effect, light blue)
+                Element innerBorder = document.createElementNS(svgNS, "rect");
+                innerBorder.setAttribute("x", String.valueOf(finalRightStartX + 2));
+                innerBorder.setAttribute("y", String.valueOf(elementY + 2));
+                innerBorder.setAttribute("width", String.valueOf(boxPadding * 2 + maxChildWidth - 4));
+                innerBorder.setAttribute("height", String.valueOf(boxPadding * 2 + totalContentHeight - 4));
+                innerBorder.setAttribute("rx", String.valueOf(borderRadius));
+                innerBorder.setAttribute("ry", String.valueOf(borderRadius));
+                innerBorder.setAttribute("fill", "none");
+                innerBorder.setAttribute("stroke", "#87ceeb");
+                innerBorder.setAttribute("stroke-width", "1");
+                svgRoot.appendChild(innerBorder);
+            }
+
+            if (isOptional) {
+                // Dashed overlay border
+                Element dashedOverlay = document.createElementNS(svgNS, "rect");
+                dashedOverlay.setAttribute("x", String.valueOf(finalRightStartX));
+                dashedOverlay.setAttribute("y", String.valueOf(elementY));
+                dashedOverlay.setAttribute("width", String.valueOf(boxPadding * 2 + maxChildWidth));
+                dashedOverlay.setAttribute("height", String.valueOf(boxPadding * 2 + totalContentHeight));
+                dashedOverlay.setAttribute("rx", String.valueOf(borderRadius));
+                dashedOverlay.setAttribute("ry", String.valueOf(borderRadius));
+                dashedOverlay.setAttribute("fill", "none");
+                dashedOverlay.setAttribute("stroke", COLOR_STROKE_ELEMENT);
+                dashedOverlay.setAttribute("stroke-width", "2");
+                dashedOverlay.setAttribute("stroke-dasharray", "5,2");
+                svgRoot.appendChild(dashedOverlay);
+            }
 
             // Text group with modern layout
             Element textGroup = document.createElementNS(svgNS, "g");
@@ -427,10 +494,25 @@ public class XsdDocumentationImageService {
                 line.setAttribute("stroke-width", "1");
                 textGroup.appendChild(line);
 
+                // Type-specific icon before the type name
+                Element typeIcon = createTypeSpecificIcon(document, elementType);
+                if (typeIcon != null) {
+                    typeIcon.setAttribute("x", String.valueOf(finalRightStartX + boxPadding));
+                    double typeY = lineY + typeBounds.getBounds2D().getHeight() + 4;
+                    // Align icon visually with the type text baseline (assume ~16px icon height)
+                    double iconBaselineAlignedY = typeY - 10; // moved 2px further down
+                    typeIcon.setAttribute("y", String.valueOf(iconBaselineAlignedY));
+                    textGroup.appendChild(typeIcon);
+                }
+
                 double typeY = lineY + typeBounds.getBounds2D().getHeight() + 4;
+                double typeTextX = finalRightStartX + boxPadding;
+                if (typeIcon != null) {
+                    typeTextX += 16; // Make space for icon
+                }
                 Element typeTextNode = createSvgTextElement(document, elementType,
-                        String.valueOf(finalRightStartX + boxPadding), String.valueOf(typeY),
-                        COLOR_TEXT_SECONDARY, font.getSize() - 1);
+                        String.valueOf(typeTextX), String.valueOf(typeY),
+                        getTypeSpecificColor(elementType), font.getSize() - 1);
                 textGroup.appendChild(typeTextNode);
             }
 
@@ -465,9 +547,9 @@ public class XsdDocumentationImageService {
             // Start coordinates based on whether we have a sequence/choice symbol
             double lineStartX, lineStartY;
             if (hasSequenceOrChoice) {
-                // Start from the CENTER of the sequence/choice symbol
-                lineStartX = finalSymbolCenterX;
-                lineStartY = finalSymbolCenterY; // Center of the Sequence/Choice symbol
+                // Start from the RIGHT EDGE of the sequence/choice symbol
+                lineStartX = finalSymbolCenterX + (isSequence ? 25 : 15); // symbolWidth/2 (50/2 or 30/2)
+                lineStartY = finalSymbolCenterY;
             } else {
                 // Start from root element
                 lineStartX = rootPathEndX;
@@ -487,7 +569,23 @@ public class XsdDocumentationImageService {
 
             path.setAttribute("d", pathData);
             path.setAttribute("class", "connection-line");
-            path.setAttribute("style", childElement.isMandatory() ? CONNECTION_LINE : CONNECTION_LINE_OPTIONAL);
+            // Style connectors: same color as root→symbol; dashed only if child is optional
+            boolean childOptional;
+            if (elementName != null && elementName.startsWith("@")) {
+                childOptional = "optional".equals(getAttributeValue(childDomNode, "use", "optional"));
+            } else {
+                childOptional = "0".equals(getAttributeValue(childDomNode, "minOccurs", "1"));
+            }
+            if (hasSequenceOrChoice) {
+                String groupStroke = isSequence ? COLOR_STROKE_SEQUENCE : COLOR_STROKE_CHOICE;
+                String childStyle = "stroke: " + groupStroke + "; stroke-width: 2; fill: none;";
+                if (childOptional) {
+                    childStyle += " stroke-dasharray: 5,5;";
+                }
+                path.setAttribute("style", childStyle);
+            } else {
+                path.setAttribute("style", childElement.isMandatory() ? CONNECTION_LINE : CONNECTION_LINE_OPTIONAL);
+            }
             path.setAttribute("fill", "none");
             svgRoot.appendChild(path);
 
@@ -502,8 +600,14 @@ public class XsdDocumentationImageService {
                 int cardinalityFontSize = font.getSize() - 4;
                 var cardinalityBounds = font.getStringBounds(cardinality, frc);
 
-                // Position cardinality closer to the child element for better association
-                double cardinalityX = turnX + (finalRightStartX - turnX) * 0.75 - (cardinalityBounds.getWidth() / 2);
+                // Position cardinality closer to the child element without overlapping its border
+                double textWidth = cardinalityBounds.getWidth();
+                double halfWidth = textWidth / 2.0;
+                double desiredCenterX = turnX + (finalRightStartX - turnX) * 0.65; // slightly more to the left than before
+                double maxCenterX = finalRightStartX - 10 - halfWidth; // keep at least 10px from child border
+                double minCenterX = turnX + 10 + halfWidth;            // keep at least 10px from turn point
+                double centerX = Math.max(minCenterX, Math.min(desiredCenterX, maxCenterX));
+                double cardinalityX = centerX - halfWidth;
                 double cardinalityY = childElementCenterY - 15; // Above the horizontal line to child
 
                 // Background rect for cardinality
@@ -658,14 +762,14 @@ public class XsdDocumentationImageService {
         final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2);
         final double symbolCenterY = rootPathCenterY;
 
-        // Connection line from root element to sequence/choice symbol
+        // Connection line from root element to sequence/choice symbol (solid, group-colored)
         Element pathToSymbol = document.createElementNS(svgNS, "line");
         pathToSymbol.setAttribute("x1", String.valueOf(rootPathEndX));
         pathToSymbol.setAttribute("y1", String.valueOf(rootPathCenterY));
         pathToSymbol.setAttribute("x2", String.valueOf(symbolCenterX - symbolWidth / 2));
         pathToSymbol.setAttribute("y2", String.valueOf(rootPathCenterY));
         pathToSymbol.setAttribute("class", "connection-line");
-        pathToSymbol.setAttribute("style", CONNECTION_LINE);
+        pathToSymbol.setAttribute("style", "stroke: " + COLOR_STROKE_SEQUENCE + "; stroke-width: 2; fill: none;");
         svgRoot.appendChild(pathToSymbol);
 
         // Group cardinality
@@ -710,67 +814,53 @@ public class XsdDocumentationImageService {
         }
 
         if (isSequence) {
-            // Modern sequence symbol
+            // Sequence as labeled rounded rectangle with list icon, like XsdDiagramView
             Element seqGroup = document.createElementNS(svgNS, "g");
-            seqGroup.setAttribute("id", "seq-group_" + System.currentTimeMillis());
 
-            // Modern box with rounded corners
             Element seqRect = document.createElementNS(svgNS, "rect");
             seqRect.setAttribute("x", String.valueOf(symbolCenterX - symbolWidth / 2));
             seqRect.setAttribute("y", String.valueOf(symbolCenterY - symbolHeight / 2));
             seqRect.setAttribute("width", String.valueOf(symbolWidth));
             seqRect.setAttribute("height", String.valueOf(symbolHeight));
-            seqRect.setAttribute("fill", COLOR_BOX_FILL_STRUCTURAL);
-
-            // Add sequence icon
-            Element seqIconUse = document.createElementNS(svgNS, "use");
-            seqIconUse.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#sequence-icon");
-            seqIconUse.setAttribute("x", String.valueOf(symbolCenterX - symbolWidth / 2 + 5));
-            seqIconUse.setAttribute("y", String.valueOf(symbolCenterY - symbolHeight / 2 + 5));
-            seqGroup.appendChild(seqIconUse);
-            seqRect.setAttribute("stroke", COLOR_ACCENT);
+            seqRect.setAttribute("fill", "url(#sequenceGradient)");
+            seqRect.setAttribute("stroke", COLOR_STROKE_SEQUENCE);
             seqRect.setAttribute("stroke-width", "2");
-            seqRect.setAttribute("rx", String.valueOf(borderRadius));
-            seqRect.setAttribute("ry", String.valueOf(borderRadius));
+            seqRect.setAttribute("rx", "4");
+            seqRect.setAttribute("ry", "4");
             seqGroup.appendChild(seqRect);
 
-            // Modern separator line
-            Element line = document.createElementNS(svgNS, "line");
-            line.setAttribute("x1", String.valueOf(symbolCenterX - symbolWidth / 2 + 8));
-            line.setAttribute("y1", String.valueOf(symbolCenterY));
-            line.setAttribute("x2", String.valueOf(symbolCenterX + symbolWidth / 2 - 8));
-            line.setAttribute("y2", String.valueOf(symbolCenterY));
-            line.setAttribute("stroke", COLOR_TEXT_SECONDARY);
-            line.setAttribute("stroke-width", "1.5");
-            seqGroup.appendChild(line);
-
-            // Modern dots
-            double dotSpacing = 10;
-            seqGroup.appendChild(createModernDot(document, symbolCenterX - dotSpacing, symbolCenterY));
-            seqGroup.appendChild(createModernDot(document, symbolCenterX, symbolCenterY));
-            seqGroup.appendChild(createModernDot(document, symbolCenterX + dotSpacing, symbolCenterY));
+            Element seqIconUse = document.createElementNS(svgNS, "use");
+            seqIconUse.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#sequence-icon");
+            // Center the sequence icon (~16x16) within the rectangle
+            seqIconUse.setAttribute("x", String.valueOf(symbolCenterX - 8));
+            seqIconUse.setAttribute("y", String.valueOf(symbolCenterY - 8));
+            seqGroup.appendChild(seqIconUse);
 
             svgRoot.appendChild(seqGroup);
+        } else { // CHOICE
+            // Choice as labeled rounded rectangle with dashed border, like XsdDiagramView
+            Element choiceGroup = document.createElementNS(svgNS, "g");
 
-        } else { // isChoice
-            // Modern choice symbol (diamond with icon)
-            Element choiceDiamond = document.createElementNS(svgNS, "polygon");
-            String points = (symbolCenterX) + "," + (symbolCenterY - symbolHeight / 2) + " " +
-                    (symbolCenterX + symbolWidth / 2) + "," + (symbolCenterY) + " " +
-                    (symbolCenterX) + "," + (symbolCenterY + symbolHeight / 2) + " " +
-                    (symbolCenterX - symbolWidth / 2) + "," + (symbolCenterY);
-            choiceDiamond.setAttribute("points", points);
-            choiceDiamond.setAttribute("fill", COLOR_BOX_FILL_STRUCTURAL);
-            choiceDiamond.setAttribute("stroke", COLOR_ACCENT);
-            choiceDiamond.setAttribute("stroke-width", "2");
-            svgRoot.appendChild(choiceDiamond);
+            Element choiceRect = document.createElementNS(svgNS, "rect");
+            choiceRect.setAttribute("x", String.valueOf(symbolCenterX - symbolWidth / 2));
+            choiceRect.setAttribute("y", String.valueOf(symbolCenterY - symbolHeight / 2));
+            choiceRect.setAttribute("width", String.valueOf(symbolWidth));
+            choiceRect.setAttribute("height", String.valueOf(symbolHeight));
+            choiceRect.setAttribute("fill", "url(#choiceGradient)");
+            choiceRect.setAttribute("stroke", COLOR_STROKE_CHOICE);
+            choiceRect.setAttribute("stroke-width", "2");
+            choiceRect.setAttribute("stroke-dasharray", "5,5");
+            choiceRect.setAttribute("rx", "4");
+            choiceRect.setAttribute("ry", "4");
+            choiceGroup.appendChild(choiceRect);
 
-            // Add choice icon
             Element choiceIconUse = document.createElementNS(svgNS, "use");
             choiceIconUse.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#choice-icon");
-            choiceIconUse.setAttribute("x", String.valueOf(symbolCenterX - 8));
+            choiceIconUse.setAttribute("x", String.valueOf(symbolCenterX - symbolWidth / 2 + 6));
             choiceIconUse.setAttribute("y", String.valueOf(symbolCenterY - 8));
-            svgRoot.appendChild(choiceIconUse);
+            choiceGroup.appendChild(choiceIconUse);
+
+            svgRoot.appendChild(choiceGroup);
         }
 
         // Return the right edge X position and center Y position of the symbol
@@ -1175,7 +1265,64 @@ public class XsdDocumentationImageService {
         attributeGradient.appendChild(attrStop2);
         defs.appendChild(attributeGradient);
 
-        // Structural gradient (light gray)
+        // Sequence gradient (light gray)
+        Element sequenceGradient = document.createElementNS(svgNS, "linearGradient");
+        sequenceGradient.setAttribute("id", "sequenceGradient");
+        sequenceGradient.setAttribute("x1", "0%");
+        sequenceGradient.setAttribute("y1", "0%");
+        sequenceGradient.setAttribute("x2", "0%");
+        sequenceGradient.setAttribute("y2", "100%");
+
+        Element seqStop1 = document.createElementNS(svgNS, "stop");
+        seqStop1.setAttribute("offset", "0%");
+        seqStop1.setAttribute("stop-color", "#ffffff");
+        sequenceGradient.appendChild(seqStop1);
+
+        Element seqStop2 = document.createElementNS(svgNS, "stop");
+        seqStop2.setAttribute("offset", "100%");
+        seqStop2.setAttribute("stop-color", COLOR_BOX_FILL_SEQUENCE);
+        sequenceGradient.appendChild(seqStop2);
+        defs.appendChild(sequenceGradient);
+
+        // Choice gradient (light orange)
+        Element choiceGradient = document.createElementNS(svgNS, "linearGradient");
+        choiceGradient.setAttribute("id", "choiceGradient");
+        choiceGradient.setAttribute("x1", "0%");
+        choiceGradient.setAttribute("y1", "0%");
+        choiceGradient.setAttribute("x2", "0%");
+        choiceGradient.setAttribute("y2", "100%");
+
+        Element choiceStop1 = document.createElementNS(svgNS, "stop");
+        choiceStop1.setAttribute("offset", "0%");
+        choiceStop1.setAttribute("stop-color", "#ffffff");
+        choiceGradient.appendChild(choiceStop1);
+
+        Element choiceStop2 = document.createElementNS(svgNS, "stop");
+        choiceStop2.setAttribute("offset", "100%");
+        choiceStop2.setAttribute("stop-color", COLOR_BOX_FILL_CHOICE);
+        choiceGradient.appendChild(choiceStop2);
+        defs.appendChild(choiceGradient);
+
+        // Any gradient (light gray)
+        Element anyGradient = document.createElementNS(svgNS, "linearGradient");
+        anyGradient.setAttribute("id", "anyGradient");
+        anyGradient.setAttribute("x1", "0%");
+        anyGradient.setAttribute("y1", "0%");
+        anyGradient.setAttribute("x2", "0%");
+        anyGradient.setAttribute("y2", "100%");
+
+        Element anyStop1 = document.createElementNS(svgNS, "stop");
+        anyStop1.setAttribute("offset", "0%");
+        anyStop1.setAttribute("stop-color", "#ffffff");
+        anyGradient.appendChild(anyStop1);
+
+        Element anyStop2 = document.createElementNS(svgNS, "stop");
+        anyStop2.setAttribute("offset", "100%");
+        anyStop2.setAttribute("stop-color", COLOR_BOX_FILL_ANY);
+        anyGradient.appendChild(anyStop2);
+        defs.appendChild(anyGradient);
+
+        // Structural gradient (legacy compatibility)
         Element structuralGradient = document.createElementNS(svgNS, "linearGradient");
         structuralGradient.setAttribute("id", "structuralGradient");
         structuralGradient.setAttribute("x1", "0%");
@@ -1193,6 +1340,359 @@ public class XsdDocumentationImageService {
         structStop2.setAttribute("stop-color", COLOR_BOX_FILL_STRUCTURAL);
         structuralGradient.appendChild(structStop2);
         defs.appendChild(structuralGradient);
+    }
+
+    /**
+     * Adds type-specific icon definitions matching XsdDiagramView
+     */
+    private void addTypeSpecificIcons(Document document, Element defs) {
+        // String type icon (text)
+        Element stringIcon = document.createElementNS(svgNS, "g");
+        stringIcon.setAttribute("id", "string-icon");
+        Element stringPath = document.createElementNS(svgNS, "path");
+        stringPath.setAttribute("d", "M2.5 4v1.5c0 .83.67 1.5 1.5 1.5h1v1h-1c-.83 0-1.5.67-1.5 1.5V11c0 .55-.45 1-1 1H0v-1h.5c.28 0 .5-.22.5-.5V9s0-2.5 0-2.5c0-.83.67-1.5 1.5-1.5h1v-1h-1C1.67 4 1 3.33 1 2.5V1c0-.55.45-1 1-1H1v1h-.5c-.28 0-.5.22-.5.5V3s0 2.5 0 2.5c0 .83-.67 1.5-1.5 1.5h-1z");
+        stringPath.setAttribute("fill", COLOR_STRING_TYPE);
+        stringIcon.appendChild(stringPath);
+        defs.appendChild(stringIcon);
+
+        // Numeric type icon (hash)
+        Element numericIcon = document.createElementNS(svgNS, "g");
+        numericIcon.setAttribute("id", "numeric-icon");
+        Element numPath = document.createElementNS(svgNS, "path");
+        numPath.setAttribute("d", "M1.5 6l.5 2H1l-.5-2H0V5h.5L0 3h1l.5 2h1L2 3h1l.5 2H4v1h-.5L4 8H3l-.5-2h-1z");
+        numPath.setAttribute("fill", COLOR_NUMERIC_TYPE);
+        numericIcon.appendChild(numPath);
+        defs.appendChild(numericIcon);
+
+        // Date type icon (calendar)
+        Element dateIcon = document.createElementNS(svgNS, "g");
+        dateIcon.setAttribute("id", "date-icon");
+        Element datePath = document.createElementNS(svgNS, "path");
+        datePath.setAttribute("d", "M3.5 0c-.28 0-.5.22-.5.5v.5h-1v-.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5v.5H0v8h8V1h-1v-.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5v.5h-2v-.5c0-.28-.22-.5-.5-.5zM1 2h6v2H1V2zm0 3h6v3H1V5z");
+        datePath.setAttribute("fill", COLOR_DATE_TYPE);
+        dateIcon.appendChild(datePath);
+        defs.appendChild(dateIcon);
+
+        // Boolean type icon (check)
+        Element booleanIcon = document.createElementNS(svgNS, "g");
+        booleanIcon.setAttribute("id", "boolean-icon");
+        Element boolPath = document.createElementNS(svgNS, "path");
+        boolPath.setAttribute("d", "M7 1L3.5 4.5 1 2l-1 1 3.5 3.5L8 2z");
+        boolPath.setAttribute("fill", COLOR_BOOLEAN_TYPE);
+        booleanIcon.appendChild(boolPath);
+        defs.appendChild(booleanIcon);
+
+        // Binary type icon (file)
+        Element binaryIcon = document.createElementNS(svgNS, "g");
+        binaryIcon.setAttribute("id", "binary-icon");
+        Element binPath = document.createElementNS(svgNS, "path");
+        binPath.setAttribute("d", "M1 1v6h6V3L5 1H1zm4 0v2h2L5 1zm-3 3h2v1H2V4zm0 2h4v1H2V6z");
+        binPath.setAttribute("fill", COLOR_BINARY_TYPE);
+        binaryIcon.appendChild(binPath);
+        defs.appendChild(binaryIcon);
+
+        // URI type icon (link)
+        Element uriIcon = document.createElementNS(svgNS, "g");
+        uriIcon.setAttribute("id", "uri-icon");
+        Element uriPath = document.createElementNS(svgNS, "path");
+        uriPath.setAttribute("d", "M2 3h1v1H2V3zm3 0h1v1H5V3zM1.5 1C.67 1 0 1.67 0 2.5S.67 4 1.5 4h.25L2 3.75v-.5l-.25-.25H1.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5h1c.28 0 .5.22.5.5v.25l.25.25h.5l.25-.25V2.5c0-.83-.67-1.5-1.5-1.5h-1z");
+        uriPath.setAttribute("fill", COLOR_URI_TYPE);
+        uriIcon.appendChild(uriPath);
+        defs.appendChild(uriIcon);
+
+        // QName type icon (tag)
+        Element qnameIcon = document.createElementNS(svgNS, "g");
+        qnameIcon.setAttribute("id", "qname-icon");
+        Element qnamePath = document.createElementNS(svgNS, "path");
+        qnamePath.setAttribute("d", "M0 2v4c0 .55.45 1 1 1h2.5L7 3.5v-1L3.5 0H1C.45 0 0 .45 0 2zm5.5 1.5L3 5H1V2h2.5L5.5 3.5z");
+        qnamePath.setAttribute("fill", COLOR_QNAME_TYPE);
+        qnameIcon.appendChild(qnamePath);
+        defs.appendChild(qnameIcon);
+
+        // Language type icon (globe)
+        Element languageIcon = document.createElementNS(svgNS, "g");
+        languageIcon.setAttribute("id", "language-icon");
+        Element langPath = document.createElementNS(svgNS, "path");
+        langPath.setAttribute("d", "M4 0C1.79 0 0 1.79 0 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm2 7c-.02-.02-.05-.03-.08-.03H5c-.28 0-.5-.22-.5-.5 0-.25.19-.46.44-.5.02 0 .04-.01.06-.01h1c.83 0 1.5-.67 1.5-1.5 0-.78-.6-1.42-1.36-1.49C6.09 2.95 6.05 2.93 6 2.93c-.28 0-.5-.22-.5-.5s.22-.5.5-.5c.05 0 .09.02.14.03C6.36 1.94 6.6 2 6.5 2c0 0 .5.22.5.5s-.22.5-.5.5c-.28 0-.5-.22-.5-.5 0-.02.01-.04.01-.06h-1c-.83 0-1.5.67-1.5 1.5 0 .78.6 1.42 1.36 1.49C4.91 5.05 4.95 5.07 5 5.07c.28 0 .5.22.5.5s-.22.5-.5.5c-.05 0-.09-.02-.14-.03C4.64 6.06 4.4 6 4.5 6z");
+        langPath.setAttribute("fill", COLOR_LANGUAGE_TYPE);
+        languageIcon.appendChild(langPath);
+        defs.appendChild(languageIcon);
+
+        // Complex type icon (hierarchy/diagram style)
+        Element complexIcon = document.createElementNS(svgNS, "g");
+        complexIcon.setAttribute("id", "complex-icon");
+        // Reduce overall icon size by 50%
+        complexIcon.setAttribute("transform", "scale(0.5)");
+        // Top box
+        Element cTop = document.createElementNS(svgNS, "rect");
+        cTop.setAttribute("x", "5");
+        cTop.setAttribute("y", "0");
+        cTop.setAttribute("width", "6");
+        cTop.setAttribute("height", "4");
+        cTop.setAttribute("fill", "none");
+        cTop.setAttribute("stroke", COLOR_COMPLEX_TYPE);
+        cTop.setAttribute("stroke-width", "1.5");
+        complexIcon.appendChild(cTop);
+        // Left bottom box
+        Element cLeft = document.createElementNS(svgNS, "rect");
+        cLeft.setAttribute("x", "0");
+        cLeft.setAttribute("y", "12");
+        cLeft.setAttribute("width", "6");
+        cLeft.setAttribute("height", "4");
+        cLeft.setAttribute("fill", "none");
+        cLeft.setAttribute("stroke", COLOR_COMPLEX_TYPE);
+        cLeft.setAttribute("stroke-width", "1.5");
+        complexIcon.appendChild(cLeft);
+        // Right bottom box
+        Element cRight = document.createElementNS(svgNS, "rect");
+        cRight.setAttribute("x", "10");
+        cRight.setAttribute("y", "12");
+        cRight.setAttribute("width", "6");
+        cRight.setAttribute("height", "4");
+        cRight.setAttribute("fill", "none");
+        cRight.setAttribute("stroke", COLOR_COMPLEX_TYPE);
+        cRight.setAttribute("stroke-width", "1.5");
+        complexIcon.appendChild(cRight);
+        // Connectors
+        Element vLine = document.createElementNS(svgNS, "line");
+        vLine.setAttribute("x1", "8");
+        vLine.setAttribute("y1", "4");
+        vLine.setAttribute("x2", "8");
+        vLine.setAttribute("y2", "10");
+        vLine.setAttribute("stroke", COLOR_COMPLEX_TYPE);
+        vLine.setAttribute("stroke-width", "1.5");
+        complexIcon.appendChild(vLine);
+        Element hLine = document.createElementNS(svgNS, "line");
+        hLine.setAttribute("x1", "3");
+        hLine.setAttribute("y1", "10");
+        hLine.setAttribute("x2", "13");
+        hLine.setAttribute("y2", "10");
+        hLine.setAttribute("stroke", COLOR_COMPLEX_TYPE);
+        hLine.setAttribute("stroke-width", "1.5");
+        complexIcon.appendChild(hLine);
+        Element lStem = document.createElementNS(svgNS, "line");
+        lStem.setAttribute("x1", "3");
+        lStem.setAttribute("y1", "10");
+        lStem.setAttribute("x2", "3");
+        lStem.setAttribute("y2", "12");
+        lStem.setAttribute("stroke", COLOR_COMPLEX_TYPE);
+        lStem.setAttribute("stroke-width", "1.5");
+        complexIcon.appendChild(lStem);
+        Element rStem = document.createElementNS(svgNS, "line");
+        rStem.setAttribute("x1", "13");
+        rStem.setAttribute("y1", "10");
+        rStem.setAttribute("x2", "13");
+        rStem.setAttribute("y2", "12");
+        rStem.setAttribute("stroke", COLOR_COMPLEX_TYPE);
+        rStem.setAttribute("stroke-width", "1.5");
+        complexIcon.appendChild(rStem);
+        defs.appendChild(complexIcon);
+
+        // Default type icon (generic)
+        Element defaultIcon = document.createElementNS(svgNS, "g");
+        defaultIcon.setAttribute("id", "default-icon");
+        Element defaultPath = document.createElementNS(svgNS, "path");
+        defaultPath.setAttribute("d", "M4 0C1.79 0 0 1.79 0 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z");
+        defaultPath.setAttribute("fill", COLOR_DEFAULT_TYPE);
+        defaultIcon.appendChild(defaultPath);
+        defs.appendChild(defaultIcon);
+
+        // Sequence structural icon (list-ol)
+        Element sequenceIcon = document.createElementNS(svgNS, "g");
+        sequenceIcon.setAttribute("id", "sequence-icon");
+        Element sequencePath = document.createElementNS(svgNS, "path");
+        sequencePath.setAttribute("d", "M2,17H4V19H2V17M2,13H4V15H2V13M2,9H4V11H2V9M2,5H4V7H2V5M7,5H22V7H7V5M7,9H22V11H7V9M7,13H22V15H7V13M7,17H22V19H7V17Z");
+        sequencePath.setAttribute("fill", COLOR_STROKE_SEQUENCE);
+        sequenceIcon.appendChild(sequencePath);
+        defs.appendChild(sequenceIcon);
+
+        // Choice structural icon (option)
+        Element choiceIcon = document.createElementNS(svgNS, "g");
+        choiceIcon.setAttribute("id", "choice-icon");
+        Element choicePath = document.createElementNS(svgNS, "path");
+        choicePath.setAttribute("d", "M8,10V12H16V10H8M8,14V16H16V14H8M18,8C19.11,8 20,8.9 20,10V14C20,15.11 19.11,16 18,16H16V14H18V10H16V8H18M6,8V10H4V14H6V16H4C2.89,16 2,15.11 2,14V10C2,8.9 2.89,8 4,8H6Z");
+        choicePath.setAttribute("fill", COLOR_STROKE_CHOICE);
+        choiceIcon.appendChild(choicePath);
+        defs.appendChild(choiceIcon);
+    }
+
+    /**
+     * Creates a type-specific icon based on the element type
+     */
+    private Element createTypeSpecificIcon(Document document, String elementType) {
+        if (elementType == null || elementType.isBlank()) {
+            return null;
+        }
+
+        String iconId = determineIconType(elementType);
+        if (iconId != null) {
+            Element iconUse = document.createElementNS(svgNS, "use");
+            iconUse.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#" + iconId);
+            return iconUse;
+        }
+        return null;
+    }
+
+    /**
+     * Determines the appropriate icon type based on element type
+     */
+    private String determineIconType(String elementType) {
+        if (elementType == null || elementType.isBlank()) {
+            return "default-icon";
+        }
+
+        String lowerType = elementType.toLowerCase();
+
+        // String types
+        if (lowerType.contains("string") || lowerType.contains("token") ||
+                lowerType.contains("normalizedstring") || lowerType.contains("name") ||
+                lowerType.contains("ncname") || lowerType.contains("id") || lowerType.contains("idref")) {
+            return "string-icon";
+        }
+
+        // Numeric types
+        if (lowerType.contains("int") || lowerType.contains("decimal") ||
+                lowerType.contains("float") || lowerType.contains("double") ||
+                lowerType.contains("long") || lowerType.contains("short") ||
+                lowerType.contains("byte") || lowerType.contains("unsignedint") ||
+                lowerType.contains("positiveinteger") || lowerType.contains("negativeinteger") ||
+                lowerType.contains("nonnegativeinteger") || lowerType.contains("nonpositiveinteger")) {
+            return "numeric-icon";
+        }
+
+        // Date/Time types
+        if (lowerType.contains("date") || lowerType.contains("time") ||
+                lowerType.contains("datetime") || lowerType.contains("duration") ||
+                lowerType.contains("gyear") || lowerType.contains("gmonth") ||
+                lowerType.contains("gday")) {
+            return "date-icon";
+        }
+
+        // Boolean types
+        if (lowerType.contains("boolean")) {
+            return "boolean-icon";
+        }
+
+        // Binary types
+        if (lowerType.contains("base64binary") || lowerType.contains("hexbinary")) {
+            return "binary-icon";
+        }
+
+        // URI types
+        if (lowerType.contains("anyuri")) {
+            return "uri-icon";
+        }
+
+        // QName types
+        if (lowerType.contains("qname")) {
+            return "qname-icon";
+        }
+
+        // Language types
+        if (lowerType.contains("language")) {
+            return "language-icon";
+        }
+
+        // Complex types (user-defined)
+        if (!lowerType.startsWith("xs:") && !lowerType.startsWith("xsd:")) {
+            return "complex-icon";
+        }
+
+        return "default-icon";
+    }
+
+    /**
+     * Gets the appropriate color for a specific type
+     */
+    private String getTypeSpecificColor(String elementType) {
+        if (elementType == null || elementType.isBlank()) {
+            return COLOR_DEFAULT_TYPE;
+        }
+
+        String lowerType = elementType.toLowerCase();
+
+        // String types
+        if (lowerType.contains("string") || lowerType.contains("token") ||
+                lowerType.contains("normalizedstring") || lowerType.contains("name") ||
+                lowerType.contains("ncname") || lowerType.contains("id") || lowerType.contains("idref")) {
+            return COLOR_STRING_TYPE;
+        }
+
+        // Numeric types
+        if (lowerType.contains("int") || lowerType.contains("decimal") ||
+                lowerType.contains("float") || lowerType.contains("double") ||
+                lowerType.contains("long") || lowerType.contains("short") ||
+                lowerType.contains("byte") || lowerType.contains("unsignedint") ||
+                lowerType.contains("positiveinteger") || lowerType.contains("negativeinteger") ||
+                lowerType.contains("nonnegativeinteger") || lowerType.contains("nonpositiveinteger")) {
+            return COLOR_NUMERIC_TYPE;
+        }
+
+        // Date/Time types
+        if (lowerType.contains("date") || lowerType.contains("time") ||
+                lowerType.contains("datetime") || lowerType.contains("duration") ||
+                lowerType.contains("gyear") || lowerType.contains("gmonth") ||
+                lowerType.contains("gday")) {
+            return COLOR_DATE_TYPE;
+        }
+
+        // Boolean types
+        if (lowerType.contains("boolean")) {
+            return COLOR_BOOLEAN_TYPE;
+        }
+
+        // Binary types
+        if (lowerType.contains("base64binary") || lowerType.contains("hexbinary")) {
+            return COLOR_BINARY_TYPE;
+        }
+
+        // URI types
+        if (lowerType.contains("anyuri")) {
+            return COLOR_URI_TYPE;
+        }
+
+        // QName types
+        if (lowerType.contains("qname")) {
+            return COLOR_QNAME_TYPE;
+        }
+
+        // Language types
+        if (lowerType.contains("language")) {
+            return COLOR_LANGUAGE_TYPE;
+        }
+
+        // Complex types (user-defined)
+        if (!lowerType.startsWith("xs:") && !lowerType.startsWith("xsd:")) {
+            return COLOR_COMPLEX_TYPE;
+        }
+
+        return COLOR_DEFAULT_TYPE;
+    }
+
+    /**
+     * Determines the appropriate node label style based on cardinality
+     * matching XsdDiagramView behavior
+     */
+    private String determineNodeLabelStyle(XsdExtendedElement element) {
+        Node node = element.getCurrentNode();
+        if (node == null) {
+            return ELEMENT_MANDATORY_FORMAT;
+        }
+
+        String minOccurs = getAttributeValue(node, "minOccurs", "1");
+        String maxOccurs = getAttributeValue(node, "maxOccurs", "1");
+
+        boolean isOptional = "0".equals(minOccurs);
+        boolean isRepeatable = "unbounded".equals(maxOccurs) ||
+                (maxOccurs != null && !"1".equals(maxOccurs) && !"0".equals(maxOccurs));
+
+        if (isRepeatable) {
+            return ELEMENT_REPEATABLE_FORMAT;
+        } else if (isOptional) {
+            return ELEMENT_OPTIONAL_FORMAT;
+        } else {
+            return ELEMENT_MANDATORY_FORMAT;
+        }
     }
 
 }
