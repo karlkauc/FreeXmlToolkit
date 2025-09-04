@@ -261,6 +261,7 @@ public class XmlCodeEditor extends VBox {
         codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
 
         setupEventHandlers();
+        initializeContextMenu();
         initializeIntelliSensePopup();
         initializeEnhancedIntelliSense();
         initializeXmlIntelliSenseEngine();
@@ -1048,6 +1049,11 @@ public class XmlCodeEditor extends VBox {
                         }
                         event.consume();
                     }
+                    case D -> {
+                        // Ctrl+D = Comment/Uncomment Line
+                        toggleLineComment();
+                        event.consume();
+                    }
                     default -> {
                     }
                 }
@@ -1138,6 +1144,22 @@ public class XmlCodeEditor extends VBox {
                 }
             }
         });
+    }
+
+    /**
+     * Initializes the context menu for the code editor.
+     */
+    private void initializeContextMenu() {
+        ContextMenu contextMenu = new ContextMenu();
+        
+        MenuItem commentLineMenuItem = new MenuItem("Comment Line");
+        commentLineMenuItem.setOnAction(event -> toggleLineComment());
+        
+        contextMenu.getItems().add(commentLineMenuItem);
+        
+        codeArea.setContextMenu(contextMenu);
+        
+        logger.debug("Context menu initialized with comment line functionality");
     }
 
     /**
@@ -1901,6 +1923,70 @@ public class XmlCodeEditor extends VBox {
 
             return hbox;
         };
+    }
+
+    /**
+     * Toggles line comment for the current line or selected lines.
+     * Wraps the line content with XML comment tags: <!-- content -->
+     */
+    private void toggleLineComment() {
+        try {
+            int caretPosition = codeArea.getCaretPosition();
+            int currentLineIndex = codeArea.offsetToPosition(caretPosition, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor();
+            
+            // Get current line content
+            String currentLine = codeArea.getParagraph(currentLineIndex).getText();
+            
+            // Check if line is already commented
+            String trimmedLine = currentLine.trim();
+            boolean isCommented = trimmedLine.startsWith("<!--") && trimmedLine.endsWith("-->");
+            
+            String newLine;
+            if (isCommented) {
+                // Uncomment: Remove <!-- and --> while preserving indentation
+                String leadingWhitespace = getLeadingWhitespace(currentLine);
+                String content = trimmedLine.substring(4, trimmedLine.length() - 3).trim();
+                newLine = leadingWhitespace + content;
+            } else {
+                // Comment: Add <!-- and --> while preserving indentation  
+                String leadingWhitespace = getLeadingWhitespace(currentLine);
+                String content = currentLine.trim();
+                if (content.isEmpty()) {
+                    // Don't comment empty lines
+                    return;
+                }
+                newLine = leadingWhitespace + "<!-- " + content + " -->";
+            }
+            
+            // Replace the line content
+            int lineStart = codeArea.getAbsolutePosition(currentLineIndex, 0);
+            int lineEnd = lineStart + currentLine.length();
+            
+            codeArea.replaceText(lineStart, lineEnd, newLine);
+            
+            // Restore caret position approximately
+            int newCaretPosition = lineStart + Math.min(newLine.length(), caretPosition - lineStart);
+            codeArea.moveTo(newCaretPosition);
+            
+            logger.debug("Toggled comment on line {}: {}", currentLineIndex + 1, isCommented ? "uncommented" : "commented");
+            
+        } catch (Exception e) {
+            logger.error("Error toggling line comment: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Helper method to extract leading whitespace from a line.
+     * 
+     * @param line The line to extract leading whitespace from
+     * @return The leading whitespace string
+     */
+    private String getLeadingWhitespace(String line) {
+        int i = 0;
+        while (i < line.length() && Character.isWhitespace(line.charAt(i))) {
+            i++;
+        }
+        return line.substring(0, i);
     }
 
 
