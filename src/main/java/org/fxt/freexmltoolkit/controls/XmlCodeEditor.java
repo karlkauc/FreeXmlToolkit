@@ -25,13 +25,23 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.controls.intellisense.*;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
@@ -576,6 +586,14 @@ public class XmlCodeEditor extends VBox {
                 String intelliSenseCssUrl = getClass().getResource(intelliSenseCssPath).toExternalForm();
                 codeArea.getStylesheets().add(intelliSenseCssUrl);
                 logger.debug("Loaded IntelliSense CSS: {}", intelliSenseCssUrl);
+            }
+
+            // Load XMLSpy-style Context Menu CSS
+            String contextMenuCssPath = "/css/xml-context-menu-xmlspy.css";
+            if (getClass().getResource(contextMenuCssPath) != null) {
+                String contextMenuCssUrl = getClass().getResource(contextMenuCssPath).toExternalForm();
+                codeArea.getStylesheets().add(contextMenuCssUrl);
+                logger.debug("Loaded XMLSpy-style Context Menu CSS: {}", contextMenuCssUrl);
             }
 
         } catch (Exception e) {
@@ -1152,14 +1170,100 @@ public class XmlCodeEditor extends VBox {
     private void initializeContextMenu() {
         ContextMenu contextMenu = new ContextMenu();
         
-        MenuItem commentLineMenuItem = new MenuItem("Comment Line");
+        // Comment functionality
+        MenuItem commentLineMenuItem = new MenuItem("Comment Lines (Ctrl+D)");
+        commentLineMenuItem.getStyleClass().add("comment-action");
+        commentLineMenuItem.setGraphic(createSafeIcon("bi-chat-square-text", "#6c757d"));
         commentLineMenuItem.setOnAction(event -> toggleLineComment());
         
-        contextMenu.getItems().add(commentLineMenuItem);
+        // Standard editing operations
+        SeparatorMenuItem separator1 = new SeparatorMenuItem();
+        MenuItem cutMenuItem = new MenuItem("Cut (Ctrl+X)");
+        cutMenuItem.getStyleClass().add("edit-action");
+        cutMenuItem.setGraphic(createSafeIcon("bi-scissors", "#333333"));
+        cutMenuItem.setOnAction(event -> cutToClipboard());
+        MenuItem copyMenuItem = new MenuItem("Copy (Ctrl+C)");
+        copyMenuItem.getStyleClass().add("edit-action");
+        copyMenuItem.setGraphic(createSafeIcon("bi-files", "#333333"));
+        copyMenuItem.setOnAction(event -> copyToClipboard());
+        MenuItem pasteMenuItem = new MenuItem("Paste (Ctrl+V)");
+        pasteMenuItem.getStyleClass().add("edit-action");
+        pasteMenuItem.setGraphic(createSafeIcon("bi-clipboard", "#333333"));
+        pasteMenuItem.setOnAction(event -> pasteFromClipboard());
+        
+        // XML-specific operations
+        SeparatorMenuItem separator2 = new SeparatorMenuItem();
+        MenuItem copyXPathMenuItem = new MenuItem("Copy XPath");
+        copyXPathMenuItem.getStyleClass().add("xml-action");
+        copyXPathMenuItem.setGraphic(createSafeIcon("bi-signpost-2", "#8b6914"));
+        copyXPathMenuItem.setOnAction(event -> copyXPathToClipboard());
+        MenuItem goToDefinitionMenuItem = new MenuItem("Go to Definition (Ctrl+Click)");
+        goToDefinitionMenuItem.getStyleClass().add("xml-action");
+        goToDefinitionMenuItem.setGraphic(createSafeIcon("bi-box-arrow-up-right", "#8b6914"));
+        goToDefinitionMenuItem.setOnAction(event -> {
+            // Create a synthetic mouse event at current cursor position
+            try {
+                javafx.scene.input.MouseEvent syntheticEvent = new javafx.scene.input.MouseEvent(
+                    javafx.scene.input.MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 
+                    javafx.scene.input.MouseButton.PRIMARY, 1, true, false, false, false, 
+                    true, false, false, false, false, false, null);
+                handleGoToDefinition(syntheticEvent);
+            } catch (Exception e) {
+                logger.error("Error in go to definition", e);
+            }
+        });
+        
+        // Selection and search
+        SeparatorMenuItem separator3 = new SeparatorMenuItem();
+        MenuItem selectAllMenuItem = new MenuItem("Select All (Ctrl+A)");
+        selectAllMenuItem.getStyleClass().add("search-action");
+        selectAllMenuItem.setGraphic(createSafeIcon("bi-border-all", "#495057"));
+        selectAllMenuItem.setOnAction(event -> selectAllText());
+        MenuItem findReplaceMenuItem = new MenuItem("Find & Replace (Ctrl+H)");
+        findReplaceMenuItem.getStyleClass().add("search-action");
+        findReplaceMenuItem.setGraphic(createSafeIcon("bi-search", "#495057"));
+        findReplaceMenuItem.setOnAction(event -> openFindReplace());
+        
+        // XML formatting and validation
+        SeparatorMenuItem separator4 = new SeparatorMenuItem();
+        MenuItem formatXmlMenuItem = new MenuItem("Format XML");
+        formatXmlMenuItem.getStyleClass().add("format-action");
+        formatXmlMenuItem.setGraphic(createSafeIcon("bi-code-square", "#2c5aa0"));
+        formatXmlMenuItem.setOnAction(event -> formatXmlContent());
+        MenuItem validateXmlMenuItem = new MenuItem("Validate XML");
+        validateXmlMenuItem.getStyleClass().add("format-action");
+        validateXmlMenuItem.setGraphic(createSafeIcon("bi-check-circle", "#2c5aa0"));
+        validateXmlMenuItem.setOnAction(event -> validateXmlContent());
+        
+        // Code folding (future)
+        SeparatorMenuItem separator5 = new SeparatorMenuItem();
+        MenuItem expandAllMenuItem = new MenuItem("Expand All");
+        expandAllMenuItem.getStyleClass().add("fold-action");
+        expandAllMenuItem.setGraphic(createSafeIcon("bi-arrows-expand", "#6c757d"));
+        expandAllMenuItem.setOnAction(event -> expandAllFolds());
+        MenuItem collapseAllMenuItem = new MenuItem("Collapse All");
+        collapseAllMenuItem.getStyleClass().add("fold-action");
+        collapseAllMenuItem.setGraphic(createSafeIcon("bi-arrows-collapse", "#6c757d"));
+        collapseAllMenuItem.setOnAction(event -> collapseAllFolds());
+        
+        // Add all items to context menu
+        contextMenu.getItems().addAll(
+            commentLineMenuItem,
+            separator1,
+            cutMenuItem, copyMenuItem, pasteMenuItem,
+            separator2,
+            copyXPathMenuItem, goToDefinitionMenuItem,
+            separator3,
+            selectAllMenuItem, findReplaceMenuItem,
+            separator4,
+            formatXmlMenuItem, validateXmlMenuItem,
+            separator5,
+            expandAllMenuItem, collapseAllMenuItem
+        );
         
         codeArea.setContextMenu(contextMenu);
         
-        logger.debug("Context menu initialized with comment line functionality");
+        logger.debug("Context menu initialized with comprehensive XML editing functionality");
     }
 
     /**
@@ -1931,6 +2035,66 @@ public class XmlCodeEditor extends VBox {
      */
     private void toggleLineComment() {
         try {
+            // Check if text is selected
+            if (codeArea.getSelectedText().length() > 0) {
+                // Handle multiple lines selection
+                toggleMultiLineComment();
+            } else {
+                // Handle single line
+                toggleSingleLineComment();
+            }
+        } catch (Exception e) {
+            logger.error("Error toggling line comment: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Toggles comment for multiple selected lines using block comment style.
+     */
+    private void toggleMultiLineComment() {
+        try {
+            int startPosition = codeArea.getSelection().getStart();
+            int endPosition = codeArea.getSelection().getEnd();
+            String selectedText = codeArea.getSelectedText();
+            
+            logger.debug("Toggling block comment for selected text: start={}, end={}, length={}", 
+                startPosition, endPosition, selectedText.length());
+            
+            // Check if the selected text is already block commented
+            String trimmedSelection = selectedText.trim();
+            boolean isBlockCommented = trimmedSelection.startsWith("<!--") && trimmedSelection.endsWith("-->");
+            
+            String newText;
+            if (isBlockCommented) {
+                // Uncomment: Remove <!-- and --> from the block
+                newText = trimmedSelection.substring(4, trimmedSelection.length() - 3).trim();
+                logger.debug("Uncommenting block: removing comment markers");
+            } else {
+                // Comment: Add <!-- at the beginning and --> at the end
+                // Preserve the original formatting and indentation
+                newText = "<!-- " + selectedText + " -->";
+                logger.debug("Commenting block: adding comment markers");
+            }
+            
+            // Replace the selected text with the new content
+            codeArea.replaceSelection(newText);
+            
+            // Select the new content to maintain user context
+            codeArea.selectRange(startPosition, startPosition + newText.length());
+            
+            logger.debug("Block comment toggled: {} -> {}", 
+                isBlockCommented ? "uncommented" : "commented", newText.length());
+                
+        } catch (Exception e) {
+            logger.error("Error toggling multi-line block comment: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Toggles comment for a single line at cursor position.
+     */
+    private void toggleSingleLineComment() {
+        try {
             int caretPosition = codeArea.getCaretPosition();
             int currentLineIndex = codeArea.offsetToPosition(caretPosition, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor();
             
@@ -1941,22 +2105,7 @@ public class XmlCodeEditor extends VBox {
             String trimmedLine = currentLine.trim();
             boolean isCommented = trimmedLine.startsWith("<!--") && trimmedLine.endsWith("-->");
             
-            String newLine;
-            if (isCommented) {
-                // Uncomment: Remove <!-- and --> while preserving indentation
-                String leadingWhitespace = getLeadingWhitespace(currentLine);
-                String content = trimmedLine.substring(4, trimmedLine.length() - 3).trim();
-                newLine = leadingWhitespace + content;
-            } else {
-                // Comment: Add <!-- and --> while preserving indentation  
-                String leadingWhitespace = getLeadingWhitespace(currentLine);
-                String content = currentLine.trim();
-                if (content.isEmpty()) {
-                    // Don't comment empty lines
-                    return;
-                }
-                newLine = leadingWhitespace + "<!-- " + content + " -->";
-            }
+            String newLine = processLineComment(currentLine, !isCommented);
             
             // Replace the line content
             int lineStart = codeArea.getAbsolutePosition(currentLineIndex, 0);
@@ -1971,7 +2120,35 @@ public class XmlCodeEditor extends VBox {
             logger.debug("Toggled comment on line {}: {}", currentLineIndex + 1, isCommented ? "uncommented" : "commented");
             
         } catch (Exception e) {
-            logger.error("Error toggling line comment: {}", e.getMessage(), e);
+            logger.error("Error toggling single line comment: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Processes a single line for commenting or uncommenting.
+     * @param line The line to process
+     * @param shouldComment true to comment, false to uncomment
+     * @return The processed line
+     */
+    private String processLineComment(String line, boolean shouldComment) {
+        String trimmedLine = line.trim();
+        String leadingWhitespace = getLeadingWhitespace(line);
+        
+        if (shouldComment) {
+            // Comment: Add <!-- and --> while preserving indentation
+            if (trimmedLine.isEmpty()) {
+                // Don't comment empty lines
+                return line;
+            }
+            return leadingWhitespace + "<!-- " + trimmedLine + " -->";
+        } else {
+            // Uncomment: Remove <!-- and --> while preserving indentation
+            if (trimmedLine.startsWith("<!--") && trimmedLine.endsWith("-->")) {
+                String content = trimmedLine.substring(4, trimmedLine.length() - 3).trim();
+                return leadingWhitespace + content;
+            }
+            // Line is not commented, return as-is
+            return line;
         }
     }
 
@@ -1987,6 +2164,239 @@ public class XmlCodeEditor extends VBox {
             i++;
         }
         return line.substring(0, i);
+    }
+
+    /**
+     * Copies the XPath of the current cursor position to clipboard.
+     */
+    private void copyXPathToClipboard() {
+        try {
+            String currentXPath = null;
+            
+            // First try to get XPath from parent XmlEditor if available
+            if (parentXmlEditor != null) {
+                // Use the same approach as the sidebar: build XPath from current position
+                currentXPath = buildXPathForCurrentPositionViaEditor();
+            }
+            
+            // Fallback to text-based approach if parent editor not available
+            if (currentXPath == null || currentXPath.trim().isEmpty() || currentXPath.equals("/")) {
+                currentXPath = buildXPathForCurrentPosition(codeArea.getText(), codeArea.getCaretPosition());
+            }
+            
+            if (currentXPath != null && !currentXPath.trim().isEmpty() && !currentXPath.equals("/")) {
+                javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+                javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+                content.putString(currentXPath);
+                clipboard.setContent(content);
+                logger.debug("Copied XPath to clipboard: {}", currentXPath);
+            } else {
+                logger.warn("Could not generate XPath for current position");
+            }
+        } catch (Exception e) {
+            logger.error("Error copying XPath to clipboard", e);
+        }
+    }
+    
+    /**
+     * Builds XPath for current cursor position using the parent XmlEditor (same as sidebar).
+     */
+    private String buildXPathForCurrentPositionViaEditor() {
+        try {
+            if (parentXmlEditor == null) {
+                return null;
+            }
+            
+            // Build XPath using text-based approach first to get context
+            String textBasedXPath = buildXPathForCurrentPosition(codeArea.getText(), codeArea.getCaretPosition());
+            if (textBasedXPath == null || textBasedXPath.trim().isEmpty() || textBasedXPath.equals("/")) {
+                return null;
+            }
+            
+            // Try to find the corresponding DOM node using the parent XmlEditor
+            org.w3c.dom.Node node = parentXmlEditor.findNodeByXPath(textBasedXPath);
+            if (node != null) {
+                // Use the same XPath building method as the sidebar
+                return parentXmlEditor.buildXPathForNode(node);
+            }
+            
+            // If we can't find the exact node, try to find the closest parent
+            String[] pathParts = textBasedXPath.split("/");
+            for (int i = pathParts.length - 1; i >= 0; i--) {
+                StringBuilder parentPath = new StringBuilder();
+                for (int j = 1; j <= i; j++) { // Start from 1 to skip empty first element
+                    if (j < pathParts.length) {
+                        parentPath.append("/").append(pathParts[j]);
+                    }
+                }
+                String parentXPath = parentPath.toString();
+                if (!parentXPath.isEmpty()) {
+                    node = parentXmlEditor.findNodeByXPath(parentXPath);
+                    if (node != null) {
+                        return parentXmlEditor.buildXPathForNode(node);
+                    }
+                }
+            }
+            
+            return textBasedXPath; // Fallback to text-based result
+        } catch (Exception e) {
+            logger.error("Error building XPath via parent editor: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Formats the current XML content with proper indentation.
+     */
+    private void formatXmlContent() {
+        try {
+            String content = codeArea.getText();
+            if (content == null || content.trim().isEmpty()) {
+                return;
+            }
+
+            // Use DOM to parse and format
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            
+            // Parse the XML
+            Document document = builder.parse(new java.io.ByteArrayInputStream(content.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            
+            // Format with transformer
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(document), new StreamResult(writer));
+            
+            String formattedXml = writer.toString();
+            codeArea.replaceText(formattedXml);
+            logger.debug("XML content formatted successfully");
+            
+        } catch (Exception e) {
+            logger.error("Error formatting XML content", e);
+        }
+    }
+
+    /**
+     * Validates the current XML content.
+     */
+    private void validateXmlContent() {
+        try {
+            String content = codeArea.getText();
+            if (content == null || content.trim().isEmpty()) {
+                return;
+            }
+
+            // Basic XML well-formedness check
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            builder.parse(new java.io.ByteArrayInputStream(content.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            
+            logger.info("XML validation successful - document is well-formed");
+            // Could show success message to user here
+            
+        } catch (Exception e) {
+            logger.error("XML validation failed: {}", e.getMessage());
+            // Could show validation error to user here
+        }
+    }
+
+    /**
+     * Cuts the selected text to clipboard.
+     */
+    private void cutToClipboard() {
+        String selectedText = codeArea.getSelectedText();
+        if (selectedText != null && !selectedText.isEmpty()) {
+            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(selectedText);
+            clipboard.setContent(content);
+            codeArea.replaceSelection("");
+            logger.debug("Cut text to clipboard: {} characters", selectedText.length());
+        }
+    }
+
+    /**
+     * Copies the selected text to clipboard.
+     */
+    private void copyToClipboard() {
+        String selectedText = codeArea.getSelectedText();
+        if (selectedText != null && !selectedText.isEmpty()) {
+            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(selectedText);
+            clipboard.setContent(content);
+            logger.debug("Copied text to clipboard: {} characters", selectedText.length());
+        }
+    }
+
+    /**
+     * Pastes text from clipboard at cursor position.
+     */
+    private void pasteFromClipboard() {
+        javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+        if (clipboard.hasString()) {
+            String clipboardText = clipboard.getString();
+            codeArea.replaceSelection(clipboardText);
+            logger.debug("Pasted text from clipboard: {} characters", clipboardText.length());
+        }
+    }
+
+    /**
+     * Selects all text in the editor.
+     */
+    private void selectAllText() {
+        codeArea.selectAll();
+        logger.debug("Selected all text in editor");
+    }
+
+    /**
+     * Expands all folded regions (placeholder for future folding implementation).
+     */
+    private void expandAllFolds() {
+        // TODO: Implement code folding expansion
+        logger.debug("Expand all folds - not yet implemented");
+    }
+
+    /**
+     * Collapses all expanded regions (placeholder for future folding implementation).
+     */
+    private void collapseAllFolds() {
+        // TODO: Implement code folding collapse
+        logger.debug("Collapse all folds - not yet implemented");
+    }
+
+    /**
+     * Opens find and replace functionality.
+     */
+    private void openFindReplace() {
+        // TODO: Could trigger existing search functionality or open dialog
+        logger.debug("Open find/replace - integration with existing search needed");
+    }
+    
+    /**
+     * Creates a FontIcon safely with fallback handling for context menu items.
+     */
+    private FontIcon createSafeIcon(String iconLiteral, String color) {
+        try {
+            FontIcon icon = new FontIcon(iconLiteral);
+            icon.setIconColor(javafx.scene.paint.Color.web(color));
+            icon.setIconSize(12); // Appropriate size for menu items
+            return icon;
+        } catch (Exception e) {
+            logger.warn("Failed to create icon '{}', using fallback", iconLiteral, e);
+            // Fallback to a simple circle
+            FontIcon fallbackIcon = new FontIcon("bi-circle");
+            fallbackIcon.setIconColor(javafx.scene.paint.Color.web(color));
+            fallbackIcon.setIconSize(12);
+            return fallbackIcon;
+        }
     }
 
 
