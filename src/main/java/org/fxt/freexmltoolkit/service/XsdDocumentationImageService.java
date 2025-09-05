@@ -334,9 +334,9 @@ public class XsdDocumentationImageService {
         // Calculate documentation height before positioning
         double docHeightTotal = calculateDocumentationHeight(rootElement.getDocumentations(), rootElementWidth);
 
-        // Center the root element vertically in the middle of child elements
+        // Center the root element vertically in the middle of child elements, but ensure it's not positioned above the top margin
         int rootStartX = margin * 2;
-        int rootStartY = (int) ((totalChildElementsHeight / 2) - ((boxPadding * 2 + rootElementHeight) / 2));
+        int rootStartY = Math.max(margin, (int) ((totalChildElementsHeight / 2) - ((boxPadding * 2 + rootElementHeight) / 2)));
 
         // Draw the root element with modern design
         Element leftRootLink = document.createElementNS(svgNS, "a");
@@ -637,8 +637,9 @@ public class XsdDocumentationImageService {
         double rootElementTotalHeight = rootStartY + (boxPadding * 2 + rootElementHeight) + docHeightTotal;
 
         // Finalize SVG size with symmetric layout - considers both root and child elements
-        var imageHeight = Math.max(rootElementTotalHeight, actualHeight);
-        svgRoot.setAttribute("height", String.valueOf(imageHeight + margin * 2));
+        // Ensure minimum height to accommodate all content with proper margins
+        var imageHeight = Math.max(rootElementTotalHeight + margin, actualHeight);
+        svgRoot.setAttribute("height", String.valueOf(imageHeight + margin));
         svgRoot.setAttribute("width", String.valueOf(finalRightStartX + boxPadding * 2 + maxChildWidth + margin * 3));
         svgRoot.setAttribute("style", "background-color: " + COLOR_BG);
 
