@@ -421,11 +421,11 @@ public class XsdDocumentationImageService {
             double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
             double totalContentHeight = nameHeight + typeHeight;
 
-            // Center the element vertically if it's the only one
+            // Center the element vertically if it's the only one, but ensure it's not positioned above the top margin
             double elementY = actualHeight;
             if (childElements.size() == 1) {
                 double maxChildHeight = calculateMaxChildHeight(childElements);
-                elementY = (maxChildHeight / 2) - ((boxPadding * 2 + totalContentHeight) / 2);
+                elementY = Math.max(margin, (maxChildHeight / 2) - ((boxPadding * 2 + totalContentHeight) / 2));
             }
 
             // Modern box for child element
@@ -556,16 +556,26 @@ public class XsdDocumentationImageService {
                 lineStartY = rootPathCenterY;
             }
 
-            // Create L-shaped path: horizontal -> vertical -> horizontal
-            double horizontalSegmentLength = 30; // Distance to go right before turning
-            double turnX = lineStartX + horizontalSegmentLength;
-            
             Element path = document.createElementNS(svgNS, "path");
-            String pathData = String.format(Locale.ROOT, "M %.1f %.1f H %.1f V %.1f H %.1f",
-                    lineStartX, lineStartY,              // Start at symbol right edge
-                    turnX,                               // Go right 30px
-                    childElementCenterY,                 // Go up/down to child center
-                    finalRightStartX);                   // Go right to child left edge
+            String pathData;
+
+            // For single child elements, use straight line; for multiple, use L-shaped path
+            if (childElements.size() == 1 && hasSequenceOrChoice) {
+                // Straight horizontal line from sequence/choice symbol to child element
+                pathData = String.format(Locale.ROOT, "M %.1f %.1f H %.1f",
+                        lineStartX, lineStartY,          // Start at symbol right edge
+                        finalRightStartX);               // Go directly to child left edge
+            } else {
+                // Create L-shaped path: horizontal -> vertical -> horizontal
+                double horizontalSegmentLength = 30; // Distance to go right before turning
+                double turnX = lineStartX + horizontalSegmentLength;
+
+                pathData = String.format(Locale.ROOT, "M %.1f %.1f H %.1f V %.1f H %.1f",
+                        lineStartX, lineStartY,          // Start at symbol right edge
+                        turnX,                           // Go right 30px
+                        childElementCenterY,             // Go up/down to child center
+                        finalRightStartX);               // Go right to child left edge
+            }
 
             path.setAttribute("d", pathData);
             path.setAttribute("class", "connection-line");
@@ -600,15 +610,26 @@ public class XsdDocumentationImageService {
                 int cardinalityFontSize = font.getSize() - 4;
                 var cardinalityBounds = font.getStringBounds(cardinality, frc);
 
-                // Position cardinality closer to the child element without overlapping its border
+                // Position cardinality based on connection type
                 double textWidth = cardinalityBounds.getWidth();
                 double halfWidth = textWidth / 2.0;
-                double desiredCenterX = turnX + (finalRightStartX - turnX) * 0.65; // slightly more to the left than before
-                double maxCenterX = finalRightStartX - 10 - halfWidth; // keep at least 10px from child border
-                double minCenterX = turnX + 10 + halfWidth;            // keep at least 10px from turn point
-                double centerX = Math.max(minCenterX, Math.min(desiredCenterX, maxCenterX));
-                double cardinalityX = centerX - halfWidth;
-                double cardinalityY = childElementCenterY - 15; // Above the horizontal line to child
+                double cardinalityX, cardinalityY;
+
+                if (childElements.size() == 1 && hasSequenceOrChoice) {
+                    // For straight line: position in the middle of the horizontal connection
+                    double centerX = lineStartX + (finalRightStartX - lineStartX) / 2;
+                    cardinalityX = centerX - halfWidth;
+                    cardinalityY = lineStartY - 15; // Above the horizontal line
+                } else {
+                    // For L-shaped path: position closer to the child element without overlapping its border
+                    double turnX = lineStartX + 30; // Same as horizontalSegmentLength above
+                    double desiredCenterX = turnX + (finalRightStartX - turnX) * 0.65;
+                    double maxCenterX = finalRightStartX - 10 - halfWidth; // keep at least 10px from child border
+                    double minCenterX = turnX + 10 + halfWidth;            // keep at least 10px from turn point
+                    double centerX = Math.max(minCenterX, Math.min(desiredCenterX, maxCenterX));
+                    cardinalityX = centerX - halfWidth;
+                    cardinalityY = childElementCenterY - 15; // Above the horizontal line to child
+                }
 
                 // Background rect for cardinality
                 Element cardinalityBg = document.createElementNS(svgNS, "rect");
