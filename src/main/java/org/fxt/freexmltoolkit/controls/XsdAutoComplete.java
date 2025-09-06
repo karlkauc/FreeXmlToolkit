@@ -54,6 +54,7 @@ public class XsdAutoComplete {
 
     // State management
     private boolean isActive = false;
+    private boolean isEnabled = false;
     private String currentPrefix = "";
     private int completionStart = -1;
 
@@ -87,6 +88,9 @@ public class XsdAutoComplete {
     private void setupEventHandlers() {
         // Handle key presses in code area
         codeArea.setOnKeyPressed(event -> {
+            if (!isEnabled) {
+                return;
+            }
             if (isActive && autoCompletePopup.isShowing()) {
                 switch (event.getCode()) {
                     case ESCAPE -> hideAutoComplete();
@@ -108,6 +112,9 @@ public class XsdAutoComplete {
 
         // Handle text changes for triggering auto-completion
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            if (!isEnabled) {
+                return;
+            }
             if (newText.length() > oldText.length()) {
                 // Text was added
                 char lastChar = newText.charAt(newText.length() - 1);
@@ -120,6 +127,9 @@ public class XsdAutoComplete {
 
         // Handle caret position changes
         codeArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
+            if (!isEnabled) {
+                return;
+            }
             if (isActive && !isCaretInCompletionRange()) {
                 hideAutoComplete();
             }
@@ -134,6 +144,9 @@ public class XsdAutoComplete {
 
         // Handle focus loss
         codeArea.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isEnabled) {
+                return;
+            }
             if (!isFocused && isActive) {
                 hideAutoComplete();
             }
@@ -144,6 +157,9 @@ public class XsdAutoComplete {
      * Handle text input and determine if auto-completion should be triggered
      */
     private void handleTextInput(char inputChar) {
+        if (!isEnabled) {
+            return;
+        }
         int caretPos = codeArea.getCaretPosition();
 
         // Trigger auto-completion on specific characters
@@ -236,7 +252,7 @@ public class XsdAutoComplete {
      * Update suggestions based on current prefix
      */
     private void updateSuggestions() {
-        if (!isActive) return;
+        if (!isEnabled || !isActive) return;
 
         int caretPos = codeArea.getCaretPosition();
         String newPrefix = getCurrentPrefix(caretPos);
@@ -507,6 +523,7 @@ public class XsdAutoComplete {
      * Enable or disable auto-completion
      */
     public void setEnabled(boolean enabled) {
+        this.isEnabled = enabled;
         if (!enabled && isActive) {
             hideAutoComplete();
         }
@@ -517,6 +534,9 @@ public class XsdAutoComplete {
      * Manually trigger auto-completion
      */
     public void triggerAutoComplete() {
+        if (!isEnabled) {
+            return;
+        }
         int caretPos = codeArea.getCaretPosition();
         handleTextInput('\0'); // Trigger with null character
     }

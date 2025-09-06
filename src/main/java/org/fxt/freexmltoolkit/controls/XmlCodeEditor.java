@@ -26,14 +26,8 @@ import org.fxt.freexmltoolkit.controls.intellisense.*;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.w3c.dom.Document;
 
-import java.io.File;
-import java.io.StringWriter;
-import java.util.*;
-import java.util.function.IntFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -41,7 +35,13 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Document;
+import java.io.File;
+import java.io.StringWriter;
+import java.util.*;
+import java.util.function.IntFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
@@ -1144,6 +1144,20 @@ public class XmlCodeEditor extends VBox {
                     // Don't call handleIntelliSenseTrigger - let only the specialized auto-completion handle it
                     return;
                 }
+
+                // Auto-show enumeration popup when inside element text with XSD enumeration
+                try {
+                    ElementTextInfo enumContext = getElementTextAtCursor(codeArea.getCaretPosition(), codeArea.getText());
+                    if (enumContext != null) {
+                        List<String> enumValues = getEnumerationValues(enumContext.elementName);
+                        if (enumValues != null && !enumValues.isEmpty()) {
+                            showEnumerationCompletion(enumValues, enumContext);
+                            return;
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.debug("Enumeration detection failed: {}", e.getMessage());
+                }
                 
                 if (handleIntelliSenseTrigger(event)) {
                     logger.debug("IntelliSense trigger handled for: {}", character);
@@ -1280,6 +1294,18 @@ public class XmlCodeEditor extends VBox {
         intelliSensePopup = new Stage(StageStyle.UTILITY);
         intelliSensePopup.setAlwaysOnTop(true);
         intelliSensePopup.setResizable(false);
+
+        // Ensure popup has a proper owner once the CodeArea is attached to a scene
+        codeArea.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            try {
+                if (newScene != null && newScene.getWindow() != null && intelliSensePopup.getOwner() == null) {
+                    intelliSensePopup.initOwner(newScene.getWindow());
+                    logger.debug("Initialized owner for IntelliSense popup");
+                }
+            } catch (Exception e) {
+                logger.debug("Could not initialize owner for IntelliSense popup: {}", e.getMessage());
+            }
+        });
 
         // Add list view to popup
         VBox popupContent = new VBox();
@@ -2543,16 +2569,9 @@ public class XmlCodeEditor extends VBox {
             return;
         }
 
-        // Check for XSD namespace and elements
-        if (lowerContent.contains("http://www.w3.org/2001/xmlschema") ||
-                lowerContent.contains("xs:schema") ||
-                lowerContent.contains("xsd:schema") ||
-                (lowerContent.contains("<schema") && lowerContent.contains("xmlns"))) {
-
-            logger.debug("Auto-detected XSD content - switching to XSD mode");
-            setEditorMode(EditorMode.XSD);
-            return;
-        }
+        // Do NOT auto-switch to XSD mode for normal XML documents that reference a schema.
+        // XSD mode is reserved for editing .xsd files (set via setDocumentFilePath) or explicit calls.
+        // Keeping XML mode here ensures XML IntelliSense stays active even with a linked XSD.
 
         // Default to XML mode
         if (currentMode != EditorMode.XML) {
@@ -3013,6 +3032,22 @@ public class XmlCodeEditor extends VBox {
                         "Valid Elements" + (currentXPath != null ? " for " + currentXPath : ""), "📝");
                 return;
             }
+
+            // Fallback even when schema is available but no children found for context
+            logger.debug("Schema available but no suggestions for context '{}'. Falling back to context/available elements.", currentXPath);
+            String currentContext = getCurrentElementContext();
+            if (currentContext != null && contextElementNames.containsKey(currentContext)) {
+                suggestions.addAll(contextElementNames.get(currentContext));
+                logger.debug("Fallback added {} context-specific elements", suggestions.size());
+            }
+            if (suggestions.isEmpty() && !availableElementNames.isEmpty()) {
+                suggestions.addAll(availableElementNames);
+                logger.debug("Fallback added {} available elements", availableElementNames.size());
+            }
+            if (!suggestions.isEmpty()) {
+                showEnhancedCompletionPopup(suggestions, "Elements", "📝");
+                return;
+            }
         }
 
         // Fallback: Get current element context for backwards compatibility
@@ -3039,8 +3074,8 @@ public class XmlCodeEditor extends VBox {
                 showEnhancedCompletionPopup(suggestions, "Elements", "📝");
             }
         } else {
-            // Schema is available but no valid elements found for this context
-            logger.debug("No valid child elements found for XPath '{}' according to XSD schema", currentXPath);
+            // Schema not available
+            logger.debug("No schema available - using fallback suggestions");
         }
     }
 
@@ -3467,16 +3502,33 @@ public class XmlCodeEditor extends VBox {
      * Shows the IntelliSense popup at the current cursor position.
      */
     private void showIntelliSensePopupAtCursor() {
-        if (codeArea.getScene() != null && codeArea.getScene().getWindow() != null) {
-            var caretBounds = codeArea.getCaretBounds().orElse(null);
-            if (caretBounds != null) {
-                var screenPos = codeArea.localToScreen(caretBounds.getMinX(), caretBounds.getMaxY());
+        if (codeArea.getScene() == null || codeArea.getScene().getWindow() == null) {
+            return;
+        }
+
+        // Try to get precise caret bounds; fall back to a sensible position if unavailable
+        var caretBounds = codeArea.getCaretBounds().orElse(null);
+        if (caretBounds != null) {
+            var screenPos = codeArea.localToScreen(caretBounds.getMinX(), caretBounds.getMaxY());
+            if (screenPos != null) {
                 intelliSensePopup.setX(screenPos.getX());
                 intelliSensePopup.setY(screenPos.getY());
-                intelliSensePopup.show();
-                logger.debug("IntelliSense popup shown at cursor position");
+            }
+        } else {
+            // Fallback: position near the CodeArea's top-left or caret paragraph area
+            var fallback = codeArea.localToScreen(20, 40);
+            if (fallback != null) {
+                intelliSensePopup.setX(fallback.getX());
+                intelliSensePopup.setY(fallback.getY());
             }
         }
+
+        intelliSensePopup.show();
+        // Focus list so ENTER works immediately
+        if (completionListView != null) {
+            completionListView.requestFocus();
+        }
+        logger.debug("IntelliSense popup shown (with fallback if needed)");
     }
 
     /**
@@ -3943,6 +3995,12 @@ public class XmlCodeEditor extends VBox {
             } else {
                 logger.debug("Cursor is not on element text content");
             }
+
+            // If we reach here in XML mode, show schema-based IntelliSense popup for current context
+            // so the user always gets possible elements/attributes with Ctrl+Space
+            logger.debug("Showing enhanced IntelliSense popup for current context (manual trigger)");
+            showEnhancedIntelliSenseCompletions();
+            return true;
 
         } catch (Exception e) {
             logger.error("Error during manual completion: {}", e.getMessage(), e);

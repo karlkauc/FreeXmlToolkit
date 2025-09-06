@@ -137,6 +137,22 @@ public class SchematronAutoComplete {
             }
         });
 
+        // Handle keyboard on the suggestions list (Enter/Tab accept, Esc closes)
+        suggestionsList.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            switch (event.getCode()) {
+                case ENTER, TAB -> {
+                    selectCurrentSuggestion();
+                    event.consume();
+                }
+                case ESCAPE -> {
+                    hideAutoComplete();
+                    event.consume();
+                }
+                default -> {
+                }
+            }
+        });
+
         // Handle focus loss
         codeArea.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (!isFocused && isActive) {
@@ -339,6 +355,9 @@ public class SchematronAutoComplete {
 
             isActive = true;
             logger.debug("Auto-completion popup shown with {} suggestions", suggestions.size());
+
+            // Focus the list so Enter works immediately
+            suggestionsList.requestFocus();
         }
     }
 
@@ -386,18 +405,39 @@ public class SchematronAutoComplete {
         if (completionStart >= 0) {
             int caretPos = codeArea.getCaretPosition();
 
-            // Replace current prefix with completion
-            codeArea.replaceText(completionStart, caretPos, item.text());
+            // For element completions, insert full tag with closing pair and place caret between ><
+            if (item.type() == CompletionType.SCHEMATRON_ELEMENT || item.type() == CompletionType.XML_ELEMENT) {
+                String elementName = item.text();
+                // Detect if the user already typed '<' (common when triggering by typing '<')
+                boolean hasOpeningBracket = completionStart > 0 &&
+                        codeArea.getText().charAt(completionStart - 1) == '<';
 
-            // Position cursor appropriately
-            int newCaretPos = completionStart + item.text().length();
+                String insertion = hasOpeningBracket
+                        ? elementName + "></" + elementName + ">"
+                        : "<" + elementName + "></" + elementName + ">";
 
-            // For attributes with quotes, position cursor between quotes
-            if (item.type() == CompletionType.SCHEMATRON_ATTRIBUTE && item.text().contains("=\"\"")) {
-                newCaretPos -= 1; // Position before closing quote
+                // Replace current prefix range with our constructed insertion
+                codeArea.replaceText(completionStart, caretPos, insertion);
+
+                // Caret between >< of opening/closing tag
+                int caretOffsetWithinInsertion = (hasOpeningBracket ? elementName.length() + 1 : elementName.length() + 2);
+                codeArea.moveTo(completionStart + caretOffsetWithinInsertion);
+
+                logger.debug("Inserted schematron element snippet: {}", insertion);
+            } else {
+                // Replace current prefix with completion text
+                codeArea.replaceText(completionStart, caretPos, item.text());
+
+                // Position cursor appropriately
+                int newCaretPos = completionStart + item.text().length();
+
+                // For attributes with quotes, position cursor between quotes
+                if (item.type() == CompletionType.SCHEMATRON_ATTRIBUTE && item.text().contains("=\"\"")) {
+                    newCaretPos -= 1; // Position before closing quote
+                }
+
+                codeArea.moveTo(newCaretPos);
             }
-
-            codeArea.moveTo(newCaretPos);
 
             logger.debug("Inserted completion: {}", item.text());
         }
