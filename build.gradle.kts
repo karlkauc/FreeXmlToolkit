@@ -56,15 +56,21 @@ dependencies {
     implementation("org.kordamp.ikonli:ikonli-coreui-pack:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-fontawesome-pack:12.4.0")
     implementation("io.github.mkpaz:atlantafx-base:2.1.0")
-    implementation("org.fxmisc.richtext:richtextfx:0.11.5")
+
+    implementation("org.fxmisc.richtext:richtextfx:0.11.6")
+
     implementation("org.apache.logging.log4j:log4j-api:2.24.1")
     implementation("org.apache.logging.log4j:log4j-core:2.24.1")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.24.1")
+
     implementation("org.apache.santuario:xmlsec:4.0.4")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.81")
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
-    implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.31.0")
-    implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.40.0.M2")
+
+    // implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
+    // implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.31.0")
+    // implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.40.0.M2")
+
+
     implementation("org.controlsfx:controlsfx:11.2.2")
     implementation("org.apache.xmlgraphics:fop:2.11")
     implementation("org.apache.pdfbox:pdfbox:3.0.5")
@@ -81,26 +87,29 @@ dependencies {
     implementation("org.thymeleaf:thymeleaf:3.1.3.RELEASE")
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
     implementation("jakarta.activation:jakarta.activation-api:2.1.3")
-    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.4")
+
+    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.5")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.5")
+
     implementation("com.github.mifmif:generex:1.0.2")
-    implementation("com.github.curious-odd-man:rgxgen:3.0")
+    implementation("com.github.curious-odd-man:rgxgen:3.1")
+
     testImplementation(platform("org.junit:junit-bom:5.13.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.mockito:mockito-core:5.18.0")
-    testImplementation("org.testfx:testfx-core:4.0.17")
-    testImplementation("org.testfx:testfx-junit5:4.0.17")
-    testImplementation("org.testfx:openjfx-monocle:jdk-12.0.1+2")
+    testImplementation("org.mockito:mockito-core:5.19.0")
+    testImplementation("org.testfx:testfx-core:4.0.18")
+    testImplementation("org.testfx:testfx-junit5:4.0.18")
+    testImplementation("org.testfx:openjfx-monocle:21.0.2")
 
-    implementation("com.helger.schematron:ph-schematron-parent-pom:9.0.0")
+    implementation("com.helger.schematron:ph-schematron-parent-pom:9.0.1")
     implementation("com.helger.commons:ph-io:12.0.0")
     // implementation("com.helger.commons:ph-commons:12.0.0")
     // implementation("com.helger.commons:ph-xml:12.0.0")
-    implementation("com.helger.schematron:ph-schematron-api:9.0.0")
-    implementation("com.helger.schematron:ph-schematron-xslt:9.0.0")
-    implementation("com.helger.schematron:ph-schematron-pure:9.0.0")
-    implementation("com.helger.schematron:ph-schematron-schxslt:9.0.0")
+    implementation("com.helger.schematron:ph-schematron-api:9.0.1")
+    implementation("com.helger.schematron:ph-schematron-xslt:9.0.1")
+    implementation("com.helger.schematron:ph-schematron-pure:9.0.1")
+    implementation("com.helger.schematron:ph-schematron-schxslt:9.0.1")
 }
 
 tasks {

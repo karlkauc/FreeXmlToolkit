@@ -92,7 +92,6 @@ org.fxt.freexmltoolkit/
 
 - **Java Toolchain**: Configured for Java 24
 - **Native Packaging**: Complex jpackage setup for Windows/macOS/Linux distribution
-- **JavaFX Modules**: Separate JMOD files for cross-platform native packaging
 - **Runtime Images**: Custom JLink runtime images for each platform
 - **Dependency Exclusions**: Security-related files (*.RSA, *.DSA, *.SF) excluded from JAR
 
