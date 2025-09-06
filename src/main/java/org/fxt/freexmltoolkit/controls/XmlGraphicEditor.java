@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls;
 
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Parent;
@@ -30,6 +31,24 @@ import java.util.stream.IntStream;
  * A custom VBox implementation for displaying XML nodes in a tree structure.
  * Styles are managed via an external CSS file.
  * This version is refactored for a more modern look and better performance.
+ *
+ * SEARCH FUNCTIONALITY:
+ * - Comprehensive search through all XML content: node names, attributes, text content, and comments
+ * - Automatic expansion of collapsed nodes to reveal search results
+ * - Visual highlighting of found elements with navigation between results
+ * - Keyboard shortcuts: Ctrl+F (open search), Enter/Shift+Enter (navigate), Escape (close)
+ *
+ * Usage:
+ * 1. Call integrateSearchWithContainer(parentContainer) to add search bar to UI
+ * 2. Users can press Ctrl+F to open search and type their search terms
+ * 3. Navigation through results with Enter (next) and Shift+Enter (previous)
+ * 4. Found nodes are automatically expanded and visually highlighted
+ *
+ * Search covers:
+ * - Element names (e.g., searching "Asset" finds all <Asset> elements)
+ * - Attribute names and values (e.g., searching "type" finds type="..." attributes)
+ * - Text content within elements (e.g., searching "John" finds <name>John</name>)
+ * - XML comments (e.g., searching "TODO" finds <!-- TODO: ... --> comments)
  */
 public class XmlGraphicEditor extends VBox {
 
@@ -53,6 +72,14 @@ public class XmlGraphicEditor extends VBox {
     // Drop position indicator
     private javafx.scene.Node dropPositionIndicator;
 
+    // Search functionality state tracking
+    private String currentSearchTerm = "";
+    private List<SearchResult> searchResults = new ArrayList<>();
+    private int currentSearchIndex = -1;
+    private final Set<javafx.scene.Node> highlightedNodes = new HashSet<>();
+    private final Map<Node, Button> nodeToggleButtonMap = new LinkedHashMap<>();
+    private HBox searchBar;
+
     /**
      * Enum for drop position relative to target element
      */
@@ -60,6 +87,86 @@ public class XmlGraphicEditor extends VBox {
         BEFORE,     // Insert before the target element (same parent)
         AFTER,      // Insert after the target element (same parent)  
         INSIDE      // Insert as child of target element
+    }
+
+    /**
+         * Represents a search result with all necessary information for highlighting and navigation
+         */
+        private record SearchResult(Node domNode, javafx.scene.Node uiNode, SearchType type, String matchedText,
+                                    List<Node> pathToRoot, String fullText) {
+            private SearchResult(Node domNode, javafx.scene.Node uiNode, SearchType type, String matchedText, List<Node> pathToRoot, String fullText) {
+                this.domNode = domNode;
+                this.uiNode = uiNode;
+                this.type = type;
+                this.matchedText = matchedText;
+                this.pathToRoot = pathToRoot != null ? new ArrayList<>(pathToRoot) : new ArrayList<>();
+                this.fullText = fullText;
+            }
+
+            @Override
+            public String toString() {
+                return String.format("%s: %s (in %s)", type.getDisplayName(), matchedText,
+                        domNode != null ? domNode.getNodeName() : "unknown");
+            }
+        }
+
+    /**
+     * Types of search matches
+     */
+    public enum SearchType {
+        NODE_NAME("Element Name"),
+        ATTRIBUTE_NAME("Attribute Name"),
+        ATTRIBUTE_VALUE("Attribute Value"),
+        TEXT_CONTENT("Text Content"),
+        COMMENT("Comment");
+
+        private final String displayName;
+
+        SearchType(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    /**
+     * Information about search results
+     */
+    public static class SearchResultInfo {
+        private final int totalResults;
+        private final int currentIndex;
+        private final String searchTerm;
+        private final boolean hasResults;
+
+        public SearchResultInfo(int totalResults, int currentIndex, String searchTerm) {
+            this.totalResults = totalResults;
+            this.currentIndex = currentIndex;
+            this.searchTerm = searchTerm;
+            this.hasResults = totalResults > 0;
+        }
+
+        public int getTotalResults() {
+            return totalResults;
+        }
+
+        public int getCurrentIndex() {
+            return currentIndex;
+        }
+
+        public String getSearchTerm() {
+            return searchTerm;
+        }
+
+        public boolean hasResults() {
+            return hasResults;
+        }
+
+        @Override
+        public String toString() {
+            return hasResults ? String.format("%d of %d", currentIndex + 1, totalResults) : "No results";
+        }
     }
 
     public XmlGraphicEditor(Node node, XmlEditor caller) {
@@ -71,6 +178,12 @@ public class XmlGraphicEditor extends VBox {
         if (node.hasChildNodes()) {
             addChildNodes(node);
         }
+
+        // Set up keyboard shortcuts for search functionality
+        setupSearchKeyboardShortcuts();
+
+        // Make this node focusable so it can receive key events
+        this.setFocusTraversable(true);
 
         // NO context menu for the main VBox to avoid duplicate menus
         // Context menus are only created for individual child elements
@@ -534,6 +647,10 @@ public class XmlGraphicEditor extends VBox {
         // Store the mapping between UI element and DOM node
         uiNodeToDomNodeMap.put(elementContainer, subNode);
         logger.debug("🗂️ Mapped VBox -> DOM node: {}", subNode.getNodeName());
+
+        // Store toggle button reference for search functionality
+        nodeToggleButtonMap.put(subNode, toggleButton);
+        logger.debug("🔘 Stored toggle button reference for node: {}", subNode.getNodeName());
 
         // Set up node selection immediately if sidebar controller is available
         if (sidebarController != null) {
@@ -2542,8 +2659,14 @@ public class XmlGraphicEditor extends VBox {
      * Finds a UI node that corresponds to a DOM node
      */
     private javafx.scene.Node findUINodeForDomNode(Node targetDomNode) {
-        // This is a simplified implementation
-        // In a complete solution, you would maintain a mapping between DOM and UI nodes
+        // First try to find in our direct mapping
+        for (Map.Entry<javafx.scene.Node, Node> entry : uiNodeToDomNodeMap.entrySet()) {
+            if (entry.getValue() == targetDomNode) {
+                return entry.getKey();
+            }
+        }
+
+        // Fallback to recursive search
         return findUINodeRecursively(this, targetDomNode);
     }
 
@@ -2819,5 +2942,638 @@ public class XmlGraphicEditor extends VBox {
             alert.setContentText("Definition for element '" + elementName + "' was not found in the associated XSD schema.");
             alert.showAndWait();
         });
+    }
+
+    // ========== SEARCH FUNCTIONALITY ==========
+
+    /**
+     * Performs a comprehensive search through the XML document
+     *
+     * @param searchTerm    the term to search for
+     * @param caseSensitive whether the search should be case sensitive
+     * @return information about the search results
+     */
+    public SearchResultInfo performSearch(String searchTerm, boolean caseSensitive) {
+        logger.info("🔍 Starting search for term: '{}' (case sensitive: {})", searchTerm, caseSensitive);
+
+        // Clear previous search results
+        clearSearch();
+
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            logger.debug("Empty search term, returning no results");
+            return new SearchResultInfo(0, -1, "");
+        }
+
+        currentSearchTerm = caseSensitive ? searchTerm.trim() : searchTerm.trim().toLowerCase();
+        searchResults = new ArrayList<>();
+
+        // Start recursive search from the current DOM node
+        List<Node> pathToRoot = new ArrayList<>();
+        searchInNode(currentDomNode, pathToRoot, caseSensitive);
+
+        logger.info("🎯 Search completed. Found {} results for term: '{}'", searchResults.size(), searchTerm);
+
+        if (!searchResults.isEmpty()) {
+            currentSearchIndex = 0;
+            navigateToSearchResult(0);
+            return new SearchResultInfo(searchResults.size(), 0, searchTerm);
+        } else {
+            return new SearchResultInfo(0, -1, searchTerm);
+        }
+    }
+
+    /**
+     * Recursively searches within a DOM node and its children
+     */
+    private void searchInNode(Node node, List<Node> pathToRoot, boolean caseSensitive) {
+        if (node == null) return;
+
+        // Add current node to path
+        pathToRoot.add(node);
+
+        try {
+            switch (node.getNodeType()) {
+                case Node.ELEMENT_NODE:
+                    searchElementNode(node, pathToRoot, caseSensitive);
+                    break;
+                case Node.TEXT_NODE:
+                    searchTextNode(node, pathToRoot, caseSensitive);
+                    break;
+                case Node.COMMENT_NODE:
+                    searchCommentNode(node, pathToRoot, caseSensitive);
+                    break;
+            }
+
+            // Recursively search children
+            NodeList children = node.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                searchInNode(children.item(i), new ArrayList<>(pathToRoot), caseSensitive);
+            }
+
+        } finally {
+            // Remove current node from path when backtracking
+            if (!pathToRoot.isEmpty()) {
+                pathToRoot.remove(pathToRoot.size() - 1);
+            }
+        }
+    }
+
+    /**
+     * Searches within an element node (name and attributes)
+     */
+    private void searchElementNode(Node node, List<Node> pathToRoot, boolean caseSensitive) {
+        String nodeName = node.getNodeName();
+
+        // Search in element name
+        if (containsSearchTerm(nodeName, caseSensitive)) {
+            javafx.scene.Node uiNode = findUINodeForDomNode(node);
+            if (uiNode != null) {
+                SearchResult result = new SearchResult(node, uiNode, SearchType.NODE_NAME,
+                        nodeName, pathToRoot, nodeName);
+                searchResults.add(result);
+                logger.debug("Found element name match: {} in node: {}", currentSearchTerm, nodeName);
+            }
+        }
+
+        // Search in attributes
+        if (node.hasAttributes()) {
+            NamedNodeMap attributes = node.getAttributes();
+            for (int i = 0; i < attributes.getLength(); i++) {
+                Node attribute = attributes.item(i);
+                String attrName = attribute.getNodeName();
+                String attrValue = attribute.getNodeValue();
+
+                // Search in attribute name
+                if (containsSearchTerm(attrName, caseSensitive)) {
+                    javafx.scene.Node uiNode = findUINodeForDomNode(node);
+                    if (uiNode != null) {
+                        SearchResult result = new SearchResult(node, uiNode, SearchType.ATTRIBUTE_NAME,
+                                attrName, pathToRoot, attrName + "=" + attrValue);
+                        searchResults.add(result);
+                        logger.debug("Found attribute name match: {} in attribute: {}", currentSearchTerm, attrName);
+                    }
+                }
+
+                // Search in attribute value
+                if (containsSearchTerm(attrValue, caseSensitive)) {
+                    javafx.scene.Node uiNode = findUINodeForDomNode(node);
+                    if (uiNode != null) {
+                        SearchResult result = new SearchResult(node, uiNode, SearchType.ATTRIBUTE_VALUE,
+                                attrValue, pathToRoot, attrName + "=" + attrValue);
+                        searchResults.add(result);
+                        logger.debug("Found attribute value match: {} in attribute: {}={}",
+                                currentSearchTerm, attrName, attrValue);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Searches within a text node
+     */
+    private void searchTextNode(Node node, List<Node> pathToRoot, boolean caseSensitive) {
+        String textContent = node.getNodeValue();
+        if (textContent != null && !textContent.trim().isEmpty()) {
+            if (containsSearchTerm(textContent, caseSensitive)) {
+                // For text nodes, we want to find the parent element's UI node
+                Node parentNode = node.getParentNode();
+                if (parentNode != null) {
+                    javafx.scene.Node uiNode = findUINodeForDomNode(parentNode);
+                    if (uiNode != null) {
+                        SearchResult result = new SearchResult(parentNode, uiNode, SearchType.TEXT_CONTENT,
+                                textContent.trim(), pathToRoot, textContent.trim());
+                        searchResults.add(result);
+                        logger.debug("Found text content match: {} in text: {}", currentSearchTerm, textContent.trim());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Searches within a comment node
+     */
+    private void searchCommentNode(Node node, List<Node> pathToRoot, boolean caseSensitive) {
+        String commentContent = node.getNodeValue();
+        if (containsSearchTerm(commentContent, caseSensitive)) {
+            javafx.scene.Node uiNode = findUINodeForDomNode(node);
+            if (uiNode != null) {
+                SearchResult result = new SearchResult(node, uiNode, SearchType.COMMENT,
+                        commentContent.trim(), pathToRoot, commentContent.trim());
+                searchResults.add(result);
+                logger.debug("Found comment match: {} in comment: {}", currentSearchTerm, commentContent.trim());
+            }
+        }
+    }
+
+    /**
+     * Checks if the given text contains the search term
+     */
+    private boolean containsSearchTerm(String text, boolean caseSensitive) {
+        if (text == null || currentSearchTerm.isEmpty()) {
+            return false;
+        }
+
+        String textToSearch = caseSensitive ? text : text.toLowerCase();
+        return textToSearch.contains(currentSearchTerm);
+    }
+
+    /**
+     * Navigates to the next search result
+     */
+    public SearchResultInfo navigateToNextSearchResult() {
+        if (searchResults.isEmpty()) {
+            logger.debug("No search results available for navigation");
+            return new SearchResultInfo(0, -1, currentSearchTerm);
+        }
+
+        currentSearchIndex = (currentSearchIndex + 1) % searchResults.size();
+        navigateToSearchResult(currentSearchIndex);
+
+        logger.debug("Navigated to next search result: {} of {}", currentSearchIndex + 1, searchResults.size());
+        return new SearchResultInfo(searchResults.size(), currentSearchIndex, currentSearchTerm);
+    }
+
+    /**
+     * Navigates to the previous search result
+     */
+    public SearchResultInfo navigateToPreviousSearchResult() {
+        if (searchResults.isEmpty()) {
+            logger.debug("No search results available for navigation");
+            return new SearchResultInfo(0, -1, currentSearchTerm);
+        }
+
+        currentSearchIndex = currentSearchIndex <= 0 ? searchResults.size() - 1 : currentSearchIndex - 1;
+        navigateToSearchResult(currentSearchIndex);
+
+        logger.debug("Navigated to previous search result: {} of {}", currentSearchIndex + 1, searchResults.size());
+        return new SearchResultInfo(searchResults.size(), currentSearchIndex, currentSearchTerm);
+    }
+
+    /**
+     * Navigates to a specific search result by index
+     */
+    private void navigateToSearchResult(int index) {
+        if (index < 0 || index >= searchResults.size()) {
+            logger.warn("Invalid search result index: {} (available: 0-{})", index, searchResults.size() - 1);
+            return;
+        }
+
+        SearchResult result = searchResults.get(index);
+        logger.debug("Navigating to search result {}: {} - {}", index + 1, result.type, result.matchedText);
+
+        // Clear previous highlights
+        clearHighlights();
+
+        // Expand path to the found node
+        expandPathToNode(result);
+
+        // Highlight and scroll to the result
+        highlightSearchResult(result);
+        scrollToNode(result.uiNode);
+
+        // Select the node
+        selectNode(result.uiNode, result.domNode);
+    }
+
+    /**
+     * Expands all nodes in the path to make the search result visible
+     */
+    private void expandPathToNode(SearchResult result) {
+        logger.debug("Expanding path to node: {}", result.domNode.getNodeName());
+
+        for (Node pathNode : result.pathToRoot) {
+            Button toggleButton = nodeToggleButtonMap.get(pathNode);
+            if (toggleButton != null) {
+                // Check if the node is currently collapsed (button should be expanded)
+                // We need to find the associated content wrapper to check visibility
+                javafx.scene.Node parent = toggleButton.getParent();
+                if (parent instanceof HBox headerBox) {
+                    javafx.scene.Node elementContainer = headerBox.getParent();
+                    if (elementContainer instanceof VBox vbox) {
+                        // Look for the content wrapper (should be the second child after header)
+                        if (vbox.getChildren().size() > 1) {
+                            javafx.scene.Node contentWrapper = vbox.getChildren().get(1);
+                            if (contentWrapper instanceof HBox && !contentWrapper.isVisible()) {
+                                // Node is collapsed, expand it
+                                logger.debug("Expanding collapsed node: {}", pathNode.getNodeName());
+                                toggleButton.fire();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Highlights a search result visually
+     */
+    private void highlightSearchResult(SearchResult result) {
+        highlightedNodes.add(result.uiNode);
+
+        // Add highlight style to the UI node
+        String currentStyle = result.uiNode.getStyle();
+        String highlightStyle = "-fx-background-color: #ffff99; -fx-border-color: #ff6600; -fx-border-width: 2px;";
+        result.uiNode.setStyle(currentStyle + " " + highlightStyle);
+
+        logger.debug("Highlighted search result: {} - {}", result.type, result.matchedText);
+    }
+
+    /**
+     * Clears all visual highlights from previous search results
+     */
+    private void clearHighlights() {
+        for (javafx.scene.Node node : highlightedNodes) {
+            String style = node.getStyle();
+            // Remove highlight-related styles
+            style = style.replaceAll("-fx-background-color: #ffff99;", "");
+            style = style.replaceAll("-fx-border-color: #ff6600;", "");
+            style = style.replaceAll("-fx-border-width: 2px;", "");
+            style = style.trim();
+            node.setStyle(style);
+        }
+        highlightedNodes.clear();
+    }
+
+    /**
+     * Clears all search-related state and visual indicators
+     */
+    public void clearSearch() {
+        logger.debug("Clearing search state");
+        clearHighlights();
+        searchResults.clear();
+        currentSearchIndex = -1;
+        currentSearchTerm = "";
+    }
+
+    /**
+     * Gets the current search results information
+     */
+    public SearchResultInfo getCurrentSearchInfo() {
+        if (searchResults.isEmpty()) {
+            return new SearchResultInfo(0, -1, currentSearchTerm);
+        }
+        return new SearchResultInfo(searchResults.size(), currentSearchIndex, currentSearchTerm);
+    }
+
+    /**
+     * Checks if there are any search results
+     */
+    public boolean hasSearchResults() {
+        return !searchResults.isEmpty();
+    }
+
+    /**
+     * Creates and returns a search bar UI component
+     */
+    public HBox createSearchBar() {
+        if (searchBar != null) {
+            return searchBar;
+        }
+
+        searchBar = new HBox(5);
+        searchBar.getStyleClass().add("xml-search-bar");
+        searchBar.setAlignment(Pos.CENTER_LEFT);
+        searchBar.setPadding(new Insets(8, 12, 8, 12));
+        searchBar.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef); " +
+                        "-fx-border-color: #dee2e6; " +
+                        "-fx-border-width: 0 0 1px 0; " +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 0, 1);"
+        );
+
+        // Search icon
+        Label searchIcon = new Label("🔍");
+        searchIcon.setStyle("-fx-font-size: 14px; -fx-text-fill: #6c757d;");
+
+        // Search text field
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search nodes, attributes, text, comments...");
+        searchField.setPrefColumnCount(25);
+        searchField.setStyle(
+                "-fx-background-color: white; " +
+                        "-fx-border-color: #ced4da; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: 4px; " +
+                        "-fx-background-radius: 4px; " +
+                        "-fx-padding: 4px 8px;"
+        );
+
+        // Case sensitive checkbox
+        CheckBox caseSensitiveCheckBox = new CheckBox("Case sensitive");
+        caseSensitiveCheckBox.setStyle(
+                "-fx-text-fill: #495057; " +
+                        "-fx-font-size: 11px;"
+        );
+
+        // Results label
+        Label resultsLabel = new Label("Ready");
+        resultsLabel.setStyle(
+                "-fx-text-fill: #6c757d; " +
+                        "-fx-font-size: 11px; " +
+                        "-fx-min-width: 80px;"
+        );
+
+        // Previous button
+        Button prevButton = new Button("◀");
+        prevButton.setTooltip(new Tooltip("Previous result (Shift+Enter)"));
+        prevButton.setDisable(true);
+        prevButton.setStyle(
+                "-fx-background-color: #f8f9fa; " +
+                        "-fx-border-color: #ced4da; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: 3px; " +
+                        "-fx-background-radius: 3px; " +
+                        "-fx-padding: 2px 8px; " +
+                        "-fx-font-size: 12px;"
+        );
+
+        // Next button
+        Button nextButton = new Button("▶");
+        nextButton.setTooltip(new Tooltip("Next result (Enter)"));
+        nextButton.setDisable(true);
+        nextButton.setStyle(
+                "-fx-background-color: #f8f9fa; " +
+                        "-fx-border-color: #ced4da; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: 3px; " +
+                        "-fx-background-radius: 3px; " +
+                        "-fx-padding: 2px 8px; " +
+                        "-fx-font-size: 12px;"
+        );
+
+        // Clear/Close button
+        Button clearButton = new Button("✕");
+        clearButton.setTooltip(new Tooltip("Close search (Escape)"));
+        clearButton.setStyle(
+                "-fx-background-color: #f8f9fa; " +
+                        "-fx-border-color: #ced4da; " +
+                        "-fx-border-width: 1px; " +
+                        "-fx-border-radius: 3px; " +
+                        "-fx-background-radius: 3px; " +
+                        "-fx-padding: 2px 8px; " +
+                        "-fx-font-size: 12px;"
+        );
+
+        // Search functionality
+        Runnable performSearch = () -> {
+            String searchTerm = searchField.getText();
+            boolean caseSensitive = caseSensitiveCheckBox.isSelected();
+
+            if (searchTerm.trim().isEmpty()) {
+                clearSearch();
+                resultsLabel.setText("Ready");
+                prevButton.setDisable(true);
+                nextButton.setDisable(true);
+                return;
+            }
+
+            SearchResultInfo info = performSearch(searchTerm, caseSensitive);
+
+            if (info.hasResults()) {
+                resultsLabel.setText(info.toString());
+                prevButton.setDisable(false);
+                nextButton.setDisable(false);
+            } else {
+                resultsLabel.setText("No results");
+                prevButton.setDisable(true);
+                nextButton.setDisable(true);
+            }
+        };
+
+        // Event handlers
+        searchField.textProperty().addListener((obs, oldText, newText) -> {
+            // Perform search on text change with a small delay to avoid excessive searches
+            if (newText.trim().length() > 0) {
+                javafx.application.Platform.runLater(performSearch);
+            } else {
+                clearSearch();
+                resultsLabel.setText("Ready");
+                prevButton.setDisable(true);
+                nextButton.setDisable(true);
+            }
+        });
+
+        caseSensitiveCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (!searchField.getText().trim().isEmpty()) {
+                javafx.application.Platform.runLater(performSearch);
+            }
+        });
+
+        searchField.setOnAction(e -> {
+            if (hasSearchResults()) {
+                SearchResultInfo info = navigateToNextSearchResult();
+                resultsLabel.setText(info.toString());
+            }
+        });
+
+        prevButton.setOnAction(e -> {
+            if (hasSearchResults()) {
+                SearchResultInfo info = navigateToPreviousSearchResult();
+                resultsLabel.setText(info.toString());
+            }
+        });
+
+        nextButton.setOnAction(e -> {
+            if (hasSearchResults()) {
+                SearchResultInfo info = navigateToNextSearchResult();
+                resultsLabel.setText(info.toString());
+            }
+        });
+
+        clearButton.setOnAction(e -> {
+            hideSearchBar();
+        });
+
+        // Keyboard shortcuts
+        searchField.setOnKeyPressed(e -> {
+            switch (e.getCode()) {
+                case ENTER:
+                    if (e.isShiftDown()) {
+                        if (hasSearchResults()) {
+                            SearchResultInfo info = navigateToPreviousSearchResult();
+                            resultsLabel.setText(info.toString());
+                        }
+                    } else {
+                        if (hasSearchResults()) {
+                            SearchResultInfo info = navigateToNextSearchResult();
+                            resultsLabel.setText(info.toString());
+                        }
+                    }
+                    e.consume();
+                    break;
+                case ESCAPE:
+                    hideSearchBar();
+                    e.consume();
+                    break;
+            }
+        });
+
+        // Add components to search bar
+        searchBar.getChildren().addAll(
+                searchIcon,
+                searchField,
+                caseSensitiveCheckBox,
+                new Separator(Orientation.VERTICAL),
+                resultsLabel,
+                prevButton,
+                nextButton,
+                clearButton
+        );
+
+        // Initially hide the search bar
+        searchBar.setVisible(false);
+        searchBar.setManaged(false);
+
+        return searchBar;
+    }
+
+    /**
+     * Shows the search bar and focuses the search field
+     */
+    public void showSearchBar() {
+        if (searchBar == null) {
+            createSearchBar();
+        }
+
+        searchBar.setVisible(true);
+        searchBar.setManaged(true);
+
+        // Focus the search field
+        TextField searchField = (TextField) searchBar.getChildren().get(1);
+        javafx.application.Platform.runLater(() -> {
+            searchField.requestFocus();
+            searchField.selectAll();
+        });
+
+        logger.debug("Search bar shown and focused");
+    }
+
+    /**
+     * Hides the search bar and clears search results
+     */
+    public void hideSearchBar() {
+        if (searchBar != null) {
+            searchBar.setVisible(false);
+            searchBar.setManaged(false);
+
+            // Clear search results
+            clearSearch();
+
+            // Reset search field
+            TextField searchField = (TextField) searchBar.getChildren().get(1);
+            searchField.clear();
+
+            // Reset results label
+            Label resultsLabel = (Label) searchBar.getChildren().get(4);
+            resultsLabel.setText("Ready");
+
+            // Disable buttons
+            Button prevButton = (Button) searchBar.getChildren().get(6);
+            Button nextButton = (Button) searchBar.getChildren().get(7);
+            prevButton.setDisable(true);
+            nextButton.setDisable(true);
+
+            logger.debug("Search bar hidden and state cleared");
+        }
+    }
+
+    /**
+     * Returns whether the search bar is currently visible
+     */
+    public boolean isSearchBarVisible() {
+        return searchBar != null && searchBar.isVisible();
+    }
+
+    /**
+     * Sets up global keyboard shortcuts for search functionality
+     */
+    private void setupSearchKeyboardShortcuts() {
+        this.setOnKeyPressed(e -> {
+            if (e.isControlDown() && e.getCode() == javafx.scene.input.KeyCode.F) {
+                showSearchBar();
+                e.consume();
+            } else if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE && isSearchBarVisible()) {
+                hideSearchBar();
+                e.consume();
+            }
+        });
+    }
+
+    /**
+     * Integrates the search functionality with a parent container.
+     * This method should be called by the parent to set up the search bar in the UI.
+     *
+     * @param parentContainer the parent container (typically a VBox) where the search bar should be added
+     */
+    public void integrateSearchWithContainer(VBox parentContainer) {
+        HBox searchBar = createSearchBar();
+
+        // Insert search bar at the top of the parent container
+        if (!parentContainer.getChildren().contains(searchBar)) {
+            parentContainer.getChildren().add(0, searchBar);
+            logger.debug("Search bar integrated with parent container");
+        }
+    }
+
+    /**
+     * Alternative method for integrating search with any Pane-based container
+     */
+    public void integrateSearchWithContainer(Pane parentContainer) {
+        HBox searchBar = createSearchBar();
+
+        if (!parentContainer.getChildren().contains(searchBar)) {
+            parentContainer.getChildren().add(searchBar);
+            logger.debug("Search bar integrated with pane container");
+        }
+    }
+
+    /**
+     * Gets the search bar component for manual integration
+     */
+    public HBox getSearchBar() {
+        return createSearchBar();
     }
 }

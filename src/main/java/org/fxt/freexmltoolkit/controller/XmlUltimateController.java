@@ -131,6 +131,8 @@ public class XmlUltimateController implements Initializable {
     private Button schemaGeneratorButton;
     @FXML
     private Button xsltDeveloperButton;
+    @FXML
+    private Button xmlExcelCsvConverterButton;
     // Removed from UI
     // @FXML
     // private ToggleButton treeViewToggle;
@@ -1155,6 +1157,49 @@ public class XmlUltimateController implements Initializable {
         logToConsole("Opening Advanced XSLT Developer...");
         if (developmentTabPane != null && xsltDevelopmentTab != null) {
             developmentTabPane.getSelectionModel().select(xsltDevelopmentTab);
+        }
+    }
+
+    @FXML
+    private void showXmlExcelCsvConverter() {
+        logger.info("Opening XML<->Excel/CSV Converter");
+        logToConsole("Opening XML<->Excel/CSV Converter...");
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/pages/dialogs/XmlSpreadsheetConverterDialog.fxml"));
+            DialogPane dialogPane = loader.load();
+
+            XmlSpreadsheetConverterDialogController controller = loader.getController();
+
+            // Set current XML if available
+            Tab currentTab = xmlFilesPane.getSelectionModel().getSelectedItem();
+            if (currentTab instanceof XmlEditor editor) {
+                controller.setSourceXml(editor.getXmlCodeEditor().getText());
+                controller.setSourceFile(editor.getXmlFile());
+            }
+
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setDialogPane(dialogPane);
+            dialog.setTitle("XML ↔ Excel/CSV Converter");
+            dialog.setResizable(true);
+
+            // Show dialog and handle result
+            dialog.showAndWait().ifPresent(result -> {
+                if (result == ButtonType.OK) {
+                    logger.info("User confirmed conversion");
+                    logToConsole("Starting conversion...");
+                    controller.performConversion();
+                } else {
+                    logger.info("User cancelled conversion");
+                    logToConsole("Conversion cancelled by user");
+                }
+            });
+
+        } catch (IOException e) {
+            logger.error("Error opening converter dialog", e);
+            showError("Error", "Could not open converter dialog: " + e.getMessage());
+            logToConsole("Error: Could not open converter dialog - " + e.getMessage());
         }
     }
 

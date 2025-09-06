@@ -95,3 +95,9 @@ org.fxt.freexmltoolkit/
 - **JavaFX Modules**: Separate JMOD files for cross-platform native packaging
 - **Runtime Images**: Custom JLink runtime images for each platform
 - **Dependency Exclusions**: Security-related files (*.RSA, *.DSA, *.SF) excluded from JAR
+
+# UI
+
+- use xmlspy-style-config.json for general styling.
+- the app should be modern and colorful styled
+- menu, kontext menu, etc. should always have icons and text

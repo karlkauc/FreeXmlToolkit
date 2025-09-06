@@ -2105,6 +2105,9 @@ public class XmlEditor extends Tab {
                 if (sidebarController != null) {
                     currentGraphicEditor.setSidebarController(sidebarController);
                 }
+                // Integrate search functionality with parent container
+                currentGraphicEditor.integrateSearchWithContainer(vBox);
+                
                 VBox.setVgrow(currentGraphicEditor, Priority.ALWAYS);
                 vBox.getChildren().add(currentGraphicEditor);
             }

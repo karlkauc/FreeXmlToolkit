@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<DialogPane prefWidth="900" prefHeight="700" xmlns="http://javafx.com/javafx/11.0.14-internal"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.fxt.freexmltoolkit.controller.XmlSpreadsheetConverterDialogController">
+
+    <buttonTypes>
+        <ButtonType fx:constant="CANCEL"/>
+        <ButtonType fx:constant="OK"/>
+    </buttonTypes>
+
+    <content>
+        <VBox spacing="15" style="-fx-padding: 20;">
+            <!-- Conversion Direction -->
+            <TitledPane text="Conversion Direction" collapsible="false">
+                <VBox spacing="10">
+                    <RadioButton fx:id="xmlToSpreadsheetRadio" text="XML → Spreadsheet (Excel/CSV)"
+                                 selected="true">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-arrow-right" iconSize="14"/>
+                        </graphic>
+                    </RadioButton>
+                    <RadioButton fx:id="spreadsheetToXmlRadio" text="Spreadsheet (Excel/CSV) → XML">
+                        <graphic>
+                            <FontIcon iconLiteral="bi-arrow-left" iconSize="14"/>
+                        </graphic>
+                    </RadioButton>
+                </VBox>
+            </TitledPane>
+
+            <!-- Format Selection -->
+            <TitledPane text="Output Format" collapsible="false">
+                <GridPane hgap="10" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="120"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                        <ColumnConstraints minWidth="120"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <Label text="Format:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <ComboBox fx:id="formatCombo" prefWidth="180" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                    </ComboBox>
+
+                    <!-- CSV-specific options -->
+                    <VBox fx:id="csvOptionsBox" spacing="5" visible="false" managed="false"
+                          GridPane.columnIndex="2" GridPane.rowIndex="0" GridPane.columnSpan="2">
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Delimiter:"/>
+                            <ComboBox fx:id="delimiterCombo" prefWidth="120">
+                            </ComboBox>
+                            <TextField fx:id="customDelimiterField" prefWidth="50" visible="false" managed="false"
+                                       promptText="Char"/>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <CheckBox fx:id="includeBomCheckBox" text="Include BOM (for Excel)"/>
+                            <CheckBox fx:id="alwaysQuoteCheckBox" text="Always quote fields"/>
+                        </HBox>
+                    </VBox>
+                </GridPane>
+            </TitledPane>
+
+            <!-- File Selection -->
+            <TitledPane text="File Selection" collapsible="false">
+                <GridPane hgap="10" vgap="15">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="100"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                        <ColumnConstraints minWidth="100"/>
+                        <ColumnConstraints minWidth="80"/>
+                    </columnConstraints>
+
+                    <!-- Source file selection -->
+                    <Label fx:id="sourceLabel" text="Source File:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <TextField fx:id="sourceFileField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    <Button fx:id="browseSourceButton" text="Browse..." onAction="#browseSourceFile"
+                            GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    <CheckBox fx:id="useCurrentXmlCheckBox" text="Use current" selected="true"
+                              GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+
+                    <!-- Target file selection -->
+                    <Label fx:id="targetLabel" text="Target File:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <TextField fx:id="targetFileField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                    <Button fx:id="browseTargetButton" text="Browse..." onAction="#browseTargetFile"
+                            GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                    <Button fx:id="autoTargetButton" text="Auto" onAction="#autoGenerateTargetFile"
+                            GridPane.columnIndex="3" GridPane.rowIndex="1">
+                        <tooltip>
+                            <Tooltip text="Automatically generate target filename"/>
+                        </tooltip>
+                    </Button>
+                </GridPane>
+            </TitledPane>
+
+            <!-- Conversion Options -->
+            <TitledPane text="Options" collapsible="false">
+                <GridPane hgap="15" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <VBox spacing="8" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="Include in conversion:" style="-fx-font-weight: bold;"/>
+                        <CheckBox fx:id="includeCommentsCheckBox" text="XML Comments" selected="true"/>
+                        <CheckBox fx:id="includeCDataCheckBox" text="CDATA Sections" selected="true"/>
+                        <CheckBox fx:id="includeNamespacesCheckBox" text="Namespaces" selected="true"/>
+                        <CheckBox fx:id="includeTypeColumnCheckBox" text="Type Column (recommended)" selected="true"/>
+                    </VBox>
+
+                    <VBox spacing="8" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="Output options:" style="-fx-font-weight: bold;"/>
+                        <CheckBox fx:id="prettyPrintXmlCheckBox" text="Pretty print XML" selected="true"/>
+                        <CheckBox fx:id="validateXmlCheckBox" text="Validate generated XML" selected="true"/>
+                        <HBox spacing="5" alignment="CENTER_LEFT">
+                            <CheckBox fx:id="createBackupCheckBox" text="Create backup"/>
+                            <Label text="(.bak)" style="-fx-text-fill: gray;"/>
+                        </HBox>
+                    </VBox>
+                </GridPane>
+            </TitledPane>
+
+            <!-- Preview and Results -->
+            <TitledPane text="Preview" collapsible="true" expanded="true" VBox.vgrow="ALWAYS">
+                <VBox VBox.vgrow="ALWAYS">
+                    <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 0 0 10 0;">
+                        <Button fx:id="previewButton" text="Generate Preview" onAction="#generatePreview">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-eye" iconSize="14"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="clearPreviewButton" text="Clear" onAction="#clearPreview">
+                            <graphic>
+                                <FontIcon iconLiteral="bi-x-circle" iconSize="14"/>
+                            </graphic>
+                        </Button>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="previewStatsLabel" text="Ready" style="-fx-text-fill: gray;"/>
+                    </HBox>
+
+                    <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+                        <Tab text="Table Preview">
+                            <TableView fx:id="previewTable" VBox.vgrow="ALWAYS">
+                                <columns>
+                                    <TableColumn fx:id="xpathColumn" text="XPath" prefWidth="300" minWidth="200"/>
+                                    <TableColumn fx:id="valueColumn" text="Value" prefWidth="250" minWidth="150"/>
+                                    <TableColumn fx:id="typeColumn" text="Type" prefWidth="100" minWidth="80"/>
+                                </columns>
+                            </TableView>
+                        </Tab>
+
+                        <Tab text="XML Preview">
+                            <StackPane fx:id="xmlPreviewPane" VBox.vgrow="ALWAYS"/>
+                        </Tab>
+
+                        <Tab text="Statistics">
+                            <VBox spacing="10" style="-fx-padding: 15;">
+                                <GridPane hgap="15" vgap="8">
+                                    <columnConstraints>
+                                        <ColumnConstraints minWidth="120"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                        <ColumnConstraints minWidth="120"/>
+                                        <ColumnConstraints hgrow="ALWAYS"/>
+                                    </columnConstraints>
+
+                                    <Label text="Total Rows:" style="-fx-font-weight: bold;"
+                                           GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <Label fx:id="totalRowsLabel" text="0"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                                    <Label text="Elements:" style="-fx-font-weight: bold;"
+                                           GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                    <Label fx:id="elementsCountLabel" text="0"
+                                           GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+
+                                    <Label text="Attributes:" style="-fx-font-weight: bold;"
+                                           GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <Label fx:id="attributesCountLabel" text="0"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                                    <Label text="Text Nodes:" style="-fx-font-weight: bold;"
+                                           GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                                    <Label fx:id="textNodesCountLabel" text="0"
+                                           GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+
+                                    <Label text="Comments:" style="-fx-font-weight: bold;"
+                                           GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <Label fx:id="commentsCountLabel" text="0"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                                    <Label text="CDATA:" style="-fx-font-weight: bold;"
+                                           GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+                                    <Label fx:id="cdataCountLabel" text="0"
+                                           GridPane.columnIndex="3" GridPane.rowIndex="2"/>
+                                </GridPane>
+
+                                <Separator/>
+
+                                <Label text="Processing Information:"
+                                       style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+                                <TextArea fx:id="processingInfoArea" editable="false" prefRowCount="8"
+                                          wrapText="true" style="-fx-font-family: monospace; -fx-font-size: 11px;"/>
+                            </VBox>
+                        </Tab>
+                    </TabPane>
+                </VBox>
+            </TitledPane>
+
+            <!-- Progress and Status -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Status:"/>
+                <Label fx:id="statusLabel" text="Ready" style="-fx-text-fill: green;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <ProgressBar fx:id="progressBar" prefWidth="200" visible="false"/>
+            </HBox>
+        </VBox>
+    </content>
+</DialogPane>
