@@ -96,6 +96,16 @@
             </tooltip>
         </Button>
 
+        <Button fx:id="xmlExcelCsvConverterButton" contentDisplay="TOP" onAction="#showXmlExcelCsvConverter"
+                text="XML↔Excel/CSV">
+            <graphic>
+                <FontIcon iconColor="#198754" iconLiteral="bi-table" iconSize="16"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Convert between XML and Excel/CSV formats"/>
+            </tooltip>
+        </Button>
+
         <Separator orientation="VERTICAL" prefHeight="25"/>
 
         <!-- Query & Analysis Group -->
