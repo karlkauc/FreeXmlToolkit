@@ -1187,33 +1187,33 @@ public class XmlCodeEditor extends VBox {
         // Comment functionality
         MenuItem commentLineMenuItem = new MenuItem("Comment Lines (Ctrl+D)");
         commentLineMenuItem.getStyleClass().add("comment-action");
-        commentLineMenuItem.setGraphic(new FontIcon("bi-chat-square-text"));
+        commentLineMenuItem.setGraphic(createColoredIcon("bi-chat-square-text", "#6c757d"));
         commentLineMenuItem.setOnAction(event -> toggleLineComment());
         
         // Standard editing operations
         SeparatorMenuItem separator1 = new SeparatorMenuItem();
         MenuItem cutMenuItem = new MenuItem("Cut (Ctrl+X)");
         cutMenuItem.getStyleClass().add("edit-action");
-        cutMenuItem.setGraphic(new FontIcon("bi-scissors"));
+        cutMenuItem.setGraphic(createColoredIcon("bi-scissors", "#dc3545"));
         cutMenuItem.setOnAction(event -> cutToClipboard());
         MenuItem copyMenuItem = new MenuItem("Copy (Ctrl+C)");
         copyMenuItem.getStyleClass().add("edit-action");
-        copyMenuItem.setGraphic(new FontIcon("bi-files"));
+        copyMenuItem.setGraphic(createColoredIcon("bi-files", "#007bff"));
         copyMenuItem.setOnAction(event -> copyToClipboard());
         MenuItem pasteMenuItem = new MenuItem("Paste (Ctrl+V)");
         pasteMenuItem.getStyleClass().add("edit-action");
-        pasteMenuItem.setGraphic(new FontIcon("bi-clipboard"));
+        pasteMenuItem.setGraphic(createColoredIcon("bi-clipboard", "#28a745"));
         pasteMenuItem.setOnAction(event -> pasteFromClipboard());
         
         // XML-specific operations
         SeparatorMenuItem separator2 = new SeparatorMenuItem();
         MenuItem copyXPathMenuItem = new MenuItem("Copy XPath");
         copyXPathMenuItem.getStyleClass().add("xml-action");
-        copyXPathMenuItem.setGraphic(new FontIcon("bi-signpost-2"));
+        copyXPathMenuItem.setGraphic(createColoredIcon("bi-signpost-2", "#ffc107"));
         copyXPathMenuItem.setOnAction(event -> copyXPathToClipboard());
         MenuItem goToDefinitionMenuItem = new MenuItem("Go to Definition (Ctrl+Click)");
         goToDefinitionMenuItem.getStyleClass().add("xml-action");
-        goToDefinitionMenuItem.setGraphic(new FontIcon("bi-box-arrow-up-right"));
+        goToDefinitionMenuItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", "#17a2b8"));
         goToDefinitionMenuItem.setOnAction(event -> {
             // Create a synthetic mouse event at current cursor position
             try {
@@ -1231,33 +1231,33 @@ public class XmlCodeEditor extends VBox {
         SeparatorMenuItem separator3 = new SeparatorMenuItem();
         MenuItem selectAllMenuItem = new MenuItem("Select All (Ctrl+A)");
         selectAllMenuItem.getStyleClass().add("search-action");
-        selectAllMenuItem.setGraphic(new FontIcon("bi-border-all"));
+        selectAllMenuItem.setGraphic(createColoredIcon("bi-border-all", "#6f42c1"));
         selectAllMenuItem.setOnAction(event -> selectAllText());
         MenuItem findReplaceMenuItem = new MenuItem("Find & Replace (Ctrl+H)");
         findReplaceMenuItem.getStyleClass().add("search-action");
-        findReplaceMenuItem.setGraphic(new FontIcon("bi-search"));
+        findReplaceMenuItem.setGraphic(createColoredIcon("bi-search", "#fd7e14"));
         findReplaceMenuItem.setOnAction(event -> openFindReplace());
         
         // XML formatting and validation
         SeparatorMenuItem separator4 = new SeparatorMenuItem();
         MenuItem formatXmlMenuItem = new MenuItem("Format XML");
         formatXmlMenuItem.getStyleClass().add("format-action");
-        formatXmlMenuItem.setGraphic(new FontIcon("bi-code-square"));
+        formatXmlMenuItem.setGraphic(createColoredIcon("bi-code-square", "#20c997"));
         formatXmlMenuItem.setOnAction(event -> formatXmlContent());
         MenuItem validateXmlMenuItem = new MenuItem("Validate XML");
         validateXmlMenuItem.getStyleClass().add("format-action");
-        validateXmlMenuItem.setGraphic(new FontIcon("bi-check-circle"));
+        validateXmlMenuItem.setGraphic(createColoredIcon("bi-check-circle", "#28a745"));
         validateXmlMenuItem.setOnAction(event -> validateXmlContent());
         
         // Code folding (future)
         SeparatorMenuItem separator5 = new SeparatorMenuItem();
         MenuItem expandAllMenuItem = new MenuItem("Expand All");
         expandAllMenuItem.getStyleClass().add("fold-action");
-        expandAllMenuItem.setGraphic(new FontIcon("bi-arrows-expand"));
+        expandAllMenuItem.setGraphic(createColoredIcon("bi-arrows-expand", "#6c757d"));
         expandAllMenuItem.setOnAction(event -> expandAllFolds());
         MenuItem collapseAllMenuItem = new MenuItem("Collapse All");
         collapseAllMenuItem.getStyleClass().add("fold-action");
-        collapseAllMenuItem.setGraphic(new FontIcon("bi-arrows-collapse"));
+        collapseAllMenuItem.setGraphic(createColoredIcon("bi-arrows-collapse", "#6c757d"));
         collapseAllMenuItem.setOnAction(event -> collapseAllFolds());
         
         // Add all items to context menu
@@ -1281,6 +1281,16 @@ public class XmlCodeEditor extends VBox {
         codeArea.setContextMenu(contextMenu);
         
         logger.debug("Context menu initialized with comprehensive XML editing functionality");
+    }
+
+    /**
+     * Creates a colored FontIcon for menu items
+     */
+    private FontIcon createColoredIcon(String iconLiteral, String color) {
+        FontIcon icon = new FontIcon(iconLiteral);
+        icon.setIconColor(javafx.scene.paint.Color.web(color));
+        icon.setIconSize(12);
+        return icon;
     }
 
     /**

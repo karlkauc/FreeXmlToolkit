@@ -321,7 +321,7 @@ public class XsdDiagramView {
 
         // Properties Tab
         Tab propertiesTab = new Tab("Properties");
-        propertiesTab.setGraphic(new FontIcon("bi-gear"));
+        propertiesTab.setGraphic(createColoredIcon("bi-gear", "#6c757d"));
 
         propertyPanel = new XsdPropertyPanel();
         propertyPanel.setDomManipulator(domManipulator);
@@ -354,7 +354,7 @@ public class XsdDiagramView {
 
         // Validation Tab
         Tab validationTab = new Tab("Validation");
-        validationTab.setGraphic(new FontIcon("bi-shield-check"));
+        validationTab.setGraphic(createColoredIcon("bi-shield-check", "#28a745"));
 
         validationPanel = new XsdValidationPanel();
 
@@ -380,7 +380,7 @@ public class XsdDiagramView {
 
         // Undo button
         undoButton = new Button();
-        undoButton.setGraphic(new FontIcon("bi-arrow-counterclockwise"));
+        undoButton.setGraphic(createColoredIcon("bi-arrow-counterclockwise", "#007bff"));
         undoButton.setTooltip(new Tooltip("Nothing to undo"));
         undoButton.setDisable(true);
         undoButton.setOnAction(e -> {
@@ -392,7 +392,7 @@ public class XsdDiagramView {
 
         // Redo button
         redoButton = new Button();
-        redoButton.setGraphic(new FontIcon("bi-arrow-clockwise"));
+        redoButton.setGraphic(createColoredIcon("bi-arrow-clockwise", "#007bff"));
         redoButton.setTooltip(new Tooltip("Nothing to redo"));
         redoButton.setDisable(true);
         redoButton.setOnAction(e -> {
@@ -474,7 +474,7 @@ public class XsdDiagramView {
 
         // Clear search button
         clearSearchButton = new Button();
-        clearSearchButton.setGraphic(new FontIcon("bi-x-circle"));
+        clearSearchButton.setGraphic(createColoredIcon("bi-x-circle", "#dc3545"));
         clearSearchButton.setTooltip(new Tooltip("Clear search"));
         clearSearchButton.setDisable(true);
         clearSearchButton.setOnAction(e -> clearSearch());
@@ -869,7 +869,7 @@ public class XsdDiagramView {
         applySearchHighlighting(nameLabel, node);
 
         // Add attribute icon
-        FontIcon attributeIcon = new FontIcon("bi-at");
+        FontIcon attributeIcon = createColoredIcon("bi-at", "#ffc107");
         attributeIcon.setIconColor(javafx.scene.paint.Color.web("#d4a147"));
         attributeIcon.setIconSize(12);
         nameLabel.setGraphic(attributeIcon);
@@ -915,13 +915,13 @@ public class XsdDiagramView {
         // Add appropriate icon for structural elements
         FontIcon structuralIcon;
         if ("SEQUENCE".equals(title)) {
-            structuralIcon = new FontIcon("bi-list-ol");
+            structuralIcon = createColoredIcon("bi-list-ol", "#17a2b8");
             structuralIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
         } else if ("CHOICE".equals(title)) {
-            structuralIcon = new FontIcon("bi-option");
+            structuralIcon = createColoredIcon("bi-option", "#fd7e14");
             structuralIcon.setIconColor(javafx.scene.paint.Color.web("#ff8c00"));
         } else {
-            structuralIcon = new FontIcon("bi-diagram-3");
+            structuralIcon = createColoredIcon("bi-diagram-3", "#6f42c1");
             structuralIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
         }
         structuralIcon.setIconSize(12);
@@ -1003,7 +1003,7 @@ public class XsdDiagramView {
         nameLabel.setStyle(ANY_NODE_STYLE);
 
         // Add any element icon
-        FontIcon anyIcon = new FontIcon("bi-asterisk");
+        FontIcon anyIcon = createColoredIcon("bi-asterisk", "#20c997");
         anyIcon.setIconColor(javafx.scene.paint.Color.web("#6c757d"));
         anyIcon.setIconSize(12);
         nameLabel.setGraphic(anyIcon);
@@ -1422,22 +1422,22 @@ public class XsdDiagramView {
         boolean isSchemaRoot = nodeInfo.xpath().equals("/" + nodeInfo.name()) && nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT;
         if (isSchemaRoot) {
             MenuItem addSimpleTypeItem = new MenuItem("Add SimpleType");
-            addSimpleTypeItem.setGraphic(new FontIcon("bi-type"));
+            addSimpleTypeItem.setGraphic(createColoredIcon("bi-type", "#20c997"));
             addSimpleTypeItem.setOnAction(e -> showAddSimpleTypeDialog(createSchemaNodeInfo()));
             contextMenu.getItems().add(addSimpleTypeItem);
 
             MenuItem addComplexTypeItem = new MenuItem("Add ComplexType");
-            addComplexTypeItem.setGraphic(new FontIcon("bi-diagram-3"));
+            addComplexTypeItem.setGraphic(createColoredIcon("bi-diagram-3", "#6f42c1"));
             addComplexTypeItem.setOnAction(e -> showAddComplexTypeDialog(createSchemaNodeInfo()));
             contextMenu.getItems().add(addComplexTypeItem);
 
             MenuItem namespaceManagerItem = new MenuItem("Manage Namespaces");
-            namespaceManagerItem.setGraphic(new FontIcon("bi-diagram-2"));
+            namespaceManagerItem.setGraphic(createColoredIcon("bi-diagram-2", "#17a2b8"));
             namespaceManagerItem.setOnAction(e -> showNamespaceManagerDialog());
             contextMenu.getItems().add(namespaceManagerItem);
 
             MenuItem importIncludeManagerItem = new MenuItem("Manage Imports & Includes");
-            importIncludeManagerItem.setGraphic(new FontIcon("bi-files"));
+            importIncludeManagerItem.setGraphic(createColoredIcon("bi-files", "#007bff"));
             importIncludeManagerItem.setOnAction(e -> showImportIncludeManagerDialog());
             contextMenu.getItems().add(importIncludeManagerItem);
 
@@ -1454,12 +1454,12 @@ public class XsdDiagramView {
                 if (typeNodeInfo != null) {
                     if (typeNodeInfo.nodeType() == XsdNodeInfo.NodeType.SIMPLE_TYPE) {
                         MenuItem editSimpleTypeItem = new MenuItem("Edit SimpleType '" + type + "'");
-                        editSimpleTypeItem.setGraphic(new FontIcon("bi-pencil"));
+                        editSimpleTypeItem.setGraphic(createColoredIcon("bi-pencil", "#fd7e14"));
                         editSimpleTypeItem.setOnAction(e -> showEditSimpleTypeDialog(typeNodeInfo));
                         contextMenu.getItems().add(editSimpleTypeItem);
                     } else if (typeNodeInfo.nodeType() == XsdNodeInfo.NodeType.COMPLEX_TYPE) {
                         MenuItem editComplexTypeItem = new MenuItem("Edit ComplexType '" + type + "'");
-                        editComplexTypeItem.setGraphic(new FontIcon("bi-pencil"));
+                        editComplexTypeItem.setGraphic(createColoredIcon("bi-pencil", "#fd7e14"));
                         editComplexTypeItem.setOnAction(e -> showEditComplexTypeDialog(typeNodeInfo));
                         contextMenu.getItems().add(editComplexTypeItem);
                     }
@@ -1478,26 +1478,26 @@ public class XsdDiagramView {
             boolean canHaveChildren = canNodeHaveChildren(nodeInfo);
 
             MenuItem addElementItem = new MenuItem("Add Element");
-            addElementItem.setGraphic(new FontIcon("bi-plus-circle"));
+            addElementItem.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
             addElementItem.setOnAction(e -> showAddElementDialog(nodeInfo));
             addElementItem.setDisable(!canHaveChildren);
             contextMenu.getItems().add(addElementItem);
 
             MenuItem addAttributeItem = new MenuItem("Add Attribute");
-            addAttributeItem.setGraphic(new FontIcon("bi-at"));
+            addAttributeItem.setGraphic(createColoredIcon("bi-at", "#ffc107"));
             addAttributeItem.setOnAction(e -> showAddAttributeDialog(nodeInfo));
             addAttributeItem.setDisable(!canHaveChildren);
             contextMenu.getItems().add(addAttributeItem);
 
             if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT) {
                 MenuItem addSequenceItem = new MenuItem("Add Sequence");
-                addSequenceItem.setGraphic(new FontIcon("bi-list-ol"));
+                addSequenceItem.setGraphic(createColoredIcon("bi-list-ol", "#17a2b8"));
                 addSequenceItem.setOnAction(e -> addSequence(nodeInfo));
                 addSequenceItem.setDisable(!canHaveChildren);
                 contextMenu.getItems().add(addSequenceItem);
 
                 MenuItem addChoiceItem = new MenuItem("Add Choice");
-                addChoiceItem.setGraphic(new FontIcon("bi-option"));
+                addChoiceItem.setGraphic(createColoredIcon("bi-option", "#fd7e14"));
                 addChoiceItem.setOnAction(e -> addChoice(nodeInfo));
                 addChoiceItem.setDisable(!canHaveChildren);
                 contextMenu.getItems().add(addChoiceItem);
@@ -1508,7 +1508,7 @@ public class XsdDiagramView {
 
         // Rename menu item
         MenuItem renameItem = new MenuItem("Rename");
-        renameItem.setGraphic(new FontIcon("bi-pencil"));
+        renameItem.setGraphic(createColoredIcon("bi-pencil", "#fd7e14"));
         renameItem.setOnAction(e -> showRenameDialog(nodeInfo));
         contextMenu.getItems().add(renameItem);
 
@@ -1516,7 +1516,7 @@ public class XsdDiagramView {
         if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.SIMPLE_TYPE ||
                 nodeInfo.nodeType() == XsdNodeInfo.NodeType.COMPLEX_TYPE) {
             MenuItem editTypeInGraphicEditor = new MenuItem("Edit Type in Graphic Editor");
-            editTypeInGraphicEditor.setGraphic(new FontIcon("bi-diagram-3"));
+            editTypeInGraphicEditor.setGraphic(createColoredIcon("bi-diagram-3", "#6f42c1"));
             editTypeInGraphicEditor.setOnAction(e -> openTypeInGraphicEditor(nodeInfo));
             contextMenu.getItems().add(editTypeInGraphicEditor);
             contextMenu.getItems().add(new SeparatorMenuItem());
@@ -1527,14 +1527,14 @@ public class XsdDiagramView {
                 nodeInfo.nodeType() == XsdNodeInfo.NodeType.SIMPLE_TYPE ||
                 nodeInfo.nodeType() == XsdNodeInfo.NodeType.COMPLEX_TYPE) {
             MenuItem safeRenameItem = new MenuItem("Safe Rename with Preview");
-            safeRenameItem.setGraphic(new FontIcon("bi-stars"));
+            safeRenameItem.setGraphic(createColoredIcon("bi-stars", "#ffc107"));
             safeRenameItem.setOnAction(e -> showSafeRenameDialog(nodeInfo));
             contextMenu.getItems().add(safeRenameItem);
         }
 
         // Delete menu item
         MenuItem deleteItem = new MenuItem("Delete");
-        deleteItem.setGraphic(new FontIcon("bi-trash"));
+        deleteItem.setGraphic(createColoredIcon("bi-trash", "#dc3545"));
         deleteItem.setOnAction(e -> deleteNode(nodeInfo));
         contextMenu.getItems().add(deleteItem);
 
@@ -1544,7 +1544,7 @@ public class XsdDiagramView {
         if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT ||
                 nodeInfo.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE) {
             MenuItem validationRulesItem = new MenuItem("Validation Rules");
-            validationRulesItem.setGraphic(new FontIcon("bi-shield-check"));
+            validationRulesItem.setGraphic(createColoredIcon("bi-shield-check", "#28a745"));
             validationRulesItem.setOnAction(e -> showValidationRulesDialog(nodeInfo));
             contextMenu.getItems().add(validationRulesItem);
 
@@ -1553,7 +1553,7 @@ public class XsdDiagramView {
 
         // Properties menu item
         MenuItem propertiesItem = new MenuItem("Properties");
-        propertiesItem.setGraphic(new FontIcon("bi-gear"));
+        propertiesItem.setGraphic(createColoredIcon("bi-gear", "#6c757d"));
         propertiesItem.setOnAction(e -> showPropertiesDialog(nodeInfo));
         contextMenu.getItems().add(propertiesItem);
 
@@ -1562,13 +1562,13 @@ public class XsdDiagramView {
             contextMenu.getItems().add(new SeparatorMenuItem());
 
             MenuItem moveUpItem = new MenuItem("Move Up");
-            moveUpItem.setGraphic(new FontIcon("bi-arrow-up"));
+            moveUpItem.setGraphic(createColoredIcon("bi-arrow-up", "#6f42c1"));
             moveUpItem.setOnAction(e -> moveNodeUp(nodeInfo));
             moveUpItem.setDisable(!MoveNodeUpCommand.canMoveUp(domManipulator, nodeInfo));
             contextMenu.getItems().add(moveUpItem);
 
             MenuItem moveDownItem = new MenuItem("Move Down");
-            moveDownItem.setGraphic(new FontIcon("bi-arrow-down"));
+            moveDownItem.setGraphic(createColoredIcon("bi-arrow-down", "#6f42c1"));
             moveDownItem.setOnAction(e -> moveNodeDown(nodeInfo));
             moveDownItem.setDisable(!MoveNodeDownCommand.canMoveDown(domManipulator, nodeInfo));
             contextMenu.getItems().add(moveDownItem);
@@ -1582,7 +1582,7 @@ public class XsdDiagramView {
             // Convert Element to Attribute (only for elements)
             if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT) {
                 MenuItem convertToAttributeItem = new MenuItem("Convert to Attribute");
-                convertToAttributeItem.setGraphic(new FontIcon("bi-arrow-right"));
+                convertToAttributeItem.setGraphic(createColoredIcon("bi-arrow-right", "#007bff"));
                 convertToAttributeItem.setOnAction(e -> convertElementToAttribute(nodeInfo));
                 convertToAttributeItem.setDisable(!canConvertElementToAttribute(nodeInfo));
                 contextMenu.getItems().add(convertToAttributeItem);
@@ -1591,7 +1591,7 @@ public class XsdDiagramView {
             // Convert Attribute to Element (only for attributes)
             if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE) {
                 MenuItem convertToElementItem = new MenuItem("Convert to Element");
-                convertToElementItem.setGraphic(new FontIcon("bi-arrow-left"));
+                convertToElementItem.setGraphic(createColoredIcon("bi-arrow-left", "#007bff"));
                 convertToElementItem.setOnAction(e -> convertAttributeToElement(nodeInfo));
                 contextMenu.getItems().add(convertToElementItem);
             }
@@ -1599,14 +1599,14 @@ public class XsdDiagramView {
             // Extract ComplexType (only for elements with inline complexTypes)
             if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT) {
                 MenuItem extractComplexTypeItem = new MenuItem("Extract ComplexType");
-                extractComplexTypeItem.setGraphic(new FontIcon("bi-box-arrow-up"));
+                extractComplexTypeItem.setGraphic(createColoredIcon("bi-box-arrow-up", "#17a2b8"));
                 extractComplexTypeItem.setOnAction(e -> extractComplexType(nodeInfo));
                 extractComplexTypeItem.setDisable(!canExtractComplexType(nodeInfo));
                 contextMenu.getItems().add(extractComplexTypeItem);
 
                 // Inline Type Definition (only for elements with global type references)
                 MenuItem inlineTypeItem = new MenuItem("Inline Type Definition");
-                inlineTypeItem.setGraphic(new FontIcon("bi-box-arrow-in-down"));
+                inlineTypeItem.setGraphic(createColoredIcon("bi-box-arrow-in-down", "#20c997"));
                 inlineTypeItem.setOnAction(e -> inlineTypeDefinition(nodeInfo));
                 inlineTypeItem.setDisable(!canInlineTypeDefinition(nodeInfo));
                 contextMenu.getItems().add(inlineTypeItem);
@@ -1617,13 +1617,13 @@ public class XsdDiagramView {
         contextMenu.getItems().add(new SeparatorMenuItem());
 
         MenuItem copyItem = new MenuItem("Copy");
-        copyItem.setGraphic(new FontIcon("bi-files"));
+        copyItem.setGraphic(createColoredIcon("bi-files", "#007bff"));
         copyItem.setOnAction(e -> copyNode(nodeInfo));
         contextMenu.getItems().add(copyItem);
 
         // Paste menu item with dynamic status
         MenuItem pasteItem = new MenuItem("Paste");
-        pasteItem.setGraphic(new FontIcon("bi-clipboard"));
+        pasteItem.setGraphic(createColoredIcon("bi-clipboard", "#28a745"));
         pasteItem.setOnAction(e -> pasteNode(nodeInfo));
 
         // Enable/disable based on clipboard content and show what's in clipboard
@@ -3175,21 +3175,21 @@ public class XsdDiagramView {
                         "-fx-border-color: #ef5350; -fx-border-width: 1px; " +
                         "-fx-border-radius: 3px; -fx-background-radius: 3px; " +
                         "-fx-padding: 4px 8px; -fx-font-size: 11px;");
-                indicator.setGraphic(new FontIcon("bi-exclamation-circle-fill"));
+                indicator.setGraphic(createColoredIcon("bi-exclamation-circle-fill", "#dc3545"));
                 break;
             case WARNING:
                 indicator.setStyle("-fx-background-color: #fff8e1; -fx-text-fill: #f57f17; " +
                         "-fx-border-color: #ffca28; -fx-border-width: 1px; " +
                         "-fx-border-radius: 3px; -fx-background-radius: 3px; " +
                         "-fx-padding: 4px 8px; -fx-font-size: 11px;");
-                indicator.setGraphic(new FontIcon("bi-exclamation-triangle-fill"));
+                indicator.setGraphic(createColoredIcon("bi-exclamation-triangle-fill", "#ffc107"));
                 break;
             case INFO:
                 indicator.setStyle("-fx-background-color: #e3f2fd; -fx-text-fill: #1976d2; " +
                         "-fx-border-color: #42a5f5; -fx-border-width: 1px; " +
                         "-fx-border-radius: 3px; -fx-background-radius: 3px; " +
                         "-fx-padding: 4px 8px; -fx-font-size: 11px;");
-                indicator.setGraphic(new FontIcon("bi-info-circle-fill"));
+                indicator.setGraphic(createColoredIcon("bi-info-circle-fill", "#17a2b8"));
                 break;
         }
 
@@ -3383,7 +3383,7 @@ public class XsdDiagramView {
         typeField.setPromptText("Element type");
 
         Button typeButton = new Button("Browse...");
-        typeButton.setGraphic(new FontIcon("bi-search"));
+        typeButton.setGraphic(createColoredIcon("bi-search", "#6c757d"));
         typeButton.setOnAction(e -> {
             XsdTypeSelector typeSelector = new XsdTypeSelector(domManipulator != null ? domManipulator.getDocument() : null);
             Optional<String> selectedType = typeSelector.showAndWait();
@@ -3503,7 +3503,7 @@ public class XsdDiagramView {
         typeField.setPromptText("Attribute type");
 
         Button typeButton = new Button("Browse...");
-        typeButton.setGraphic(new FontIcon("bi-search"));
+        typeButton.setGraphic(createColoredIcon("bi-search", "#6c757d"));
         typeButton.setOnAction(e -> {
             XsdTypeSelector typeSelector = new XsdTypeSelector(domManipulator != null ? domManipulator.getDocument() : null);
             Optional<String> selectedType = typeSelector.showAndWait();
@@ -3974,5 +3974,15 @@ public class XsdDiagramView {
             logger.warn("Failed to find type element using XPath: {}", typeNodeInfo.xpath(), e);
             return null;
         }
+    }
+
+    /**
+     * Creates a colored FontIcon for menu items
+     */
+    private FontIcon createColoredIcon(String iconLiteral, String color) {
+        FontIcon icon = new FontIcon(iconLiteral);
+        icon.setIconColor(javafx.scene.paint.Color.web(color));
+        icon.setIconSize(12);
+        return icon;
     }
 }

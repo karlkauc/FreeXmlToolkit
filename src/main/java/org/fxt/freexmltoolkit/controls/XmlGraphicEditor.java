@@ -952,7 +952,7 @@ public class XmlGraphicEditor extends VBox {
         // Navigation actions (only for elements)
         if (domNode.getNodeType() == Node.ELEMENT_NODE) {
             MenuItem goToDefinitionMenuItem = new MenuItem("Go to XSD Definition");
-            goToDefinitionMenuItem.setGraphic(new FontIcon("bi-box-arrow-up-right"));
+            goToDefinitionMenuItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", "#17a2b8"));
             goToDefinitionMenuItem.setOnAction(e -> navigateToXsdDefinitionFromGraphicEditor(domNode));
             contextMenu.getItems().add(goToDefinitionMenuItem);
             contextMenu.getItems().add(new SeparatorMenuItem());
@@ -961,39 +961,39 @@ public class XmlGraphicEditor extends VBox {
         // Only show "Add Child" if the node can have child elements
         if (canHaveChildren(domNode)) {
             MenuItem addChildMenuItem = new MenuItem("Add Child to: " + domNode.getNodeName());
-            addChildMenuItem.setGraphic(new FontIcon("bi-plus-circle"));
+            addChildMenuItem.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
             addChildMenuItem.setOnAction(e -> addChildNodeToSpecificParent(domNode));
             contextMenu.getItems().add(addChildMenuItem);
         }
 
         MenuItem addSiblingAfterMenuItem = new MenuItem("Add Sibling After");
-        addSiblingAfterMenuItem.setGraphic(new FontIcon("bi-arrow-right-circle"));
+        addSiblingAfterMenuItem.setGraphic(createColoredIcon("bi-arrow-right-circle", "#007bff"));
         addSiblingAfterMenuItem.setOnAction(e -> addSiblingNode(domNode, true));
 
         MenuItem addSiblingBeforeMenuItem = new MenuItem("Add Sibling Before");
-        addSiblingBeforeMenuItem.setGraphic(new FontIcon("bi-arrow-left-circle"));
+        addSiblingBeforeMenuItem.setGraphic(createColoredIcon("bi-arrow-left-circle", "#007bff"));
         addSiblingBeforeMenuItem.setOnAction(e -> addSiblingNode(domNode, false));
 
         MenuItem moveUpMenuItem = new MenuItem("Move Up");
-        moveUpMenuItem.setGraphic(new FontIcon("bi-arrow-up-circle"));
+        moveUpMenuItem.setGraphic(createColoredIcon("bi-arrow-up-circle", "#6f42c1"));
         moveUpMenuItem.setOnAction(e -> moveNodeUp(domNode));
 
         MenuItem moveDownMenuItem = new MenuItem("Move Down");
-        moveDownMenuItem.setGraphic(new FontIcon("bi-arrow-down-circle"));
+        moveDownMenuItem.setGraphic(createColoredIcon("bi-arrow-down-circle", "#6f42c1"));
         moveDownMenuItem.setOnAction(e -> moveNodeDown(domNode));
 
         MenuItem deleteMenuItem = new MenuItem("Delete: " + domNode.getNodeName());
-        deleteMenuItem.setGraphic(new FontIcon("bi-trash"));
+        deleteMenuItem.setGraphic(createColoredIcon("bi-trash", "#dc3545"));
         deleteMenuItem.setOnAction(e -> deleteNode(domNode));
 
         // Attribute management menu items (only for elements)
         if (domNode.getNodeType() == Node.ELEMENT_NODE) {
             MenuItem addAttributeMenuItem = new MenuItem("Add Attribute");
-            addAttributeMenuItem.setGraphic(new FontIcon("bi-at"));
+            addAttributeMenuItem.setGraphic(createColoredIcon("bi-at", "#ffc107"));
             addAttributeMenuItem.setOnAction(e -> addAttributeToElement(domNode));
 
             MenuItem editAttributesMenuItem = new MenuItem("Edit Attributes");
-            editAttributesMenuItem.setGraphic(new FontIcon("bi-pencil"));
+            editAttributesMenuItem.setGraphic(createColoredIcon("bi-pencil", "#fd7e14"));
             editAttributesMenuItem.setOnAction(e -> editElementAttributes(domNode));
 
             contextMenu.getItems().addAll(
@@ -3349,5 +3349,15 @@ public class XmlGraphicEditor extends VBox {
      */
     public HBox getSearchBar() {
         return createSearchBar();
+    }
+
+    /**
+     * Creates a colored FontIcon for menu items
+     */
+    private FontIcon createColoredIcon(String iconLiteral, String color) {
+        FontIcon icon = new FontIcon(iconLiteral);
+        icon.setIconColor(javafx.scene.paint.Color.web(color));
+        icon.setIconSize(12);
+        return icon;
     }
 }

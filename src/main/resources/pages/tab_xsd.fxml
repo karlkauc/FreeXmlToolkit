@@ -432,28 +432,6 @@
                             <VBox style="-fx-background-color: #f8f9fa;">
                                 <children>
                                     <!-- Visualization Selection Toolbar -->
-                                    <HBox fx:id="visualizationToolbar" spacing="10" alignment="CENTER_LEFT"
-                                          style="-fx-padding: 10; -fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;"
-                                          managed="false" visible="false">
-                                        <children>
-                                            <Label text="View:" style="-fx-font-weight: bold;"/>
-                                            <ToggleButton fx:id="treeViewToggle" text="Tree View" selected="true">
-                                                <graphic>
-                                                    <FontIcon iconLiteral="bi-diagram-3"/>
-                                                </graphic>
-                                            </ToggleButton>
-                                            <ToggleButton fx:id="umlViewToggle" text="UML View">
-                                                <graphic>
-                                                    <FontIcon iconLiteral="bi-diagram-2"/>
-                                                </graphic>
-                                            </ToggleButton>
-                                            <ToggleButton fx:id="gridViewToggle" text="Grid View">
-                                                <graphic>
-                                                    <FontIcon iconLiteral="bi-table"/>
-                                                </graphic>
-                                            </ToggleButton>
-                                        </children>
-                                    </HBox>
 
                                     <!-- Content Area -->
                                     <StackPane VBox.vgrow="ALWAYS">
@@ -476,13 +454,8 @@
                                             </VBox>
 
                                             <!-- Tree View Container -->
-                                            <StackPane fx:id="xsdStackPane" managed="false" visible="false"/>
+                                            <StackPane fx:id="xsdStackPane"/>
 
-                                            <!-- UML View Container -->
-                                            <StackPane fx:id="umlViewContainer" managed="false" visible="false"/>
-
-                                            <!-- Grid View Container -->
-                                            <StackPane fx:id="gridViewContainer" managed="false" visible="false"/>
 
                                             <ProgressIndicator fx:id="xsdDiagramProgress" maxHeight="80" maxWidth="80"
                                                                visible="false"/>
