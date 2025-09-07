@@ -57,8 +57,6 @@ import java.util.concurrent.TimeUnit;
 public class XsdController {
 
     private XsdDiagramView currentDiagramView;
-    private XsdUmlView currentUmlView;
-    private XsdGridView currentGridView;
     
     @FXML
     private TabPane tabPane;
@@ -188,21 +186,8 @@ public class XsdController {
     private Label xsdInfoPathLabel, xsdInfoNamespaceLabel, xsdInfoVersionLabel;
 
     // New fields for visualization (UML, Grid)
-    @FXML
-    private HBox visualizationToolbar;
-    @FXML
-    private ToggleButton treeViewToggle;
-    @FXML
-    private ToggleButton umlViewToggle;
-    @FXML
-    private ToggleButton gridViewToggle;
-    @FXML
-    private StackPane umlViewContainer;
-    @FXML
-    private StackPane gridViewContainer;
 
     // Toggle group created programmatically
-    private ToggleGroup visualizationToggleGroup;
     @FXML
     private ProgressIndicator progressSampleData;
 
@@ -694,14 +679,10 @@ public class XsdController {
                 logger.debug("lade diagramm...");
                 xsdStackPane.getChildren().add(diagramView.build());
 
-                // Show visualization toolbar now that content is loaded
-                if (visualizationToolbar != null) {
-                    visualizationToolbar.setVisible(true);
-                    visualizationToolbar.setManaged(true);
-                }
+                // Show XSD info pane now that content is loaded
+                xsdInfoPane.setVisible(true);
+                xsdInfoPane.setManaged(true);
 
-                // Update visualization views
-                updateVisualizationViews();
             } else {
                 Label infoLabel = new Label("No root element found in schema.");
                 xsdStackPane.getChildren().add(infoLabel);
@@ -966,14 +947,10 @@ public class XsdController {
 
                 xsdStackPane.getChildren().add(diagramView.build());
 
-                // Show visualization toolbar now that content is loaded
-                if (visualizationToolbar != null) {
-                    visualizationToolbar.setVisible(true);
-                    visualizationToolbar.setManaged(true);
-                }
+                // Show XSD info pane now that content is loaded
+                xsdInfoPane.setVisible(true);
+                xsdInfoPane.setManaged(true);
 
-                // Update visualization views
-                updateVisualizationViews();
             } else {
                 Label infoLabel = new Label("No root element found in schema.");
                 xsdStackPane.getChildren().add(infoLabel);
@@ -1419,11 +1396,6 @@ public class XsdController {
             logger.info("XSD content length: {}", xsdContent.length());
             logger.info("XSD loaded successfully into DOM manipulator");
 
-            // Update existing views with new DOM manipulator
-            if (currentGridView != null) {
-                currentGridView.updateDomManipulator(currentDomManipulator);
-                logger.info("Grid view updated with new DOM manipulator");
-            }
 
             // Update the graphic view immediately
             Platform.runLater(() -> {
@@ -1431,8 +1403,6 @@ public class XsdController {
                     setupXsdDiagramFromContent(xsdContent);
                     logger.info("Graphic view updated for new XSD content");
 
-                    // Update visualization views if they exist
-                    updateVisualizationViews();
                 } catch (Exception ex) {
                     logger.error("Error updating graphic view", ex);
                 }
@@ -3154,168 +3124,13 @@ public class XsdController {
      * Setup visualization toggle buttons for switching between tree, UML, and grid views
      */
     private void setupVisualizationToggleButtons() {
-        if (treeViewToggle != null && umlViewToggle != null && gridViewToggle != null) {
-            // Create toggle group programmatically
-            visualizationToggleGroup = new ToggleGroup();
-
-            // Add buttons to toggle group
-            treeViewToggle.setToggleGroup(visualizationToggleGroup);
-            umlViewToggle.setToggleGroup(visualizationToggleGroup);
-            gridViewToggle.setToggleGroup(visualizationToggleGroup);
-
-            // Set up toggle button actions
-            treeViewToggle.setOnAction(event -> showTreeView());
-            umlViewToggle.setOnAction(event -> showUmlView());
-            gridViewToggle.setOnAction(event -> showGridView());
-
-            // Initially select tree view
-            treeViewToggle.setSelected(true);
-
-            // Set up toggle group listener to ensure only one is selected
-            visualizationToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
-                if (newValue == null) {
-                    // Prevent deselecting all toggles
-                    if (oldValue != null) {
-                        oldValue.setSelected(true);
-                    }
-                }
-            });
-        }
+        // UML and Grid views removed - only tree view remains active
     }
 
-    /**
-     * Show the tree diagram view
-     */
-    private void showTreeView() {
-        if (xsdStackPane != null && umlViewContainer != null && gridViewContainer != null) {
-            xsdStackPane.setVisible(true);
-            xsdStackPane.setManaged(true);
-            umlViewContainer.setVisible(false);
-            umlViewContainer.setManaged(false);
-            gridViewContainer.setVisible(false);
-            gridViewContainer.setManaged(false);
-        }
-    }
 
-    /**
-     * Show the UML diagram view
-     */
-    private void showUmlView() {
-        if (xsdStackPane != null && umlViewContainer != null && gridViewContainer != null) {
-            xsdStackPane.setVisible(false);
-            xsdStackPane.setManaged(false);
-            umlViewContainer.setVisible(true);
-            umlViewContainer.setManaged(true);
-            gridViewContainer.setVisible(false);
-            gridViewContainer.setManaged(false);
 
-            // Initialize UML view if not already done
-            if (currentUmlView == null && currentDomManipulator != null) {
-                initializeUmlView();
-            }
-        }
-    }
 
-    /**
-     * Show the grid table view
-     */
-    private void showGridView() {
-        if (xsdStackPane != null && umlViewContainer != null && gridViewContainer != null) {
-            xsdStackPane.setVisible(false);
-            xsdStackPane.setManaged(false);
-            umlViewContainer.setVisible(false);
-            umlViewContainer.setManaged(false);
-            gridViewContainer.setVisible(true);
-            gridViewContainer.setManaged(true);
 
-            // Initialize Grid view if not already done
-            if (currentGridView == null && currentDomManipulator != null) {
-                initializeGridView();
-            }
-        }
-    }
 
-    /**
-     * Initialize the UML view with current DOM manipulator
-     */
-    private void initializeUmlView() {
-        if (currentDomManipulator != null && umlViewContainer != null) {
-            try {
-                currentUmlView = new XsdUmlView(currentDomManipulator);
-                umlViewContainer.getChildren().clear();
-                umlViewContainer.getChildren().add(currentUmlView);
-                logger.info("UML view initialized successfully");
-            } catch (Exception e) {
-                logger.error("Failed to initialize UML view", e);
-                Label errorLabel = new Label("Failed to load UML view: " + e.getMessage());
-                errorLabel.setStyle("-fx-text-fill: red;");
-                umlViewContainer.getChildren().clear();
-                umlViewContainer.getChildren().add(errorLabel);
-            }
-        }
-    }
-
-    /**
-     * Initialize the Grid view with current DOM manipulator
-     */
-    private void initializeGridView() {
-        if (currentDomManipulator != null && gridViewContainer != null) {
-            try {
-                currentGridView = new XsdGridView(currentDomManipulator);
-                gridViewContainer.getChildren().clear();
-                gridViewContainer.getChildren().add(currentGridView);
-                logger.info("Grid view initialized successfully");
-            } catch (Exception e) {
-                logger.error("Failed to initialize Grid view", e);
-                Label errorLabel = new Label("Failed to load Grid view: " + e.getMessage());
-                errorLabel.setStyle("-fx-text-fill: red;");
-                gridViewContainer.getChildren().clear();
-                gridViewContainer.getChildren().add(errorLabel);
-            }
-        }
-    }
-
-    /**
-     * Update visualization views when XSD content changes
-     */
-    private void updateVisualizationViews() {
-        // Update existing views with new DOM manipulator if possible
-        if (currentDomManipulator != null) {
-            if (currentUmlView != null) {
-                // UML view doesn't have updateDomManipulator method, so recreate it
-                currentUmlView = null;
-                if (umlViewContainer != null) {
-                    umlViewContainer.getChildren().clear();
-                }
-            }
-
-            if (currentGridView != null) {
-                // Update grid view with new DOM manipulator
-                currentGridView.updateDomManipulator(currentDomManipulator);
-                logger.info("Grid view updated with new DOM manipulator");
-            }
-        } else {
-            // Reset views if no DOM manipulator
-            currentUmlView = null;
-            if (umlViewContainer != null) {
-                umlViewContainer.getChildren().clear();
-            }
-
-            currentGridView = null;
-            if (gridViewContainer != null) {
-                gridViewContainer.getChildren().clear();
-            }
-        }
-
-        // If UML view is currently selected, reinitialize it
-        if (umlViewToggle != null && umlViewToggle.isSelected()) {
-            initializeUmlView();
-        }
-
-        // If Grid view is currently selected, reinitialize it
-        if (gridViewToggle != null && gridViewToggle.isSelected()) {
-            initializeGridView();
-        }
-    }
 
 }

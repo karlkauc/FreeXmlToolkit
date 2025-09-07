@@ -4,7 +4,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.input.ClipboardContent;
@@ -12,16 +11,12 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Polygon;
-import javafx.scene.shape.Rectangle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.controls.XmlEditorSidebarController;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.jetbrains.annotations.NotNull;
+import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.*;
 
 import java.util.*;
@@ -957,7 +952,7 @@ public class XmlGraphicEditor extends VBox {
         // Navigation actions (only for elements)
         if (domNode.getNodeType() == Node.ELEMENT_NODE) {
             MenuItem goToDefinitionMenuItem = new MenuItem("Go to XSD Definition");
-            goToDefinitionMenuItem.setGraphic(createIcon("GO_TO_DEFINITION"));
+            goToDefinitionMenuItem.setGraphic(new FontIcon("bi-box-arrow-up-right"));
             goToDefinitionMenuItem.setOnAction(e -> navigateToXsdDefinitionFromGraphicEditor(domNode));
             contextMenu.getItems().add(goToDefinitionMenuItem);
             contextMenu.getItems().add(new SeparatorMenuItem());
@@ -966,39 +961,39 @@ public class XmlGraphicEditor extends VBox {
         // Only show "Add Child" if the node can have child elements
         if (canHaveChildren(domNode)) {
             MenuItem addChildMenuItem = new MenuItem("Add Child to: " + domNode.getNodeName());
-            addChildMenuItem.setGraphic(createIcon("ADD_CHILD"));
+            addChildMenuItem.setGraphic(new FontIcon("bi-plus-circle"));
             addChildMenuItem.setOnAction(e -> addChildNodeToSpecificParent(domNode));
             contextMenu.getItems().add(addChildMenuItem);
         }
 
         MenuItem addSiblingAfterMenuItem = new MenuItem("Add Sibling After");
-        addSiblingAfterMenuItem.setGraphic(createIcon("ADD_AFTER"));
+        addSiblingAfterMenuItem.setGraphic(new FontIcon("bi-arrow-right-circle"));
         addSiblingAfterMenuItem.setOnAction(e -> addSiblingNode(domNode, true));
 
         MenuItem addSiblingBeforeMenuItem = new MenuItem("Add Sibling Before");
-        addSiblingBeforeMenuItem.setGraphic(createIcon("ADD_BEFORE"));
+        addSiblingBeforeMenuItem.setGraphic(new FontIcon("bi-arrow-left-circle"));
         addSiblingBeforeMenuItem.setOnAction(e -> addSiblingNode(domNode, false));
 
         MenuItem moveUpMenuItem = new MenuItem("Move Up");
-        moveUpMenuItem.setGraphic(createIcon("MOVE_UP"));
+        moveUpMenuItem.setGraphic(new FontIcon("bi-arrow-up-circle"));
         moveUpMenuItem.setOnAction(e -> moveNodeUp(domNode));
 
         MenuItem moveDownMenuItem = new MenuItem("Move Down");
-        moveDownMenuItem.setGraphic(createIcon("MOVE_DOWN"));
+        moveDownMenuItem.setGraphic(new FontIcon("bi-arrow-down-circle"));
         moveDownMenuItem.setOnAction(e -> moveNodeDown(domNode));
 
         MenuItem deleteMenuItem = new MenuItem("Delete: " + domNode.getNodeName());
-        deleteMenuItem.setGraphic(createIcon("DELETE"));
+        deleteMenuItem.setGraphic(new FontIcon("bi-trash"));
         deleteMenuItem.setOnAction(e -> deleteNode(domNode));
 
         // Attribute management menu items (only for elements)
         if (domNode.getNodeType() == Node.ELEMENT_NODE) {
             MenuItem addAttributeMenuItem = new MenuItem("Add Attribute");
-            addAttributeMenuItem.setGraphic(createIcon("ADD_ATTRIBUTE"));
+            addAttributeMenuItem.setGraphic(new FontIcon("bi-at"));
             addAttributeMenuItem.setOnAction(e -> addAttributeToElement(domNode));
 
             MenuItem editAttributesMenuItem = new MenuItem("Edit Attributes");
-            editAttributesMenuItem.setGraphic(createIcon("EDIT_ATTRIBUTE"));
+            editAttributesMenuItem.setGraphic(new FontIcon("bi-pencil"));
             editAttributesMenuItem.setOnAction(e -> editElementAttributes(domNode));
 
             contextMenu.getItems().addAll(
@@ -1024,6 +1019,9 @@ public class XmlGraphicEditor extends VBox {
                     deleteMenuItem
             );
         }
+
+        // Apply uniform font styling to context menu
+        contextMenu.setStyle("-fx-font-family: 'Segoe UI', Arial, sans-serif;");
 
         uiContainer.setOnContextMenuRequested(e -> {
             logger.debug("Context menu requested for UI container. DOM node: {}", domNode.getNodeName());
@@ -1738,159 +1736,6 @@ public class XmlGraphicEditor extends VBox {
         };
     }
 
-    private javafx.scene.Node createIcon(String iconType) {
-        return switch (iconType) {
-            case "ADD_CHILD" -> createAddChildIcon();
-            case "ADD_AFTER" -> createAddAfterIcon();
-            case "ADD_BEFORE" -> createAddBeforeIcon();
-            case "MOVE_UP" -> createMoveUpIcon();
-            case "MOVE_DOWN" -> createMoveDownIcon();
-            case "ADD_ATTRIBUTE" -> createAddAttributeIcon();
-            case "EDIT_ATTRIBUTE" -> createEditAttributeIcon();
-            case "GO_TO_DEFINITION" -> createGoToDefinitionIcon();
-            case "DELETE" -> createDeleteIcon();
-            default -> createDefaultIcon();
-        };
-    }
-
-    private javafx.scene.Node createAddChildIcon() {
-        // Plus icon with downward arrow
-        Group group = new Group();
-
-        // Plus sign
-        Rectangle hLine = new Rectangle(10, 2);
-        hLine.setFill(Color.DARKGREEN);
-        hLine.setX(3);
-        hLine.setY(7);
-
-        Rectangle vLine = new Rectangle(2, 10);
-        vLine.setFill(Color.DARKGREEN);
-        vLine.setX(7);
-        vLine.setY(3);
-
-        // Small arrow pointing down
-        Polygon arrow = new Polygon();
-        arrow.getPoints().addAll(8.0, 14.0,  // top point
-                6.0, 16.0,  // left point
-                10.0, 16.0  // right point
-        );
-        arrow.setFill(Color.DARKGREEN);
-
-        group.getChildren().addAll(hLine, vLine, arrow);
-        return group;
-    }
-
-    private javafx.scene.Node createAddAfterIcon() {
-        // Plus with right arrow
-        Group group = new Group();
-
-        Rectangle hLine = new Rectangle(8, 2);
-        hLine.setFill(Color.DARKBLUE);
-        hLine.setX(2);
-        hLine.setY(7);
-
-        Rectangle vLine = new Rectangle(2, 8);
-        vLine.setFill(Color.DARKBLUE);
-        vLine.setX(5);
-        vLine.setY(4);
-
-        // Arrow pointing right
-        Polygon arrow = new Polygon();
-        arrow.getPoints().addAll(11.0, 8.0,  // left point
-                14.0, 6.0,  // top point
-                14.0, 10.0  // bottom point
-        );
-        arrow.setFill(Color.DARKBLUE);
-
-        group.getChildren().addAll(hLine, vLine, arrow);
-        return group;
-    }
-
-    private javafx.scene.Node createAddBeforeIcon() {
-        // Plus with left arrow
-        Group group = new Group();
-
-        Rectangle hLine = new Rectangle(8, 2);
-        hLine.setFill(Color.DARKBLUE);
-        hLine.setX(6);
-        hLine.setY(7);
-
-        Rectangle vLine = new Rectangle(2, 8);
-        vLine.setFill(Color.DARKBLUE);
-        vLine.setX(9);
-        vLine.setY(4);
-
-        // Arrow pointing left
-        Polygon arrow = new Polygon();
-        arrow.getPoints().addAll(5.0, 8.0,   // right point
-                2.0, 6.0,   // top point
-                2.0, 10.0   // bottom point
-        );
-        arrow.setFill(Color.DARKBLUE);
-
-        group.getChildren().addAll(hLine, vLine, arrow);
-        return group;
-    }
-
-    private javafx.scene.Node createDeleteIcon() {
-        // X icon
-        Group group = new Group();
-
-        // First diagonal line (top-left to bottom-right)
-        Line line1 = new Line(3, 3, 13, 13);
-        line1.setStroke(Color.DARKRED);
-        line1.setStrokeWidth(2);
-
-        // Second diagonal line (top-right to bottom-left)
-        Line line2 = new Line(13, 3, 3, 13);
-        line2.setStroke(Color.DARKRED);
-        line2.setStrokeWidth(2);
-
-        group.getChildren().addAll(line1, line2);
-        return group;
-    }
-
-    private javafx.scene.Node createMoveUpIcon() {
-        Group group = new Group();
-
-        // Arrow pointing up
-        Line line1 = new Line(8, 3, 5, 8);
-        line1.setStroke(Color.DARKBLUE);
-        line1.setStrokeWidth(2);
-
-        Line line2 = new Line(8, 3, 11, 8);
-        line2.setStroke(Color.DARKBLUE);
-        line2.setStrokeWidth(2);
-
-        // Vertical line
-        Line line3 = new Line(8, 3, 8, 13);
-        line3.setStroke(Color.DARKBLUE);
-        line3.setStrokeWidth(2);
-
-        group.getChildren().addAll(line1, line2, line3);
-        return group;
-    }
-
-    private javafx.scene.Node createMoveDownIcon() {
-        Group group = new Group();
-
-        // Arrow pointing down
-        Line line1 = new Line(8, 13, 5, 8);
-        line1.setStroke(Color.DARKBLUE);
-        line1.setStrokeWidth(2);
-
-        Line line2 = new Line(8, 13, 11, 8);
-        line2.setStroke(Color.DARKBLUE);
-        line2.setStrokeWidth(2);
-
-        // Vertical line
-        Line line3 = new Line(8, 3, 8, 13);
-        line3.setStroke(Color.DARKBLUE);
-        line3.setStrokeWidth(2);
-
-        group.getChildren().addAll(line1, line2, line3);
-        return group;
-    }
 
     private void moveNodeUp(Node domNode) {
         Node parent = domNode.getParentNode();
@@ -1963,77 +1808,6 @@ public class XmlGraphicEditor extends VBox {
         logger.debug("Moved node '{}' down", domNode.getNodeName());
     }
 
-    private javafx.scene.Node createAddAttributeIcon() {
-        Group group = new Group();
-
-        // @ symbol for attribute
-        Circle circle = new Circle(8, 8, 6);
-        circle.setFill(Color.TRANSPARENT);
-        circle.setStroke(Color.DARKORANGE);
-        circle.setStrokeWidth(2);
-
-        // @ character representation
-        Rectangle topArc = new Rectangle(6, 2);
-        topArc.setFill(Color.DARKORANGE);
-        topArc.setX(5);
-        topArc.setY(6);
-
-        Rectangle bottomArc = new Rectangle(6, 2);
-        bottomArc.setFill(Color.DARKORANGE);
-        bottomArc.setX(5);
-        bottomArc.setY(9);
-
-        group.getChildren().addAll(circle, topArc, bottomArc);
-        return group;
-    }
-
-    private javafx.scene.Node createEditAttributeIcon() {
-        Group group = new Group();
-
-        // Pencil icon for editing
-        Line shaft = new Line(3, 13, 10, 6);
-        shaft.setStroke(Color.DARKGOLDENROD);
-        shaft.setStrokeWidth(2);
-
-        // Pencil tip
-        Polygon tip = new Polygon();
-        tip.getPoints().addAll(
-                10.0, 6.0,   // tip point
-                12.0, 4.0,   // top
-                13.0, 7.0    // bottom
-        );
-        tip.setFill(Color.DARKGOLDENROD);
-
-        group.getChildren().addAll(shaft, tip);
-        return group;
-    }
-
-    private javafx.scene.Node createGoToDefinitionIcon() {
-        // Navigation arrow icon
-        Group group = new Group();
-        // Arrow shaft
-        Rectangle shaft = new Rectangle(2, 8);
-        shaft.setFill(Color.DARKBLUE);
-        shaft.setX(2);
-        shaft.setY(4);
-        // Arrow tip
-        Polygon tip = new Polygon();
-        tip.getPoints().addAll(10.0, 8.0,  // tip
-                6.0, 5.0,   // top
-                6.0, 11.0   // bottom
-        );
-        tip.setFill(Color.DARKBLUE);
-        group.getChildren().addAll(shaft, tip);
-        return group;
-    }
-
-    private javafx.scene.Node createDefaultIcon() {
-        // Simple circle
-        Circle circle = new Circle(8, 8, 6);
-        circle.setFill(Color.LIGHTGRAY);
-        circle.setStroke(Color.GRAY);
-        return circle;
-    }
 
     private void addAttributeToElement(Node elementNode) {
         if (elementNode.getNodeType() != Node.ELEMENT_NODE) {

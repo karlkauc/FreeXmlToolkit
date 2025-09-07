@@ -70,7 +70,6 @@ public class XsdDiagramView {
 
     // Search/Filter system
     private TextField searchField;
-    private ComboBox<String> filterComboBox;
     private Button clearSearchButton;
     private final List<XsdNodeInfo> allNodes = new ArrayList<>();
     private final List<XsdNodeInfo> filteredNodes = new ArrayList<>();
@@ -451,17 +450,6 @@ public class XsdDiagramView {
         HBox searchBox = new HBox(5);
         searchBox.setAlignment(Pos.CENTER_LEFT);
 
-        // Filter ComboBox
-        filterComboBox = new ComboBox<>();
-        filterComboBox.getItems().addAll(
-                "All Types", "Elements", "Attributes", "Sequences", "Choices",
-                "SimpleTypes", "ComplexTypes", "Any"
-        );
-        filterComboBox.setValue("All Types");
-        filterComboBox.setPrefWidth(120);
-        filterComboBox.setPromptText("Filter");
-        filterComboBox.setTooltip(new Tooltip("Filter by node type"));
-        filterComboBox.setOnAction(e -> performSearch());
 
         // Search TextField
         searchField = new TextField();
@@ -501,7 +489,6 @@ public class XsdDiagramView {
                 "-fx-padding: 4px 8px; -fx-cursor: hand;";
 
         searchField.setStyle(searchStyle);
-        filterComboBox.setStyle(searchStyle);
         clearSearchButton.setStyle(buttonStyle);
 
         // Add focus styling
@@ -514,7 +501,6 @@ public class XsdDiagramView {
         });
 
         searchBox.getChildren().addAll(
-                new Label("Filter:"), filterComboBox,
                 new Label("Search:"), searchField, clearSearchButton
         );
 
@@ -526,14 +512,13 @@ public class XsdDiagramView {
      */
     private void performSearch() {
         String searchText = searchField.getText().toLowerCase().trim();
-        String filterType = filterComboBox.getValue();
 
         // Enable/disable clear button
-        boolean hasSearch = !searchText.isEmpty() || !"All Types".equals(filterType);
+        boolean hasSearch = !searchText.isEmpty();
         clearSearchButton.setDisable(!hasSearch);
 
         if (!hasSearch) {
-            // No search/filter active, show all nodes normally
+            // No search active, show all nodes normally
             refreshNodeVisibility(null, null);
             return;
         }
@@ -542,24 +527,24 @@ public class XsdDiagramView {
         allNodes.clear();
         collectAllNodes(rootNode, allNodes);
 
-        // Filter nodes based on criteria
+        // Filter nodes based on search text
         filteredNodes.clear();
         for (XsdNodeInfo node : allNodes) {
-            if (matchesFilter(node, searchText, filterType)) {
+            if (matchesFilter(node, searchText)) {
                 filteredNodes.add(node);
             }
         }
 
         // Add to search history if it's a meaningful search
-        if (!searchText.isEmpty() && searchText.length() > 1) {
+        if (searchText.length() > 1) {
             addToSearchHistory(searchText);
         }
 
         // Update UI to highlight matching nodes
         refreshNodeVisibility(searchText, filteredNodes);
 
-        logger.info("Search '{}' with filter '{}' found {} results",
-                searchText, filterType, filteredNodes.size());
+        logger.info("Search '{}' found {} results",
+                searchText, filteredNodes.size());
     }
 
     /**
@@ -567,7 +552,6 @@ public class XsdDiagramView {
      */
     private void clearSearch() {
         searchField.clear();
-        filterComboBox.setValue("All Types");
         clearSearchButton.setDisable(true);
         refreshNodeVisibility(null, null);
         logger.info("Search cleared");
@@ -576,29 +560,7 @@ public class XsdDiagramView {
     /**
      * Check if node matches search and filter criteria
      */
-    private boolean matchesFilter(XsdNodeInfo node, String searchText, String filterType) {
-        // Filter by node type first
-        if (!"All Types".equals(filterType)) {
-            boolean typeMatch = switch (filterType) {
-                case "Elements" -> node.nodeType() == XsdNodeInfo.NodeType.ELEMENT;
-                case "Attributes" -> node.nodeType() == XsdNodeInfo.NodeType.ATTRIBUTE;
-                case "Sequences" -> node.nodeType() == XsdNodeInfo.NodeType.SEQUENCE;
-                case "Choices" -> node.nodeType() == XsdNodeInfo.NodeType.CHOICE;
-                case "SimpleTypes" -> node.nodeType() == XsdNodeInfo.NodeType.ELEMENT &&
-                        node.type() != null && !node.type().startsWith("xs:") &&
-                        node.type().toLowerCase().contains("type");
-                case "ComplexTypes" -> node.nodeType() == XsdNodeInfo.NodeType.ELEMENT &&
-                        node.type() != null && !node.type().startsWith("xs:") &&
-                        !node.type().toLowerCase().contains("type");
-                case "Any" -> node.nodeType() == XsdNodeInfo.NodeType.ANY;
-                default -> true;
-            };
-            if (!typeMatch) return false;
-        }
-
-        // If no search text, type filter is enough
-        if (searchText.isEmpty()) return true;
-
+    private boolean matchesFilter(XsdNodeInfo node, String searchText) {
         // Search in node name
         if (node.name() != null && node.name().toLowerCase().contains(searchText)) {
             return true;
@@ -1676,6 +1638,9 @@ public class XsdDiagramView {
         }
 
         contextMenu.getItems().add(pasteItem);
+
+        // Apply uniform font styling to context menu
+        contextMenu.setStyle("-fx-font-family: 'Segoe UI', Arial, sans-serif;");
 
         contextMenu.show(targetNode, javafx.geometry.Side.BOTTOM, 0, 0);
     }
