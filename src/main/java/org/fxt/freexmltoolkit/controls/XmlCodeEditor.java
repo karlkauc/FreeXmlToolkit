@@ -1108,23 +1108,23 @@ public class XmlCodeEditor extends VBox {
                 case ESCAPE -> {
                     hideIntelliSensePopup();
                 }
+                case ENTER -> {
+                    // Fully override default behavior to avoid double newlines
+                    event.consume();
+
+                    if (intelliSensePopup != null && intelliSensePopup.isShowing()) {
+                        selectCompletionItem();
+                    } else {
+                        if (!handleIntelligentEnterKey()) {
+                            // If intelligent handling doesn't apply, insert a simple newline
+                            codeArea.insertText(codeArea.getCaretPosition(), "\n");
+                        }
+                    }
+                }
                 case UP, DOWN -> {
                     if (intelliSensePopup.isShowing()) {
                         handlePopupNavigation(event);
                         event.consume();
-                    }
-                }
-                case ENTER -> {
-                    logger.debug("ENTER key pressed in CodeArea");
-                    if (intelliSensePopup != null && intelliSensePopup.isShowing()) {
-                        logger.debug("IntelliSense popup is showing - calling selectCompletionItem()");
-                        selectCompletionItem();
-                        event.consume();
-                    } else {
-                        logger.debug("IntelliSense popup not showing - applying intelligent cursor positioning");
-                        if (handleIntelligentEnterKey()) {
-                            event.consume();
-                        }
                     }
                 }
                 default -> {
@@ -1136,6 +1136,13 @@ public class XmlCodeEditor extends VBox {
         codeArea.addEventFilter(KeyEvent.KEY_TYPED, event -> {
             String character = event.getCharacter();
             if (character != null && !character.isEmpty()) {
+                // Block the KEY_TYPED event for Enter key to prevent double newlines
+                if (character.equals("\r") || character.equals("\n")) {
+                    logger.debug("KEY_TYPED event blocked for newline character: '{}' (code: {})", character, (int) character.charAt(0));
+                    event.consume();
+                    return;
+                }
+                
                 logger.debug("KEY_TYPED event - character: '{}' (code: {})", character, (int) character.charAt(0));
                 
                 // If we're in specialized mode (Schematron or XSD), completely skip XML IntelliSense
@@ -4516,14 +4523,14 @@ public class XmlCodeEditor extends VBox {
             String beforeCursor = text.substring(0, caretPosition);
             String afterCursor = text.substring(caretPosition);
 
-            // Insert newline with content indentation, then newline with base indentation for closing tag
-            String insertText = "\n" + contentIndentation + "\n" + baseIndentation;
+            // Insert newline with content indentation
+            String insertText = "\n" + contentIndentation;
 
             // Replace the text: before cursor + inserted text + after cursor
             codeArea.replaceText(0, text.length(), beforeCursor + insertText + afterCursor);
 
             // Position cursor at the end of the content indentation (on the empty content line)
-            int newPosition = caretPosition + contentIndentation.length() + 1; // +1 for first newline
+            int newPosition = caretPosition + contentIndentation.length() + 1; // +1 for newline
             codeArea.moveTo(newPosition);
 
             logger.debug("Applied Enter between tags with content indentation: '{}'", contentIndentation);

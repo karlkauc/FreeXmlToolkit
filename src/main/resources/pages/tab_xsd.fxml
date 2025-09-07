@@ -276,12 +276,20 @@
                                                    text="No XSD file loaded"/>
                                             <Label style="-fx-text-fill: #6c757d;"
                                                    text="Please load an XSD file to see the source code."/>
-                                            <Button onAction="#openXsdFileChooser" styleClass="button, :default"
-                                                    text="Load XSD File">
-                                                <graphic>
-                                                    <FontIcon iconLiteral="bi-folder2-open"/>
-                                                </graphic>
-                                            </Button>
+                                            <HBox alignment="CENTER" spacing="10">
+                                                <Button onAction="#createNewXsdFile" styleClass="button"
+                                                        text="New XSD File">
+                                                    <graphic>
+                                                        <FontIcon iconLiteral="bi-file-plus" iconColor="#28a745"/>
+                                                    </graphic>
+                                                </Button>
+                                                <Button onAction="#openXsdFileChooser" styleClass="button, :default"
+                                                        text="Load XSD File">
+                                                    <graphic>
+                                                        <FontIcon iconLiteral="bi-folder2-open"/>
+                                                    </graphic>
+                                                </Button>
+                                            </HBox>
                                         </children>
                                     </VBox>
                                     <XmlCodeEditor fx:id="sourceCodeEditor" managed="false" visible="false"/>
@@ -444,12 +452,22 @@
                                                            text="No XSD file loaded"/>
                                                     <Label style="-fx-text-fill: #6c757d;"
                                                            text="Please load an XSD file to see the graphical representation."/>
-                                                    <Button onAction="#openXsdFileChooser" styleClass="button, :default"
-                                                            text="Load XSD File">
-                                                        <graphic>
-                                                            <FontIcon iconLiteral="bi-folder2-open"/>
-                                                        </graphic>
-                                                    </Button>
+                                                    <HBox alignment="CENTER" spacing="10">
+                                                        <Button onAction="#createNewXsdFile" styleClass="button"
+                                                                text="New XSD File">
+                                                            <graphic>
+                                                                <FontIcon iconLiteral="bi-file-plus"
+                                                                          iconColor="#28a745"/>
+                                                            </graphic>
+                                                        </Button>
+                                                        <Button onAction="#openXsdFileChooser"
+                                                                styleClass="button, :default"
+                                                                text="Load XSD File">
+                                                            <graphic>
+                                                                <FontIcon iconLiteral="bi-folder2-open"/>
+                                                            </graphic>
+                                                        </Button>
+                                                    </HBox>
                                                 </children>
                                             </VBox>
 

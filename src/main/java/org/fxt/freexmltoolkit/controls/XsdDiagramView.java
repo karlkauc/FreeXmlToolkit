@@ -1501,6 +1501,16 @@ public class XsdDiagramView {
                 addChoiceItem.setOnAction(e -> addChoice(nodeInfo));
                 addChoiceItem.setDisable(!canHaveChildren);
                 contextMenu.getItems().add(addChoiceItem);
+
+                // Convert to Complex Type - only show for elements with simple types
+                String type = nodeInfo.type();
+                if (type != null && (type.startsWith("xs:") || type.startsWith("xsd:"))) {
+                    contextMenu.getItems().add(new SeparatorMenuItem());
+                    MenuItem convertToComplexItem = new MenuItem("Convert to Complex Type");
+                    convertToComplexItem.setGraphic(createColoredIcon("bi-arrow-right-square", "#6610f2"));
+                    convertToComplexItem.setOnAction(e -> convertToComplexType(nodeInfo));
+                    contextMenu.getItems().add(convertToComplexItem);
+                }
             }
 
             contextMenu.getItems().add(new SeparatorMenuItem());
@@ -1714,25 +1724,54 @@ public class XsdDiagramView {
             String type = elementInfo.type();
             String minOccurs = elementInfo.minOccurs();
             String maxOccurs = elementInfo.maxOccurs();
-            // Create and execute command
-            AddElementCommand command = new AddElementCommand(
-                    domManipulator, parentNode, name,
-                    type != null && !type.trim().isEmpty() ? type : null,
-                    minOccurs != null && !minOccurs.trim().isEmpty() ? minOccurs : "1",
-                    maxOccurs != null && !maxOccurs.trim().isEmpty() ? maxOccurs : "1"
-            );
+            boolean createAsComplexType = elementInfo.createAsComplexType();
 
-            if (undoManager.executeCommand(command)) {
-                refreshView();
-                triggerLiveValidation();
+            if (createAsComplexType) {
+                // Create element as complex type with sequence - no type attribute
+                AddElementCommand command = new AddElementCommand(
+                        domManipulator, parentNode, name,
+                        null, // No type for complex type
+                        minOccurs != null && !minOccurs.trim().isEmpty() ? minOccurs : "1",
+                        maxOccurs != null && !maxOccurs.trim().isEmpty() ? maxOccurs : "1"
+                );
+
+                if (undoManager.executeCommand(command)) {
+                    // Now convert the newly created element to complex type with sequence
+                    String elementXPath = parentNode.xpath() + "/xs:element[@name='" + name + "']";
+                    boolean converted = domManipulator.convertSimpleToComplexType(elementXPath);
+
+                    if (converted) {
+                        refreshView();
+                        triggerLiveValidation();
+                    } else {
+                        showErrorAlert("Failed to convert element to complex type",
+                                "The element was created but could not be converted to complex type.");
+                    }
+                } else {
+                    showErrorAlert("Cannot Add Element",
+                            "Failed to create element '" + name + "' in " + parentNode.name());
+                }
             } else {
-                // Show error dialog if creation failed
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Cannot Add Element");
-                alert.setHeaderText("Cannot add element to " + parentNode.name());
-                alert.setContentText("This element has a simple type (like xs:string) and cannot contain child elements.\n\n" +
-                        "To add child elements, you need to change the element's type to a complex type first.");
-                alert.showAndWait();
+                // Create element with simple type (existing behavior)
+                AddElementCommand command = new AddElementCommand(
+                        domManipulator, parentNode, name,
+                        type != null && !type.trim().isEmpty() ? type : null,
+                        minOccurs != null && !minOccurs.trim().isEmpty() ? minOccurs : "1",
+                        maxOccurs != null && !maxOccurs.trim().isEmpty() ? maxOccurs : "1"
+                );
+
+                if (undoManager.executeCommand(command)) {
+                    refreshView();
+                    triggerLiveValidation();
+                } else {
+                    // Show error dialog if creation failed
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Cannot Add Element");
+                    alert.setHeaderText("Cannot add element to " + parentNode.name());
+                    alert.setContentText("This element has a simple type (like xs:string) and cannot contain child elements.\n\n" +
+                            "To add child elements, you need to change the element's type to a complex type first.");
+                    alert.showAndWait();
+                }
             }
         });
     }
@@ -2424,6 +2463,10 @@ public class XsdDiagramView {
             if (newRootNode != null) {
                 System.out.println("DEBUG: Updating changed nodes selectively");
                 updateChangedNodes(rootNode, newRootNode);
+
+                // Update the root node reference to the new tree structure
+                this.rootNode = newRootNode;
+                
                 triggerLiveValidation();
 
                 if (propertyPanel != null) {
@@ -2442,8 +2485,28 @@ public class XsdDiagramView {
     }
 
     private void updateChangedNodes(XsdNodeInfo oldNode, XsdNodeInfo newNode) {
-        if (oldNode == null || newNode == null) return;
+        if (oldNode == null && newNode == null) return;
 
+        // Handle case where old node exists but new node doesn't (node was deleted)
+        if (oldNode != null && newNode == null) {
+            System.out.println("DEBUG: Node deleted: " + oldNode.name());
+            removeNodeFromView(oldNode);
+            return;
+        }
+
+        // Handle case where new node exists but old node doesn't (node was added)
+        if (oldNode == null && newNode != null) {
+            System.out.println("DEBUG: Node added: " + newNode.name());
+            // For new nodes, trigger a full rebuild as we need to create the visual representation
+            // This is a fallback - ideally we'd add the node in-place
+            Platform.runLater(() -> {
+                System.out.println("DEBUG: New node detected, triggering selective rebuild");
+                rebuildDiagram();
+            });
+            return;
+        }
+
+        // Both nodes exist - check for changes
         if (!nodesAreEqual(oldNode, newNode)) {
             System.out.println("DEBUG: Node changed: " + oldNode.name() + " (type: " + oldNode.type() + " -> " + newNode.type() + ")");
             Node visualNode = nodeViewCache.get(oldNode);
@@ -2457,24 +2520,69 @@ public class XsdDiagramView {
             }
         }
 
-        if (oldNode.children() != null && newNode.children() != null) {
-            Map<String, XsdNodeInfo> oldChildrenMap = new HashMap<>();
+        // Handle children
+        Map<String, XsdNodeInfo> oldChildrenMap = new HashMap<>();
+        if (oldNode.children() != null) {
             for (XsdNodeInfo child : oldNode.children()) {
                 String key = child.xpath() != null ? child.xpath() : child.name();
                 oldChildrenMap.put(key, child);
             }
+        }
 
-            Map<String, XsdNodeInfo> newChildrenMap = new HashMap<>();
+        Map<String, XsdNodeInfo> newChildrenMap = new HashMap<>();
+        if (newNode.children() != null) {
             for (XsdNodeInfo child : newNode.children()) {
                 String key = child.xpath() != null ? child.xpath() : child.name();
                 if (!newChildrenMap.containsKey(key)) {
                     newChildrenMap.put(key, child);
                 }
             }
+        }
 
-            for (Map.Entry<String, XsdNodeInfo> newChild : newChildrenMap.entrySet()) {
-                XsdNodeInfo oldChild = oldChildrenMap.get(newChild.getKey());
-                updateChangedNodes(oldChild, newChild.getValue());
+        // Check for deleted children (in old but not in new)
+        for (Map.Entry<String, XsdNodeInfo> oldChild : oldChildrenMap.entrySet()) {
+            if (!newChildrenMap.containsKey(oldChild.getKey())) {
+                System.out.println("DEBUG: Child deleted: " + oldChild.getValue().name());
+                updateChangedNodes(oldChild.getValue(), null);
+            }
+        }
+
+        // Check for new or changed children
+        for (Map.Entry<String, XsdNodeInfo> newChild : newChildrenMap.entrySet()) {
+            XsdNodeInfo oldChild = oldChildrenMap.get(newChild.getKey());
+            updateChangedNodes(oldChild, newChild.getValue());
+        }
+    }
+
+    /**
+     * Remove a node and its visual representation from the view
+     */
+    private void removeNodeFromView(XsdNodeInfo nodeToRemove) {
+        System.out.println("DEBUG: Removing node from view: " + nodeToRemove.name());
+
+        Node visualNode = nodeViewCache.get(nodeToRemove);
+        if (visualNode != null) {
+            Platform.runLater(() -> {
+                // Remove from parent container
+                if (visualNode.getParent() != null) {
+                    if (visualNode.getParent() instanceof VBox parentContainer) {
+                        parentContainer.getChildren().remove(visualNode);
+                        System.out.println("DEBUG: Removed visual node from parent container");
+                    }
+                }
+
+                // Remove from cache
+                nodeViewCache.remove(nodeToRemove);
+                System.out.println("DEBUG: Removed node from cache");
+            });
+        } else {
+            System.out.println("DEBUG: No visual node found in cache to remove for: " + nodeToRemove.name());
+        }
+
+        // Recursively remove children
+        if (nodeToRemove.children() != null) {
+            for (XsdNodeInfo child : nodeToRemove.children()) {
+                removeNodeFromView(child);
             }
         }
     }
@@ -3416,8 +3524,10 @@ public class XsdDiagramView {
 
         CheckBox nillableCheck = new CheckBox("Nillable");
         CheckBox abstractCheck = new CheckBox("Abstract");
+        CheckBox complexTypeCheck = new CheckBox("Create as ComplexType with Sequence");
+        complexTypeCheck.setTooltip(new Tooltip("Creates element as complex type with sequence, allowing child elements"));
 
-        optionsBox.getChildren().addAll(nillableCheck, abstractCheck);
+        optionsBox.getChildren().addAll(nillableCheck, abstractCheck, complexTypeCheck);
 
         // Documentation
         Label docLabel = new Label("Documentation:");
@@ -3460,7 +3570,8 @@ public class XsdDiagramView {
                         maxOccursCombo.getValue(),
                         nillableCheck.isSelected(),
                         abstractCheck.isSelected(),
-                        docArea.getText().trim()
+                        docArea.getText().trim(),
+                        complexTypeCheck.isSelected()
                 );
             }
             return null;
@@ -3611,7 +3722,8 @@ public class XsdDiagramView {
             String maxOccurs,
             boolean nillable,
             boolean abstractElement,
-            String documentation
+            String documentation,
+            boolean createAsComplexType
     ) {
     }
 
@@ -3972,6 +4084,59 @@ public class XsdDiagramView {
 
         } catch (Exception e) {
             logger.warn("Failed to find type element using XPath: {}", typeNodeInfo.xpath(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Convert an element with a simple type to a complex type with sequence
+     */
+    private void convertToComplexType(XsdNodeInfo nodeInfo) {
+        if (domManipulator == null) {
+            showErrorAlert("Convert to Complex Type", "No DOM manipulator available");
+            return;
+        }
+
+        try {
+            // Find the actual DOM element
+            Element elementNode = findElementByNodeInfo(nodeInfo);
+            if (elementNode == null) {
+                showErrorAlert("Convert to Complex Type", "Could not find element in DOM");
+                return;
+            }
+
+            // Create and execute the command
+            ConvertToComplexTypeCommand command = new ConvertToComplexTypeCommand(
+                    domManipulator.getDocument(), elementNode, domManipulator);
+
+            // Execute the command through the undo manager
+            if (undoManager.executeCommand(command)) {
+                // Refresh the diagram view
+                refreshView();
+
+                // Show success message
+                String elementName = nodeInfo.name();
+                showSuccessAlert("Convert to Complex Type",
+                        "Successfully converted element '" + elementName + "' to complex type");
+            } else {
+                showErrorAlert("Convert to Complex Type", "Failed to convert element to complex type");
+            }
+
+        } catch (Exception e) {
+            logger.error("Error converting to complex type", e);
+            showErrorAlert("Convert to Complex Type", "Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Find DOM element by XsdNodeInfo
+     */
+    private Element findElementByNodeInfo(XsdNodeInfo nodeInfo) {
+        try {
+            String xpath = nodeInfo.xpath();
+            return domManipulator.findElementByXPath(xpath);
+        } catch (Exception e) {
+            logger.error("Error finding element by node info", e);
             return null;
         }
     }

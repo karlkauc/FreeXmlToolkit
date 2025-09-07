@@ -31,35 +31,23 @@ public class AddAttributeCommand implements XsdCommand {
     @Override
     public boolean execute() {
         try {
-            // Store parent node for undo
-            parentDomNode = domManipulator.findNodeByPath(parentNode.xpath());
-            if (parentDomNode == null) {
-                return false;
+            // Use the XsdDomManipulator's createAttribute method which has proper logic
+            // for handling different parent types and attribute positioning
+            addedAttribute = domManipulator.createAttribute(
+                    parentNode.xpath(),
+                    attributeName,
+                    attributeType,
+                    use,
+                    null // defaultValue
+            );
+
+            if (addedAttribute != null) {
+                // Store reference to parent for undo operation
+                parentDomNode = addedAttribute.getParentNode();
+                return true;
             }
 
-            // Create new attribute element
-            addedAttribute = domManipulator.getDocument().createElement("xs:attribute");
-            addedAttribute.setAttribute("name", attributeName);
-
-            if (attributeType != null && !attributeType.trim().isEmpty()) {
-                addedAttribute.setAttribute("type", attributeType);
-            }
-
-            if (use != null && !use.trim().isEmpty() && !"optional".equals(use)) {
-                addedAttribute.setAttribute("use", use);
-            }
-
-            // Find appropriate insertion point (after elements, before other content)
-            Node insertionPoint = findAttributeInsertionPoint(parentDomNode);
-
-            // Insert attribute
-            if (insertionPoint != null) {
-                parentDomNode.insertBefore(addedAttribute, insertionPoint);
-            } else {
-                parentDomNode.appendChild(addedAttribute);
-            }
-
-            return true;
+            return false;
 
         } catch (Exception e) {
             return false;
@@ -82,29 +70,5 @@ public class AddAttributeCommand implements XsdCommand {
     @Override
     public String getDescription() {
         return "Add attribute '" + attributeName + "'";
-    }
-
-    /**
-     * Find appropriate insertion point for attributes
-     * Attributes should come after elements but before other content
-     */
-    private Node findAttributeInsertionPoint(Node parent) {
-        Node child = parent.getFirstChild();
-
-        while (child != null) {
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
-                Element elem = (Element) child;
-                String tagName = elem.getTagName();
-
-                // Insert before complexType, simpleType, or other structural elements
-                if ("xs:complexType".equals(tagName) || "xs:simpleType".equals(tagName) ||
-                        "xs:restriction".equals(tagName) || "xs:extension".equals(tagName)) {
-                    return child;
-                }
-            }
-            child = child.getNextSibling();
-        }
-
-        return null; // Insert at end
     }
 }

@@ -341,7 +341,7 @@ public class XsdDocumentationService {
             for (int i = 0; i < includeNodes.getLength(); i++) {
                 Element includeElement = (Element) includeNodes.item(i);
                 String location = includeElement.getAttribute("schemaLocation");
-                if (location != null && !location.isEmpty()) {
+                if (!location.isEmpty()) {
                     Path includedFile = baseDirectory.resolve(location);
                     if (Files.exists(includedFile)) {
                         filesToProcess.add(includedFile);
@@ -352,7 +352,7 @@ public class XsdDocumentationService {
             for (int i = 0; i < importNodes.getLength(); i++) {
                 Element importElement = (Element) importNodes.item(i);
                 String location = importElement.getAttribute("schemaLocation");
-                if (location != null && !location.isEmpty() && !isRemote(location)) {
+                if (!location.isEmpty() && !isRemote(location)) {
                     Path importedFile = baseDirectory.resolve(location);
                     if (Files.exists(importedFile)) {
                         filesToProcess.add(importedFile);

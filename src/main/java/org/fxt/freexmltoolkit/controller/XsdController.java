@@ -991,8 +991,42 @@ public class XsdController {
                 // Clear current file reference (this is a new unsaved file)
                 currentXsdFile = null;
 
+                // Show UI panels for loaded content (hide empty state panels)
+                Platform.runLater(() -> {
+                    if (noFileLoadedPaneText != null) {
+                        noFileLoadedPaneText.setVisible(false);
+                        noFileLoadedPaneText.setManaged(false);
+                    }
+                    if (noFileLoadedPane != null) {
+                        noFileLoadedPane.setVisible(false);
+                        noFileLoadedPane.setManaged(false);
+                    }
+                    if (textInfoPane != null) {
+                        textInfoPane.setVisible(true);
+                        textInfoPane.setManaged(true);
+                    }
+                    if (xsdInfoPane != null) {
+                        xsdInfoPane.setVisible(true);
+                        xsdInfoPane.setManaged(true);
+                    }
+                    // Enable unsaved changes tracking
+                    hasUnsavedChanges = true;
+                    if (saveXsdButton != null) {
+                        saveXsdButton.setDisable(true); // Disable regular save (only Save As works for new files)
+                    }
+                    if (saveXsdButtonGraphic != null) {
+                        saveXsdButtonGraphic.setDisable(true);
+                    }
+                    if (saveAsXsdButton != null) {
+                        saveAsXsdButton.setDisable(false);
+                    }
+                    if (saveAsXsdButtonGraphic != null) {
+                        saveAsXsdButtonGraphic.setDisable(false);
+                    }
+                });
+
                 // Update UI to show it's a new file
-                updateFileInfo("New XSD Schema", xsdInfo.targetNamespace(), "1.0");
+                updateFileInfo("New XSD Schema (unsaved)", xsdInfo.targetNamespace(), "1.0");
 
                 // Switch to Text tab to show the new content
                 if (tabPane != null && textTab != null) {

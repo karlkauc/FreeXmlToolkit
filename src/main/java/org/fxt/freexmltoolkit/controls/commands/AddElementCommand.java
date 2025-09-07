@@ -34,39 +34,23 @@ public class AddElementCommand implements XsdCommand {
     @Override
     public boolean execute() {
         try {
-            // Store parent node and position for undo
-            parentDomNode = domManipulator.findNodeByPath(parentNode.xpath());
-            if (parentDomNode == null) {
-                return false;
+            // Use the XsdDomManipulator's createElement method which has proper logic
+            // for handling different parent types (element, sequence, choice, etc.)
+            addedElement = domManipulator.createElement(
+                    parentNode.xpath(),
+                    elementName,
+                    elementType,
+                    minOccurs,
+                    maxOccurs
+            );
+
+            if (addedElement != null) {
+                // Store reference to parent for undo operation
+                parentDomNode = addedElement.getParentNode();
+                return true;
             }
 
-            // Create new element
-            addedElement = domManipulator.getDocument().createElement("xs:element");
-            addedElement.setAttribute("name", elementName);
-
-            if (elementType != null && !elementType.trim().isEmpty()) {
-                addedElement.setAttribute("type", elementType);
-            }
-
-            if (minOccurs != null && !minOccurs.trim().isEmpty() && !"1".equals(minOccurs)) {
-                addedElement.setAttribute("minOccurs", minOccurs);
-            }
-
-            if (maxOccurs != null && !maxOccurs.trim().isEmpty() && !"1".equals(maxOccurs)) {
-                addedElement.setAttribute("maxOccurs", maxOccurs);
-            }
-
-            // Find appropriate insertion point
-            nextSibling = findInsertionPoint(parentDomNode);
-
-            // Insert element
-            if (nextSibling != null) {
-                parentDomNode.insertBefore(addedElement, nextSibling);
-            } else {
-                parentDomNode.appendChild(addedElement);
-            }
-
-            return true;
+            return false;
 
         } catch (Exception e) {
             return false;
@@ -89,30 +73,5 @@ public class AddElementCommand implements XsdCommand {
     @Override
     public String getDescription() {
         return "Add element '" + elementName + "'";
-    }
-
-    /**
-     * Find appropriate insertion point for the new element
-     */
-    private Node findInsertionPoint(Node parent) {
-        // Insert after other elements but before other types of nodes
-        Node child = parent.getFirstChild();
-        Node lastElement = null;
-
-        while (child != null) {
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
-                Element elem = (Element) child;
-                if ("xs:element".equals(elem.getTagName())) {
-                    lastElement = child;
-                } else if (lastElement != null) {
-                    // Found non-element after elements, insert before this
-                    return child;
-                }
-            }
-            child = child.getNextSibling();
-        }
-
-        // Insert at end if no specific position found
-        return null;
     }
 }

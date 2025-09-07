@@ -1730,4 +1730,58 @@ public class XsdDomManipulator {
             return null;
         }
     }
+
+    /**
+     * Convert a simple type element to a complex type with sequence.
+     * This allows adding child elements to an element that was previously bound to a simple type.
+     *
+     * @param elementXPath The XPath to the element to convert
+     * @return true if conversion was successful, false otherwise
+     */
+    public boolean convertSimpleToComplexType(String elementXPath) {
+        try {
+            logger.info("Converting element '{}' from simple to complex type", elementXPath);
+
+            Element element = findElementByXPath(elementXPath);
+            if (element == null) {
+                logger.error("Element not found: {}", elementXPath);
+                return false;
+            }
+
+            // Check if element has a type attribute
+            String typeAttribute = element.getAttribute("type");
+            if (typeAttribute == null || typeAttribute.isEmpty()) {
+                logger.error("Element '{}' has no type attribute to convert", elementXPath);
+                return false;
+            }
+
+            // Verify it's a simple type (built-in XSD type)
+            if (!typeAttribute.startsWith("xs:") && !typeAttribute.startsWith("xsd:")) {
+                logger.error("Element '{}' does not have a simple type: {}", elementXPath, typeAttribute);
+                return false;
+            }
+
+            // Remove the type attribute
+            element.removeAttribute("type");
+            logger.info("Removed type attribute '{}' from element", typeAttribute);
+
+            // Create inline complexType
+            Element complexType = document.createElementNS(XSD_NS, xsdPrefix + ":complexType");
+
+            // Create sequence within complexType
+            Element sequence = document.createElementNS(XSD_NS, xsdPrefix + ":sequence");
+            complexType.appendChild(sequence);
+
+            // Add the complexType to the element
+            element.appendChild(complexType);
+
+            logger.info("Successfully converted element '{}' from '{}' to complex type with sequence",
+                    elementXPath, typeAttribute);
+            return true;
+
+        } catch (Exception e) {
+            logger.error("Error converting element to complex type", e);
+            return false;
+        }
+    }
 }
