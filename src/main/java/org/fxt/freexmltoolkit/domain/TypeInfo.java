@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.domain;
 
+import java.util.List;
+
 /**
  * Represents metadata about a global type definition in an XSD schema.
  * Used by the Type Library Panel to display and manage global types.
@@ -14,7 +16,8 @@ public record TypeInfo(
         boolean isAbstract,
         boolean isMixed,
         String derivationType,
-        String contentModel
+        String contentModel,
+        List<String> usageXPaths
 ) {
     /**
      * Defines the category/type of XSD type definition.
@@ -40,7 +43,16 @@ public record TypeInfo(
     public static TypeInfo simpleType(String name, String baseType, int usageCount,
                                       String documentation, String xpath) {
         return new TypeInfo(name, TypeCategory.SIMPLE_TYPE, baseType, usageCount,
-                documentation, xpath, false, false, null, null);
+                documentation, xpath, false, false, null, null, List.of());
+    }
+
+    /**
+     * Creates a TypeInfo for a simple type with usage XPaths.
+     */
+    public static TypeInfo simpleType(String name, String baseType, int usageCount,
+                                      String documentation, String xpath, List<String> usageXPaths) {
+        return new TypeInfo(name, TypeCategory.SIMPLE_TYPE, baseType, usageCount,
+                documentation, xpath, false, false, null, null, usageXPaths);
     }
 
     /**
@@ -50,7 +62,18 @@ public record TypeInfo(
                                        String documentation, String xpath, boolean isAbstract,
                                        boolean isMixed, String derivationType, String contentModel) {
         return new TypeInfo(name, TypeCategory.COMPLEX_TYPE, baseType, usageCount,
-                documentation, xpath, isAbstract, isMixed, derivationType, contentModel);
+                documentation, xpath, isAbstract, isMixed, derivationType, contentModel, List.of());
+    }
+
+    /**
+     * Creates a TypeInfo for a complex type with usage XPaths.
+     */
+    public static TypeInfo complexType(String name, String baseType, int usageCount,
+                                       String documentation, String xpath, boolean isAbstract,
+                                       boolean isMixed, String derivationType, String contentModel,
+                                       List<String> usageXPaths) {
+        return new TypeInfo(name, TypeCategory.COMPLEX_TYPE, baseType, usageCount,
+                documentation, xpath, isAbstract, isMixed, derivationType, contentModel, usageXPaths);
     }
 
     /**
@@ -90,5 +113,25 @@ public record TypeInfo(
         } else {
             return usageCount + " references";
         }
+    }
+
+    /**
+     * Gets all usage XPaths as a formatted string for display.
+     */
+    public String getUsageXPathsFormatted() {
+        if (usageXPaths == null || usageXPaths.isEmpty()) {
+            return "";
+        }
+        return String.join("; ", usageXPaths);
+    }
+
+    /**
+     * Gets all usage XPaths as a formatted string for CSV export.
+     */
+    public String getUsageXPathsForCsv() {
+        if (usageXPaths == null || usageXPaths.isEmpty()) {
+            return "";
+        }
+        return String.join("\n", usageXPaths);
     }
 }

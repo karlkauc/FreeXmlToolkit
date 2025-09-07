@@ -1177,9 +1177,10 @@ public class XsdDomManipulator {
         String documentation = extractDocumentation(simpleType);
         int usageCount = countTypeUsages(name);
         String xpath = generateXPathForElement(simpleType);
+        List<String> usageXPaths = findTypeUsageXPaths(name);
 
         return org.fxt.freexmltoolkit.domain.TypeInfo.simpleType(
-                name, baseType, usageCount, documentation, xpath);
+                name, baseType, usageCount, documentation, xpath, usageXPaths);
     }
 
     /**
@@ -1190,6 +1191,7 @@ public class XsdDomManipulator {
         String documentation = extractDocumentation(complexType);
         int usageCount = countTypeUsages(name);
         String xpath = generateXPathForElement(complexType);
+        List<String> usageXPaths = findTypeUsageXPaths(name);
 
         boolean isAbstract = "true".equals(complexType.getAttribute("abstract"));
         boolean isMixed = "true".equals(complexType.getAttribute("mixed"));
@@ -1199,7 +1201,7 @@ public class XsdDomManipulator {
 
         return org.fxt.freexmltoolkit.domain.TypeInfo.complexType(
                 name, baseType, usageCount, documentation, xpath,
-                isAbstract, isMixed, derivationType, contentModel);
+                isAbstract, isMixed, derivationType, contentModel, usageXPaths);
     }
 
     /**
@@ -1494,6 +1496,39 @@ public class XsdDomManipulator {
         }
 
         return references;
+    }
+
+    /**
+     * Find all XPaths where a specific type is used
+     */
+    public List<String> findTypeUsageXPaths(String typeName) {
+        List<String> usageXPaths = new ArrayList<>();
+
+        if (document == null) return usageXPaths;
+
+        String[] typeAttributes = {"type", "base", "itemType", "memberTypes"};
+
+        for (String attrName : typeAttributes) {
+            NodeList allElements = document.getElementsByTagName("*");
+            for (int i = 0; i < allElements.getLength(); i++) {
+                Element element = (Element) allElements.item(i);
+                String attrValue = element.getAttribute(attrName);
+
+                if (attrValue != null && !attrValue.isEmpty()) {
+                    String localType = attrValue.contains(":") ?
+                            attrValue.substring(attrValue.indexOf(":") + 1) : attrValue;
+
+                    if (typeName.equals(localType)) {
+                        String xpath = generateXPathForElement(element);
+                        if (xpath != null && !xpath.isEmpty()) {
+                            usageXPaths.add(xpath + "/@" + attrName);
+                        }
+                    }
+                }
+            }
+        }
+
+        return usageXPaths;
     }
 
     /**

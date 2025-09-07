@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -16,6 +18,11 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.fxt.freexmltoolkit.controls.commands.DeleteTypeCommand;
 import org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand;
 import org.fxt.freexmltoolkit.domain.TypeInfo;
@@ -27,8 +34,10 @@ import org.fxt.freexmltoolkit.service.XsdDomManipulator;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -160,13 +169,35 @@ public class XsdTypeLibraryPanel extends VBox {
         importButton.getStyleClass().add("icon-button");
         importButton.setOnAction(e -> importTypes());
 
-        // Export types button
-        Button exportButton = new Button();
-        FontIcon exportIcon = new FontIcon("bi-download");
+        // Export types menu button
+        MenuButton exportButton = new MenuButton();
+        FontIcon exportIcon = createColoredIcon("bi-download", "#28a745");
         exportButton.setGraphic(exportIcon);
-        exportButton.setTooltip(new Tooltip("Export types to file"));
+        exportButton.setTooltip(new Tooltip("Export types to various formats"));
         exportButton.getStyleClass().add("icon-button");
-        exportButton.setOnAction(e -> exportTypes());
+
+        // Export menu items
+        MenuItem exportXsdItem = new MenuItem("Export as XSD");
+        exportXsdItem.setGraphic(createColoredIcon("bi-file-earmark-code", "#007bff"));
+        exportXsdItem.setOnAction(e -> exportTypes());
+
+        MenuItem exportXlsxItem = new MenuItem("Export as XLSX");
+        exportXlsxItem.setGraphic(createColoredIcon("bi-file-earmark-spreadsheet", "#28a745"));
+        exportXlsxItem.setOnAction(e -> exportToExcel());
+
+        MenuItem exportCsvItem = new MenuItem("Export as CSV");
+        exportCsvItem.setGraphic(createColoredIcon("bi-file-earmark-text", "#ffc107"));
+        exportCsvItem.setOnAction(e -> exportToCsv());
+
+        MenuItem exportHtmlItem = new MenuItem("Export as HTML");
+        exportHtmlItem.setGraphic(createColoredIcon("bi-file-earmark-richtext", "#fd7e14"));
+        exportHtmlItem.setOnAction(e -> exportToHtml());
+
+        MenuItem exportJsonItem = new MenuItem("Export as JSON");
+        exportJsonItem.setGraphic(createColoredIcon("bi-file-earmark-code", "#6f42c1"));
+        exportJsonItem.setOnAction(e -> exportToJson());
+
+        exportButton.getItems().addAll(exportXsdItem, exportXlsxItem, exportCsvItem, exportHtmlItem, exportJsonItem);
 
         // Statistics button
         Button statsButton = new Button();
@@ -1156,5 +1187,320 @@ public class XsdTypeLibraryPanel extends VBox {
             alert.setContentText("Error: " + e.getMessage());
             alert.showAndWait();
         }
+    }
+
+    /**
+     * Creates a colored FontIcon for menu items
+     */
+    private FontIcon createColoredIcon(String iconLiteral, String color) {
+        FontIcon icon = new FontIcon(iconLiteral);
+        icon.setIconColor(javafx.scene.paint.Color.web(color));
+        icon.setIconSize(12);
+        return icon;
+    }
+
+    /**
+     * Export types to Excel format with XPaths
+     */
+    private void exportToExcel() {
+        if (typeData.isEmpty()) {
+            showNoDataAlert("Excel Export");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Types to Excel");
+        fileChooser.setInitialFileName("types_" +
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+
+        File file = fileChooser.showSaveDialog(this.getScene().getWindow());
+        if (file != null) {
+            try (Workbook workbook = new XSSFWorkbook();
+                 FileOutputStream fileOut = new FileOutputStream(file)) {
+
+                Sheet sheet = workbook.createSheet("XSD Types");
+
+                // Create header row
+                Row headerRow = sheet.createRow(0);
+                String[] headers = {"Name", "Category", "Base Type", "Usage Count",
+                        "XPath", "Usage XPaths", "Abstract", "Mixed", "Derivation", "Content Model", "Documentation"};
+
+                org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
+                Font headerFont = workbook.createFont();
+                headerFont.setBold(true);
+                headerStyle.setFont(headerFont);
+
+                for (int i = 0; i < headers.length; i++) {
+                    org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+                    cell.setCellValue(headers[i]);
+                    cell.setCellStyle(headerStyle);
+                }
+
+                // Fill data rows
+                int rowNum = 1;
+                for (TypeInfo type : typeData) {
+                    Row row = sheet.createRow(rowNum++);
+                    row.createCell(0).setCellValue(type.name());
+                    row.createCell(1).setCellValue(type.category().getDisplayName());
+                    row.createCell(2).setCellValue(type.baseType() != null ? type.baseType() : "");
+                    row.createCell(3).setCellValue(type.usageCount());
+                    row.createCell(4).setCellValue(type.xpath() != null ? type.xpath() : "");
+                    row.createCell(5).setCellValue(type.getUsageXPathsForCsv());
+                    row.createCell(6).setCellValue(type.isAbstract());
+                    row.createCell(7).setCellValue(type.isMixed());
+                    row.createCell(8).setCellValue(type.derivationType() != null ? type.derivationType() : "");
+                    row.createCell(9).setCellValue(type.contentModel() != null ? type.contentModel() : "");
+                    row.createCell(10).setCellValue(type.documentation() != null ? type.documentation() : "");
+                }
+
+                // Auto-size columns
+                for (int i = 0; i < headers.length; i++) {
+                    sheet.autoSizeColumn(i);
+                }
+
+                workbook.write(fileOut);
+                showSuccessAlert("Excel Export", file.getAbsolutePath());
+
+            } catch (IOException e) {
+                showErrorAlert("Excel Export", e);
+                logger.error("Failed to export to Excel", e);
+            }
+        }
+    }
+
+    /**
+     * Export types to CSV format with XPaths
+     */
+    private void exportToCsv() {
+        if (typeData.isEmpty()) {
+            showNoDataAlert("CSV Export");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Types to CSV");
+        fileChooser.setInitialFileName("types_" +
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".csv");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+
+        File file = fileChooser.showSaveDialog(this.getScene().getWindow());
+        if (file != null) {
+            try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
+                // Write header
+                writer.write("Name,Category,Base Type,Usage Count,XPath,Usage XPaths,Abstract,Mixed,Derivation,Content Model,Documentation\n");
+
+                // Write data
+                for (TypeInfo type : typeData) {
+                    writer.write(String.format("\"%s\",\"%s\",\"%s\",%d,\"%s\",\"%s\",%s,%s,\"%s\",\"%s\",\"%s\"\n",
+                            escapeCSV(type.name()),
+                            type.category().getDisplayName(),
+                            escapeCSV(type.baseType()),
+                            type.usageCount(),
+                            escapeCSV(type.xpath()),
+                            escapeCSV(type.getUsageXPathsForCsv()),
+                            type.isAbstract(),
+                            type.isMixed(),
+                            escapeCSV(type.derivationType()),
+                            escapeCSV(type.contentModel()),
+                            escapeCSV(type.documentation())));
+                }
+
+                showSuccessAlert("CSV Export", file.getAbsolutePath());
+
+            } catch (IOException e) {
+                showErrorAlert("CSV Export", e);
+                logger.error("Failed to export to CSV", e);
+            }
+        }
+    }
+
+    /**
+     * Export types to HTML format with XPaths
+     */
+    private void exportToHtml() {
+        if (typeData.isEmpty()) {
+            showNoDataAlert("HTML Export");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Types to HTML");
+        fileChooser.setInitialFileName("types_" +
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".html");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("HTML Files", "*.html"));
+
+        File file = fileChooser.showSaveDialog(this.getScene().getWindow());
+        if (file != null) {
+            try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
+                writer.write("<!DOCTYPE html>\n");
+                writer.write("<html lang=\"en\">\n");
+                writer.write("<head>\n");
+                writer.write("    <meta charset=\"UTF-8\">\n");
+                writer.write("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
+                writer.write("    <title>XSD Type Library Export</title>\n");
+                writer.write("    <style>\n");
+                writer.write("        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; }\n");
+                writer.write("        h1 { color: #2c5aa0; }\n");
+                writer.write("        table { border-collapse: collapse; width: 100%; margin-top: 20px; }\n");
+                writer.write("        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }\n");
+                writer.write("        th { background-color: #f2f2f2; font-weight: bold; }\n");
+                writer.write("        tr:nth-child(even) { background-color: #f9f9f9; }\n");
+                writer.write("        .simple-type { color: #28a745; }\n");
+                writer.write("        .complex-type { color: #007bff; }\n");
+                writer.write("        .xpath { font-family: monospace; font-size: 0.9em; }\n");
+                writer.write("        .unused { color: #dc3545; font-weight: bold; }\n");
+                writer.write("        .doc { font-style: italic; max-width: 300px; }\n");
+                writer.write("    </style>\n");
+                writer.write("</head>\n");
+                writer.write("<body>\n");
+                writer.write("    <h1>XSD Type Library Export</h1>\n");
+                writer.write("    <p>Generated on " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "</p>\n");
+                writer.write("    <p>Total types: " + typeData.size() + "</p>\n");
+                writer.write("    <table>\n");
+                writer.write("        <thead>\n");
+                writer.write("            <tr>\n");
+                writer.write("                <th>Name</th>\n");
+                writer.write("                <th>Category</th>\n");
+                writer.write("                <th>Base Type</th>\n");
+                writer.write("                <th>Usage</th>\n");
+                writer.write("                <th>XPath</th>\n");
+                writer.write("                <th>Usage XPaths</th>\n");
+                writer.write("                <th>Properties</th>\n");
+                writer.write("                <th>Documentation</th>\n");
+                writer.write("            </tr>\n");
+                writer.write("        </thead>\n");
+                writer.write("        <tbody>\n");
+
+                for (TypeInfo type : typeData) {
+                    writer.write("            <tr>\n");
+                    writer.write("                <td><strong>" + escapeHtml(type.name()) + "</strong></td>\n");
+
+                    String categoryClass = type.category() == TypeInfo.TypeCategory.SIMPLE_TYPE ? "simple-type" : "complex-type";
+                    writer.write("                <td><span class=\"" + categoryClass + "\">" + type.category().getDisplayName() + "</span></td>\n");
+
+                    writer.write("                <td>" + escapeHtml(type.baseType() != null ? type.baseType() : "-") + "</td>\n");
+
+                    String usageClass = type.usageCount() == 0 ? "unused" : "";
+                    writer.write("                <td class=\"" + usageClass + "\">" + type.getUsageInfo() + "</td>\n");
+
+                    writer.write("                <td class=\"xpath\">" + escapeHtml(type.xpath() != null ? type.xpath() : "-") + "</td>\n");
+
+                    writer.write("                <td class=\"xpath\">" + escapeHtml(type.getUsageXPathsFormatted().isEmpty() ? "-" : type.getUsageXPathsFormatted()) + "</td>\n");
+
+                    StringBuilder properties = new StringBuilder();
+                    if (type.isAbstract()) properties.append("Abstract ");
+                    if (type.isMixed()) properties.append("Mixed ");
+                    if (type.derivationType() != null) properties.append(type.derivationType()).append(" ");
+                    if (type.contentModel() != null) properties.append("[").append(type.contentModel()).append("]");
+                    writer.write("                <td>" + escapeHtml(properties.toString().trim()) + "</td>\n");
+
+                    writer.write("                <td class=\"doc\">" + escapeHtml(type.documentation() != null ? type.documentation() : "-") + "</td>\n");
+                    writer.write("            </tr>\n");
+                }
+
+                writer.write("        </tbody>\n");
+                writer.write("    </table>\n");
+                writer.write("</body>\n");
+                writer.write("</html>\n");
+
+                showSuccessAlert("HTML Export", file.getAbsolutePath());
+
+            } catch (IOException e) {
+                showErrorAlert("HTML Export", e);
+                logger.error("Failed to export to HTML", e);
+            }
+        }
+    }
+
+    /**
+     * Export types to JSON format with XPaths
+     */
+    private void exportToJson() {
+        if (typeData.isEmpty()) {
+            showNoDataAlert("JSON Export");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Types to JSON");
+        fileChooser.setInitialFileName("types_" +
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".json");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+
+        File file = fileChooser.showSaveDialog(this.getScene().getWindow());
+        if (file != null) {
+            try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
+                Gson gson = new GsonBuilder()
+                        .setPrettyPrinting()
+                        .create();
+
+                // Create export metadata
+                var exportData = new ExportMetadata(
+                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                        typeData.size(),
+                        typeData
+                );
+
+                gson.toJson(exportData, writer);
+
+                showSuccessAlert("JSON Export", file.getAbsolutePath());
+
+            } catch (IOException e) {
+                showErrorAlert("JSON Export", e);
+                logger.error("Failed to export to JSON", e);
+            }
+        }
+    }
+
+    // Helper methods for export
+    private String escapeCSV(String value) {
+        if (value == null) return "";
+        return value.replace("\"", "\"\"");
+    }
+
+    private String escapeHtml(String value) {
+        if (value == null) return "";
+        return value.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
+    private void showNoDataAlert(String exportType) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(exportType);
+        alert.setHeaderText("No types to export");
+        alert.setContentText("The schema contains no global types to export.");
+        alert.showAndWait();
+    }
+
+    private void showSuccessAlert(String exportType, String filePath) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Export Successful");
+        alert.setHeaderText(null);
+        alert.setContentText("Types exported to: " + filePath);
+        alert.showAndWait();
+    }
+
+    private void showErrorAlert(String exportType, Exception e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Export Error");
+        alert.setHeaderText("Failed to export as " + exportType);
+        alert.setContentText("Error: " + e.getMessage());
+        alert.showAndWait();
+    }
+
+    // Data class for JSON export
+    private record ExportMetadata(
+            String exportDate,
+            int totalTypes,
+            List<TypeInfo> types
+    ) {
     }
 }
