@@ -38,8 +38,8 @@ javafx {
 }
 
 application {
-    // mainClass.set("org.fxt.freexmltoolkit.FxtGui")
-    mainClass.set("org.fxt.freexmltoolkit.demo.IntelliSenseDemo")
+    mainClass.set("org.fxt.freexmltoolkit.FxtGui")
+    // mainClass.set("org.fxt.freexmltoolkit.demo.IntelliSenseDemo")
 }
 
 dependencies {

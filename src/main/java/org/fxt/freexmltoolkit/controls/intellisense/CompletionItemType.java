@@ -11,7 +11,8 @@ public enum CompletionItemType {
     NAMESPACE("Namespace"),
     COMMENT("Comment"),
     CDATA("CDATA Section"),
-    PROCESSING_INSTRUCTION("Processing Instruction");
+    PROCESSING_INSTRUCTION("Processing Instruction"),
+    VALUE("Value");
 
     private final String displayName;
 

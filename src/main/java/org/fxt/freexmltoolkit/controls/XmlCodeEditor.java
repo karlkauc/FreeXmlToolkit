@@ -97,15 +97,21 @@ public class XmlCodeEditor extends VBox {
     // Specialized Auto-Completion
     private SchematronAutoComplete schematronAutoComplete;
     private XsdAutoComplete xsdAutoComplete;
+    private XsltAutoComplete xsltAutoComplete;
+    private XslFoAutoComplete xslFoAutoComplete;
 
     // Editor modes (only one can be active at a time)
     public enum EditorMode {
         XML,        // Standard XML with IntelliSense
+        XML_WITHOUT_XSD, // XML without linked XSD (basic auto-close only)
+        XML_WITH_XSD,    // XML with linked XSD (enhanced IntelliSense)
         SCHEMATRON, // Schematron-specific auto-completion
-        XSD         // XSD-specific auto-completion
+        XSD,        // XSD-specific auto-completion
+        XSLT,       // XSLT Stylesheet auto-completion
+        XSL_FO      // XSL-FO Stylesheet auto-completion
     }
 
-    private EditorMode currentMode = EditorMode.XML;
+    private EditorMode currentMode = EditorMode.XML_WITHOUT_XSD;
 
     // Cache for enumeration elements from XsdDocumentationData
     // Key: XPath-like context, Value: Set of element names with enumeration
@@ -1144,26 +1150,23 @@ public class XmlCodeEditor extends VBox {
                 }
                 
                 logger.debug("KEY_TYPED event - character: '{}' (code: {})", character, (int) character.charAt(0));
-                
-                // If we're in specialized mode (Schematron or XSD), completely skip XML IntelliSense
-                if (currentMode != EditorMode.XML) {
+
+                // If we're in specialized mode (Schematron, XSD, XSLT, XSL-FO), completely skip XML IntelliSense
+                if (!isXmlMode()) {
                     logger.debug("{} mode is active, skipping XML IntelliSense completely", currentMode);
                     // Don't call handleIntelliSenseTrigger - let only the specialized auto-completion handle it
                     return;
                 }
 
-                // Auto-show enumeration popup when inside element text with XSD enumeration
+                // Auto-show value suggestions for boolean and enumeration types
                 try {
                     ElementTextInfo enumContext = getElementTextAtCursor(codeArea.getCaretPosition(), codeArea.getText());
                     if (enumContext != null) {
-                        List<String> enumValues = getEnumerationValues(enumContext.elementName);
-                        if (enumValues != null && !enumValues.isEmpty()) {
-                            showEnumerationCompletion(enumValues, enumContext);
-                            return;
-                        }
+                        showValueSuggestions(enumContext);
+                        return;
                     }
                 } catch (Exception e) {
-                    logger.debug("Enumeration detection failed: {}", e.getMessage());
+                    logger.debug("Value suggestion detection failed: {}", e.getMessage());
                 }
                 
                 if (handleIntelliSenseTrigger(event)) {
@@ -1457,6 +1460,13 @@ public class XmlCodeEditor extends VBox {
                 logger.warn("Failed to initialize QuickActionsIntegration: {}", e.getMessage());
             }
 
+            try {
+                enhancedCompletionPopup = new EnhancedCompletionPopup();
+                logger.debug("EnhancedCompletionPopup initialized");
+            } catch (Exception e) {
+                logger.warn("Failed to initialize EnhancedCompletionPopup: {}", e.getMessage());
+            }
+
             logger.info("Enhanced IntelliSense components initialized successfully");
 
         } catch (Exception e) {
@@ -1481,9 +1491,19 @@ public class XmlCodeEditor extends VBox {
             xsdAutoComplete = new XsdAutoComplete(codeArea);
             logger.debug("XSD Auto-Complete initialized");
 
-            // Initially disable both - they will be enabled when the appropriate mode is set
+            // Initialize XSLT auto-completion
+            xsltAutoComplete = new XsltAutoComplete(codeArea);
+            logger.debug("XSLT Auto-Complete initialized");
+
+            // Initialize XSL-FO auto-completion
+            xslFoAutoComplete = new XslFoAutoComplete(codeArea);
+            logger.debug("XSL-FO Auto-Complete initialized");
+
+            // Initially disable all - they will be enabled when the appropriate mode is set
             schematronAutoComplete.setEnabled(false);
             xsdAutoComplete.setEnabled(false);
+            xsltAutoComplete.setEnabled(false);
+            xslFoAutoComplete.setEnabled(false);
 
             logger.info("Specialized Auto-Complete components initialized successfully");
         } catch (Exception e) {
@@ -1508,9 +1528,9 @@ public class XmlCodeEditor extends VBox {
         this.currentMode = mode;
 
         switch (mode) {
-            case XML -> {
-                // XML mode uses the standard IntelliSense system
-                logger.debug("Switched to XML mode - standard IntelliSense active");
+            case XML, XML_WITHOUT_XSD, XML_WITH_XSD -> {
+                // XML modes use the standard IntelliSense system
+                logger.debug("Switched to {} mode - standard IntelliSense active", mode);
             }
             case SCHEMATRON -> {
                 if (schematronAutoComplete != null) {
@@ -1526,6 +1546,22 @@ public class XmlCodeEditor extends VBox {
                     logger.debug("Switched to XSD mode - XSD auto-completion active");
                 } else {
                     logger.warn("Cannot enable XSD mode: XsdAutoComplete not initialized");
+                }
+            }
+            case XSLT -> {
+                if (xsltAutoComplete != null) {
+                    xsltAutoComplete.setEnabled(true);
+                    logger.debug("Switched to XSLT mode - XSLT auto-completion active");
+                } else {
+                    logger.warn("Cannot enable XSLT mode: XsltAutoComplete not initialized");
+                }
+            }
+            case XSL_FO -> {
+                if (xslFoAutoComplete != null) {
+                    xslFoAutoComplete.setEnabled(true);
+                    logger.debug("Switched to XSL-FO mode - XSL-FO auto-completion active");
+                } else {
+                    logger.warn("Cannot enable XSL-FO mode: XslFoAutoComplete not initialized");
                 }
             }
         }
@@ -1552,16 +1588,24 @@ public class XmlCodeEditor extends VBox {
             xsdAutoComplete.setEnabled(false);
             logger.debug("Disabled XSD auto-completion");
         }
+        if (xsltAutoComplete != null) {
+            xsltAutoComplete.setEnabled(false);
+            logger.debug("Disabled XSLT auto-completion");
+        }
+        if (xslFoAutoComplete != null) {
+            xslFoAutoComplete.setEnabled(false);
+            logger.debug("Disabled XSL-FO auto-completion");
+        }
     }
 
     /**
      * Convenience method to enable Schematron mode.
      *
-     * @param enabled True to enable Schematron mode, false to return to XML mode
+     * @param enabled True to enable Schematron mode, false to return to XML_WITHOUT_XSD mode
      */
     public void setSchematronMode(boolean enabled) {
         logger.debug("setSchematronMode called with enabled = {}", enabled);
-        setEditorMode(enabled ? EditorMode.SCHEMATRON : EditorMode.XML);
+        setEditorMode(enabled ? EditorMode.SCHEMATRON : EditorMode.XML_WITHOUT_XSD);
         logger.debug("After setSchematronMode: current mode = {}, schematronAutoComplete enabled = {}", 
                 currentMode, schematronAutoComplete != null ? schematronAutoComplete.isEnabled() : "null");
     }
@@ -1578,10 +1622,10 @@ public class XmlCodeEditor extends VBox {
     /**
      * Convenience method to enable XSD mode.
      *
-     * @param enabled True to enable XSD mode, false to return to XML mode
+     * @param enabled True to enable XSD mode, false to return to XML_WITHOUT_XSD mode
      */
     public void setXsdMode(boolean enabled) {
-        setEditorMode(enabled ? EditorMode.XSD : EditorMode.XML);
+        setEditorMode(enabled ? EditorMode.XSD : EditorMode.XML_WITHOUT_XSD);
     }
 
     /**
@@ -1591,6 +1635,42 @@ public class XmlCodeEditor extends VBox {
      */
     public boolean isXsdMode() {
         return currentMode == EditorMode.XSD;
+    }
+
+    /**
+     * Convenience method to enable XSLT mode.
+     *
+     * @param enabled True to enable XSLT mode, false to return to XML_WITHOUT_XSD mode
+     */
+    public void setXsltMode(boolean enabled) {
+        setEditorMode(enabled ? EditorMode.XSLT : EditorMode.XML_WITHOUT_XSD);
+    }
+
+    /**
+     * Returns whether XSLT mode is currently active.
+     *
+     * @return True if XSLT auto-completion is active
+     */
+    public boolean isXsltMode() {
+        return currentMode == EditorMode.XSLT;
+    }
+
+    /**
+     * Convenience method to enable XSL-FO mode.
+     *
+     * @param enabled True to enable XSL-FO mode, false to return to XML_WITHOUT_XSD mode
+     */
+    public void setXslFoMode(boolean enabled) {
+        setEditorMode(enabled ? EditorMode.XSL_FO : EditorMode.XML_WITHOUT_XSD);
+    }
+
+    /**
+     * Returns whether XSL-FO mode is currently active.
+     *
+     * @return True if XSL-FO auto-completion is active
+     */
+    public boolean isXslFoMode() {
+        return currentMode == EditorMode.XSL_FO;
     }
 
     /**
@@ -2550,7 +2630,8 @@ public class XmlCodeEditor extends VBox {
 
     /**
      * Auto-detects the appropriate editor mode based on the document content.
-     * This method analyzes the XML content to determine if it's a Schematron or XSD file.
+     * This method analyzes the XML content to determine if it's a Schematron, XSD, XSLT, XSL-FO file,
+     * or XML with/without linked XSD.
      *
      * @param content The document content to analyze
      */
@@ -2574,15 +2655,50 @@ public class XmlCodeEditor extends VBox {
             return;
         }
 
-        // Do NOT auto-switch to XSD mode for normal XML documents that reference a schema.
-        // XSD mode is reserved for editing .xsd files (set via setDocumentFilePath) or explicit calls.
-        // Keeping XML mode here ensures XML IntelliSense stays active even with a linked XSD.
+        // Check for XSLT stylesheets
+        if (lowerContent.contains("http://www.w3.org/1999/XSL/Transform") ||
+                lowerContent.contains("xsl:stylesheet") ||
+                lowerContent.contains("xsl:transform")) {
 
-        // Default to XML mode
-        if (currentMode != EditorMode.XML) {
-            logger.debug("No special content detected - switching to XML mode");
-            setEditorMode(EditorMode.XML);
+            logger.debug("Auto-detected XSLT content - switching to XSLT mode");
+            setEditorMode(EditorMode.XSLT);
+            return;
         }
+
+        // Check for XSL-FO documents
+        if (lowerContent.contains("http://www.w3.org/1999/XSL/Format") ||
+                lowerContent.contains("fo:root") ||
+                lowerContent.contains("fo:page-sequence")) {
+
+            logger.debug("Auto-detected XSL-FO content - switching to XSL-FO mode");
+            setEditorMode(EditorMode.XSL_FO);
+            return;
+        }
+
+        // Check for XSD schema files (only switch to XSD mode if this is actually an XSD file, not just XML referencing XSD)
+        if ((lowerContent.contains("http://www.w3.org/2001/XMLSchema") ||
+                lowerContent.contains("xs:schema") ||
+                lowerContent.contains("xsd:schema")) &&
+                (lowerContent.contains("<xs:schema") || lowerContent.contains("<xsd:schema"))) {
+
+            logger.debug("Auto-detected XSD schema content - switching to XSD mode");
+            setEditorMode(EditorMode.XSD);
+            return;
+        }
+
+        // Check if XML has linked XSD (xsi:schemaLocation or xsi:noNamespaceSchemaLocation)
+        if (lowerContent.contains("xsi:schemalocation") ||
+                lowerContent.contains("xsi:nonamespaceschemalocation") ||
+                hasLinkedXsdSchema()) {
+
+            logger.debug("Auto-detected XML with linked XSD - switching to XML_WITH_XSD mode");
+            setEditorMode(EditorMode.XML_WITH_XSD);
+            return;
+        }
+
+        // Default to XML without XSD
+        logger.debug("Auto-detected plain XML content - switching to XML_WITHOUT_XSD mode");
+        setEditorMode(EditorMode.XML_WITHOUT_XSD);
     }
 
     /**
@@ -2600,10 +2716,60 @@ public class XmlCodeEditor extends VBox {
             } else if (lowerPath.endsWith(".xsd") || lowerPath.contains("schema")) {
                 logger.debug("XSD file detected: {} - switching to XSD mode", filePath);
                 setEditorMode(EditorMode.XSD);
+            } else if (lowerPath.endsWith(".xslt") || lowerPath.endsWith(".xsl")) {
+                // First check if it's XSL-FO by content (if available)
+                String content = codeArea.getText();
+                if (content != null && !content.isEmpty()) {
+                    String lowerContent = content.toLowerCase();
+                    if (lowerContent.contains("http://www.w3.org/1999/XSL/Format") ||
+                            lowerContent.contains("fo:root") ||
+                            lowerContent.contains("fo:page-sequence")) {
+                        logger.debug("XSL-FO file detected: {} - switching to XSL-FO mode", filePath);
+                        setEditorMode(EditorMode.XSL_FO);
+                        return;
+                    }
+                }
+                logger.debug("XSLT file detected: {} - switching to XSLT mode", filePath);
+                setEditorMode(EditorMode.XSLT);
             } else {
-                logger.debug("XML file detected: {} - switching to XML mode", filePath);
-                setEditorMode(EditorMode.XML);
+                logger.debug("XML file detected: {} - auto-detecting XML subtype", filePath);
+                // For XML files, auto-detect if they have linked XSD
+                autoDetectEditorMode(codeArea.getText());
             }
+        }
+    }
+
+    /**
+     * Checks if the current XML document has a linked XSD schema.
+     * This method checks for XSD schema references in the parent XmlEditor.
+     *
+     * @return true if XSD schema is linked, false otherwise
+     */
+    private boolean hasLinkedXsdSchema() {
+        try {
+            // Check if parent editor has XSD schema information
+            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
+                return true;
+            }
+
+            // Also check document content for schema references
+            String content = codeArea.getText();
+            if (content == null) return false;
+
+            String lowerContent = content.toLowerCase();
+
+            // Look for XML Schema Instance namespace declarations
+            boolean hasXsiNamespace = lowerContent.contains("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+
+            // Look for schema location attributes
+            boolean hasSchemaLocation = lowerContent.contains("xsi:schemalocation") ||
+                    lowerContent.contains("xsi:nonamespaceschemalocation");
+
+            return hasXsiNamespace && hasSchemaLocation;
+
+        } catch (Exception e) {
+            logger.debug("Error checking for linked XSD schema: {}", e.getMessage());
+            return false;
         }
     }
 
@@ -2612,6 +2778,26 @@ public class XmlCodeEditor extends VBox {
      */
     public String getText() {
         return codeArea.getText();
+    }
+
+    /**
+     * Helper method to check if current mode is any XML-based mode (including variants).
+     *
+     * @return true if current mode is XML, XML_WITHOUT_XSD, or XML_WITH_XSD
+     */
+    private boolean isXmlMode() {
+        return currentMode == EditorMode.XML ||
+                currentMode == EditorMode.XML_WITHOUT_XSD ||
+                currentMode == EditorMode.XML_WITH_XSD;
+    }
+
+    /**
+     * Helper method to check if current mode supports enhanced XML IntelliSense.
+     *
+     * @return true if current mode is XML_WITH_XSD
+     */
+    private boolean isXmlWithXsdMode() {
+        return currentMode == EditorMode.XML_WITH_XSD;
     }
 
     /**
@@ -2832,7 +3018,7 @@ public class XmlCodeEditor extends VBox {
             logger.debug("handleIntelliSenseTrigger called with character: '{}'", character);
 
             // If we're in a specialized mode (Schematron or XSD), don't handle XML IntelliSense
-            if (currentMode != EditorMode.XML) {
+            if (!isXmlMode()) {
                 logger.debug("{} mode is active, skipping XML IntelliSense", currentMode);
                 // The specialized auto-completion handles the event through its own listeners
                 return false;
@@ -2950,7 +3136,7 @@ public class XmlCodeEditor extends VBox {
      */
     private void requestCompletions() {
         // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (currentMode != EditorMode.XML) {
+        if (!isXmlMode()) {
             logger.debug("Skipping XML IntelliSense: current mode is {}", currentMode);
             return;
         }
@@ -2974,7 +3160,7 @@ public class XmlCodeEditor extends VBox {
      */
     private void showEnhancedIntelliSenseCompletions() {
         // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (currentMode != EditorMode.XML) {
+        if (!isXmlMode()) {
             logger.debug("Skipping enhanced XML IntelliSense: current mode is {}", currentMode);
             return;
         }
@@ -3010,7 +3196,7 @@ public class XmlCodeEditor extends VBox {
      */
     private void showEnhancedElementCompletions() {
         // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (currentMode != EditorMode.XML) {
+        if (!isXmlMode()) {
             logger.debug("Skipping enhanced element completions: current mode is {}", currentMode);
             return;
         }
@@ -3089,7 +3275,7 @@ public class XmlCodeEditor extends VBox {
      */
     private void showEnhancedAttributeCompletions() {
         // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (currentMode != EditorMode.XML) {
+        if (!isXmlMode()) {
             logger.debug("Skipping enhanced attribute completions: current mode is {}", currentMode);
             return;
         }
@@ -3120,7 +3306,7 @@ public class XmlCodeEditor extends VBox {
      */
     private void showEnhancedAttributeValueCompletions() {
         // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (currentMode != EditorMode.XML) {
+        if (!isXmlMode()) {
             logger.debug("Skipping enhanced attribute value completions: current mode is {}", currentMode);
             return;
         }
@@ -3155,11 +3341,27 @@ public class XmlCodeEditor extends VBox {
      */
     private void showEnhancedCompletionPopup(List<String> suggestions, String title, String icon) {
         try {
-            // Remove duplicates and sort
+            // Remove duplicates but preserve XSD sequence order
             List<String> uniqueSuggestions = suggestions.stream()
                     .distinct()
-                    .sorted()
                     .collect(Collectors.toList());
+
+            // Use the 3-column enhanced completion popup when:
+            // 1. We have the enhanced popup available AND
+            // 2. We're in XML mode AND 
+            // 3. We have XSD schema data available (either in XML_WITH_XSD mode or XSD data exists)
+            boolean hasXsdData = (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null);
+            boolean useEnhancedPopup = enhancedCompletionPopup != null && isXmlMode() &&
+                    (currentMode == EditorMode.XML_WITH_XSD || hasXsdData);
+
+            if (useEnhancedPopup) {
+                logger.debug("Using 3-column EnhancedCompletionPopup (mode: {}, hasXsdData: {})", currentMode, hasXsdData);
+                show3ColumnCompletionPopup(uniqueSuggestions, title, icon);
+                return;
+            }
+
+            // For other XML modes, use the standard completion popup
+            logger.debug("Using standard completion popup for mode: {}", currentMode);
 
             // Update the existing completion popup with enhanced suggestions
             completionListView.getItems().clear();
@@ -3188,6 +3390,204 @@ public class XmlCodeEditor extends VBox {
         } catch (Exception e) {
             logger.error("Error showing enhanced completion popup: {}", e.getMessage(), e);
         }
+    }
+
+    /**
+     * Shows the 3-column enhanced completion popup for XML_WITH_XSD mode.
+     * This popup includes: Completion List | Live Preview | Documentation
+     */
+    private void show3ColumnCompletionPopup(List<String> suggestions, String title, String icon) {
+        try {
+            if (enhancedCompletionPopup == null) {
+                logger.warn("EnhancedCompletionPopup not initialized, falling back to standard popup");
+                showStandardCompletionPopup(suggestions, title, icon);
+                return;
+            }
+
+            // Convert string suggestions to CompletionItem objects
+            List<org.fxt.freexmltoolkit.controls.intellisense.CompletionItem> completionItems = new ArrayList<>();
+
+            for (String suggestion : suggestions) {
+                // Create completion items with proper metadata using Builder pattern
+                org.fxt.freexmltoolkit.controls.intellisense.CompletionItem item =
+                        new org.fxt.freexmltoolkit.controls.intellisense.CompletionItem.Builder(
+                                suggestion,
+                                "<" + suggestion + ">",  // insertText
+                                org.fxt.freexmltoolkit.controls.intellisense.CompletionItemType.ELEMENT
+                        )
+                                .description(getElementDescription(suggestion))
+                                .required(isElementMandatory(suggestion))
+                                .build();
+                completionItems.add(item);
+            }
+
+            // Show the enhanced popup with proper positioning
+            var caretBounds = codeArea.getCaretBounds();
+            if (caretBounds.isPresent()) {
+                var bounds = caretBounds.get();
+                enhancedCompletionPopup.setOnItemSelected(this::handleCompletionSelection);
+                enhancedCompletionPopup.show(
+                        codeArea,
+                        completionItems,
+                        new javafx.geometry.Point2D(bounds.getMaxX(), bounds.getMaxY())
+                );
+
+                logger.info("3-column IntelliSense popup shown with {} {} suggestions",
+                        completionItems.size(), title.toLowerCase());
+            } else {
+                logger.warn("Could not get caret bounds for enhanced popup");
+                showStandardCompletionPopup(suggestions, title, icon);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error showing 3-column completion popup: {}", e.getMessage(), e);
+            // Fallback to standard popup
+            showStandardCompletionPopup(suggestions, title, icon);
+        }
+    }
+
+    /**
+     * Handles completion item selection from the 3-column popup
+     */
+    private void handleCompletionSelection(org.fxt.freexmltoolkit.controls.intellisense.CompletionItem item) {
+        try {
+            if (popupStartPosition < 0) {
+                logger.warn("Invalid popup start position for completion");
+                return;
+            }
+
+            int currentPosition = codeArea.getCaretPosition();
+            String elementName = item.getLabel(); // Get the element name (without < >)
+
+            logger.debug("Handling completion selection: {} at position {}, replacing from {} to {}",
+                    elementName, currentPosition, popupStartPosition, currentPosition);
+
+            // Replace the text from the "<" to current position with the complete element
+            // Remove any existing partial input between popupStartPosition and current position
+            codeArea.replaceText(popupStartPosition, currentPosition, "");
+
+            // Now insert the opening tag
+            String openingTag = "<" + elementName + ">";
+            codeArea.insertText(popupStartPosition, openingTag);
+
+            // Position cursor after the opening tag
+            int afterOpeningTag = popupStartPosition + openingTag.length();
+            codeArea.moveTo(afterOpeningTag);
+
+            // Apply auto-close logic based on current mode
+            if (currentMode == EditorMode.XML_WITH_XSD && parentXmlEditor != null) {
+                // Use enhanced auto-close with mandatory children
+                logger.debug("Applying enhanced auto-close with mandatory children for: {}", elementName);
+                handleAutoCloseWithMandatoryChildren(elementName, afterOpeningTag);
+            } else {
+                // Basic auto-close for other modes
+                if (!isSelfClosingTag(elementName)) {
+                    String closingTag = "</" + elementName + ">";
+                    codeArea.insertText(afterOpeningTag, closingTag);
+                    // Keep cursor between opening and closing tags
+                    codeArea.moveTo(afterOpeningTag);
+                    logger.debug("Applied basic auto-close for: {} -> {}", elementName, closingTag);
+                }
+            }
+
+            logger.debug("Completion selection handled successfully for: {}", elementName);
+
+        } catch (Exception e) {
+            logger.error("Error handling completion selection: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Gets description for an element from XSD schema data
+     */
+    private String getElementDescription(String elementName) {
+        try {
+            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
+                // Get description from XSD extended element map
+                var extendedElementMap = parentXmlEditor.getXsdDocumentationData().getExtendedXsdElementMap();
+                var elementInfo = extendedElementMap.values().stream()
+                        .filter(element -> elementName.equals(element.getElementName()))
+                        .findFirst();
+
+                if (elementInfo.isPresent()) {
+                    return elementInfo.get().getDocumentationAsHtml();
+                }
+            }
+            return "XML element: " + elementName;
+        } catch (Exception e) {
+            logger.debug("Error getting element description for {}: {}", elementName, e.getMessage());
+            return "XML element: " + elementName;
+        }
+    }
+
+    /**
+     * Checks if an element is mandatory based on XSD schema data
+     */
+    private boolean isElementMandatory(String elementName) {
+        try {
+            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
+                // Get element info from XSD extended element map
+                var extendedElementMap = parentXmlEditor.getXsdDocumentationData().getExtendedXsdElementMap();
+                var elementInfo = extendedElementMap.values().stream()
+                        .filter(element -> elementName.equals(element.getElementName()))
+                        .findFirst();
+
+                if (elementInfo.isPresent()) {
+                    return elementInfo.get().isMandatory();
+                }
+            }
+            return false; // Default to optional if no XSD info available
+        } catch (Exception e) {
+            logger.debug("Error checking if element {} is mandatory: {}", elementName, e.getMessage());
+            return false; // Default to optional on error
+        }
+    }
+
+    /**
+     * Gets full documentation for an element from XSD schema data
+     */
+    private String getElementDocumentation(String elementName) {
+        try {
+            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
+                // Get full documentation from XSD
+                var typeInfo = parentXmlEditor.getXsdDocumentationData().getExtendedXsdElementMap().values().stream()
+                        .filter(type -> elementName.equals(type.getElementName()))
+                        .findFirst();
+
+                if (typeInfo.isPresent()) {
+                    StringBuilder docBuilder = new StringBuilder();
+                    docBuilder.append("<h3>").append(elementName).append("</h3>");
+
+                    String description = typeInfo.get().getDocumentationAsHtml();
+                    if (description != null && !description.isEmpty()) {
+                        docBuilder.append("<p>").append(description).append("</p>");
+                    }
+
+                    // Add type information
+                    docBuilder.append("<p><strong>Type:</strong> ").append(typeInfo.get().getElementType()).append("</p>");
+
+                    return docBuilder.toString();
+                }
+            }
+            return "<h3>" + elementName + "</h3><p>XML element without schema documentation</p>";
+        } catch (Exception e) {
+            logger.debug("Error getting element documentation for {}: {}", elementName, e.getMessage());
+            return "<h3>" + elementName + "</h3><p>XML element</p>";
+        }
+    }
+
+    /**
+     * Fallback method for standard completion popup
+     */
+    private void showStandardCompletionPopup(List<String> suggestions, String title, String icon) {
+        completionListView.getItems().clear();
+        completionListView.getItems().addAll(suggestions);
+
+        if (!completionListView.getItems().isEmpty()) {
+            completionListView.getSelectionModel().select(0);
+        }
+
+        showIntelliSensePopupAtCursor();
     }
 
     // Helper methods for context detection
@@ -3339,7 +3739,7 @@ public class XmlCodeEditor extends VBox {
      */
     private void showBasicIntelliSensePopup() {
         // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (currentMode != EditorMode.XML) {
+        if (!isXmlMode()) {
             logger.debug("Skipping basic XML IntelliSense: current mode is {}", currentMode);
             return;
         }
@@ -3379,7 +3779,7 @@ public class XmlCodeEditor extends VBox {
      */
     private void showManualIntelliSensePopup() {
         // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (currentMode != EditorMode.XML) {
+        if (!isXmlMode()) {
             logger.debug("Skipping manual XML IntelliSense: current mode is {}", currentMode);
             return;
         }
@@ -3396,7 +3796,7 @@ public class XmlCodeEditor extends VBox {
      */
     private void showEnhancedIntelliSensePopup() {
         // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (currentMode != EditorMode.XML) {
+        if (!isXmlMode()) {
             logger.debug("Skipping enhanced XML IntelliSense popup: current mode is {}", currentMode);
             return;
         }
@@ -3975,7 +4375,17 @@ public class XmlCodeEditor extends VBox {
                 logger.debug("XSD mode is active, delegating manual completion to XsdAutoComplete");
                 xsdAutoComplete.triggerAutoComplete();
                 return true;
-            } else if (currentMode != EditorMode.XML) {
+            } else if (currentMode == EditorMode.XSLT && xsltAutoComplete != null) {
+                logger.debug("XSLT mode is active, delegating manual completion to XsltAutoComplete");
+                // Note: XsltAutoComplete doesn't have triggerAutoComplete method, so we'll implement it later
+                logger.debug("XSLT auto-completion not yet fully implemented for manual triggers");
+                return false;
+            } else if (currentMode == EditorMode.XSL_FO && xslFoAutoComplete != null) {
+                logger.debug("XSL-FO mode is active, delegating manual completion to XslFoAutoComplete");
+                // Note: XslFoAutoComplete doesn't have triggerAutoComplete method, so we'll implement it later
+                logger.debug("XSL-FO auto-completion not yet fully implemented for manual triggers");
+                return false;
+            } else if (!isXmlMode()) {
                 logger.debug("{} mode is active, but auto-completion not available", currentMode);
                 return false;
             }
@@ -4256,6 +4666,7 @@ public class XmlCodeEditor extends VBox {
 
     /**
      * Handles auto-closing of XML tags when opening a new tag.
+     * Works for all file types (XML, XSD, XSLT, XSL-FO, Schematron).
      *
      * @param event The key event
      * @return true if the event was handled, false otherwise
@@ -4278,14 +4689,21 @@ public class XmlCodeEditor extends VBox {
 
                     // Don't auto-close self-closing tags or closing tags
                     if (!tagName.startsWith("/") && !isSelfClosingTag(tagName)) {
-                        // Insert the closing tag
-                        String closingTag = "</" + tagName + ">";
-                        codeArea.insertText(caretPosition, closingTag);
 
-                        // Move cursor back to before the closing tag
-                        codeArea.moveTo(caretPosition);
+                        // For XML with linked XSD, generate mandatory child elements
+                        if (currentMode == EditorMode.XML_WITH_XSD && parentXmlEditor != null) {
+                            return handleAutoCloseWithMandatoryChildren(tagName, caretPosition);
+                        } else {
+                            // Basic auto-close for all other modes: <Name>|</Name>
+                            String closingTag = "</" + tagName + ">";
+                            codeArea.insertText(caretPosition, closingTag);
 
-                        return true; // Consume the event
+                            // Move cursor back to before the closing tag
+                            codeArea.moveTo(caretPosition);
+
+                            logger.debug("Auto-closed tag for mode {}: {} -> {}", currentMode, tagName, closingTag);
+                            return true; // Consume the event
+                        }
                     }
                 }
             }
@@ -4311,6 +4729,176 @@ public class XmlCodeEditor extends VBox {
      */
     private boolean isSelfClosingTag(String tagName) {
         return SELF_CLOSING_TAGS.contains(tagName.toLowerCase());
+    }
+
+    /**
+     * Handles auto-close with mandatory children generation for XML with linked XSD.
+     * Generates all mandatory sub-nodes with proper indentation.
+     * <p>
+     * Example: <knoten>| becomes:
+     * <knoten>
+     * <sub1>|</sub1>
+     * <sub2>
+     * <sub3></sub3>
+     * </sub2>
+     * </knoten>
+     *
+     * @param tagName       The tag name that was opened
+     * @param caretPosition Current cursor position
+     * @return true if handled, false otherwise
+     */
+    private boolean handleAutoCloseWithMandatoryChildren(String tagName, int caretPosition) {
+        try {
+            // Get current indentation level
+            String text = codeArea.getText();
+            String beforeCursor = text.substring(0, caretPosition);
+            int currentIndentLevel = calculateIndentationLevel(beforeCursor);
+            String baseIndent = " ".repeat(currentIndentLevel);
+            String childIndent = " ".repeat(currentIndentLevel + currentIndentationSize);
+
+            // Build the content with mandatory children
+            StringBuilder contentBuilder = new StringBuilder();
+            contentBuilder.append("\n");
+
+            // Get mandatory children from XSD (placeholder for now)
+            List<MandatoryElement> mandatoryChildren = getMandatoryChildren(tagName);
+
+            boolean hasChildren = !mandatoryChildren.isEmpty();
+            int cursorOffset = 1; // Start after the newline
+
+            if (hasChildren) {
+                for (int i = 0; i < mandatoryChildren.size(); i++) {
+                    MandatoryElement child = mandatoryChildren.get(i);
+                    contentBuilder.append(childIndent);
+                    contentBuilder.append("<").append(child.name).append(">");
+
+                    if (i == 0) {
+                        // Position cursor at the first child element
+                        cursorOffset = contentBuilder.length();
+                    }
+
+                    // Generate nested mandatory children recursively
+                    if (child.hasChildren) {
+                        contentBuilder.append("\n");
+                        generateMandatoryChildrenRecursive(child, contentBuilder, currentIndentLevel + currentIndentationSize);
+                        contentBuilder.append(childIndent);
+                    }
+
+                    contentBuilder.append("</").append(child.name).append(">");
+                    if (i < mandatoryChildren.size() - 1) {
+                        contentBuilder.append("\n");
+                    }
+                }
+                contentBuilder.append("\n").append(baseIndent);
+            } else {
+                // No mandatory children, just position cursor between tags
+                cursorOffset = 1;
+            }
+
+            // Add closing tag
+            contentBuilder.append("</").append(tagName).append(">");
+
+            // Insert the generated content
+            codeArea.insertText(caretPosition, contentBuilder.toString());
+
+            // Position cursor appropriately
+            codeArea.moveTo(caretPosition + cursorOffset);
+
+            logger.debug("Auto-closed tag with mandatory children: {} (children: {})", tagName, mandatoryChildren.size());
+            return true;
+
+        } catch (Exception e) {
+            logger.error("Error generating mandatory children for tag {}: {}", tagName, e.getMessage(), e);
+            // Fallback to basic auto-close
+            String closingTag = "</" + tagName + ">";
+            codeArea.insertText(caretPosition, closingTag);
+            codeArea.moveTo(caretPosition);
+            return true;
+        }
+    }
+
+    /**
+     * Recursively generates mandatory children with proper indentation.
+     */
+    private void generateMandatoryChildrenRecursive(MandatoryElement element, StringBuilder contentBuilder, int indentLevel) {
+        String indent = " ".repeat(indentLevel + currentIndentationSize);
+
+        for (MandatoryElement child : element.children) {
+            contentBuilder.append(indent);
+            contentBuilder.append("<").append(child.name).append(">");
+
+            if (child.hasChildren) {
+                contentBuilder.append("\n");
+                generateMandatoryChildrenRecursive(child, contentBuilder, indentLevel + currentIndentationSize);
+                contentBuilder.append(indent);
+            }
+
+            contentBuilder.append("</").append(child.name).append(">");
+            contentBuilder.append("\n");
+        }
+    }
+
+    /**
+     * Gets mandatory children for a given element from XSD schema.
+     * This is a placeholder implementation - should be integrated with XSD analysis.
+     */
+    private List<MandatoryElement> getMandatoryChildren(String tagName) {
+        // Placeholder implementation - in real scenario, this should query the XSD schema
+        List<MandatoryElement> children = new ArrayList<>();
+
+        // Example for testing - can be removed when integrated with real XSD analysis
+        if ("testElement".equals(tagName)) {
+            children.add(new MandatoryElement("sub1", false));
+            MandatoryElement sub2 = new MandatoryElement("sub2", true);
+            sub2.children.add(new MandatoryElement("sub3", false));
+            children.add(sub2);
+        }
+
+        return children;
+    }
+
+    /**
+     * Calculates the current indentation level at the cursor position.
+     */
+    private int calculateIndentationLevel(String textBeforeCursor) {
+        if (textBeforeCursor.isEmpty()) return 0;
+
+        // Find the last newline
+        int lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+        if (lastNewlineIndex == -1) {
+            // No newlines, check from start of text
+            lastNewlineIndex = -1;
+        }
+
+        // Count spaces/tabs after the last newline
+        String currentLine = textBeforeCursor.substring(lastNewlineIndex + 1);
+        int indentCount = 0;
+        for (char c : currentLine.toCharArray()) {
+            if (c == ' ') {
+                indentCount++;
+            } else if (c == '\t') {
+                indentCount += currentIndentationSize; // Convert tab to spaces
+            } else {
+                break; // Stop at first non-whitespace character
+            }
+        }
+
+        return indentCount;
+    }
+
+    /**
+     * Helper class to represent mandatory elements from XSD schema.
+     */
+    private static class MandatoryElement {
+        String name;
+        boolean hasChildren;
+        List<MandatoryElement> children;
+
+        public MandatoryElement(String name, boolean hasChildren) {
+            this.name = name;
+            this.hasChildren = hasChildren;
+            this.children = new ArrayList<>();
+        }
     }
 
     /**
@@ -5568,9 +6156,16 @@ public class XmlCodeEditor extends VBox {
                 return;
             }
 
-            logger.info("Go-to-Definition triggered for element: {}", elementName);
+            logger.info("Ctrl+Click triggered for element: {}", elementName);
 
-            // Find element definition in XSD
+            // For XML_WITH_XSD mode, show the 3-column documentation popup instead of navigation
+            if (currentMode == EditorMode.XML_WITH_XSD) {
+                logger.debug("XML_WITH_XSD mode: showing documentation popup for element: {}", elementName);
+                showDocumentationPopup(elementName, event.getX(), event.getY());
+                return;
+            }
+
+            // For other modes, fall back to XSD navigation behavior
             if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
                 logger.debug("Parent XmlEditor found, navigating to XSD definition");
                 navigateToXsdDefinition(xmlEditor, elementName);
@@ -5580,6 +6175,170 @@ public class XmlCodeEditor extends VBox {
         } catch (Exception e) {
             logger.error("Error in Go-to-Definition: {}", e.getMessage(), e);
         }
+    }
+
+    /**
+     * Shows the 3-column documentation popup for the specified element.
+     * This provides rich documentation including element description, constraints, and usage examples.
+     *
+     * @param elementName The name of the XML element to show documentation for
+     * @param mouseX      Mouse X position for popup positioning
+     * @param mouseY      Mouse Y position for popup positioning
+     */
+    private void showDocumentationPopup(String elementName, double mouseX, double mouseY) {
+        try {
+            if (enhancedCompletionPopup == null) {
+                logger.warn("EnhancedCompletionPopup not initialized for documentation display");
+                showSimpleDocumentationAlert(elementName);
+                return;
+            }
+
+            // Create a single completion item for the documentation display
+            List<org.fxt.freexmltoolkit.controls.intellisense.CompletionItem> docItems = new ArrayList<>();
+
+            org.fxt.freexmltoolkit.controls.intellisense.CompletionItem docItem =
+                    new org.fxt.freexmltoolkit.controls.intellisense.CompletionItem.Builder(
+                            elementName,
+                            elementName,  // No insertion needed for documentation view
+                            org.fxt.freexmltoolkit.controls.intellisense.CompletionItemType.ELEMENT
+                    )
+                            .description(getElementDescription(elementName))
+                            .build();
+            docItems.add(docItem);
+
+            // Convert mouse coordinates to scene coordinates for proper positioning
+            var localBounds = codeArea.screenToLocal(mouseX, mouseY);
+
+            // Show the enhanced popup in documentation mode
+            enhancedCompletionPopup.setOnItemSelected(item -> {
+                // In documentation mode, we don't insert anything, just close the popup
+                logger.debug("Documentation popup closed for element: {}", elementName);
+            });
+            enhancedCompletionPopup.show(
+                    codeArea,
+                    docItems,
+                    new javafx.geometry.Point2D(localBounds.getX(), localBounds.getY())
+            );
+
+            logger.info("Documentation popup shown for element: {}", elementName);
+
+        } catch (Exception e) {
+            logger.error("Error showing documentation popup for element '{}': {}", elementName, e.getMessage(), e);
+            // Fallback to simple alert
+            showSimpleDocumentationAlert(elementName);
+        }
+    }
+
+    /**
+     * Gets detailed documentation for an element, including constraints and usage information.
+     */
+    private String getDetailedElementDocumentation(String elementName) {
+        try {
+            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
+                var xsdData = parentXmlEditor.getXsdDocumentationData();
+
+                // Find the element information
+                var extendedElementMap = xsdData.getExtendedXsdElementMap();
+                var elementInfo = extendedElementMap.values().stream()
+                        .filter(element -> elementName.equals(element.getElementName()))
+                        .findFirst();
+
+                if (elementInfo.isPresent()) {
+                    var element = elementInfo.get();
+                    StringBuilder docBuilder = new StringBuilder();
+
+                    // Title
+                    docBuilder.append("<h2>").append(elementName).append("</h2>");
+
+                    // Description
+                    String description = element.getDocumentationAsHtml();
+                    if (description != null && !description.isEmpty()) {
+                        docBuilder.append("<p><strong>Description:</strong><br/>").append(description).append("</p>");
+                    }
+
+                    // Type information
+                    String type = element.getElementType();
+                    if (type != null) {
+                        docBuilder.append("<p><strong>Type:</strong> ").append(type).append("</p>");
+                    }
+
+                    // Occurrence information
+                    String minOccurs = null;
+                    String maxOccurs = null;
+                    if (element.getCurrentNode() != null && element.getCurrentNode().getAttributes() != null) {
+                        var minOccursNode = element.getCurrentNode().getAttributes().getNamedItem("minOccurs");
+                        var maxOccursNode = element.getCurrentNode().getAttributes().getNamedItem("maxOccurs");
+                        minOccurs = minOccursNode != null ? minOccursNode.getNodeValue() : null;
+                        maxOccurs = maxOccursNode != null ? maxOccursNode.getNodeValue() : null;
+                    }
+                    if (minOccurs != null || maxOccurs != null) {
+                        docBuilder.append("<p><strong>Occurrence:</strong> ");
+                        if (minOccurs != null) {
+                            docBuilder.append("Min: ").append(minOccurs);
+                        }
+                        if (maxOccurs != null) {
+                            if (minOccurs != null) {
+                                docBuilder.append(", ");
+                            }
+                            docBuilder.append("Max: ").append(maxOccurs);
+                        }
+                        docBuilder.append("</p>");
+                    }
+
+                    // XPath context
+                    String xpath = element.getCurrentXpath();
+                    if (xpath != null && !xpath.isEmpty()) {
+                        docBuilder.append("<p><strong>XPath:</strong> <code>").append(xpath).append("</code></p>");
+                    }
+
+                    // Example
+                    docBuilder.append("<p><strong>Example:</strong></p>");
+                    docBuilder.append("<pre><code>&lt;").append(elementName).append("&gt;");
+                    if (type != null) {
+                        if (type.contains("string")) {
+                            docBuilder.append("sample text");
+                        } else if (type.contains("boolean")) {
+                            docBuilder.append("true");
+                        } else if (type.contains("int") || type.contains("decimal")) {
+                            docBuilder.append("123");
+                        } else {
+                            docBuilder.append("...");
+                        }
+                    } else {
+                        docBuilder.append("...");
+                    }
+                    docBuilder.append("&lt;/").append(elementName).append("&gt;</code></pre>");
+
+                    return docBuilder.toString();
+                }
+            }
+
+            // Fallback documentation
+            return "<h2>" + elementName + "</h2>" +
+                    "<p><strong>Description:</strong><br/>XML element without detailed schema documentation</p>" +
+                    "<p><strong>Example:</strong></p>" +
+                    "<pre><code>&lt;" + elementName + "&gt;...&lt;/" + elementName + "&gt;</code></pre>";
+
+        } catch (Exception e) {
+            logger.debug("Error getting detailed element documentation for {}: {}", elementName, e.getMessage());
+            return "<h2>" + elementName + "</h2><p>XML element</p>";
+        }
+    }
+
+    /**
+     * Shows a simple documentation alert as fallback when enhanced popup is not available.
+     */
+    private void showSimpleDocumentationAlert(String elementName) {
+        Platform.runLater(() -> {
+            var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.setTitle("Element Documentation");
+            alert.setHeaderText("Documentation for: " + elementName);
+
+            String description = getElementDescription(elementName);
+            alert.setContentText(description);
+
+            alert.showAndWait();
+        });
     }
 
     /**
@@ -5712,4 +6471,200 @@ public class XmlCodeEditor extends VBox {
         lastModifiedTime = -1;
         logger.debug("XmlCodeEditor cleanup completed");
     }
+
+    /**
+     * Provides value suggestions for boolean and enumeration types when editing element text content.
+     * This is triggered when the user is typing within element text that has specific XSD constraints.
+     */
+    private void showValueSuggestions(ElementTextInfo elementTextInfo) {
+        try {
+            if (!isXmlWithXsdMode()) {
+                logger.debug("Not in XML_WITH_XSD mode, skipping value suggestions");
+                return;
+            }
+
+            String elementName = elementTextInfo.elementName;
+            logger.debug("Showing value suggestions for element: {}", elementName);
+
+            // Get element type information from XSD
+            String elementType = getElementType(elementName);
+            List<String> suggestions = new ArrayList<>();
+
+            if ("xs:boolean".equals(elementType) || "boolean".equals(elementType)) {
+                // Boolean type - suggest true/false
+                suggestions.add("true");
+                suggestions.add("false");
+                logger.debug("Added boolean suggestions for element: {}", elementName);
+
+            } else if (hasEnumerationRestriction(elementName)) {
+                // Enumeration type - get allowed values
+                List<String> enumValues = getEnumerationValues(elementName);
+                if (enumValues != null && !enumValues.isEmpty()) {
+                    suggestions.addAll(enumValues);
+                    logger.debug("Added {} enumeration values for element: {}", enumValues.size(), elementName);
+                }
+            } else {
+                logger.debug("Element {} has no boolean/enumeration constraints", elementName);
+                return;
+            }
+
+            if (!suggestions.isEmpty()) {
+                // For XML_WITH_XSD mode, use the 3-column popup for value suggestions
+                if (enhancedCompletionPopup != null) {
+                    show3ColumnValueSuggestions(suggestions, elementTextInfo);
+                } else {
+                    // Fallback to standard popup
+                    showStandardValueSuggestions(suggestions, elementTextInfo);
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Error showing value suggestions: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Shows value suggestions using the 3-column enhanced popup
+     */
+    private void show3ColumnValueSuggestions(List<String> suggestions, ElementTextInfo elementTextInfo) {
+        try {
+            List<org.fxt.freexmltoolkit.controls.intellisense.CompletionItem> completionItems = new ArrayList<>();
+
+            for (String suggestion : suggestions) {
+                org.fxt.freexmltoolkit.controls.intellisense.CompletionItem item =
+                        new org.fxt.freexmltoolkit.controls.intellisense.CompletionItem.Builder(
+                                suggestion,
+                                suggestion,
+                                org.fxt.freexmltoolkit.controls.intellisense.CompletionItemType.VALUE
+                        )
+                                .description(getValueDescription(suggestion, elementTextInfo.elementName))
+                                .build();
+                completionItems.add(item);
+            }
+
+            // Show at the current cursor position
+            var caretBounds = codeArea.getCaretBounds();
+            if (caretBounds.isPresent()) {
+                var bounds = caretBounds.get();
+                enhancedCompletionPopup.setOnItemSelected(item -> handleValueSelection(item, elementTextInfo));
+                enhancedCompletionPopup.show(
+                        codeArea,
+                        completionItems,
+                        new javafx.geometry.Point2D(bounds.getMaxX(), bounds.getMaxY())
+                );
+
+                logger.info("3-column value suggestions popup shown with {} values", completionItems.size());
+            }
+
+        } catch (Exception e) {
+            logger.error("Error showing 3-column value suggestions: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Handles value selection from the 3-column popup
+     */
+    private void handleValueSelection(org.fxt.freexmltoolkit.controls.intellisense.CompletionItem item, ElementTextInfo elementTextInfo) {
+        try {
+            String selectedValue = item.getInsertText();
+
+            // Replace the element text content with the selected value
+            codeArea.replaceText(elementTextInfo.startPosition, elementTextInfo.endPosition, selectedValue);
+
+            // Position cursor after the inserted value
+            codeArea.moveTo(elementTextInfo.startPosition + selectedValue.length());
+
+            logger.debug("Selected value '{}' for element '{}'", selectedValue, elementTextInfo.elementName);
+
+        } catch (Exception e) {
+            logger.error("Error handling value selection: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Gets the XSD type for an element
+     */
+    private String getElementType(String elementName) {
+        try {
+            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
+                var extendedElementMap = parentXmlEditor.getXsdDocumentationData().getExtendedXsdElementMap();
+                var elementInfo = extendedElementMap.values().stream()
+                        .filter(element -> elementName.equals(element.getElementName()))
+                        .findFirst();
+
+                if (elementInfo.isPresent()) {
+                    return elementInfo.get().getElementType();
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            logger.debug("Error getting element type for {}: {}", elementName, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Checks if an element has enumeration restriction in XSD
+     */
+    private boolean hasEnumerationRestriction(String elementName) {
+        List<String> enumValues = getEnumerationValues(elementName);
+        return enumValues != null && !enumValues.isEmpty();
+    }
+
+    /**
+     * Gets description for a value
+     */
+    private String getValueDescription(String value, String elementName) {
+        if ("true".equals(value) || "false".equals(value)) {
+            return "Boolean value: " + value;
+        }
+        return "Enumeration value for " + elementName + ": " + value;
+    }
+
+    /**
+     * Gets documentation for a value
+     */
+    private String getValueDocumentation(String value, String elementName) {
+        StringBuilder docBuilder = new StringBuilder();
+        docBuilder.append("<h3>").append(value).append("</h3>");
+
+        if ("true".equals(value)) {
+            docBuilder.append("<p>Boolean value representing a true condition.</p>");
+        } else if ("false".equals(value)) {
+            docBuilder.append("<p>Boolean value representing a false condition.</p>");
+        } else {
+            docBuilder.append("<p>Allowed enumeration value for element <code>").append(elementName).append("</code>.</p>");
+        }
+
+        docBuilder.append("<p><strong>Usage:</strong></p>");
+        docBuilder.append("<pre><code>&lt;").append(elementName).append("&gt;").append(value).append("&lt;/").append(elementName).append("&gt;</code></pre>");
+
+        return docBuilder.toString();
+    }
+
+    /**
+     * Fallback method for standard value suggestions popup
+     */
+    private void showStandardValueSuggestions(List<String> suggestions, ElementTextInfo elementTextInfo) {
+        try {
+            // Store the element text info for selection handling
+            currentElementTextInfo = elementTextInfo;
+
+            // Show the suggestions in the standard popup
+            completionListView.getItems().clear();
+            completionListView.getItems().addAll(suggestions);
+
+            if (!completionListView.getItems().isEmpty()) {
+                completionListView.getSelectionModel().select(0);
+            }
+
+            showIntelliSensePopupAtCursor();
+
+            logger.debug("Standard value suggestions popup shown with {} values", suggestions.size());
+
+        } catch (Exception e) {
+            logger.error("Error showing standard value suggestions: {}", e.getMessage(), e);
+        }
+    }
+
 }
