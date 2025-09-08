@@ -100,3 +100,8 @@ org.fxt.freexmltoolkit/
 - use xmlspy-style-config.json for general styling.
 - the app should be modern and colorful styled
 - menu, kontext menu, etc. should always have icons and text
+
+# **️ Error Handling**
+- **Comprehensive Error Management**: Professionelle Fehlerbehandlung
+- **User-friendly Alerts**: Benutzerfreundliche Fehler- und Info-Dialoge
+- **Graceful Degradation**: Robustes Verhalten bei Fehlern

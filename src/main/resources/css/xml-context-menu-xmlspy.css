@@ -1,0 +1,236 @@
+/*
+ * XMLSpy-Style Context Menu for XML Code Editor
+ * Based on xmlspy-style-config.json
+ * Professional XML editing context menu styling
+ */
+
+/* =================================================================
+   XMLSpy-Style Context Menu - Based on xmlspy-style-config.json
+   ================================================================= */
+
+/* Main Context Menu Container */
+.context-menu {
+    -fx-background-color: #ffffff;
+    -fx-background-insets: 0;
+    -fx-padding: 4px;
+    -fx-border-color: #c0c0c0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.15), 2, 0, 1, 1);
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* Menu Items - General Styling */
+.context-menu .menu-item {
+    -fx-padding: 6px 12px;
+    -fx-font-size: 11px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-text-fill: #333333;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-graphic-text-gap: 8px;
+}
+
+/* Menu Item Hover State */
+.context-menu .menu-item:hover {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #2c5aa0;
+}
+
+/* Menu Item Focused State */
+.context-menu .menu-item:focused {
+    -fx-background-color: #f0f8ff;
+    -fx-text-fill: #2c5aa0;
+    -fx-border-color: #4a90e2;
+    -fx-border-width: 1px;
+    -fx-border-radius: 2px;
+    -fx-background-radius: 2px;
+}
+
+/* Menu Item Labels */
+.context-menu .menu-item .label {
+    -fx-text-fill: inherit;
+    -fx-font-weight: normal;
+}
+
+/* Menu Item Icons - FontIcon styling */
+.context-menu .menu-item .ikonli-font-icon {
+    -fx-icon-size: 12px;
+    -fx-fill: currentColor;
+}
+
+/* Icon color adjustments for different action types */
+.context-menu .menu-item.comment-action .ikonli-font-icon {
+    -fx-fill: #6c757d;
+}
+
+.context-menu .menu-item.edit-action .ikonli-font-icon {
+    -fx-fill: #333333;
+}
+
+.context-menu .menu-item.xml-action .ikonli-font-icon {
+    -fx-fill: #8b6914;
+}
+
+.context-menu .menu-item.search-action .ikonli-font-icon {
+    -fx-fill: #495057;
+}
+
+.context-menu .menu-item.format-action .ikonli-font-icon {
+    -fx-fill: #2c5aa0;
+}
+
+.context-menu .menu-item.fold-action .ikonli-font-icon {
+    -fx-fill: #6c757d;
+}
+
+/* Icon color changes on hover/focus */
+.context-menu .menu-item:hover .ikonli-font-icon,
+.context-menu .menu-item:focused .ikonli-font-icon {
+    -fx-fill: inherit;
+}
+
+/* Separator Items */
+.context-menu .separator {
+    -fx-padding: 2px 0;
+}
+
+.context-menu .separator .line {
+    -fx-border-color: #dee2e6;
+    -fx-border-width: 0 0 1px 0;
+    -fx-opacity: 0.7;
+}
+
+/* Special styling for different menu item types */
+
+/* Comment Line Item */
+.context-menu .menu-item.comment-action {
+    -fx-text-fill: #6c757d;
+    -fx-font-style: italic;
+}
+
+.context-menu .menu-item.comment-action:hover,
+.context-menu .menu-item.comment-action:focused {
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #495057;
+}
+
+/* Standard Edit Operations (Cut, Copy, Paste) */
+.context-menu .menu-item.edit-action {
+    -fx-text-fill: #333333;
+}
+
+.context-menu .menu-item.edit-action:hover,
+.context-menu .menu-item.edit-action:focused {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #2c5aa0;
+}
+
+/* XML-specific Operations (Copy XPath, Go to Definition) */
+.context-menu .menu-item.xml-action {
+    -fx-text-fill: #8b6914;
+    -fx-font-weight: bold;
+}
+
+.context-menu .menu-item.xml-action:hover,
+.context-menu .menu-item.xml-action:focused {
+    -fx-background-color: #fffef7;
+    -fx-text-fill: #6c4100;
+    -fx-border-color: #d4a147;
+}
+
+/* Search and Selection Actions */
+.context-menu .menu-item.search-action {
+    -fx-text-fill: #495057;
+}
+
+.context-menu .menu-item.search-action:hover,
+.context-menu .menu-item.search-action:focused {
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #343a40;
+}
+
+/* XML Formatting and Validation Actions */
+.context-menu .menu-item.format-action {
+    -fx-text-fill: #2c5aa0;
+}
+
+.context-menu .menu-item.format-action:hover,
+.context-menu .menu-item.format-action:focused {
+    -fx-background-color: #f0f8ff;
+    -fx-text-fill: #1a365d;
+    -fx-border-color: #4a90e2;
+}
+
+/* Code Folding Actions */
+.context-menu .menu-item.fold-action {
+    -fx-text-fill: #6c757d;
+}
+
+.context-menu .menu-item.fold-action:hover,
+.context-menu .menu-item.fold-action:focused {
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #495057;
+}
+
+/* Disabled Menu Items */
+.context-menu .menu-item:disabled {
+    -fx-text-fill: #94a3b8;
+    -fx-opacity: 0.6;
+}
+
+.context-menu .menu-item:disabled:hover {
+    -fx-background-color: transparent;
+}
+
+/* Keyboard Shortcut Text */
+.context-menu .menu-item .accelerator-text {
+    -fx-text-fill: #6c757d;
+    -fx-font-size: 10px;
+    -fx-font-style: normal;
+}
+
+.context-menu .menu-item:hover .accelerator-text,
+.context-menu .menu-item:focused .accelerator-text {
+    -fx-text-fill: #94a3b8;
+}
+
+/* Additional visual enhancements */
+.context-menu .menu-item.xml-action .accelerator-text {
+    -fx-text-fill: #8b6914;
+}
+
+.context-menu .menu-item.format-action .accelerator-text {
+    -fx-text-fill: #4a90e2;
+}
+
+/* Animation for smooth hover transitions */
+.context-menu .menu-item {
+    -fx-cursor: hand;
+}
+
+/* Enhanced border styling for focused items */
+.context-menu .menu-item:focused {
+    -fx-border-insets: 0;
+    -fx-effect: innershadow(three-pass-box, rgba(74, 144, 226, 0.3), 1, 0, 0, 0);
+}
+
+/* Special styling for separators between functional groups */
+.context-menu .separator:nth-child(2),
+.context-menu .separator:nth-child(6),
+.context-menu .separator:nth-child(9),
+.context-menu .separator:nth-child(12),
+.context-menu .separator:nth-child(15) {
+    -fx-padding: 3px 0;
+}
+
+.context-menu .separator:nth-child(2) .line,
+.context-menu .separator:nth-child(6) .line,
+.context-menu .separator:nth-child(9) .line,
+.context-menu .separator:nth-child(12) .line,
+.context-menu .separator:nth-child(15) .line {
+    -fx-border-color: #4a90e2;
+    -fx-opacity: 0.3;
+}

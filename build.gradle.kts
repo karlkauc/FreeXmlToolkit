@@ -30,9 +30,6 @@ group = "org.fxt"
 repositories {
     mavenCentral()
     gradlePluginPortal()
-    maven { url = uri("https://repo.eclipse.org/content/groups/releases/") }
-    maven { url = uri("https://repo.eclipse.org/content/repositories/lemminx-releases/") }
-    maven { url = uri("https://maven.bestsolution.at/efxclipse-releases/") }
 }
 
 javafx {
@@ -41,8 +38,8 @@ javafx {
 }
 
 application {
-    mainClass.set("org.fxt.freexmltoolkit.FxtGui")
-    // mainClass.set("org.fxt.freexmltoolkit.demo.IntelliSenseDemo")
+    // mainClass.set("org.fxt.freexmltoolkit.FxtGui")
+    mainClass.set("org.fxt.freexmltoolkit.demo.IntelliSenseDemo")
 }
 
 dependencies {
@@ -66,23 +63,22 @@ dependencies {
     implementation("org.apache.santuario:xmlsec:4.0.4")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.81")
 
-    // implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
-    // implementation("org.eclipse.lemminx:org.eclipse.lemminx:0.31.0")
-    // implementation("org.eclipse.xtext:org.eclipse.xtext.xbase.lib:2.40.0.M2")
-
-
     implementation("org.controlsfx:controlsfx:11.2.2")
+
     implementation("org.apache.xmlgraphics:fop:2.11")
     implementation("org.apache.pdfbox:pdfbox:3.0.5")
     implementation("org.apache.xmlgraphics:batik-svggen:1.19")
     implementation("org.apache.xmlgraphics:batik-all:1.19")
     implementation("org.apache.xmlgraphics:batik-transcoder:1.19")
+
     implementation("org.apache.poi:poi:5.4.1")
     implementation("org.apache.poi:poi-ooxml:5.4.1")
+
     implementation("org.apache.commons:commons-lang3:3.18.0")
     implementation("commons-io:commons-io:2.20.0")
     implementation("org.apache.commons:commons-text:1.14.0")
     implementation("commons-validator:commons-validator:1.10.0")
+
     implementation("fr.brouillard.oss:cssfx:11.5.1")
     implementation("org.thymeleaf:thymeleaf:3.1.3.RELEASE")
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
