@@ -2233,6 +2233,15 @@ public class XmlEditor extends Tab {
     }
 
     /**
+     * Gets the XSD documentation service.
+     *
+     * @return The XSD documentation service
+     */
+    public XsdDocumentationService getXsdDocumentationService() {
+        return xsdDocumentationService;
+    }
+
+    /**
      * Finds a node in the XML document using the given XPath
      *
      * @param xpath The XPath expression to find the node

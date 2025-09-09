@@ -193,6 +193,158 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Gets mandatory child elements for a given element name based on XSD schema analysis.
+     *
+     * @param elementName The name of the parent element
+     * @return List of mandatory child element information
+     */
+    public List<MandatoryChildInfo> getMandatoryChildElements(String elementName) {
+        List<MandatoryChildInfo> mandatoryChildren = new ArrayList<>();
+
+        try {
+            // Find the element definition in the schema
+            Node elementNode = elementMap.get(elementName);
+            if (elementNode == null) {
+                logger.debug("Element '{}' not found in schema", elementName);
+                return mandatoryChildren;
+            }
+
+            // Get the type definition for the element
+            Node typeDefinition = findTypeDefinition(elementNode, getAttributeValue(elementNode, "type"));
+            Node contentModel = findContentModel(elementNode, typeDefinition);
+
+            if (contentModel != null) {
+                extractMandatoryChildren(contentModel, mandatoryChildren);
+            }
+
+            logger.debug("Found {} mandatory children for element '{}'", mandatoryChildren.size(), elementName);
+
+        } catch (Exception e) {
+            logger.error("Error getting mandatory children for element '{}': {}", elementName, e.getMessage(), e);
+        }
+
+        return mandatoryChildren;
+    }
+
+    /**
+     * Recursively extracts mandatory child elements from XSD content model (sequence, choice, etc.).
+     */
+    private void extractMandatoryChildren(Node contentNode, List<MandatoryChildInfo> mandatoryChildren) {
+        if (contentNode == null) return;
+
+        String localName = contentNode.getLocalName();
+
+        if ("sequence".equals(localName) || "all".equals(localName)) {
+            // For sequence and all, process all child elements
+            for (Node child : getDirectChildElements(contentNode)) {
+                if ("element".equals(child.getLocalName())) {
+                    processMandatoryElement(child, mandatoryChildren);
+                } else if ("sequence".equals(child.getLocalName()) || "choice".equals(child.getLocalName()) || "all".equals(child.getLocalName())) {
+                    // Recursively process nested compositors
+                    extractMandatoryChildren(child, mandatoryChildren);
+                }
+            }
+        } else if ("choice".equals(localName)) {
+            // For choice, we need to handle differently - usually only one child is mandatory
+            // For now, we'll add the first mandatory child from the choice
+            for (Node child : getDirectChildElements(contentNode)) {
+                if ("element".equals(child.getLocalName())) {
+                    if (isMandatoryElement(child)) {
+                        processMandatoryElement(child, mandatoryChildren);
+                        break; // Only take first mandatory element from choice
+                    }
+                }
+            }
+        } else if ("extension".equals(localName)) {
+            // Handle extension - process base type and then current content
+            String baseType = getAttributeValue(contentNode, "base");
+            if (baseType != null) {
+                Node baseTypeNode = findTypeDefinition(null, baseType);
+                if (baseTypeNode != null) {
+                    Node baseContentModel = findContentModel(baseTypeNode, null);
+                    if (baseContentModel != null) {
+                        extractMandatoryChildren(baseContentModel, mandatoryChildren);
+                    }
+                }
+            }
+
+            // Process current extension content
+            for (Node child : getDirectChildElements(contentNode)) {
+                if ("sequence".equals(child.getLocalName()) || "choice".equals(child.getLocalName()) || "all".equals(child.getLocalName())) {
+                    extractMandatoryChildren(child, mandatoryChildren);
+                }
+            }
+        }
+    }
+
+    /**
+     * Processes a single element to determine if it's mandatory and extract its info.
+     */
+    private void processMandatoryElement(Node elementNode, List<MandatoryChildInfo> mandatoryChildren) {
+        if (!isMandatoryElement(elementNode)) {
+            return;
+        }
+
+        String childName = getAttributeValue(elementNode, "name");
+        if (childName == null) {
+            // Handle element reference
+            childName = getAttributeValue(elementNode, "ref");
+            if (childName != null && childName.contains(":")) {
+                // Remove namespace prefix for simplicity
+                childName = childName.substring(childName.lastIndexOf(":") + 1);
+            }
+        }
+
+        if (childName != null) {
+            // Get minOccurs and maxOccurs
+            String minOccurs = getAttributeValue(elementNode, "minOccurs", "1");
+            String maxOccurs = getAttributeValue(elementNode, "maxOccurs", "1");
+
+            // Check if this element has mandatory children recursively
+            List<MandatoryChildInfo> nestedChildren = new ArrayList<>();
+            Node typeDefinition = findTypeDefinition(elementNode, getAttributeValue(elementNode, "type"));
+            Node contentModel = findContentModel(elementNode, typeDefinition);
+
+            if (contentModel != null) {
+                extractMandatoryChildren(contentModel, nestedChildren);
+            }
+
+            MandatoryChildInfo childInfo = new MandatoryChildInfo(
+                    childName,
+                    Integer.parseInt(minOccurs),
+                    maxOccurs.equals("unbounded") ? Integer.MAX_VALUE : Integer.parseInt(maxOccurs),
+                    nestedChildren
+            );
+
+            mandatoryChildren.add(childInfo);
+            logger.debug("Added mandatory child element: {} (minOccurs={}, maxOccurs={}, hasChildren={})",
+                    childName, minOccurs, maxOccurs, !nestedChildren.isEmpty());
+        }
+    }
+
+    /**
+     * Checks if an element is mandatory based on its minOccurs attribute.
+     */
+    private boolean isMandatoryElement(Node elementNode) {
+        String minOccurs = getAttributeValue(elementNode, "minOccurs", "1");
+        return Integer.parseInt(minOccurs) >= 1;
+    }
+
+    /**
+     * Helper record to hold information about mandatory child elements.
+     */
+    public record MandatoryChildInfo(
+            String name,
+            int minOccurs,
+            int maxOccurs,
+            List<MandatoryChildInfo> children
+    ) {
+        public boolean hasChildren() {
+            return children != null && !children.isEmpty();
+        }
+    }
+
+    /**
      * Processes all schemas including xs:include and xs:import elements.
      * This method downloads remote schemas and processes local includes.
      */

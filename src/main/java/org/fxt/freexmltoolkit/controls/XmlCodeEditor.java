@@ -4840,18 +4840,40 @@ public class XmlCodeEditor extends VBox {
 
     /**
      * Gets mandatory children for a given element from XSD schema.
-     * This is a placeholder implementation - should be integrated with XSD analysis.
+     * This method now integrates with real XSD analysis to determine mandatory child elements.
      */
     private List<MandatoryElement> getMandatoryChildren(String tagName) {
-        // Placeholder implementation - in real scenario, this should query the XSD schema
         List<MandatoryElement> children = new ArrayList<>();
 
-        // Example for testing - can be removed when integrated with real XSD analysis
-        if ("testElement".equals(tagName)) {
-            children.add(new MandatoryElement("sub1", false));
-            MandatoryElement sub2 = new MandatoryElement("sub2", true);
-            sub2.children.add(new MandatoryElement("sub3", false));
-            children.add(sub2);
+        try {
+            // Check if we have an XSD linked and can access the documentation data
+            if (parentXmlEditor == null) {
+                logger.debug("No parent XML editor available for element '{}'", tagName);
+                return children;
+            }
+
+            // Get the XSD documentation service from the parent editor
+            var xsdDocService = parentXmlEditor.getXsdDocumentationService();
+            if (xsdDocService == null) {
+                logger.debug("No XSD documentation service available for element '{}'", tagName);
+                return children;
+            }
+
+            // Query the XSD service for mandatory children
+            var mandatoryChildInfos = xsdDocService.getMandatoryChildElements(tagName);
+
+            // Convert to our internal MandatoryElement objects
+            for (var childInfo : mandatoryChildInfos) {
+                MandatoryElement mandatoryChild = MandatoryElement.fromMandatoryChildInfo(childInfo);
+                children.add(mandatoryChild);
+                logger.debug("Added mandatory child for '{}': {} (minOccurs={}, hasChildren={})",
+                        tagName, mandatoryChild.name, mandatoryChild.minOccurs, mandatoryChild.hasChildren);
+            }
+
+            logger.debug("Found {} mandatory children for element '{}'", children.size(), tagName);
+
+        } catch (Exception e) {
+            logger.error("Error getting mandatory children for element '{}': {}", tagName, e.getMessage(), e);
         }
 
         return children;
@@ -4893,11 +4915,34 @@ public class XmlCodeEditor extends VBox {
         String name;
         boolean hasChildren;
         List<MandatoryElement> children;
+        int minOccurs;
+        int maxOccurs;
 
         public MandatoryElement(String name, boolean hasChildren) {
             this.name = name;
             this.hasChildren = hasChildren;
             this.children = new ArrayList<>();
+            this.minOccurs = 1;
+            this.maxOccurs = 1;
+        }
+
+        public MandatoryElement(String name, int minOccurs, int maxOccurs, List<MandatoryElement> children) {
+            this.name = name;
+            this.minOccurs = minOccurs;
+            this.maxOccurs = maxOccurs;
+            this.children = children != null ? children : new ArrayList<>();
+            this.hasChildren = !this.children.isEmpty();
+        }
+
+        /**
+         * Factory method to create MandatoryElement from XsdDocumentationService.MandatoryChildInfo
+         */
+        public static MandatoryElement fromMandatoryChildInfo(org.fxt.freexmltoolkit.service.XsdDocumentationService.MandatoryChildInfo info) {
+            List<MandatoryElement> children = info.children().stream()
+                    .map(MandatoryElement::fromMandatoryChildInfo)
+                    .collect(java.util.stream.Collectors.toList());
+
+            return new MandatoryElement(info.name(), info.minOccurs(), info.maxOccurs(), children);
         }
     }
 
