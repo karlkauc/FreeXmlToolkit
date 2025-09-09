@@ -55,6 +55,13 @@ public class SettingsController {
     @FXML
     CheckBox schematronPrettyPrintOnLoad;
 
+    // XML Auto-Creation Settings
+    @FXML
+    CheckBox createAllChildNodes;
+
+    @FXML
+    CheckBox fillNodesWithSampleValues;
+
     // XSD Editor Settings
     @FXML
     CheckBox xsdAutoSaveEnabled, xsdBackupEnabled, xsdPrettyPrintOnSave;
@@ -223,6 +230,10 @@ public class SettingsController {
             // Save Schematron settings
             propertiesService.setSchematronPrettyPrintOnLoad(schematronPrettyPrintOnLoad.isSelected());
 
+            // Save XML Auto-Creation settings
+            props.setProperty("xml.createAllChildNodes", String.valueOf(createAllChildNodes.isSelected()));
+            props.setProperty("xml.fillWithSampleValues", String.valueOf(fillNodesWithSampleValues.isSelected()));
+
             // Save XSD Editor settings
             props.setProperty("xsd.autoSave.enabled", String.valueOf(xsdAutoSaveEnabled.isSelected()));
             props.setProperty("xsd.autoSave.interval", xsdAutoSaveInterval.getValue().toString());
@@ -315,6 +326,13 @@ public class SettingsController {
 
         // Load Schematron autoformat setting
         schematronPrettyPrintOnLoad.setSelected(propertiesService.isSchematronPrettyPrintOnLoad());
+
+        // Load XML Auto-Creation settings
+        boolean createAllChildren = Boolean.parseBoolean(props.getProperty("xml.createAllChildNodes", "false"));
+        createAllChildNodes.setSelected(createAllChildren);
+
+        boolean fillWithSampleValues = Boolean.parseBoolean(props.getProperty("xml.fillWithSampleValues", "false"));
+        fillNodesWithSampleValues.setSelected(fillWithSampleValues);
 
         // Load XSD Editor settings
         xsdAutoSaveEnabled.setSelected(propertiesService.isXsdAutoSaveEnabled());

@@ -4773,15 +4773,21 @@ public class XmlCodeEditor extends VBox {
                     contentBuilder.append("<").append(child.name).append(">");
 
                     if (i == 0) {
-                        // Position cursor at the first child element
+                        // Position cursor at the first child element (adjust for sample value)
                         cursorOffset = contentBuilder.length();
+                        if (child.sampleValue != null) {
+                            cursorOffset += child.sampleValue.length();
+                        }
                     }
 
-                    // Generate nested mandatory children recursively
+                    // Generate nested mandatory children recursively or add sample value
                     if (child.hasChildren) {
                         contentBuilder.append("\n");
                         generateMandatoryChildrenRecursive(child, contentBuilder, currentIndentLevel + currentIndentationSize);
                         contentBuilder.append(childIndent);
+                    } else if (child.sampleValue != null) {
+                        // Add sample value between opening and closing tags
+                        contentBuilder.append(child.sampleValue);
                     }
 
                     contentBuilder.append("</").append(child.name).append(">");
@@ -4831,6 +4837,9 @@ public class XmlCodeEditor extends VBox {
                 contentBuilder.append("\n");
                 generateMandatoryChildrenRecursive(child, contentBuilder, indentLevel + currentIndentationSize);
                 contentBuilder.append(indent);
+            } else if (child.sampleValue != null) {
+                // Add sample value for leaf nodes
+                contentBuilder.append(child.sampleValue);
             }
 
             contentBuilder.append("</").append(child.name).append(">");
@@ -4846,31 +4855,47 @@ public class XmlCodeEditor extends VBox {
         List<MandatoryElement> children = new ArrayList<>();
 
         try {
+            // Normalize tag name: strip namespace prefix if present
+            String cleanTagName = tagName;
+            int colonIdx = cleanTagName.indexOf(':');
+            if (colonIdx > -1 && colonIdx < cleanTagName.length() - 1) {
+                cleanTagName = cleanTagName.substring(colonIdx + 1);
+            }
             // Check if we have an XSD linked and can access the documentation data
             if (parentXmlEditor == null) {
-                logger.debug("No parent XML editor available for element '{}'", tagName);
+                logger.debug("No parent XML editor available for element '{}'", cleanTagName);
                 return children;
             }
 
             // Get the XSD documentation service from the parent editor
             var xsdDocService = parentXmlEditor.getXsdDocumentationService();
             if (xsdDocService == null) {
-                logger.debug("No XSD documentation service available for element '{}'", tagName);
+                logger.debug("No XSD documentation service available for element '{}'", cleanTagName);
                 return children;
             }
 
-            // Query the XSD service for mandatory children
-            var mandatoryChildInfos = xsdDocService.getMandatoryChildElements(tagName);
+            // Check settings to determine which children to create
+            boolean createAllChildren = Boolean.parseBoolean(
+                    propertiesService.loadProperties().getProperty("xml.createAllChildNodes", "false"));
+            boolean fillWithSampleValues = Boolean.parseBoolean(
+                    propertiesService.loadProperties().getProperty("xml.fillWithSampleValues", "false"));
+
+            // Query the XSD service for children (mandatory or all based on setting)
+            var childInfos = createAllChildren
+                    ? xsdDocService.getAllChildElements(cleanTagName)
+                    : xsdDocService.getMandatoryChildElements(cleanTagName);
 
             // Convert to our internal MandatoryElement objects
-            for (var childInfo : mandatoryChildInfos) {
-                MandatoryElement mandatoryChild = MandatoryElement.fromMandatoryChildInfo(childInfo);
-                children.add(mandatoryChild);
-                logger.debug("Added mandatory child for '{}': {} (minOccurs={}, hasChildren={})",
-                        tagName, mandatoryChild.name, mandatoryChild.minOccurs, mandatoryChild.hasChildren);
+            for (var childInfo : childInfos) {
+                MandatoryElement element = MandatoryElement.fromMandatoryChildInfo(childInfo, xsdDocService, fillWithSampleValues);
+                children.add(element);
+                String sampleInfo = element.sampleValue != null ? " (sample: " + element.sampleValue + ")" : "";
+                logger.debug("Added child for '{}': {} (minOccurs={}, hasChildren={}){}",
+                        cleanTagName, element.name, element.minOccurs, element.hasChildren, sampleInfo);
             }
 
-            logger.debug("Found {} mandatory children for element '{}'", children.size(), tagName);
+            String childType = createAllChildren ? "all" : "mandatory";
+            logger.debug("Found {} {} children for element '{}'", children.size(), childType, cleanTagName);
 
         } catch (Exception e) {
             logger.error("Error getting mandatory children for element '{}': {}", tagName, e.getMessage(), e);
@@ -4917,6 +4942,7 @@ public class XmlCodeEditor extends VBox {
         List<MandatoryElement> children;
         int minOccurs;
         int maxOccurs;
+        String sampleValue;  // New field for sample values
 
         public MandatoryElement(String name, boolean hasChildren) {
             this.name = name;
@@ -4943,6 +4969,33 @@ public class XmlCodeEditor extends VBox {
                     .collect(java.util.stream.Collectors.toList());
 
             return new MandatoryElement(info.name(), info.minOccurs(), info.maxOccurs(), children);
+        }
+
+        /**
+         * Factory method to create MandatoryElement with sample value support
+         */
+        public static MandatoryElement fromMandatoryChildInfo(
+                org.fxt.freexmltoolkit.service.XsdDocumentationService.MandatoryChildInfo info,
+                org.fxt.freexmltoolkit.service.XsdDocumentationService xsdDocService,
+                boolean fillWithSampleValues) {
+
+            List<MandatoryElement> children = info.children().stream()
+                    .map(child -> fromMandatoryChildInfo(child, xsdDocService, fillWithSampleValues))
+                    .collect(java.util.stream.Collectors.toList());
+
+            MandatoryElement element = new MandatoryElement(info.name(), info.minOccurs(), info.maxOccurs(), children);
+
+            // Generate sample value if requested and element has no children
+            if (fillWithSampleValues && !element.hasChildren) {
+                try {
+                    element.sampleValue = xsdDocService.generateSampleValue(info.name(), null);
+                } catch (Exception e) {
+                    logger.debug("Could not generate sample value for element '{}': {}", info.name(), e.getMessage());
+                    element.sampleValue = null;
+                }
+            }
+
+            return element;
         }
     }
 
@@ -5732,68 +5785,18 @@ public class XmlCodeEditor extends VBox {
         if (tagName != null && !tagName.isEmpty()) {
             // Check if this is not a self-closing tag or XML declaration
             if (!isSelfClosingTag(tagName) && !isSpecialTag(tagName)) {
-                // Generate content to insert
-                StringBuilder contentToInsert = new StringBuilder();
-                int finalCursorPosition = caretPosition;
-
-                // Check if XSD is available and get mandatory child elements
-                List<String> mandatoryChildren = getMandatoryChildElementsFromXsd(tagName);
-
-                if (mandatoryChildren != null && !mandatoryChildren.isEmpty()) {
-                    // Get current indentation
-                    String currentIndentation = getCurrentLineIndentation(newText, caretPosition);
-                    String childIndentation = currentIndentation + "  "; // 2 spaces for child indentation
-
-                    // Add line break and mandatory child elements
-                    contentToInsert.append("\n");
-
-                    for (String childElement : mandatoryChildren) {
-                        // Get mandatory children of this child element recursively
-                        List<String> grandchildren = getMandatoryChildElementsFromXsd(childElement);
-
-                        contentToInsert.append(childIndentation)
-                                .append("<").append(childElement).append(">");
-
-                        if (grandchildren != null && !grandchildren.isEmpty()) {
-                            // This child has mandatory children, add them recursively
-                            String grandchildIndentation = childIndentation + "  ";
-                            contentToInsert.append("\n");
-
-                            for (String grandchild : grandchildren) {
-                                contentToInsert.append(grandchildIndentation)
-                                        .append("<").append(grandchild).append("></").append(grandchild).append(">\n");
-                            }
-
-                            contentToInsert.append(childIndentation);
-                        }
-
-                        contentToInsert.append("</").append(childElement).append(">\n");
-                    }
-
-                    contentToInsert.append(currentIndentation);
-                    finalCursorPosition = caretPosition + 1; // Position after the first newline
+                // For XML with linked XSD, use enhanced auto-close with mandatory children
+                if (currentMode == EditorMode.XML_WITH_XSD && parentXmlEditor != null) {
+                    Platform.runLater(() -> {
+                        handleAutoCloseWithMandatoryChildren(tagName, caretPosition);
+                    });
                 } else {
-                    // No mandatory children, position cursor between tags as before
-                    finalCursorPosition = caretPosition;
-                }
-
-                // Add the closing tag
-                String closingTag = "</" + tagName + ">";
-                contentToInsert.append(closingTag);
-
-                // Insert all content at once
-                String finalContent = contentToInsert.toString();
-                int finalPos = finalCursorPosition;
-                
-                Platform.runLater(() -> {
-                    codeArea.insertText(caretPosition, finalContent);
-                    // Position cursor appropriately
-                    codeArea.moveTo(finalPos);
-                });
-
-                if (mandatoryChildren != null && !mandatoryChildren.isEmpty()) {
-                    logger.debug("Auto-completed tag with mandatory children: {} -> {} mandatory children", tagName, mandatoryChildren.size());
-                } else {
+                    // Basic auto-close for other modes: <Name>|</Name>
+                    String closingTag = "</" + tagName + ">";
+                    Platform.runLater(() -> {
+                        codeArea.insertText(caretPosition, closingTag);
+                        codeArea.moveTo(caretPosition);
+                    });
                     logger.debug("Auto-completed tag: {} -> {}", tagName, closingTag);
                 }
             }
@@ -5884,78 +5887,6 @@ public class XmlCodeEditor extends VBox {
         return tagName.startsWith("?") || tagName.startsWith("!") || tagName.contains("?");
     }
 
-    /**
-     * Gets mandatory child elements from XSD for a given element name.
-     *
-     * @param elementName The parent element name
-     * @return List of mandatory child element names, or null if no XSD or no mandatory children
-     */
-    private List<String> getMandatoryChildElementsFromXsd(String elementName) {
-        try {
-            if (parentXmlEditor == null) {
-                logger.debug("No parent XML editor available for XSD lookup");
-                return null;
-            }
-
-            // parentXmlEditor is already XmlEditor type, no cast needed
-            var xsdDocumentationData = parentXmlEditor.getXsdDocumentationData();
-            if (xsdDocumentationData == null) {
-                logger.debug("No XSD documentation data available");
-                return null;
-            }
-
-            // Find the element in XSD documentation data
-            Map<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
-
-            // Look for exact element name match or xpath ending with element name
-            org.fxt.freexmltoolkit.domain.XsdExtendedElement targetElement = null;
-
-            for (Map.Entry<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> entry : elementMap.entrySet()) {
-                org.fxt.freexmltoolkit.domain.XsdExtendedElement element = entry.getValue();
-                if (elementName.equals(element.getElementName())) {
-                    targetElement = element;
-                    break;
-                }
-            }
-
-            if (targetElement == null) {
-                logger.debug("Element '{}' not found in XSD documentation data", elementName);
-                return null;
-            }
-
-            List<String> children = targetElement.getChildren();
-            if (children == null || children.isEmpty()) {
-                logger.debug("Element '{}' has no children in XSD", elementName);
-                return null;
-            }
-
-            // Filter only mandatory children
-            List<String> mandatoryChildren = new ArrayList<>();
-
-            for (String childPath : children) {
-                // Find the child element in the map
-                org.fxt.freexmltoolkit.domain.XsdExtendedElement childElement = elementMap.get(childPath);
-                if (childElement != null && childElement.isMandatory()) {
-                    String childElementName = childElement.getElementName();
-                    if (childElementName != null && !childElementName.startsWith("@")) { // Exclude attributes
-                        mandatoryChildren.add(childElementName);
-                    }
-                }
-            }
-
-            if (mandatoryChildren.isEmpty()) {
-                logger.debug("Element '{}' has no mandatory children", elementName);
-                return null;
-            }
-
-            logger.debug("Found {} mandatory children for '{}': {}", mandatoryChildren.size(), elementName, mandatoryChildren);
-            return mandatoryChildren;
-
-        } catch (Exception e) {
-            logger.error("Error getting mandatory child elements from XSD for '{}': {}", elementName, e.getMessage(), e);
-            return null;
-        }
-    }
 
     /**
      * Gets the current line indentation by looking backwards from the cursor position.

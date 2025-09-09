@@ -202,10 +202,27 @@ public class XsdDocumentationService {
         List<MandatoryChildInfo> mandatoryChildren = new ArrayList<>();
 
         try {
+            // Normalize element name (strip namespace prefix if present)
+            String cleanElementName = elementName;
+            int colonIdx = cleanElementName.indexOf(':');
+            if (colonIdx > -1 && colonIdx < cleanElementName.length() - 1) {
+                cleanElementName = cleanElementName.substring(colonIdx + 1);
+            }
+
             // Find the element definition in the schema
-            Node elementNode = elementMap.get(elementName);
+            Node elementNode = elementMap.get(cleanElementName);
             if (elementNode == null) {
-                logger.debug("Element '{}' not found in schema", elementName);
+                // Fallback: try to find a global complexType with the same name and use its content model
+                Node complexTypeNode = complexTypeMap.get(cleanElementName);
+                if (complexTypeNode != null) {
+                    Node contentModel = findContentModel(complexTypeNode, null);
+                    if (contentModel != null) {
+                        extractMandatoryChildren(contentModel, mandatoryChildren);
+                        logger.debug("Found {} mandatory children for complexType '{}' (no global element)", mandatoryChildren.size(), cleanElementName);
+                        return mandatoryChildren;
+                    }
+                }
+                logger.debug("Element '{}' not found in schema (after normalization)", cleanElementName);
                 return mandatoryChildren;
             }
 
@@ -217,13 +234,65 @@ public class XsdDocumentationService {
                 extractMandatoryChildren(contentModel, mandatoryChildren);
             }
 
-            logger.debug("Found {} mandatory children for element '{}'", mandatoryChildren.size(), elementName);
+            logger.debug("Found {} mandatory children for element '{}'", mandatoryChildren.size(), cleanElementName);
 
         } catch (Exception e) {
             logger.error("Error getting mandatory children for element '{}': {}", elementName, e.getMessage(), e);
         }
 
         return mandatoryChildren;
+    }
+
+    /**
+     * Gets all child elements (mandatory and optional) for a given element name.
+     * This method is similar to getMandatoryChildElements but returns all children regardless of minOccurs.
+     *
+     * @param elementName The name of the parent element
+     * @return List of all child element information
+     */
+    public List<MandatoryChildInfo> getAllChildElements(String elementName) {
+        List<MandatoryChildInfo> allChildren = new ArrayList<>();
+
+        try {
+            // Normalize element name (strip namespace prefix if present)
+            String cleanElementName = elementName;
+            int colonIdx = cleanElementName.indexOf(':');
+            if (colonIdx > -1 && colonIdx < cleanElementName.length() - 1) {
+                cleanElementName = cleanElementName.substring(colonIdx + 1);
+            }
+
+            // Find the element definition in the schema
+            Node elementNode = elementMap.get(cleanElementName);
+            if (elementNode == null) {
+                // Fallback: try to find a global complexType with the same name and use its content model
+                Node complexTypeNode = complexTypeMap.get(cleanElementName);
+                if (complexTypeNode != null) {
+                    Node contentModel = findContentModel(complexTypeNode, null);
+                    if (contentModel != null) {
+                        extractAllChildren(contentModel, allChildren);
+                        logger.debug("Found {} child elements for complexType '{}' (no global element)", allChildren.size(), cleanElementName);
+                        return allChildren;
+                    }
+                }
+                logger.debug("Element '{}' not found in schema (after normalization)", cleanElementName);
+                return allChildren;
+            }
+
+            // Get the type definition for the element
+            Node typeDefinition = findTypeDefinition(elementNode, getAttributeValue(elementNode, "type"));
+            Node contentModel = findContentModel(elementNode, typeDefinition);
+
+            if (contentModel != null) {
+                extractAllChildren(contentModel, allChildren);
+            }
+
+            logger.debug("Found {} child elements for element '{}'", allChildren.size(), cleanElementName);
+
+        } catch (Exception e) {
+            logger.error("Error getting all child elements for element '{}': {}", elementName, e.getMessage(), e);
+        }
+
+        return allChildren;
     }
 
     /**
@@ -278,6 +347,54 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Recursively extracts all child elements (mandatory and optional) from XSD content model.
+     * This is similar to extractMandatoryChildren but includes all elements regardless of minOccurs.
+     */
+    private void extractAllChildren(Node contentNode, List<MandatoryChildInfo> allChildren) {
+        if (contentNode == null) return;
+
+        String localName = contentNode.getLocalName();
+
+        if ("sequence".equals(localName) || "all".equals(localName)) {
+            // For sequence and all, process all child elements
+            for (Node child : getDirectChildElements(contentNode)) {
+                if ("element".equals(child.getLocalName())) {
+                    processAnyElement(child, allChildren);  // Process all elements, not just mandatory
+                } else if ("sequence".equals(child.getLocalName()) || "choice".equals(child.getLocalName()) || "all".equals(child.getLocalName())) {
+                    // Recursively process nested compositors
+                    extractAllChildren(child, allChildren);
+                }
+            }
+        } else if ("choice".equals(localName)) {
+            // For choice, include all options (not just first mandatory)
+            for (Node child : getDirectChildElements(contentNode)) {
+                if ("element".equals(child.getLocalName())) {
+                    processAnyElement(child, allChildren);
+                }
+            }
+        } else if ("extension".equals(localName)) {
+            // Handle extension - process base type and then current content
+            String baseType = getAttributeValue(contentNode, "base");
+            if (baseType != null) {
+                Node baseTypeNode = findTypeDefinition(null, baseType);
+                if (baseTypeNode != null) {
+                    Node baseContentModel = findContentModel(baseTypeNode, null);
+                    if (baseContentModel != null) {
+                        extractAllChildren(baseContentModel, allChildren);
+                    }
+                }
+            }
+
+            // Process current extension content
+            for (Node child : getDirectChildElements(contentNode)) {
+                if ("sequence".equals(child.getLocalName()) || "choice".equals(child.getLocalName()) || "all".equals(child.getLocalName())) {
+                    extractAllChildren(child, allChildren);
+                }
+            }
+        }
+    }
+
+    /**
      * Processes a single element to determine if it's mandatory and extract its info.
      */
     private void processMandatoryElement(Node elementNode, List<MandatoryChildInfo> mandatoryChildren) {
@@ -323,6 +440,48 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Processes a single element (mandatory or optional) and extracts its info.
+     * This is similar to processMandatoryElement but processes all elements regardless of minOccurs.
+     */
+    private void processAnyElement(Node elementNode, List<MandatoryChildInfo> allChildren) {
+        String childName = getAttributeValue(elementNode, "name");
+        if (childName == null) {
+            // Handle element reference
+            childName = getAttributeValue(elementNode, "ref");
+            if (childName != null && childName.contains(":")) {
+                // Remove namespace prefix for simplicity
+                childName = childName.substring(childName.lastIndexOf(":") + 1);
+            }
+        }
+
+        if (childName != null) {
+            // Get minOccurs and maxOccurs
+            String minOccurs = getAttributeValue(elementNode, "minOccurs", "1");
+            String maxOccurs = getAttributeValue(elementNode, "maxOccurs", "1");
+
+            // Check if this element has children recursively (use getAllChildElements for consistency)
+            List<MandatoryChildInfo> nestedChildren = new ArrayList<>();
+            Node typeDefinition = findTypeDefinition(elementNode, getAttributeValue(elementNode, "type"));
+            Node contentModel = findContentModel(elementNode, typeDefinition);
+
+            if (contentModel != null) {
+                extractAllChildren(contentModel, nestedChildren);
+            }
+
+            MandatoryChildInfo childInfo = new MandatoryChildInfo(
+                    childName,
+                    Integer.parseInt(minOccurs),
+                    maxOccurs.equals("unbounded") ? Integer.MAX_VALUE : Integer.parseInt(maxOccurs),
+                    nestedChildren
+            );
+
+            allChildren.add(childInfo);
+            logger.debug("Added child element: {} (minOccurs={}, maxOccurs={}, hasChildren={})",
+                    childName, minOccurs, maxOccurs, !nestedChildren.isEmpty());
+        }
+    }
+
+    /**
      * Checks if an element is mandatory based on its minOccurs attribute.
      */
     private boolean isMandatoryElement(Node elementNode) {
@@ -341,6 +500,73 @@ public class XsdDocumentationService {
     ) {
         public boolean hasChildren() {
             return children != null && !children.isEmpty();
+        }
+    }
+
+    /**
+     * Generates a sample value for an element based on its XSD type and available example values.
+     *
+     * @param elementName The name of the element
+     * @param type        The XSD type of the element (e.g., "xs:string", "xs:int", etc.)
+     * @return A sample value or null if no value can be generated
+     */
+    public String generateSampleValue(String elementName, String type) {
+        try {
+            // First, try to get example values from XSD annotations
+            if (xsdDocumentationData != null && xsdDocumentationData.getExtendedXsdElementMap() != null) {
+                // Look for element by name in the extended element map
+                for (XsdExtendedElement element : xsdDocumentationData.getExtendedXsdElementMap().values()) {
+                    if (elementName.equals(element.getElementName()) || (element.getCurrentXpath() != null && element.getCurrentXpath().endsWith("/" + elementName))) {
+                        List<String> exampleValues = element.getExampleValues();
+                        if (exampleValues != null && !exampleValues.isEmpty()) {
+                            // Return first available example value
+                            return exampleValues.get(0);
+                        }
+                    }
+                }
+            }
+
+            // Fallback to type-based sample values
+            if (type == null || type.isEmpty()) {
+                return "sample text";
+            }
+
+            // Normalize type name (remove namespace prefix)
+            String normalizedType = type;
+            if (type.contains(":")) {
+                normalizedType = type.substring(type.lastIndexOf(":") + 1);
+            }
+
+            return switch (normalizedType.toLowerCase()) {
+                case "string", "normalizedstring", "token" -> "Sample text";
+                case "int", "integer", "positiveinteger", "nonpositiveinteger",
+                     "negativeinteger", "nonnegativeinteger", "long", "short", "byte" -> "123";
+                case "decimal", "float", "double" -> "99.99";
+                case "boolean" -> "true";
+                case "date" -> java.time.LocalDate.now().toString();
+                case "datetime", "timestamp" -> java.time.LocalDateTime.now().toString();
+                case "time" -> java.time.LocalTime.now().toString();
+                case "anyuri", "uri", "url" -> "https://example.com";
+                case "email" -> "example@example.com";
+                case "base64binary" -> "U2FtcGxlIGRhdGE=";
+                case "hexbinary" -> "48656C6C6F";
+                case "duration" -> "P1D";
+                case "gday" -> "---15";
+                case "gmonth" -> "--12";
+                case "gmonthday" -> "--12-15";
+                case "gyear" -> String.valueOf(java.time.Year.now().getValue());
+                case "gyearmonth" -> java.time.YearMonth.now().toString();
+                default -> {
+                    // Check if it's a custom type that might have restrictions
+                    logger.debug("Unknown type '{}' for element '{}', using default sample", type, elementName);
+                    yield "sample value";
+                }
+            };
+
+        } catch (Exception e) {
+            logger.debug("Error generating sample value for element '{}' with type '{}': {}",
+                    elementName, type, e.getMessage());
+            return "sample value";
         }
     }
 

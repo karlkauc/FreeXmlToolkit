@@ -1729,13 +1729,12 @@ public class XmlEditor extends Tab {
             try {
                 logger.debug("Loading XSD documentation data from: {}", xsdFile.getAbsolutePath());
 
-                // Use the XsdDocumentationService to parse the XSD
-                XsdDocumentationService service = new XsdDocumentationService();
-                service.setXsdFilePath(xsdFile.getAbsolutePath());
-                service.processXsd(true);
+                // Use the class instance XsdDocumentationService to parse the XSD
+                xsdDocumentationService.setXsdFilePath(xsdFile.getAbsolutePath());
+                xsdDocumentationService.processXsd(true);
 
                 // Get the populated documentation data
-                this.xsdDocumentationData = service.xsdDocumentationData;
+                this.xsdDocumentationData = xsdDocumentationService.xsdDocumentationData;
 
                 logger.debug("Successfully loaded XSD documentation data with {} elements",
                         xsdDocumentationData.getExtendedXsdElementMap().size());

@@ -120,6 +120,17 @@
                             <CheckBox fx:id="schematronPrettyPrintOnLoad" text="Autoformat Schematron files after loading"
                                       GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2"/>
 
+                            <!-- Separator for Auto-Creation Settings -->
+                            <Label text="Auto-Creation Settings" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                                   GridPane.columnSpan="2"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0; -fx-padding: 10 0 5 0;"/>
+
+                            <CheckBox fx:id="createAllChildNodes" text="Create all child nodes (not only mandatory)"
+                                      GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.columnSpan="2"/>
+
+                            <CheckBox fx:id="fillNodesWithSampleValues" text="Fill nodes with sample values"
+                                      GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="2"/>
+
                             <columnConstraints>
                                 <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>
                                 <ColumnConstraints hgrow="ALWAYS"/>

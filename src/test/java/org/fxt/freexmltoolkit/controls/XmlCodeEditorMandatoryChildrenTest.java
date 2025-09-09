@@ -192,4 +192,97 @@ class XmlCodeEditorMandatoryChildrenTest {
 
         assertTrue(latch.await(5, TimeUnit.SECONDS), "Test should complete within 5 seconds");
     }
+
+    @Test
+    void testGetAllChildElementsExtractsMandatoryAndOptional() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        Platform.runLater(() -> {
+            try {
+                XsdDocumentationService xsdService = xmlEditor.getXsdDocumentationService();
+                assertNotNull(xsdService, "XSD Documentation Service should be available");
+
+                // Process the XSD to populate element map
+                xsdService.setXsdFilePath(testXsdFile.getAbsolutePath());
+                xsdService.processXsd(true);
+
+                // Test getAllChildElements for root element (should include optional children)
+                var allChildren = xsdService.getAllChildElements("root");
+
+                assertNotNull(allChildren, "All children list should not be null");
+                assertFalse(allChildren.isEmpty(), "Root element should have children");
+
+                // Should have both mandatory and optional children
+                boolean foundMandatoryChild1 = false;
+                boolean foundMandatoryChild2 = false;
+                boolean foundOptionalChild = false;
+
+                for (var childInfo : allChildren) {
+                    switch (childInfo.name()) {
+                        case "mandatoryChild1" -> {
+                            foundMandatoryChild1 = true;
+                            assertEquals(1, childInfo.minOccurs(), "mandatoryChild1 should have minOccurs=1");
+                        }
+                        case "mandatoryChild2" -> {
+                            foundMandatoryChild2 = true;
+                            assertEquals(1, childInfo.minOccurs(), "mandatoryChild2 should have minOccurs=1");
+                        }
+                        case "optionalChild" -> {
+                            foundOptionalChild = true;
+                            assertEquals(0, childInfo.minOccurs(), "optionalChild should have minOccurs=0");
+                        }
+                    }
+                }
+
+                assertTrue(foundMandatoryChild1, "Should find mandatoryChild1");
+                assertTrue(foundMandatoryChild2, "Should find mandatoryChild2");
+                assertTrue(foundOptionalChild, "Should find optionalChild when getting all children");
+
+                latch.countDown();
+            } catch (Exception e) {
+                e.printStackTrace();
+                latch.countDown();
+            }
+        });
+
+        assertTrue(latch.await(10, TimeUnit.SECONDS), "Test should complete within 10 seconds");
+    }
+
+    @Test
+    void testSampleValueGeneration() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        Platform.runLater(() -> {
+            try {
+                XsdDocumentationService xsdService = xmlEditor.getXsdDocumentationService();
+                assertNotNull(xsdService, "XSD Documentation Service should be available");
+
+                // Process the XSD to populate element map
+                xsdService.setXsdFilePath(testXsdFile.getAbsolutePath());
+                xsdService.processXsd(true);
+
+                // Test sample value generation for different types
+                String stringSample = xsdService.generateSampleValue("testElement", "xs:string");
+                assertNotNull(stringSample, "Should generate sample for string type");
+                assertEquals("Sample text", stringSample, "String sample should be default text");
+
+                String intSample = xsdService.generateSampleValue("testElement", "xs:int");
+                assertEquals("123", intSample, "Integer sample should be '123'");
+
+                String boolSample = xsdService.generateSampleValue("testElement", "xs:boolean");
+                assertEquals("true", boolSample, "Boolean sample should be 'true'");
+
+                String dateSample = xsdService.generateSampleValue("testElement", "xs:date");
+                assertNotNull(dateSample, "Should generate date sample");
+                assertTrue(dateSample.matches("\\d{4}-\\d{2}-\\d{2}"), "Date should be in YYYY-MM-DD format");
+
+                latch.countDown();
+            } catch (Exception e) {
+                e.printStackTrace();
+                latch.countDown();
+            }
+        });
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "Test should complete within 5 seconds");
+    }
 }
