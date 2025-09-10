@@ -238,7 +238,7 @@ public class XmlCodeEditor extends VBox {
         // Trigger immediate cache update when parent is set
         if (parentEditor != null) {
             // Use Platform.runLater to avoid blocking the UI thread
-            Platform.runLater(() -> updateEnumerationElementsCache());
+            Platform.runLater(this::updateEnumerationElementsCache);
         }
     }
 
@@ -267,7 +267,7 @@ public class XmlCodeEditor extends VBox {
      */
     public void refreshEnumerationCache() {
         logger.debug("Manual enumeration cache refresh requested");
-        Platform.runLater(() -> updateEnumerationElementsCache());
+        Platform.runLater(this::updateEnumerationElementsCache);
     }
 
     private void initialize() {
