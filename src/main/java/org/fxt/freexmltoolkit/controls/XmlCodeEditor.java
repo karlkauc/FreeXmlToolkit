@@ -25,6 +25,7 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.controls.intellisense.*;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.Document;
 
@@ -56,6 +57,7 @@ public class XmlCodeEditor extends VBox {
     private static final int DEFAULT_FONT_SIZE = 11;
     private int fontSize = DEFAULT_FONT_SIZE;
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    private final ThreadPoolManager threadPoolManager = ThreadPoolManager.getInstance();
 
     private final CodeArea codeArea = new CodeArea();
     private final VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
@@ -679,8 +681,15 @@ public class XmlCodeEditor extends VBox {
             codeArea.setStyleSpans(0, basicHighlighting);
         });
 
-        // Run the task in background
-        new Thread(syntaxHighlightingTask).start();
+        // Run the task using managed thread pool with proper Task execution
+        threadPoolManager.executeCPUIntensive("syntax-highlighting-" + System.currentTimeMillis(), () -> {
+            // Execute the JavaFX Task in the background
+            Thread taskThread = new Thread(syntaxHighlightingTask);
+            taskThread.setName("SyntaxHighlighting-" + System.currentTimeMillis());
+            taskThread.setDaemon(true);
+            taskThread.start();
+            return null;
+        });
     }
 
     /**
@@ -732,8 +741,14 @@ public class XmlCodeEditor extends VBox {
             logger.debug("Live validation task failed: {}", validationTask.getException().getMessage());
         });
 
-        // Run the validation task in background
-        new Thread(validationTask).start();
+        // Run the validation task using managed thread pool
+        threadPoolManager.executeCPUIntensive("live-validation-" + System.currentTimeMillis(), () -> {
+            Thread taskThread = new Thread(validationTask);
+            taskThread.setName("LiveValidation-" + System.currentTimeMillis());
+            taskThread.setDaemon(true);
+            taskThread.start();
+            return null;
+        });
     }
 
     /**
@@ -813,8 +828,14 @@ public class XmlCodeEditor extends VBox {
             codeArea.setStyleSpans(0, basicHighlighting);
         });
 
-        // Run the task in background
-        new Thread(syntaxHighlightingTask).start();
+        // Run the task using managed thread pool
+        threadPoolManager.executeCPUIntensive("syntax-highlighting-errors-" + System.currentTimeMillis(), () -> {
+            Thread taskThread = new Thread(syntaxHighlightingTask);
+            taskThread.setName("SyntaxHighlightingWithErrors-" + System.currentTimeMillis());
+            taskThread.setDaemon(true);
+            taskThread.start();
+            return null;
+        });
     }
 
     /**
@@ -874,45 +895,71 @@ public class XmlCodeEditor extends VBox {
 
     /**
      * Updates the cache of elements that have enumeration constraints from XsdDocumentationData.
+     * Uses managed thread pool for background processing.
      */
     private void updateEnumerationElementsCache() {
-        try {
-            logger.debug("updateEnumerationElementsCache called. parentXmlEditor: {}", parentXmlEditor);
-            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
-                // Get XsdDocumentationData from XmlEditor
-                var xsdDocumentationData = xmlEditor.getXsdDocumentationData();
-                if (xsdDocumentationData == null) {
-                    logger.debug("XsdDocumentationData is null. Cannot update enumeration cache.");
-                    return;
+        threadPoolManager.executeBackground("enumeration-cache-update", () -> {
+            try {
+                logger.debug("updateEnumerationElementsCache called. parentXmlEditor: {}", parentXmlEditor);
+                if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
+                    // Get XsdDocumentationData from XmlEditor
+                    var xsdDocumentationData = xmlEditor.getXsdDocumentationData();
+                    if (xsdDocumentationData == null) {
+                        logger.debug("XsdDocumentationData is null. Cannot update enumeration cache.");
+                        return;
+                    }
+
+                    logger.debug("Updating enumeration cache from XsdDocumentationData...");
+
+                    // Process in background, then update UI thread
+                    Map<String, Set<String>> newCache = new HashMap<>();
+                    extractEnumerationElementsFromDocumentationData(xsdDocumentationData, newCache);
+
+                    // Update cache on UI thread
+                    Platform.runLater(() -> {
+                        enumerationElementsByContext.clear();
+                        enumerationElementsByContext.putAll(newCache);
+
+                        logger.debug("Updated enumeration elements cache with {} contexts: {}",
+                                enumerationElementsByContext.size(), enumerationElementsByContext.keySet());
+
+                        // Force refresh of syntax highlighting after cache update
+                        String currentText = codeArea.getText();
+                        if (currentText != null && !currentText.isEmpty()) {
+                            applySyntaxHighlighting(currentText);
+                        }
+                    });
+
+                } else {
+                    logger.debug("Parent editor is null or XsdDocumentationData not available.");
                 }
-
-                logger.debug("Updating enumeration cache from XsdDocumentationData...");
-                enumerationElementsByContext.clear();
-
-                // Extract enumeration elements from XsdDocumentationData
-                extractEnumerationElementsFromDocumentationData(xsdDocumentationData);
-
-                logger.debug("Updated enumeration elements cache with {} contexts: {}",
-                        enumerationElementsByContext.size(), enumerationElementsByContext.keySet());
-
-                // Force refresh of syntax highlighting after cache update
-                String currentText = codeArea.getText();
-                if (currentText != null && !currentText.isEmpty()) {
-                    applySyntaxHighlighting(currentText);
-                }
-
-            } else {
-                logger.debug("Parent editor is null or XsdDocumentationData not available.");
+            } catch (Exception e) {
+                logger.error("Error updating enumeration elements cache: {}", e.getMessage(), e);
             }
-        } catch (Exception e) {
-            logger.error("Error updating enumeration elements cache: {}", e.getMessage(), e);
-        }
+        });
     }
 
     /**
      * Extracts enumeration elements from XsdDocumentationData.
+     * Modified to accept a target cache map for thread-safe operation.
+     */
+    private void extractEnumerationElementsFromDocumentationData(
+            org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdDocumentationData,
+            Map<String, Set<String>> targetCache) {
+        extractEnumerationElementsFromDocumentationData(xsdDocumentationData, targetCache, true);
+    }
+
+    /**
+     * Legacy method for backward compatibility.
      */
     private void extractEnumerationElementsFromDocumentationData(org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdDocumentationData) {
+        extractEnumerationElementsFromDocumentationData(xsdDocumentationData, enumerationElementsByContext, false);
+    }
+
+    private void extractEnumerationElementsFromDocumentationData(
+            org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdDocumentationData,
+            Map<String, Set<String>> targetCache,
+            boolean threadSafe) {
         try {
             Map<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
 
@@ -935,7 +982,11 @@ public class XmlCodeEditor extends VBox {
                             elementName = elementName.substring(1);
                         }
 
-                        enumerationElementsByContext.computeIfAbsent(context, k -> new HashSet<>()).add(elementName);
+                        if (threadSafe) {
+                            targetCache.computeIfAbsent(context, k -> new HashSet<>()).add(elementName);
+                        } else {
+                            enumerationElementsByContext.computeIfAbsent(context, k -> new HashSet<>()).add(elementName);
+                        }
                         logger.debug("Added enumeration element: {} in context: {} (XPath: {})", elementName, context, xpath);
                     }
                 }
@@ -2126,8 +2177,13 @@ public class XmlCodeEditor extends VBox {
                     logger.error("Folding task failed", foldingTask.getException());
                 });
 
-                // 3. Start the task on a new thread.
-                new Thread(foldingTask).start();
+                // 3. Run the task using managed thread pool.
+                threadPoolManager.executeUI("code-folding-" + lineIndex, () -> {
+                    Thread taskThread = new Thread(foldingTask);
+                    taskThread.setName("CodeFolding-" + lineIndex);
+                    taskThread.setDaemon(true);
+                    taskThread.start();
+                });
             });
 
 

@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 
 import java.awt.*;
 import java.io.IOException;
@@ -202,6 +203,14 @@ public class FxtGui extends Application {
         shutdownExecutor(mainController.scheduler);
         shutdownExecutor(mainController.service);
 
+        // Shutdown centralized thread pool manager
+        try {
+            ThreadPoolManager.getInstance().shutdown();
+            logger.debug("ThreadPoolManager shut down successfully");
+        } catch (Exception e) {
+            logger.warn("Error shutting down ThreadPoolManager", e);
+        }
+
         mainController.shutdown();
 
         startWatch.stop();
@@ -254,7 +263,7 @@ public class FxtGui extends Application {
         }
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         launch();
     }
 }

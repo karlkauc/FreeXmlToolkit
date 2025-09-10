@@ -8,11 +8,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,7 +31,7 @@ public class XmlIntelliSenseEngine {
     private static final Logger logger = LogManager.getLogger(XmlIntelliSenseEngine.class);
 
     private final CodeArea codeArea;
-    private final ExecutorService executorService;
+    private final ThreadPoolManager threadPoolManager;
     private final CompletionCache completionCache;
     private final XsdDocumentationExtractor documentationExtractor;
     private final SchemaValidator schemaValidator;
@@ -68,12 +66,7 @@ public class XmlIntelliSenseEngine {
 
     public XmlIntelliSenseEngine(CodeArea codeArea) {
         this.codeArea = codeArea;
-        this.executorService = Executors.newCachedThreadPool(r -> {
-            Thread thread = new Thread(r);
-            thread.setDaemon(true);
-            thread.setName("XmlIntelliSense-" + threadCounter.incrementAndGet());
-            return thread;
-        });
+        this.threadPoolManager = ThreadPoolManager.getInstance();
         this.completionCache = new CompletionCache();
         this.documentationExtractor = new XsdDocumentationExtractor();
         this.schemaValidator = null; // Will be initialized when schema is available
@@ -100,16 +93,16 @@ public class XmlIntelliSenseEngine {
             String character = event.getCharacter();
             if (character.equals("<")) {
                 // Trigger element completion
-                CompletableFuture.runAsync(() -> showElementCompletions(), executorService);
+                threadPoolManager.executeUI("intellisense-elements", this::showElementCompletions);
             } else if (character.equals(" ")) {
                 // Check if we're in a tag context for attributes
                 if (isInTagContext()) {
-                    CompletableFuture.runAsync(() -> showAttributeCompletions(), executorService);
+                    threadPoolManager.executeUI("intellisense-attributes", this::showAttributeCompletions);
                 }
             } else if (character.equals("\"")) {
                 // Check if we're in attribute value context
                 if (isInAttributeValueContext()) {
-                    CompletableFuture.runAsync(() -> showAttributeValueCompletions(), executorService);
+                    threadPoolManager.executeUI("intellisense-attr-values", this::showAttributeValueCompletions);
                 }
             } else if (character.equals(">") && autoCloseTags) {
                 // Auto-close tags
@@ -127,13 +120,13 @@ public class XmlIntelliSenseEngine {
         codeArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
             if (newPos == 0) return;
 
-            CompletableFuture.runAsync(() -> {
+            threadPoolManager.executeUI("highlight-brackets-" + newPos, () -> {
                 try {
                     highlightMatchingBrackets(newPos);
                 } catch (Exception e) {
                     logger.debug("Error highlighting brackets: {}", e.getMessage());
                 }
-            }, executorService);
+            });
         });
     }
 
@@ -150,12 +143,12 @@ public class XmlIntelliSenseEngine {
                     .orElse(-1);
 
             if (charIndex >= 0) {
-                CompletableFuture.runAsync(() -> {
+                threadPoolManager.executeUI("documentation-tooltip-" + charIndex, () -> {
                     String wordAtPosition = getWordAt(charIndex);
                     if (wordAtPosition != null && !wordAtPosition.isEmpty()) {
                         showDocumentationTooltip(wordAtPosition, event.getX(), event.getY());
                     }
-                }, executorService);
+                });
             }
         });
     }
@@ -171,7 +164,10 @@ public class XmlIntelliSenseEngine {
 
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
             pause.setOnFinished(e ->
-                    CompletableFuture.runAsync(() -> validateAndHighlightErrors(newText), executorService)
+                    threadPoolManager.executeCPUIntensive("validation-" + System.currentTimeMillis(), () -> {
+                        validateAndHighlightErrors(newText);
+                        return null;
+                    })
             );
             pause.playFromStart();
         });
@@ -586,7 +582,7 @@ public class XmlIntelliSenseEngine {
 
     // Cleanup
     public void shutdown() {
-        executorService.shutdown();
+        // ThreadPoolManager handles shutdown automatically
         activeTooltips.forEach(Tooltip::hide);
         activeTooltips.clear();
         validationMarkers.clear();

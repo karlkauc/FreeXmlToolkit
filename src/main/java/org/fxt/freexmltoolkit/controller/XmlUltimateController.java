@@ -84,7 +84,7 @@ public class XmlUltimateController implements Initializable {
     private final TemplateRepository templateRepository = TemplateRepository.getInstance();
     private final XsltTransformationEngine xsltEngine = XsltTransformationEngine.getInstance();
     private final SchemaGenerationEngine schemaEngine = SchemaGenerationEngine.getInstance();
-    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    PropertiesService propertiesService = PropertiesServiceImpl.getInstance(); // Package-private for testing
     private final FavoritesService favoritesService = FavoritesService.getInstance();
 
     // Parent controller reference
@@ -143,7 +143,7 @@ public class XmlUltimateController implements Initializable {
 
     // Main Editor
     @FXML
-    private TabPane xmlFilesPane;
+    TabPane xmlFilesPane; // Package-private for testing
 
     // Sidebar Components
     @FXML
@@ -261,6 +261,9 @@ public class XmlUltimateController implements Initializable {
     private String currentXmlContent = "";
     private XmlTemplate selectedTemplate;
     private final Map<String, String> currentTemplateParams = new HashMap<>();
+
+    // Track open files to prevent duplicates
+    final Map<File, XmlEditor> openFiles = new HashMap<>(); // Package-private for testing
     private String currentXsltContent = "";
     private final String generatedSchemaContent = "";
 
@@ -411,11 +414,11 @@ public class XmlUltimateController implements Initializable {
             if (!xmlFiles.isEmpty()) {
                 success = true;
 
-                // Open each XML file in a new tab
+                // Open each XML file (use deduplication)
                 for (var file : xmlFiles) {
                     try {
-                        openFileInNewTab(file);
-                        logger.info("Opened dropped file in new tab: {}", file.getName());
+                        boolean wasAlreadyOpen = openFileOrSwitchToExisting(file);
+                        logger.info(wasAlreadyOpen ? "Switched to existing tab for dropped file: {}" : "Opened dropped file in new tab: {}", file.getName());
                     } catch (Exception e) {
                         logger.error("Failed to open dropped file: {}", file.getName(), e);
                         logToConsole("Error opening file " + file.getName() + ": " + e.getMessage());
@@ -450,6 +453,56 @@ public class XmlUltimateController implements Initializable {
     }
 
     /**
+     * Check if a file is already open and switch to it, or open it in a new tab
+     *
+     * @param file The file to open
+     * @return true if file was already open and we switched to it, false if new tab was created or error occurred
+     */
+    boolean openFileOrSwitchToExisting(File file) { // Package-private for testing
+        if (file == null || !file.exists()) {
+            logger.warn("Cannot open file - file is null or does not exist: {}", file);
+            return false;
+        }
+
+        // Check if file is already open
+        XmlEditor existingEditor = openFiles.get(file);
+        if (existingEditor != null) {
+            // Check if the tab still exists in the TabPane
+            if (xmlFilesPane.getTabs().contains(existingEditor)) {
+                // Switch to existing tab
+                xmlFilesPane.getSelectionModel().select(existingEditor);
+                logger.info("Switched to existing tab for file: {}", file.getName());
+                logToConsole("Switched to existing tab: " + file.getName());
+                return true;
+            } else {
+                // Tab was closed but still in map - remove it
+                openFiles.remove(file);
+            }
+        }
+
+        // File not open or tab was closed - open in new tab
+        try {
+            openFileInNewTab(file);
+            return false;
+        } catch (Exception e) {
+            logger.error("Failed to open file in new tab: {}", file.getName(), e);
+            logToConsole("Error opening file " + file.getName() + ": " + e.getMessage());
+            showError("File Error", "Could not open file: " + e.getMessage());
+            return true; // Return true to indicate "handled" (even if it failed)
+        }
+    }
+
+    /**
+     * Remove a file from the tracking map when its tab is closed
+     *
+     * @param file The file whose tab was closed
+     */
+    void removeFileFromTracking(File file) { // Package-private for testing
+        openFiles.remove(file);
+        logger.debug("Removed file from tracking: {}", file != null ? file.getName() : "null");
+    }
+    
+    /**
      * Open a specific file in a new tab (extracted from openFile() method)
      */
     private void openFileInNewTab(java.io.File file) throws Exception {
@@ -476,6 +529,10 @@ public class XmlUltimateController implements Initializable {
         // Add tab and select it
         xmlFilesPane.getTabs().add(xmlEditor);
         xmlFilesPane.getSelectionModel().select(xmlEditor);
+
+        // Track this file and add tab close listener
+        openFiles.put(file, xmlEditor);
+        xmlEditor.setOnClosed(event -> removeFileFromTracking(file));
 
         // Update current file references (for the last opened file)
         currentXmlFile = file;
@@ -697,44 +754,27 @@ public class XmlUltimateController implements Initializable {
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
             try {
-                String content = Files.readString(file.toPath());
-                currentXmlFile = file;
-                currentXmlContent = content;
+                // Use deduplication logic
+                boolean wasAlreadyOpen = openFileOrSwitchToExisting(file);
 
-                if (xmlFilesPane != null) {
-                    XmlEditor xmlEditor = new XmlEditor();
-                    xmlEditor.setMainController(parentController);
-                    xmlEditor.setText(file.getName());
-                    xmlEditor.getXmlCodeEditor().setText(content);
+                if (!wasAlreadyOpen) {
+                    // File was opened in new tab - update current references
+                    currentXmlFile = file;
+                    currentXmlContent = Files.readString(file.toPath());
 
-                    // Set the XML file to trigger automatic XSD schema detection
-                    xmlEditor.setXmlFile(file);
-
-                    // Store the File object in userData so favorites can access it
-                    xmlEditor.setUserData(file);
-
-                    // Apply current sidebar visibility setting
-                    String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
-                    if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
-                        xmlEditor.setXmlEditorSidebarVisible(false);
-                    }
-                    
-                    xmlFilesPane.getTabs().add(xmlEditor);
-                    xmlFilesPane.getSelectionModel().select(xmlEditor);
+                    // Update document tree and validate
+                    updateDocumentTree(currentXmlContent);
+                    validateCurrentXml();
                 }
 
-                updateDocumentTree(content);
-                validateCurrentXml();
-
-                // Add file to recent files
+                // Add file to recent files (whether new or existing)
                 if (parentController != null) {
                     parentController.addFileToRecentFiles(file);
                 } else {
-                    // Fallback in case the parent controller is not set for some reason
                     propertiesService.addLastOpenFile(file);
                 }
 
-                // Also set last open directory
+                // Set last open directory
                 if (file.getParent() != null) {
                     propertiesService.setLastOpenDirectory(file.getParent());
                 }
@@ -760,45 +800,29 @@ public class XmlUltimateController implements Initializable {
             logger.info("Loading XML file programmatically: {}", file.getAbsolutePath());
             logToConsole("Loading XML file: " + file.getName());
 
-            String content = Files.readString(file.toPath());
-            currentXmlFile = file;
-            currentXmlContent = content;
+            // Use deduplication logic
+            boolean wasAlreadyOpen = openFileOrSwitchToExisting(file);
 
-            if (xmlFilesPane != null) {
-                XmlEditor xmlEditor = new XmlEditor();
-                xmlEditor.setMainController(parentController);
-                xmlEditor.setText(file.getName());
-                xmlEditor.getXmlCodeEditor().setText(content);
+            if (!wasAlreadyOpen) {
+                // File was opened in new tab - update current references
+                currentXmlFile = file;
+                currentXmlContent = Files.readString(file.toPath());
 
-                // Set the XML file to trigger automatic XSD schema detection
-                xmlEditor.setXmlFile(file);
-
-                // Store the File object in userData so favorites can access it
-                xmlEditor.setUserData(file);
-
-                // Apply current sidebar visibility setting
-                String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
-                if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
-                    xmlEditor.setXmlEditorSidebarVisible(false);
-                }
-                
-                xmlFilesPane.getTabs().add(xmlEditor);
-                xmlFilesPane.getSelectionModel().select(xmlEditor);
+                // Update document tree
+                updateDocumentTree(currentXmlContent);
             }
 
-            updateDocumentTree(content);
-
-            // Update recent files list
+            // Update recent files list (whether new or existing)
             if (parentController != null) {
                 parentController.addFileToRecentFiles(file);
             }
 
-            // Also set last open directory
+            // Set last open directory
             if (file.getParent() != null) {
                 propertiesService.setLastOpenDirectory(file.getParent());
             }
 
-            logToConsole("Loaded file: " + file.getAbsolutePath());
+            logToConsole(wasAlreadyOpen ? "Switched to existing tab: " + file.getName() : "Loaded file: " + file.getAbsolutePath());
         } catch (IOException e) {
             showError("File Error", "Could not load file: " + e.getMessage());
             logger.error("Failed to load file", e);
@@ -2044,48 +2068,43 @@ public class XmlUltimateController implements Initializable {
     }
 
     /**
-     * Loads a file to a new tab in the XML editor.
+     * Loads a file to a tab in the XML editor (with deduplication).
      * Used by the Favorites panel to open files.
+     * If file is already open, switches to existing tab instead of creating new one.
      *
      * @param file The file to load
      */
     public void loadFileToNewTab(File file) {
-        if (file != null && file.exists()) {
-            try {
-                String content = Files.readString(file.toPath());
+        if (file == null || !file.exists()) {
+            logger.warn("Cannot load file from favorites - file is null or does not exist: {}", file);
+            return;
+        }
 
-                if (xmlFilesPane != null) {
-                    XmlEditor xmlEditor = new XmlEditor();
-                    xmlEditor.setMainController(parentController);
-                    xmlEditor.setText(file.getName());
-                    xmlEditor.getXmlCodeEditor().setText(content);
+        try {
+            logger.info("Loading file from favorites: {}", file.getName());
 
-                    // Set the XML file to trigger automatic XSD schema detection
-                    xmlEditor.setXmlFile(file);
+            // Use deduplication logic
+            boolean wasAlreadyOpen = openFileOrSwitchToExisting(file);
 
-                    // Store the File object in userData so favorites can access it
-                    xmlEditor.setUserData(file);
+            if (!wasAlreadyOpen) {
+                // File was opened in new tab - update current references
+                currentXmlFile = file;
+                currentXmlContent = Files.readString(file.toPath());
 
-                    // Apply current sidebar visibility setting
-                    String sidebarVisible = propertiesService.get("xmlEditorSidebar.visible");
-                    if (sidebarVisible != null && !Boolean.parseBoolean(sidebarVisible)) {
-                        xmlEditor.setXmlEditorSidebarVisible(false);
-                    }
-
-                    xmlFilesPane.getTabs().add(xmlEditor);
-                    xmlFilesPane.getSelectionModel().select(xmlEditor);
-                }
-
-                updateDocumentTree(content);
+                // Update document tree and validate
+                updateDocumentTree(currentXmlContent);
                 validateCurrentXml();
 
-                logger.info("Loaded file from favorites: {}", file.getName());
-                logToConsole("Loaded: " + file.getAbsolutePath());
-
-            } catch (IOException e) {
-                logger.error("Failed to read file: {}", file.getAbsolutePath(), e);
-                showAlert(Alert.AlertType.ERROR, "Error", "Failed to read file: " + e.getMessage());
+                logToConsole("Loaded from favorites: " + file.getAbsolutePath());
+            } else {
+                logToConsole("Switched to existing tab from favorites: " + file.getName());
             }
+
+            logger.info(wasAlreadyOpen ? "Switched to existing tab for favorite: {}" : "Loaded file from favorites: {}", file.getName());
+
+        } catch (Exception e) {
+            logger.error("Failed to load file from favorites: {}", file.getAbsolutePath(), e);
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to load file from favorites: " + e.getMessage());
         }
     }
 
