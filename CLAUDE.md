@@ -105,3 +105,14 @@ org.fxt.freexmltoolkit/
 - **Comprehensive Error Management**: Professionelle Fehlerbehandlung
 - **User-friendly Alerts**: Benutzerfreundliche Fehler- und Info-Dialoge
 - **Graceful Degradation**: Robustes Verhalten bei Fehlern
+
+
+# Important
+
+- Always create unit tests for new features.
+- Always check if no current implementation is broken.
+- insert comments and javadoc in english. 
+- refactor classes automatically
+  - split classes that are too big automatically into smaller classes
+  - delete unused code automatically. make sure no production code breaks. 
+  - avoid reflections if possible
