@@ -19,6 +19,11 @@ import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.w3c.dom.*;
 
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -986,6 +991,15 @@ public class XmlGraphicEditor extends VBox {
         deleteMenuItem.setGraphic(createColoredIcon("bi-trash", "#dc3545"));
         deleteMenuItem.setOnAction(e -> deleteNode(domNode));
 
+        // Copy operations
+        MenuItem copyValueMenuItem = new MenuItem("Copy Value");
+        copyValueMenuItem.setGraphic(createColoredIcon("bi-clipboard-data", "#20c997"));
+        copyValueMenuItem.setOnAction(e -> copyNodeValueToClipboard(domNode));
+
+        MenuItem copyNodeMenuItem = new MenuItem("Copy Node");
+        copyNodeMenuItem.setGraphic(createColoredIcon("bi-clipboard", "#007bff"));
+        copyNodeMenuItem.setOnAction(e -> copyNodeToClipboard(domNode));
+
         // Attribute management menu items (only for elements)
         if (domNode.getNodeType() == Node.ELEMENT_NODE) {
             MenuItem addAttributeMenuItem = new MenuItem("Add Attribute");
@@ -1003,6 +1017,9 @@ public class XmlGraphicEditor extends VBox {
                     moveUpMenuItem,
                     moveDownMenuItem,
                     new SeparatorMenuItem(),
+                    copyValueMenuItem,
+                    copyNodeMenuItem,
+                    new SeparatorMenuItem(),
                     addAttributeMenuItem,
                     editAttributesMenuItem,
                     new SeparatorMenuItem(),
@@ -1015,6 +1032,9 @@ public class XmlGraphicEditor extends VBox {
                     new SeparatorMenuItem(),
                     moveUpMenuItem,
                     moveDownMenuItem,
+                    new SeparatorMenuItem(),
+                    copyValueMenuItem,
+                    copyNodeMenuItem,
                     new SeparatorMenuItem(),
                     deleteMenuItem
             );
@@ -3359,5 +3379,96 @@ public class XmlGraphicEditor extends VBox {
         icon.setIconColor(javafx.scene.paint.Color.web(color));
         icon.setIconSize(12);
         return icon;
+    }
+
+    /**
+     * Copies the text content of a DOM node to the clipboard.
+     * For elements, this copies the text content (inner text).
+     * For attributes, this copies the attribute value.
+     * For text nodes, this copies the text value.
+     * For comments, this copies the comment text.
+     */
+    private void copyNodeValueToClipboard(Node domNode) {
+        try {
+            String textContent = getNodeTextContent(domNode);
+
+            if (textContent != null && !textContent.trim().isEmpty()) {
+                ClipboardContent clipboardContent = new ClipboardContent();
+                clipboardContent.putString(textContent);
+                javafx.scene.input.Clipboard.getSystemClipboard().setContent(clipboardContent);
+
+                logger.info("Copied node value to clipboard: '{}' (length: {})",
+                        textContent.length() > 50 ? textContent.substring(0, 47) + "..." : textContent,
+                        textContent.length());
+            } else {
+                logger.warn("No text content found for node: {}", domNode.getNodeName());
+                showInfoDialog("Copy Value", "No text content found for node '" + domNode.getNodeName() + "'.");
+            }
+        } catch (Exception e) {
+            logger.error("Error copying node value to clipboard", e);
+            showErrorDialog("Copy Error", "Failed to copy node value: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Copies the entire DOM node as XML text to the clipboard.
+     * This includes the element name, attributes, and all child content.
+     */
+    private void copyNodeToClipboard(Node domNode) {
+        try {
+            String xmlContent = nodeToXmlString(domNode);
+
+            ClipboardContent clipboardContent = new ClipboardContent();
+            clipboardContent.putString(xmlContent);
+            javafx.scene.input.Clipboard.getSystemClipboard().setContent(clipboardContent);
+
+            logger.info("Copied node XML to clipboard: '{}' (length: {})",
+                    domNode.getNodeName(), xmlContent.length());
+        } catch (Exception e) {
+            logger.error("Error copying node XML to clipboard", e);
+            showErrorDialog("Copy Error", "Failed to copy node XML: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Gets the text content of a DOM node based on its type.
+     */
+    private String getNodeTextContent(Node domNode) {
+        return switch (domNode.getNodeType()) {
+            case Node.ELEMENT_NODE -> domNode.getTextContent();
+            case Node.ATTRIBUTE_NODE -> domNode.getNodeValue();
+            case Node.TEXT_NODE -> domNode.getNodeValue();
+            case Node.COMMENT_NODE -> domNode.getNodeValue();
+            default -> domNode.getTextContent();
+        };
+    }
+
+    /**
+     * Converts a DOM node to its XML string representation.
+     */
+    private String nodeToXmlString(Node domNode) throws TransformerException {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        var transformer = transformerFactory.newTransformer();
+
+        // Configure transformer for pretty printing
+        transformer.setOutputProperty("indent", "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+        transformer.setOutputProperty("omit-xml-declaration", "yes");
+
+        StringWriter stringWriter = new StringWriter();
+        transformer.transform(new DOMSource(domNode), new StreamResult(stringWriter));
+
+        return stringWriter.toString().trim();
+    }
+
+    /**
+     * Shows an information dialog to the user.
+     */
+    private void showInfoDialog(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }
