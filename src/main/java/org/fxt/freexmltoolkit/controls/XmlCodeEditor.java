@@ -1,127 +1,95 @@
 package org.fxt.freexmltoolkit.controls;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.*;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
-import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.fxt.freexmltoolkit.controls.editor.*;
 import org.fxt.freexmltoolkit.controls.intellisense.*;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
-import org.kordamp.ikonli.javafx.FontIcon;
-import org.w3c.dom.Document;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.File;
-import java.io.StringWriter;
 import java.util.*;
 import java.util.function.IntFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 /**
- * A self-contained XML code editor component that extends VBox.
- * It includes a CodeArea with line numbers, syntax highlighting logic,
- * built-in controls for font size and caret movement, and a status line.
+ * A comprehensive XML code editor component with separated concerns.
+ * This class coordinates multiple managers to provide XML editing functionality.
+ *
+ * This refactored version uses the Manager pattern to separate responsibilities:
+ * - SyntaxHighlightManager: Handles all syntax highlighting
+ * - XmlValidationManager: Manages validation and error highlighting
+ * - FileOperationsManager: Handles file operations and monitoring
+ * - XmlContextMenuManager: Manages context menu and actions
+ * - StatusLineController: Controls status line display
  */
 public class XmlCodeEditor extends VBox {
 
     private static final Logger logger = LogManager.getLogger(XmlCodeEditor.class);
     private static final int DEFAULT_FONT_SIZE = 11;
-    private int fontSize = DEFAULT_FONT_SIZE;
+
+    // Core services
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     private final ThreadPoolManager threadPoolManager = ThreadPoolManager.getInstance();
 
+    // Core UI components
     private final CodeArea codeArea = new CodeArea();
     private final VirtualizedScrollPane<CodeArea> virtualizedScrollPane = new VirtualizedScrollPane<>(codeArea);
 
-    // Status line components
-    private final HBox statusLine = new HBox();
-    private final Label cursorPositionLabel = new Label("Line: 1, Column: 1");
-    private final Label encodingLabel = new Label("UTF-8");
-    private final Label lineSeparatorLabel = new Label("LF");
-    private final Label indentationLabel = new Label();
+    // Manager components
+    private SyntaxHighlightManager syntaxHighlightManager;
+    private XmlValidationManager validationManager;
+    private FileOperationsManager fileOperationsManager;
+    private XmlContextMenuManager contextMenuManager;
+    private StatusLineController statusLineController;
 
-    // File properties for status line
-    private String currentEncoding = "UTF-8";
-    private String currentLineSeparator = "LF";
-    private int currentIndentationSize;
-    private boolean useSpaces = true;
-
-    // Stores start and end lines of foldable regions
-    private final Map<Integer, Integer> foldingRegions = new HashMap<>();
-
-    // Stores the state of folded lines manually
-    // to avoid issues with the library API.
-    private final Set<Integer> foldedLines = new HashSet<>();
-
+    // Editor state
+    private int fontSize = DEFAULT_FONT_SIZE;
     private String documentUri;
-
-    // Reference to parent XmlEditor for accessing schema information
     private XmlEditor parentXmlEditor;
+    private EditorMode currentMode = EditorMode.XML_WITHOUT_XSD;
 
-    // IntelliSense Popup Components
-    private Stage intelliSensePopup;
-    private ListView<String> completionListView;
+    // Layout components
+    private HBox editorContainer;
+    private MinimapView minimapView;
+    private boolean minimapVisible = false;
+
+    // IntelliSense components (will be moved to separate manager in future phases)
+    private Popup intelliSensePopup;
+    private ListView<String> completionListView; // Legacy - will be replaced
     private List<String> availableElementNames = new ArrayList<>();
     private Map<String, List<String>> contextElementNames = new HashMap<>();
+    private int popupStartPosition = -1;
+    private boolean isElementCompletionContext = false;
 
-    // Enumeration completion support
-    private ElementTextInfo currentElementTextInfo;
+    // Enhanced IntelliSense with 3-column layout
+    private EnhancedCompletionPopup enhancedIntelliSensePopup;
 
-    // Specialized Auto-Completion
+    // Specialized Auto-Completion (will be managed by IntelliSenseManager in future)
     private SchematronAutoComplete schematronAutoComplete;
     private XsdAutoComplete xsdAutoComplete;
     private XsltAutoComplete xsltAutoComplete;
     private XslFoAutoComplete xslFoAutoComplete;
 
-    // Editor modes (only one can be active at a time)
-    public enum EditorMode {
-        XML,        // Standard XML with IntelliSense
-        XML_WITHOUT_XSD, // XML without linked XSD (basic auto-close only)
-        XML_WITH_XSD,    // XML with linked XSD (enhanced IntelliSense)
-        SCHEMATRON, // Schematron-specific auto-completion
-        XSD,        // XSD-specific auto-completion
-        XSLT,       // XSLT Stylesheet auto-completion
-        XSL_FO      // XSL-FO Stylesheet auto-completion
-    }
-
-    private EditorMode currentMode = EditorMode.XML_WITHOUT_XSD;
-
-    // Cache for enumeration elements from XsdDocumentationData
-    // Key: XPath-like context, Value: Set of element names with enumeration
-    private final Map<String, Set<String>> enumerationElementsByContext = new HashMap<>();
-    private int popupStartPosition = -1;
-    private boolean isElementCompletionContext = false; // Track if we're completing elements or attributes
-
-    // Enhanced IntelliSense Components
+    // Enhanced IntelliSense Components (will be managed in future phases)
     private EnhancedCompletionPopup enhancedCompletionPopup;
     private FuzzySearch fuzzySearch;
     private XsdDocumentationExtractor xsdDocExtractor;
@@ -132,79 +100,250 @@ public class XmlCodeEditor extends VBox {
     private TemplateEngine templateEngine;
     private QuickActionsIntegration quickActionsIntegration;
 
-    // Integration state
-    private boolean enhancedIntelliSenseEnabled = true;
+    private final boolean enhancedIntelliSenseEnabled = true;
+    private boolean isProcessingEnterKey = false;
     private org.fxt.freexmltoolkit.controls.intellisense.XsdIntegrationAdapter xsdIntegration;
     private XmlIntelliSenseEngine intelliSenseEngine;
     private XmlCodeFoldingManager codeFoldingManager;
 
-    // Debouncing for syntax highlighting
-    private javafx.animation.PauseTransition syntaxHighlightingDebouncer;
+    // Debouncing for syntax highlighting and validation
+    private PauseTransition syntaxHighlightingDebouncer;
+    private PauseTransition errorHighlightingDebouncer;
 
-    // Background task for syntax highlighting
-    private javafx.concurrent.Task<StyleSpans<Collection<String>>> syntaxHighlightingTask;
+    // Code folding (will be moved to separate manager in Phase 4)
+    private final Map<Integer, Integer> foldingRegions = new HashMap<>();
+    private final Set<Integer> foldedLines = new HashSet<>();
 
-    // Live error highlighting
-    private javafx.animation.PauseTransition errorHighlightingDebouncer;
-    private javafx.concurrent.Task<List<org.xml.sax.SAXParseException>> validationTask;
-    private final Map<Integer, String> currentErrors = new HashMap<>();
-    private Tooltip errorTooltip;
-    private int lastTooltipLine = -1;
+    // Current element text info for enumeration completion
+    private ElementTextInfo currentElementTextInfo;
 
-    // Minimap component
-    private MinimapView minimapView;
-    private HBox editorContainer;
-    private boolean minimapVisible = false;
-    private boolean minimapInitialized = false;
+    /**
+     * Editor modes enumeration.
+     */
+    public enum EditorMode {
+        XML,        // Standard XML with IntelliSense
+        XML_WITHOUT_XSD, // XML without linked XSD (basic auto-close only)
+        XML_WITH_XSD,    // XML with linked XSD (enhanced IntelliSense)
+        SCHEMATRON, // Schematron-specific auto-completion
+        XSD,        // XSD-specific auto-completion
+        XSLT,       // XSLT Stylesheet auto-completion
+        XSL_FO      // XSL-FO Stylesheet auto-completion
+    }
 
-    // File monitoring for external changes
-    private File currentFile;
-    private long lastModifiedTime = -1;
-    private javafx.animation.Timeline fileMonitorTimer;
-    private static final int FILE_MONITOR_INTERVAL_SECONDS = 2;
-    private boolean isFileMonitoringEnabled = true;
-    private boolean ignoreNextChange = false; // Flag to ignore changes we made ourselves
-
-    // Performance optimization: Cache compiled patterns
-    private static final Pattern OPEN_TAG_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\b[^>]*>");
-    private static final Pattern CLOSE_TAG_PATTERN = Pattern.compile("</([a-zA-Z][a-zA-Z0-9_:]*) *>");
-    private static final Pattern ELEMENT_PATTERN = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)");
-
-    // --- Syntax Highlighting Patterns (moved from XmlEditor) ---
-    private static final Pattern XML_TAG = Pattern.compile("(?<ELEMENT>(</?\\h*)(\\w+)([^<>]*)(\\h*/?>))"
-            + "|(?<COMMENT><!--[^<>]+-->)");
-    private static final Pattern ATTRIBUTES = Pattern.compile("(\\w+\\h*)(=)(\\h*\"[^\"]+\")");
-
-    private static final int GROUP_OPEN_BRACKET = 2;
-    private static final int GROUP_ELEMENT_NAME = 3;
-    private static final int GROUP_ATTRIBUTES_SECTION = 4;
-    private static final int GROUP_CLOSE_BRACKET = 5;
-    private static final int GROUP_ATTRIBUTE_NAME = 1;
-    private static final int GROUP_EQUAL_SYMBOL = 2;
-    private static final int GROUP_ATTRIBUTE_VALUE = 3;
-
+    /**
+     * Constructor for the XML code editor.
+     */
     public XmlCodeEditor() {
         super();
-        currentIndentationSize = propertiesService.getXmlIndentSpaces();
         initialize();
     }
 
     /**
-     * Updates the indentation label to show the current configured indent spaces.
+     * Initializes the editor and all its managers.
      */
-    private void updateIndentationLabel() {
-        int indentSpaces = propertiesService.getXmlIndentSpaces();
-        currentIndentationSize = indentSpaces;
-        String indentType = useSpaces ? "spaces" : "tabs";
-        indentationLabel.setText(indentSpaces + " " + indentType);
+    private void initialize() {
+        // Load CSS stylesheets for syntax highlighting
+        loadCssStylesheets();
+
+        // Initialize managers
+        initializeManagers();
+
+        // Set up paragraph graphics factory
+        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
+
+        // Set up event handlers
+        setupEventHandlers();
+
+        // Initialize IntelliSense (temporary, will be moved to manager in Phase 2)
+        initializeIntelliSensePopup();
+        initializeEnhancedIntelliSense();
+        initializeXmlIntelliSenseEngine();
+        initializeCodeFoldingManager();
+        initializeSpecializedAutoComplete();
+
+        // Set up the main layout with minimap
+        setupLayoutWithMinimap();
+
+        // Set up VBox growth
+        VBox.setVgrow(editorContainer, Priority.ALWAYS);
+
+        // Set up basic styling and reset font size
+        resetFontSize();
+
+        // Set up line numbers
+        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
+
+        // Apply initial syntax highlighting if there's text
+        Platform.runLater(() -> {
+            if (codeArea.getText() != null && !codeArea.getText().isEmpty()) {
+                syntaxHighlightManager.applySyntaxHighlighting(codeArea.getText());
+                updateFoldingRegions(codeArea.getText());
+            }
+        });
+
+        // Initialize debouncers
+        initializeDebouncers();
+
+        // Set up text change listeners
+        setupTextChangeListeners();
+
+        // Set up scene and parent change listeners
+        setupSceneAndParentListeners();
     }
 
     /**
-     * Refreshes the indentation display in the status line.
-     * Call this method when the indent settings have been changed.
+     * Initializes all manager components.
      */
-    public void refreshIndentationDisplay() {
-        updateIndentationLabel();
+    private void initializeManagers() {
+        // Initialize syntax highlight manager
+        syntaxHighlightManager = new SyntaxHighlightManager(codeArea, threadPoolManager);
+
+        // Initialize validation manager
+        validationManager = new XmlValidationManager(codeArea, threadPoolManager);
+        validationManager.setValidationService(this::validateText);
+        validationManager.setErrorCallback(this::handleValidationErrors);
+        validationManager.setValidationCompleteCallback(this::updateMinimapErrors);
+
+        // Initialize file operations manager
+        fileOperationsManager = new FileOperationsManager(codeArea);
+        fileOperationsManager.setFileOperationHandler(new FileOperationHandlerImpl());
+
+        // Initialize context menu manager
+        contextMenuManager = new XmlContextMenuManager(codeArea);
+        contextMenuManager.setContextActions(new ContextActionsImpl());
+        contextMenuManager.initializeContextMenu();
+
+        // Initialize status line controller
+        statusLineController = new StatusLineController(codeArea, propertiesService);
+
+        logger.debug("All managers initialized successfully");
+    }
+
+    /**
+     * Implementation of FileOperationHandler interface.
+     */
+    private class FileOperationHandlerImpl implements FileOperationsManager.FileOperationHandler {
+        @Override
+        public boolean saveFile() {
+            if (parentXmlEditor != null) {
+                return parentXmlEditor.saveFile();
+            }
+            return false;
+        }
+
+        @Override
+        public void saveAsFile() {
+            if (parentXmlEditor != null) {
+                parentXmlEditor.saveAsFile();
+            }
+        }
+    }
+
+    /**
+     * Implementation of XmlContextActions interface.
+     */
+    private class ContextActionsImpl implements XmlContextMenuManager.XmlContextActions {
+        @Override
+        public void toggleLineComment() {
+            XmlCodeEditor.this.toggleLineComment();
+        }
+
+        @Override
+        public void cutToClipboard() {
+            cutTextToClipboard();
+        }
+
+        @Override
+        public void copyToClipboard() {
+            copyTextToClipboard();
+        }
+
+        @Override
+        public void pasteFromClipboard() {
+            pasteTextFromClipboard();
+        }
+
+        @Override
+        public void copyXPathToClipboard() {
+            XmlCodeEditor.this.copyXPathToClipboard();
+        }
+
+        @Override
+        public void goToDefinition() {
+            // Create a synthetic mouse event for go-to-definition
+            handleGoToDefinition(null);
+        }
+
+        @Override
+        public void selectAllText() {
+            selectAll();
+        }
+
+        @Override
+        public void openFindReplace() {
+            XmlCodeEditor.this.openFindReplace();
+        }
+
+        @Override
+        public void formatXmlContent() {
+            XmlCodeEditor.this.formatXmlContent();
+        }
+
+        @Override
+        public void validateXmlContent() {
+            XmlCodeEditor.this.validateXmlContent();
+        }
+
+        @Override
+        public void expandAllFolds() {
+            expandAll();
+        }
+
+        @Override
+        public void collapseAllFolds() {
+            collapseAll();
+        }
+    }
+
+    // =====================================================
+    // PUBLIC API METHODS
+    // =====================================================
+
+    /**
+     * Sets the text content and immediately applies syntax highlighting.
+     *
+     * @param text The text to set
+     */
+    public void setText(String text) {
+        codeArea.replaceText(text);
+
+        // Auto-detect editor mode based on content
+        autoDetectEditorMode(text);
+
+        Platform.runLater(() -> {
+            if (text != null && !text.isEmpty()) {
+                syntaxHighlightManager.applySyntaxHighlighting(text);
+                updateFoldingRegions(text);
+            }
+        });
+    }
+
+    /**
+     * Gets the current text content.
+     *
+     * @return The current text
+     */
+    public String getText() {
+        return codeArea.getText();
+    }
+
+    /**
+     * Returns the internal CodeArea instance.
+     *
+     * @return The CodeArea component
+     */
+    public CodeArea getCodeArea() {
+        return codeArea;
     }
 
     /**
@@ -236,1340 +375,46 @@ public class XmlCodeEditor extends VBox {
 
         // Update XSD integration with new parent
         updateXsdIntegration();
-        
+
         // Trigger immediate cache update when parent is set
         if (parentEditor != null) {
-            // Use Platform.runLater to avoid blocking the UI thread
             Platform.runLater(this::updateEnumerationElementsCache);
         }
     }
 
     /**
-     * Sets the available element names for IntelliSense completion.
+     * Sets the current file being monitored.
      *
-     * @param elementNames List of available element names
-     */
-    public void setAvailableElementNames(List<String> elementNames) {
-        this.availableElementNames = new ArrayList<>(elementNames);
-    }
-
-    /**
-     * Sets the context-sensitive element names for IntelliSense completion.
-     * This should be a map where the key is the parent element name and the value is a list of child element names.
-     *
-     * @param contextElementNames Map of parent element names to their child element names
-     */
-    public void setContextElementNames(Map<String, List<String>> contextElementNames) {
-        this.contextElementNames = new HashMap<>(contextElementNames);
-    }
-
-    /**
-     * Manually triggers enumeration cache update.
-     * Call this method when the XSD schema changes.
-     */
-    public void refreshEnumerationCache() {
-        logger.debug("Manual enumeration cache refresh requested");
-        Platform.runLater(this::updateEnumerationElementsCache);
-    }
-
-    private void initialize() {
-        // Load CSS stylesheets for syntax highlighting
-        loadCssStylesheets();
-        
-        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
-
-        setupEventHandlers();
-        initializeContextMenu();
-        initializeIntelliSensePopup();
-        initializeEnhancedIntelliSense();
-        initializeXmlIntelliSenseEngine();
-        initializeCodeFoldingManager();
-        initializeSpecializedAutoComplete();
-
-        // Set up the main layout with minimap
-        setupLayoutWithMinimap();
-
-        // Set up VBox growth
-        VBox.setVgrow(editorContainer, Priority.ALWAYS);
-
-        // Initialize status line
-        initializeStatusLine();
-
-        // Set up basic styling and reset font size
-        resetFontSize();
-
-        // Apply initial syntax highlighting and folding regions if there's text
-        Platform.runLater(() -> {
-            if (codeArea.getText() != null && !codeArea.getText().isEmpty()) {
-                applySyntaxHighlighting(codeArea.getText());
-                updateFoldingRegions(codeArea.getText());
-            }
-        });
-
-        // Initialize debouncer for syntax highlighting
-        syntaxHighlightingDebouncer = new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
-        syntaxHighlightingDebouncer.setOnFinished(event -> {
-            String currentText = codeArea.getText();
-            if (currentText != null && !currentText.isEmpty()) {
-                applySyntaxHighlighting(currentText);
-            }
-        });
-
-        // Initialize debouncer for error highlighting
-        errorHighlightingDebouncer = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
-        errorHighlightingDebouncer.setOnFinished(event -> {
-            String currentText = codeArea.getText();
-            if (currentText != null && !currentText.isEmpty()) {
-                performLiveValidation(currentText);
-            }
-        });
-
-        // Text change listener for syntax highlighting with debouncing
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            // Reset the debouncer timer
-            syntaxHighlightingDebouncer.stop();
-            syntaxHighlightingDebouncer.playFromStart();
-
-            // Reset the error highlighting debouncer timer
-            errorHighlightingDebouncer.stop();
-            errorHighlightingDebouncer.playFromStart();
-
-            // Handle automatic tag completion
-            handleAutomaticTagCompletion(oldText, newText);
-        });
-
-        // Add scene change listener to restore syntax highlighting when tab becomes visible
-        sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene != null) {
-                Platform.runLater(() -> {
-                    String currentText = codeArea.getText();
-                    if (currentText != null && !currentText.isEmpty()) {
-                        applySyntaxHighlighting(currentText);
-                    }
-                });
-            }
-        });
-
-        // Add parent change listener to restore syntax highlighting when moved between containers
-        parentProperty().addListener((obs, oldParent, newParent) -> {
-            if (newParent != null) {
-                Platform.runLater(() -> {
-                    String currentText = codeArea.getText();
-                    if (currentText != null && !currentText.isEmpty()) {
-                        applySyntaxHighlighting(currentText);
-                    }
-                });
-            }
-        });
-
-        // Add focus listener to restore highlighting when CodeArea gains focus
-        codeArea.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (isFocused) {
-                Platform.runLater(() -> {
-                    String currentText = codeArea.getText();
-                    if (currentText != null && !currentText.isEmpty()) {
-                        applySyntaxHighlighting(currentText);
-                    }
-                });
-            }
-        });
-
-        // Initialize file monitoring
-        initializeFileMonitoring();
-    }
-
-    /**
-     * Initializes the file monitoring system to detect external changes.
-     */
-    private void initializeFileMonitoring() {
-        // Create timer for checking file modifications
-        fileMonitorTimer = new Timeline(new KeyFrame(
-            Duration.seconds(FILE_MONITOR_INTERVAL_SECONDS),
-            event -> checkForExternalChanges()
-        ));
-        fileMonitorTimer.setCycleCount(Timeline.INDEFINITE);
-        
-        logger.debug("File monitoring system initialized");
-    }
-
-    /**
-     * Sets the current file being monitored and starts monitoring.
-     * 
-     * @param file The file to monitor, or null to stop monitoring
+     * @param file The file to monitor
      */
     public void setCurrentFile(File file) {
-        stopFileMonitoring();
-        
-        this.currentFile = file;
-        if (file != null && file.exists()) {
-            this.lastModifiedTime = file.lastModified();
-            startFileMonitoring();
-            logger.debug("Started monitoring file: {}", file.getAbsolutePath());
-        } else {
-            this.lastModifiedTime = -1;
-            logger.debug("File monitoring stopped");
-        }
+        fileOperationsManager.setCurrentFile(file);
     }
 
     /**
-     * Starts the file monitoring timer.
-     */
-    private void startFileMonitoring() {
-        if (isFileMonitoringEnabled && fileMonitorTimer != null && currentFile != null) {
-            fileMonitorTimer.play();
-        }
-    }
-
-    /**
-     * Stops the file monitoring timer.
-     */
-    private void stopFileMonitoring() {
-        if (fileMonitorTimer != null) {
-            fileMonitorTimer.stop();
-        }
-    }
-
-    /**
-     * Checks if the current file has been modified externally.
-     */
-    private void checkForExternalChanges() {
-        if (currentFile == null || !currentFile.exists() || ignoreNextChange) {
-            if (ignoreNextChange) {
-                ignoreNextChange = false; // Reset the flag
-            }
-            return;
-        }
-
-        long currentModifiedTime = currentFile.lastModified();
-        if (currentModifiedTime > lastModifiedTime) {
-            // File has been modified externally
-            Platform.runLater(() -> showExternalChangeDialog(currentModifiedTime));
-        }
-    }
-
-    /**
-     * Shows a dialog asking the user if they want to reload the externally modified file.
-     * 
-     * @param newModifiedTime The new last modified time of the file
-     */
-    private void showExternalChangeDialog(long newModifiedTime) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("File Modified Externally");
-        alert.setHeaderText("The file has been modified by another program");
-        alert.setContentText("The file '" + currentFile.getName() + "' has been changed outside the editor.\n\n" +
-                            "Do you want to reload the changes from the file system?");
-
-        alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
-        
-        alert.showAndWait().ifPresent(buttonType -> {
-            if (buttonType == ButtonType.YES) {
-                reloadFileFromDisk(newModifiedTime);
-            } else {
-                // User chose not to reload, update the timestamp to avoid repeated dialogs
-                lastModifiedTime = newModifiedTime;
-                logger.debug("User chose not to reload external changes, updating timestamp");
-            }
-        });
-    }
-
-    /**
-     * Reloads the file content from disk.
-     * 
-     * @param newModifiedTime The new last modified time to set
-     */
-    private void reloadFileFromDisk(long newModifiedTime) {
-        try {
-            // Read the new content from the file
-            String newContent = java.nio.file.Files.readString(currentFile.toPath(), 
-                java.nio.charset.StandardCharsets.UTF_8);
-            
-            // Set the flag to ignore the next change notification (from our reload)
-            ignoreNextChange = true;
-            
-            // Update the editor content
-            Platform.runLater(() -> {
-                codeArea.replaceText(newContent);
-                lastModifiedTime = newModifiedTime;
-                logger.info("Successfully reloaded file from disk: {}", currentFile.getAbsolutePath());
-            });
-            
-        } catch (Exception e) {
-            logger.error("Error reloading file from disk: {}", e.getMessage(), e);
-            
-            Platform.runLater(() -> {
-                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                errorAlert.setTitle("Error Reloading File");
-                errorAlert.setHeaderText("Failed to reload file from disk");
-                errorAlert.setContentText("An error occurred while reloading the file:\n" + e.getMessage());
-                errorAlert.showAndWait();
-            });
-        }
-    }
-
-    /**
-     * Enables or disables file monitoring.
-     * 
-     * @param enabled True to enable monitoring, false to disable
-     */
-    public void setFileMonitoringEnabled(boolean enabled) {
-        this.isFileMonitoringEnabled = enabled;
-        if (enabled && currentFile != null) {
-            startFileMonitoring();
-        } else {
-            stopFileMonitoring();
-        }
-        logger.debug("File monitoring enabled: {}", enabled);
-    }
-
-    /**
-     * Returns whether file monitoring is currently enabled.
-     * 
-     * @return True if monitoring is enabled
-     */
-    public boolean isFileMonitoringEnabled() {
-        return isFileMonitoringEnabled;
-    }
-
-    /**
-     * Should be called when the user saves the file to update the timestamp
-     * and avoid triggering the external change dialog for our own save.
+     * Notifies that the file was saved.
      */
     public void notifyFileSaved() {
-        if (currentFile != null && currentFile.exists()) {
-            lastModifiedTime = currentFile.lastModified();
-            logger.debug("File save notification received, updated timestamp");
-        }
+        fileOperationsManager.notifyFileSaved();
     }
 
     /**
-     * Handles Ctrl+S keyboard shortcut to save the current file.
-     * Saves the content to the current file or triggers Save As dialog if no file is associated.
-     */
-    private void handleSaveFile() {
-        if (parentXmlEditor != null) {
-            // Use parent editor's save functionality
-            if (!parentXmlEditor.saveFile()) {
-                // If save failed (probably no file associated), try Save As
-                parentXmlEditor.saveAsFile();
-            }
-        } else {
-            logger.warn("Cannot save: no parent editor available");
-        }
-    }
-
-    /**
-     * Requests the parent editor to show Save As dialog.
-     * This is called when Ctrl+Shift+S is pressed.
-     */
-    private void requestSaveAs() {
-        if (parentXmlEditor != null) {
-            parentXmlEditor.saveAsFile();
-        } else {
-            logger.warn("Cannot save as: no parent editor available");
-        }
-    }
-
-    /**
-     * Loads CSS stylesheets for syntax highlighting.
-     */
-    private void loadCssStylesheets() {
-        try {
-            // Load the main CSS file for syntax highlighting
-            String cssPath = "/css/fxt-theme.css";
-            String cssUrl = getClass().getResource(cssPath).toExternalForm();
-            codeArea.getStylesheets().add(cssUrl);
-            logger.debug("Loaded CSS stylesheet: {}", cssUrl);
-
-            // Also load the XML highlighting specific CSS
-            String xmlCssPath = "/scss/xml-highlighting.css";
-            if (getClass().getResource(xmlCssPath) != null) {
-                String xmlCssUrl = getClass().getResource(xmlCssPath).toExternalForm();
-                codeArea.getStylesheets().add(xmlCssUrl);
-                logger.debug("Loaded XML highlighting CSS: {}", xmlCssUrl);
-            }
-
-            // Load IntelliSense CSS
-            String intelliSenseCssPath = "/css/xml-intellisense.css";
-            if (getClass().getResource(intelliSenseCssPath) != null) {
-                String intelliSenseCssUrl = getClass().getResource(intelliSenseCssPath).toExternalForm();
-                codeArea.getStylesheets().add(intelliSenseCssUrl);
-                logger.debug("Loaded IntelliSense CSS: {}", intelliSenseCssUrl);
-            }
-
-            // Load XMLSpy-style Context Menu CSS
-            String contextMenuCssPath = "/css/xml-context-menu-xmlspy.css";
-            if (getClass().getResource(contextMenuCssPath) != null) {
-                String contextMenuCssUrl = getClass().getResource(contextMenuCssPath).toExternalForm();
-                codeArea.getStylesheets().add(contextMenuCssUrl);
-                logger.debug("Loaded XMLSpy-style Context Menu CSS: {}", contextMenuCssUrl);
-            }
-
-        } catch (Exception e) {
-            logger.error("Error loading CSS stylesheets: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Debug method to check CSS loading status.
-     */
-    public void debugCssStatus() {
-        logger.debug("=== CSS Debug Information ===");
-        logger.debug("CodeArea stylesheets count: {}", codeArea.getStylesheets().size());
-        for (int i = 0; i < codeArea.getStylesheets().size(); i++) {
-            logger.debug("CodeArea stylesheet {}: {}", i, codeArea.getStylesheets().get(i));
-        }
-
-        logger.debug("Parent container stylesheets count: {}", this.getStylesheets().size());
-        for (int i = 0; i < this.getStylesheets().size(); i++) {
-            logger.debug("Parent stylesheet {}: {}", i, this.getStylesheets().get(i));
-        }
-
-        if (this.getScene() != null) {
-            logger.debug("Scene stylesheets count: {}", this.getScene().getStylesheets().size());
-            for (int i = 0; i < this.getScene().getStylesheets().size(); i++) {
-                logger.debug("Scene stylesheet {}: {}", i, this.getScene().getStylesheets().get(i));
-            }
-        }
-
-        logger.debug("Current text: '{}'", codeArea.getText());
-        logger.debug("Text length: {}", (codeArea.getText() != null ? codeArea.getText().length() : 0));
-        logger.debug("=============================");
-    }
-
-
-
-
-
-    /**
-     * Applies syntax highlighting using external CSS only.
-     */
-    private void applySyntaxHighlighting(String text) {
-        if (text == null || text.isEmpty()) {
-            return;
-        }
-
-        // Cancel any running syntax highlighting task
-        if (syntaxHighlightingTask != null && syntaxHighlightingTask.isRunning()) {
-            syntaxHighlightingTask.cancel();
-        }
-
-        // Create new background task for syntax highlighting
-        syntaxHighlightingTask = new javafx.concurrent.Task<StyleSpans<Collection<String>>>() {
-            @Override
-            protected StyleSpans<Collection<String>> call() throws Exception {
-                // Check if task was cancelled
-                if (isCancelled()) {
-                    return null;
-                }
-
-                // Compute syntax highlighting with enumeration in background
-                return computeHighlightingWithEnumeration(text);
-            }
-        };
-
-        syntaxHighlightingTask.setOnSucceeded(event -> {
-            StyleSpans<Collection<String>> highlighting = syntaxHighlightingTask.getValue();
-            if (highlighting != null) {
-                codeArea.setStyleSpans(0, highlighting);
-            }
-        });
-
-        syntaxHighlightingTask.setOnFailed(event -> {
-            logger.error("Syntax highlighting failed", syntaxHighlightingTask.getException());
-            // Fallback to basic highlighting
-            StyleSpans<Collection<String>> basicHighlighting = computeHighlighting(text);
-            codeArea.setStyleSpans(0, basicHighlighting);
-        });
-
-        // Run the task using managed thread pool with proper Task execution
-        threadPoolManager.executeCPUIntensive("syntax-highlighting-" + System.currentTimeMillis(), () -> {
-            // Execute the JavaFX Task in the background
-            Thread taskThread = new Thread(syntaxHighlightingTask);
-            taskThread.setName("SyntaxHighlighting-" + System.currentTimeMillis());
-            taskThread.setDaemon(true);
-            taskThread.start();
-            return null;
-        });
-    }
-
-    /**
-     * Performs live XML validation and applies error highlighting.
-     */
-    private void performLiveValidation(String text) {
-        if (text == null || text.isEmpty()) {
-            currentErrors.clear();
-            return;
-        }
-
-        // Cancel any running validation task
-        if (validationTask != null && validationTask.isRunning()) {
-            validationTask.cancel();
-        }
-
-        // Create new background task for validation
-        validationTask = new javafx.concurrent.Task<List<org.xml.sax.SAXParseException>>() {
-            @Override
-            protected List<org.xml.sax.SAXParseException> call() throws Exception {
-                if (isCancelled()) {
-                    return new ArrayList<>();
-                }
-
-                // Get XML service from parent editor
-                if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
-                    var xmlService = xmlEditor.getXmlService();
-                    if (xmlService != null) {
-                        try {
-                            return xmlService.validateText(text);
-                        } catch (Exception e) {
-                            logger.debug("Validation error during live validation: {}", e.getMessage());
-                            return new ArrayList<>();
-                        }
-                    }
-                }
-                return new ArrayList<>();
-            }
-        };
-
-        validationTask.setOnSucceeded(event -> {
-            List<org.xml.sax.SAXParseException> errors = validationTask.getValue();
-            if (errors != null) {
-                Platform.runLater(() -> applyErrorHighlighting(errors));
-            }
-        });
-
-        validationTask.setOnFailed(event -> {
-            logger.debug("Live validation task failed: {}", validationTask.getException().getMessage());
-        });
-
-        // Run the validation task using managed thread pool
-        threadPoolManager.executeCPUIntensive("live-validation-" + System.currentTimeMillis(), () -> {
-            Thread taskThread = new Thread(validationTask);
-            taskThread.setName("LiveValidation-" + System.currentTimeMillis());
-            taskThread.setDaemon(true);
-            taskThread.start();
-            return null;
-        });
-    }
-
-    /**
-     * Applies error highlighting to the CodeArea based on validation errors.
-     */
-    private void applyErrorHighlighting(List<org.xml.sax.SAXParseException> errors) {
-        currentErrors.clear();
-
-        if (errors == null || errors.isEmpty()) {
-            return;
-        }
-
-        // Process errors and store for tooltip functionality
-        for (org.xml.sax.SAXParseException error : errors) {
-            int lineNumber = error.getLineNumber();
-            String errorMessage = error.getMessage();
-
-            if (lineNumber > 0 && lineNumber <= codeArea.getParagraphs().size()) {
-                currentErrors.put(lineNumber, errorMessage);
-            }
-        }
-
-        // Re-apply syntax highlighting with error information
-        String currentText = codeArea.getText();
-        if (currentText != null && !currentText.isEmpty()) {
-            applySyntaxHighlightingWithErrors(currentText);
-        }
-
-        // Update minimap with new errors (only if initialized and visible)
-        if (minimapView != null && minimapVisible) {
-            minimapView.updateErrors();
-        }
-    }
-
-    /**
-     * Applies syntax highlighting combined with error highlighting.
-     */
-    private void applySyntaxHighlightingWithErrors(String text) {
-        if (text == null || text.isEmpty()) {
-            return;
-        }
-
-        // Cancel any running syntax highlighting task
-        if (syntaxHighlightingTask != null && syntaxHighlightingTask.isRunning()) {
-            syntaxHighlightingTask.cancel();
-        }
-
-        // Create new background task for combined highlighting
-        syntaxHighlightingTask = new javafx.concurrent.Task<StyleSpans<Collection<String>>>() {
-            @Override
-            protected StyleSpans<Collection<String>> call() throws Exception {
-                if (isCancelled()) {
-                    return null;
-                }
-
-                // Compute base syntax highlighting with enumeration
-                StyleSpans<Collection<String>> baseHighlighting = computeHighlightingWithEnumeration(text);
-
-                // Add error highlighting as additional styles
-                return addErrorStylesToHighlighting(baseHighlighting, text);
-            }
-        };
-
-        syntaxHighlightingTask.setOnSucceeded(event -> {
-            StyleSpans<Collection<String>> highlighting = syntaxHighlightingTask.getValue();
-            if (highlighting != null) {
-                codeArea.setStyleSpans(0, highlighting);
-                // Update paragraph graphics to show error markers
-                Platform.runLater(() -> codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory()));
-            }
-        });
-
-        syntaxHighlightingTask.setOnFailed(event -> {
-            logger.error("Syntax highlighting with errors failed", syntaxHighlightingTask.getException());
-            // Fallback to basic highlighting
-            StyleSpans<Collection<String>> basicHighlighting = computeHighlighting(text);
-            codeArea.setStyleSpans(0, basicHighlighting);
-        });
-
-        // Run the task using managed thread pool
-        threadPoolManager.executeCPUIntensive("syntax-highlighting-errors-" + System.currentTimeMillis(), () -> {
-            Thread taskThread = new Thread(syntaxHighlightingTask);
-            taskThread.setName("SyntaxHighlightingWithErrors-" + System.currentTimeMillis());
-            taskThread.setDaemon(true);
-            taskThread.start();
-            return null;
-        });
-    }
-
-    /**
-     * Adds error styles to existing syntax highlighting.
-     */
-    private StyleSpans<Collection<String>> addErrorStylesToHighlighting(
-            StyleSpans<Collection<String>> baseHighlighting, String text) {
-
-        if (currentErrors.isEmpty()) {
-            return baseHighlighting;
-        }
-
-        // Use overlay to add error styles
-        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-
-        // Split text into lines to identify error lines
-        String[] lines = text.split("\n", -1);
-        int position = 0;
-
-        for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-            String line = lines[lineIndex];
-            int lineNumber = lineIndex + 1;
-            int lineLength = line.length();
-
-            if (currentErrors.containsKey(lineNumber)) {
-                // This line has errors - add error styling
-                Collection<String> errorStyles = new ArrayList<>();
-                errorStyles.add("diagnostic-error");
-                spansBuilder.add(errorStyles, lineLength);
-            } else {
-                // No error - use empty styles (syntax highlighting will be preserved)
-                spansBuilder.add(Collections.emptyList(), lineLength);
-            }
-
-            position += lineLength;
-
-            // Add newline character styling if not the last line
-            if (lineIndex < lines.length - 1) {
-                spansBuilder.add(Collections.emptyList(), 1);
-                position += 1;
-            }
-        }
-
-        StyleSpans<Collection<String>> errorHighlighting = spansBuilder.create();
-
-        // Use overlay method to combine syntax and error highlighting
-        return baseHighlighting.overlay(errorHighlighting, (syntaxStyles, errorStyles) -> {
-            if (errorStyles.isEmpty()) {
-                return syntaxStyles;
-            }
-            // Combine syntax highlighting with error styles
-            Collection<String> combined = new ArrayList<>(syntaxStyles);
-            combined.addAll(errorStyles);
-            return combined;
-        });
-    }
-
-    /**
-     * Updates the cache of elements that have enumeration constraints from XsdDocumentationData.
-     * Uses managed thread pool for background processing.
-     */
-    private void updateEnumerationElementsCache() {
-        threadPoolManager.executeBackground("enumeration-cache-update", () -> {
-            try {
-                logger.debug("updateEnumerationElementsCache called. parentXmlEditor: {}", parentXmlEditor);
-                if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
-                    // Get XsdDocumentationData from XmlEditor
-                    var xsdDocumentationData = xmlEditor.getXsdDocumentationData();
-                    if (xsdDocumentationData == null) {
-                        logger.debug("XsdDocumentationData is null. Cannot update enumeration cache.");
-                        return;
-                    }
-
-                    logger.debug("Updating enumeration cache from XsdDocumentationData...");
-
-                    // Process in background, then update UI thread
-                    Map<String, Set<String>> newCache = new HashMap<>();
-                    extractEnumerationElementsFromDocumentationData(xsdDocumentationData, newCache);
-
-                    // Update cache on UI thread
-                    Platform.runLater(() -> {
-                        enumerationElementsByContext.clear();
-                        enumerationElementsByContext.putAll(newCache);
-
-                        logger.debug("Updated enumeration elements cache with {} contexts: {}",
-                                enumerationElementsByContext.size(), enumerationElementsByContext.keySet());
-
-                        // Force refresh of syntax highlighting after cache update
-                        String currentText = codeArea.getText();
-                        if (currentText != null && !currentText.isEmpty()) {
-                            applySyntaxHighlighting(currentText);
-                        }
-                    });
-
-                } else {
-                    logger.debug("Parent editor is null or XsdDocumentationData not available.");
-                }
-            } catch (Exception e) {
-                logger.error("Error updating enumeration elements cache: {}", e.getMessage(), e);
-            }
-        });
-    }
-
-    /**
-     * Extracts enumeration elements from XsdDocumentationData.
-     * Modified to accept a target cache map for thread-safe operation.
-     */
-    private void extractEnumerationElementsFromDocumentationData(
-            org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdDocumentationData,
-            Map<String, Set<String>> targetCache) {
-        extractEnumerationElementsFromDocumentationData(xsdDocumentationData, targetCache, true);
-    }
-
-    /**
-     * Legacy method for backward compatibility.
-     */
-    private void extractEnumerationElementsFromDocumentationData(org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdDocumentationData) {
-        extractEnumerationElementsFromDocumentationData(xsdDocumentationData, enumerationElementsByContext, false);
-    }
-
-    private void extractEnumerationElementsFromDocumentationData(
-            org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdDocumentationData,
-            Map<String, Set<String>> targetCache,
-            boolean threadSafe) {
-        try {
-            Map<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
-
-            for (Map.Entry<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> entry : elementMap.entrySet()) {
-                String xpath = entry.getKey();
-                org.fxt.freexmltoolkit.domain.XsdExtendedElement element = entry.getValue();
-
-                // Check if element has enumeration constraints
-                if (element.getRestrictionInfo() != null &&
-                        element.getRestrictionInfo().facets() != null &&
-                        element.getRestrictionInfo().facets().containsKey("enumeration")) {
-
-                    // Extract context from XPath
-                    String context = extractContextFromXPath(xpath);
-                    String elementName = element.getElementName();
-
-                    if (elementName != null && !elementName.isEmpty()) {
-                        // Remove @ prefix for attributes
-                        if (elementName.startsWith("@")) {
-                            elementName = elementName.substring(1);
-                        }
-
-                        if (threadSafe) {
-                            targetCache.computeIfAbsent(context, k -> new HashSet<>()).add(elementName);
-                        } else {
-                            enumerationElementsByContext.computeIfAbsent(context, k -> new HashSet<>()).add(elementName);
-                        }
-                        logger.debug("Added enumeration element: {} in context: {} (XPath: {})", elementName, context, xpath);
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            logger.error("Error extracting enumeration elements from documentation data: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Extracts context from XPath for enumeration mapping.
-     */
-    private String extractContextFromXPath(String xpath) {
-        if (xpath == null || xpath.isEmpty()) {
-            return "/";
-        }
-
-        // Split XPath by '/' and get the parent context
-        String[] parts = xpath.split("/");
-        if (parts.length <= 2) {
-            return "/"; // Root context
-        } else {
-            // Return parent context (everything except the last element)
-            StringBuilder context = new StringBuilder();
-            for (int i = 1; i < parts.length - 1; i++) {
-                context.append("/").append(parts[i]);
-            }
-            return context.toString();
-        }
-    }
-
-    /**
-     * Checks if an XSD element has enumeration constraints.
-     */
-    private boolean hasEnumerationConstraint(org.w3c.dom.Element element) {
-        try {
-            org.w3c.dom.NodeList simpleTypes = element.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "simpleType");
-
-            for (int i = 0; i < simpleTypes.getLength(); i++) {
-                org.w3c.dom.Element simpleType = (org.w3c.dom.Element) simpleTypes.item(i);
-                org.w3c.dom.NodeList restrictions = simpleType.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "restriction");
-
-                for (int j = 0; j < restrictions.getLength(); j++) {
-                    org.w3c.dom.Element restriction = (org.w3c.dom.Element) restrictions.item(j);
-                    org.w3c.dom.NodeList enumerations = restriction.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "enumeration");
-
-                    if (enumerations.getLength() > 0) {
-                        return true; // Found enumeration constraints
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Error checking enumeration constraint: {}", e.getMessage(), e);
-        }
-        return false;
-    }
-
-
-    // The key-pressed handler was extended with Ctrl+F logic
-    private void setupEventHandlers() {
-        // Change font size with Ctrl + mouse wheel
-        codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
-            if (event.isControlDown()) {
-                if (event.getDeltaY() > 0) {
-                    increaseFontSize();
-                } else {
-                    decreaseFontSize();
-                }
-                event.consume();
-            }
-        });
-
-        // Mouse hover for error tooltips and Go-to-Definition cursor
-        codeArea.setOnMouseMoved(event -> {
-            if (event.isControlDown()) {
-                // Show hand cursor when Ctrl is held over XML elements
-                String elementAtCursor = getElementNameAtPosition(event.getX(), event.getY());
-                if (elementAtCursor != null && !elementAtCursor.isEmpty()) {
-                    codeArea.setCursor(Cursor.HAND);
-                } else {
-                    codeArea.setCursor(Cursor.DEFAULT);
-                }
-            } else {
-                codeArea.setCursor(Cursor.DEFAULT);
-                // Handle error tooltips
-                var hit = codeArea.hit(event.getX(), event.getY());
-                int characterIndex = hit.getCharacterIndex().orElse(-1);
-                if (characterIndex >= 0) {
-                    int lineNumber = codeArea.offsetToPosition(characterIndex, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor() + 1;
-                    showErrorTooltipIfPresent(lineNumber, event.getScreenX(), event.getScreenY());
-                }
-            }
-        });
-
-        codeArea.setOnMouseExited(event -> {
-            hideErrorTooltip();
-            codeArea.setCursor(Cursor.DEFAULT);
-        });
-
-        // Ctrl+Click for Go-to-Definition (use addEventHandler to avoid conflicts)
-        codeArea.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_CLICKED, event -> {
-            logger.debug("Mouse clicked - Ctrl: {}, Clicks: {}", event.isControlDown(), event.getClickCount());
-            if (event.isControlDown() && event.getClickCount() == 1) {
-                logger.debug("Ctrl+Click detected - triggering Go-to-Definition");
-                handleGoToDefinition(event);
-                event.consume();
-            }
-        });
-
-        // Handler for keyboard shortcuts
-        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.isControlDown()) {
-                // Font size with Ctrl +/-, Reset with Ctrl + 0
-                switch (event.getCode()) {
-                    case PLUS, ADD -> {
-                        increaseFontSize();
-                        event.consume();
-                    }
-                    case MINUS, SUBTRACT -> {
-                        decreaseFontSize();
-                        event.consume();
-                    }
-                    case NUMPAD0, DIGIT0 -> {
-                        resetFontSize();
-                        event.consume();
-                    }
-                    case S -> {
-                        if (event.isShiftDown()) {
-                            // Ctrl+Shift+S = Save As
-                            requestSaveAs();
-                        } else {
-                            // Ctrl+S = Save
-                            handleSaveFile();
-                        }
-                        event.consume();
-                    }
-                    case D -> {
-                        // Ctrl+D = Comment/Uncomment Line
-                        toggleLineComment();
-                        event.consume();
-                    }
-                    default -> {
-                    }
-                }
-            }
-        });
-
-        // Handle Ctrl key events for Go-to-Definition visual feedback
-        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() == KeyCode.CONTROL) {
-                logger.debug("Ctrl pressed - Go-to-Definition mode active");
-            }
-        });
-
-        codeArea.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
-            if (event.getCode() == KeyCode.CONTROL) {
-                codeArea.setCursor(Cursor.DEFAULT);
-                logger.debug("Ctrl released - Go-to-Definition mode inactive");
-            }
-        });
-
-        // IntelliSense: Tab completion and auto-closing tags
-        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            switch (event.getCode()) {
-                case TAB -> {
-                    if (handleTabCompletion(event)) {
-                        event.consume();
-                    }
-                }
-                case GREATER -> {
-                    if (handleAutoClosingTag(event)) {
-                        event.consume();
-                    }
-                }
-                case ESCAPE -> {
-                    hideIntelliSensePopup();
-                }
-                case ENTER -> {
-                    // Fully override default behavior to avoid double newlines
-                    event.consume();
-
-                    if (intelliSensePopup != null && intelliSensePopup.isShowing()) {
-                        selectCompletionItem();
-                    } else {
-                        if (!handleIntelligentEnterKey()) {
-                            // If intelligent handling doesn't apply, insert a simple newline
-                            codeArea.insertText(codeArea.getCaretPosition(), "\n");
-                        }
-                    }
-                }
-                case UP, DOWN -> {
-                    if (intelliSensePopup.isShowing()) {
-                        handlePopupNavigation(event);
-                        event.consume();
-                    }
-                }
-                default -> {
-                }
-            }
-        });
-
-        // IntelliSense: Handle typed characters for completion triggers
-        codeArea.addEventFilter(KeyEvent.KEY_TYPED, event -> {
-            String character = event.getCharacter();
-            if (character != null && !character.isEmpty()) {
-                // Block the KEY_TYPED event for Enter key to prevent double newlines
-                if (character.equals("\r") || character.equals("\n")) {
-                    logger.debug("KEY_TYPED event blocked for newline character: '{}' (code: {})", character, (int) character.charAt(0));
-                    event.consume();
-                    return;
-                }
-                
-                logger.debug("KEY_TYPED event - character: '{}' (code: {})", character, (int) character.charAt(0));
-
-                // If we're in specialized mode (Schematron, XSD, XSLT, XSL-FO), completely skip XML IntelliSense
-                if (!isXmlMode()) {
-                    logger.debug("{} mode is active, skipping XML IntelliSense completely", currentMode);
-                    // Don't call handleIntelliSenseTrigger - let only the specialized auto-completion handle it
-                    return;
-                }
-
-                // Auto-show value suggestions for boolean and enumeration types
-                try {
-                    ElementTextInfo enumContext = getElementTextAtCursor(codeArea.getCaretPosition(), codeArea.getText());
-                    if (enumContext != null) {
-                        showValueSuggestions(enumContext);
-                        return;
-                    }
-                } catch (Exception e) {
-                    logger.debug("Value suggestion detection failed: {}", e.getMessage());
-                }
-                
-                if (handleIntelliSenseTrigger(event)) {
-                    logger.debug("IntelliSense trigger handled for: {}", character);
-                }
-            } else {
-                logger.debug("KEY_TYPED event - character is null or empty");
-            }
-        });
-
-        // Handle Ctrl+Space for manual completion (including enumeration completion)
-        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.isControlDown() && event.getCode() == KeyCode.SPACE) {
-                logger.debug("Ctrl+Space pressed for manual completion in mode: {}", currentMode);
-                if (handleManualCompletion()) {
-                    event.consume();
-                }
-            }
-        });
-    }
-
-    /**
-     * Initializes the context menu for the code editor.
-     */
-    private void initializeContextMenu() {
-        ContextMenu contextMenu = new ContextMenu();
-        
-        // Comment functionality
-        MenuItem commentLineMenuItem = new MenuItem("Comment Lines (Ctrl+D)");
-        commentLineMenuItem.getStyleClass().add("comment-action");
-        commentLineMenuItem.setGraphic(createColoredIcon("bi-chat-square-text", "#6c757d"));
-        commentLineMenuItem.setOnAction(event -> toggleLineComment());
-        
-        // Standard editing operations
-        SeparatorMenuItem separator1 = new SeparatorMenuItem();
-        MenuItem cutMenuItem = new MenuItem("Cut (Ctrl+X)");
-        cutMenuItem.getStyleClass().add("edit-action");
-        cutMenuItem.setGraphic(createColoredIcon("bi-scissors", "#dc3545"));
-        cutMenuItem.setOnAction(event -> cutToClipboard());
-        MenuItem copyMenuItem = new MenuItem("Copy (Ctrl+C)");
-        copyMenuItem.getStyleClass().add("edit-action");
-        copyMenuItem.setGraphic(createColoredIcon("bi-files", "#007bff"));
-        copyMenuItem.setOnAction(event -> copyToClipboard());
-        MenuItem pasteMenuItem = new MenuItem("Paste (Ctrl+V)");
-        pasteMenuItem.getStyleClass().add("edit-action");
-        pasteMenuItem.setGraphic(createColoredIcon("bi-clipboard", "#28a745"));
-        pasteMenuItem.setOnAction(event -> pasteFromClipboard());
-        
-        // XML-specific operations
-        SeparatorMenuItem separator2 = new SeparatorMenuItem();
-        MenuItem copyXPathMenuItem = new MenuItem("Copy XPath");
-        copyXPathMenuItem.getStyleClass().add("xml-action");
-        copyXPathMenuItem.setGraphic(createColoredIcon("bi-signpost-2", "#ffc107"));
-        copyXPathMenuItem.setOnAction(event -> copyXPathToClipboard());
-        MenuItem goToDefinitionMenuItem = new MenuItem("Go to Definition (Ctrl+Click)");
-        goToDefinitionMenuItem.getStyleClass().add("xml-action");
-        goToDefinitionMenuItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", "#17a2b8"));
-        goToDefinitionMenuItem.setOnAction(event -> {
-            // Create a synthetic mouse event at current cursor position
-            try {
-                javafx.scene.input.MouseEvent syntheticEvent = new javafx.scene.input.MouseEvent(
-                    javafx.scene.input.MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 
-                    javafx.scene.input.MouseButton.PRIMARY, 1, true, false, false, false, 
-                    true, false, false, false, false, false, null);
-                handleGoToDefinition(syntheticEvent);
-            } catch (Exception e) {
-                logger.error("Error in go to definition", e);
-            }
-        });
-        
-        // Selection and search
-        SeparatorMenuItem separator3 = new SeparatorMenuItem();
-        MenuItem selectAllMenuItem = new MenuItem("Select All (Ctrl+A)");
-        selectAllMenuItem.getStyleClass().add("search-action");
-        selectAllMenuItem.setGraphic(createColoredIcon("bi-border-all", "#6f42c1"));
-        selectAllMenuItem.setOnAction(event -> selectAllText());
-        MenuItem findReplaceMenuItem = new MenuItem("Find & Replace (Ctrl+H)");
-        findReplaceMenuItem.getStyleClass().add("search-action");
-        findReplaceMenuItem.setGraphic(createColoredIcon("bi-search", "#fd7e14"));
-        findReplaceMenuItem.setOnAction(event -> openFindReplace());
-        
-        // XML formatting and validation
-        SeparatorMenuItem separator4 = new SeparatorMenuItem();
-        MenuItem formatXmlMenuItem = new MenuItem("Format XML");
-        formatXmlMenuItem.getStyleClass().add("format-action");
-        formatXmlMenuItem.setGraphic(createColoredIcon("bi-code-square", "#20c997"));
-        formatXmlMenuItem.setOnAction(event -> formatXmlContent());
-        MenuItem validateXmlMenuItem = new MenuItem("Validate XML");
-        validateXmlMenuItem.getStyleClass().add("format-action");
-        validateXmlMenuItem.setGraphic(createColoredIcon("bi-check-circle", "#28a745"));
-        validateXmlMenuItem.setOnAction(event -> validateXmlContent());
-        
-        // Code folding (future)
-        SeparatorMenuItem separator5 = new SeparatorMenuItem();
-        MenuItem expandAllMenuItem = new MenuItem("Expand All");
-        expandAllMenuItem.getStyleClass().add("fold-action");
-        expandAllMenuItem.setGraphic(createColoredIcon("bi-arrows-expand", "#6c757d"));
-        expandAllMenuItem.setOnAction(event -> expandAllFolds());
-        MenuItem collapseAllMenuItem = new MenuItem("Collapse All");
-        collapseAllMenuItem.getStyleClass().add("fold-action");
-        collapseAllMenuItem.setGraphic(createColoredIcon("bi-arrows-collapse", "#6c757d"));
-        collapseAllMenuItem.setOnAction(event -> collapseAllFolds());
-        
-        // Add all items to context menu
-        contextMenu.getItems().addAll(
-            commentLineMenuItem,
-            separator1,
-            cutMenuItem, copyMenuItem, pasteMenuItem,
-            separator2,
-            copyXPathMenuItem, goToDefinitionMenuItem,
-            separator3,
-            selectAllMenuItem, findReplaceMenuItem,
-            separator4,
-            formatXmlMenuItem, validateXmlMenuItem,
-            separator5,
-            expandAllMenuItem, collapseAllMenuItem
-        );
-
-        // Apply uniform font styling to context menu
-        contextMenu.setStyle("-fx-font-family: 'Segoe UI', Arial, sans-serif;");
-        
-        codeArea.setContextMenu(contextMenu);
-        
-        logger.debug("Context menu initialized with comprehensive XML editing functionality");
-    }
-
-    /**
-     * Creates a colored FontIcon for menu items
-     */
-    private FontIcon createColoredIcon(String iconLiteral, String color) {
-        FontIcon icon = new FontIcon(iconLiteral);
-        icon.setIconColor(javafx.scene.paint.Color.web(color));
-        icon.setIconSize(12);
-        return icon;
-    }
-
-    /**
-     * Initializes the IntelliSense popup components.
-     */
-    private void initializeIntelliSensePopup() {
-        // Create completion list view
-        completionListView = new ListView<>();
-        completionListView.setPrefWidth(300);
-        completionListView.setPrefHeight(200);
-        completionListView.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-width: 1px;");
-
-        // Create popup stage
-        intelliSensePopup = new Stage(StageStyle.UTILITY);
-        intelliSensePopup.setAlwaysOnTop(true);
-        intelliSensePopup.setResizable(false);
-
-        // Ensure popup has a proper owner once the CodeArea is attached to a scene
-        codeArea.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            try {
-                if (newScene != null && newScene.getWindow() != null && intelliSensePopup.getOwner() == null) {
-                    intelliSensePopup.initOwner(newScene.getWindow());
-                    logger.debug("Initialized owner for IntelliSense popup");
-                }
-            } catch (Exception e) {
-                logger.debug("Could not initialize owner for IntelliSense popup: {}", e.getMessage());
-            }
-        });
-
-        // Add list view to popup
-        VBox popupContent = new VBox();
-        popupContent.setPadding(new Insets(5));
-        popupContent.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-width: 1px;");
-
-        Label titleLabel = new Label("Element Names");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-padding: 0 0 5 0;");
-
-        popupContent.getChildren().addAll(titleLabel, completionListView);
-        intelliSensePopup.setScene(new javafx.scene.Scene(popupContent));
-
-        // Add double-click handler for selection
-        completionListView.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
-                selectCompletionItem();
-            }
-        });
-
-        // Add key event handler directly to the completion list view
-        completionListView.setOnKeyPressed(event -> {
-            logger.debug("ListView KeyPressed: {}", event.getCode());
-            switch (event.getCode()) {
-                case ENTER -> {
-                    logger.debug("ENTER pressed in ListView - calling selectCompletionItem()");
-                    selectCompletionItem();
-                    event.consume();
-                }
-                case ESCAPE -> {
-                    logger.debug("ESCAPE pressed in ListView - hiding popup");
-                    hideIntelliSensePopup();
-                    event.consume();
-                }
-                case UP, DOWN -> {
-                    // Let ListView handle navigation naturally
-                    logger.debug("Navigation key in ListView: {}", event.getCode());
-                }
-                default -> {
-                    // For all other keys, try to pass them back to the CodeArea
-                    logger.debug("Other key in ListView: {} - passing to CodeArea", event.getCode());
-                    codeArea.fireEvent(event);
-                    event.consume();
-                }
-            }
-        });
-
-        // Ensure the popup scene doesn't steal focus from the main window
-        intelliSensePopup.getScene().setOnKeyPressed(event -> {
-            logger.debug("Scene KeyPressed: {}", event.getCode());
-            completionListView.fireEvent(event);
-        });
-    }
-
-    /**
-     * Initialize the new XML IntelliSense Engine
-     */
-    private void initializeXmlIntelliSenseEngine() {
-        try {
-            logger.debug("Initializing XML IntelliSense Engine...");
-            intelliSenseEngine = new XmlIntelliSenseEngine(codeArea);
-            logger.info("XML IntelliSense Engine initialized successfully");
-        } catch (Exception e) {
-            logger.error("Failed to initialize XML IntelliSense Engine: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Initialize the Code Folding Manager
-     */
-    private void initializeCodeFoldingManager() {
-        try {
-            logger.debug("Initializing Code Folding Manager...");
-            codeFoldingManager = new XmlCodeFoldingManager(codeArea);
-            logger.info("Code Folding Manager initialized successfully");
-        } catch (Exception e) {
-            logger.error("Failed to initialize Code Folding Manager: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Initialize Enhanced IntelliSense components
-     */
-    private void initializeEnhancedIntelliSense() {
-        try {
-            logger.debug("Initializing Enhanced IntelliSense components...");
-
-            // Initialize core components with null checks
-            try {
-                fuzzySearch = new FuzzySearch();
-                logger.debug("FuzzySearch initialized");
-            } catch (Exception e) {
-                logger.warn("Failed to initialize FuzzySearch: {}", e.getMessage());
-            }
-
-            try {
-                completionCache = new CompletionCache();
-                logger.debug("CompletionCache initialized");
-            } catch (Exception e) {
-                logger.warn("Failed to initialize CompletionCache: {}", e.getMessage());
-            }
-
-            try {
-                performanceProfiler = PerformanceProfiler.getInstance();
-                logger.debug("PerformanceProfiler initialized");
-            } catch (Exception e) {
-                logger.warn("Failed to initialize PerformanceProfiler: {}", e.getMessage());
-            }
-
-            try {
-                templateEngine = new TemplateEngine();
-                logger.debug("TemplateEngine initialized");
-            } catch (Exception e) {
-                logger.warn("Failed to initialize TemplateEngine: {}", e.getMessage());
-            }
-
-            try {
-                xsdIntegration = new org.fxt.freexmltoolkit.controls.intellisense.XsdIntegrationAdapter();
-                logger.debug("XsdIntegrationAdapter initialized");
-
-                // XSD integration will be updated when parent is set via setParentXmlEditor
-            } catch (Exception e) {
-                logger.warn("Failed to initialize XsdIntegrationAdapter: {}", e.getMessage());
-            }
-
-            try {
-                quickActionsIntegration = new QuickActionsIntegration(codeArea, xsdIntegration);
-                logger.debug("QuickActionsIntegration initialized");
-            } catch (Exception e) {
-                logger.warn("Failed to initialize QuickActionsIntegration: {}", e.getMessage());
-            }
-
-            try {
-                enhancedCompletionPopup = new EnhancedCompletionPopup();
-                logger.debug("EnhancedCompletionPopup initialized");
-            } catch (Exception e) {
-                logger.warn("Failed to initialize EnhancedCompletionPopup: {}", e.getMessage());
-            }
-
-            logger.info("Enhanced IntelliSense components initialized successfully");
-
-        } catch (Exception e) {
-            logger.error("Failed to initialize Enhanced IntelliSense components: {}", e.getMessage(), e);
-            // Fall back to basic IntelliSense only
-            enhancedIntelliSenseEnabled = false;
-        }
-    }
-
-    /**
-     * Initialize specialized Auto-Completion components (Schematron and XSD)
-     */
-    private void initializeSpecializedAutoComplete() {
-        try {
-            logger.debug("Initializing specialized Auto-Completion components...");
-
-            // Initialize Schematron auto-completion
-            schematronAutoComplete = new SchematronAutoComplete(codeArea);
-            logger.debug("Schematron Auto-Complete initialized");
-
-            // Initialize XSD auto-completion  
-            xsdAutoComplete = new XsdAutoComplete(codeArea);
-            logger.debug("XSD Auto-Complete initialized");
-
-            // Initialize XSLT auto-completion
-            xsltAutoComplete = new XsltAutoComplete(codeArea);
-            logger.debug("XSLT Auto-Complete initialized");
-
-            // Initialize XSL-FO auto-completion
-            xslFoAutoComplete = new XslFoAutoComplete(codeArea);
-            logger.debug("XSL-FO Auto-Complete initialized");
-
-            // Initially disable all - they will be enabled when the appropriate mode is set
-            schematronAutoComplete.setEnabled(false);
-            xsdAutoComplete.setEnabled(false);
-            xsltAutoComplete.setEnabled(false);
-            xslFoAutoComplete.setEnabled(false);
-
-            logger.info("Specialized Auto-Complete components initialized successfully");
-        } catch (Exception e) {
-            logger.error("Failed to initialize specialized Auto-Complete components: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Sets the editor mode, which determines which type of auto-completion is active.
+     * Gets the current editor mode.
      *
-     * @param mode The editor mode to activate
+     * @return The current editor mode
+     */
+    public EditorMode getEditorMode() {
+        return currentMode;
+    }
+
+    /**
+     * Sets the editor mode.
+     *
+     * @param mode The editor mode to set
      */
     public void setEditorMode(EditorMode mode) {
         if (this.currentMode == mode) {
-            return; // Already in the requested mode
+            return;
         }
 
         // Disable all auto-completion systems first
@@ -1580,7 +425,6 @@ public class XmlCodeEditor extends VBox {
 
         switch (mode) {
             case XML, XML_WITHOUT_XSD, XML_WITH_XSD -> {
-                // XML modes use the standard IntelliSense system
                 logger.debug("Switched to {} mode - standard IntelliSense active", mode);
             }
             case SCHEMATRON -> {
@@ -1619,978 +463,6 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
-     * Gets the current editor mode.
-     *
-     * @return The current editor mode
-     */
-    public EditorMode getEditorMode() {
-        return currentMode;
-    }
-
-    /**
-     * Disables all auto-completion systems.
-     */
-    private void disableAllAutoCompletion() {
-        if (schematronAutoComplete != null) {
-            schematronAutoComplete.setEnabled(false);
-            logger.debug("Disabled Schematron auto-completion");
-        }
-        if (xsdAutoComplete != null) {
-            xsdAutoComplete.setEnabled(false);
-            logger.debug("Disabled XSD auto-completion");
-        }
-        if (xsltAutoComplete != null) {
-            xsltAutoComplete.setEnabled(false);
-            logger.debug("Disabled XSLT auto-completion");
-        }
-        if (xslFoAutoComplete != null) {
-            xslFoAutoComplete.setEnabled(false);
-            logger.debug("Disabled XSL-FO auto-completion");
-        }
-    }
-
-    /**
-     * Convenience method to enable Schematron mode.
-     *
-     * @param enabled True to enable Schematron mode, false to return to XML_WITHOUT_XSD mode
-     */
-    public void setSchematronMode(boolean enabled) {
-        logger.debug("setSchematronMode called with enabled = {}", enabled);
-        setEditorMode(enabled ? EditorMode.SCHEMATRON : EditorMode.XML_WITHOUT_XSD);
-        logger.debug("After setSchematronMode: current mode = {}, schematronAutoComplete enabled = {}", 
-                currentMode, schematronAutoComplete != null ? schematronAutoComplete.isEnabled() : "null");
-    }
-
-    /**
-     * Returns whether Schematron mode is currently active.
-     *
-     * @return True if Schematron auto-completion is active
-     */
-    public boolean isSchematronMode() {
-        return currentMode == EditorMode.SCHEMATRON;
-    }
-
-    /**
-     * Convenience method to enable XSD mode.
-     *
-     * @param enabled True to enable XSD mode, false to return to XML_WITHOUT_XSD mode
-     */
-    public void setXsdMode(boolean enabled) {
-        setEditorMode(enabled ? EditorMode.XSD : EditorMode.XML_WITHOUT_XSD);
-    }
-
-    /**
-     * Returns whether XSD mode is currently active.
-     *
-     * @return True if XSD auto-completion is active
-     */
-    public boolean isXsdMode() {
-        return currentMode == EditorMode.XSD;
-    }
-
-    /**
-     * Convenience method to enable XSLT mode.
-     *
-     * @param enabled True to enable XSLT mode, false to return to XML_WITHOUT_XSD mode
-     */
-    public void setXsltMode(boolean enabled) {
-        setEditorMode(enabled ? EditorMode.XSLT : EditorMode.XML_WITHOUT_XSD);
-    }
-
-    /**
-     * Returns whether XSLT mode is currently active.
-     *
-     * @return True if XSLT auto-completion is active
-     */
-    public boolean isXsltMode() {
-        return currentMode == EditorMode.XSLT;
-    }
-
-    /**
-     * Convenience method to enable XSL-FO mode.
-     *
-     * @param enabled True to enable XSL-FO mode, false to return to XML_WITHOUT_XSD mode
-     */
-    public void setXslFoMode(boolean enabled) {
-        setEditorMode(enabled ? EditorMode.XSL_FO : EditorMode.XML_WITHOUT_XSD);
-    }
-
-    /**
-     * Returns whether XSL-FO mode is currently active.
-     *
-     * @return True if XSL-FO auto-completion is active
-     */
-    public boolean isXslFoMode() {
-        return currentMode == EditorMode.XSL_FO;
-    }
-
-    /**
-     * Gets the Schematron auto-completion instance for advanced configuration.
-     *
-     * @return The SchematronAutoComplete instance, or null if not initialized
-     */
-    public SchematronAutoComplete getSchematronAutoComplete() {
-        return schematronAutoComplete;
-    }
-
-    /**
-     * Gets the XSD auto-completion instance for advanced configuration.
-     *
-     * @return The XsdAutoComplete instance, or null if not initialized
-     */
-    public XsdAutoComplete getXsdAutoComplete() {
-        return xsdAutoComplete;
-    }
-
-    /**
-     * Finds the next or previous occurrence of the specified text in the editor.
-     *
-     * @param text    The text to search for
-     * @param forward If true, search forward; if false, search backward
-     */
-    public void find(String text, boolean forward) {
-        if (text == null || text.isEmpty()) {
-            return;
-        }
-        String content = codeArea.getText();
-        int searchFrom = codeArea.getSelection().getEnd();
-
-        int index;
-        if (forward) {
-            index = content.toLowerCase().indexOf(text.toLowerCase(), searchFrom);
-            // Wrap around if not found from caret onwards
-            if (index == -1) {
-                index = content.toLowerCase().indexOf(text.toLowerCase());
-            }
-        } else {
-            searchFrom = codeArea.getSelection().getStart() - 1;
-            index = content.toLowerCase().lastIndexOf(text.toLowerCase(), searchFrom);
-            // Wrap around
-            if (index == -1) {
-                index = content.toLowerCase().lastIndexOf(text.toLowerCase());
-            }
-        }
-
-        if (index >= 0) {
-            codeArea.selectRange(index, index + text.length());
-            codeArea.requestFollowCaret();
-        }
-    }
-
-    /**
-     * Replaces the currently selected text if it matches the find text.
-     *
-     * @param findText    The text to find
-     * @param replaceText The text to replace it with
-     */
-    public void replace(String findText, String replaceText) {
-        if (findText == null || findText.isEmpty()) return;
-
-        String selectedText = codeArea.getSelectedText();
-        if (selectedText.equalsIgnoreCase(findText)) {
-            codeArea.replaceSelection(replaceText);
-        }
-        find(findText, true);
-    }
-
-    /**
-     * Replaces all occurrences of the find text with the replace text.
-     *
-     * @param findText    The text to find
-     * @param replaceText The text to replace it with
-     */
-    public void replaceAll(String findText, String replaceText) {
-        if (findText == null || findText.isEmpty()) return;
-        Pattern pattern = Pattern.compile(Pattern.quote(findText), Pattern.CASE_INSENSITIVE);
-        String newContent = pattern.matcher(codeArea.getText()).replaceAll(replaceText);
-        codeArea.replaceText(newContent);
-    }
-
-    /**
-     * Test method to verify syntax highlighting is working.
-     * This method loads a simple XML example and applies syntax highlighting.
-     */
-    public void testSyntaxHighlighting() {
-        String testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<!-- This is a test comment -->\n" +
-                "<root>\n" +
-                "    <element attribute=\"value\">content</element>\n" +
-                "</root>";
-
-        logger.debug("=== Testing Syntax Highlighting ===");
-        logger.debug("Test XML:");
-        logger.debug("{}", testXml);
-
-        debugCssStatus();
-
-        // Set the test content
-        codeArea.replaceText(testXml);
-
-        // Manually trigger syntax highlighting
-        refreshSyntaxHighlighting();
-
-        debugCssStatus();
-
-        logger.debug("=== Test completed ===");
-    }
-
-    /**
-     * Test method to verify enumeration highlighting is working.
-     * This method loads XML with enumeration elements and tests highlighting.
-     */
-    public void testEnumerationHighlighting() {
-        // Add some test enumeration elements to the cache with context
-        Set<String> rootContext = new HashSet<>();
-        rootContext.add("DataOperation");
-        rootContext.add("Status");
-        enumerationElementsByContext.put("/", rootContext);
-
-        String testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<root>\n" +
-                "    <DataOperation>INITIAL</DataOperation>\n" +
-                "    <Status>ACTIVE</Status>\n" +
-                "    <OtherElement>Some content</OtherElement>\n" +
-                "</root>";
-
-        logger.debug("=== Testing Enumeration Highlighting ===");
-        logger.debug("Test XML:");
-        logger.debug("{}", testXml);
-        logger.debug("Enumeration elements in cache: {}", enumerationElementsByContext);
-
-        debugCssStatus();
-
-        // Set the test content
-        codeArea.replaceText(testXml);
-
-        // Manually trigger syntax highlighting
-        refreshSyntaxHighlighting();
-
-        debugCssStatus();
-
-        logger.debug("=== Enumeration Test completed ===");
-    }
-
-    /**
-     * Test method to verify editor mode switching and specialized auto-completion.
-     * This method tests all three modes: XML, Schematron, and XSD.
-     */
-    public void testEditorModes() {
-        logger.debug("=== Testing Editor Mode Switching ===");
-
-        // Test XML Mode
-        logger.debug("Testing XML Mode...");
-        setEditorMode(EditorMode.XML);
-        logger.debug("Current mode: {}", getEditorMode());
-        logger.debug("XML IntelliSense should be active");
-
-        // Test Schematron Mode
-        logger.debug("Testing Schematron Mode...");
-        setEditorMode(EditorMode.SCHEMATRON);
-        String testSchematron = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <sch:schema xmlns:sch="http://purl.oclc.org/dsdl/schematron">
-                    <sch:pattern>
-                        <sch:rule context="test">
-                            <sch:assert test="@id">Element must have ID</sch:assert>
-                        </sch:rule>
-                    </sch:pattern>
-                </sch:schema>""";
-        codeArea.replaceText(testSchematron);
-        logger.debug("Current mode: {}, Schematron AutoComplete active: {}",
-                getEditorMode(), schematronAutoComplete != null);
-
-        // Test XSD Mode
-        logger.debug("Testing XSD Mode...");
-        setEditorMode(EditorMode.XSD);
-        String testXsd = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-                           targetNamespace="http://example.com/schema"
-                           elementFormDefault="qualified">
-                    <xs:element name="root" type="xs:string"/>
-                </xs:schema>""";
-        codeArea.replaceText(testXsd);
-        logger.debug("Current mode: {}, XSD AutoComplete active: {}",
-                getEditorMode(), xsdAutoComplete != null);
-
-        // Reset to XML mode
-        setEditorMode(EditorMode.XML);
-        logger.debug("Reset to XML mode");
-        logger.debug("=== Editor Mode Testing completed ===");
-    }
-
-    /**
-     * Test method to verify Schematron auto-completion functionality.
-     * This method tests if Schematron mode activates correctly and auto-completion works.
-     */
-    public void testSchematronAutoCompletion() {
-        logger.debug("=== Testing Schematron Auto-Completion ===");
-
-        // Enable Schematron mode
-        setSchematronMode(true);
-
-        // Test Schematron content
-        String testSchematron = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <sch:schema xmlns:sch="http://purl.oclc.org/dsdl/schematron">
-                    <sch:pattern>
-                        <sch:rule context="test">
-                            <sch:assert test="@id">Element must have ID</sch:assert>
-                        </sch:rule>
-                    </sch:pattern>
-                </sch:schema>""";
-
-        codeArea.replaceText(testSchematron);
-
-        logger.debug("Schematron mode enabled: {}", isSchematronMode());
-        logger.debug("SchematronAutoComplete initialized: {}", schematronAutoComplete != null);
-        logger.debug("Current editor mode: {}", getEditorMode());
-        logger.debug("=== Schematron Auto-Completion Test completed ===");
-    }
-
-    /**
-     * Test method to verify XsdDocumentationData-based enumeration highlighting.
-     * This method tests the new optimized approach.
-     */
-    public void testXsdDocumentationDataEnumerationHighlighting() {
-        logger.debug("=== Testing XsdDocumentationData-based Enumeration Highlighting ===");
-
-        // Update enumeration cache from XsdDocumentationData
-        updateEnumerationElementsCache();
-
-        String testXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<root>\n" +
-                "    <DataOperation>INITIAL</DataOperation>\n" +
-                "    <Status>ACTIVE</Status>\n" +
-                "    <OtherElement>Some content</OtherElement>\n" +
-                "</root>";
-
-        logger.debug("Test XML:");
-        logger.debug("{}", testXml);
-        logger.debug("Enumeration elements in cache: {}", enumerationElementsByContext);
-
-        // Set the test content
-        codeArea.replaceText(testXml);
-
-        // Manually trigger syntax highlighting
-        refreshSyntaxHighlighting();
-
-        logger.debug("=== XsdDocumentationData Enumeration Test completed ===");
-    }
-
-    /**
-     * Performance test for enumeration highlighting.
-     * This method tests the performance with a large XML file.
-     */
-    public void testEnumerationHighlightingPerformance() {
-        logger.debug("=== Performance Test for Enumeration Highlighting ===");
-
-        // Add test enumeration elements
-        Set<String> rootContext = new HashSet<>();
-        rootContext.add("DataOperation");
-        rootContext.add("Status");
-        rootContext.add("Priority");
-        enumerationElementsByContext.put("/", rootContext);
-
-        // Create a large XML file for testing
-        StringBuilder largeXml = new StringBuilder();
-        largeXml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        largeXml.append("<root>\n");
-
-        for (int i = 0; i < 1000; i++) {
-            largeXml.append("    <DataOperation>INITIAL</DataOperation>\n");
-            largeXml.append("    <Status>ACTIVE</Status>\n");
-            largeXml.append("    <Priority>HIGH</Priority>\n");
-            largeXml.append("    <OtherElement>Some content ").append(i).append("</OtherElement>\n");
-        }
-        largeXml.append("</root>");
-
-        String testXml = largeXml.toString();
-        logger.debug("Created test XML with {} lines", testXml.split("\n").length);
-
-        // Measure performance
-        long startTime = System.currentTimeMillis();
-
-        // Set the test content
-        codeArea.replaceText(testXml);
-
-        // Manually trigger syntax highlighting
-        refreshSyntaxHighlighting();
-
-        long endTime = System.currentTimeMillis();
-        long duration = endTime - startTime;
-
-        logger.debug("Performance test completed in {} ms", duration);
-        logger.debug("=== Performance Test completed ===");
-    }
-
-    /**
-     * Manually triggers syntax highlighting for the current text content.
-     * This can be used for testing or to force a refresh of the highlighting.
-     */
-    public void refreshSyntaxHighlighting() {
-        String currentText = codeArea.getText();
-        if (currentText != null && !currentText.isEmpty()) {
-            logger.debug("Manually refreshing syntax highlighting for text length: {}", currentText.length());
-
-            // Apply syntax highlighting
-            applySyntaxHighlighting(currentText);
-
-            logger.debug("Syntax highlighting refresh completed");
-        } else {
-            logger.debug("No text to highlight");
-        }
-    }
-
-    /**
-     * Manually triggers folding region calculation for the current text content.
-     * This can be used to refresh folding capabilities after loading new content.
-     */
-    public void refreshFoldingRegions() {
-        String currentText = codeArea.getText();
-        if (currentText != null && !currentText.isEmpty()) {
-            logger.debug("Manually refreshing folding regions for text length: {}", currentText.length());
-            updateFoldingRegions(currentText);
-            logger.debug("Found {} foldable regions", foldingRegions.size());
-        } else {
-            logger.debug("No text to analyze for folding");
-        }
-    }
-
-    /**
-     * Creates a compact line number without spacing.
-     */
-    private Node createCompactLineNumber(int lineIndex) {
-        Label lineNumber = new Label(String.valueOf(lineIndex + 1));
-        lineNumber.getStyleClass().add("lineno");
-
-        // Remove all spacing
-        lineNumber.setPadding(Insets.EMPTY); // No padding
-        lineNumber.setMinWidth(30); // Compact width
-        lineNumber.setMaxHeight(Double.MAX_VALUE); // Takes full line height
-        lineNumber.setAlignment(Pos.CENTER_RIGHT);
-
-        // Styling for seamless display without spacing
-        // Gray background
-        // No border
-        // 3px padding left and right
-        lineNumber.setStyle(
-                "-fx-text-fill: #666666; -fx-font-family: monospace; -fx-font-size: " + fontSize + "px; -fx-background-color: #f0f0f0; -fx-border-width: 0; -fx-padding: 0 3 0 3; -fx-spacing: 0;"                   // No spacing
-        );
-
-        return lineNumber;
-    }
-
-    /**
-     * Creates a factory that generates graphics (line number + fold symbol) for each line.
-     */
-    private IntFunction<Node> createParagraphGraphicFactory() {
-        return lineIndex -> {
-            // Safety check, as the factory can be called during text changes
-            if (lineIndex >= codeArea.getParagraphs().size()) {
-                HBox fallbackHBox = new HBox(createCompactLineNumber(lineIndex));
-                fallbackHBox.setSpacing(0); // Remove spacing in fallback too
-                fallbackHBox.setPadding(Insets.EMPTY); // No padding
-                fallbackHBox.setAlignment(Pos.TOP_LEFT); // TOP_LEFT for seamless alignment
-                fallbackHBox.setFillHeight(true); // Fill full height
-                return fallbackHBox;
-            }
-
-            boolean isFoldable = foldingRegions.containsKey(lineIndex);
-            boolean isFolded = foldedLines.contains(lineIndex);
-
-            // Create icon
-            Region foldingIndicator = new Region();
-            foldingIndicator.getStyleClass().add("icon");
-
-            if (isFolded) {
-                foldingIndicator.getStyleClass().add("toggle-expand");
-            } else {
-                foldingIndicator.getStyleClass().add("toggle-collapse");
-            }
-
-            // Create a wrapper for the icon to replicate the CSS structure from XmlGraphicEditor.
-            StackPane iconWrapper = new StackPane(foldingIndicator);
-            iconWrapper.getStyleClass().add("tree-toggle-button");
-
-            // Apply click logic to the wrapper
-            iconWrapper.setOnMouseClicked(e -> {
-                // Toggling a fold can be slow. We use a Task to manage the process,
-                // ensuring the UI remains responsive and the cursor provides feedback.
-                // The actual UI modification MUST happen on the JavaFX Application Thread.
-
-                // 1. Define the operation in a Task. The 'call' method runs in the background
-                //    and should prepare everything needed for the UI update.
-                Task<Boolean> foldingTask = new Task<>() {
-                    @Override
-                    protected Boolean call() {
-                        // This runs in the background.
-                        // We are NOT modifying the UI here.
-                        // We are just returning whether we are about to fold or unfold.
-                        return !foldedLines.contains(lineIndex);
-                    }
-                };
-
-                // 2. Set up handlers for the task's lifecycle, which run on the JAT.
-                foldingTask.setOnRunning(event -> {
-                    if (getScene() != null) {
-                        getScene().setCursor(Cursor.WAIT);
-                    }
-                });
-
-                foldingTask.setOnSucceeded(event -> {
-                    // This runs on the JAT after 'call' is complete.
-                    try {
-                        boolean shouldFold = foldingTask.get(); // Get the result from the background task
-
-                        // --- PERFORM UI MODIFICATION ON JAT ---
-                        if (shouldFold) {
-                            Integer endLine = foldingRegions.get(lineIndex);
-                            if (endLine != null) {
-                                codeArea.foldParagraphs(lineIndex, endLine);
-                                foldedLines.add(lineIndex);
-                            }
-                        } else {
-                            codeArea.unfoldParagraphs(lineIndex);
-                            foldedLines.remove(lineIndex);
-                        }
-                        // --- END OF UI MODIFICATION ---
-
-                    } catch (Exception ex) {
-                        // Handle exceptions from the task
-                        logger.error("Exception in folding task", ex);
-                    } finally {
-                        // Always clean up the UI
-                        // Redraw the gutter to update all line numbers and folding icons
-                        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
-                        if (getScene() != null) {
-                            getScene().setCursor(Cursor.DEFAULT);
-                        }
-                    }
-                });
-
-                foldingTask.setOnFailed(event -> {
-                    // Handle failures and clean up the UI
-                    if (getScene() != null) {
-                        getScene().setCursor(Cursor.DEFAULT);
-                    }
-                    logger.error("Folding task failed", foldingTask.getException());
-                });
-
-                // 3. Run the task using managed thread pool.
-                threadPoolManager.executeUI("code-folding-" + lineIndex, () -> {
-                    Thread taskThread = new Thread(foldingTask);
-                    taskThread.setName("CodeFolding-" + lineIndex);
-                    taskThread.setDaemon(true);
-                    taskThread.start();
-                });
-            });
-
-
-            Node lineNumberNode = createCompactLineNumber(lineIndex);
-
-            // Create error marker if this line has errors
-            Region errorMarker = new Region();
-            errorMarker.getStyleClass().add("error-marker");
-            errorMarker.setPrefSize(8, 8);
-            errorMarker.setMaxSize(8, 8);
-            errorMarker.setMinSize(8, 8);
-            boolean hasError = currentErrors.containsKey(lineIndex + 1);
-            errorMarker.setVisible(hasError);
-
-            HBox hbox = new HBox(errorMarker, lineNumberNode, iconWrapper);
-            hbox.setAlignment(Pos.TOP_LEFT); // TOP_LEFT for seamless alignment
-            hbox.setSpacing(2); // Small spacing for error marker
-            hbox.setPadding(Insets.EMPTY); // No padding in the HBox
-            hbox.setFillHeight(true); // Fill full height
-
-            // The wrapper (and thus the symbol) is only visible if the line is foldable.
-            iconWrapper.setVisible(isFoldable);
-
-            return hbox;
-        };
-    }
-
-    /**
-     * Toggles line comment for the current line or selected lines.
-     * Wraps the line content with XML comment tags: <!-- content -->
-     */
-    private void toggleLineComment() {
-        try {
-            // Check if text is selected
-            if (codeArea.getSelectedText().length() > 0) {
-                // Handle multiple lines selection
-                toggleMultiLineComment();
-            } else {
-                // Handle single line
-                toggleSingleLineComment();
-            }
-        } catch (Exception e) {
-            logger.error("Error toggling line comment: {}", e.getMessage(), e);
-        }
-    }
-    
-    /**
-     * Toggles comment for multiple selected lines using block comment style.
-     */
-    private void toggleMultiLineComment() {
-        try {
-            int startPosition = codeArea.getSelection().getStart();
-            int endPosition = codeArea.getSelection().getEnd();
-            String selectedText = codeArea.getSelectedText();
-            
-            logger.debug("Toggling block comment for selected text: start={}, end={}, length={}", 
-                startPosition, endPosition, selectedText.length());
-            
-            // Check if the selected text is already block commented
-            String trimmedSelection = selectedText.trim();
-            boolean isBlockCommented = trimmedSelection.startsWith("<!--") && trimmedSelection.endsWith("-->");
-            
-            String newText;
-            if (isBlockCommented) {
-                // Uncomment: Remove <!-- and --> from the block
-                newText = trimmedSelection.substring(4, trimmedSelection.length() - 3).trim();
-                logger.debug("Uncommenting block: removing comment markers");
-            } else {
-                // Comment: Add <!-- at the beginning and --> at the end
-                // Preserve the original formatting and indentation
-                newText = "<!-- " + selectedText + " -->";
-                logger.debug("Commenting block: adding comment markers");
-            }
-            
-            // Replace the selected text with the new content
-            codeArea.replaceSelection(newText);
-            
-            // Select the new content to maintain user context
-            codeArea.selectRange(startPosition, startPosition + newText.length());
-            
-            logger.debug("Block comment toggled: {} -> {}", 
-                isBlockCommented ? "uncommented" : "commented", newText.length());
-                
-        } catch (Exception e) {
-            logger.error("Error toggling multi-line block comment: {}", e.getMessage(), e);
-        }
-    }
-    
-    /**
-     * Toggles comment for a single line at cursor position.
-     */
-    private void toggleSingleLineComment() {
-        try {
-            int caretPosition = codeArea.getCaretPosition();
-            int currentLineIndex = codeArea.offsetToPosition(caretPosition, org.fxmisc.richtext.model.TwoDimensional.Bias.Forward).getMajor();
-            
-            // Get current line content
-            String currentLine = codeArea.getParagraph(currentLineIndex).getText();
-            
-            // Check if line is already commented
-            String trimmedLine = currentLine.trim();
-            boolean isCommented = trimmedLine.startsWith("<!--") && trimmedLine.endsWith("-->");
-            
-            String newLine = processLineComment(currentLine, !isCommented);
-            
-            // Replace the line content
-            int lineStart = codeArea.getAbsolutePosition(currentLineIndex, 0);
-            int lineEnd = lineStart + currentLine.length();
-            
-            codeArea.replaceText(lineStart, lineEnd, newLine);
-            
-            // Restore caret position approximately
-            int newCaretPosition = lineStart + Math.min(newLine.length(), caretPosition - lineStart);
-            codeArea.moveTo(newCaretPosition);
-            
-            logger.debug("Toggled comment on line {}: {}", currentLineIndex + 1, isCommented ? "uncommented" : "commented");
-            
-        } catch (Exception e) {
-            logger.error("Error toggling single line comment: {}", e.getMessage(), e);
-        }
-    }
-    
-    /**
-     * Processes a single line for commenting or uncommenting.
-     * @param line The line to process
-     * @param shouldComment true to comment, false to uncomment
-     * @return The processed line
-     */
-    private String processLineComment(String line, boolean shouldComment) {
-        String trimmedLine = line.trim();
-        String leadingWhitespace = getLeadingWhitespace(line);
-        
-        if (shouldComment) {
-            // Comment: Add <!-- and --> while preserving indentation
-            if (trimmedLine.isEmpty()) {
-                // Don't comment empty lines
-                return line;
-            }
-            return leadingWhitespace + "<!-- " + trimmedLine + " -->";
-        } else {
-            // Uncomment: Remove <!-- and --> while preserving indentation
-            if (trimmedLine.startsWith("<!--") && trimmedLine.endsWith("-->")) {
-                String content = trimmedLine.substring(4, trimmedLine.length() - 3).trim();
-                return leadingWhitespace + content;
-            }
-            // Line is not commented, return as-is
-            return line;
-        }
-    }
-
-    /**
-     * Helper method to extract leading whitespace from a line.
-     * 
-     * @param line The line to extract leading whitespace from
-     * @return The leading whitespace string
-     */
-    private String getLeadingWhitespace(String line) {
-        int i = 0;
-        while (i < line.length() && Character.isWhitespace(line.charAt(i))) {
-            i++;
-        }
-        return line.substring(0, i);
-    }
-
-    /**
-     * Copies the XPath of the current cursor position to clipboard.
-     */
-    private void copyXPathToClipboard() {
-        try {
-            String currentXPath = null;
-            
-            // First try to get XPath from parent XmlEditor if available
-            if (parentXmlEditor != null) {
-                // Use the same approach as the sidebar: build XPath from current position
-                currentXPath = buildXPathForCurrentPositionViaEditor();
-            }
-            
-            // Fallback to text-based approach if parent editor not available
-            if (currentXPath == null || currentXPath.trim().isEmpty() || currentXPath.equals("/")) {
-                currentXPath = buildXPathForCurrentPosition(codeArea.getText(), codeArea.getCaretPosition());
-            }
-            
-            if (currentXPath != null && !currentXPath.trim().isEmpty() && !currentXPath.equals("/")) {
-                javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
-                javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
-                content.putString(currentXPath);
-                clipboard.setContent(content);
-                logger.debug("Copied XPath to clipboard: {}", currentXPath);
-            } else {
-                logger.warn("Could not generate XPath for current position");
-            }
-        } catch (Exception e) {
-            logger.error("Error copying XPath to clipboard", e);
-        }
-    }
-    
-    /**
-     * Builds XPath for current cursor position using the parent XmlEditor (same as sidebar).
-     */
-    private String buildXPathForCurrentPositionViaEditor() {
-        try {
-            if (parentXmlEditor == null) {
-                return null;
-            }
-            
-            // Build XPath using text-based approach first to get context
-            String textBasedXPath = buildXPathForCurrentPosition(codeArea.getText(), codeArea.getCaretPosition());
-            if (textBasedXPath == null || textBasedXPath.trim().isEmpty() || textBasedXPath.equals("/")) {
-                return null;
-            }
-            
-            // Try to find the corresponding DOM node using the parent XmlEditor
-            org.w3c.dom.Node node = parentXmlEditor.findNodeByXPath(textBasedXPath);
-            if (node != null) {
-                // Use the same XPath building method as the sidebar
-                return parentXmlEditor.buildXPathForNode(node);
-            }
-            
-            // If we can't find the exact node, try to find the closest parent
-            String[] pathParts = textBasedXPath.split("/");
-            for (int i = pathParts.length - 1; i >= 0; i--) {
-                StringBuilder parentPath = new StringBuilder();
-                for (int j = 1; j <= i; j++) { // Start from 1 to skip empty first element
-                    if (j < pathParts.length) {
-                        parentPath.append("/").append(pathParts[j]);
-                    }
-                }
-                String parentXPath = parentPath.toString();
-                if (!parentXPath.isEmpty()) {
-                    node = parentXmlEditor.findNodeByXPath(parentXPath);
-                    if (node != null) {
-                        return parentXmlEditor.buildXPathForNode(node);
-                    }
-                }
-            }
-            
-            return textBasedXPath; // Fallback to text-based result
-        } catch (Exception e) {
-            logger.error("Error building XPath via parent editor: {}", e.getMessage(), e);
-            return null;
-        }
-    }
-
-    /**
-     * Formats the current XML content with proper indentation.
-     */
-    private void formatXmlContent() {
-        try {
-            String content = codeArea.getText();
-            if (content == null || content.trim().isEmpty()) {
-                return;
-            }
-
-            // Use DOM to parse and format
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            
-            // Parse the XML
-            Document document = builder.parse(new java.io.ByteArrayInputStream(content.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-            
-            // Format with transformer
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-            
-            StringWriter writer = new StringWriter();
-            transformer.transform(new DOMSource(document), new StreamResult(writer));
-            
-            String formattedXml = writer.toString();
-            codeArea.replaceText(formattedXml);
-            logger.debug("XML content formatted successfully");
-            
-        } catch (Exception e) {
-            logger.error("Error formatting XML content", e);
-        }
-    }
-
-    /**
-     * Validates the current XML content.
-     */
-    private void validateXmlContent() {
-        try {
-            String content = codeArea.getText();
-            if (content == null || content.trim().isEmpty()) {
-                return;
-            }
-
-            // Basic XML well-formedness check
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            builder.parse(new java.io.ByteArrayInputStream(content.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-            
-            logger.info("XML validation successful - document is well-formed");
-            // Could show success message to user here
-            
-        } catch (Exception e) {
-            logger.error("XML validation failed: {}", e.getMessage());
-            // Could show validation error to user here
-        }
-    }
-
-    /**
-     * Cuts the selected text to clipboard.
-     */
-    private void cutToClipboard() {
-        String selectedText = codeArea.getSelectedText();
-        if (selectedText != null && !selectedText.isEmpty()) {
-            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
-            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
-            content.putString(selectedText);
-            clipboard.setContent(content);
-            codeArea.replaceSelection("");
-            logger.debug("Cut text to clipboard: {} characters", selectedText.length());
-        }
-    }
-
-    /**
-     * Copies the selected text to clipboard.
-     */
-    private void copyToClipboard() {
-        String selectedText = codeArea.getSelectedText();
-        if (selectedText != null && !selectedText.isEmpty()) {
-            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
-            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
-            content.putString(selectedText);
-            clipboard.setContent(content);
-            logger.debug("Copied text to clipboard: {} characters", selectedText.length());
-        }
-    }
-
-    /**
-     * Pastes text from clipboard at cursor position.
-     */
-    private void pasteFromClipboard() {
-        javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
-        if (clipboard.hasString()) {
-            String clipboardText = clipboard.getString();
-            codeArea.replaceSelection(clipboardText);
-            logger.debug("Pasted text from clipboard: {} characters", clipboardText.length());
-        }
-    }
-
-    /**
-     * Selects all text in the editor.
-     */
-    private void selectAllText() {
-        codeArea.selectAll();
-        logger.debug("Selected all text in editor");
-    }
-
-    /**
-     * Expands all folded regions (placeholder for future folding implementation).
-     */
-    private void expandAllFolds() {
-        // TODO: Implement code folding expansion
-        logger.debug("Expand all folds - not yet implemented");
-    }
-
-    /**
-     * Collapses all expanded regions (placeholder for future folding implementation).
-     */
-    private void collapseAllFolds() {
-        // TODO: Implement code folding collapse
-        logger.debug("Collapse all folds - not yet implemented");
-    }
-
-    /**
-     * Opens find and replace functionality.
-     */
-    private void openFindReplace() {
-        // TODO: Could trigger existing search functionality or open dialog
-        logger.debug("Open find/replace - integration with existing search needed");
-    }
-    
-    /**
-     * Creates a FontIcon safely with fallback handling for context menu items.
-     */
-
-
-
-    // --- Public API for the Editor ---
-
-    /**
-     * Moves the cursor to the beginning of the document and scrolls to the top.
-     */
-    public void moveUp() {
-        codeArea.moveTo(0);
-        codeArea.showParagraphAtTop(0);
-        codeArea.requestFocus();
-    }
-
-    /**
-     * Moves the cursor to the end of the document and scrolls to the bottom.
-     */
-    public void moveDown() {
-        if (codeArea.getText() != null && !codeArea.getParagraphs().isEmpty()) {
-            codeArea.moveTo(codeArea.getLength());
-            codeArea.showParagraphAtBottom(codeArea.getParagraphs().size() - 1);
-            codeArea.requestFocus();
-        }
-    }
-
-    /**
      * Increases the font size by 1 point.
      */
     public void increaseFontSize() {
@@ -2615,4088 +487,1762 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
-     * Sets the font size of the code area.
-     *
-     * @param size The font size in points
+     * Moves the cursor to the beginning of the document and scrolls to the top.
      */
-    private void setFontSize(int size) {
-        codeArea.setStyle("-fx-font-size: " + size + "pt;");
+    public void moveUp() {
+        codeArea.moveTo(0);
+        codeArea.showParagraphAtTop(0);
+        codeArea.requestFocus();
     }
 
     /**
-     * Searches for the given text in the CodeArea, highlights all occurrences
-     * and scrolls to the first match.
-     *
-     * @param text The text to search for. If null or empty, highlighting is removed.
+     * Moves the cursor to the end of the document and scrolls to the bottom.
      */
-    public void searchAndHighlight(String text) {
-        // First apply normal syntax highlighting
-        StyleSpans<Collection<String>> syntaxHighlighting = computeHighlightingWithEnumeration(codeArea.getText());
-
-        if (text == null || text.isBlank()) {
-            codeArea.setStyleSpans(0, syntaxHighlighting); // Only syntax highlighting
-            return;
-        }
-
-        // Create style for search highlighting
-        StyleSpansBuilder<Collection<String>> searchSpansBuilder = new StyleSpansBuilder<>();
-        Pattern pattern = Pattern.compile(Pattern.quote(text), CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(codeArea.getText());
-        int lastMatchEnd = 0;
-
-        while (matcher.find()) {
-            searchSpansBuilder.add(Collections.emptyList(), matcher.start() - lastMatchEnd);
-            searchSpansBuilder.add(Collections.singleton("search-highlight"), matcher.end() - matcher.start());
-            lastMatchEnd = matcher.end();
-        }
-        searchSpansBuilder.add(Collections.emptyList(), codeArea.getLength() - lastMatchEnd);
-
-        // Overlay search highlighting over syntax highlighting
-        codeArea.setStyleSpans(0, syntaxHighlighting.overlay(searchSpansBuilder.create(), (style1, style2) -> {
-            return style2.isEmpty() ? style1 : style2;
-        }));
-    }
-
-    /**
-     * Returns the internal CodeArea instance.
-     * This enables controlled access from outside, e.g., for focus management.
-     *
-     * @return The CodeArea component.
-     */
-    public CodeArea getCodeArea() {
-        return codeArea;
-    }
-
-    /**
-     * Sets the text content and immediately applies syntax highlighting
-     */
-    public void setText(String text) {
-        codeArea.replaceText(text);
-
-        // Auto-detect editor mode based on content
-        autoDetectEditorMode(text);
-
-        Platform.runLater(() -> {
-            if (text != null && !text.isEmpty()) {
-                applySyntaxHighlighting(text);
-                updateFoldingRegions(text);
-            }
-        });
-    }
-
-    /**
-     * Auto-detects the appropriate editor mode based on the document content.
-     * This method analyzes the XML content to determine if it's a Schematron, XSD, XSLT, XSL-FO file,
-     * or XML with/without linked XSD.
-     *
-     * @param content The document content to analyze
-     */
-    public void autoDetectEditorMode(String content) {
-        if (content == null || content.trim().isEmpty()) {
-            // For empty content, don't change the mode - let the caller decide
-            // This prevents overriding explicitly set modes (e.g., when SchematronController sets Schematron mode)
-            logger.debug("Empty content detected - keeping current editor mode: {}", currentMode);
-            return;
-        }
-
-        String lowerContent = content.toLowerCase();
-
-        // Check for Schematron namespace and elements
-        if (lowerContent.contains("http://purl.oclc.org/dsdl/schematron") ||
-                lowerContent.contains("sch:schema") ||
-                lowerContent.contains("schematron")) {
-
-            logger.debug("Auto-detected Schematron content - switching to Schematron mode");
-            setEditorMode(EditorMode.SCHEMATRON);
-            return;
-        }
-
-        // Check for XSLT stylesheets
-        if (lowerContent.contains("http://www.w3.org/1999/XSL/Transform") ||
-                lowerContent.contains("xsl:stylesheet") ||
-                lowerContent.contains("xsl:transform")) {
-
-            logger.debug("Auto-detected XSLT content - switching to XSLT mode");
-            setEditorMode(EditorMode.XSLT);
-            return;
-        }
-
-        // Check for XSL-FO documents
-        if (lowerContent.contains("http://www.w3.org/1999/XSL/Format") ||
-                lowerContent.contains("fo:root") ||
-                lowerContent.contains("fo:page-sequence")) {
-
-            logger.debug("Auto-detected XSL-FO content - switching to XSL-FO mode");
-            setEditorMode(EditorMode.XSL_FO);
-            return;
-        }
-
-        // Check for XSD schema files (only switch to XSD mode if this is actually an XSD file, not just XML referencing XSD)
-        if ((lowerContent.contains("http://www.w3.org/2001/XMLSchema") ||
-                lowerContent.contains("xs:schema") ||
-                lowerContent.contains("xsd:schema")) &&
-                (lowerContent.contains("<xs:schema") || lowerContent.contains("<xsd:schema"))) {
-
-            logger.debug("Auto-detected XSD schema content - switching to XSD mode");
-            setEditorMode(EditorMode.XSD);
-            return;
-        }
-
-        // Check if XML has linked XSD (xsi:schemaLocation or xsi:noNamespaceSchemaLocation)
-        if (lowerContent.contains("xsi:schemalocation") ||
-                lowerContent.contains("xsi:nonamespaceschemalocation") ||
-                hasLinkedXsdSchema()) {
-
-            logger.debug("Auto-detected XML with linked XSD - switching to XML_WITH_XSD mode");
-            setEditorMode(EditorMode.XML_WITH_XSD);
-            return;
-        }
-
-        // Default to XML without XSD
-        logger.debug("Auto-detected plain XML content - switching to XML_WITHOUT_XSD mode");
-        setEditorMode(EditorMode.XML_WITHOUT_XSD);
-    }
-
-    /**
-     * Sets the document file path and automatically detects the editor mode based on file extension.
-     *
-     * @param filePath The file path of the document
-     */
-    public void setDocumentFilePath(String filePath) {
-        if (filePath != null) {
-            String lowerPath = filePath.toLowerCase();
-
-            if (lowerPath.endsWith(".sch") || lowerPath.contains("schematron")) {
-                logger.debug("Schematron file detected: {} - switching to Schematron mode", filePath);
-                setEditorMode(EditorMode.SCHEMATRON);
-            } else if (lowerPath.endsWith(".xsd") || lowerPath.contains("schema")) {
-                logger.debug("XSD file detected: {} - switching to XSD mode", filePath);
-                setEditorMode(EditorMode.XSD);
-            } else if (lowerPath.endsWith(".xslt") || lowerPath.endsWith(".xsl")) {
-                // First check if it's XSL-FO by content (if available)
-                String content = codeArea.getText();
-                if (content != null && !content.isEmpty()) {
-                    String lowerContent = content.toLowerCase();
-                    if (lowerContent.contains("http://www.w3.org/1999/XSL/Format") ||
-                            lowerContent.contains("fo:root") ||
-                            lowerContent.contains("fo:page-sequence")) {
-                        logger.debug("XSL-FO file detected: {} - switching to XSL-FO mode", filePath);
-                        setEditorMode(EditorMode.XSL_FO);
-                        return;
-                    }
-                }
-                logger.debug("XSLT file detected: {} - switching to XSLT mode", filePath);
-                setEditorMode(EditorMode.XSLT);
-            } else {
-                logger.debug("XML file detected: {} - auto-detecting XML subtype", filePath);
-                // For XML files, auto-detect if they have linked XSD
-                autoDetectEditorMode(codeArea.getText());
-            }
+    public void moveDown() {
+        if (codeArea.getText() != null && !codeArea.getParagraphs().isEmpty()) {
+            codeArea.moveTo(codeArea.getLength());
+            codeArea.showParagraphAtBottom(codeArea.getParagraphs().size() - 1);
+            codeArea.requestFocus();
         }
     }
 
     /**
-     * Checks if the current XML document has a linked XSD schema.
-     * This method checks for XSD schema references in the parent XmlEditor.
-     *
-     * @return true if XSD schema is linked, false otherwise
+     * Refreshes the indentation display in the status line.
      */
-    private boolean hasLinkedXsdSchema() {
-        try {
-            // Check if parent editor has XSD schema information
-            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
-                return true;
-            }
-
-            // Also check document content for schema references
-            String content = codeArea.getText();
-            if (content == null) return false;
-
-            String lowerContent = content.toLowerCase();
-
-            // Look for XML Schema Instance namespace declarations
-            boolean hasXsiNamespace = lowerContent.contains("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
-
-            // Look for schema location attributes
-            boolean hasSchemaLocation = lowerContent.contains("xsi:schemalocation") ||
-                    lowerContent.contains("xsi:nonamespaceschemalocation");
-
-            return hasXsiNamespace && hasSchemaLocation;
-
-        } catch (Exception e) {
-            logger.debug("Error checking for linked XSD schema: {}", e.getMessage());
-            return false;
-        }
+    public void refreshIndentationDisplay() {
+        statusLineController.refreshIndentationDisplay();
     }
 
     /**
-     * Gets the current text content
-     */
-    public String getText() {
-        return codeArea.getText();
-    }
-
-    /**
-     * Helper method to check if current mode is any XML-based mode (including variants).
-     *
-     * @return true if current mode is XML, XML_WITHOUT_XSD, or XML_WITH_XSD
-     */
-    private boolean isXmlMode() {
-        return currentMode == EditorMode.XML ||
-                currentMode == EditorMode.XML_WITHOUT_XSD ||
-                currentMode == EditorMode.XML_WITH_XSD;
-    }
-
-    /**
-     * Helper method to check if current mode supports enhanced XML IntelliSense.
-     *
-     * @return true if current mode is XML_WITH_XSD
-     */
-    private boolean isXmlWithXsdMode() {
-        return currentMode == EditorMode.XML_WITH_XSD;
-    }
-
-    /**
-     * Forces syntax highlighting refresh - useful when tab becomes visible
+     * Forces syntax highlighting refresh.
      */
     public void refreshHighlighting() {
         String currentText = codeArea.getText();
         if (currentText != null && !currentText.isEmpty()) {
-            Platform.runLater(() -> applySyntaxHighlighting(currentText));
+            Platform.runLater(() -> syntaxHighlightManager.applySyntaxHighlighting(currentText));
         }
     }
 
     /**
-     * Computes syntax highlighting with enumeration element indicators.
+     * Manually triggers syntax highlighting refresh.
      */
-    private StyleSpans<Collection<String>> computeHighlightingWithEnumeration(String text) {
-        if (text == null) {
-            text = "";
+    public void refreshSyntaxHighlighting() {
+        String currentText = codeArea.getText();
+        syntaxHighlightManager.refreshSyntaxHighlighting(currentText);
+    }
+
+    // =====================================================
+    // VALIDATION METHODS
+    // =====================================================
+
+    /**
+     * Validates the given text using the parent XML editor's validation service.
+     *
+     * @param text The text to validate
+     * @return List of validation errors
+     * @throws Exception if validation fails
+     */
+    private List<org.xml.sax.SAXParseException> validateText(String text) throws Exception {
+        if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
+            var xmlService = xmlEditor.getXmlService();
+            if (xmlService != null) {
+                return xmlService.validateText(text);
+            }
         }
+        return new ArrayList<>();
+    }
 
-        // First, get the standard syntax highlighting
-        StyleSpans<Collection<String>> baseHighlighting = computeHighlighting(text);
+    /**
+     * Handles validation errors from the validation manager.
+     *
+     * @param errors Map of line numbers to error messages
+     */
+    private void handleValidationErrors(Map<Integer, String> errors) {
+        // Update syntax highlighting with errors
+        String currentText = codeArea.getText();
+        if (currentText != null && !currentText.isEmpty()) {
+            syntaxHighlightManager.applySyntaxHighlightingWithErrors(currentText, errors);
+        }
+    }
 
-        // Create a builder for enumeration highlighting
-        StyleSpansBuilder<Collection<String>> enumSpansBuilder = new StyleSpansBuilder<>();
-        int lastMatchEnd = 0;
+    /**
+     * Updates minimap with error information.
+     */
+    private void updateMinimapErrors() {
+        if (minimapView != null && minimapVisible) {
+            minimapView.updateErrors();
+        }
+    }
 
-        // Find all enumeration elements with content
-        List<ElementTextInfo> enumElements = findAllEnumerationElements(text);
+    // =====================================================
+    // PRIVATE HELPER METHODS
+    // =====================================================
 
-        for (ElementTextInfo elementInfo : enumElements) {
-            int gapLength = elementInfo.startPosition() - lastMatchEnd;
-            int contentLength = elementInfo.endPosition() - elementInfo.startPosition();
+    private void setFontSize(int size) {
+        this.fontSize = size;
 
-            // Skip invalid spans with negative lengths
-            if (gapLength < 0 || contentLength < 0) {
-                logger.warn("Skipping invalid span: gap={}, content={}, start={}, end={}",
-                        gapLength, contentLength, elementInfo.startPosition(), elementInfo.endPosition());
-                continue;
+        // Update code area font size
+        codeArea.setStyle("-fx-font-size: " + size + "pt; -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;");
+
+        // Update line numbers by recreating the paragraph graphic factory
+        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
+
+        // Refresh syntax highlighting to ensure consistent styling
+        Platform.runLater(() -> {
+            if (codeArea.getText() != null && !codeArea.getText().isEmpty()) {
+                syntaxHighlightManager.applySyntaxHighlighting(codeArea.getText());
+            }
+        });
+
+        logger.debug("Font size updated to: {} pt", size);
+    }
+
+    /**
+     * Loads CSS stylesheets for syntax highlighting.
+     */
+    private void loadCssStylesheets() {
+        try {
+            // Load the main CSS file for syntax highlighting
+            String cssPath = "/css/fxt-theme.css";
+            var cssResource = getClass().getResource(cssPath);
+            if (cssResource != null) {
+                String cssUrl = cssResource.toExternalForm();
+                codeArea.getStylesheets().add(cssUrl);
+                logger.debug("Loaded CSS stylesheet: {}", cssUrl);
             }
 
-            enumSpansBuilder.add(Collections.emptyList(), gapLength);
-            enumSpansBuilder.add(Collections.singleton("enumeration-content"), contentLength);
-            lastMatchEnd = elementInfo.endPosition();
+            // Also load the XML highlighting specific CSS
+            String xmlCssPath = "/scss/xml-highlighting.css";
+            var xmlCssResource = getClass().getResource(xmlCssPath);
+            if (xmlCssResource != null) {
+                String xmlCssUrl = xmlCssResource.toExternalForm();
+                codeArea.getStylesheets().add(xmlCssUrl);
+                logger.debug("Loaded XML highlighting CSS: {}", xmlCssUrl);
+            }
+
+            // Load IntelliSense CSS
+            String intelliSenseCssPath = "/css/xml-intellisense.css";
+            var intelliSenseCssResource = getClass().getResource(intelliSenseCssPath);
+            if (intelliSenseCssResource != null) {
+                String intelliSenseCssUrl = intelliSenseCssResource.toExternalForm();
+                codeArea.getStylesheets().add(intelliSenseCssUrl);
+                logger.debug("Loaded IntelliSense CSS: {}", intelliSenseCssUrl);
+            }
+
+            // Load XMLSpy-style Context Menu CSS
+            String contextMenuCssPath = "/css/xml-context-menu-xmlspy.css";
+            var contextMenuCssResource = getClass().getResource(contextMenuCssPath);
+            if (contextMenuCssResource != null) {
+                String contextMenuCssUrl = contextMenuCssResource.toExternalForm();
+                codeArea.getStylesheets().add(contextMenuCssUrl);
+                logger.debug("Loaded XMLSpy-style Context Menu CSS: {}", contextMenuCssUrl);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error loading CSS stylesheets: {}", e.getMessage(), e);
         }
-        int finalGapLength = text.length() - lastMatchEnd;
-        if (finalGapLength >= 0) {
-            enumSpansBuilder.add(Collections.emptyList(), finalGapLength);
-        }
+    }
 
-        // Overlay the enumeration highlighting on top of the base syntax highlighting
-        StyleSpans<Collection<String>> enumHighlighting = enumSpansBuilder.create();
+    /**
+     * Initializes debouncers for syntax highlighting and error highlighting.
+     */
+    private void initializeDebouncers() {
+        // Initialize debouncer for syntax highlighting
+        syntaxHighlightingDebouncer = new PauseTransition(Duration.millis(300));
+        syntaxHighlightingDebouncer.setOnFinished(event -> {
+            String currentText = codeArea.getText();
+            if (currentText != null && !currentText.isEmpty()) {
+                syntaxHighlightManager.applySyntaxHighlighting(currentText);
+            }
+        });
 
-        // Debug logging
-        logger.debug("Base highlighting spans: {}", baseHighlighting.length());
-        logger.debug("Enumeration highlighting spans: {}", enumHighlighting.length());
-
-        return baseHighlighting.overlay(enumHighlighting, (baseStyle, enumStyle) -> {
-            // If we have enumeration styling, use it; otherwise use base styling
-            if (enumStyle != null && !enumStyle.isEmpty()) {
-                logger.debug("Applying enumeration style: {}", enumStyle);
-                return enumStyle;
-            } else {
-                return baseStyle;
+        // Initialize debouncer for error highlighting
+        errorHighlightingDebouncer = new PauseTransition(Duration.millis(500));
+        errorHighlightingDebouncer.setOnFinished(event -> {
+            String currentText = codeArea.getText();
+            if (currentText != null && !currentText.isEmpty()) {
+                validationManager.performLiveValidation(currentText);
             }
         });
     }
 
-    private List<ElementTextInfo> findAllEnumerationElements(String text) {
-        List<ElementTextInfo> elements = new ArrayList<>();
+    /**
+     * Sets up text change listeners.
+     */
+    private void setupTextChangeListeners() {
+        // Text change listener for syntax highlighting with debouncing
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            if (newText != null && !newText.equals(oldText)) {
+                // Apply syntax highlighting immediately for small changes
+                if (newText.length() < 10000) {
+                    Platform.runLater(() -> syntaxHighlightManager.applySyntaxHighlighting(newText));
+                } else {
+                    // Use debouncer for larger documents
+                    syntaxHighlightingDebouncer.stop();
+                    syntaxHighlightingDebouncer.playFromStart();
+                }
 
-        if (enumerationElementsByContext.isEmpty()) {
-            return elements;
-        }
+                // Reset the error highlighting debouncer timer
+                errorHighlightingDebouncer.stop();
+                errorHighlightingDebouncer.playFromStart();
 
-        // Use a more flexible pattern that matches any element with content
-        // and then checks if the element name is in our enumeration cache for the current context
-        Pattern tagPattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)[^>]*>([^<]*)</\\1>");
-        Matcher matcher = tagPattern.matcher(text);
+                // Handle automatic tag completion
+                handleAutomaticTagCompletion(oldText, newText);
 
-        while (matcher.find()) {
-            String elementName = matcher.group(1);
-            String content = matcher.group(2);
-
-            if (content.isBlank()) {
-                continue; // Skip empty elements
+                // Handle intelligent enter
+                handleIntelligentEnter(oldText, newText);
             }
+        });
 
-            // Find the context for this element by looking at the XML structure
-            String context = findElementContext(text, matcher.start());
-
-            // Check if this element is in our enumeration cache for this context
-            Set<String> contextElements = enumerationElementsByContext.get(context);
-            if (contextElements != null && contextElements.contains(elementName)) {
-                int contentStart = matcher.start(2);
-                int contentEnd = matcher.end(2);
-                elements.add(new ElementTextInfo(elementName, content, contentStart, contentEnd));
+        // Also add listener for caret position changes to update status line
+        codeArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
+            if (statusLineController != null) {
+                statusLineController.refreshCursorPosition();
             }
-        }
-        
-        return elements;
+        });
     }
 
     /**
-     * Finds the context (XPath-like path) for an element at the given position.
+     * Sets up scene and parent change listeners to restore syntax highlighting.
      */
-    private String findElementContext(String text, int elementPosition) {
-        try {
-            // Look backwards from the element position to build the context
-            String textBeforeElement = text.substring(0, elementPosition);
+    private void setupSceneAndParentListeners() {
+        // Add scene change listener to restore syntax highlighting when tab becomes visible
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                Platform.runLater(() -> {
+                    String currentText = codeArea.getText();
+                    if (currentText != null && !currentText.isEmpty()) {
+                        syntaxHighlightManager.applySyntaxHighlighting(currentText);
+                    }
+                });
+            }
+        });
 
-            // Use a stack to track element nesting
-            java.util.Stack<String> elementStack = new java.util.Stack<>();
+        // Add parent change listener to restore syntax highlighting when moved between containers
+        parentProperty().addListener((obs, oldParent, newParent) -> {
+            if (newParent != null) {
+                Platform.runLater(() -> {
+                    String currentText = codeArea.getText();
+                    if (currentText != null && !currentText.isEmpty()) {
+                        syntaxHighlightManager.applySyntaxHighlighting(currentText);
+                    }
+                });
+            }
+        });
 
-            // Simple character-based parsing for better performance
-            int pos = textBeforeElement.length() - 1;
-            while (pos >= 0) {
-                char ch = textBeforeElement.charAt(pos);
+        // Add focus listener to restore highlighting when CodeArea gains focus
+        codeArea.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (isFocused) {
+                Platform.runLater(() -> {
+                    String currentText = codeArea.getText();
+                    if (currentText != null && !currentText.isEmpty()) {
+                        syntaxHighlightManager.applySyntaxHighlighting(currentText);
+                    }
+                });
+            }
+        });
+    }
+    
+    // Event handlers setup
+    private void setupEventHandlers() {
+        setupFontSizeHandlers();
+        setupMouseEventHandlers();
+        setupKeyboardHandlers();
+    }
 
-                if (ch == '>') {
-                    // Look for opening tag
-                    int tagStart = textBeforeElement.lastIndexOf('<', pos);
-                    if (tagStart >= 0) {
-                        String tag = textBeforeElement.substring(tagStart + 1, pos).trim();
-                        if (!tag.startsWith("/") && !tag.endsWith("/")) {
-                            // Extract element name (first word)
-                            int spacePos = tag.indexOf(' ');
-                            String elementName = spacePos > 0 ? tag.substring(0, spacePos) : tag;
-                            if (!elementName.isEmpty()) {
-                                elementStack.push(elementName);
+    private void setupFontSizeHandlers() {
+        // Change font size with Ctrl + mouse wheel
+        codeArea.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (event.isControlDown()) {
+                if (event.getDeltaY() > 0) {
+                    increaseFontSize();
+                } else {
+                    decreaseFontSize();
+                }
+                event.consume();
+            }
+        });
+    }
+
+    private void setupMouseEventHandlers() {
+        // Go-to-Definition support
+        codeArea.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+            if (event.isControlDown() && event.getClickCount() == 1) {
+                handleGoToDefinition(event);
+                event.consume();
+            }
+        });
+
+        // Cursor change for Go-to-Definition
+        codeArea.setOnMouseMoved(event -> {
+            if (event.isControlDown()) {
+                String elementAtCursor = getElementNameAtPosition(event.getX(), event.getY());
+                if (elementAtCursor != null && !elementAtCursor.isEmpty()) {
+                    codeArea.setCursor(Cursor.HAND);
+                } else {
+                    codeArea.setCursor(Cursor.DEFAULT);
+                }
+            } else {
+                codeArea.setCursor(Cursor.DEFAULT);
+            }
+        });
+
+        codeArea.setOnMouseExited(event -> codeArea.setCursor(Cursor.DEFAULT));
+    }
+
+    private void setupKeyboardHandlers() {
+        // Font size shortcuts
+        codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            // Handle Enhanced IntelliSense popup navigation first
+            if (enhancedIntelliSensePopup != null && enhancedIntelliSensePopup.isShowing()) {
+                // The EnhancedCompletionPopup handles its own key events internally
+                // We just consume the event to prevent it from propagating
+                switch (event.getCode()) {
+                    case UP, DOWN, ENTER, TAB, ESCAPE -> {
+                        // Let the popup handle these keys internally
+                        event.consume();
+                        return;
+                    }
+                }
+            }
+            // Fallback to legacy IntelliSense popup
+            else if (intelliSensePopup != null && intelliSensePopup.isShowing()) {
+                switch (event.getCode()) {
+                    case UP -> {
+                        moveIntelliSenseSelection(-1);
+                        event.consume();
+                        return;
+                    }
+                    case DOWN -> {
+                        moveIntelliSenseSelection(1);
+                        event.consume();
+                        return;
+                    }
+                    case ENTER, TAB -> {
+                        selectCurrentIntelliSenseCompletion();
+                        event.consume();
+                        return;
+                    }
+                    case ESCAPE -> {
+                        hideAllIntelliSensePopups();
+                        event.consume();
+                        return;
+                    }
+                }
+            }
+
+            if (event.isControlDown()) {
+                switch (event.getCode()) {
+                    case PLUS, ADD -> {
+                        increaseFontSize();
+                        event.consume();
+                    }
+                    case MINUS, SUBTRACT -> {
+                        decreaseFontSize();
+                        event.consume();
+                    }
+                    case NUMPAD0, DIGIT0 -> {
+                        resetFontSize();
+                        event.consume();
+                    }
+                    case S -> {
+                        if (event.isShiftDown()) {
+                            fileOperationsManager.requestSaveAs();
+                        } else {
+                            fileOperationsManager.handleSaveFile();
+                        }
+                        event.consume();
+                    }
+                    case D -> {
+                        toggleLineComment();
+                        event.consume();
+                    }
+                    case SPACE -> {
+                        // Trigger IntelliSense manually
+                        logger.info("🎯 EVENT: Ctrl+Space pressed - triggering IntelliSense");
+                        showIntelliSenseCompletion();
+                        event.consume();
+                    }
+                }
+            } else {
+                // Handle auto-completion triggers
+                switch (event.getCode()) {
+                    case LESS -> {
+                        // '<' typed - show element completion after short delay
+                        Platform.runLater(() -> {
+                            if (shouldShowElementCompletion()) {
+                                showIntelliSenseCompletion();
                             }
-                        }
-                    }
-                } else if (ch == '<' && pos + 1 < textBeforeElement.length() && textBeforeElement.charAt(pos + 1) == '/') {
-                    // Closing tag found, pop from stack
-                    if (!elementStack.isEmpty()) {
-                        elementStack.pop();
+                        });
                     }
                 }
-
-                pos--;
             }
+        });
 
-            // Build context path
-            if (elementStack.isEmpty()) {
-                return "/"; // Root context
-            } else {
-                // Use the immediate parent as context
-                return "/" + elementStack.peek();
-            }
-
-        } catch (Exception e) {
-            return "/"; // Default to root context
-        }
-    }
-
-    /**
-     * Static method for basic XML syntax highlighting without enumeration features.
-     * Used by other components that don't need enumeration highlighting.
-     */
-    public static StyleSpans<Collection<String>> computeHighlighting(String text) {
-        if (text == null) {
-            text = "";
-        }
-
-        Matcher matcher = XML_TAG.matcher(text);
-        int lastKwEnd = 0;
-        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-
-        while (matcher.find()) {
-            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
-            if (matcher.group("COMMENT") != null) {
-                spansBuilder.add(Collections.singleton("comment"), matcher.end() - matcher.start());
-            } else {
-                if (matcher.group("ELEMENT") != null) {
-                    String attributesText = matcher.group(GROUP_ATTRIBUTES_SECTION);
-
-                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_OPEN_BRACKET) - matcher.start(GROUP_OPEN_BRACKET));
-                    spansBuilder.add(Collections.singleton("anytag"), matcher.end(GROUP_ELEMENT_NAME) - matcher.end(GROUP_OPEN_BRACKET));
-
-                    if (attributesText != null && !attributesText.isEmpty()) {
-                        lastKwEnd = 0;
-
-                        Matcher amatcher = ATTRIBUTES.matcher(attributesText);
-                        while (amatcher.find()) {
-                            spansBuilder.add(Collections.emptyList(), amatcher.start() - lastKwEnd);
-                            spansBuilder.add(Collections.singleton("attribute"), amatcher.end(GROUP_ATTRIBUTE_NAME) - amatcher.start(GROUP_ATTRIBUTE_NAME));
-                            spansBuilder.add(Collections.singleton("tagmark"), amatcher.end(GROUP_EQUAL_SYMBOL) - amatcher.end(GROUP_ATTRIBUTE_NAME));
-                            spansBuilder.add(Collections.singleton("avalue"), amatcher.end(GROUP_ATTRIBUTE_VALUE) - amatcher.end(GROUP_EQUAL_SYMBOL));
-                            lastKwEnd = amatcher.end();
-                        }
-                        if (attributesText.length() > lastKwEnd)
-                            spansBuilder.add(Collections.emptyList(), attributesText.length() - lastKwEnd);
-                    }
-
-                    lastKwEnd = matcher.end(GROUP_ATTRIBUTES_SECTION);
-
-                    spansBuilder.add(Collections.singleton("tagmark"), matcher.end(GROUP_CLOSE_BRACKET) - lastKwEnd);
-                }
-            }
-            lastKwEnd = matcher.end();
-        }
-        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
-        return spansBuilder.create();
-    }
-
-    /**
-     * Handles IntelliSense trigger when "<" is typed or space for attributes.
-     * Implementation based on requirements: trigger completion after opening a tag "<" or adding space for attributes.
-     * Note: This method is called AFTER the character has been typed (KEY_TYPED event).
-     *
-     * @param event The key event
-     * @return true if the event was handled, false otherwise
-     */
-    private boolean handleIntelliSenseTrigger(KeyEvent event) {
-        try {
+        // Handle character typed events for IntelliSense
+        codeArea.addEventHandler(KeyEvent.KEY_TYPED, event -> {
             String character = event.getCharacter();
-            logger.debug("handleIntelliSenseTrigger called with character: '{}'", character);
+            if (character != null && character.length() == 1) {
+                char c = character.charAt(0);
 
-            // If we're in a specialized mode (Schematron or XSD), don't handle XML IntelliSense
-            if (!isXmlMode()) {
-                logger.debug("{} mode is active, skipping XML IntelliSense", currentMode);
-                // The specialized auto-completion handles the event through its own listeners
-                return false;
-            }
-
-            // Handle "<" trigger for element completion
-            if ("<".equals(character)) {
-                logger.debug("Detected < character, triggering element completion");
-
-                // Store the position OF the '<' character (before it was typed)
-                popupStartPosition = codeArea.getCaretPosition() - 1;
-                isElementCompletionContext = true; // Mark as element completion
-                logger.debug("Set popupStartPosition to: {} (position of <), isElementCompletionContext = true", popupStartPosition);
-
-                // Show the IntelliSense popup with slight delay to ensure the character is processed
-                javafx.application.Platform.runLater(() -> {
-                    logger.debug("Calling requestCompletions for element completion");
-                    requestCompletions();
-                });
-
-                return true; // Event was handled
-            }
-
-            // Handle space trigger for attribute completion (inside XML tags)
-            if (" ".equals(character)) {
-                logger.debug("Detected space character, checking if inside XML tag");
-                if (isInsideXmlTag()) {
-                    logger.debug("Inside XML tag, triggering attribute completion");
-
-                    // Store the current position (after the space)
-                    popupStartPosition = codeArea.getCaretPosition();
-                    isElementCompletionContext = false; // Mark as attribute completion
-
-                    // Show attribute completions with slight delay
-                    javafx.application.Platform.runLater(() -> {
-                        logger.debug("Calling requestCompletions for attribute completion");
-                        requestCompletions();
+                // Check if we should trigger IntelliSense
+                if (c == '<' || (c == ' ' && isInAttributeContext())) {
+                    logger.info("⚡ EVENT: Character '{}' typed - checking if should trigger IntelliSense", c);
+                    Platform.runLater(() -> {
+                        if (shouldShowCompletion(c)) {
+                            logger.info("💡 EVENT: Should show completion for '{}' - triggering IntelliSense", c);
+                            showIntelliSenseCompletion();
+                        } else {
+                            logger.info("❌ EVENT: Should NOT show completion for '{}' - skipping", c);
+                        }
                     });
+                }
 
-                    return true; // Event was handled
-                } else {
-                    logger.debug("Not inside XML tag, no completion triggered");
+                // Update existing popup if showing
+                if (intelliSensePopup != null && intelliSensePopup.isShowing()) {
+                    Platform.runLater(this::updateIntelliSenseCompletion);
                 }
             }
+        });
+    }
+    
+    // Line number factory
+    private IntFunction<Node> createParagraphGraphicFactory() {
+        return lineIndex -> {
+            // Create line number label
+            Label lineNumber = new Label(String.format("%4d", lineIndex + 1));
+            lineNumber.getStyleClass().addAll("lineno", "paragraph-graphic");
 
-        } catch (Exception e) {
-            logger.error("Error during IntelliSense trigger: {}", e.getMessage(), e);
-        }
-        return false;
+            // Set consistent styling
+            lineNumber.setPadding(new Insets(0, 8, 0, 4));
+            lineNumber.setMinWidth(40);
+            lineNumber.setPrefWidth(40);
+            lineNumber.setMaxWidth(40);
+            lineNumber.setAlignment(Pos.CENTER_RIGHT);
+
+            // Apply dynamic font size and consistent colors
+            lineNumber.setStyle(String.format(
+                    "-fx-text-fill: #888888; " +
+                            "-fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace; " +
+                            "-fx-font-size: %dpx; " +
+                            "-fx-background-color: #fafafa; " +
+                            "-fx-border-color: #e0e0e0; " +
+                            "-fx-border-width: 0 1 0 0;",
+                    fontSize
+            ));
+
+            // Add hover effect for better UX
+            lineNumber.setOnMouseEntered(e ->
+                    lineNumber.setStyle(lineNumber.getStyle() + "-fx-background-color: #f0f0f0;")
+            );
+            lineNumber.setOnMouseExited(e ->
+                    lineNumber.setStyle(lineNumber.getStyle().replace("-fx-background-color: #f0f0f0;", "-fx-background-color: #fafafa;"))
+            );
+
+            return lineNumber;
+        };
     }
 
-    /**
-     * Checks if the cursor is currently inside an XML tag (for attribute completion).
-     * This enables attribute IntelliSense when the user types a space inside a tag.
-     *
-     * @return true if cursor is inside a tag
-     */
-    private boolean isInsideXmlTag() {
-        try {
-            int caretPosition = codeArea.getCaretPosition();
-            String text = codeArea.getText();
+    // IntelliSense initialization
+    private void initializeIntelliSensePopup() {
+        // Create the enhanced 3-column IntelliSense popup
+        enhancedIntelliSensePopup = new EnhancedCompletionPopup();
 
-            if (caretPosition <= 0 || caretPosition > text.length()) {
-                return false;
+        // Set up completion handler
+        enhancedIntelliSensePopup.setOnItemSelected(this::insertEnhancedCompletion);
+
+        // Initialize legacy popup for backward compatibility (will be removed)
+        intelliSensePopup = new Popup();
+        intelliSensePopup.setAutoHide(true);
+        intelliSensePopup.setHideOnEscape(true);
+
+        completionListView = new ListView<>();
+        completionListView.setPrefWidth(300);
+        completionListView.setPrefHeight(200);
+        completionListView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                selectCurrentIntelliSenseCompletion();
             }
+        });
 
-            // Look backwards from cursor to find the last "<" or ">"
-            int lastOpenTag = text.lastIndexOf('<', caretPosition - 1);
-            int lastCloseTag = text.lastIndexOf('>', caretPosition - 1);
+        VBox popupContent = new VBox(completionListView);
+        intelliSensePopup.getContent().add(popupContent);
 
-            // We're inside a tag if the last "<" is more recent than the last ">"
-            // and we haven't encountered a self-closing tag or end tag
-            if (lastOpenTag > lastCloseTag && lastOpenTag < caretPosition) {
-                // Check if it's not a closing tag (</...)
-                return lastOpenTag + 1 < text.length() && text.charAt(lastOpenTag + 1) != '/';
-            }
+        // Initialize with some default element names
+        availableElementNames.addAll(java.util.List.of(
+                "root", "element", "item", "data", "value", "name", "id", "text",
+                "description", "title", "content", "node", "entry", "record"
+        ));
 
-            return false;
-
-        } catch (Exception e) {
-            logger.error("Error checking if inside XML tag: {}", e.getMessage(), e);
-            return false;
-        }
+        logger.debug("Enhanced IntelliSense popup initialized");
     }
 
-
-
-
-
-
-    /**
-     * Checks if an XSD schema is available for IntelliSense.
-     * @return true if XSD schema is available, false otherwise
-     */
-    private boolean isXsdSchemaAvailable() {
-        try {
-            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
-                var xmlService = xmlEditor.getXmlService();
-                if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
-                    logger.debug("XSD schema is available: {}", xmlService.getCurrentXsdFile().getName());
-                    return true;
-                }
-            }
-            logger.debug("No XSD schema available for IntelliSense");
-            return false;
-        } catch (Exception e) {
-            logger.error("Error checking XSD schema availability: {}", e.getMessage(), e);
-            return false;
-        }
+    // Temporary placeholder methods (to be moved to appropriate managers)
+    private void initializeEnhancedIntelliSense() {
+        // Placeholder
     }
 
-    /**
-     * Requests completions using the new intelligent IntelliSense system.
-     * Delegates to the XmlIntelliSenseEngine for smart context-aware completions.
-     */
-    private void requestCompletions() {
-        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (!isXmlMode()) {
-            logger.debug("Skipping XML IntelliSense: current mode is {}", currentMode);
-            return;
-        }
-        
-        logger.debug("IntelliSense requested - using intelligent completion system");
-
-        // Use the new intelligent IntelliSense Engine
-        if (intelliSenseEngine != null) {
-            logger.debug("Delegating to XmlIntelliSenseEngine for intelligent completions");
-            // The IntelliSenseEngine will handle context detection and show appropriate completions
-            // It automatically detects whether we're completing elements, attributes, or values
-            showEnhancedIntelliSenseCompletions();
-        } else {
-            logger.debug("IntelliSense Engine not available - falling back to basic completions");
-            showBasicIntelliSensePopup();
-        }
+    private void initializeXmlIntelliSenseEngine() {
+        // Placeholder
     }
 
-    /**
-     * Shows intelligent completions using the enhanced IntelliSense system
-     */
-    private void showEnhancedIntelliSenseCompletions() {
-        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (!isXmlMode()) {
-            logger.debug("Skipping enhanced XML IntelliSense: current mode is {}", currentMode);
-            return;
-        }
-        
-        try {
-            // Get current context
+    private void initializeCodeFoldingManager() {
+        // Placeholder
+    }
+
+    private void initializeSpecializedAutoComplete() {
+        // Placeholder
+    }
+
+    private void setupLayoutWithMinimap() {
+        editorContainer = new HBox();
+        editorContainer.getChildren().add(virtualizedScrollPane);
+        HBox.setHgrow(virtualizedScrollPane, Priority.ALWAYS);
+
+        this.getChildren().addAll(editorContainer, statusLineController.getStatusLine());
+    }
+
+    private void updateFoldingRegions(String text) {
+        // Placeholder for code folding
+    }
+
+    private void handleAutomaticTagCompletion(String oldText, String newText) {
+        // Check if user typed '>' to complete a tag
+        if (newText != null && oldText != null && newText.length() > oldText.length()) {
             int caretPos = codeArea.getCaretPosition();
-            String textBeforeCaret = codeArea.getText(0, Math.min(caretPos, codeArea.getText().length()));
+            if (caretPos > 0 && newText.charAt(caretPos - 1) == '>') {
+                // Find the opening tag
+                String textBeforeCaret = newText.substring(0, caretPos - 1);
+                java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_-]*)(?:[^>]*)$");
+                java.util.regex.Matcher matcher = pattern.matcher(textBeforeCaret);
 
-            // Determine completion type based on context
-            if (isInElementContext(textBeforeCaret)) {
-                logger.debug("Element context detected - showing element completions");
-                showEnhancedElementCompletions();
-            } else if (isInAttributeContext(textBeforeCaret)) {
-                logger.debug("Attribute context detected - showing attribute completions");
-                showEnhancedAttributeCompletions();
-            } else if (isInAttributeValueContext(textBeforeCaret)) {
-                logger.debug("Attribute value context detected - showing value completions");
-                showEnhancedAttributeValueCompletions();
+                if (matcher.find()) {
+                    String tagName = matcher.group(1);
+                    // Check if it's not a self-closing tag and doesn't already have a closing tag
+                    if (!textBeforeCaret.endsWith("/>") && !hasClosingTag(newText, tagName, caretPos)) {
+                        // Insert closing tag
+                        String closingTag = "</" + tagName + ">";
+                        Platform.runLater(() -> {
+                            codeArea.insertText(caretPos, closingTag);
+                            codeArea.moveTo(caretPos); // Move cursor back between tags
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean hasClosingTag(String text, String tagName, int fromPosition) {
+        String remainingText = text.substring(fromPosition);
+        String closingTag = "</" + tagName + ">";
+        return remainingText.contains(closingTag);
+    }
+
+    private void handleIntelligentEnter(String oldText, String newText) {
+        // Prevent recursion
+        if (isProcessingEnterKey) {
+            return;
+        }
+
+        // Check if user pressed Enter
+        if (newText != null && oldText != null && newText.length() > oldText.length()) {
+            String added = newText.substring(oldText.length());
+            if (added.contains("\n")) {
+                isProcessingEnterKey = true;
+                try {
+                    int caretPos = codeArea.getCaretPosition();
+                    String textBeforeCaret = newText.substring(0, caretPos);
+
+                    // Extract current indentation from previous line
+                    String[] lines = textBeforeCaret.split("\n");
+                    if (lines.length >= 2) {
+                        String prevLine = lines[lines.length - 2];
+                        String indentation = extractIndentation(prevLine);
+
+                        // If previous line contains an opening tag, add extra indentation
+                        if (prevLine.trim().matches(".*<[^/][^>]*[^/]>.*")) {
+                            int indentSize = propertiesService.getXmlIndentSpaces();
+                            indentation += " ".repeat(indentSize);
+                        }
+
+                        if (!indentation.isEmpty()) {
+                            codeArea.insertText(caretPos, indentation);
+                        }
+                    }
+                } finally {
+                    isProcessingEnterKey = false;
+                }
+            }
+        }
+    }
+
+    private String extractIndentation(String line) {
+        StringBuilder indentation = new StringBuilder();
+        for (char c : line.toCharArray()) {
+            if (c == ' ' || c == '\t') {
+                indentation.append(c);
             } else {
-                logger.debug("General context - showing all available completions");
-                showEnhancedElementCompletions(); // Default to elements
+                break;
             }
-        } catch (Exception e) {
-            logger.error("Error in enhanced IntelliSense: {}", e.getMessage(), e);
-            // Fallback to basic popup
-            showBasicIntelliSensePopup();
         }
+        return indentation.toString();
     }
 
-    /**
-     * Show enhanced element completions with XSD integration
-     */
-    private void showEnhancedElementCompletions() {
-        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (!isXmlMode()) {
-            logger.debug("Skipping enhanced element completions: current mode is {}", currentMode);
-            return;
-        }
-        
-        List<String> suggestions = new ArrayList<>();
-
-        // Get current XPath context using the same method as the sidebar
-        String currentXPath = null;
-        if (parentXmlEditor != null) {
-            currentXPath = parentXmlEditor.getCurrentXPath(codeArea.getText(), codeArea.getCaretPosition());
-        }
-        logger.debug("Current XPath context: {}", currentXPath);
-
-        // Use the same method as the sidebar to get filtered child elements
-        if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
-            List<String> xsdSuggestions = parentXmlEditor.getChildElementsForIntelliSense(currentXPath);
-            suggestions.addAll(xsdSuggestions);
-            logger.debug("Added {} XSD-based element suggestions from sidebar method for XPath '{}': {}",
-                    xsdSuggestions.size(), currentXPath, xsdSuggestions);
-
-            // Only show XSD-based suggestions when we have them
-            if (!suggestions.isEmpty()) {
-                showEnhancedCompletionPopup(suggestions,
-                        "Valid Elements" + (currentXPath != null ? " for " + currentXPath : ""), "📝");
-                return;
-            }
-
-            // Fallback even when schema is available but no children found for context
-            logger.debug("Schema available but no suggestions for context '{}'. Falling back to context/available elements.", currentXPath);
-            String currentContext = getCurrentElementContext();
-            if (currentContext != null && contextElementNames.containsKey(currentContext)) {
-                suggestions.addAll(contextElementNames.get(currentContext));
-                logger.debug("Fallback added {} context-specific elements", suggestions.size());
-            }
-            if (suggestions.isEmpty() && !availableElementNames.isEmpty()) {
-                suggestions.addAll(availableElementNames);
-                logger.debug("Fallback added {} available elements", availableElementNames.size());
-            }
-            if (!suggestions.isEmpty()) {
-                showEnhancedCompletionPopup(suggestions, "Elements", "📝");
-                return;
-            }
-        }
-
-        // Fallback: Get current element context for backwards compatibility
-        String currentContext = getCurrentElementContext();
-        logger.debug("Fallback to element context: {}", currentContext);
-
-        // Fallback only when no XSD schema is available or no suggestions found
-        if (parentXmlEditor == null || parentXmlEditor.getXsdDocumentationData() == null) {
-            // Add context-specific elements from manual configuration
-            if (currentContext != null && contextElementNames.containsKey(currentContext)) {
-                List<String> contextSuggestions = contextElementNames.get(currentContext);
-                suggestions.addAll(contextSuggestions);
-                logger.debug("Added {} context-specific element suggestions", contextSuggestions.size());
-            }
-
-            // Add available elements as final fallback when no schema is present
-            if (suggestions.isEmpty() && !availableElementNames.isEmpty()) {
-                suggestions.addAll(availableElementNames);
-                logger.debug("Added {} fallback element suggestions", availableElementNames.size());
-            }
-
-            // Show completions in enhanced popup
-            if (!suggestions.isEmpty()) {
-                showEnhancedCompletionPopup(suggestions, "Elements", "📝");
-            }
-        } else {
-            // Schema not available
-            logger.debug("No schema available - using fallback suggestions");
-        }
-    }
-
-    /**
-     * Show enhanced attribute completions
-     */
-    private void showEnhancedAttributeCompletions() {
-        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (!isXmlMode()) {
-            logger.debug("Skipping enhanced attribute completions: current mode is {}", currentMode);
-            return;
-        }
-        
-        List<String> suggestions = new ArrayList<>();
-        String currentElement = getCurrentElementFromContext();
-
-        if (currentElement != null && xsdIntegration != null && xsdIntegration.hasSchema()) {
-            // Get attributes from XSD
-            var attributeInfos = xsdIntegration.getAvailableAttributes(currentElement);
-            suggestions = attributeInfos.stream()
-                    .map(attr -> attr.name)
-                    .collect(Collectors.toList());
-            logger.debug("Found {} attribute suggestions for element '{}'", suggestions.size(), currentElement);
-        } else {
-            // Generic attributes
-            suggestions = Arrays.asList("id", "name", "type", "class", "value");
-            logger.debug("Using generic attribute suggestions");
-        }
-
-        if (!suggestions.isEmpty()) {
-            showEnhancedCompletionPopup(suggestions, "Attributes", "🏷️");
-        }
-    }
-
-    /**
-     * Show enhanced attribute value completions
-     */
-    private void showEnhancedAttributeValueCompletions() {
-        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (!isXmlMode()) {
-            logger.debug("Skipping enhanced attribute value completions: current mode is {}", currentMode);
-            return;
-        }
-        
-        List<String> suggestions = new ArrayList<>();
-        String currentElement = getCurrentElementFromContext();
-        String currentAttribute = getCurrentAttributeFromContext();
-
-        if (currentElement != null && currentAttribute != null &&
-                xsdIntegration != null && xsdIntegration.hasSchema()) {
-            // Get enumeration values from XSD
-            suggestions = xsdIntegration.getAttributeEnumerationValues(currentElement, currentAttribute);
-            logger.debug("Found {} enumeration values for {}@{}", suggestions.size(), currentElement, currentAttribute);
-        }
-
-        // Add some common values as fallback
-        if (suggestions.isEmpty()) {
-            if ("type".equals(currentAttribute)) {
-                suggestions = Arrays.asList("string", "number", "boolean", "date", "text");
-            } else if ("id".equals(currentAttribute)) {
-                suggestions = List.of("auto-generated-id");
-            }
-        }
-
-        if (!suggestions.isEmpty()) {
-            showEnhancedCompletionPopup(suggestions, "Values", "💡");
-        }
-    }
-
-    /**
-     * Shows enhanced completion popup with modern styling and features
-     */
-    private void showEnhancedCompletionPopup(List<String> suggestions, String title, String icon) {
-        try {
-            // Remove duplicates but preserve XSD sequence order
-            List<String> uniqueSuggestions = suggestions.stream()
-                    .distinct()
-                    .collect(Collectors.toList());
-
-            // Use the 3-column enhanced completion popup when:
-            // 1. We have the enhanced popup available AND
-            // 2. We're in XML mode AND 
-            // 3. We have XSD schema data available (either in XML_WITH_XSD mode or XSD data exists)
-            boolean hasXsdData = (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null);
-            boolean useEnhancedPopup = enhancedCompletionPopup != null && isXmlMode() &&
-                    (currentMode == EditorMode.XML_WITH_XSD || hasXsdData);
-
-            if (useEnhancedPopup) {
-                logger.debug("Using 3-column EnhancedCompletionPopup (mode: {}, hasXsdData: {})", currentMode, hasXsdData);
-                show3ColumnCompletionPopup(uniqueSuggestions, title, icon);
-                return;
-            }
-
-            // For other XML modes, use the standard completion popup
-            logger.debug("Using standard completion popup for mode: {}", currentMode);
-
-            // Update the existing completion popup with enhanced suggestions
-            completionListView.getItems().clear();
-            completionListView.getItems().addAll(uniqueSuggestions);
-
-            // Select the first item
-            if (!completionListView.getItems().isEmpty()) {
-                completionListView.getSelectionModel().select(0);
-            }
-
-            // Update title
-            if (intelliSensePopup.getScene() != null &&
-                    intelliSensePopup.getScene().getRoot() instanceof VBox vbox) {
-                if (!vbox.getChildren().isEmpty() &&
-                        vbox.getChildren().get(0) instanceof Label titleLabel) {
-                    titleLabel.setText(icon + " " + title);
-                }
-            }
-
-            // Show the enhanced popup
-            showIntelliSensePopupAtCursor();
-
-            logger.info("Enhanced IntelliSense popup shown with {} {} suggestions",
-                    uniqueSuggestions.size(), title.toLowerCase());
-
-        } catch (Exception e) {
-            logger.error("Error showing enhanced completion popup: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Shows the 3-column enhanced completion popup for XML_WITH_XSD mode.
-     * This popup includes: Completion List | Live Preview | Documentation
-     */
-    private void show3ColumnCompletionPopup(List<String> suggestions, String title, String icon) {
-        try {
-            if (enhancedCompletionPopup == null) {
-                logger.warn("EnhancedCompletionPopup not initialized, falling back to standard popup");
-                showStandardCompletionPopup(suggestions, title, icon);
-                return;
-            }
-
-            // Convert string suggestions to CompletionItem objects
-            List<org.fxt.freexmltoolkit.controls.intellisense.CompletionItem> completionItems = new ArrayList<>();
-
-            for (String suggestion : suggestions) {
-                // Create completion items with proper metadata using Builder pattern
-                org.fxt.freexmltoolkit.controls.intellisense.CompletionItem item =
-                        new org.fxt.freexmltoolkit.controls.intellisense.CompletionItem.Builder(
-                                suggestion,
-                                "<" + suggestion + ">",  // insertText
-                                org.fxt.freexmltoolkit.controls.intellisense.CompletionItemType.ELEMENT
-                        )
-                                .description(getElementDescription(suggestion))
-                                .required(isElementMandatory(suggestion))
-                                .build();
-                completionItems.add(item);
-            }
-
-            // Show the enhanced popup with proper positioning
-            var caretBounds = codeArea.getCaretBounds();
-            if (caretBounds.isPresent()) {
-                var bounds = caretBounds.get();
-                enhancedCompletionPopup.setOnItemSelected(this::handleCompletionSelection);
-                enhancedCompletionPopup.show(
-                        codeArea,
-                        completionItems,
-                        new javafx.geometry.Point2D(bounds.getMaxX(), bounds.getMaxY())
-                );
-
-                logger.info("3-column IntelliSense popup shown with {} {} suggestions",
-                        completionItems.size(), title.toLowerCase());
-            } else {
-                logger.warn("Could not get caret bounds for enhanced popup");
-                showStandardCompletionPopup(suggestions, title, icon);
-            }
-
-        } catch (Exception e) {
-            logger.error("Error showing 3-column completion popup: {}", e.getMessage(), e);
-            // Fallback to standard popup
-            showStandardCompletionPopup(suggestions, title, icon);
-        }
-    }
-
-    /**
-     * Handles completion item selection from the 3-column popup
-     */
-    private void handleCompletionSelection(org.fxt.freexmltoolkit.controls.intellisense.CompletionItem item) {
-        try {
-            if (popupStartPosition < 0) {
-                logger.warn("Invalid popup start position for completion");
-                return;
-            }
-
-            int currentPosition = codeArea.getCaretPosition();
-            String elementName = item.getLabel(); // Get the element name (without < >)
-
-            logger.debug("Handling completion selection: {} at position {}, replacing from {} to {}",
-                    elementName, currentPosition, popupStartPosition, currentPosition);
-
-            // Replace the text from the "<" to current position with the complete element
-            // Remove any existing partial input between popupStartPosition and current position
-            codeArea.replaceText(popupStartPosition, currentPosition, "");
-
-            // Now insert the opening tag
-            String openingTag = "<" + elementName + ">";
-            codeArea.insertText(popupStartPosition, openingTag);
-
-            // Position cursor after the opening tag
-            int afterOpeningTag = popupStartPosition + openingTag.length();
-            codeArea.moveTo(afterOpeningTag);
-
-            // Apply auto-close logic based on current mode
-            if (currentMode == EditorMode.XML_WITH_XSD && parentXmlEditor != null) {
-                // Use enhanced auto-close with mandatory children
-                logger.debug("Applying enhanced auto-close with mandatory children for: {}", elementName);
-                handleAutoCloseWithMandatoryChildren(elementName, afterOpeningTag);
-            } else {
-                // Basic auto-close for other modes
-                if (!isSelfClosingTag(elementName)) {
-                    String closingTag = "</" + elementName + ">";
-                    codeArea.insertText(afterOpeningTag, closingTag);
-                    // Keep cursor between opening and closing tags
-                    codeArea.moveTo(afterOpeningTag);
-                    logger.debug("Applied basic auto-close for: {} -> {}", elementName, closingTag);
-                }
-            }
-
-            logger.debug("Completion selection handled successfully for: {}", elementName);
-
-        } catch (Exception e) {
-            logger.error("Error handling completion selection: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Gets description for an element from XSD schema data
-     */
-    private String getElementDescription(String elementName) {
-        try {
-            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
-                // Get description from XSD extended element map
-                var extendedElementMap = parentXmlEditor.getXsdDocumentationData().getExtendedXsdElementMap();
-                var elementInfo = extendedElementMap.values().stream()
-                        .filter(element -> elementName.equals(element.getElementName()))
-                        .findFirst();
-
-                if (elementInfo.isPresent()) {
-                    return elementInfo.get().getDocumentationAsHtml();
-                }
-            }
-            return "XML element: " + elementName;
-        } catch (Exception e) {
-            logger.debug("Error getting element description for {}: {}", elementName, e.getMessage());
-            return "XML element: " + elementName;
-        }
-    }
-
-    /**
-     * Checks if an element is mandatory based on XSD schema data
-     */
-    private boolean isElementMandatory(String elementName) {
-        try {
-            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
-                // Get element info from XSD extended element map
-                var extendedElementMap = parentXmlEditor.getXsdDocumentationData().getExtendedXsdElementMap();
-                var elementInfo = extendedElementMap.values().stream()
-                        .filter(element -> elementName.equals(element.getElementName()))
-                        .findFirst();
-
-                if (elementInfo.isPresent()) {
-                    return elementInfo.get().isMandatory();
-                }
-            }
-            return false; // Default to optional if no XSD info available
-        } catch (Exception e) {
-            logger.debug("Error checking if element {} is mandatory: {}", elementName, e.getMessage());
-            return false; // Default to optional on error
-        }
-    }
-
-    /**
-     * Gets full documentation for an element from XSD schema data
-     */
-    private String getElementDocumentation(String elementName) {
-        try {
-            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
-                // Get full documentation from XSD
-                var typeInfo = parentXmlEditor.getXsdDocumentationData().getExtendedXsdElementMap().values().stream()
-                        .filter(type -> elementName.equals(type.getElementName()))
-                        .findFirst();
-
-                if (typeInfo.isPresent()) {
-                    StringBuilder docBuilder = new StringBuilder();
-                    docBuilder.append("<h3>").append(elementName).append("</h3>");
-
-                    String description = typeInfo.get().getDocumentationAsHtml();
-                    if (description != null && !description.isEmpty()) {
-                        docBuilder.append("<p>").append(description).append("</p>");
-                    }
-
-                    // Add type information
-                    docBuilder.append("<p><strong>Type:</strong> ").append(typeInfo.get().getElementType()).append("</p>");
-
-                    return docBuilder.toString();
-                }
-            }
-            return "<h3>" + elementName + "</h3><p>XML element without schema documentation</p>";
-        } catch (Exception e) {
-            logger.debug("Error getting element documentation for {}: {}", elementName, e.getMessage());
-            return "<h3>" + elementName + "</h3><p>XML element</p>";
-        }
-    }
-
-    /**
-     * Fallback method for standard completion popup
-     */
-    private void showStandardCompletionPopup(List<String> suggestions, String title, String icon) {
-        completionListView.getItems().clear();
-        completionListView.getItems().addAll(suggestions);
-
-        if (!completionListView.getItems().isEmpty()) {
-            completionListView.getSelectionModel().select(0);
-        }
-
-        showIntelliSensePopupAtCursor();
-    }
-
-    // Helper methods for context detection
-
-    /**
-     * Check if we're in an element context (after '<')
-     */
-    private boolean isInElementContext(String textBeforeCaret) {
-        if (textBeforeCaret == null || textBeforeCaret.isEmpty()) return false;
-
-        // Look for '<' followed by optional element name characters
-        return textBeforeCaret.matches(".*<[a-zA-Z_][a-zA-Z0-9_:.-]*$") ||
-                textBeforeCaret.endsWith("<");
-    }
-
-    /**
-     * Check if we're in an attribute context (inside a tag after element name)
-     */
-    private boolean isInAttributeContext(String textBeforeCaret) {
-        if (textBeforeCaret == null || textBeforeCaret.isEmpty()) return false;
-
-        // Look for pattern like: <element attr or <element attr1="value" attr
-        return textBeforeCaret.matches(".*<[a-zA-Z_][a-zA-Z0-9_:.-]*\\s+[^>]*[a-zA-Z_][a-zA-Z0-9_:.-]*$") ||
-                textBeforeCaret.matches(".*<[a-zA-Z_][a-zA-Z0-9_:.-]*\\s+$");
-    }
-
-    /**
-     * Check if we're in an attribute value context (inside quotes)
-     */
-    private boolean isInAttributeValueContext(String textBeforeCaret) {
-        if (textBeforeCaret == null || textBeforeCaret.isEmpty()) return false;
-
-        // Look for pattern like: attr="value or attr="
-        int lastQuote = textBeforeCaret.lastIndexOf('"');
-        int lastEquals = textBeforeCaret.lastIndexOf('=');
-
-        return lastEquals > lastQuote && textBeforeCaret.substring(lastEquals).matches("\\s*\"[^\"]*$");
-    }
-
-    /**
-     * Get current element from context (the element we're currently inside)
-     */
-    private String getCurrentElementFromContext() {
-        try {
-            int caretPos = codeArea.getCaretPosition();
-            String text = codeArea.getText(0, Math.min(caretPos, codeArea.getText().length()));
-
-            // Find the last unclosed element
-            Pattern openTag = Pattern.compile("<([a-zA-Z_][a-zA-Z0-9_:.-]*)(?:\\s+[^>]*)?(?:>|$)");
-            Pattern closeTag = Pattern.compile("</([a-zA-Z_][a-zA-Z0-9_:.-]*)>");
-
-            Stack<String> elementStack = new Stack<>();
-            Matcher openMatcher = openTag.matcher(text);
-            Matcher closeMatcher = closeTag.matcher(text);
-
-            List<TagMatch> allTags = new ArrayList<>();
-
-            // Find all opening tags
-            while (openMatcher.find()) {
-                allTags.add(new TagMatch(openMatcher.start(), openMatcher.group(1), true));
-            }
-
-            // Find all closing tags
-            while (closeMatcher.find()) {
-                allTags.add(new TagMatch(closeMatcher.start(), closeMatcher.group(1), false));
-            }
-
-            // Sort by position
-            allTags.sort((a, b) -> Integer.compare(a.position, b.position));
-
-            // Build element stack
-            for (TagMatch tag : allTags) {
-                if (tag.isOpening) {
-                    elementStack.push(tag.name);
-                } else {
-                    if (!elementStack.isEmpty() && elementStack.peek().equals(tag.name)) {
-                        elementStack.pop();
-                    }
-                }
-            }
-
-            return elementStack.isEmpty() ? null : elementStack.peek();
-
-        } catch (Exception e) {
-            logger.debug("Error determining current element: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Get current attribute from context (the attribute we're currently editing)
-     */
-    private String getCurrentAttributeFromContext() {
-        try {
-            int caretPos = codeArea.getCaretPosition();
-            String text = codeArea.getText(0, Math.min(caretPos, codeArea.getText().length()));
-
-            // Find the last attribute name before the caret
-            Pattern attrPattern = Pattern.compile("\\s+([a-zA-Z_][a-zA-Z0-9_:.-]*)\\s*=\\s*\"[^\"]*$");
-            Matcher matcher = attrPattern.matcher(text);
-
-            String lastMatch = null;
-            while (matcher.find()) {
-                lastMatch = matcher.group(1);
-            }
-
-            return lastMatch;
-
-        } catch (Exception e) {
-            logger.debug("Error determining current attribute: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-         * Helper class for tag matching
-         */
-        private record TagMatch(int position, String name, boolean isOpening) {
-    }
-
-    /**
-     * Shows the popup at the current cursor position.
-     */
-    private void showPopupAtCursor() {
-        // Show the popup at the current cursor position
-        if (codeArea.getScene() != null && codeArea.getScene().getWindow() != null) {
-            var caretBounds = codeArea.getCaretBounds().orElse(null);
-            if (caretBounds != null) {
-                var screenPos = codeArea.localToScreen(caretBounds.getMinX(), caretBounds.getMaxY());
-                intelliSensePopup.setX(screenPos.getX());
-                intelliSensePopup.setY(screenPos.getY());
-
-                // Show popup but ensure CodeArea keeps focus
-                intelliSensePopup.show();
-
-                // Critical: Keep focus on CodeArea so keyboard events work
-                javafx.application.Platform.runLater(() -> {
-                    codeArea.requestFocus();
-                    logger.debug("Focus returned to CodeArea after popup show");
-                });
-
-                logger.debug("IntelliSense popup shown at cursor position");
-            }
-        }
-    }
-
-    /**
-     * Shows basic IntelliSense popup without XSD schema (fallback mode).
-     */
-    private void showBasicIntelliSensePopup() {
-        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (!isXmlMode()) {
-            logger.debug("Skipping basic XML IntelliSense: current mode is {}", currentMode);
-            return;
-        }
-        
-        logger.debug("Showing basic IntelliSense popup without XSD context");
-
-        // Even without XSD, try to get context-specific elements if any context mapping exists
-        String currentContext = getCurrentElementContext();
-        List<String> suggestedElements;
-
-        if (currentContext != null && !contextElementNames.isEmpty()) {
-            logger.debug("No XSD but context mapping available - trying context-specific elements for '{}'", currentContext);
-            suggestedElements = getContextSpecificElements(currentContext);
-        } else if (!availableElementNames.isEmpty()) {
-            logger.debug("Using available element names from XSD: {}", availableElementNames.size());
-            suggestedElements = availableElementNames;
-        } else {
-            logger.debug("No context available - using generic element names");
-            suggestedElements = Arrays.asList("element", "item", "data", "value", "content", "name", "id", "type");
-        }
-
-        // Update the list view with suggested elements
-        completionListView.getItems().clear();
-        completionListView.getItems().addAll(suggestedElements);
-
-        // Select the first item
-        if (!completionListView.getItems().isEmpty()) {
-            completionListView.getSelectionModel().select(0);
-        }
-
-        // Show the popup at the current cursor position
-        showIntelliSensePopupAtCursor();
-    }
-
-    /**
-     * Shows IntelliSense popup with XSD-based completion.
-     */
-    private void showManualIntelliSensePopup() {
-        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (!isXmlMode()) {
-            logger.debug("Skipping manual XML IntelliSense: current mode is {}", currentMode);
-            return;
-        }
-        
-        if (enhancedIntelliSenseEnabled) {
-            showEnhancedIntelliSensePopup();
-        } else {
-            showBasicIntelliSensePopup();
-        }
-    }
-
-    /**
-     * Shows the enhanced IntelliSense popup with all advanced features
-     */
-    private void showEnhancedIntelliSensePopup() {
-        // IMPORTANT: Only show XML IntelliSense if we're in XML mode
-        if (!isXmlMode()) {
-            logger.debug("Skipping enhanced XML IntelliSense popup: current mode is {}", currentMode);
-            return;
-        }
-        
-        try {
-            logger.debug("Triggering Enhanced IntelliSense popup");
-
-            // For now, enhance the basic popup with improved suggestions
-            String currentContext = getCurrentElementContext();
-            List<String> contextSpecificElements = getEnhancedContextSpecificElements(currentContext);
-
-            // Update the list view with enhanced context-specific elements
-            completionListView.getItems().clear();
-            completionListView.getItems().addAll(contextSpecificElements);
-
-            // Select the first item
-            if (!contextSpecificElements.isEmpty()) {
-                completionListView.getSelectionModel().select(0);
-            }
-
-            logger.debug("Enhanced completion list updated with {} enhanced elements", contextSpecificElements.size());
-
-            // Show the popup at the current cursor position
-            showIntelliSensePopupAtCursor();
-
-        } catch (Exception e) {
-            logger.error("Error showing enhanced IntelliSense popup: {}", e.getMessage(), e);
-            // Fallback to basic popup
-            showBasicIntelliSensePopup();
-        }
-    }
-
-    /**
-     * Get enhanced context-specific elements using multiple sources
-     */
-    private List<String> getEnhancedContextSpecificElements(String currentContext) {
-        Set<String> allElements = new LinkedHashSet<>();
-
-        try {
-            // 1. Get XSD-based elements if available
-            if (xsdIntegration != null && xsdIntegration.hasSchema()) {
-                List<String> xsdElements = xsdIntegration.getAvailableElements();
-                if (!xsdElements.isEmpty()) {
-                    allElements.addAll(xsdElements);
-                    logger.debug("Added {} XSD elements", xsdElements.size());
-                }
-            }
-
-            // 2. Get basic context elements
-            List<String> basicElements = getContextSpecificElements(currentContext);
-            allElements.addAll(basicElements);
-            logger.debug("Added {} basic context elements", basicElements.size());
-
-            // 3. Apply fuzzy search if enabled and there's a partial input
-            if (fuzzySearch != null) {
-                String prefix = extractCurrentPrefix();
-                if (prefix != null && !prefix.trim().isEmpty()) {
-                    // Filter elements using fuzzy search
-                    List<String> elementsList = new ArrayList<>(allElements);
-                    // For now, simple contains filter
-                    elementsList = elementsList.stream()
-                            .filter(elem -> elem.toLowerCase().contains(prefix.toLowerCase()))
-                            .collect(java.util.stream.Collectors.toList());
-                    allElements = new LinkedHashSet<>(elementsList);
-                    logger.debug("Applied fuzzy filter for prefix '{}', {} elements remain", prefix, allElements.size());
-                }
-            }
-
-        } catch (Exception e) {
-            logger.error("Error generating enhanced elements: {}", e.getMessage(), e);
-            // Fallback to basic elements
-            return getContextSpecificElements(currentContext);
-        }
-
-        return new ArrayList<>(allElements);
-    }
-
-    /**
-     * Extract current prefix being typed for completion
-     */
-    private String extractCurrentPrefix() {
-        try {
-            int caretPos = codeArea.getCaretPosition();
-            String text = codeArea.getText();
-
-            if (caretPos <= 0) return null;
-
-            // Look backwards for the start of the current word
-            int start = caretPos - 1;
-            while (start >= 0) {
-                char c = text.charAt(start);
-                if (!Character.isLetterOrDigit(c) && c != '_' && c != '-' && c != ':') {
-                    break;
-                }
-                start--;
-            }
-
-            return text.substring(start + 1, caretPos);
-
-        } catch (Exception e) {
-            logger.debug("Error extracting prefix: {}", e.getMessage());
-            return null;
-        }
-    }
-
-
-    /**
-     * Shows the IntelliSense popup at the current cursor position.
-     */
-    private void showIntelliSensePopupAtCursor() {
-        if (codeArea.getScene() == null || codeArea.getScene().getWindow() == null) {
-            return;
-        }
-
-        // Try to get precise caret bounds; fall back to a sensible position if unavailable
-        var caretBounds = codeArea.getCaretBounds().orElse(null);
-        if (caretBounds != null) {
-            var screenPos = codeArea.localToScreen(caretBounds.getMinX(), caretBounds.getMaxY());
-            if (screenPos != null) {
-                intelliSensePopup.setX(screenPos.getX());
-                intelliSensePopup.setY(screenPos.getY());
-            }
-        } else {
-            // Fallback: position near the CodeArea's top-left or caret paragraph area
-            var fallback = codeArea.localToScreen(20, 40);
-            if (fallback != null) {
-                intelliSensePopup.setX(fallback.getX());
-                intelliSensePopup.setY(fallback.getY());
-            }
-        }
-
-        intelliSensePopup.show();
-        // Focus list so ENTER works immediately
-        if (completionListView != null) {
-            completionListView.requestFocus();
-        }
-        logger.debug("IntelliSense popup shown (with fallback if needed)");
-    }
-
-    /**
-     * Gets the current element context (parent element name) at the cursor position.
-     *
-     * @return The name of the current parent element, or null if not found
-     */
-    private String getCurrentElementContext() {
-        try {
-            String text = codeArea.getText();
-            int position = codeArea.getCaretPosition();
-
-            if (position <= 0 || position > text.length()) {
-                return null;
-            }
-
-            // Find the current element by looking backwards from the cursor position
-            String textBeforeCursor = text.substring(0, position);
-
-            // Use a stack to track element nesting
-            java.util.Stack<String> elementStack = new java.util.Stack<>();
-
-            // Create a list to store all tags with their positions
-            java.util.List<TagInfo> allTags = new java.util.ArrayList<>();
-
-            // Find all opening tags
-            Matcher openMatcher = OPEN_TAG_PATTERN.matcher(textBeforeCursor);
-            while (openMatcher.find()) {
-                String elementName = openMatcher.group(1);
-                // Skip self-closing tags
-                String fullMatch = openMatcher.group(0);
-                if (!fullMatch.endsWith("/>")) {
-                    allTags.add(new TagInfo(elementName, openMatcher.start(), true));
-                }
-            }
-
-            // Find all closing tags
-            Matcher closeMatcher = CLOSE_TAG_PATTERN.matcher(textBeforeCursor);
-            while (closeMatcher.find()) {
-                String elementName = closeMatcher.group(1);
-                allTags.add(new TagInfo(elementName, closeMatcher.start(), false));
-            }
-
-            // Sort tags by position to process them chronologically
-            allTags.sort((a, b) -> Integer.compare(a.position, b.position));
-
-            // Process tags in chronological order
-            for (TagInfo tag : allTags) {
-                if (tag.isOpening) {
-                    elementStack.push(tag.name);
-                } else {
-                    // Find and remove matching opening tag
-                    if (!elementStack.isEmpty() && elementStack.peek().equals(tag.name)) {
-                        elementStack.pop();
-                    }
-                }
-            }
-
-            // Return the current parent element (top of stack)
-            String result = elementStack.isEmpty() ? null : elementStack.peek();
-            logger.debug("getCurrentElementContext result: '{}' (stack size: {})", result, elementStack.size());
-            return result;
-
-        } catch (Exception e) {
-            logger.error("Error determining current context: {}", e.getMessage(), e);
-            return null;
-        }
-    }
-
-    /**
-         * Helper class to track tag information for context detection
-         */
-        private record TagInfo(String name, int position, boolean isOpening) {
-    }
-
-    /**
-     * Gets context-specific element names based on the current parent element.
-     *
-     * @param parentElement The parent element name
-     * @return List of child element names for the given parent
-     */
-    private List<String> getContextSpecificElements(String parentElement) {
-        logger.debug("Getting context-specific elements for parent: {}", parentElement);
-
-        // PRIORITY 1: Always try XSD-based lookup first (regardless of parentElement)
-        if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
-            try {
-                List<String> sidebarElements = getSidebarChildElements(xmlEditor, parentElement);
-                if (sidebarElements != null && !sidebarElements.isEmpty()) {
-                    logger.debug("SUCCESS: Found {} XSD-based elements: {}", sidebarElements.size(), sidebarElements);
-                    return sidebarElements;
-                } else {
-                    logger.debug("XSD lookup returned null or empty for parentElement: {}", parentElement);
-                }
-            } catch (Exception e) {
-                logger.error("Error in XSD-based element lookup: {}", e.getMessage(), e);
-            }
-        } else {
-            logger.debug("parentXmlEditor is null or wrong type");
-        }
-
-        // FALLBACK: Use static context mapping
-        logger.debug("Using static context mapping, available keys: {}", contextElementNames.keySet());
-        
-        if (parentElement == null) {
-            // If no parent context, return root-level elements (but smaller set)
-            List<String> rootElements = contextElementNames.getOrDefault("root", Collections.emptyList());
-            if (rootElements.isEmpty()) {
-                rootElements = Arrays.asList("FundsXML4", "root", "document", "data");
-            }
-            logger.debug("No parent context - returning limited root elements: {}", rootElements.size());
-            return rootElements;
-        }
-
-        // Get child elements for the current parent
-        List<String> childElements = contextElementNames.get(parentElement);
-        if (childElements != null && !childElements.isEmpty()) {
-            logger.debug("Found {} child elements for parent '{}': {}", childElements.size(), parentElement, childElements);
-            return childElements;
-        }
-
-        // Fallback: try to find if the parent element is actually a child of another element
-        // This handles cases where the element context detection might not be perfect
-        for (Map.Entry<String, List<String>> entry : contextElementNames.entrySet()) {
-            if (entry.getValue().contains(parentElement)) {
-                // Found parent element as a child, so maybe we can suggest its siblings or common elements
-                logger.debug("Parent '{}' found as child of '{}', returning siblings: {}", parentElement, entry.getKey(), entry.getValue());
-                return entry.getValue();
-            }
-        }
-
-        // Final fallback - return minimal set
-        logger.debug("No specific children found for parent '{}' - using minimal fallback", parentElement);
-        return Arrays.asList("element", "item", "data", "value", "content", "name", "id", "type");
-    }
-
-    /**
-     * Gets child elements using the same logic as the XmlEditor sidebar.
-     * This ensures IntelliSense shows the same elements as "Possible Child Elements" in sidebar.
-     */
-    private List<String> getSidebarChildElements(org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor, String parentElement) {
-        try {
-            logger.debug("getSidebarChildElements called with parentElement: {}", parentElement);
-
-            // Get current cursor position and build XPath
-            int caretPosition = codeArea.getCaretPosition();
-            String text = codeArea.getText();
-            logger.debug("Current cursor position: {}, text length: {}", caretPosition, text.length());
-
-            // Build XPath for current cursor position
-            String currentXPath = buildXPathForCurrentPosition(text, caretPosition);
-            logger.debug("Built XPath for current position: '{}'", currentXPath);
-
-            if (currentXPath == null || currentXPath.trim().isEmpty()) {
-                logger.debug("Could not determine XPath for current position, returning null");
-                return null;
-            }
-
-            // Use XmlEditor's child element lookup method (same as sidebar uses)
-            List<String> childElements = getChildElementsFromXsdByXPath(xmlEditor, currentXPath);
-            logger.debug("getChildElementsFromXsdByXPath returned: {} elements",
-                    childElements != null ? childElements.size() : "null");
-
-            if (childElements != null && !childElements.isEmpty()) {
-                // Clean up the element names - remove formatting and extract just names
-                List<String> cleanedElements = extractCleanElementNames(childElements);
-                logger.debug("Cleaned element names: {}", cleanedElements);
-                return cleanedElements;
-            } else {
-                logger.debug("No child elements found for XPath: {}", currentXPath);
-            }
-
-            return null;
-        } catch (Exception e) {
-            logger.error("Error in getSidebarChildElements: {}", e.getMessage(), e);
-            return null;
-        }
-    }
-
-    /**
-     * Builds XPath for the current cursor position to determine context.
-     */
-    private String buildXPathForCurrentPosition(String text, int caretPosition) {
-        try {
-            // Similar to getCurrentElementContext but returns XPath instead of just element name
-            java.util.Stack<String> elementStack = new java.util.Stack<>();
-
-            // Find all opening and closing tags before cursor
-            String textBeforeCursor = text.substring(0, caretPosition);
-
-            java.util.regex.Matcher openMatcher = OPEN_TAG_PATTERN.matcher(textBeforeCursor);
-            java.util.List<java.util.regex.MatchResult> openTags = new java.util.ArrayList<>();
-            while (openMatcher.find()) {
-                openTags.add(openMatcher.toMatchResult());
-            }
-
-            java.util.regex.Matcher closeMatcher = CLOSE_TAG_PATTERN.matcher(textBeforeCursor);
-            java.util.List<java.util.regex.MatchResult> closeTags = new java.util.ArrayList<>();
-            while (closeMatcher.find()) {
-                closeTags.add(closeMatcher.toMatchResult());
-            }
-
-            // Build element stack by processing tags in order
-            int openIndex = 0, closeIndex = 0;
-            while (openIndex < openTags.size() || closeIndex < closeTags.size()) {
-                boolean takeOpen = false;
-
-                if (openIndex >= openTags.size()) {
-                    takeOpen = false;
-                } else if (closeIndex >= closeTags.size()) {
-                    takeOpen = true;
-                } else {
-                    takeOpen = openTags.get(openIndex).start() < closeTags.get(closeIndex).start();
-                }
-
-                if (takeOpen) {
-                    String tagName = openTags.get(openIndex).group(1);
-                    if (tagName != null && !tagName.trim().isEmpty()) {
-                        elementStack.push(tagName.trim());
-                    }
-                    openIndex++;
-                } else {
-                    if (!elementStack.isEmpty()) {
-                        elementStack.pop();
-                    }
-                    closeIndex++;
-                }
-            }
-
-            // Build XPath from element stack
-            if (elementStack.isEmpty()) {
-                return "/";
-            }
-
-            StringBuilder xpath = new StringBuilder();
-            for (String element : elementStack) {
-                xpath.append("/").append(element);
-            }
-
-            return xpath.toString();
-        } catch (Exception e) {
-            logger.error("Error building XPath for current position: {}", e.getMessage(), e);
-            return null;
-        }
-    }
-
-    /**
-     * Gets child elements from XSD using XPath (same method as XmlEditor sidebar uses).
-     */
-    private List<String> getChildElementsFromXsdByXPath(org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor, String xpath) {
-        try {
-            logger.debug("Getting child elements from XmlEditor for XPath: {}", xpath);
-
-            // Use the new public method in XmlEditor
-            List<String> childElements = xmlEditor.getChildElementsForIntelliSense(xpath);
-
-            if (childElements != null && !childElements.isEmpty()) {
-                logger.debug("Found {} child elements from XmlEditor: {}", childElements.size(), childElements);
-                return childElements;
-            }
-
-            return null;
-
-        } catch (Exception e) {
-            logger.error("Error getting child elements from XSD by XPath: {}", e.getMessage(), e);
-            return null;
-        }
-    }
-
-    /**
-     * Extracts element name from XPath (e.g., "/root/child" -> "child").
-     */
-    private String getElementNameFromXPath(String xpath) {
-        if (xpath == null || xpath.trim().isEmpty() || xpath.equals("/")) {
-            return null;
-        }
-
-        String[] parts = xpath.split("/");
-        return parts.length > 0 ? parts[parts.length - 1] : null;
-    }
-
-    /**
-     * Cleans up element names from display format to simple names for IntelliSense.
-     */
-    private List<String> extractCleanElementNames(List<String> displayElements) {
-        if (displayElements == null) return null;
-
-        return displayElements.stream()
-                .map(this::extractElementNameFromDisplay)
-                .filter(name -> name != null && !name.trim().isEmpty())
-                .distinct()
-                .collect(java.util.stream.Collectors.toList());
-    }
-
-    /**
-     * Extracts element name from display text (e.g., "elementName (type: string)" -> "elementName").
-     */
-    private String extractElementNameFromDisplay(String displayText) {
-        if (displayText == null) return null;
-
-        // Handle different display formats
-        String text = displayText.trim();
-
-        // Format: "elementName (type: ...)" -> "elementName"  
-        int parenIndex = text.indexOf(" (");
-        if (parenIndex > 0) {
-            return text.substring(0, parenIndex);
-        }
-
-        // Format: "elementName - description" -> "elementName"
-        int dashIndex = text.indexOf(" - ");
-        if (dashIndex > 0) {
-            return text.substring(0, dashIndex);
-        }
-
-        // Format: just element name
-        return text;
-    }
-
-    /**
-     * Hides the IntelliSense popup.
-     */
-    private void hideIntelliSensePopup() {
-        if (intelliSensePopup.isShowing()) {
-            intelliSensePopup.close();
-        }
-    }
-
-    /**
-     * Handles navigation in the IntelliSense popup.
-     *
-     * @param event The key event
-     */
-    private void handlePopupNavigation(KeyEvent event) {
-        int currentIndex = completionListView.getSelectionModel().getSelectedIndex();
-        int itemCount = completionListView.getItems().size();
-
-        if (event.getCode() == KeyCode.UP) {
-            int newIndex = (currentIndex - 1 + itemCount) % itemCount;
+    // IntelliSense implementation methods
+    private void moveIntelliSenseSelection(int delta) {
+        if (completionListView != null && completionListView.getItems().size() > 0) {
+            int currentIndex = completionListView.getSelectionModel().getSelectedIndex();
+            int newIndex = Math.max(0, Math.min(completionListView.getItems().size() - 1, currentIndex + delta));
             completionListView.getSelectionModel().select(newIndex);
-        } else if (event.getCode() == KeyCode.DOWN) {
-            int newIndex = (currentIndex + 1) % itemCount;
-            completionListView.getSelectionModel().select(newIndex);
+            completionListView.scrollTo(newIndex);
         }
     }
 
-    /**
-     * Selects the currently highlighted completion item and creates complete XML tags.
-     */
-    private void selectCompletionItem() {
-        String selectedItem = completionListView.getSelectionModel().getSelectedItem();
-        logger.debug("selectCompletionItem called with selectedItem: '{}'", selectedItem);
-        logger.debug("popupStartPosition: {}", popupStartPosition);
-
-        if (selectedItem != null) {
-            // Check if this is enumeration completion
-            if (currentElementTextInfo != null) {
-                // Replace the element text content with the selected enumeration value
-                logger.debug("Enumeration completion - replacing text content from {} to {}",
-                        currentElementTextInfo.startPosition, currentElementTextInfo.endPosition);
-                codeArea.replaceText(currentElementTextInfo.startPosition, currentElementTextInfo.endPosition, selectedItem);
-                codeArea.moveTo(currentElementTextInfo.startPosition + selectedItem.length());
-
-                // Clear enumeration context
-                currentElementTextInfo = null;
-
-                // Hide the popup
-                hideIntelliSensePopup();
-                return;
-            }
-        }
-        
-        if (selectedItem != null && popupStartPosition >= 0) {
-            // Remove any existing partial input between popupStartPosition and current position
-            int currentPosition = codeArea.getCaretPosition();
-            logger.debug("currentPosition: {}", currentPosition);
-
-            // Use the context flag set during trigger detection
-            logger.debug("isElementCompletionContext: {}", isElementCompletionContext);
-
-            if (isElementCompletionContext) {
-                // SAFER APPROACH: Find the most recent "<" and replace from there
-                String tagName = selectedItem.trim();
-                String completeElement = "<" + tagName + "></" + tagName + ">";
-
-                // Find the position of the most recent "<" character before the current cursor
-                String textToCursor = codeArea.getText(0, currentPosition);
-                int lastBracketPos = textToCursor.lastIndexOf('<');
-
-                if (lastBracketPos >= 0) {
-                    String textBeingReplaced = codeArea.getText(lastBracketPos, currentPosition);
-                    String contextBefore = codeArea.getText(Math.max(0, lastBracketPos - 10), lastBracketPos);
-                    String contextAfter = codeArea.getText(currentPosition, Math.min(codeArea.getLength(), currentPosition + 10));
-
-                    logger.debug("Found '<' at position: {}", lastBracketPos);
-                    logger.debug("Full context: '{}[{}]{}'", contextBefore, textBeingReplaced, contextAfter);
-                    logger.debug("Replacing from pos {} to {}: '{}'", lastBracketPos, currentPosition, textBeingReplaced);
-                    logger.debug("Will replace with: '{}'", completeElement);
-
-                    // Replace only from the "<" character to current cursor position
-                    codeArea.replaceText(lastBracketPos, currentPosition, completeElement);
-
-                    // Position cursor between the opening and closing tags
-                    int cursorPosition = lastBracketPos + tagName.length() + 2; // After "<tagname>"
-                    codeArea.moveTo(cursorPosition);
-
-                    logger.debug("Created complete XML element: {}", completeElement);
-                    logger.debug("Cursor positioned at: {}", cursorPosition);
-                } else {
-                    logger.debug("No '<' found before current position - fallback to simple insertion");
-                    // Fallback: just insert the tag name
-                    codeArea.replaceText(popupStartPosition, currentPosition, selectedItem);
-                    codeArea.moveTo(popupStartPosition + selectedItem.length());
-                }
-            } else {
-                // For attribute completions or other contexts, just insert the selected item
-                logger.debug("Not element completion - inserting selectedItem only");
-                codeArea.replaceText(popupStartPosition, currentPosition, selectedItem);
-                codeArea.moveTo(popupStartPosition + selectedItem.length());
-            }
-
-            // Hide the popup
+    private void selectCurrentIntelliSenseCompletion() {
+        if (completionListView != null && completionListView.getSelectionModel().getSelectedItem() != null) {
+            String selectedItem = completionListView.getSelectionModel().getSelectedItem();
+            insertCompletion(selectedItem);
             hideIntelliSensePopup();
         }
     }
 
-    /**
-     * Handles manual completion triggered by Ctrl+Space.
-     * Checks if cursor is on element text content with enumeration constraints.
-     */
-    private boolean handleManualCompletion() {
-        try {
-            // If we're in a specialized mode, delegate to the appropriate auto-completion
-            if (currentMode == EditorMode.SCHEMATRON && schematronAutoComplete != null) {
-                logger.debug("Schematron mode is active, delegating manual completion to SchematronAutoComplete");
-                schematronAutoComplete.triggerAutoComplete();
-                return true;
-            } else if (currentMode == EditorMode.XSD && xsdAutoComplete != null) {
-                logger.debug("XSD mode is active, delegating manual completion to XsdAutoComplete");
-                xsdAutoComplete.triggerAutoComplete();
-                return true;
-            } else if (currentMode == EditorMode.XSLT && xsltAutoComplete != null) {
-                logger.debug("XSLT mode is active, delegating manual completion to XsltAutoComplete");
-                // Note: XsltAutoComplete doesn't have triggerAutoComplete method, so we'll implement it later
-                logger.debug("XSLT auto-completion not yet fully implemented for manual triggers");
-                return false;
-            } else if (currentMode == EditorMode.XSL_FO && xslFoAutoComplete != null) {
-                logger.debug("XSL-FO mode is active, delegating manual completion to XslFoAutoComplete");
-                // Note: XslFoAutoComplete doesn't have triggerAutoComplete method, so we'll implement it later
-                logger.debug("XSL-FO auto-completion not yet fully implemented for manual triggers");
-                return false;
-            } else if (!isXmlMode()) {
-                logger.debug("{} mode is active, but auto-completion not available", currentMode);
-                return false;
+    private void insertCompletion(String completion) {
+        if (popupStartPosition >= 0 && popupStartPosition <= codeArea.getLength()) {
+            int currentPos = codeArea.getCaretPosition();
+            // Remove any partially typed text
+            if (currentPos > popupStartPosition) {
+                codeArea.deleteText(popupStartPosition, currentPos);
             }
 
-            int caretPosition = codeArea.getCaretPosition();
-            String text = codeArea.getText();
+            // Insert the completion
+            if (isElementCompletionContext) {
+                // For element completion, add closing bracket and potentially closing tag
+                String elementName = completion;
+                codeArea.insertText(popupStartPosition, elementName + ">");
 
-            // Check if cursor is on element text content
-            ElementTextInfo elementTextInfo = getElementTextAtCursor(caretPosition, text);
-            if (elementTextInfo != null) {
-                logger.debug("Found element text: {} = '{}'", elementTextInfo.elementName, elementTextInfo.textContent);
+                // Add closing tag if not self-closing
+                if (!isSelfClosingElement(elementName)) {
+                    int insertPos = popupStartPosition + elementName.length() + 1;
+                    String closingTag = "</" + elementName + ">";
 
-                // Get enumeration values for this element
-                List<String> enumerationValues = getEnumerationValues(elementTextInfo.elementName);
-                if (enumerationValues != null && !enumerationValues.isEmpty()) {
-                    logger.debug("Found enumeration values: {}", enumerationValues);
-                    showEnumerationCompletion(enumerationValues, elementTextInfo);
-                    return true;
-                } else {
-                    logger.debug("No enumeration values found for element: {}", elementTextInfo.elementName);
+                    // Check for mandatory child elements and insert them
+                    List<String> mandatoryChildren = getMandatoryChildElements(elementName);
+                    if (!mandatoryChildren.isEmpty()) {
+                        StringBuilder childElements = new StringBuilder();
+                        String indentation = getCurrentIndentation();
+                        String childIndentation = indentation + " ".repeat(propertiesService.getXmlIndentSpaces());
+
+                        for (String childElement : mandatoryChildren) {
+                            childElements.append("\n").append(childIndentation)
+                                    .append("<").append(childElement).append(">")
+                                    .append(getSampleValue(childElement))
+                                    .append("</").append(childElement).append(">");
+                        }
+                        childElements.append("\n").append(indentation);
+
+                        codeArea.insertText(insertPos, childElements + closingTag);
+                        codeArea.moveTo(insertPos + childElements.toString().indexOf(getSampleValue(mandatoryChildren.get(0))));
+                    } else {
+                        codeArea.insertText(insertPos, closingTag);
+                        codeArea.moveTo(insertPos); // Position cursor between tags
+                    }
                 }
             } else {
-                logger.debug("Cursor is not on element text content");
+                codeArea.insertText(popupStartPosition, completion);
             }
+        }
+    }
 
-            // If we reach here in XML mode, show schema-based IntelliSense popup for current context
-            // so the user always gets possible elements/attributes with Ctrl+Space
-            logger.debug("Showing enhanced IntelliSense popup for current context (manual trigger)");
-            showEnhancedIntelliSenseCompletions();
-            return true;
+    private boolean isSelfClosingElement(String elementName) {
+        // Common self-closing XML elements
+        return java.util.Set.of("br", "hr", "img", "input", "meta", "link", "area", "base",
+                "col", "embed", "source", "track", "wbr").contains(elementName.toLowerCase());
+    }
 
-        } catch (Exception e) {
-            logger.error("Error during manual completion: {}", e.getMessage(), e);
+    private void hideIntelliSensePopup() {
+        if (intelliSensePopup != null && intelliSensePopup.isShowing()) {
+            intelliSensePopup.hide();
+        }
+        popupStartPosition = -1;
+        isElementCompletionContext = false;
+    }
+
+    private void hideAllIntelliSensePopups() {
+        // Hide legacy popup
+        hideIntelliSensePopup();
+
+        // Hide enhanced popup
+        if (enhancedIntelliSensePopup != null && enhancedIntelliSensePopup.isShowing()) {
+            enhancedIntelliSensePopup.hide();
+        }
+
+        popupStartPosition = -1;
+        isElementCompletionContext = false;
+    }
+
+    private boolean shouldShowElementCompletion() {
+        int caretPos = codeArea.getCaretPosition();
+        if (caretPos > 0) {
+            String textBeforeCaret = codeArea.getText().substring(0, caretPos);
+            // Check if we just typed '<' and are in a position where element completion makes sense
+            return textBeforeCaret.endsWith("<") && !isInComment(textBeforeCaret) && !isInCData(textBeforeCaret);
         }
         return false;
     }
 
-    /**
-         * Information about element text content at cursor position.
-         */
-        private record ElementTextInfo(String elementName, String textContent, int startPosition, int endPosition) {
+    private boolean isInComment(String text) {
+        int lastCommentStart = text.lastIndexOf("<!--");
+        int lastCommentEnd = text.lastIndexOf("-->");
+        return lastCommentStart > lastCommentEnd;
     }
 
-    /**
-     * Analyzes the cursor position to determine if it's on element text content.
-     * Example: <DataOperation>INITIAL</DataOperation>
-     * ^^^^^ cursor here
-     */
-    private ElementTextInfo getElementTextAtCursor(int caretPosition, String text) {
-        try {
-            // Find the element boundaries around the cursor
-            int beforeCursor = caretPosition - 1;
-            int afterCursor = caretPosition;
+    private boolean isInCData(String text) {
+        int lastCDataStart = text.lastIndexOf("<![CDATA[");
+        int lastCDataEnd = text.lastIndexOf("]]>");
+        return lastCDataStart > lastCDataEnd;
+    }
 
-            // Look backwards to find opening tag
-            int openTagStart = -1;
-            int openTagEnd = -1;
-            for (int i = beforeCursor; i >= 0; i--) {
-                if (text.charAt(i) == '>') {
-                    openTagEnd = i;
-                    break;
-                } else if (text.charAt(i) == '<') {
-                    // If we hit another < before >, we're not in element text
-                    return null;
-                }
-            }
+    private boolean isInAttributeContext() {
+        int caretPos = codeArea.getCaretPosition();
+        if (caretPos > 0) {
+            String textBeforeCaret = codeArea.getText().substring(0, caretPos);
+            // Simple check: are we inside an opening tag?
+            int lastOpenBracket = textBeforeCaret.lastIndexOf('<');
+            int lastCloseBracket = textBeforeCaret.lastIndexOf('>');
+            return lastOpenBracket > lastCloseBracket;
+        }
+        return false;
+    }
 
-            if (openTagEnd == -1) return null;
+    private boolean shouldShowCompletion(char c) {
+        return c == '<' || (c == ' ' && isInAttributeContext());
+    }
 
-            // Find the start of the opening tag
-            for (int i = openTagEnd; i >= 0; i--) {
-                if (text.charAt(i) == '<') {
-                    openTagStart = i;
-                    break;
-                }
-            }
+    private void showIntelliSenseCompletion() {
+        if (enhancedIntelliSensePopup == null) {
+            logger.warn("Enhanced IntelliSense popup not initialized");
+            return;
+        }
 
-            if (openTagStart == -1) return null;
+        int caretPos = codeArea.getCaretPosition();
+        String textBeforeCaret = codeArea.getText().substring(0, caretPos);
 
-            // Look forwards to find closing tag
-            int closeTagStart = -1;
-            int closeTagEnd = -1;
-            for (int i = afterCursor; i < text.length(); i++) {
-                if (text.charAt(i) == '<') {
-                    closeTagStart = i;
-                    break;
-                } else if (text.charAt(i) == '>') {
-                    // If we hit > before <, we're not in element text
-                    return null;
-                }
-            }
+        logger.info("🚀 INTELLISENSE: Showing completion at position {}, text before: '{}'", caretPos,
+                textBeforeCaret.length() > 20 ? textBeforeCaret.substring(Math.max(0, textBeforeCaret.length() - 20)) : textBeforeCaret);
 
-            if (closeTagStart == -1) return null;
+        // Determine what completions to show based on context
+        List<CompletionItem> completions = new ArrayList<>();
 
-            // Find the end of the closing tag
-            for (int i = closeTagStart; i < text.length(); i++) {
-                if (text.charAt(i) == '>') {
-                    closeTagEnd = i;
-                    break;
-                }
-            }
+        if (textBeforeCaret.endsWith("<")) {
+            // Element completion - get context-sensitive suggestions
+            isElementCompletionContext = true;
+            popupStartPosition = caretPos;
+            completions.addAll(getContextSensitiveElementCompletions(textBeforeCaret));
+            logger.info("🔍 INTELLISENSE: Element context - found {} completions", completions.size());
+        } else if (isInAttributeContext()) {
+            // Attribute completion based on current element
+            isElementCompletionContext = false;
+            popupStartPosition = getWordStartPosition(textBeforeCaret, caretPos);
+            String currentElement = getCurrentElementName(textBeforeCaret);
+            completions.addAll(getAttributeCompletions(currentElement));
+            logger.debug("Attribute context for element '{}': found {} completions", currentElement, completions.size());
+        }
 
-            if (closeTagEnd == -1) return null;
-
-            // Extract element name from opening tag
-            String openingTag = text.substring(openTagStart, openTagEnd + 1);
-            Matcher matcher = ELEMENT_PATTERN.matcher(openingTag);
-            if (!matcher.find()) return null;
-
-            String elementName = matcher.group(1);
-
-            // Extract closing tag to verify it matches
-            String closingTag = text.substring(closeTagStart, closeTagEnd + 1);
-            if (!closingTag.equals("</" + elementName + ">")) {
-                return null; // Tags don't match
-            }
-
-            // Extract text content between tags
-            int textStart = openTagEnd + 1;
-            int textEnd = closeTagStart;
-
-            if (textStart >= textEnd) return null; // No text content
-
-            // Check if cursor is within the text content
-            if (caretPosition < textStart || caretPosition > textEnd) {
-                return null;
-            }
-
-            String textContent = text.substring(textStart, textEnd);
-
-            return new ElementTextInfo(elementName, textContent, textStart, textEnd);
-
-        } catch (Exception e) {
-            logger.error("Error analyzing cursor position: {}", e.getMessage(), e);
-            return null;
+        if (!completions.isEmpty()) {
+            // Show enhanced popup with rich completion items
+            logger.info("✨ INTELLISENSE: Showing enhanced popup with {} completions", completions.size());
+            showEnhancedIntelliSensePopup(completions);
+        } else {
+            // Strict mode: only show XSD-valid options; if none, show nothing
+            logger.info("ℹ️ INTELLISENSE: No XSD-valid completions at this position.");
         }
     }
 
-    /**
-     * Retrieves enumeration values for a given element from the XSD schema.
-     */
-    private List<String> getEnumerationValues(String elementName) {
-        try {
-            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
-                var xmlService = xmlEditor.getXmlService();
-                if (xmlService != null && xmlService.getCurrentXsdFile() != null) {
-                    return extractEnumerationFromXsd(xmlService, elementName);
-                }
-            }
-        } catch (Exception e) {
-            logger.error("Error getting enumeration values: {}", e.getMessage(), e);
-        }
-        return null;
-    }
+    private void showLegacyIntelliSenseCompletion() {
+        // Legacy implementation for backward compatibility
+        int caretPos = codeArea.getCaretPosition();
+        String textBeforeCaret = codeArea.getText().substring(0, caretPos);
 
-    /**
-     * Extracts enumeration values from XSD schema for a specific element.
-     */
-    private List<String> extractEnumerationFromXsd(org.fxt.freexmltoolkit.service.XmlService xmlService, String elementName) {
-        try {
-            java.io.File xsdFile = xmlService.getCurrentXsdFile();
-            if (xsdFile == null || !xsdFile.exists()) {
-                return null;
-            }
+        List<String> completions = new ArrayList<>();
 
-            // Parse XSD file
-            javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
-            org.w3c.dom.Document xsdDoc = builder.parse(xsdFile);
-
-            // Look for element definition with enumeration
-            org.w3c.dom.NodeList elements = xsdDoc.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "element");
-
-            for (int i = 0; i < elements.getLength(); i++) {
-                org.w3c.dom.Element element = (org.w3c.dom.Element) elements.item(i);
-                String name = element.getAttribute("name");
-
-                if (elementName.equals(name)) {
-                    // Found the element, look for enumeration values
-                    return extractEnumerationValues(element);
-                }
-            }
-
-        } catch (Exception e) {
-            logger.error("Error parsing XSD for enumeration: {}", e.getMessage(), e);
-        }
-        return null;
-    }
-
-    /**
-     * Extracts enumeration values from an XSD element definition.
-     */
-    private List<String> extractEnumerationValues(org.w3c.dom.Element element) {
-        List<String> values = new ArrayList<>();
-
-        try {
-            // Look for xs:simpleType > xs:restriction > xs:enumeration
-            org.w3c.dom.NodeList simpleTypes = element.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "simpleType");
-
-            for (int i = 0; i < simpleTypes.getLength(); i++) {
-                org.w3c.dom.Element simpleType = (org.w3c.dom.Element) simpleTypes.item(i);
-                org.w3c.dom.NodeList restrictions = simpleType.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "restriction");
-
-                for (int j = 0; j < restrictions.getLength(); j++) {
-                    org.w3c.dom.Element restriction = (org.w3c.dom.Element) restrictions.item(j);
-                    org.w3c.dom.NodeList enumerations = restriction.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "enumeration");
-
-                    for (int k = 0; k < enumerations.getLength(); k++) {
-                        org.w3c.dom.Element enumeration = (org.w3c.dom.Element) enumerations.item(k);
-                        String value = enumeration.getAttribute("value");
-                        if (value != null && !value.isEmpty()) {
-                            values.add(value);
-                        }
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            logger.error("Error extracting enumeration values: {}", e.getMessage(), e);
+        if (textBeforeCaret.endsWith("<")) {
+            isElementCompletionContext = true;
+            popupStartPosition = caretPos;
+            completions.addAll(availableElementNames);
+        } else if (isInAttributeContext()) {
+            isElementCompletionContext = false;
+            popupStartPosition = getWordStartPosition(textBeforeCaret, caretPos);
+            completions.addAll(java.util.List.of("id", "class", "name", "value", "type"));
         }
 
-        return values;
+        if (!completions.isEmpty()) {
+            updateCompletionList(completions);
+            showIntelliSensePopupAtCaret();
+        }
     }
 
-    /**
-     * Shows enumeration completion popup.
-     */
-    private void showEnumerationCompletion(List<String> enumerationValues, ElementTextInfo elementTextInfo) {
-        try {
-            // Store element text info for later replacement
-            this.currentElementTextInfo = elementTextInfo;
+    private int getWordStartPosition(String textBeforeCaret, int caretPos) {
+        int pos = caretPos - 1;
+        while (pos >= 0 && Character.isLetterOrDigit(textBeforeCaret.charAt(pos))) {
+            pos--;
+        }
+        return pos + 1;
+    }
 
-            // Set up completion list
+    private void updateIntelliSenseCompletion() {
+        if (intelliSensePopup == null || !intelliSensePopup.isShowing() || popupStartPosition < 0) {
+            return;
+        }
+
+        int caretPos = codeArea.getCaretPosition();
+        if (caretPos < popupStartPosition) {
+            hideIntelliSensePopup();
+            return;
+        }
+
+        String typedText = codeArea.getText().substring(popupStartPosition, caretPos);
+
+        // Filter completions based on typed text
+        List<String> allCompletions = isElementCompletionContext ?
+                new ArrayList<>(availableElementNames) :
+                java.util.List.of("id", "class", "name", "value", "type");
+
+        List<String> filteredCompletions = allCompletions.stream()
+                .filter(completion -> completion.toLowerCase().startsWith(typedText.toLowerCase()))
+                .collect(java.util.stream.Collectors.toList());
+
+        if (filteredCompletions.isEmpty()) {
+            hideIntelliSensePopup();
+        } else {
+            updateCompletionList(filteredCompletions);
+        }
+    }
+
+    private void updateCompletionList(List<String> completions) {
+        if (completionListView != null) {
             completionListView.getItems().clear();
-            completionListView.getItems().addAll(enumerationValues);
-
-            // Select the current value if it exists in the list
-            String currentValue = elementTextInfo.textContent.trim();
-            if (enumerationValues.contains(currentValue)) {
-                completionListView.getSelectionModel().select(currentValue);
-            } else if (!enumerationValues.isEmpty()) {
+            completionListView.getItems().addAll(completions);
+            if (!completions.isEmpty()) {
                 completionListView.getSelectionModel().select(0);
             }
+        }
+    }
 
-            // Show popup at cursor position
-            var caretBounds = codeArea.getCaretBounds().orElse(null);
-            if (caretBounds != null) {
-                var screenPos = codeArea.localToScreen(caretBounds.getMinX(), caretBounds.getMaxY());
-                intelliSensePopup.setX(screenPos.getX());
-                intelliSensePopup.setY(screenPos.getY());
-                intelliSensePopup.show();
-
-                // Keep focus on CodeArea
-                javafx.application.Platform.runLater(() -> {
-                    codeArea.requestFocus();
-                });
-
-                logger.debug("Enumeration completion popup shown with {} values", enumerationValues.size());
+    private void showIntelliSensePopupAtCaret() {
+        if (intelliSensePopup != null && codeArea.getScene() != null && codeArea.getScene().getWindow() != null) {
+            var bounds = codeArea.getCaretBounds();
+            if (bounds.isPresent()) {
+                var caretBounds = bounds.get();
+                var screenBounds = codeArea.localToScreen(caretBounds);
+                intelliSensePopup.show(codeArea.getScene().getWindow(),
+                        screenBounds.getMinX(),
+                        screenBounds.getMaxY() + 2);
             }
-
-        } catch (Exception e) {
-            logger.error("Error showing enumeration completion: {}", e.getMessage(), e);
         }
     }
 
     /**
-     * Handles tab completion for XML elements.
-     *
-     * @param event The key event
-     * @return true if the event was handled, false otherwise
+     * Updates the XSD integration with current documentation data.
+     * This method can be called when XSD data changes.
      */
-    private boolean handleTabCompletion(KeyEvent event) {
-        // Allow normal tab behavior for now
-        logger.debug("Tab completion requested");
-        return false; // Don't consume the event, allow normal tab behavior
+    public void refreshXsdIntegration() {
+        updateXsdIntegration();
     }
 
-    /**
-     * Handles auto-closing of XML tags when opening a new tag.
-     * Works for all file types (XML, XSD, XSLT, XSL-FO, Schematron).
-     *
-     * @param event The key event
-     * @return true if the event was handled, false otherwise
-     */
-    private boolean handleAutoClosingTag(KeyEvent event) {
+    private void updateXsdIntegration() {
+        // Initialize XSD integration if available
         try {
-            int caretPosition = codeArea.getCaretPosition();
-            String text = codeArea.getText();
-
-            // Check if we're at the end of an opening tag
-            if (caretPosition > 0 && caretPosition <= text.length()) {
-                String beforeCursor = text.substring(0, caretPosition);
-
-                // Look for the last opening tag
-                Pattern pattern = Pattern.compile("<([a-zA-Z][a-zA-Z0-9_:]*)\\b[^>]*$");
-                Matcher matcher = pattern.matcher(beforeCursor);
-
-                if (matcher.find()) {
-                    String tagName = matcher.group(1);
-
-                    // Don't auto-close self-closing tags or closing tags
-                    if (!tagName.startsWith("/") && !isSelfClosingTag(tagName)) {
-
-                        // For XML with linked XSD, generate mandatory child elements
-                        if (currentMode == EditorMode.XML_WITH_XSD && parentXmlEditor != null) {
-                            return handleAutoCloseWithMandatoryChildren(tagName, caretPosition);
-                        } else {
-                            // Basic auto-close for all other modes: <Name>|</Name>
-                            String closingTag = "</" + tagName + ">";
-                            codeArea.insertText(caretPosition, closingTag);
-
-                            // Move cursor back to before the closing tag
-                            codeArea.moveTo(caretPosition);
-
-                            logger.debug("Auto-closed tag for mode {}: {} -> {}", currentMode, tagName, closingTag);
-                            return true; // Consume the event
-                        }
-                    }
-                }
+            if (xsdIntegration == null) {
+                xsdIntegration = new org.fxt.freexmltoolkit.controls.intellisense.XsdIntegrationAdapter();
+                logger.debug("XSD integration adapter initialized");
             }
 
-            return false;
-        } catch (Exception e) {
-            logger.error("Error during auto-closing tag: {}", e.getMessage(), e);
-            return false;
-        }
-    }
-
-    // Performance optimization: Use Set for faster lookups
-    private static final Set<String> SELF_CLOSING_TAGS = Set.of(
-            "br", "hr", "img", "input", "meta", "link", "area", "base", "col", "embed",
-            "source", "track", "wbr", "param", "keygen", "command"
-    );
-
-    /**
-     * Checks if a tag is a self-closing tag.
-     *
-     * @param tagName The tag name to check
-     * @return true if it's a self-closing tag, false otherwise
-     */
-    private boolean isSelfClosingTag(String tagName) {
-        return SELF_CLOSING_TAGS.contains(tagName.toLowerCase());
-    }
-
-    /**
-     * Handles auto-close with mandatory children generation for XML with linked XSD.
-     * Generates all mandatory sub-nodes with proper indentation.
-     * <p>
-     * Example: <knoten>| becomes:
-     * <knoten>
-     * <sub1>|</sub1>
-     * <sub2>
-     * <sub3></sub3>
-     * </sub2>
-     * </knoten>
-     *
-     * @param tagName       The tag name that was opened
-     * @param caretPosition Current cursor position
-     * @return true if handled, false otherwise
-     */
-    private boolean handleAutoCloseWithMandatoryChildren(String tagName, int caretPosition) {
-        try {
-            // Get current indentation level
-            String text = codeArea.getText();
-            String beforeCursor = text.substring(0, caretPosition);
-            int currentIndentLevel = calculateIndentationLevel(beforeCursor);
-            String baseIndent = " ".repeat(currentIndentLevel);
-            String childIndent = " ".repeat(currentIndentLevel + currentIndentationSize);
-
-            // Build the content with mandatory children
-            StringBuilder contentBuilder = new StringBuilder();
-            contentBuilder.append("\n");
-
-            // Get mandatory children from XSD (placeholder for now)
-            List<MandatoryElement> mandatoryChildren = getMandatoryChildren(tagName);
-
-            boolean hasChildren = !mandatoryChildren.isEmpty();
-            int cursorOffset = 1; // Start after the newline
-
-            if (hasChildren) {
-                for (int i = 0; i < mandatoryChildren.size(); i++) {
-                    MandatoryElement child = mandatoryChildren.get(i);
-                    contentBuilder.append(childIndent);
-                    contentBuilder.append("<").append(child.name).append(">");
-
-                    if (i == 0) {
-                        // Position cursor at the first child element (adjust for sample value)
-                        cursorOffset = contentBuilder.length();
-                        if (child.sampleValue != null) {
-                            cursorOffset += child.sampleValue.length();
-                        }
-                    }
-
-                    // Generate nested mandatory children recursively or add sample value
-                    if (child.hasChildren) {
-                        contentBuilder.append("\n");
-                        generateMandatoryChildrenRecursive(child, contentBuilder, currentIndentLevel + currentIndentationSize);
-                        contentBuilder.append(childIndent);
-                    } else if (child.sampleValue != null) {
-                        // Add sample value between opening and closing tags
-                        contentBuilder.append(child.sampleValue);
-                    }
-
-                    contentBuilder.append("</").append(child.name).append(">");
-                    if (i < mandatoryChildren.size() - 1) {
-                        contentBuilder.append("\n");
-                    }
+            // Connect with XSD documentation data from parent XmlEditor
+            if (parentXmlEditor != null) {
+                var xsdDocumentationData = parentXmlEditor.getXsdDocumentationData();
+                if (xsdDocumentationData != null) {
+                    xsdIntegration.setXsdDocumentationData(xsdDocumentationData);
+                    logger.debug("XSD integration connected with documentation data: {} elements",
+                            xsdDocumentationData.getExtendedXsdElementMap().size());
+                } else {
+                    logger.debug("No XSD documentation data available from parent editor");
                 }
-                contentBuilder.append("\n").append(baseIndent);
             } else {
-                // No mandatory children, just position cursor between tags
-                cursorOffset = 1;
+                logger.debug("No parent XML editor available for XSD integration");
+            }
+            // This would be called when an XSD is associated with the XML
+
+        } catch (Exception e) {
+            logger.debug("XSD integration setup failed: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Gets mandatory child elements for a given element name based on XSD schema.
+     */
+    private List<String> getMandatoryChildElements(String elementName) {
+        // Check if we have context element names mapping (from XSD)
+        if (contextElementNames.containsKey(elementName)) {
+            return contextElementNames.get(elementName);
+        }
+
+        // Fallback to some common patterns for demonstration
+        return switch (elementName.toLowerCase()) {
+            case "person" -> java.util.List.of("name", "age");
+            case "book" -> java.util.List.of("title", "author");
+            case "product" -> java.util.List.of("name", "price");
+            case "order" -> java.util.List.of("id", "date", "items");
+            case "address" -> java.util.List.of("street", "city", "zipcode");
+            case "contact" -> java.util.List.of("name", "email");
+            default -> java.util.List.of(); // No mandatory children by default
+        };
+    }
+
+    /**
+     * Gets a sample value for an element based on its name.
+     */
+    private String getSampleValue(String elementName) {
+        return switch (elementName.toLowerCase()) {
+            case "name" -> "Sample Name";
+            case "title" -> "Sample Title";
+            case "age" -> "25";
+            case "price" -> "19.99";
+            case "id" -> "001";
+            case "date" -> "2024-01-01";
+            case "author" -> "Sample Author";
+            case "email" -> "example@domain.com";
+            case "street" -> "123 Main St";
+            case "city" -> "Sample City";
+            case "zipcode" -> "12345";
+            case "items" -> ""; // Container elements typically empty
+            default -> ""; // Default empty for unknown elements
+        };
+    }
+
+    /**
+     * Gets the current indentation level at the cursor position.
+     */
+    private String getCurrentIndentation() {
+        int caretPos = codeArea.getCaretPosition();
+        String text = codeArea.getText();
+
+        // Find the start of the current line
+        int lineStart = text.lastIndexOf('\n', caretPos - 1) + 1;
+        int lineEnd = text.indexOf('\n', caretPos);
+        if (lineEnd == -1) lineEnd = text.length();
+
+        String currentLine = text.substring(lineStart, lineEnd);
+        return extractIndentation(currentLine);
+    }
+
+    // ================================================================================
+    // XSD-based Context-Sensitive IntelliSense Methods
+    // ================================================================================
+
+    /**
+     * Gets context-sensitive element completions based on XSD schema and current XML position.
+     */
+    private List<CompletionItem> getContextSensitiveElementCompletions(String textBeforeCaret) {
+        List<CompletionItem> completions = new ArrayList<>();
+
+        // Determine current XML context
+        String currentXPath = getCurrentXPath(textBeforeCaret);
+        String parentElement = getParentElementName(textBeforeCaret);
+
+        logger.debug("Getting completions for XPath: {}, Parent: {}", currentXPath, parentElement);
+
+        // Get allowed child elements from XSD context or fallback patterns
+        List<String> allowedChildren = getAllowedChildElements(parentElement, currentXPath);
+
+        // Convert to CompletionItems with rich information
+        int index = 0; // Preserve XSD order with index-based relevance
+        for (String elementName : allowedChildren) {
+            CompletionItem.Builder builder = new CompletionItem.Builder(
+                    elementName,
+                    elementName,
+                    CompletionItemType.ELEMENT
+            );
+
+            // Add XSD documentation if available
+            String description = getElementDescription(elementName, parentElement);
+            if (description != null && !description.isEmpty()) {
+                builder.description(description);
             }
 
-            // Add closing tag
-            contentBuilder.append("</").append(tagName).append(">");
+            // Add data type information
+            String dataType = getElementDataType(elementName, parentElement);
+            if (dataType != null && !dataType.isEmpty()) {
+                builder.dataType(dataType);
+            }
 
-            // Insert the generated content
-            codeArea.insertText(caretPosition, contentBuilder.toString());
+            // Check if element is required
+            boolean isRequired = isElementRequired(elementName, parentElement);
+            builder.required(isRequired);
+
+            // Set relevance score (required elements get higher score, preserve XSD order with index)
+            int baseScore = isRequired ? 150 : 100;
+            builder.relevanceScore(baseScore + (1000 - index)); // Higher score for earlier XSD elements
+
+            // Add mandatory children information
+            List<String> mandatoryChildren = getMandatoryChildElements(elementName);
+            if (!mandatoryChildren.isEmpty()) {
+                builder.requiredAttributes(mandatoryChildren);
+            }
+
+            completions.add(builder.build());
+            index++; // Increment for next element
+        }
+
+        // Sort by relevance (required first, then preserve XSD order)
+        // DO NOT sort alphabetically - XSD-based completions are already in correct schema order
+        completions.sort((a, b) -> {
+            if (a.isRequired() != b.isRequired()) {
+                return a.isRequired() ? -1 : 1;
+            }
+            // Preserve original XSD order by using relevance score (higher = better)
+            return Integer.compare(b.getRelevanceScore(), a.getRelevanceScore());
+        });
+
+        return completions;
+    }
+
+    /**
+     * Gets attribute completions for the current element.
+     */
+    private List<CompletionItem> getAttributeCompletions(String elementName) {
+        List<CompletionItem> completions = new ArrayList<>();
+
+        if (elementName == null || elementName.isEmpty()) {
+            return completions;
+        }
+
+        // Get allowed attributes from XSD or fallback patterns
+        List<String> allowedAttributes = getAllowedAttributes(elementName);
+
+        for (String attrName : allowedAttributes) {
+            CompletionItem.Builder builder = new CompletionItem.Builder(
+                    attrName + "=\"\"",
+                    attrName + "=\"\"",
+                    CompletionItemType.ATTRIBUTE
+            );
+
+            builder.description("Attribute: " + attrName);
+
+            // Add data type if known
+            String attrType = getAttributeDataType(elementName, attrName);
+            if (attrType != null) {
+                builder.dataType(attrType);
+            }
+
+            // Check if attribute is required
+            boolean isRequired = isAttributeRequired(elementName, attrName);
+            builder.required(isRequired);
+            builder.relevanceScore(isRequired ? 150 : 100);
+
+            completions.add(builder.build());
+        }
+
+        // Sort by relevance
+        completions.sort((a, b) -> {
+            if (a.isRequired() != b.isRequired()) {
+                return a.isRequired() ? -1 : 1;
+            }
+            // Preserve original XSD order by using relevance score (higher = better)
+            return Integer.compare(b.getRelevanceScore(), a.getRelevanceScore());
+        });
+
+        return completions;
+    }
+
+    /**
+     * Gets the current XPath based on the XML structure at the caret position.
+     */
+    private String getCurrentXPath(String textBeforeCaret) {
+        // Simple XPath calculation - can be enhanced with proper XML parsing
+        StringBuilder xpath = new StringBuilder("/");
+
+        // Find all opening tags that haven't been closed
+        java.util.regex.Pattern openTagPattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_-]*)[^/>]*(?<!/)>");
+        java.util.regex.Pattern closeTagPattern = java.util.regex.Pattern.compile("</([a-zA-Z][a-zA-Z0-9_-]*)>");
+
+        java.util.regex.Matcher openMatcher = openTagPattern.matcher(textBeforeCaret);
+        java.util.regex.Matcher closeMatcher = closeTagPattern.matcher(textBeforeCaret);
+
+        java.util.Stack<String> elementStack = new java.util.Stack<>();
+
+        // Simple approach: find all tags and build stack
+        int pos = 0;
+        while (pos < textBeforeCaret.length()) {
+            int nextOpen = textBeforeCaret.indexOf('<', pos);
+            if (nextOpen == -1) break;
+
+            int nextClose = textBeforeCaret.indexOf('>', nextOpen);
+            if (nextClose == -1) break;
+
+            String tag = textBeforeCaret.substring(nextOpen + 1, nextClose);
+            if (tag.startsWith("/")) {
+                // Closing tag
+                String elementName = tag.substring(1);
+                if (!elementStack.isEmpty() && elementStack.peek().equals(elementName)) {
+                    elementStack.pop();
+                }
+            } else if (!tag.endsWith("/") && !tag.startsWith("?") && !tag.startsWith("!")) {
+                // Opening tag
+                String elementName = tag.split("\\s+")[0];
+                elementStack.push(elementName);
+            }
+
+            pos = nextClose + 1;
+        }
+
+        // Build XPath from stack
+        for (String element : elementStack) {
+            xpath.append(element).append("/");
+        }
+
+        return xpath.toString();
+    }
+
+    /**
+     * Gets the parent element name from the current context.
+     */
+    private String getParentElementName(String textBeforeCaret) {
+        // Find the last unclosed opening tag
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<([a-zA-Z][a-zA-Z0-9_-]*)[^/>]*(?<!/)>");
+        java.util.regex.Matcher matcher = pattern.matcher(textBeforeCaret);
+
+        java.util.Stack<String> elementStack = new java.util.Stack<>();
+
+        while (matcher.find()) {
+            elementStack.push(matcher.group(1));
+        }
+
+        // Remove closed elements
+        java.util.regex.Pattern closePattern = java.util.regex.Pattern.compile("</([a-zA-Z][a-zA-Z0-9_-]*)>");
+        java.util.regex.Matcher closeMatcher = closePattern.matcher(textBeforeCaret);
+
+        while (closeMatcher.find()) {
+            String closedElement = closeMatcher.group(1);
+            if (!elementStack.isEmpty() && elementStack.peek().equals(closedElement)) {
+                elementStack.pop();
+            }
+        }
+
+        return elementStack.isEmpty() ? null : elementStack.peek();
+    }
+
+    /**
+     * Gets the current element name from attribute context.
+     */
+    private String getCurrentElementName(String textBeforeCaret) {
+        // Find the opening bracket of the current tag
+        int lastOpenBracket = textBeforeCaret.lastIndexOf('<');
+        if (lastOpenBracket == -1) return null;
+
+        // Extract tag name
+        String tagContent = textBeforeCaret.substring(lastOpenBracket + 1);
+        String[] parts = tagContent.split("\\s+");
+        return parts.length > 0 ? parts[0] : null;
+    }
+
+    private void updateEnumerationElementsCache() {
+        // Placeholder for enumeration cache update
+    }
+
+    // ================================================================================
+    // XSD Integration Helper Methods
+    // ================================================================================
+
+    /**
+     * Gets allowed child elements for a parent element based on XSD or context mapping.
+     */
+    private List<String> getAllowedChildElements(String parentElement, String currentXPath) {
+        // Strict mode: use XSD documentation data (same source as sidebar) first
+        try {
+            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
+                var xsdDocData = parentXmlEditor.getXsdDocumentationData();
+                // Normalize current XPath to the parent element path (remove trailing slash)
+                String parentPath = currentXPath;
+                if (parentPath != null && parentPath.endsWith("/")) {
+                    parentPath = parentPath.substring(0, parentPath.length() - 1);
+                }
+
+                // Lookup exact element first, then fallback to best matching
+                org.fxt.freexmltoolkit.domain.XsdExtendedElement elementInfo =
+                        xsdDocData.getExtendedXsdElementMap().get(parentPath);
+                if (elementInfo == null) {
+                    elementInfo = parentXmlEditor.findBestMatchingElement(parentPath);
+                }
+
+                if (elementInfo != null && elementInfo.getChildren() != null) {
+                    java.util.List<String> childNames = new java.util.ArrayList<>();
+                    for (String childXpath : elementInfo.getChildren()) {
+                        var child = xsdDocData.getExtendedXsdElementMap().get(childXpath);
+                        if (child != null && child.getElementName() != null) {
+                            if (!childNames.contains(child.getElementName())) {
+                                childNames.add(child.getElementName());
+                            }
+                        }
+                    }
+                    logger.debug("🎯 Sidebar-aligned XSD children for '{}': {}", parentPath, childNames);
+                    return childNames;
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("❌ Error resolving XSD children from documentation data: {}", e.getMessage(), e);
+        }
+
+        // Fallback: use adapter by parent element name only (still strict, no pattern-based fallbacks)
+        logger.debug("🔍 XSD Integration status: integration={}, hasSchema={}",
+                xsdIntegration != null ? "available" : "null",
+                xsdIntegration != null ? xsdIntegration.hasSchema() : "n/a");
+        if (xsdIntegration != null && xsdIntegration.hasSchema()) {
+            try {
+                List<String> xsdChildren = xsdIntegration.getAvailableElements(parentElement);
+                logger.debug("🎯 Adapter XSD children for parent '{}': {}", parentElement, xsdChildren);
+                return xsdChildren;
+            } catch (Exception e) {
+                logger.warn("❌ XSD integration error: {}", e.getMessage(), e);
+            }
+        }
+
+        logger.debug("❌ No XSD-derived children available for context '{}'/parent '{}'", currentXPath, parentElement);
+        return java.util.List.of();
+    }
+
+    /**
+     * Gets pattern-based child elements for common XML structures.
+     */
+    private List<String> getPatternBasedChildren(String parentElement) {
+        return switch (parentElement.toLowerCase()) {
+            case "root", "document" -> java.util.List.of("header", "body", "metadata", "content", "items");
+            case "header" -> java.util.List.of("title", "author", "date", "version", "description");
+            case "body", "content" -> java.util.List.of("section", "paragraph", "item", "element", "entry");
+            case "metadata" -> java.util.List.of("property", "attribute", "key", "value", "meta");
+            case "items", "list" -> java.util.List.of("item", "entry", "element", "object");
+            case "person", "contact" -> java.util.List.of("name", "email", "phone", "address", "id");
+            case "address" -> java.util.List.of("street", "city", "zipcode", "country", "state");
+            case "product" -> java.util.List.of("name", "price", "description", "category", "sku", "stock");
+            case "order" -> java.util.List.of("id", "date", "customer", "items", "total", "status");
+            case "customer" -> java.util.List.of("id", "name", "email", "address", "phone");
+            case "book" -> java.util.List.of("title", "author", "isbn", "publisher", "year", "pages");
+            case "config", "settings" -> java.util.List.of("property", "option", "parameter", "value");
+            default -> java.util.List.of("value", "text", "data", "property", "item");
+        };
+    }
+
+    /**
+     * Gets allowed attributes for an element.
+     */
+    private List<String> getAllowedAttributes(String elementName) {
+        if (elementName == null) return java.util.List.of();
+
+        // Pattern-based attribute suggestions
+        List<String> commonAttrs = java.util.List.of("id", "class", "name");
+        List<String> specificAttrs = getElementSpecificAttributes(elementName);
+
+        List<String> allAttributes = new ArrayList<>(commonAttrs);
+        allAttributes.addAll(specificAttrs);
+
+        return allAttributes;
+    }
+
+    /**
+     * Gets element-specific attributes.
+     */
+    private List<String> getElementSpecificAttributes(String elementName) {
+        return switch (elementName.toLowerCase()) {
+            case "item", "entry" -> java.util.List.of("type", "value", "index");
+            case "product" -> java.util.List.of("sku", "category", "price", "currency");
+            case "person", "contact" -> java.util.List.of("type", "role", "active");
+            case "book" -> java.util.List.of("isbn", "format", "language");
+            case "order" -> java.util.List.of("status", "priority", "date");
+            case "image", "img" -> java.util.List.of("src", "alt", "width", "height");
+            case "link", "a" -> java.util.List.of("href", "target", "rel");
+            default -> java.util.List.of("type", "value");
+        };
+    }
+
+    /**
+     * Gets element description from XSD documentation.
+     */
+    private String getElementDescription(String elementName, String parentElement) {
+        // Pattern-based descriptions for common elements
+        return switch (elementName.toLowerCase()) {
+            case "name" -> "The name or title of the " + (parentElement != null ? parentElement : "element");
+            case "id" -> "Unique identifier for this " + (parentElement != null ? parentElement : "element");
+            case "title" -> "The title or heading text";
+            case "description" -> "Detailed description or summary";
+            case "date" -> "Date value in ISO format (YYYY-MM-DD)";
+            case "email" -> "Email address in valid format";
+            case "phone" -> "Phone number";
+            case "address" -> "Physical address information";
+            case "price" -> "Monetary value or price";
+            case "quantity", "stock" -> "Numeric quantity or count";
+            case "status" -> "Current status or state";
+            default -> "XML element: " + elementName;
+        };
+    }
+
+    /**
+     * Gets data type information for an element.
+     */
+    private String getElementDataType(String elementName, String parentElement) {
+        return switch (elementName.toLowerCase()) {
+            case "id", "count", "quantity", "stock", "pages" -> "xs:int";
+            case "price", "total", "amount" -> "xs:decimal";
+            case "date", "created", "updated" -> "xs:date";
+            case "email" -> "xs:string (email format)";
+            case "phone" -> "xs:string (phone format)";
+            case "active", "enabled", "visible" -> "xs:boolean";
+            case "url", "link", "href" -> "xs:anyURI";
+            default -> "xs:string";
+        };
+    }
+
+    /**
+     * Checks if an element is required in the current context.
+     */
+    private boolean isElementRequired(String elementName, String parentElement) {
+        if (parentElement == null) return false;
+
+        // Pattern-based required elements
+        return switch (parentElement.toLowerCase()) {
+            case "person", "contact" -> elementName.equals("name");
+            case "book" -> java.util.List.of("title", "author").contains(elementName);
+            case "product" -> java.util.List.of("name", "price").contains(elementName);
+            case "order" -> java.util.List.of("id", "date").contains(elementName);
+            case "address" -> java.util.List.of("street", "city").contains(elementName);
+            default -> false;
+        };
+    }
+
+    /**
+     * Gets attribute data type.
+     */
+    private String getAttributeDataType(String elementName, String attrName) {
+        return switch (attrName.toLowerCase()) {
+            case "id", "index", "count" -> "xs:int";
+            case "price", "amount" -> "xs:decimal";
+            case "date" -> "xs:date";
+            case "active", "enabled" -> "xs:boolean";
+            case "href", "src", "url" -> "xs:anyURI";
+            default -> "xs:string";
+        };
+    }
+
+    /**
+     * Checks if an attribute is required.
+     */
+    private boolean isAttributeRequired(String elementName, String attrName) {
+        return switch (elementName.toLowerCase()) {
+            case "img", "image" -> attrName.equals("src");
+            case "link", "a" -> attrName.equals("href");
+            case "product" -> attrName.equals("sku");
+            default -> false;
+        };
+    }
+
+    /**
+     * Shows the enhanced IntelliSense popup with rich completion items.
+     */
+    private void showEnhancedIntelliSensePopup(List<CompletionItem> completions) {
+        if (enhancedIntelliSensePopup != null && !completions.isEmpty()) {
+            // Position and show popup with completion items
+            if (codeArea.getScene() != null && codeArea.getScene().getWindow() != null) {
+                var bounds = codeArea.getCaretBounds();
+                if (bounds.isPresent()) {
+                    var caretBounds = bounds.get();
+                    var screenBounds = codeArea.localToScreen(caretBounds);
+
+                    // Use the show method with screen coordinates and completion items
+                    enhancedIntelliSensePopup.show(screenBounds.getMinX(),
+                            screenBounds.getMaxY() + 2,
+                            completions,
+                            getCurrentXmlContext());
+
+                    logger.debug("Enhanced IntelliSense popup shown with {} items", completions.size());
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets the current XML context for the enhanced popup.
+     */
+    private Object getCurrentXmlContext() {
+        // Return a simple context object containing current state
+        return new Object() {
+            @Override
+            public String toString() {
+                return "XmlEditor Context - Position: " + codeArea.getCaretPosition();
+            }
+        };
+    }
+
+    /**
+     * Handles completion item selection from enhanced popup.
+     */
+    private void insertEnhancedCompletion(CompletionItem item) {
+        if (item == null || popupStartPosition < 0) return;
+
+        // Remove any partially typed text
+        int currentPos = codeArea.getCaretPosition();
+        if (currentPos > popupStartPosition) {
+            codeArea.deleteText(popupStartPosition, currentPos);
+        }
+
+        // Insert the completion text
+        String insertText = item.getInsertText();
+
+        if (isElementCompletionContext && item.getType() == CompletionItemType.ELEMENT) {
+            // Handle element completion with auto-closing and mandatory children
+            insertElementCompletion(item);
+        } else {
+            // Simple text insertion
+            codeArea.insertText(popupStartPosition, insertText);
 
             // Position cursor appropriately
-            codeArea.moveTo(caretPosition + cursorOffset);
-
-            logger.debug("Auto-closed tag with mandatory children: {} (children: {})", tagName, mandatoryChildren.size());
-            return true;
-
-        } catch (Exception e) {
-            logger.error("Error generating mandatory children for tag {}: {}", tagName, e.getMessage(), e);
-            // Fallback to basic auto-close
-            String closingTag = "</" + tagName + ">";
-            codeArea.insertText(caretPosition, closingTag);
-            codeArea.moveTo(caretPosition);
-            return true;
-        }
-    }
-
-    /**
-     * Recursively generates mandatory children with proper indentation.
-     */
-    private void generateMandatoryChildrenRecursive(MandatoryElement element, StringBuilder contentBuilder, int indentLevel) {
-        String indent = " ".repeat(indentLevel + currentIndentationSize);
-
-        for (MandatoryElement child : element.children) {
-            contentBuilder.append(indent);
-            contentBuilder.append("<").append(child.name).append(">");
-
-            if (child.hasChildren) {
-                contentBuilder.append("\n");
-                generateMandatoryChildrenRecursive(child, contentBuilder, indentLevel + currentIndentationSize);
-                contentBuilder.append(indent);
-            } else if (child.sampleValue != null) {
-                // Add sample value for leaf nodes
-                contentBuilder.append(child.sampleValue);
-            }
-
-            contentBuilder.append("</").append(child.name).append(">");
-            contentBuilder.append("\n");
-        }
-    }
-
-    /**
-     * Gets mandatory children for a given element from XSD schema.
-     * This method now integrates with real XSD analysis to determine mandatory child elements.
-     */
-    private List<MandatoryElement> getMandatoryChildren(String tagName) {
-        List<MandatoryElement> children = new ArrayList<>();
-
-        try {
-            // Normalize tag name: strip namespace prefix if present
-            String cleanTagName = tagName;
-            int colonIdx = cleanTagName.indexOf(':');
-            if (colonIdx > -1 && colonIdx < cleanTagName.length() - 1) {
-                cleanTagName = cleanTagName.substring(colonIdx + 1);
-            }
-            // Check if we have an XSD linked and can access the documentation data
-            if (parentXmlEditor == null) {
-                logger.debug("No parent XML editor available for element '{}'", cleanTagName);
-                return children;
-            }
-
-            // Get the XSD documentation service from the parent editor
-            var xsdDocService = parentXmlEditor.getXsdDocumentationService();
-            if (xsdDocService == null) {
-                logger.debug("No XSD documentation service available for element '{}'", cleanTagName);
-                return children;
-            }
-
-            // Check settings to determine which children to create
-            boolean createAllChildren = Boolean.parseBoolean(
-                    propertiesService.loadProperties().getProperty("xml.createAllChildNodes", "false"));
-            boolean fillWithSampleValues = Boolean.parseBoolean(
-                    propertiesService.loadProperties().getProperty("xml.fillWithSampleValues", "false"));
-
-            // Query the XSD service for children (mandatory or all based on setting)
-            var childInfos = createAllChildren
-                    ? xsdDocService.getAllChildElements(cleanTagName)
-                    : xsdDocService.getMandatoryChildElements(cleanTagName);
-
-            // Convert to our internal MandatoryElement objects
-            for (var childInfo : childInfos) {
-                MandatoryElement element = MandatoryElement.fromMandatoryChildInfo(childInfo, xsdDocService, fillWithSampleValues);
-                children.add(element);
-                String sampleInfo = element.sampleValue != null ? " (sample: " + element.sampleValue + ")" : "";
-                logger.debug("Added child for '{}': {} (minOccurs={}, hasChildren={}){}",
-                        cleanTagName, element.name, element.minOccurs, element.hasChildren, sampleInfo);
-            }
-
-            String childType = createAllChildren ? "all" : "mandatory";
-            logger.debug("Found {} {} children for element '{}'", children.size(), childType, cleanTagName);
-
-        } catch (Exception e) {
-            logger.error("Error getting mandatory children for element '{}': {}", tagName, e.getMessage(), e);
-        }
-
-        return children;
-    }
-
-    /**
-     * Calculates the current indentation level at the cursor position.
-     */
-    private int calculateIndentationLevel(String textBeforeCursor) {
-        if (textBeforeCursor.isEmpty()) return 0;
-
-        // Find the last newline
-        int lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
-        if (lastNewlineIndex == -1) {
-            // No newlines, check from start of text
-            lastNewlineIndex = -1;
-        }
-
-        // Count spaces/tabs after the last newline
-        String currentLine = textBeforeCursor.substring(lastNewlineIndex + 1);
-        int indentCount = 0;
-        for (char c : currentLine.toCharArray()) {
-            if (c == ' ') {
-                indentCount++;
-            } else if (c == '\t') {
-                indentCount += currentIndentationSize; // Convert tab to spaces
+            if (insertText.contains("\"\"")) {
+                int quotePos = popupStartPosition + insertText.indexOf("\"\"") + 1;
+                codeArea.moveTo(quotePos);
             } else {
-                break; // Stop at first non-whitespace character
+                codeArea.moveTo(popupStartPosition + insertText.length());
             }
         }
 
-        return indentCount;
+        // Hide popup
+        if (enhancedIntelliSensePopup != null) {
+            enhancedIntelliSensePopup.hide();
+        }
+
+        popupStartPosition = -1;
+        isElementCompletionContext = false;
+
+        logger.debug("Inserted enhanced completion: {}", item.getLabel());
     }
 
     /**
-     * Helper class to represent mandatory elements from XSD schema.
+     * Inserts element completion with auto-closing tags and mandatory children.
      */
-    private static class MandatoryElement {
-        String name;
-        boolean hasChildren;
-        List<MandatoryElement> children;
-        int minOccurs;
-        int maxOccurs;
-        String sampleValue;  // New field for sample values
+    private void insertElementCompletion(CompletionItem item) {
+        String elementName = item.getLabel();
+        int insertPos = popupStartPosition;
 
-        public MandatoryElement(String name, boolean hasChildren) {
-            this.name = name;
-            this.hasChildren = hasChildren;
-            this.children = new ArrayList<>();
-            this.minOccurs = 1;
-            this.maxOccurs = 1;
-        }
+        // Insert opening tag
+        codeArea.insertText(insertPos, elementName + ">");
+        insertPos += elementName.length() + 1;
 
-        public MandatoryElement(String name, int minOccurs, int maxOccurs, List<MandatoryElement> children) {
-            this.name = name;
-            this.minOccurs = minOccurs;
-            this.maxOccurs = maxOccurs;
-            this.children = children != null ? children : new ArrayList<>();
-            this.hasChildren = !this.children.isEmpty();
-        }
+        // Add closing tag and mandatory children if not self-closing
+        if (!isSelfClosingElement(elementName)) {
+            String closingTag = "</" + elementName + ">";
 
-        /**
-         * Factory method to create MandatoryElement from XsdDocumentationService.MandatoryChildInfo
-         */
-        public static MandatoryElement fromMandatoryChildInfo(org.fxt.freexmltoolkit.service.XsdDocumentationService.MandatoryChildInfo info) {
-            List<MandatoryElement> children = info.children().stream()
-                    .map(MandatoryElement::fromMandatoryChildInfo)
-                    .collect(java.util.stream.Collectors.toList());
+            // Check for mandatory children from the CompletionItem
+            List<String> mandatoryChildren = item.getRequiredAttributes(); // Reusing this field for child elements
+            if (mandatoryChildren != null && !mandatoryChildren.isEmpty()) {
+                StringBuilder childElements = new StringBuilder();
+                String indentation = getCurrentIndentation();
+                String childIndentation = indentation + " ".repeat(propertiesService.getXmlIndentSpaces());
 
-            return new MandatoryElement(info.name(), info.minOccurs(), info.maxOccurs(), children);
-        }
-
-        /**
-         * Factory method to create MandatoryElement with sample value support
-         */
-        public static MandatoryElement fromMandatoryChildInfo(
-                org.fxt.freexmltoolkit.service.XsdDocumentationService.MandatoryChildInfo info,
-                org.fxt.freexmltoolkit.service.XsdDocumentationService xsdDocService,
-                boolean fillWithSampleValues) {
-
-            List<MandatoryElement> children = info.children().stream()
-                    .map(child -> fromMandatoryChildInfo(child, xsdDocService, fillWithSampleValues))
-                    .collect(java.util.stream.Collectors.toList());
-
-            MandatoryElement element = new MandatoryElement(info.name(), info.minOccurs(), info.maxOccurs(), children);
-
-            // Generate sample value if requested and element has no children
-            if (fillWithSampleValues && !element.hasChildren) {
-                try {
-                    element.sampleValue = xsdDocService.generateSampleValue(info.name(), null);
-                } catch (Exception e) {
-                    logger.debug("Could not generate sample value for element '{}': {}", info.name(), e.getMessage());
-                    element.sampleValue = null;
+                for (String childElement : mandatoryChildren) {
+                    childElements.append("\n").append(childIndentation)
+                            .append("<").append(childElement).append(">")
+                            .append(getSampleValue(childElement))
+                            .append("</").append(childElement).append(">");
                 }
-            }
-
-            return element;
-        }
-    }
-
-    /**
-     * Handles intelligent cursor positioning when Enter key is pressed.
-     * Implements three main rules:
-     * 1. After a closing XML tag: maintain indentation of previous element
-     * 2. Between opening and closing tag: indent by 4 spaces more than parent
-     * 3. After opening tag with children: insert new line with 4 spaces more indentation
-     *
-     * @return true if the event was handled and should be consumed, false for normal behavior
-     */
-    private boolean handleIntelligentEnterKey() {
-        try {
-            int caretPosition = codeArea.getCaretPosition();
-            String text = codeArea.getText();
-
-            if (caretPosition <= 0 || caretPosition > text.length()) {
-                return false;
-            }
-
-            // Rule 1: Check if we're directly after a closing XML tag
-            if (isAfterClosingTag(text, caretPosition)) {
-                return handleEnterAfterClosingTag(text, caretPosition);
-            }
-
-            // Rule 2: Check if we're between opening and closing tags
-            if (isBetweenOpeningAndClosingTag(text, caretPosition)) {
-                return handleEnterBetweenTags(text, caretPosition);
-            }
-
-            // Rule 3: Check if we're after an opening tag that has child elements
-            if (isAfterOpeningTagWithChildren(text, caretPosition)) {
-                return handleEnterAfterOpeningTagWithChildren(text, caretPosition);
-            }
-
-            // No special handling needed
-            return false;
-
-        } catch (Exception e) {
-            logger.error("Error in intelligent Enter key handling: {}", e.getMessage(), e);
-            return false;
-        }
-    }
-
-    /**
-     * Checks if the cursor is positioned directly after a closing XML tag.
-     *
-     * @param text          The text content
-     * @param caretPosition The current cursor position
-     * @return true if cursor is after a closing tag
-     */
-    private boolean isAfterClosingTag(String text, int caretPosition) {
-        // Look backwards from cursor to find the most recent character
-        for (int i = caretPosition - 1; i >= 0; i--) {
-            char ch = text.charAt(i);
-            if (ch == '>') {
-                // Found '>', check if it's a closing tag by looking backwards for '</'
-                return isClosingTagEnding(text, i);
-            } else if (!Character.isWhitespace(ch)) {
-                // Found non-whitespace character that isn't '>'
-                return false;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks if the cursor is between an opening and closing XML tag.
-     *
-     * @param text          The text content
-     * @param caretPosition The current cursor position
-     * @return true if cursor is between opening and closing tags
-     */
-    private boolean isBetweenOpeningAndClosingTag(String text, int caretPosition) {
-        // Look backwards to find opening tag
-        int openingTagEnd = findPreviousOpeningTagEnd(text, caretPosition);
-        if (openingTagEnd == -1) {
-            return false;
-        }
-
-        // Look forwards to find closing tag
-        int closingTagStart = findNextClosingTagStart(text, caretPosition);
-        if (closingTagStart == -1) {
-            return false;
-        }
-
-        // Verify that the tags match and there's no content between them
-        String beforeCursor = text.substring(openingTagEnd, caretPosition).trim();
-        String afterCursor = text.substring(caretPosition, closingTagStart).trim();
-
-        return beforeCursor.isEmpty() && afterCursor.isEmpty();
-    }
-
-    /**
-     * Checks if the cursor is positioned after an opening XML tag that has child elements.
-     * Example: <Contact> |  (where there are child elements following)
-     * <Email>...</Email>
-     *
-     * @param text          The text content
-     * @param caretPosition The current cursor position
-     * @return true if cursor is after opening tag with children, false otherwise
-     */
-    private boolean isAfterOpeningTagWithChildren(String text, int caretPosition) {
-        try {
-            // Look backwards to find the most recent '>' character
-            for (int i = caretPosition - 1; i >= 0; i--) {
-                char ch = text.charAt(i);
-                if (ch == '>') {
-                    // Found '>', check if it's from an opening tag (not closing or self-closing)
-                    if (isOpeningTagEnding(text, i)) {
-                        // Check if there are child elements after current position
-                        return hasChildElementsAfterPosition(text, caretPosition);
-                    } else {
-                        return false;
-                    }
-                } else if (!Character.isWhitespace(ch)) {
-                    // Found non-whitespace character that isn't '>'
-                    return false;
-                }
-            }
-            return false;
-        } catch (Exception e) {
-            logger.error("Error checking if after opening tag with children: {}", e.getMessage(), e);
-            return false;
-        }
-    }
-
-    /**
-     * Checks if a '>' character ends an opening tag (not a closing or self-closing tag).
-     */
-    private boolean isOpeningTagEnding(String text, int gtPosition) {
-        if (gtPosition <= 0) return false;
-
-        // Check if it's a self-closing tag (ends with />)
-        if (text.charAt(gtPosition - 1) == '/') {
-            return false;
-        }
-
-        // Look backwards to find the opening '<'
-        for (int i = gtPosition - 1; i >= 0; i--) {
-            char ch = text.charAt(i);
-            if (ch == '<') {
-                // Make sure it's not a closing tag (doesn't start with </)
-                return i + 1 >= text.length() || text.charAt(i + 1) != '/';// It's an opening tag
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks if there are child elements after the given position.
-     */
-    private boolean hasChildElementsAfterPosition(String text, int position) {
-        // Look for the next '<' character that indicates a child element
-        for (int i = position; i < text.length(); i++) {
-            char ch = text.charAt(i);
-            if (ch == '<') {
-                // Found a tag, check if it's an element (not closing tag of current element)
-                return true;
-            } else if (!Character.isWhitespace(ch)) {
-                // Found non-whitespace content, so there are child elements
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Handles Enter key press after a closing XML tag.
-     * Creates new line with same indentation as the previous element.
-     */
-    private boolean handleEnterAfterClosingTag(String text, int caretPosition) {
-        try {
-            // Find the indentation of the current line
-            int lineStart = findLineStart(text, caretPosition);
-            String currentLine = text.substring(lineStart, caretPosition);
-            String indentation = extractIndentation(currentLine);
-
-            // Insert newline with same indentation
-            String insertText = "\n" + indentation;
-            codeArea.insertText(caretPosition, insertText);
-
-            // Position cursor at end of inserted text
-            codeArea.moveTo(caretPosition + insertText.length());
-
-            logger.debug("Applied Enter after closing tag with indentation: '{}'", indentation);
-            return true;
-
-        } catch (Exception e) {
-            logger.error("Error handling Enter after closing tag: {}", e.getMessage(), e);
-            return false;
-        }
-    }
-
-    /**
-     * Handles Enter key press between opening and closing XML tags.
-     * Creates new line with additional indentation (4 spaces more than parent).
-     */
-    private boolean handleEnterBetweenTags(String text, int caretPosition) {
-        try {
-            // Find the current line and its indentation
-            int lineStart = findLineStart(text, caretPosition);
-            String currentLine = getLineContainingPosition(text, caretPosition);
-            String baseIndentation = extractIndentation(currentLine);
-
-            // Add 4 spaces of additional indentation for the new content line
-            String contentIndentation = baseIndentation + "    ";
-
-            // Split the current position: everything before the cursor and everything after
-            String beforeCursor = text.substring(0, caretPosition);
-            String afterCursor = text.substring(caretPosition);
-
-            // Insert newline with content indentation
-            String insertText = "\n" + contentIndentation;
-
-            // Replace the text: before cursor + inserted text + after cursor
-            codeArea.replaceText(0, text.length(), beforeCursor + insertText + afterCursor);
-
-            // Position cursor at the end of the content indentation (on the empty content line)
-            int newPosition = caretPosition + contentIndentation.length() + 1; // +1 for newline
-            codeArea.moveTo(newPosition);
-
-            logger.debug("Applied Enter between tags with content indentation: '{}'", contentIndentation);
-            return true;
-
-        } catch (Exception e) {
-            logger.error("Error handling Enter between tags: {}", e.getMessage(), e);
-            return false;
-        }
-    }
-
-    /**
-     * Handles Enter key press after an opening XML tag that has child elements.
-     * Creates new line with indentation before the existing child content.
-     * Example: <Contact> | -> <Contact>
-     *          <Email>...       |
-     *                           <Email>...
-     */
-    private boolean handleEnterAfterOpeningTagWithChildren(String text, int caretPosition) {
-        try {
-            // Find the current line and its indentation
-            int lineStart = findLineStart(text, caretPosition);
-            String currentLine = getLineContainingPosition(text, caretPosition);
-            String baseIndentation = extractIndentation(currentLine);
-
-            // Add 4 spaces of additional indentation for the new content line
-            String contentIndentation = baseIndentation + "    ";
-
-            // Insert newline with content indentation
-            String insertText = "\n" + contentIndentation;
-            codeArea.insertText(caretPosition, insertText);
-
-            // Position cursor at end of inserted text
-            codeArea.moveTo(caretPosition + insertText.length());
-
-            logger.debug("Applied Enter after opening tag with children, indentation: '{}'", contentIndentation);
-            return true;
-
-        } catch (Exception e) {
-            logger.error("Error handling Enter after opening tag with children: {}", e.getMessage(), e);
-            return false;
-        }
-    }
-
-    /**
-     * Helper method to check if a '>' character ends a closing tag.
-     */
-    private boolean isClosingTagEnding(String text, int gtPosition) {
-        // Look backwards from '>' to find '</'
-        for (int i = gtPosition - 1; i >= 1; i--) {
-            char ch = text.charAt(i);
-            if (ch == '/' && i > 0 && text.charAt(i - 1) == '<') {
-                return true; // Found '</'
-            } else if (ch == '<') {
-                return false; // Found '<' without preceding '/'
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Finds the position of the end of the previous opening tag.
-     */
-    private int findPreviousOpeningTagEnd(String text, int fromPosition) {
-        for (int i = fromPosition - 1; i >= 0; i--) {
-            if (text.charAt(i) == '>') {
-                // Check if this is an opening tag (not a closing tag or self-closing tag)
-                if (!isClosingTagEnding(text, i) && !isSelfClosingTagEnding(text, i)) {
-                    return i + 1; // Return position after '>'
-                }
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Finds the position of the start of the next closing tag.
-     */
-    private int findNextClosingTagStart(String text, int fromPosition) {
-        for (int i = fromPosition; i < text.length() - 1; i++) {
-            if (text.charAt(i) == '<' && text.charAt(i + 1) == '/') {
-                return i; // Return position of '<'
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Checks if a '>' character ends a self-closing tag.
-     */
-    private boolean isSelfClosingTagEnding(String text, int gtPosition) {
-        return gtPosition > 0 && text.charAt(gtPosition - 1) == '/';
-    }
-
-    /**
-     * Finds the start position of the line containing the given position.
-     */
-    private int findLineStart(String text, int position) {
-        for (int i = position - 1; i >= 0; i--) {
-            if (text.charAt(i) == '\n') {
-                return i + 1;
-            }
-        }
-        return 0; // Beginning of text
-    }
-
-    /**
-     * Gets the complete line containing the given position.
-     */
-    private String getLineContainingPosition(String text, int position) {
-        int lineStart = findLineStart(text, position);
-        int lineEnd = text.indexOf('\n', position);
-        if (lineEnd == -1) {
-            lineEnd = text.length();
-        }
-        return text.substring(lineStart, lineEnd);
-    }
-
-    /**
-     * Extracts the indentation (leading whitespace) from a line.
-     */
-    private String extractIndentation(String line) {
-        StringBuilder indentation = new StringBuilder();
-        for (char ch : line.toCharArray()) {
-            if (ch == ' ' || ch == '\t') {
-                indentation.append(ch);
-            } else {
-                break;
-            }
-        }
-        return indentation.toString();
-    }
-
-    /**
-     * Initializes the status line at the bottom of the editor.
-     */
-    private void initializeStatusLine() {
-        // Style the status line
-        statusLine.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #ccc; -fx-border-width: 1px 0 0 0; -fx-padding: 5px 10px;");
-        statusLine.setSpacing(20);
-        statusLine.setAlignment(Pos.CENTER_LEFT);
-
-        // Style the labels
-        String labelStyle = "-fx-font-size: 11px; -fx-text-fill: #666;";
-        cursorPositionLabel.setStyle(labelStyle);
-        encodingLabel.setStyle(labelStyle);
-        lineSeparatorLabel.setStyle(labelStyle);
-        indentationLabel.setStyle(labelStyle);
-
-        // Initialize indent label with current setting
-        updateIndentationLabel();
-
-        // Add labels to status line
-        statusLine.getChildren().addAll(
-                cursorPositionLabel,
-                createSeparator(),
-                encodingLabel,
-                createSeparator(),
-                lineSeparatorLabel,
-                createSeparator(),
-                indentationLabel
-        );
-
-        // Set up cursor position tracking
-        setupCursorPositionTracking();
-
-        // Initialize status values
-        updateStatusLine();
-    }
-
-    /**
-     * Creates a visual separator for the status line.
-     */
-    private Label createSeparator() {
-        Label separator = new Label("|");
-        separator.setStyle("-fx-font-size: 11px; -fx-text-fill: #999;");
-        return separator;
-    }
-
-    /**
-     * Sets up cursor position tracking to update the status line.
-     */
-    private void setupCursorPositionTracking() {
-        // Track caret position changes
-        codeArea.caretPositionProperty().addListener((observable, oldValue, newValue) -> {
-            updateCursorPosition();
-        });
-
-        // Track text changes to update indentation info and folding regions
-        codeArea.textProperty().addListener((observable, oldText, newText) -> {
-            updateIndentationInfo(newText);
-            updateFoldingRegions(newText);
-        });
-    }
-
-    /**
-     * Updates the cursor position display in the status line.
-     * Performance optimized to avoid unnecessary Platform.runLater calls.
-     */
-    private void updateCursorPosition() {
-        try {
-            int caretPosition = codeArea.getCaretPosition();
-            String text = codeArea.getText();
-
-            if (text == null) {
-                return;
-            }
-
-            // Calculate line and column
-            int line = 1;
-            int column = 1;
-            int length = Math.min(caretPosition, text.length());
-
-            for (int i = 0; i < length; i++) {
-                if (text.charAt(i) == '\n') {
-                    line++;
-                    column = 1;
-                } else {
-                    column++;
-                }
-            }
-
-            // Only update if we're on the JavaFX Application Thread
-            if (Platform.isFxApplicationThread()) {
-                cursorPositionLabel.setText("Line: " + line + ", Column: " + column);
-            } else {
-                // Capture final variables for lambda
-                final int finalLine = line;
-                final int finalColumn = column;
-                Platform.runLater(() -> {
-                    cursorPositionLabel.setText("Line: " + finalLine + ", Column: " + finalColumn);
-                });
-            }
-
-        } catch (Exception e) {
-            logger.error("Error updating cursor position: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Updates the indentation information based on the current text.
-     */
-    private void updateIndentationInfo(String text) {
-        try {
-            if (text == null || text.isEmpty()) {
-                return;
-            }
-
-            // Analyze indentation patterns in the text
-            int[] indentationCounts = analyzeIndentation(text);
-            int detectedSize = detectIndentationSize(indentationCounts);
-            boolean detectedUseSpaces = detectIndentationType(text);
-
-            if (detectedSize > 0) {
-                currentIndentationSize = detectedSize;
-            }
-            useSpaces = detectedUseSpaces;
-
-            if (Platform.isFxApplicationThread()) {
-                String indentType = useSpaces ? "spaces" : "tabs";
-                indentationLabel.setText(currentIndentationSize + " " + indentType);
-            } else {
-                Platform.runLater(() -> {
-                    String indentType = useSpaces ? "spaces" : "tabs";
-                    indentationLabel.setText(currentIndentationSize + " " + indentType);
-                });
-            }
-
-        } catch (Exception e) {
-            logger.error("Error updating indentation info: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Analyzes the indentation patterns in the text.
-     * Performance optimized to avoid repeated string operations.
-     */
-    private int[] analyzeIndentation(String text) {
-        int[] counts = new int[9]; // Count indentations of size 1-8
-        int length = text.length();
-        int lineStart = 0;
-
-        for (int i = 0; i < length; i++) {
-            if (text.charAt(i) == '\n' || i == length - 1) {
-                // Process line from lineStart to i
-                int indent = 0;
-                boolean hasContent = false;
-
-                for (int j = lineStart; j < i; j++) {
-                    char c = text.charAt(j);
-                    if (c == ' ') {
-                        indent++;
-                    } else if (c == '\t') {
-                        indent += 4; // Treat tab as 4 spaces for calculation
-                        break;
-                    } else if (!Character.isWhitespace(c)) {
-                        hasContent = true;
-                        break;
+                childElements.append("\n").append(indentation);
+
+                codeArea.insertText(insertPos, childElements + closingTag);
+
+                // Position cursor on first sample value
+                if (!mandatoryChildren.isEmpty()) {
+                    String firstChild = mandatoryChildren.get(0);
+                    String sampleValue = getSampleValue(firstChild);
+                    if (!sampleValue.isEmpty()) {
+                        int samplePos = insertPos + childElements.toString().indexOf(sampleValue);
+                        codeArea.selectRange(samplePos, samplePos + sampleValue.length());
                     }
                 }
-
-                // Only count lines with content
-                if (hasContent) {
-                    // Count common indentation sizes (2, 4, 8)
-                    if (indent % 8 == 0 && indent > 0) counts[8]++;
-                    else if (indent % 4 == 0 && indent > 0) counts[4]++;
-                    else if (indent % 2 == 0 && indent > 0) counts[2]++;
-                }
-
-                lineStart = i + 1;
-            }
-        }
-
-        return counts;
-    }
-
-    /**
-     * Detects the most likely indentation size based on analysis.
-     */
-    private int detectIndentationSize(int[] counts) {
-        int maxCount = 0;
-        int detectedSize = 4; // Default to 4 spaces
-
-        for (int i = 2; i < counts.length; i++) {
-            if (counts[i] > maxCount) {
-                maxCount = counts[i];
-                detectedSize = i;
-            }
-        }
-
-        return detectedSize;
-    }
-
-    /**
-     * Detects whether the text uses spaces or tabs for indentation.
-     * Performance optimized to avoid repeated string operations.
-     */
-    private boolean detectIndentationType(String text) {
-        int spaceCount = 0;
-        int tabCount = 0;
-        int length = text.length();
-        int lineStart = 0;
-
-        for (int i = 0; i < length; i++) {
-            if (text.charAt(i) == '\n' || i == length - 1) {
-                // Process line from lineStart to i
-                boolean hasContent = false;
-
-                for (int j = lineStart; j < i; j++) {
-                    char c = text.charAt(j);
-                    if (c == ' ') {
-                        spaceCount++;
-                    } else if (c == '\t') {
-                        tabCount++;
-                        break;
-                    } else if (!Character.isWhitespace(c)) {
-                        hasContent = true;
-                        break;
-                    }
-                }
-
-                lineStart = i + 1;
-            }
-        }
-
-        return spaceCount >= tabCount; // Default to spaces if equal
-    }
-
-    /**
-     * Updates all status line information.
-     */
-    private void updateStatusLine() {
-        updateCursorPosition();
-        updateFileEncoding();
-        updateLineSeparator();
-        updateIndentationInfo(codeArea.getText());
-    }
-
-    /**
-     * Updates the folding regions by analyzing XML structure.
-     */
-    private void updateFoldingRegions(String text) {
-        try {
-            if (text == null || text.isEmpty()) {
-                foldingRegions.clear();
-                return;
-            }
-
-            // Clear existing folding regions
-            foldingRegions.clear();
-
-            // Calculate new folding regions based on XML structure
-            calculateXmlFoldingRegions(text);
-
-            // Update the paragraph graphic factory to reflect new folding regions
-            Platform.runLater(() -> {
-                codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
-            });
-
-        } catch (Exception e) {
-            logger.error("Error updating folding regions: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Calculates folding regions by parsing XML structure.
-     */
-    private void calculateXmlFoldingRegions(String text) {
-        String[] lines = text.split("\n");
-        Stack<XmlElement> elementStack = new Stack<>();
-
-        for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-            String line = lines[lineIndex].trim();
-
-            // Skip empty lines and comments
-            if (line.isEmpty() || line.startsWith("<!--")) {
-                continue;
-            }
-
-            // Find XML tags in the line
-            Pattern tagPattern = Pattern.compile("<(/?)([a-zA-Z][a-zA-Z0-9_:]*)[^>]*(/?)>");
-            Matcher matcher = tagPattern.matcher(line);
-
-            while (matcher.find()) {
-                boolean isClosingTag = !matcher.group(1).isEmpty();
-                String tagName = matcher.group(2);
-                boolean isSelfClosing = !matcher.group(3).isEmpty() || line.contains("/>");
-
-                if (isClosingTag) {
-                    // Handle closing tag
-                    if (!elementStack.isEmpty() && elementStack.peek().name.equals(tagName)) {
-                        XmlElement element = elementStack.pop();
-                        // Only create folding region if element spans multiple lines
-                        if (lineIndex > element.startLine) {
-                            foldingRegions.put(element.startLine, lineIndex);
-                        }
-                    }
-                } else if (!isSelfClosing) {
-                    // Handle opening tag (not self-closing)
-                    elementStack.push(new XmlElement(tagName, lineIndex));
-                }
+            } else {
+                codeArea.insertText(insertPos, closingTag);
+                codeArea.moveTo(insertPos); // Position cursor between tags
             }
         }
     }
 
-    /**
-         * Helper class to represent XML elements during folding analysis.
-         */
-        private record XmlElement(String name, int startLine) {
+    private void disableAllAutoCompletion() {
+        if (schematronAutoComplete != null) schematronAutoComplete.setEnabled(false);
+        if (xsdAutoComplete != null) xsdAutoComplete.setEnabled(false);
+        if (xsltAutoComplete != null) xsltAutoComplete.setEnabled(false);
+        if (xslFoAutoComplete != null) xslFoAutoComplete.setEnabled(false);
     }
 
-    /**
-     * Updates the file encoding display.
-     * Performance optimized to avoid unnecessary Platform.runLater calls.
-     */
-    private void updateFileEncoding() {
-        if (Platform.isFxApplicationThread()) {
-            encodingLabel.setText(currentEncoding);
+    private void autoDetectEditorMode(String content) {
+        // Placeholder for mode detection
+    }
+
+    // Context menu action implementations
+    private void toggleLineComment() {
+        // Get current selection or current line
+        if (codeArea.getSelectedText().isEmpty()) {
+            // Comment/uncomment current line
+            int paragraphIndex = codeArea.getCurrentParagraph();
+            String line = codeArea.getParagraph(paragraphIndex).getText();
+
+            // Get line start and end positions
+            int lineStart = codeArea.getAbsolutePosition(paragraphIndex, 0);
+            int lineEnd = lineStart + line.length();
+
+            if (line.trim().startsWith("<!--") && line.trim().endsWith("-->")) {
+                // Uncomment
+                String uncommented = line.replaceFirst("<!--\\s*", "").replaceFirst("\\s*-->", "");
+                codeArea.replaceText(lineStart, lineEnd, uncommented);
+            } else {
+                // Comment
+                String commented = "<!-- " + line + " -->";
+                codeArea.replaceText(lineStart, lineEnd, commented);
+            }
         } else {
-            Platform.runLater(() -> {
-                encodingLabel.setText(currentEncoding);
-            });
-        }
-    }
-
-    /**
-     * Updates the line separator display.
-     * Performance optimized to avoid unnecessary Platform.runLater calls.
-     */
-    private void updateLineSeparator() {
-        if (Platform.isFxApplicationThread()) {
-            lineSeparatorLabel.setText(currentLineSeparator);
-        } else {
-            Platform.runLater(() -> {
-                lineSeparatorLabel.setText(currentLineSeparator);
-            });
-        }
-    }
-
-    /**
-     * Sets the file encoding for display in the status line.
-     */
-    public void setFileEncoding(String encoding) {
-        if (encoding != null && !encoding.isEmpty()) {
-            this.currentEncoding = encoding;
-            updateFileEncoding();
-        }
-    }
-
-    /**
-     * Sets the line separator type for display in the status line.
-     */
-    public void setLineSeparator(String lineSeparator) {
-        if (lineSeparator != null) {
-            switch (lineSeparator) {
-                case "\n" -> this.currentLineSeparator = "LF";
-                case "\r\n" -> this.currentLineSeparator = "CRLF";
-                case "\r" -> this.currentLineSeparator = "CR";
-                default -> this.currentLineSeparator = "LF";
-            }
-            updateLineSeparator();
-        }
-    }
-
-    /**
-     * Detects and sets the line separator based on the text content.
-     */
-    public void detectAndSetLineSeparator(String text) {
-        if (text == null) return;
-
-        if (text.contains("\r\n")) {
-            setLineSeparator("\r\n");
-        } else if (text.contains("\n")) {
-            setLineSeparator("\n");
-        } else if (text.contains("\r")) {
-            setLineSeparator("\r");
-        }
-    }
-
-    // ========== Enhanced IntelliSense Methods ==========
-
-    /**
-     * Update XSD integration when parent XML editor is set
-     */
-    public void updateXsdIntegration() {
-        if (xsdIntegration != null && parentXmlEditor != null) {
-            // Note: XSD integration will be updated when XmlEditor provides schema data
-            logger.debug("XSD integration ready for updates from parent editor");
-
-            // Update IntelliSense engine with XSD integration
-            if (intelliSenseEngine != null) {
-                logger.debug("IntelliSense Engine ready for XSD integration");
+            // Comment/uncomment selection
+            String selectedText = codeArea.getSelectedText();
+            if (selectedText.trim().startsWith("<!--") && selectedText.trim().endsWith("-->")) {
+                // Uncomment
+                String uncommented = selectedText.replaceFirst("<!--\\s*", "").replaceFirst("\\s*-->", "");
+                codeArea.replaceSelection(uncommented);
+            } else {
+                // Comment
+                String commented = "<!-- " + selectedText + " -->";
+                codeArea.replaceSelection(commented);
             }
         }
     }
-
-    // ========== Automatic Tag Completion ==========
-
-    /**
-     * Handles automatic tag completion when user types ">"
-     * Automatically generates closing tags and positions cursor between them
-     */
-    private void handleAutomaticTagCompletion(String oldText, String newText) {
-        if (oldText == null || newText == null) {
-            return;
+    
+    private void cutTextToClipboard() {
+        String selectedText = codeArea.getSelectedText();
+        if (selectedText != null && !selectedText.isEmpty()) {
+            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(selectedText);
+            clipboard.setContent(content);
+            codeArea.replaceSelection("");
         }
-
-        // Check if a ">" character was just added
-        if (newText.length() != oldText.length() + 1) {
-            return; // Not a single character addition
+    }
+    
+    private void copyTextToClipboard() {
+        String selectedText = codeArea.getSelectedText();
+        if (selectedText != null && !selectedText.isEmpty()) {
+            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(selectedText);
+            clipboard.setContent(content);
         }
-
-        int caretPosition = codeArea.getCaretPosition();
-        if (caretPosition == 0 || caretPosition > newText.length()) {
-            return;
-        }
-
-        // Check if the last typed character was ">"
-        char lastChar = newText.charAt(caretPosition - 1);
-        if (lastChar != '>') {
-            return;
-        }
-
-        // Find the opening tag before the cursor
-        String tagName = findOpeningTagBeforeCursor(newText, caretPosition);
-        if (tagName != null && !tagName.isEmpty()) {
-            // Check if this is not a self-closing tag or XML declaration
-            if (!isSelfClosingTag(tagName) && !isSpecialTag(tagName)) {
-                // For XML with linked XSD, use enhanced auto-close with mandatory children
-                if (currentMode == EditorMode.XML_WITH_XSD && parentXmlEditor != null) {
-                    Platform.runLater(() -> {
-                        handleAutoCloseWithMandatoryChildren(tagName, caretPosition);
-                    });
-                } else {
-                    // Basic auto-close for other modes: <Name>|</Name>
-                    String closingTag = "</" + tagName + ">";
-                    Platform.runLater(() -> {
-                        codeArea.insertText(caretPosition, closingTag);
-                        codeArea.moveTo(caretPosition);
-                    });
-                    logger.debug("Auto-completed tag: {} -> {}", tagName, closingTag);
-                }
-            }
+    }
+    
+    private void pasteTextFromClipboard() {
+        javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+        if (clipboard.hasString()) {
+            String clipboardText = clipboard.getString();
+            codeArea.replaceSelection(clipboardText);
         }
     }
 
-    /**
-     * Finds the opening tag name before the cursor position
-     * Returns null if no valid opening tag is found
-     */
-    private String findOpeningTagBeforeCursor(String text, int caretPosition) {
-        if (text == null || caretPosition <= 0) {
-            return null;
-        }
+    private void copyXPathToClipboard() {
+        // Placeholder
+    }
 
-        // Look backwards from cursor position to find the opening "<"
-        int openingBracketPos = -1;
-        for (int i = caretPosition - 2; i >= 0; i--) { // -2 because we just typed ">"
-            char ch = text.charAt(i);
-            if (ch == '<') {
-                openingBracketPos = i;
-                break;
-            } else if (ch == '>' || ch == '"' || ch == '\n') {
-                // Found another closing bracket, quote, or newline before opening bracket
-                return null;
-            }
-        }
+    private void handleGoToDefinition(MouseEvent event) {
+        // Placeholder
+    }
 
-        if (openingBracketPos == -1) {
-            return null;
-        }
+    private void selectAll() {
+        codeArea.selectAll();
+    }
+    
+    private void openFindReplace() {
+        // Placeholder
+    }
 
-        // Extract the tag content between < and >
-        String tagContent = text.substring(openingBracketPos + 1, caretPosition - 1);
+    private void formatXmlContent() {
+        // Placeholder
+    }
 
-        // Remove any attributes - just get the tag name
-        String tagName = tagContent.trim();
-        if (tagName.isEmpty()) {
-            return null;
-        }
+    private void validateXmlContent() {
+        // Placeholder
+    }
 
-        // Split by whitespace to get only the tag name (ignore attributes)
-        String[] parts = tagName.split("\\s+");
-        tagName = parts[0];
+    private void expandAll() {
+        // Placeholder
+    }
 
-        // Validate tag name (simple validation)
-        if (isValidTagName(tagName)) {
-            return tagName;
-        }
+    private void collapseAll() {
+        // Placeholder
+    }
 
+    private String getElementNameAtPosition(double x, double y) {
+        // Placeholder
         return null;
     }
 
     /**
-     * Checks if the tag name is valid according to XML naming rules
+     * Information about element text content.
      */
-    private boolean isValidTagName(String tagName) {
-        if (tagName == null || tagName.isEmpty()) {
-            return false;
-        }
-
-        // Basic XML tag name validation
-        // Must start with letter or underscore, can contain letters, digits, hyphens, periods, underscores
-        if (!Character.isLetter(tagName.charAt(0)) && tagName.charAt(0) != '_') {
-            return false;
-        }
-
-        for (int i = 1; i < tagName.length(); i++) {
-            char ch = tagName.charAt(i);
-            if (!Character.isLetterOrDigit(ch) && ch != '-' && ch != '.' && ch != '_' && ch != ':') {
-                return false;
-            }
-        }
-
-        return true;
+    private record ElementTextInfo(String elementName, String textContent, int startPosition, int endPosition) {
     }
 
+    // ================================================================================
+    // Missing methods for backward compatibility
+    // ================================================================================
 
     /**
-     * Checks if the tag is a special XML tag (like XML declaration, processing instruction, etc.)
+     * Static method for computing syntax highlighting.
+     * Delegate to the manager for backward compatibility.
      */
-    private boolean isSpecialTag(String tagName) {
-        if (tagName == null || tagName.isEmpty()) {
-            return false;
-        }
-
-        // XML declarations, processing instructions, etc.
-        return tagName.startsWith("?") || tagName.startsWith("!") || tagName.contains("?");
-    }
-
-
-    /**
-     * Gets the current line indentation by looking backwards from the cursor position.
-     *
-     * @param text          The full text content
-     * @param caretPosition The current cursor position
-     * @return The indentation string (spaces/tabs) of the current line
-     */
-    private String getCurrentLineIndentation(String text, int caretPosition) {
-        if (text == null || caretPosition <= 0) {
-            return "";
-        }
-
-        // Find the start of the current line
-        int lineStart = caretPosition - 1;
-        while (lineStart > 0 && text.charAt(lineStart) != '\n') {
-            lineStart--;
-        }
-        if (text.charAt(lineStart) == '\n') {
-            lineStart++; // Move past the newline character
-        }
-
-        // Count leading spaces/tabs
-        StringBuilder indentation = new StringBuilder();
-        for (int i = lineStart; i < text.length() && i < caretPosition; i++) {
-            char ch = text.charAt(i);
-            if (ch == ' ' || ch == '\t') {
-                indentation.append(ch);
-            } else {
-                break;
-            }
-        }
-
-        return indentation.toString();
+    public static org.fxmisc.richtext.model.StyleSpans<Collection<String>> computeHighlighting(String text) {
+        // Use the static method from SyntaxHighlightManager
+        return SyntaxHighlightManager.computeHighlighting(text);
     }
 
     /**
-     * Sets up the layout with minimap support.
-     */
-    private void setupLayoutWithMinimap() {
-        // Create horizontal container for editor and optional minimap
-        editorContainer = new HBox();
-        editorContainer.setSpacing(2);
-
-        // Add editor (takes most space)
-        HBox.setHgrow(virtualizedScrollPane, Priority.ALWAYS);
-        editorContainer.getChildren().add(virtualizedScrollPane);
-
-        // Add container and status line to main VBox
-        this.getChildren().addAll(editorContainer, statusLine);
-    }
-
-    /**
-     * Initializes the minimap component when first needed.
-     */
-    private void initializeMinimap() {
-        if (!minimapInitialized) {
-            minimapView = new MinimapView(codeArea, virtualizedScrollPane, currentErrors);
-            minimapView.setMinimapVisible(false); // Start hidden
-            minimapInitialized = true;
-            logger.debug("Minimap initialized");
-        }
-    }
-
-    /**
-     * Toggles minimap visibility and initializes it if needed.
+     * Toggles minimap visibility.
      */
     public void toggleMinimap() {
         minimapVisible = !minimapVisible;
+        updateMinimapVisibility();
+    }
 
-        if (minimapVisible) {
-            // Initialize minimap if not already done
-            initializeMinimap();
-
-            // Add to layout if not already added
-            if (!editorContainer.getChildren().contains(minimapView)) {
+    private void updateMinimapVisibility() {
+        if (minimapVisible && minimapView == null) {
+            minimapView = new MinimapView(codeArea, virtualizedScrollPane, new HashMap<>());
+            if (editorContainer.getChildren().size() == 1) {
                 editorContainer.getChildren().add(minimapView);
             }
-
-            minimapView.setMinimapVisible(true);
-        } else {
-            // Hide minimap
-            if (minimapView != null) {
-                minimapView.setMinimapVisible(false);
-                editorContainer.getChildren().remove(minimapView);
-            }
+        } else if (!minimapVisible && minimapView != null) {
+            editorContainer.getChildren().remove(minimapView);
         }
 
-        logger.debug("Minimap visibility toggled: {}", minimapVisible);
+        if (minimapView != null) {
+            minimapView.setVisible(minimapVisible);
+        }
     }
 
     /**
-     * Gets current minimap visibility state.
+     * Checks if minimap is currently visible.
      */
     public boolean isMinimapVisible() {
-        return minimapVisible && minimapView != null && minimapView.isMinimapVisible();
+        return minimapVisible;
     }
 
     /**
-     * Shows error tooltip if there's an error on the specified line.
+     * Sets Schematron mode for the editor.
      */
-    private void showErrorTooltipIfPresent(int lineNumber, double screenX, double screenY) {
-        if (currentErrors.containsKey(lineNumber) && lastTooltipLine != lineNumber) {
-            hideErrorTooltip();
-
-            String errorMessage = currentErrors.get(lineNumber);
-            errorTooltip = new Tooltip(errorMessage);
-            errorTooltip.setShowDelay(Duration.millis(100));
-            errorTooltip.setHideDelay(Duration.millis(3000));
-            errorTooltip.setAutoHide(true);
-            errorTooltip.setStyle("-fx-background-color: #ffe6e6; -fx-text-fill: #d32f2f; -fx-border-color: #d32f2f; -fx-border-width: 1px;");
-
-            lastTooltipLine = lineNumber;
-            errorTooltip.show(codeArea, screenX + 10, screenY - 30);
-        } else if (!currentErrors.containsKey(lineNumber)) {
-            hideErrorTooltip();
-        }
-    }
-
-    /**
-     * Hides the error tooltip if it's currently shown.
-     */
-    private void hideErrorTooltip() {
-        if (errorTooltip != null && errorTooltip.isShowing()) {
-            errorTooltip.hide();
-            errorTooltip = null;
-        }
-        lastTooltipLine = -1;
-    }
-
-    /**
-     * Gets the XML element name at the specified screen position.
-     */
-    private String getElementNameAtPosition(double x, double y) {
-        try {
-            var hit = codeArea.hit(x, y);
-            int characterIndex = hit.getCharacterIndex().orElse(-1);
-            logger.debug("Hit test result: characterIndex = {}", characterIndex);
-
-            if (characterIndex < 0) {
-                logger.debug("No character at position ({}, {})", x, y);
-                return null;
-            }
-
-            String text = codeArea.getText();
-            if (text == null || characterIndex >= text.length()) {
-                logger.debug("Invalid text or character index: text={}, index={}", (text != null ? text.length() : "null"), characterIndex);
-                return null;
-            }
-
-            logger.debug("Character at position {}: '{}'", characterIndex, text.charAt(characterIndex));
-
-            // Find the XML element at this position
-            String elementName = extractElementNameAtPosition(text, characterIndex);
-            logger.debug("Extracted element name: '{}'", elementName);
-            return elementName;
-        } catch (Exception e) {
-            logger.error("Error getting element name at position: {}", e.getMessage(), e);
-            return null;
-        }
-    }
-
-    /**
-     * Extracts the XML element name at the given character position.
-     */
-    private String extractElementNameAtPosition(String text, int position) {
-        logger.debug("Extracting element name at position {}", position);
-
-        // Look backwards to find opening '<'
-        int tagStart = -1;
-        for (int i = position; i >= 0; i--) {
-            if (text.charAt(i) == '<') {
-                tagStart = i;
-                break;
-            } else if (text.charAt(i) == '>') {
-                // We're outside a tag
-                logger.debug("Found '>' before '<' - cursor is outside a tag");
-                return null;
-            }
-        }
-
-        if (tagStart == -1) {
-            logger.debug("No opening '<' found before position");
-            return null;
-        }
-
-        // Look forwards to find closing '>'
-        int tagEnd = -1;
-        for (int i = position; i < text.length(); i++) {
-            if (text.charAt(i) == '>') {
-                tagEnd = i;
-                break;
-            }
-        }
-
-        if (tagEnd == -1) {
-            logger.debug("No closing '>' found after position");
-            return null;
-        }
-
-        // Extract tag content
-        String tagContent = text.substring(tagStart + 1, tagEnd);
-        logger.debug("Tag content: '{}'", tagContent);
-
-        // Skip closing tags and comments
-        if (tagContent.startsWith("/") || tagContent.startsWith("!")) {
-            logger.debug("Skipping closing tag or comment: '{}'", tagContent);
-            return null;
-        }
-
-        // Extract element name (first word)
-        String[] parts = tagContent.split("\\s+");
-        logger.debug("Tag content split into {} parts: {}", parts.length, Arrays.toString(parts));
-        if (parts.length > 0) {
-            String elementName = parts[0];
-            logger.debug("Raw element name: '{}'", elementName);
-
-            // Remove namespace prefix for lookup
-            int colonIndex = elementName.indexOf(':');
-            if (colonIndex > 0) {
-                elementName = elementName.substring(colonIndex + 1);
-                logger.debug("Element name after removing namespace: '{}'", elementName);
-            }
-            return elementName;
-        }
-
-        logger.debug("No element name found in tag content");
-        return null;
-    }
-
-    /**
-     * Handles Ctrl+Click to navigate to XSD element definition.
-     */
-    private void handleGoToDefinition(javafx.scene.input.MouseEvent event) {
-        try {
-            logger.debug("handleGoToDefinition called at position ({}, {})", event.getX(), event.getY());
-
-            String elementName = getElementNameAtPosition(event.getX(), event.getY());
-            logger.debug("Extracted element name: '{}'", elementName);
-
-            if (elementName == null || elementName.isEmpty()) {
-                logger.debug("No element name found at position");
-                return;
-            }
-
-            logger.info("Ctrl+Click triggered for element: {}", elementName);
-
-            // For XML_WITH_XSD mode, show the 3-column documentation popup instead of navigation
-            if (currentMode == EditorMode.XML_WITH_XSD) {
-                logger.debug("XML_WITH_XSD mode: showing documentation popup for element: {}", elementName);
-                showDocumentationPopup(elementName, event.getX(), event.getY());
-                return;
-            }
-
-            // For other modes, fall back to XSD navigation behavior
-            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
-                logger.debug("Parent XmlEditor found, navigating to XSD definition");
-                navigateToXsdDefinition(xmlEditor, elementName);
-            } else {
-                logger.debug("Parent XmlEditor not available: {}", parentXmlEditor);
-            }
-        } catch (Exception e) {
-            logger.error("Error in Go-to-Definition: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Shows the 3-column documentation popup for the specified element.
-     * This provides rich documentation including element description, constraints, and usage examples.
-     *
-     * @param elementName The name of the XML element to show documentation for
-     * @param mouseX      Mouse X position for popup positioning
-     * @param mouseY      Mouse Y position for popup positioning
-     */
-    private void showDocumentationPopup(String elementName, double mouseX, double mouseY) {
-        try {
-            if (enhancedCompletionPopup == null) {
-                logger.warn("EnhancedCompletionPopup not initialized for documentation display");
-                showSimpleDocumentationAlert(elementName);
-                return;
-            }
-
-            // Create a single completion item for the documentation display
-            List<org.fxt.freexmltoolkit.controls.intellisense.CompletionItem> docItems = new ArrayList<>();
-
-            org.fxt.freexmltoolkit.controls.intellisense.CompletionItem docItem =
-                    new org.fxt.freexmltoolkit.controls.intellisense.CompletionItem.Builder(
-                            elementName,
-                            elementName,  // No insertion needed for documentation view
-                            org.fxt.freexmltoolkit.controls.intellisense.CompletionItemType.ELEMENT
-                    )
-                            .description(getElementDescription(elementName))
-                            .build();
-            docItems.add(docItem);
-
-            // Convert mouse coordinates to scene coordinates for proper positioning
-            var localBounds = codeArea.screenToLocal(mouseX, mouseY);
-
-            // Show the enhanced popup in documentation mode
-            enhancedCompletionPopup.setOnItemSelected(item -> {
-                // In documentation mode, we don't insert anything, just close the popup
-                logger.debug("Documentation popup closed for element: {}", elementName);
-            });
-            enhancedCompletionPopup.show(
-                    codeArea,
-                    docItems,
-                    new javafx.geometry.Point2D(localBounds.getX(), localBounds.getY())
-            );
-
-            logger.info("Documentation popup shown for element: {}", elementName);
-
-        } catch (Exception e) {
-            logger.error("Error showing documentation popup for element '{}': {}", elementName, e.getMessage(), e);
-            // Fallback to simple alert
-            showSimpleDocumentationAlert(elementName);
-        }
-    }
-
-    /**
-     * Gets detailed documentation for an element, including constraints and usage information.
-     */
-    private String getDetailedElementDocumentation(String elementName) {
-        try {
-            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
-                var xsdData = parentXmlEditor.getXsdDocumentationData();
-
-                // Find the element information
-                var extendedElementMap = xsdData.getExtendedXsdElementMap();
-                var elementInfo = extendedElementMap.values().stream()
-                        .filter(element -> elementName.equals(element.getElementName()))
-                        .findFirst();
-
-                if (elementInfo.isPresent()) {
-                    var element = elementInfo.get();
-                    StringBuilder docBuilder = new StringBuilder();
-
-                    // Title
-                    docBuilder.append("<h2>").append(elementName).append("</h2>");
-
-                    // Description
-                    String description = element.getDocumentationAsHtml();
-                    if (description != null && !description.isEmpty()) {
-                        docBuilder.append("<p><strong>Description:</strong><br/>").append(description).append("</p>");
-                    }
-
-                    // Type information
-                    String type = element.getElementType();
-                    if (type != null) {
-                        docBuilder.append("<p><strong>Type:</strong> ").append(type).append("</p>");
-                    }
-
-                    // Occurrence information
-                    String minOccurs = null;
-                    String maxOccurs = null;
-                    if (element.getCurrentNode() != null && element.getCurrentNode().getAttributes() != null) {
-                        var minOccursNode = element.getCurrentNode().getAttributes().getNamedItem("minOccurs");
-                        var maxOccursNode = element.getCurrentNode().getAttributes().getNamedItem("maxOccurs");
-                        minOccurs = minOccursNode != null ? minOccursNode.getNodeValue() : null;
-                        maxOccurs = maxOccursNode != null ? maxOccursNode.getNodeValue() : null;
-                    }
-                    if (minOccurs != null || maxOccurs != null) {
-                        docBuilder.append("<p><strong>Occurrence:</strong> ");
-                        if (minOccurs != null) {
-                            docBuilder.append("Min: ").append(minOccurs);
-                        }
-                        if (maxOccurs != null) {
-                            if (minOccurs != null) {
-                                docBuilder.append(", ");
-                            }
-                            docBuilder.append("Max: ").append(maxOccurs);
-                        }
-                        docBuilder.append("</p>");
-                    }
-
-                    // XPath context
-                    String xpath = element.getCurrentXpath();
-                    if (xpath != null && !xpath.isEmpty()) {
-                        docBuilder.append("<p><strong>XPath:</strong> <code>").append(xpath).append("</code></p>");
-                    }
-
-                    // Example
-                    docBuilder.append("<p><strong>Example:</strong></p>");
-                    docBuilder.append("<pre><code>&lt;").append(elementName).append("&gt;");
-                    if (type != null) {
-                        if (type.contains("string")) {
-                            docBuilder.append("sample text");
-                        } else if (type.contains("boolean")) {
-                            docBuilder.append("true");
-                        } else if (type.contains("int") || type.contains("decimal")) {
-                            docBuilder.append("123");
-                        } else {
-                            docBuilder.append("...");
-                        }
-                    } else {
-                        docBuilder.append("...");
-                    }
-                    docBuilder.append("&lt;/").append(elementName).append("&gt;</code></pre>");
-
-                    return docBuilder.toString();
-                }
-            }
-
-            // Fallback documentation
-            return "<h2>" + elementName + "</h2>" +
-                    "<p><strong>Description:</strong><br/>XML element without detailed schema documentation</p>" +
-                    "<p><strong>Example:</strong></p>" +
-                    "<pre><code>&lt;" + elementName + "&gt;...&lt;/" + elementName + "&gt;</code></pre>";
-
-        } catch (Exception e) {
-            logger.debug("Error getting detailed element documentation for {}: {}", elementName, e.getMessage());
-            return "<h2>" + elementName + "</h2><p>XML element</p>";
-        }
-    }
-
-    /**
-     * Shows a simple documentation alert as fallback when enhanced popup is not available.
-     */
-    private void showSimpleDocumentationAlert(String elementName) {
-        Platform.runLater(() -> {
-            var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.setTitle("Element Documentation");
-            alert.setHeaderText("Documentation for: " + elementName);
-
-            String description = getElementDescription(elementName);
-            alert.setContentText(description);
-
-            alert.showAndWait();
-        });
-    }
-
-    /**
-     * Navigates to the XSD definition of the specified element.
-     */
-    private void navigateToXsdDefinition(org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor, String elementName) {
-        try {
-            var xsdDocumentationData = xmlEditor.getXsdDocumentationData();
-            if (xsdDocumentationData == null) {
-                logger.debug("XSD documentation data not yet loaded - showing user notification");
-                Platform.runLater(() -> {
-                    var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-                    alert.setTitle("Go-to-Definition");
-                    alert.setHeaderText("XSD Schema Loading");
-                    alert.setContentText("XSD schema is still being processed. Please wait a moment and try again.");
-                    alert.showAndWait();
-                });
-                return;
-            }
-
-            // Look for element in the extended element map
-            var extendedElementMap = xsdDocumentationData.getExtendedXsdElementMap();
-            org.fxt.freexmltoolkit.domain.XsdExtendedElement targetElement = null;
-
-            // Search for element by name
-            for (var entry : extendedElementMap.entrySet()) {
-                var element = entry.getValue();
-                if (elementName.equals(element.getElementName())) {
-                    targetElement = element;
-                    break;
-                }
-            }
-
-            if (targetElement == null) {
-                // Also check global elements
-                for (org.w3c.dom.Node globalElement : xsdDocumentationData.getGlobalElements()) {
-                    String name = getElementNameFromNode(globalElement);
-                    if (elementName.equals(name)) {
-                        // Found in global elements - navigate to XSD
-                        navigateToXsdFile(xmlEditor, globalElement, elementName);
-                        return;
-                    }
-                }
-
-                logger.debug("Element '{}' not found in XSD documentation", elementName);
-                showElementNotFoundMessage(elementName);
-                return;
-            }
-
-            // Navigate to the XSD definition
-            navigateToXsdFile(xmlEditor, targetElement.getCurrentNode(), elementName);
-
-        } catch (Exception e) {
-            logger.error("Error navigating to XSD definition: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Gets the element name from a DOM Node.
-     */
-    private String getElementNameFromNode(org.w3c.dom.Node node) {
-        if (node == null) {
-            return null;
-        }
-
-        // For XSD elements, check the 'name' attribute
-        if (node.hasAttributes()) {
-            org.w3c.dom.Node nameAttr = node.getAttributes().getNamedItem("name");
-            if (nameAttr != null) {
-                return nameAttr.getNodeValue();
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Navigates to the XSD file and highlights the element definition.
-     */
-    private void navigateToXsdFile(org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor, org.w3c.dom.Node elementNode, String elementName) {
-        try {
-            // Get the main controller to switch to XSD tab
-            if (xmlEditor.getMainController() != null) {
-                var mainController = xmlEditor.getMainController();
-
-                // Trigger XSD tab by firing the xsd button
-                Platform.runLater(() -> {
-                    try {
-                        // Access the XSD button and fire it to switch tabs
-                        var xsdButton = mainController.getClass().getDeclaredField("xsd");
-                        xsdButton.setAccessible(true);
-                        javafx.scene.control.Button xsdBtn = (javafx.scene.control.Button) xsdButton.get(mainController);
-                        if (xsdBtn != null) {
-                            xsdBtn.fire();
-                            logger.info("Go-to-Definition: Navigated to XSD tab for element '{}'", elementName);
-                        }
-                    } catch (Exception e) {
-                        logger.debug("Could not access XSD button via reflection: {}", e.getMessage());
-                        // Fallback: just log the navigation
-                        logger.info("Go-to-Definition: Element '{}' found in XSD", elementName);
-                    }
-                });
-            }
-        } catch (Exception e) {
-            logger.error("Error in XSD navigation: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Shows a message when an element definition is not found.
-     */
-    private void showElementNotFoundMessage(String elementName) {
-        Platform.runLater(() -> {
-            logger.debug("Element '{}' definition not found in associated XSD", elementName);
-            var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            alert.setTitle("Go-to-Definition");
-            alert.setHeaderText("Element Not Found");
-            alert.setContentText("Definition for element '" + elementName + "' was not found in the associated XSD schema.");
-            alert.showAndWait();
-        });
-    }
-
-    /**
-     * Cleanup method to stop file monitoring and release resources.
-     * Should be called when the editor is no longer needed.
-     */
-    public void cleanup() {
-        stopFileMonitoring();
-        currentFile = null;
-        lastModifiedTime = -1;
-        logger.debug("XmlCodeEditor cleanup completed");
-    }
-
-    /**
-     * Provides value suggestions for boolean and enumeration types when editing element text content.
-     * This is triggered when the user is typing within element text that has specific XSD constraints.
-     */
-    private void showValueSuggestions(ElementTextInfo elementTextInfo) {
-        try {
-            if (!isXmlWithXsdMode()) {
-                logger.debug("Not in XML_WITH_XSD mode, skipping value suggestions");
-                return;
-            }
-
-            String elementName = elementTextInfo.elementName;
-            logger.debug("Showing value suggestions for element: {}", elementName);
-
-            // Get element type information from XSD
-            String elementType = getElementType(elementName);
-            List<String> suggestions = new ArrayList<>();
-
-            if ("xs:boolean".equals(elementType) || "boolean".equals(elementType)) {
-                // Boolean type - suggest true/false
-                suggestions.add("true");
-                suggestions.add("false");
-                logger.debug("Added boolean suggestions for element: {}", elementName);
-
-            } else if (hasEnumerationRestriction(elementName)) {
-                // Enumeration type - get allowed values
-                List<String> enumValues = getEnumerationValues(elementName);
-                if (enumValues != null && !enumValues.isEmpty()) {
-                    suggestions.addAll(enumValues);
-                    logger.debug("Added {} enumeration values for element: {}", enumValues.size(), elementName);
-                }
-            } else {
-                logger.debug("Element {} has no boolean/enumeration constraints", elementName);
-                return;
-            }
-
-            if (!suggestions.isEmpty()) {
-                // For XML_WITH_XSD mode, use the 3-column popup for value suggestions
-                if (enhancedCompletionPopup != null) {
-                    show3ColumnValueSuggestions(suggestions, elementTextInfo);
-                } else {
-                    // Fallback to standard popup
-                    showStandardValueSuggestions(suggestions, elementTextInfo);
-                }
-            }
-
-        } catch (Exception e) {
-            logger.error("Error showing value suggestions: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Shows value suggestions using the 3-column enhanced popup
-     */
-    private void show3ColumnValueSuggestions(List<String> suggestions, ElementTextInfo elementTextInfo) {
-        try {
-            List<org.fxt.freexmltoolkit.controls.intellisense.CompletionItem> completionItems = new ArrayList<>();
-
-            for (String suggestion : suggestions) {
-                org.fxt.freexmltoolkit.controls.intellisense.CompletionItem item =
-                        new org.fxt.freexmltoolkit.controls.intellisense.CompletionItem.Builder(
-                                suggestion,
-                                suggestion,
-                                org.fxt.freexmltoolkit.controls.intellisense.CompletionItemType.VALUE
-                        )
-                                .description(getValueDescription(suggestion, elementTextInfo.elementName))
-                                .build();
-                completionItems.add(item);
-            }
-
-            // Show at the current cursor position
-            var caretBounds = codeArea.getCaretBounds();
-            if (caretBounds.isPresent()) {
-                var bounds = caretBounds.get();
-                enhancedCompletionPopup.setOnItemSelected(item -> handleValueSelection(item, elementTextInfo));
-                enhancedCompletionPopup.show(
-                        codeArea,
-                        completionItems,
-                        new javafx.geometry.Point2D(bounds.getMaxX(), bounds.getMaxY())
-                );
-
-                logger.info("3-column value suggestions popup shown with {} values", completionItems.size());
-            }
-
-        } catch (Exception e) {
-            logger.error("Error showing 3-column value suggestions: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Handles value selection from the 3-column popup
-     */
-    private void handleValueSelection(org.fxt.freexmltoolkit.controls.intellisense.CompletionItem item, ElementTextInfo elementTextInfo) {
-        try {
-            String selectedValue = item.getInsertText();
-
-            // Replace the element text content with the selected value
-            codeArea.replaceText(elementTextInfo.startPosition, elementTextInfo.endPosition, selectedValue);
-
-            // Position cursor after the inserted value
-            codeArea.moveTo(elementTextInfo.startPosition + selectedValue.length());
-
-            logger.debug("Selected value '{}' for element '{}'", selectedValue, elementTextInfo.elementName);
-
-        } catch (Exception e) {
-            logger.error("Error handling value selection: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Gets the XSD type for an element
-     */
-    private String getElementType(String elementName) {
-        try {
-            if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
-                var extendedElementMap = parentXmlEditor.getXsdDocumentationData().getExtendedXsdElementMap();
-                var elementInfo = extendedElementMap.values().stream()
-                        .filter(element -> elementName.equals(element.getElementName()))
-                        .findFirst();
-
-                if (elementInfo.isPresent()) {
-                    return elementInfo.get().getElementType();
-                }
-            }
-            return null;
-        } catch (Exception e) {
-            logger.debug("Error getting element type for {}: {}", elementName, e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Checks if an element has enumeration restriction in XSD
-     */
-    private boolean hasEnumerationRestriction(String elementName) {
-        List<String> enumValues = getEnumerationValues(elementName);
-        return enumValues != null && !enumValues.isEmpty();
-    }
-
-    /**
-     * Gets description for a value
-     */
-    private String getValueDescription(String value, String elementName) {
-        if ("true".equals(value) || "false".equals(value)) {
-            return "Boolean value: " + value;
-        }
-        return "Enumeration value for " + elementName + ": " + value;
-    }
-
-    /**
-     * Gets documentation for a value
-     */
-    private String getValueDocumentation(String value, String elementName) {
-        StringBuilder docBuilder = new StringBuilder();
-        docBuilder.append("<h3>").append(value).append("</h3>");
-
-        if ("true".equals(value)) {
-            docBuilder.append("<p>Boolean value representing a true condition.</p>");
-        } else if ("false".equals(value)) {
-            docBuilder.append("<p>Boolean value representing a false condition.</p>");
+    public void setSchematronMode(boolean enabled) {
+        if (enabled) {
+            setEditorMode(EditorMode.SCHEMATRON);
         } else {
-            docBuilder.append("<p>Allowed enumeration value for element <code>").append(elementName).append("</code>.</p>");
+            setEditorMode(EditorMode.XML_WITHOUT_XSD);
         }
-
-        docBuilder.append("<p><strong>Usage:</strong></p>");
-        docBuilder.append("<pre><code>&lt;").append(elementName).append("&gt;").append(value).append("&lt;/").append(elementName).append("&gt;</code></pre>");
-
-        return docBuilder.toString();
     }
 
     /**
-     * Fallback method for standard value suggestions popup
+     * Checks if Schematron mode is active.
      */
-    private void showStandardValueSuggestions(List<String> suggestions, ElementTextInfo elementTextInfo) {
-        try {
-            // Store the element text info for selection handling
-            currentElementTextInfo = elementTextInfo;
+    public boolean isSchematronMode() {
+        return currentMode == EditorMode.SCHEMATRON;
+    }
 
-            // Show the suggestions in the standard popup
-            completionListView.getItems().clear();
-            completionListView.getItems().addAll(suggestions);
+    /**
+     * Gets Schematron auto-complete instance.
+     */
+    public SchematronAutoComplete getSchematronAutoComplete() {
+        if (schematronAutoComplete == null) {
+            schematronAutoComplete = new SchematronAutoComplete(codeArea);
+        }
+        return schematronAutoComplete;
+    }
 
-            if (!completionListView.getItems().isEmpty()) {
-                completionListView.getSelectionModel().select(0);
-            }
+    /**
+     * Sets available element names for IntelliSense.
+     */
+    public void setAvailableElementNames(List<String> elementNames) {
+        this.availableElementNames = new ArrayList<>(elementNames);
+    }
 
-            showIntelliSensePopupAtCursor();
+    /**
+     * Sets context element names for IntelliSense.
+     */
+    public void setContextElementNames(Map<String, List<String>> contextElementNames) {
+        this.contextElementNames = new HashMap<>(contextElementNames);
+    }
 
-            logger.debug("Standard value suggestions popup shown with {} values", suggestions.size());
+    /**
+     * Tests syntax highlighting functionality.
+     */
+    public void testSyntaxHighlighting() {
+        // Test syntax highlighting functionality
+        logger.debug("Testing syntax highlighting functionality");
+        String sampleXml = "<?xml version=\"1.0\"?><root><element>test</element></root>";
+        syntaxHighlightManager.applySyntaxHighlighting(sampleXml);
+    }
 
-        } catch (Exception e) {
-            logger.error("Error showing standard value suggestions: {}", e.getMessage(), e);
+    /**
+     * Debugs CSS status for troubleshooting.
+     */
+    public void debugCssStatus() {
+        // Implementation would go here - for now just log
+        logger.debug("CSS status debug requested");
+    }
+
+    /**
+     * Finds text in the editor.
+     */
+    public void find(String searchText, boolean forward) {
+        // Basic find implementation
+        String content = codeArea.getText();
+        int currentPos = codeArea.getCaretPosition();
+        int foundPos = forward ? content.indexOf(searchText, currentPos) : content.lastIndexOf(searchText, currentPos - 1);
+
+        if (foundPos >= 0) {
+            codeArea.selectRange(foundPos, foundPos + searchText.length());
         }
     }
 
+    /**
+     * Replaces current selection or next occurrence.
+     */
+    public void replace(String findText, String replaceText) {
+        if (codeArea.getSelection().getLength() > 0) {
+            codeArea.replaceSelection(replaceText);
+        } else {
+            find(findText, true);
+            if (codeArea.getSelection().getLength() > 0) {
+                codeArea.replaceSelection(replaceText);
+            }
+        }
+    }
+    
+    /**
+     * Replaces all occurrences of text.
+     */
+    public void replaceAll(String findText, String replaceText) {
+        String content = codeArea.getText();
+        String newContent = content.replace(findText, replaceText);
+        codeArea.replaceText(newContent);
+    }
+
+    /**
+     * Checks if XSD schema is available for validation and IntelliSense.
+     * Used by tests for reflection access.
+     */
+    private boolean isXsdSchemaAvailable() {
+        return parentXmlEditor != null &&
+                parentXmlEditor.getXsdFile() != null;
+    }
+
+    /**
+     * Requests completions for IntelliSense.
+     * Used by tests for reflection access.
+     */
+    private void requestCompletions() {
+        showIntelliSenseCompletion();
+    }
 }

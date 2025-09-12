@@ -473,8 +473,23 @@ public class EnhancedCompletionPopup {
         popup.setY(screenY);
 
         if (!popup.isShowing()) {
-            // Show popup without owner window for now
-            popup.show(searchField, screenX, screenY);
+            // Show popup with proper owner window
+            try {
+                // Get the first available stage as owner
+                javafx.stage.Window ownerWindow = javafx.stage.Window.getWindows().stream()
+                        .filter(w -> w.isShowing())
+                        .findFirst()
+                        .orElse(null);
+
+                if (ownerWindow != null) {
+                    popup.show(ownerWindow);
+                    logger.debug("Popup shown with owner window: {}", ownerWindow.getClass().getSimpleName());
+                } else {
+                    logger.warn("No valid owner window found - cannot show popup");
+                }
+            } catch (Exception e) {
+                logger.error("Failed to show popup: {}", e.getMessage(), e);
+            }
         }
     }
 

@@ -125,10 +125,9 @@ public class XsdIntegrationAdapter {
             elements.addAll(childElementsCache.get(parentElement));
         }
 
-        // Remove duplicates and sort
+        // Remove duplicates but preserve XSD order (do NOT sort alphabetically)
         return elements.stream()
                 .distinct()
-                .sorted()
                 .collect(Collectors.toList());
     }
 
@@ -385,20 +384,28 @@ public class XsdIntegrationAdapter {
     private List<String> getElementsFromDocumentationData(String parentElement) {
         List<String> elements = new ArrayList<>();
 
-        if (xsdDocumentationData == null) return elements;
+        if (xsdDocumentationData == null) {
+            logger.debug("XSD documentation data is null");
+            return elements;
+        }
 
         Map<String, XsdExtendedElement> elementMap = xsdDocumentationData.getExtendedXsdElementMap();
         String parentPath = parentElement == null ? "/" : "/" + parentElement + "/";
+
+        logger.debug("Searching for children of '{}' using parent path '{}'", parentElement, parentPath);
+        logger.debug("Available XPaths in elementMap: {}", elementMap.size() > 10 ? "[" + elementMap.size() + " total]" : elementMap.keySet());
 
         for (String xpath : elementMap.keySet()) {
             if (xpath.startsWith(parentPath) && !xpath.contains("@")) {
                 String remaining = xpath.substring(parentPath.length());
                 if (!remaining.contains("/")) {
                     elements.add(remaining);
+                    logger.debug("Found direct child: '{}' from xpath '{}'", remaining, xpath);
                 }
             }
         }
 
+        logger.debug("Found {} direct children for parent '{}': {}", elements.size(), parentElement, elements);
         return elements;
     }
 
