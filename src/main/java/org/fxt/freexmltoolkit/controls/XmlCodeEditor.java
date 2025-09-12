@@ -383,6 +383,15 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
+     * Refreshes XSD integration data from the parent XML editor.
+     * This should be called when XSD documentation data becomes available.
+     */
+    public void refreshXsdIntegrationData() {
+        logger.debug("refreshXsdIntegrationData called");
+        updateXsdIntegration();
+    }
+
+    /**
      * Sets the current file being monitored.
      *
      * @param file The file to monitor
@@ -1246,6 +1255,33 @@ public class XmlCodeEditor extends VBox {
             String currentElement = getCurrentElementName(textBeforeCaret);
             completions.addAll(getAttributeCompletions(currentElement));
             logger.debug("Attribute context for element '{}': found {} completions", currentElement, completions.size());
+        } else {
+            // Check if cursor is inside element content with enumeration constraints
+            String currentElement = getCurrentElementForTextContent(textBeforeCaret, caretPos);
+            logger.debug("🔍 Current element for text content: '{}'", currentElement);
+            logger.debug("🔍 XSD integration available: {}", xsdIntegration != null);
+
+            if (currentElement != null && xsdIntegration != null) {
+                List<String> enumValues = xsdIntegration.getElementEnumerationValues(currentElement);
+                logger.debug("🎯 Enumeration values found: {}", enumValues);
+
+                if (!enumValues.isEmpty()) {
+                    // Show enumeration values as completion items
+                    isElementCompletionContext = false;
+                    popupStartPosition = getElementContentStartPosition(textBeforeCaret, caretPos);
+                    completions.addAll(getEnumerationCompletions(enumValues, currentElement));
+                    logger.info("🎯 INTELLISENSE: Enumeration context for element '{}' - found {} values", currentElement, enumValues.size());
+                } else {
+                    logger.debug("❌ No enumeration values found for element '{}'", currentElement);
+                }
+            } else {
+                if (currentElement == null) {
+                    logger.debug("❌ Could not determine current element for text content");
+                }
+                if (xsdIntegration == null) {
+                    logger.debug("❌ XSD integration not available");
+                }
+            }
         }
 
         if (!completions.isEmpty()) {
@@ -2087,6 +2123,118 @@ public class XmlCodeEditor extends VBox {
      * Information about element text content.
      */
     private record ElementTextInfo(String elementName, String textContent, int startPosition, int endPosition) {
+    }
+
+    // ================================================================================
+    // Enumeration IntelliSense Helper Methods
+    // ================================================================================
+
+    /**
+     * Gets the current element name when cursor is inside element text content.
+     */
+    private String getCurrentElementForTextContent(String textBeforeCaret, int caretPos) {
+        try {
+            // Look backward for the last opening tag
+            int lastOpenTag = textBeforeCaret.lastIndexOf('<');
+            if (lastOpenTag == -1) return null;
+
+            // Check if it's a closing tag or comment
+            if (lastOpenTag + 1 < textBeforeCaret.length() &&
+                    (textBeforeCaret.charAt(lastOpenTag + 1) == '/' ||
+                            textBeforeCaret.charAt(lastOpenTag + 1) == '!' ||
+                            textBeforeCaret.charAt(lastOpenTag + 1) == '?')) {
+                return null;
+            }
+
+            // Find the end of the opening tag
+            int tagEnd = textBeforeCaret.indexOf('>', lastOpenTag);
+            if (tagEnd == -1) return null; // Tag not closed yet
+
+            // Extract element name from the opening tag
+            String tagContent = textBeforeCaret.substring(lastOpenTag + 1, tagEnd);
+
+            // Handle self-closing tags
+            if (tagContent.endsWith("/")) return null;
+
+            // Extract element name (before any spaces/attributes)
+            int spaceIndex = tagContent.indexOf(' ');
+            String elementName = spaceIndex != -1 ? tagContent.substring(0, spaceIndex) : tagContent;
+
+            // Check if we're actually inside the element content (not in an attribute)
+            String textAfterTag = textBeforeCaret.substring(tagEnd + 1);
+
+            // Look for any unclosed child elements
+            int nextOpenTag = textAfterTag.indexOf('<');
+            if (nextOpenTag != -1) {
+                // Check if there's a closing tag before the next opening tag
+                int nextCloseTag = textAfterTag.indexOf("</" + elementName + ">");
+                if (nextCloseTag != -1 && nextCloseTag < nextOpenTag) {
+                    return null; // We're after the element's closing tag
+                }
+            }
+
+            logger.debug("🎯 Detected element for text content: '{}'", elementName);
+            return elementName;
+
+        } catch (Exception e) {
+            logger.debug("Error detecting element for text content: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Gets the start position of the element content for completion replacement.
+     */
+    private int getElementContentStartPosition(String textBeforeCaret, int caretPos) {
+        try {
+            // Find the last opening tag
+            int lastOpenTag = textBeforeCaret.lastIndexOf('<');
+            if (lastOpenTag == -1) return caretPos;
+
+            // Find the end of the opening tag
+            int tagEnd = textBeforeCaret.indexOf('>', lastOpenTag);
+            if (tagEnd == -1) return caretPos;
+
+            // Look for the start of the current word being typed
+            int contentStart = tagEnd + 1;
+            int pos = caretPos - 1;
+
+            // Move backward to find the start of the current word
+            while (pos >= contentStart && Character.isLetterOrDigit(textBeforeCaret.charAt(pos))) {
+                pos--;
+            }
+
+            return pos + 1;
+
+        } catch (Exception e) {
+            logger.debug("Error finding element content start position: {}", e.getMessage());
+            return caretPos;
+        }
+    }
+
+    /**
+     * Creates CompletionItems for enumeration values.
+     */
+    private List<CompletionItem> getEnumerationCompletions(List<String> enumValues, String elementName) {
+        List<CompletionItem> completions = new ArrayList<>();
+        int index = 0;
+
+        for (String enumValue : enumValues) {
+            CompletionItem.Builder builder = new CompletionItem.Builder(
+                    enumValue,
+                    enumValue,
+                    CompletionItemType.VALUE
+            );
+
+            builder.description("Allowed value for element '" + elementName + "'");
+            builder.dataType("enumeration");
+            builder.relevanceScore(200 - index); // Higher scores for earlier values
+
+            completions.add(builder.build());
+            index++;
+        }
+
+        return completions;
     }
 
     // ================================================================================

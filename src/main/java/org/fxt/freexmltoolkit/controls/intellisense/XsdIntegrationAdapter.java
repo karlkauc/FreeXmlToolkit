@@ -456,6 +456,105 @@ public class XsdIntegrationAdapter {
         return new ArrayList<>();
     }
 
+    /**
+     * Get enumeration values for an element's text content
+     */
+    public List<String> getElementEnumerationValues(String elementName) {
+        List<String> values = new ArrayList<>();
+        logger.debug("🔍 Looking for enumeration values for element: '{}'", elementName);
+
+        // Try XsdDocumentationData first
+        if (xsdDocumentationData != null) {
+            logger.debug("📊 XSD documentation data available, searching...");
+            logger.debug("📊 XSD element map size: {}", xsdDocumentationData.getExtendedXsdElementMap().size());
+            logger.debug("📊 Available XSD elements: {}", xsdDocumentationData.getExtendedXsdElementMap().keySet());
+
+            // Try different XPath variations
+            String[] xpathVariations = {
+                    "/" + elementName,
+                    elementName,
+                    "//" + elementName,
+                    "/*/" + elementName
+            };
+
+            for (String xpath : xpathVariations) {
+                XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+                logger.debug("🔍 Trying xpath '{}': {}", xpath, element != null ? "found" : "not found");
+
+                if (element != null) {
+                    logger.debug("📋 Element found: name='{}', type='{}', hasRestriction={}",
+                            element.getElementName(), element.getElementType(), element.getRestrictionInfo() != null);
+
+                    if (element.getRestrictionInfo() != null) {
+                        Map<String, List<String>> facets = element.getRestrictionInfo().facets();
+                        logger.debug("🎯 Facets available: {}", facets != null ? facets.keySet() : "none");
+
+                        if (facets != null && facets.containsKey("enumeration")) {
+                            values.addAll(facets.get("enumeration"));
+                            logger.debug("✅ Found enumeration values for element '{}': {}", elementName, values);
+                            break; // Found values, stop searching
+                        }
+                    }
+                }
+            }
+
+            // If still no values, let's check all available elements
+            if (values.isEmpty()) {
+                logger.debug("🔍 No enumeration found with standard paths, checking all available elements...");
+                xsdDocumentationData.getExtendedXsdElementMap().forEach((path, element) -> {
+                    if (element.getElementName() != null && element.getElementName().equals(elementName)) {
+                        logger.debug("🎯 Found matching element by name: path='{}', element='{}'", path, element.getElementName());
+                        if (element.getRestrictionInfo() != null) {
+                            Map<String, List<String>> facets = element.getRestrictionInfo().facets();
+                            if (facets != null && facets.containsKey("enumeration")) {
+                                values.addAll(facets.get("enumeration"));
+                                logger.debug("✅ Found enumeration values via name search: {}", values);
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            logger.debug("❌ No XSD documentation data available");
+        }
+
+        // Try schema document
+        if (schemaDocument != null && values.isEmpty()) {
+            logger.debug("🔍 Trying schema document fallback...");
+            values.addAll(getElementEnumerationFromSchemaDocument(elementName));
+        }
+
+        logger.debug("🏁 Final enumeration values for '{}': {}", elementName, values);
+        return values;
+    }
+
+    /**
+     * Get enumeration values for an element by XPath
+     */
+    public List<String> getElementEnumerationValuesByXPath(String xpath) {
+        List<String> values = new ArrayList<>();
+
+        if (xsdDocumentationData != null) {
+            XsdExtendedElement element = xsdDocumentationData.getExtendedXsdElementMap().get(xpath);
+
+            if (element != null && element.getRestrictionInfo() != null) {
+                Map<String, List<String>> facets = element.getRestrictionInfo().facets();
+                if (facets != null && facets.containsKey("enumeration")) {
+                    values.addAll(facets.get("enumeration"));
+                    logger.debug("Found enumeration values for xpath '{}': {}", xpath, values);
+                }
+            }
+        }
+
+        return values;
+    }
+
+    private List<String> getElementEnumerationFromSchemaDocument(String elementName) {
+        // This would require deeper schema parsing to extract element enumeration values
+        // For now, return empty list
+        return new ArrayList<>();
+    }
+
     // Inner classes
 
     public static class ElementInfo {

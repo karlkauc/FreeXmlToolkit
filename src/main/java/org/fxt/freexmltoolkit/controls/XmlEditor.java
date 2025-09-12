@@ -1739,6 +1739,12 @@ public class XmlEditor extends Tab {
                 logger.debug("Successfully loaded XSD documentation data with {} elements",
                         xsdDocumentationData.getExtendedXsdElementMap().size());
 
+                // Notify XmlCodeEditor to refresh its XSD integration data
+                if (xmlCodeEditor != null) {
+                    xmlCodeEditor.refreshXsdIntegrationData();
+                    logger.debug("XSD integration data refreshed for XmlCodeEditor");
+                }
+
             } catch (Exception e) {
                 logger.debug("Error loading XSD documentation data: {}", e.getMessage());
                 this.xsdDocumentationData = null;
