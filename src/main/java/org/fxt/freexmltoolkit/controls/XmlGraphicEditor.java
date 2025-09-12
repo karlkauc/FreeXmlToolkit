@@ -790,6 +790,7 @@ public class XmlGraphicEditor extends VBox {
 
         // --- STEP 1: Determine all column headers in advance ---
         // We iterate through all rows just to collect column names.
+        // Start with index 1 to leave space for row number column at index 0
         for (int i = 0; i < subNode.getChildNodes().getLength(); i++) {
             Node oneRow = subNode.getChildNodes().item(i);
             if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
@@ -797,14 +798,36 @@ public class XmlGraphicEditor extends VBox {
                     Node oneNode = oneRow.getChildNodes().item(x);
                     if (oneNode.getNodeType() == Node.ELEMENT_NODE) {
                         // Add the column name if it doesn't exist yet,
-                        // and assign it the next available index.
-                        columns.computeIfAbsent(oneNode.getNodeName(), k -> columns.size());
+                        // and assign it the next available index (starting from 1).
+                        columns.computeIfAbsent(oneNode.getNodeName(), k -> columns.size() + 1);
                     }
                 }
             }
         }
 
-        // --- STEP 2: Create header row based on collected columns ---
+        // --- STEP 2: Create row number header column (column 0) ---
+        var rowNumberHeaderLabel = new Label("#");
+        rowNumberHeaderLabel.setStyle(
+                "-fx-text-fill: #333333; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-font-size: 11px; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;"
+        );
+
+        var rowNumberHeaderPane = new StackPane(rowNumberHeaderLabel);
+        rowNumberHeaderPane.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #e8e8e8, #d0d0d0); " +
+                        "-fx-border-color: #c0c0c0; " +
+                        "-fx-border-width: 0 1px 1px 0; " +
+                        "-fx-padding: 4px 8px; " +
+                        "-fx-min-width: 40px; " +
+                        "-fx-max-width: 40px;"
+        );
+        rowNumberHeaderPane.setAlignment(Pos.CENTER);
+        rowNumberHeaderPane.getStyleClass().add("xmlspy-table-header-rownumber");
+        gridPane.add(rowNumberHeaderPane, 0, 0); // Row number header in column 0, row 0
+
+        // --- STEP 3: Create data column headers (starting from column 1) ---
         for (Map.Entry<String, Integer> entry : columns.entrySet()) {
             String columnName = entry.getKey();
             int columnIndex = entry.getValue();
@@ -829,17 +852,54 @@ public class XmlGraphicEditor extends VBox {
             gridPane.add(headerPane, columnIndex, 0); // Header always in row 0
         }
 
-        // --- STEP 3: Fill data rows ---
+        // --- STEP 4: Fill data rows ---
         int row = 1; // Data starts in row 1
+        int rowNumber = 1; // Row number counter (separate from row index)
         for (int i = 0; i < subNode.getChildNodes().getLength(); i++) {
             Node oneRow = subNode.getChildNodes().item(i);
             if (oneRow.getNodeType() == Node.ELEMENT_NODE) {
+                // Add row number cell first (column 0)
+                addRowNumberCell(gridPane, rowNumber, row);
+                
                 // The helper methods now use the pre-filled 'columns' map.
                 addTableRow(gridPane, oneRow, row, columns);
                 row++;
+                rowNumber++;
             }
         }
         return gridPane;
+    }
+
+    /**
+     * Adds a row number cell to the table at column 0
+     */
+    private void addRowNumberCell(GridPane gridPane, int rowNumber, int row) {
+        var rowNumberLabel = new Label(String.valueOf(rowNumber));
+        rowNumberLabel.setStyle(
+                "-fx-text-fill: #666666; " +
+                        "-fx-font-size: 10px; " +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif; " +
+                        "-fx-font-weight: bold;"
+        );
+
+        StackPane rowNumberPane = new StackPane(rowNumberLabel);
+
+        // XMLSpy-inspired row number cell styling with alternating row colors
+        boolean isOddRow = (row % 2) == 1;
+        String backgroundColor = isOddRow ? "#f8f8f8" : "#f0f0f0";
+
+        rowNumberPane.setStyle(
+                "-fx-background-color: " + backgroundColor + "; " +
+                        "-fx-border-color: #c0c0c0; " +
+                        "-fx-border-width: 0 1px 1px 0; " +
+                        "-fx-padding: 4px 8px; " +
+                        "-fx-min-width: 40px; " +
+                        "-fx-max-width: 40px;"
+        );
+        rowNumberPane.setAlignment(Pos.CENTER);
+        rowNumberPane.getStyleClass().add("xmlspy-table-rownumber");
+
+        gridPane.add(rowNumberPane, 0, row); // Column 0, current row
     }
 
     private void addTableRow(GridPane gridPane, Node oneRow, int row, Map<String, Integer> columns) {
