@@ -30,6 +30,7 @@ public class FileOperationsManager {
     private Timeline fileMonitorTimer;
     private boolean isFileMonitoringEnabled = true;
     private boolean ignoreNextChange = false; // Flag to ignore changes we made ourselves
+    private boolean dialogOpen = false; // Flag to prevent multiple dialogs for the same file
 
     // Callbacks
     private FileOperationHandler fileOperationHandler;
@@ -93,6 +94,7 @@ public class FileOperationsManager {
         stopFileMonitoring();
 
         this.currentFile = file;
+        this.dialogOpen = false; // Reset dialog flag for new file
         if (file != null && file.exists()) {
             this.lastModifiedTime = file.lastModified();
             startFileMonitoring();
@@ -134,7 +136,7 @@ public class FileOperationsManager {
      * Checks if the current file has been modified externally.
      */
     private void checkForExternalChanges() {
-        if (currentFile == null || !currentFile.exists() || ignoreNextChange) {
+        if (currentFile == null || !currentFile.exists() || ignoreNextChange || dialogOpen) {
             if (ignoreNextChange) {
                 ignoreNextChange = false; // Reset the flag
             }
@@ -144,6 +146,7 @@ public class FileOperationsManager {
         long currentModifiedTime = currentFile.lastModified();
         if (currentModifiedTime > lastModifiedTime) {
             // File has been modified externally
+            dialogOpen = true; // Set flag to prevent multiple dialogs
             Platform.runLater(() -> showExternalChangeDialog(currentModifiedTime));
         }
     }
@@ -170,6 +173,8 @@ public class FileOperationsManager {
                 lastModifiedTime = newModifiedTime;
                 logger.debug("User chose not to reload external changes, updating timestamp");
             }
+            // Reset dialog flag when dialog is closed
+            dialogOpen = false;
         });
     }
 
@@ -191,6 +196,7 @@ public class FileOperationsManager {
             Platform.runLater(() -> {
                 codeArea.replaceText(newContent);
                 lastModifiedTime = newModifiedTime;
+                dialogOpen = false; // Reset dialog flag after successful reload
                 logger.info("Successfully reloaded file from disk: {}", currentFile.getAbsolutePath());
             });
 
@@ -198,6 +204,7 @@ public class FileOperationsManager {
             logger.error("Error reloading file from disk: {}", e.getMessage(), e);
 
             Platform.runLater(() -> {
+                dialogOpen = false; // Reset dialog flag in case of error
                 Alert errorAlert = new Alert(Alert.AlertType.ERROR);
                 errorAlert.setTitle("Error Reloading File");
                 errorAlert.setHeaderText("Failed to reload file from disk");
