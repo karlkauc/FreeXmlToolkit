@@ -105,12 +105,12 @@
                     <!-- Dynamically iterate over all other facets -->
                     <th:block th:each="facetNode : ${this.getRestrictionFacets(simpleTypeNode)}">
                         <!-- Special handling for enumeration -->
-                        <tr th:if="${facetNode.localName == 'enumeration'}">
+                        <tr th:if="${this.getLocalName(facetNode) == 'enumeration'}">
                             <td class="py-3 pr-4 font-medium text-slate-800 align-top">Allowed Values (enumeration)</td>
                             <td class="py-3">
                                 <ul class="space-y-2">
                                     <!-- Iterate over all enumeration nodes with the same name -->
-                                    <li th:each="enumNode : ${this.getDirectChildElements(facetNode.parentNode, 'enumeration')}">
+                                    <li th:each="enumNode : ${this.getDirectChildElements(this.getParentNode(facetNode), 'enumeration')}">
                                         <code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
                                               th:text="${this.getAttributeValue(enumNode, 'value')}"></code>
                                         <!-- Documentation for the individual enum value -->
@@ -123,8 +123,9 @@
                             </td>
                         </tr>
                         <!-- Generic handling for all other facets -->
-                        <tr th:unless="${facetNode.localName == 'enumeration'}">
-                            <td class="py-3 pr-4 font-medium text-slate-800" th:text="${facetNode.localName}"></td>
+                        <tr th:unless="${this.getLocalName(facetNode) == 'enumeration'}">
+                            <td class="py-3 pr-4 font-medium text-slate-800"
+                                th:text="${this.getLocalName(facetNode)}"></td>
                             <td class="py-3">
                                 <code class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded-md"
                                       th:text="${this.getAttributeValue(facetNode, 'value')}"></code>
