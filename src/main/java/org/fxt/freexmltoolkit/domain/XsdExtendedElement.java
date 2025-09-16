@@ -216,7 +216,16 @@ public class XsdExtendedElement implements Serializable {
             String use = getAttributeValue(currentNode, "use");
             return "required".equals(use);
         }
-        return "1".equals(minOccurs) || minOccurs == null; // minOccurs defaults to 1
+
+        // Check if minOccurs > 0 (not just equals 1)
+        if (minOccurs == null) {
+            return true; // Default minOccurs is 1, so mandatory
+        }
+        try {
+            return Integer.parseInt(minOccurs) > 0;
+        } catch (NumberFormatException e) {
+            return true; // If can't parse, assume mandatory
+        }
     }
 
     private String getAttributeValue(Node node, String attrName) {

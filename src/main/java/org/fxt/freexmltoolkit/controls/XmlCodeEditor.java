@@ -1142,15 +1142,20 @@ public class XmlCodeEditor extends VBox {
                         String childIndentation = indentation + " ".repeat(propertiesService.getXmlIndentSpaces());
 
                         for (String childElement : mandatoryChildren) {
-                            childElements.append("\n").append(childIndentation)
-                                    .append("<").append(childElement).append(">")
-                                    .append(getSampleValue(childElement))
-                                    .append("</").append(childElement).append(">");
+                            // Get current XPath context and add parent element for child context
+                            String currentContext = getCurrentXPathContext();
+                            String childContext = (currentContext != null)
+                                    ? currentContext + "/" + elementName
+                                    : elementName;
+
+                            String childContent = createElementWithMandatoryChildren(childElement, childIndentation, 1, childContext);
+                            childElements.append("\n").append(childContent);
                         }
                         childElements.append("\n").append(indentation);
 
                         codeArea.insertText(insertPos, childElements + closingTag);
-                        codeArea.moveTo(insertPos + childElements.toString().indexOf(getSampleValue(mandatoryChildren.get(0))));
+                        // Position cursor at the first leaf element with sample value
+                        positionCursorAtFirstSampleValue(insertPos, childElements.toString());
                     } else {
                         codeArea.insertText(insertPos, closingTag);
                         codeArea.moveTo(insertPos); // Position cursor between tags
@@ -1417,20 +1422,236 @@ public class XmlCodeEditor extends VBox {
      * Gets mandatory child elements for a given element name based on XSD schema.
      */
     private List<String> getMandatoryChildElements(String elementName) {
-        // Check if we have context element names mapping (from XSD)
-        if (contextElementNames.containsKey(elementName)) {
-            return contextElementNames.get(elementName);
+        logger.debug("Getting mandatory children for element: {}", elementName);
+
+        // Primary approach: Use XsdDocumentationService directly if available with XPath context
+        if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationService() != null) {
+            try {
+                var xsdService = parentXmlEditor.getXsdDocumentationService();
+
+                // Try to determine the current XPath context for better element disambiguation
+                String contextPath = getCurrentXPathContext();
+                var mandatoryChildInfos = xsdService.getMandatoryChildElements(elementName, contextPath);
+
+                if (!mandatoryChildInfos.isEmpty()) {
+                    List<String> mandatoryChildren = mandatoryChildInfos.stream()
+                            .map(info -> info.name())
+                            .distinct()
+                            .collect(java.util.stream.Collectors.toList());
+
+                    logger.debug("Found {} mandatory children from XSD service for '{}' with context '{}': {}",
+                            mandatoryChildren.size(), elementName, contextPath, mandatoryChildren);
+                    return mandatoryChildren;
+                }
+            } catch (Exception e) {
+                logger.debug("Error getting mandatory children from XSD service for '{}': {}", elementName, e.getMessage());
+            }
         }
 
-        // Fallback to some common patterns for demonstration
+        // Secondary approach: Try to use XsdDocumentationData directly if available
+        if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
+            var xsdData = parentXmlEditor.getXsdDocumentationData();
+            if (xsdData.getExtendedXsdElementMap() != null) {
+                List<String> mandatoryChildren = extractMandatoryChildrenFromXsdData(elementName, xsdData);
+                if (!mandatoryChildren.isEmpty()) {
+                    logger.debug("Found {} mandatory children from XSD data for '{}': {}",
+                            mandatoryChildren.size(), elementName, mandatoryChildren);
+                    return mandatoryChildren;
+                }
+            }
+        }
+
+        // Fallback: Check if we have context element names mapping but filter for mandatory only
+        if (contextElementNames.containsKey(elementName)) {
+            List<String> allChildren = contextElementNames.get(elementName);
+            // Remove duplicates and only keep truly mandatory ones based on known patterns
+            List<String> filteredChildren = allChildren.stream()
+                    .distinct()
+                    .filter(child -> isMandatoryChildBasedOnKnowledge(elementName, child))
+                    .collect(java.util.stream.Collectors.toList());
+
+            if (!filteredChildren.isEmpty()) {
+                logger.debug("Found {} filtered mandatory children from context for '{}': {}",
+                        filteredChildren.size(), elementName, filteredChildren);
+                return filteredChildren;
+            }
+        }
+
+        // Final fallback to hardcoded mandatory patterns
+        List<String> fallbackChildren = getHardcodedMandatoryChildren(elementName);
+
+        if (!fallbackChildren.isEmpty()) {
+            logger.debug("Using hardcoded mandatory children for '{}': {}", elementName, fallbackChildren);
+        } else {
+            logger.debug("No mandatory children available for '{}'", elementName);
+        }
+
+        return fallbackChildren;
+    }
+
+    /**
+     * Gets mandatory child elements with explicit XPath context.
+     * This method is used during recursive element creation to maintain context.
+     */
+    private List<String> getMandatoryChildElementsWithContext(String elementName, String xpathContext) {
+        logger.debug("Getting mandatory children for element '{}' with explicit context '{}'", elementName, xpathContext);
+
+        // Primary approach: Use XsdDocumentationService directly with explicit context
+        if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationService() != null) {
+            try {
+                var xsdService = parentXmlEditor.getXsdDocumentationService();
+                var mandatoryChildInfos = xsdService.getMandatoryChildElements(elementName, xpathContext);
+
+                if (!mandatoryChildInfos.isEmpty()) {
+                    List<String> mandatoryChildren = mandatoryChildInfos.stream()
+                            .map(info -> info.name())
+                            .distinct()
+                            .collect(java.util.stream.Collectors.toList());
+
+                    logger.debug("Found {} mandatory children from XSD service for '{}' with explicit context '{}': {}",
+                            mandatoryChildren.size(), elementName, xpathContext, mandatoryChildren);
+                    return mandatoryChildren;
+                }
+            } catch (Exception e) {
+                logger.debug("Error getting mandatory children from XSD service for '{}' with context '{}': {}",
+                        elementName, xpathContext, e.getMessage());
+            }
+        }
+
+        // Fallback to standard method without context
+        return getMandatoryChildElements(elementName);
+    }
+
+    /**
+     * Determines the current XPath context based on the cursor position.
+     * This helps disambiguate elements with the same name in different contexts.
+     *
+     * @return The XPath context string (e.g., "ControlData/DataSupplier") or null if not determinable
+     */
+    private String getCurrentXPathContext() {
+        try {
+            int caretPosition = getCodeArea().getCaretPosition();
+            String text = getCodeArea().getText();
+
+            // Find all opening tags before the cursor position
+            List<String> elementStack = new ArrayList<>();
+
+            // Simple XML parsing to build the element stack
+            int pos = 0;
+            while (pos < caretPosition) {
+                int tagStart = text.indexOf('<', pos);
+                if (tagStart == -1 || tagStart >= caretPosition) break;
+
+                int tagEnd = text.indexOf('>', tagStart);
+                if (tagEnd == -1 || tagEnd >= caretPosition) break;
+
+                String tag = text.substring(tagStart + 1, tagEnd);
+
+                if (tag.startsWith("/")) {
+                    // Closing tag - remove from stack
+                    String closingElementName = tag.substring(1).trim();
+                    if (!elementStack.isEmpty() && elementStack.get(elementStack.size() - 1).equals(closingElementName)) {
+                        elementStack.remove(elementStack.size() - 1);
+                    }
+                } else if (!tag.startsWith("?") && !tag.startsWith("!")) {
+                    // Opening tag - add to stack
+                    String elementName = tag.split("\\s+")[0]; // Remove attributes
+                    if (!elementName.endsWith("/")) { // Not self-closing
+                        elementStack.add(elementName);
+                    }
+                }
+
+                pos = tagEnd + 1;
+            }
+
+            // Build XPath context from element stack
+            if (!elementStack.isEmpty()) {
+                String context = String.join("/", elementStack);
+                logger.debug("Determined XPath context: {}", context);
+                return context;
+            }
+
+        } catch (Exception e) {
+            logger.debug("Error determining XPath context: {}", e.getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Extracts mandatory children from XsdDocumentationData.
+     */
+    private List<String> extractMandatoryChildrenFromXsdData(String elementName, org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdData) {
+        List<String> mandatoryChildren = new ArrayList<>();
+
+        // Look through extended element map for children of this element
+        for (var entry : xsdData.getExtendedXsdElementMap().entrySet()) {
+            String xpath = entry.getKey();
+            var element = entry.getValue();
+
+            if (element != null && element.getElementName() != null && element.isMandatory()) {
+                // Check if this element is a child of our target element
+                if (isChildOfElement(xpath, elementName)) {
+                    String childName = element.getElementName();
+                    if (!mandatoryChildren.contains(childName)) {
+                        mandatoryChildren.add(childName);
+                    }
+                }
+            }
+        }
+
+        return mandatoryChildren;
+    }
+
+    /**
+     * Checks if an XPath represents a child of the given element.
+     */
+    private boolean isChildOfElement(String xpath, String parentElement) {
+        if (xpath == null || parentElement == null) return false;
+
+        // Split xpath and check if parentElement is the direct parent
+        String[] parts = xpath.split("/");
+        for (int i = 0; i < parts.length - 1; i++) {
+            if (parts[i].equals(parentElement) && i < parts.length - 1) {
+                return true; // Found parent and there's a child after it
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Determines if a child is mandatory based on domain knowledge.
+     */
+    private boolean isMandatoryChildBasedOnKnowledge(String parentElement, String childElement) {
+        return switch (parentElement.toLowerCase()) {
+            case "controldata" -> switch (childElement.toLowerCase()) {
+                case "uniquedocumentid", "documentgenerated", "contentdate", "datasupplier", "dataoperation",
+                     "language" -> true;
+                default -> false;
+            };
+            case "datasupplier" -> switch (childElement.toLowerCase()) {
+                case "systemcountry", "short", "name", "type" -> true;
+                default -> false;
+            };
+            default -> true; // If we don't know, assume it's mandatory (conservative approach)
+        };
+    }
+
+    /**
+     * Returns hardcoded mandatory children patterns.
+     */
+    private List<String> getHardcodedMandatoryChildren(String elementName) {
         return switch (elementName.toLowerCase()) {
+            case "controldata" ->
+                    java.util.List.of("UniqueDocumentID", "DocumentGenerated", "ContentDate", "DataSupplier", "DataOperation", "Language");
+            case "datasupplier" -> java.util.List.of("SystemCountry", "Short", "Name", "Type");
             case "person" -> java.util.List.of("name", "age");
             case "book" -> java.util.List.of("title", "author");
             case "product" -> java.util.List.of("name", "price");
             case "order" -> java.util.List.of("id", "date", "items");
             case "address" -> java.util.List.of("street", "city", "zipcode");
             case "contact" -> java.util.List.of("name", "email");
-            default -> java.util.List.of(); // No mandatory children by default
+            default -> java.util.List.of();
         };
     }
 
@@ -1438,6 +1659,22 @@ public class XmlCodeEditor extends VBox {
      * Gets a sample value for an element based on its name.
      */
     private String getSampleValue(String elementName) {
+        // First try to get from XSD documentation service if available
+        if (parentXmlEditor != null) {
+            var xsdService = parentXmlEditor.getXsdDocumentationService();
+            if (xsdService != null) {
+                try {
+                    // Try to generate sample value from XSD (without explicit type first)
+                    String xsdSample = xsdService.generateSampleValue(elementName, null);
+                    if (xsdSample != null && !xsdSample.isEmpty() && !"sample text".equals(xsdSample)) {
+                        return xsdSample;
+                    }
+                } catch (Exception e) {
+                    logger.debug("Error getting sample value from XSD service: {}", e.getMessage());
+                }
+            }
+        }
+
         return switch (elementName.toLowerCase()) {
             case "name" -> "Sample Name";
             case "title" -> "Sample Title";
@@ -1453,6 +1690,100 @@ public class XmlCodeEditor extends VBox {
             case "items" -> ""; // Container elements typically empty
             default -> ""; // Default empty for unknown elements
         };
+    }
+
+    /**
+     * Creates an element with all its mandatory children recursively.
+     *
+     * @param elementName     The name of the element to create
+     * @param baseIndentation The base indentation for this element
+     * @param depth           Current depth (to prevent infinite recursion)
+     * @return The complete XML element string with all mandatory children
+     */
+    private String createElementWithMandatoryChildren(String elementName, String baseIndentation, int depth) {
+        return createElementWithMandatoryChildren(elementName, baseIndentation, depth, null);
+    }
+
+    /**
+     * Creates an element with all its mandatory children recursively with XPath context.
+     *
+     * @param elementName     The name of the element to create
+     * @param baseIndentation The base indentation for this element
+     * @param depth           Current depth (to prevent infinite recursion)
+     * @param xpathContext    The current XPath context for this element (e.g., "ControlData/DataSupplier")
+     * @return The complete XML element string with all mandatory children
+     */
+    private String createElementWithMandatoryChildren(String elementName, String baseIndentation, int depth, String xpathContext) {
+        // Prevent infinite recursion - limit depth
+        if (depth > 10) {
+            return baseIndentation + "<" + elementName + "></" + elementName + ">";
+        }
+
+        // Get mandatory children for this element with XPath context for better accuracy
+        List<String> mandatoryChildren = getMandatoryChildElementsWithContext(elementName, xpathContext);
+
+        StringBuilder elementBuilder = new StringBuilder();
+        elementBuilder.append(baseIndentation).append("<").append(elementName).append(">");
+
+        if (!mandatoryChildren.isEmpty()) {
+            // Element has mandatory children - create them recursively
+            String childIndentation = baseIndentation + " ".repeat(propertiesService.getXmlIndentSpaces());
+
+            // Use LinkedHashSet to preserve order and eliminate duplicates
+            java.util.Set<String> uniqueChildren = new java.util.LinkedHashSet<>(mandatoryChildren);
+
+            for (String childElement : uniqueChildren) {
+                // Build the XPath context for the child element
+                String childXPathContext = (xpathContext != null)
+                        ? xpathContext + "/" + elementName
+                        : elementName;
+
+                elementBuilder.append("\n");
+                elementBuilder.append(createElementWithMandatoryChildren(childElement, childIndentation, depth + 1, childXPathContext));
+            }
+
+            // Add closing tag with proper indentation
+            elementBuilder.append("\n").append(baseIndentation);
+        } else {
+            // No mandatory children - add sample value if appropriate
+            String sampleValue = getSampleValue(elementName);
+            if (sampleValue != null && !sampleValue.isEmpty()) {
+                elementBuilder.append(sampleValue);
+            }
+        }
+
+        elementBuilder.append("</").append(elementName).append(">");
+        return elementBuilder.toString();
+    }
+
+    /**
+     * Positions the cursor at the first sample value in the inserted content.
+     */
+    private void positionCursorAtFirstSampleValue(int insertPos, String insertedContent) {
+        // Try to find the first sample value (non-empty text between tags)
+        String[] lines = insertedContent.split("\n");
+        int currentOffset = insertPos;
+
+        for (String line : lines) {
+            // Look for patterns like >Sample Value<
+            int valueStart = line.indexOf('>');
+            int valueEnd = line.indexOf('<', valueStart + 1);
+
+            if (valueStart >= 0 && valueEnd > valueStart + 1) {
+                String value = line.substring(valueStart + 1, valueEnd).trim();
+                if (!value.isEmpty() && !"sample text".equalsIgnoreCase(value)) {
+                    // Found a sample value - position cursor there
+                    int absolutePos = currentOffset + valueStart + 1;
+                    codeArea.selectRange(absolutePos, absolutePos + value.length());
+                    return;
+                }
+            }
+
+            currentOffset += line.length() + 1; // +1 for newline
+        }
+
+        // Fallback: position at start of inserted content
+        codeArea.moveTo(insertPos);
     }
 
     /**
@@ -1973,32 +2304,37 @@ public class XmlCodeEditor extends VBox {
         if (!isSelfClosingElement(elementName)) {
             String closingTag = "</" + elementName + ">";
 
-            // Check for mandatory children from the CompletionItem
-            List<String> mandatoryChildren = item.getRequiredAttributes(); // Reusing this field for child elements
-            if (mandatoryChildren != null && !mandatoryChildren.isEmpty()) {
+            // Check for mandatory children using XSD service first, then fallback to CompletionItem
+            List<String> mandatoryChildren = getMandatoryChildElements(elementName);
+            if (mandatoryChildren.isEmpty()) {
+                // Fallback to CompletionItem data
+                List<String> itemChildren = item.getRequiredAttributes(); // Reusing this field for child elements
+                if (itemChildren != null) {
+                    mandatoryChildren = itemChildren;
+                }
+            }
+
+            if (!mandatoryChildren.isEmpty()) {
                 StringBuilder childElements = new StringBuilder();
                 String indentation = getCurrentIndentation();
                 String childIndentation = indentation + " ".repeat(propertiesService.getXmlIndentSpaces());
 
                 for (String childElement : mandatoryChildren) {
-                    childElements.append("\n").append(childIndentation)
-                            .append("<").append(childElement).append(">")
-                            .append(getSampleValue(childElement))
-                            .append("</").append(childElement).append(">");
+                    // Get current XPath context and add parent element for child context
+                    String currentContext = getCurrentXPathContext();
+                    String childContext = (currentContext != null)
+                            ? currentContext + "/" + elementName
+                            : elementName;
+
+                    String childContent = createElementWithMandatoryChildren(childElement, childIndentation, 1, childContext);
+                    childElements.append("\n").append(childContent);
                 }
                 childElements.append("\n").append(indentation);
 
                 codeArea.insertText(insertPos, childElements + closingTag);
 
-                // Position cursor on first sample value
-                if (!mandatoryChildren.isEmpty()) {
-                    String firstChild = mandatoryChildren.get(0);
-                    String sampleValue = getSampleValue(firstChild);
-                    if (!sampleValue.isEmpty()) {
-                        int samplePos = insertPos + childElements.toString().indexOf(sampleValue);
-                        codeArea.selectRange(samplePos, samplePos + sampleValue.length());
-                    }
-                }
+                // Position cursor at the first leaf element with sample value
+                positionCursorAtFirstSampleValue(insertPos, childElements.toString());
             } else {
                 codeArea.insertText(insertPos, closingTag);
                 codeArea.moveTo(insertPos); // Position cursor between tags

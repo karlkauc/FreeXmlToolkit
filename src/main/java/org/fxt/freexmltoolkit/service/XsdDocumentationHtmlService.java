@@ -718,6 +718,30 @@ public class XsdDocumentationHtmlService {
     }
 
     /**
+     * Safe method to get the local name of a DOM node.
+     * This avoids Thymeleaf security restrictions when accessing localName directly.
+     *
+     * @param node The DOM node
+     * @return The local name of the node, or empty string if node is null
+     */
+    public String getLocalName(Node node) {
+        if (node == null) return "";
+        return node.getLocalName() != null ? node.getLocalName() : "";
+    }
+
+    /**
+     * Safe method to get the parent node of a DOM node.
+     * This avoids Thymeleaf security restrictions when accessing parentNode directly.
+     *
+     * @param node The DOM node
+     * @return The parent node, or null if node is null or has no parent
+     */
+    public Node getParentNode(Node node) {
+        if (node == null) return null;
+        return node.getParentNode();
+    }
+
+    /**
      * Prüft, ob der Typ eines Attributs ein benutzerdefinierter SimpleType ist,
      * für den eine Detailseite existiert.
      *

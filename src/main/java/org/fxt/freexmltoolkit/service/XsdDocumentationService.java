@@ -199,6 +199,17 @@ public class XsdDocumentationService {
      * @return List of mandatory child element information
      */
     public List<MandatoryChildInfo> getMandatoryChildElements(String elementName) {
+        return getMandatoryChildElements(elementName, null);
+    }
+
+    /**
+     * Gets mandatory child elements for a given element name with XPath context for disambiguation.
+     *
+     * @param elementName The name of the parent element
+     * @param contextPath Optional XPath context to help find the correct element (e.g., "ControlData/DataSupplier")
+     * @return List of mandatory child element information
+     */
+    public List<MandatoryChildInfo> getMandatoryChildElements(String elementName, String contextPath) {
         List<MandatoryChildInfo> mandatoryChildren = new ArrayList<>();
 
         try {
@@ -209,7 +220,41 @@ public class XsdDocumentationService {
                 cleanElementName = cleanElementName.substring(colonIdx + 1);
             }
 
-            // Find the element definition in the schema
+            // First approach: Use the already processed XsdDocumentationData with XPath context
+            if (xsdDocumentationData != null && xsdDocumentationData.getExtendedXsdElementMap() != null) {
+                // Look for the element in the processed data, prioritizing specific XPath matches
+                XsdExtendedElement targetElement = findElementByNameAndContext(cleanElementName, contextPath);
+
+                if (targetElement != null && targetElement.hasChildren()) {
+                    // Found the element, now extract its mandatory children using the correct XPath context
+                    for (String childXPath : targetElement.getChildren()) {
+                        XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+                        if (childElement != null && childElement.isMandatory()) {
+                            // Get nested children using the correct XPath context
+                            List<MandatoryChildInfo> nestedChildren = getMandatoryChildElementsByXPath(childXPath);
+
+                            MandatoryChildInfo childInfo = new MandatoryChildInfo(
+                                    childElement.getElementName().startsWith("@")
+                                            ? childElement.getElementName().substring(1) // Remove @ for attributes
+                                            : childElement.getElementName(),
+                                    1, // Default minOccurs for mandatory elements
+                                    1, // Default maxOccurs
+                                    nestedChildren
+                            );
+                            mandatoryChildren.add(childInfo);
+                            logger.debug("Added mandatory child from processed data: {} (xpath={}, hasChildren={})",
+                                    childElement.getElementName(), childXPath, !nestedChildren.isEmpty());
+                        }
+                    }
+                    if (!mandatoryChildren.isEmpty()) {
+                        logger.debug("Found {} mandatory children for element '{}' using processed data with XPath context",
+                                mandatoryChildren.size(), cleanElementName);
+                        return mandatoryChildren;
+                    }
+                }
+            }
+
+            // Second approach: Try to find in global element map (legacy behavior)
             Node elementNode = elementMap.get(cleanElementName);
             if (elementNode == null) {
                 // Fallback: try to find a global complexType with the same name and use its content model
@@ -244,6 +289,141 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Finds an element by name and optional context path, prioritizing exact XPath matches.
+     * This helps distinguish between multiple elements with the same name in different contexts.
+     *
+     * @param elementName The name of the element to find
+     * @param contextPath Optional context path to help disambiguate (e.g. "ControlData/DataSupplier")
+     * @return The best matching XsdExtendedElement or null if not found
+     */
+    private XsdExtendedElement findElementByNameAndContext(String elementName, String contextPath) {
+        if (xsdDocumentationData == null || xsdDocumentationData.getExtendedXsdElementMap() == null) {
+            return null;
+        }
+
+        XsdExtendedElement bestMatch = null;
+        int bestScore = -1;
+
+        for (Map.Entry<String, XsdExtendedElement> entry : xsdDocumentationData.getExtendedXsdElementMap().entrySet()) {
+            String xpath = entry.getKey();
+            XsdExtendedElement element = entry.getValue();
+
+            if (elementName.equals(element.getElementName())) {
+                int score = calculateContextScore(xpath, contextPath);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = element;
+                }
+            }
+        }
+
+        if (bestMatch != null) {
+            logger.debug("Found best match for element '{}': xpath='{}' (score={})",
+                    elementName, bestMatch.getCurrentXpath(), bestScore);
+        }
+
+        return bestMatch;
+    }
+
+    /**
+     * Calculates a context score for XPath matching.
+     * Higher scores indicate better matches based on context.
+     */
+    private int calculateContextScore(String xpath, String contextPath) {
+        if (xpath == null) return 0;
+
+        // Base score - prefer shorter, more specific paths
+        int score = 100 - (xpath.split("/").length * 5);
+
+        // Boost score for root-level elements
+        if (xpath.startsWith("/") && xpath.indexOf('/', 1) == -1) {
+            score += 50;
+        }
+
+        // If context is provided, significantly boost score for exact matches
+        if (contextPath != null && !contextPath.isEmpty()) {
+            // Exact context match gets highest score
+            if (xpath.contains(contextPath)) {
+                score += 200; // Strong boost for context match
+
+                // Extra bonus if the context path is at the end (more specific)
+                if (xpath.endsWith("/" + contextPath.substring(contextPath.lastIndexOf('/') + 1))) {
+                    score += 100;
+                }
+            }
+
+            // Penalty for paths that don't match the expected context
+            // This helps avoid picking wrong elements with same name
+            String[] contextParts = contextPath.split("/");
+            String[] xpathParts = xpath.split("/");
+
+            boolean hasContextMismatch = false;
+            for (String contextPart : contextParts) {
+                boolean found = false;
+                for (String xpathPart : xpathParts) {
+                    if (contextPart.equals(xpathPart)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    hasContextMismatch = true;
+                    break;
+                }
+            }
+
+            if (hasContextMismatch) {
+                score -= 150; // Strong penalty for context mismatch
+            }
+        }
+
+        return Math.max(0, score);
+    }
+
+    /**
+     * Gets mandatory child elements for a specific XPath, ensuring we use the correct context.
+     * This method looks up children directly by their parent's XPath.
+     *
+     * @param parentXPath The XPath of the parent element
+     * @return List of mandatory child element information
+     */
+    private List<MandatoryChildInfo> getMandatoryChildElementsByXPath(String parentXPath) {
+        List<MandatoryChildInfo> mandatoryChildren = new ArrayList<>();
+
+        if (xsdDocumentationData == null || xsdDocumentationData.getExtendedXsdElementMap() == null) {
+            return mandatoryChildren;
+        }
+
+        XsdExtendedElement parentElement = xsdDocumentationData.getExtendedXsdElementMap().get(parentXPath);
+        if (parentElement == null || !parentElement.hasChildren()) {
+            return mandatoryChildren;
+        }
+
+        // Process children directly using their XPath
+        for (String childXPath : parentElement.getChildren()) {
+            XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+            if (childElement != null && childElement.isMandatory()) {
+                // Recursively get nested children using the correct XPath
+                List<MandatoryChildInfo> nestedChildren = getMandatoryChildElementsByXPath(childXPath);
+
+                MandatoryChildInfo childInfo = new MandatoryChildInfo(
+                        childElement.getElementName().startsWith("@")
+                                ? childElement.getElementName().substring(1) // Remove @ for attributes
+                                : childElement.getElementName(),
+                        1, // Default minOccurs for mandatory elements
+                        1, // Default maxOccurs
+                        nestedChildren
+                );
+                mandatoryChildren.add(childInfo);
+                logger.debug("Added mandatory child by XPath: {} (xpath={}, hasChildren={})",
+                        childElement.getElementName(), childXPath, !nestedChildren.isEmpty());
+            }
+        }
+
+        return mandatoryChildren;
+    }
+
+    /**
      * Gets all child elements (mandatory and optional) for a given element name.
      * This method is similar to getMandatoryChildElements but returns all children regardless of minOccurs.
      *
@@ -261,7 +441,53 @@ public class XsdDocumentationService {
                 cleanElementName = cleanElementName.substring(colonIdx + 1);
             }
 
-            // Find the element definition in the schema
+            // First approach: Use the already processed XsdDocumentationData
+            if (xsdDocumentationData != null && xsdDocumentationData.getExtendedXsdElementMap() != null) {
+                // Look for the element in the processed data
+                for (Map.Entry<String, XsdExtendedElement> entry : xsdDocumentationData.getExtendedXsdElementMap().entrySet()) {
+                    XsdExtendedElement element = entry.getValue();
+                    if (cleanElementName.equals(element.getElementName()) && element.hasChildren()) {
+                        // Found the element, now extract all its children (mandatory and optional)
+                        for (String childXPath : element.getChildren()) {
+                            XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
+                            if (childElement != null) { // Include all children, not just mandatory
+                                // Check if this child has its own children
+                                List<MandatoryChildInfo> nestedChildren = getAllChildElements(childElement.getElementName());
+
+                                // Parse minOccurs from current node if available
+                                int minOccurs = 1; // Default
+                                if (childElement.getCurrentNode() != null) {
+                                    String minOccursStr = getAttributeValue(childElement.getCurrentNode(), "minOccurs", "1");
+                                    try {
+                                        minOccurs = Integer.parseInt(minOccursStr);
+                                    } catch (NumberFormatException e) {
+                                        minOccurs = 1;
+                                    }
+                                }
+
+                                MandatoryChildInfo childInfo = new MandatoryChildInfo(
+                                        childElement.getElementName().startsWith("@")
+                                                ? childElement.getElementName().substring(1) // Remove @ for attributes
+                                                : childElement.getElementName(),
+                                        minOccurs,
+                                        1, // Default maxOccurs
+                                        nestedChildren
+                                );
+                                allChildren.add(childInfo);
+                                logger.debug("Added child from processed data: {} (minOccurs={}, hasChildren={})",
+                                        childElement.getElementName(), minOccurs, !nestedChildren.isEmpty());
+                            }
+                        }
+                        if (!allChildren.isEmpty()) {
+                            logger.debug("Found {} child elements for element '{}' using processed data",
+                                    allChildren.size(), cleanElementName);
+                            return allChildren;
+                        }
+                    }
+                }
+            }
+
+            // Second approach: Try to find in global element map (legacy behavior)
             Node elementNode = elementMap.get(cleanElementName);
             if (elementNode == null) {
                 // Fallback: try to find a global complexType with the same name and use its content model

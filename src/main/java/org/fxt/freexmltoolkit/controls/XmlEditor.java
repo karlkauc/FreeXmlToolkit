@@ -1228,10 +1228,11 @@ public class XmlEditor extends Tab {
     }
 
     /**
-     * Extracts context-sensitive element names (parent-child relationships) from an XSD file.
+     * Extracts context-sensitive element names (parent-child relationships) from XSD file.
+     * Uses simple DOM parsing to get mandatory children only.
      *
      * @param xsdFile The XSD file to extract context information from
-     * @return Map of parent element names to their child element names
+     * @return Map of parent element names to their mandatory child element names only
      */
     private Map<String, List<String>> extractContextElementNamesFromXsd(File xsdFile) {
         Map<String, List<String>> contextElementNames = new HashMap<>();
@@ -1249,60 +1250,19 @@ public class XmlEditor extends Tab {
                 String typeName = complexType.getAttribute("name");
 
                 if (!typeName.isEmpty()) {
-                    // Find child elements within this complex type
-                    List<String> childElements = new ArrayList<>();
+                    // Find mandatory child elements within this complex type
+                    List<String> mandatoryChildren = new ArrayList<>();
+                    extractMandatoryChildrenFromComplexType(complexType, mandatoryChildren);
 
-                    // Look for sequence, choice, or all elements
-                    NodeList sequences = complexType.getElementsByTagName("xs:sequence");
-                    NodeList choices = complexType.getElementsByTagName("xs:choice");
-                    NodeList alls = complexType.getElementsByTagName("xs:all");
-
-                    // Process sequences
-                    for (int j = 0; j < sequences.getLength(); j++) {
-                        Element sequence = (Element) sequences.item(j);
-                        NodeList elements = sequence.getElementsByTagName("xs:element");
-                        for (int k = 0; k < elements.getLength(); k++) {
-                            Element element = (Element) elements.item(k);
-                            String elementName = element.getAttribute("name");
-                            if (!elementName.isEmpty()) {
-                                childElements.add(elementName);
-                            }
-                        }
-                    }
-
-                    // Process choices
-                    for (int j = 0; j < choices.getLength(); j++) {
-                        Element choice = (Element) choices.item(j);
-                        NodeList elements = choice.getElementsByTagName("xs:element");
-                        for (int k = 0; k < elements.getLength(); k++) {
-                            Element element = (Element) elements.item(k);
-                            String elementName = element.getAttribute("name");
-                            if (!elementName.isEmpty()) {
-                                childElements.add(elementName);
-                            }
-                        }
-                    }
-
-                    // Process alls
-                    for (int j = 0; j < alls.getLength(); j++) {
-                        Element all = (Element) alls.item(j);
-                        NodeList elements = all.getElementsByTagName("xs:element");
-                        for (int k = 0; k < elements.getLength(); k++) {
-                            Element element = (Element) elements.item(k);
-                            String elementName = element.getAttribute("name");
-                            if (!elementName.isEmpty()) {
-                                childElements.add(elementName);
-                            }
-                        }
-                    }
-
-                    if (!childElements.isEmpty()) {
-                        contextElementNames.put(typeName, childElements);
+                    if (!mandatoryChildren.isEmpty()) {
+                        contextElementNames.put(typeName, mandatoryChildren);
+                        logger.debug("Found {} mandatory children for type '{}': {}",
+                                mandatoryChildren.size(), typeName, mandatoryChildren);
                     }
                 }
             }
 
-            // Also find direct element definitions and their relationships
+            // Find direct element definitions and their relationships
             NodeList allElements = document.getElementsByTagName("xs:element");
             for (int i = 0; i < allElements.getLength(); i++) {
                 Element element = (Element) allElements.item(i);
@@ -1310,15 +1270,14 @@ public class XmlEditor extends Tab {
                 String elementType = element.getAttribute("type");
 
                 if (!elementName.isEmpty() && !elementType.isEmpty()) {
-                    // If this element has a type, check if we have child elements for that type
-                    if (elementType.startsWith("xs:")) {
-                        // Skip built-in types
-                        continue;
-                    }
-
-                    List<String> childElements = contextElementNames.get(elementType);
-                    if (childElements != null && !childElements.isEmpty()) {
-                        contextElementNames.put(elementName, new ArrayList<>(childElements));
+                    // If this element has a type, check if we have mandatory children for that type
+                    if (!elementType.startsWith("xs:")) {
+                        List<String> childElements = contextElementNames.get(elementType);
+                        if (childElements != null && !childElements.isEmpty()) {
+                            contextElementNames.put(elementName, new ArrayList<>(childElements));
+                            logger.debug("Mapped element '{}' to type '{}' with {} children",
+                                    elementName, elementType, childElements.size());
+                        }
                     }
                 }
             }
@@ -1336,17 +1295,71 @@ public class XmlEditor extends Tab {
                 contextElementNames.put("root", rootElements);
             }
 
-            logger.debug("Extracted context element names: {}", contextElementNames);
+            logger.debug("Extracted context element names from XSD: {}", contextElementNames);
 
         } catch (Exception e) {
             logger.error("Error extracting context element names from XSD: {}", xsdFile.getAbsolutePath(), e);
-            // Add some default context as fallback
-            contextElementNames.put("root", Arrays.asList("root", "element", "item", "data"));
-            contextElementNames.put("root", Arrays.asList("child", "subelement", "content"));
+            // Add some default fallback
+            contextElementNames.put("ControlData", java.util.List.of("UniqueDocumentID", "DocumentGenerated", "ContentDate", "DataSupplier", "DataOperation", "Language"));
+            contextElementNames.put("DataSupplier", java.util.List.of("SystemCountry", "Short", "Name", "Type"));
         }
 
         return contextElementNames;
     }
+
+    /**
+     * Extracts mandatory children from a complex type element.
+     */
+    private void extractMandatoryChildrenFromComplexType(Element complexType, List<String> mandatoryChildren) {
+        // Look for sequence, choice, or all elements
+        NodeList sequences = complexType.getElementsByTagName("xs:sequence");
+        NodeList choices = complexType.getElementsByTagName("xs:choice");
+        NodeList alls = complexType.getElementsByTagName("xs:all");
+
+        // Process sequences (most common)
+        processElementsForMandatory(sequences, mandatoryChildren);
+        // Process choices 
+        processElementsForMandatory(choices, mandatoryChildren);
+        // Process alls
+        processElementsForMandatory(alls, mandatoryChildren);
+    }
+
+    /**
+     * Processes element groups to extract mandatory children.
+     */
+    private void processElementsForMandatory(NodeList elementGroups, List<String> mandatoryChildren) {
+        for (int j = 0; j < elementGroups.getLength(); j++) {
+            Element group = (Element) elementGroups.item(j);
+            NodeList elements = group.getElementsByTagName("xs:element");
+
+            for (int k = 0; k < elements.getLength(); k++) {
+                Element element = (Element) elements.item(k);
+                String elementName = element.getAttribute("name");
+                String minOccurs = element.getAttribute("minOccurs");
+
+                // Only add mandatory elements (minOccurs > 0, default is 1)
+                if (!elementName.isEmpty() && isMandatoryFromMinOccurs(minOccurs)) {
+                    mandatoryChildren.add(elementName);
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if an element is mandatory based on minOccurs attribute.
+     */
+    private boolean isMandatoryFromMinOccurs(String minOccurs) {
+        if (minOccurs == null || minOccurs.isEmpty()) {
+            return true; // Default minOccurs is 1, so mandatory
+        }
+        try {
+            return Integer.parseInt(minOccurs) > 0;
+        } catch (NumberFormatException e) {
+            return true; // If can't parse, assume mandatory
+        }
+    }
+
+
 
 
     private void applyStyles() {
