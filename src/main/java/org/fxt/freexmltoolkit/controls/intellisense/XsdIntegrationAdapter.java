@@ -490,7 +490,14 @@ public class XsdIntegrationAdapter {
                         logger.debug("🎯 Facets available: {}", facets != null ? facets.keySet() : "none");
 
                         if (facets != null && facets.containsKey("enumeration")) {
-                            values.addAll(facets.get("enumeration"));
+                            List<String> enumValues = facets.get("enumeration");
+                            // Add only unique values to avoid duplicates, and trim whitespace
+                            for (String enumValue : enumValues) {
+                                String trimmedValue = enumValue.trim();
+                                if (!values.contains(trimmedValue)) {
+                                    values.add(trimmedValue);
+                                }
+                            }
                             logger.debug("✅ Found enumeration values for element '{}': {}", elementName, values);
                             break; // Found values, stop searching
                         }
@@ -507,7 +514,14 @@ public class XsdIntegrationAdapter {
                         if (element.getRestrictionInfo() != null) {
                             Map<String, List<String>> facets = element.getRestrictionInfo().facets();
                             if (facets != null && facets.containsKey("enumeration")) {
-                                values.addAll(facets.get("enumeration"));
+                                List<String> enumValues = facets.get("enumeration");
+                                // Add only unique values to avoid duplicates, and trim whitespace
+                                for (String enumValue : enumValues) {
+                                    String trimmedValue = enumValue.trim();
+                                    if (!values.contains(trimmedValue)) {
+                                        values.add(trimmedValue);
+                                    }
+                                }
                                 logger.debug("✅ Found enumeration values via name search: {}", values);
                             }
                         }

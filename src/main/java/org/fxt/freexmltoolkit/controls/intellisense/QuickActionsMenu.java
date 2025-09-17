@@ -11,6 +11,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -58,7 +60,11 @@ public class QuickActionsMenu {
             return; // Don't show empty menu
         }
 
-        popup.show(searchField.getScene().getWindow(), x, y);
+        // Show popup without owner to avoid window hierarchy cycles
+        popup.show(Window.getWindows().stream()
+                .filter(w -> w.isShowing() && w instanceof Stage)
+                .findFirst()
+                .orElse(null), x, y);
         searchField.requestFocus();
         searchField.clear();
 

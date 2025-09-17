@@ -12,6 +12,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -26,6 +27,7 @@ import org.fxt.freexmltoolkit.controls.intellisense.*;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
+import org.fxt.freexmltoolkit.service.XmlService;
 
 import java.io.File;
 import java.util.*;
@@ -1108,11 +1110,62 @@ public class XmlCodeEditor extends VBox {
 
     // Temporary placeholder methods (to be moved to appropriate managers)
     private void initializeEnhancedIntelliSense() {
-        // Placeholder
+        try {
+            // Initialize enhanced completion popup (already partially done in initializeIntelliSensePopup)
+            if (enhancedIntelliSensePopup == null) {
+                enhancedIntelliSensePopup = new EnhancedCompletionPopup();
+                enhancedIntelliSensePopup.setOnItemSelected(this::insertEnhancedCompletion);
+            }
+
+            // Initialize fuzzy search
+            fuzzySearch = new FuzzySearch();
+            logger.debug("Fuzzy search initialized");
+
+            // Initialize XSD documentation extractor
+            xsdDocExtractor = new XsdDocumentationExtractor();
+            logger.debug("XSD documentation extractor initialized");
+
+            // Initialize attribute value helper
+            attributeValueHelper = new AttributeValueHelper();
+            logger.debug("Attribute value helper initialized");
+
+            // Initialize completion cache
+            completionCache = new CompletionCache();
+            logger.debug("Completion cache initialized");
+
+            // Initialize performance profiler (using singleton instance)
+            performanceProfiler = PerformanceProfiler.getInstance();
+            logger.debug("Performance profiler initialized");
+
+            // Initialize multi-schema manager
+            multiSchemaManager = new MultiSchemaManager();
+            logger.debug("Multi-schema manager initialized");
+
+            // Initialize template engine
+            templateEngine = new TemplateEngine();
+            logger.debug("Template engine initialized");
+
+            // Initialize quick actions integration
+            quickActionsIntegration = new QuickActionsIntegration(codeArea, xsdIntegration);
+            logger.debug("Quick actions integration initialized");
+
+            logger.info("Enhanced IntelliSense components initialized successfully");
+        } catch (Exception e) {
+            logger.error("Error initializing enhanced IntelliSense: {}", e.getMessage(), e);
+        }
     }
 
     private void initializeXmlIntelliSenseEngine() {
-        // Placeholder
+        try {
+            // Initialize the main XML IntelliSense engine
+            intelliSenseEngine = new XmlIntelliSenseEngine(codeArea);
+
+            // Note: Configuration methods will be added when the API is available
+            logger.debug("XML IntelliSense engine initialized");
+            logger.info("XML IntelliSense engine ready for use");
+        } catch (Exception e) {
+            logger.error("Error initializing XML IntelliSense engine: {}", e.getMessage(), e);
+        }
     }
 
     private void initializeCodeFoldingManager() {
@@ -1139,7 +1192,31 @@ public class XmlCodeEditor extends VBox {
     }
 
     private void initializeSpecializedAutoComplete() {
-        // Placeholder
+        try {
+            // Initialize XSD auto-completion
+            xsdAutoComplete = new XsdAutoComplete(codeArea);
+            xsdAutoComplete.setEnabled(false); // Initially disabled
+            logger.debug("XSD auto-completion initialized");
+
+            // Initialize XSLT auto-completion
+            xsltAutoComplete = new XsltAutoComplete(codeArea);
+            xsltAutoComplete.setEnabled(false); // Initially disabled
+            logger.debug("XSLT auto-completion initialized");
+
+            // Initialize XSL-FO auto-completion
+            xslFoAutoComplete = new XslFoAutoComplete(codeArea);
+            xslFoAutoComplete.setEnabled(false); // Initially disabled
+            logger.debug("XSL-FO auto-completion initialized");
+
+            // Initialize Schematron auto-completion
+            schematronAutoComplete = new SchematronAutoComplete(codeArea);
+            schematronAutoComplete.setEnabled(false); // Initially disabled
+            logger.debug("Schematron auto-completion initialized");
+
+            logger.info("All specialized auto-completion systems initialized successfully");
+        } catch (Exception e) {
+            logger.error("Error initializing specialized auto-completion: {}", e.getMessage(), e);
+        }
     }
 
     private void setupLayoutWithMinimap() {
@@ -1307,7 +1384,11 @@ public class XmlCodeEditor extends VBox {
                     }
                 }
             } else {
-                codeArea.insertText(popupStartPosition, completion);
+                // Trim completion text to remove any leading/trailing whitespace
+                String trimmedCompletion = completion.trim();
+                codeArea.insertText(popupStartPosition, trimmedCompletion);
+                // Position cursor after the inserted text
+                codeArea.moveTo(popupStartPosition + trimmedCompletion.length());
             }
         }
     }
@@ -2158,7 +2239,18 @@ public class XmlCodeEditor extends VBox {
     }
 
     private void updateEnumerationElementsCache() {
-        // Placeholder for enumeration cache update
+        try {
+            if (parentXmlEditor != null && xsdIntegration != null) {
+                // Update cache with current XSD documentation data
+                var xsdData = parentXmlEditor.getXsdDocumentationData();
+                if (xsdData != null) {
+                    xsdIntegration.setXsdDocumentationData(xsdData);
+                    logger.debug("Enumeration elements cache updated");
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error updating enumeration elements cache: {}", e.getMessage(), e);
+        }
     }
 
     // ================================================================================
@@ -2407,6 +2499,12 @@ public class XmlCodeEditor extends VBox {
         // Insert the completion text
         String insertText = item.getInsertText();
 
+        // Trim whitespace for enumeration values to avoid extra spaces
+        if (item.getType() == CompletionItemType.VALUE && item.getDataType() != null &&
+                item.getDataType().equals("enumeration")) {
+            insertText = insertText.trim();
+        }
+
         if (isElementCompletionContext && item.getType() == CompletionItemType.ELEMENT) {
             // Handle element completion with auto-closing and mandatory children
             insertElementCompletion(item);
@@ -2564,11 +2662,61 @@ public class XmlCodeEditor extends VBox {
     }
 
     private void copyXPathToClipboard() {
-        // Placeholder
+        try {
+            int caretPos = codeArea.getCaretPosition();
+            String xpath = getCurrentXPathContext();
+
+            if (xpath != null && !xpath.isEmpty()) {
+                javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+                javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+                content.putString(xpath);
+                clipboard.setContent(content);
+                logger.debug("XPath copied to clipboard: {}", xpath);
+            } else {
+                logger.debug("No XPath context available at current position");
+            }
+        } catch (Exception e) {
+            logger.error("Error copying XPath to clipboard: {}", e.getMessage(), e);
+        }
     }
 
     private void handleGoToDefinition(MouseEvent event) {
-        // Placeholder
+        try {
+            int caretPos = codeArea.getCaretPosition();
+            String elementName = null;
+
+            if (event != null) {
+                // Get element name at mouse position
+                elementName = getElementNameAtPosition(event.getX(), event.getY());
+            } else {
+                // Get element name at current caret position
+                String textBeforeCaret = codeArea.getText().substring(0, caretPos);
+                elementName = getCurrentElementName(textBeforeCaret);
+            }
+
+            if (elementName != null && !elementName.isEmpty()) {
+                // Try to find element definition in XSD
+                if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
+                    var xsdData = parentXmlEditor.getXsdDocumentationData();
+
+                    // Look for element definition in XSD documentation
+                    for (var entry : xsdData.getExtendedXsdElementMap().entrySet()) {
+                        var element = entry.getValue();
+                        if (element != null && elementName.equals(element.getElementName())) {
+                            // Show element information in a tooltip or navigate to XSD
+                            showElementDefinition(elementName, element);
+                            return;
+                        }
+                    }
+                }
+
+                logger.debug("No definition found for element: {}", elementName);
+            } else {
+                logger.debug("No element found at cursor position");
+            }
+        } catch (Exception e) {
+            logger.error("Error handling go-to-definition: {}", e.getMessage(), e);
+        }
     }
 
     private void selectAll() {
@@ -2576,15 +2724,134 @@ public class XmlCodeEditor extends VBox {
     }
     
     private void openFindReplace() {
-        // Placeholder
+        try {
+            // Create a simple find/replace dialog
+            javafx.scene.control.Dialog<javafx.util.Pair<String, String>> dialog = new javafx.scene.control.Dialog<>();
+            dialog.setTitle("Find & Replace");
+            dialog.setHeaderText("Find and replace text in the XML document");
+
+            // Set the button types
+            javafx.scene.control.ButtonType findButtonType = new javafx.scene.control.ButtonType("Find", javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
+            javafx.scene.control.ButtonType replaceButtonType = new javafx.scene.control.ButtonType("Replace All", javafx.scene.control.ButtonBar.ButtonData.APPLY);
+            dialog.getDialogPane().getButtonTypes().addAll(findButtonType, replaceButtonType, javafx.scene.control.ButtonType.CANCEL);
+
+            // Create the find and replace fields
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
+
+            javafx.scene.control.TextField findField = new javafx.scene.control.TextField();
+            findField.setPromptText("Find text...");
+            javafx.scene.control.TextField replaceField = new javafx.scene.control.TextField();
+            replaceField.setPromptText("Replace with...");
+
+            grid.add(new javafx.scene.control.Label("Find:"), 0, 0);
+            grid.add(findField, 1, 0);
+            grid.add(new javafx.scene.control.Label("Replace:"), 0, 1);
+            grid.add(replaceField, 1, 1);
+
+            dialog.getDialogPane().setContent(grid);
+
+            // Focus on find field by default
+            Platform.runLater(findField::requestFocus);
+
+            // Convert the result
+            dialog.setResultConverter(dialogButton -> {
+                if (dialogButton == findButtonType || dialogButton == replaceButtonType) {
+                    return new javafx.util.Pair<>(findField.getText(), replaceField.getText());
+                }
+                return null;
+            });
+
+            var result = dialog.showAndWait();
+            result.ifPresent(findReplace -> {
+                String findText = findReplace.getKey();
+                String replaceText = findReplace.getValue();
+
+                if (findText != null && !findText.isEmpty()) {
+                    performFindReplace(findText, replaceText);
+                }
+            });
+
+        } catch (Exception e) {
+            logger.error("Error opening find/replace dialog: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Performs find and replace operation on the text.
+     */
+    private void performFindReplace(String findText, String replaceText) {
+        try {
+            String currentText = codeArea.getText();
+            if (currentText == null || findText == null) {
+                return;
+            }
+
+            String newText = currentText.replace(findText, replaceText != null ? replaceText : "");
+            if (!newText.equals(currentText)) {
+                codeArea.replaceText(newText);
+                logger.debug("Find/replace completed: '{}' -> '{}'", findText, replaceText);
+            } else {
+                logger.debug("No occurrences found for: '{}'", findText);
+            }
+        } catch (Exception e) {
+            logger.error("Error performing find/replace: {}", e.getMessage(), e);
+        }
     }
 
     private void formatXmlContent() {
-        // Placeholder
+        try {
+            String currentText = codeArea.getText();
+            if (currentText == null || currentText.trim().isEmpty()) {
+                logger.debug("No content to format");
+                return;
+            }
+
+            // Use XmlService from parent editor if available for formatting
+            if (parentXmlEditor instanceof org.fxt.freexmltoolkit.controls.XmlEditor xmlEditor) {
+                var xmlService = xmlEditor.getXmlService();
+                if (xmlService != null) {
+                    // Try to format using available methods
+                    try {
+                        String formattedText = XmlService.prettyFormat(currentText, 2);
+                        if (formattedText != null && !formattedText.equals(currentText)) {
+                            codeArea.replaceText(formattedText);
+                            logger.debug("XML content formatted successfully");
+                        }
+                    } catch (Exception formatException) {
+                        logger.warn("Error formatting XML: {}", formatException.getMessage());
+                    }
+                } else {
+                    logger.warn("XML service not available for formatting");
+                }
+            } else {
+                logger.warn("Parent XML editor not available for formatting");
+            }
+        } catch (Exception e) {
+            logger.error("Error formatting XML content: {}", e.getMessage(), e);
+        }
     }
 
     private void validateXmlContent() {
-        // Placeholder
+        try {
+            String currentText = codeArea.getText();
+            if (currentText == null || currentText.trim().isEmpty()) {
+                logger.debug("No content to validate");
+                return;
+            }
+
+            // Trigger validation through the validation manager
+            if (validationManager != null) {
+                validationManager.performLiveValidation(currentText);
+                logger.debug("XML validation triggered");
+            } else {
+                logger.warn("Validation manager not available");
+            }
+        } catch (Exception e) {
+            logger.error("Error validating XML content: {}", e.getMessage(), e);
+        }
     }
 
     private void expandAll() {
@@ -2616,8 +2883,82 @@ public class XmlCodeEditor extends VBox {
     }
 
     private String getElementNameAtPosition(double x, double y) {
-        // Placeholder
+        try {
+            // Get character position from screen coordinates
+            var hit = codeArea.hit(x, y);
+            int position = hit.getInsertionIndex();
+            String text = codeArea.getText();
+
+            if (position >= 0 && position < text.length()) {
+                // Find the element at this position
+                return getElementNameAtTextPosition(text, position);
+            }
+        } catch (Exception e) {
+            logger.debug("Error getting element name at position: {}", e.getMessage());
+        }
         return null;
+    }
+
+    /**
+     * Helper method to extract element name at a specific text position.
+     */
+    private String getElementNameAtTextPosition(String text, int position) {
+        // Look backwards for the start of an element tag
+        int tagStart = position;
+        while (tagStart >= 0 && text.charAt(tagStart) != '<') {
+            tagStart--;
+        }
+
+        if (tagStart >= 0) {
+            // Look forwards for the end of the tag name
+            int nameStart = tagStart + 1;
+            if (nameStart < text.length() && text.charAt(nameStart) == '/') {
+                nameStart++; // Skip closing tag slash
+            }
+
+            int nameEnd = nameStart;
+            while (nameEnd < text.length() &&
+                    Character.isLetterOrDigit(text.charAt(nameEnd)) ||
+                    text.charAt(nameEnd) == ':' ||
+                    text.charAt(nameEnd) == '-' ||
+                    text.charAt(nameEnd) == '_') {
+                nameEnd++;
+            }
+
+            if (nameEnd > nameStart) {
+                return text.substring(nameStart, nameEnd);
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Shows element definition information in a tooltip.
+     */
+    private void showElementDefinition(String elementName, org.fxt.freexmltoolkit.domain.XsdExtendedElement element) {
+        try {
+            // Create a simple tooltip with element information
+            javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip();
+            tooltip.setText(String.format("Element: %s\nType: %s\nMandatory: %s",
+                    elementName,
+                    element.getElementType() != null ? element.getElementType() : "Unknown",
+                    element.isMandatory() ? "Yes" : "No"));
+            tooltip.setShowDelay(javafx.util.Duration.ZERO);
+            tooltip.setShowDuration(javafx.util.Duration.seconds(5));
+
+            // Show tooltip at current caret position
+            var bounds = codeArea.getCaretBounds();
+            if (bounds.isPresent()) {
+                var caretBounds = bounds.get();
+                var screenBounds = codeArea.localToScreen(caretBounds);
+                tooltip.show(codeArea, screenBounds.getMinX(), screenBounds.getMaxY() + 5);
+            }
+
+            logger.debug("Showed definition for element: {}", elementName);
+        } catch (Exception e) {
+            logger.error("Error showing element definition: {}", e.getMessage(), e);
+        }
     }
 
     /**
@@ -2721,9 +3062,11 @@ public class XmlCodeEditor extends VBox {
         int index = 0;
 
         for (String enumValue : enumValues) {
+            // Trim enumeration values to remove any leading/trailing whitespace
+            String trimmedValue = enumValue.trim();
             CompletionItem.Builder builder = new CompletionItem.Builder(
-                    enumValue,
-                    enumValue,
+                    trimmedValue,
+                    trimmedValue,
                     CompletionItemType.VALUE
             );
 
