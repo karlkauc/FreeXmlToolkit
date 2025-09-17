@@ -43,6 +43,9 @@ public class XmlCodeFoldingManager {
     // Minimum lines required for a foldable region
     private static final int MIN_FOLDABLE_LINES = 2;
 
+    // Flag to prevent recursive updates during folding operations
+    private boolean isUpdatingFromFoldOperation = false;
+
     public XmlCodeFoldingManager(CodeArea codeArea) {
         this.codeArea = codeArea;
         initialize();
@@ -51,7 +54,9 @@ public class XmlCodeFoldingManager {
     private void initialize() {
         // Update folding regions when text changes
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            updateFoldingRegions(newText);
+            if (!isUpdatingFromFoldOperation) {
+                updateFoldingRegions(newText);
+            }
         });
 
         // Set up custom paragraph graphic factory with fold indicators
@@ -165,7 +170,7 @@ public class XmlCodeFoldingManager {
     /**
      * Sets up folding indicators in the line number area
      */
-    private void setupFoldingIndicators() {
+    protected void setupFoldingIndicators() {
         IntFunction<Node> graphicFactory = line -> {
             HBox hbox = new HBox(2);
             hbox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
@@ -254,6 +259,7 @@ public class XmlCodeFoldingManager {
         if (region == null) return;
 
         try {
+            isUpdatingFromFoldOperation = true;
             String text = codeArea.getText();
             String[] lines = text.split("\n");
 
@@ -297,6 +303,8 @@ public class XmlCodeFoldingManager {
 
         } catch (Exception e) {
             logger.error("Error folding region at line {}: {}", line, e.getMessage());
+        } finally {
+            isUpdatingFromFoldOperation = false;
         }
     }
 
@@ -310,6 +318,7 @@ public class XmlCodeFoldingManager {
         if (originalText == null) return;
 
         try {
+            isUpdatingFromFoldOperation = true;
             FoldingRegion region = foldingRegions.get(line);
             String text = codeArea.getText();
             String[] lines = text.split("\n");
@@ -340,6 +349,8 @@ public class XmlCodeFoldingManager {
 
         } catch (Exception e) {
             logger.error("Error unfolding region at line {}: {}", line, e.getMessage());
+        } finally {
+            isUpdatingFromFoldOperation = false;
         }
     }
 
@@ -429,7 +440,7 @@ public class XmlCodeFoldingManager {
         return spaces / 4; // Assuming 4 spaces per indent level
     }
 
-    private void refreshFoldingDisplay() {
+    public void refreshFoldingDisplay() {
         // Trigger a refresh of the paragraph graphics
         // Trigger a refresh - RichTextFX doesn't have recreateParagraphGraphics
         // We'll use a workaround by updating the paragraph graphic factory

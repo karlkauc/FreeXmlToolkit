@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.input.KeyEvent;
@@ -117,6 +118,9 @@ public class XmlCodeEditor extends VBox {
     // Current element text info for enumeration completion
     private ElementTextInfo currentElementTextInfo;
 
+    // Flag to prevent infinite recursion in folding operations
+    private boolean isFoldingOperation = false;
+
     /**
      * Editor modes enumeration.
      */
@@ -148,9 +152,6 @@ public class XmlCodeEditor extends VBox {
         // Initialize managers
         initializeManagers();
 
-        // Set up paragraph graphics factory
-        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
-
         // Set up event handlers
         setupEventHandlers();
 
@@ -170,8 +171,8 @@ public class XmlCodeEditor extends VBox {
         // Set up basic styling and reset font size
         resetFontSize();
 
-        // Set up line numbers
-        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
+        // Set up paragraph graphics factory with line numbers and folding after managers are initialized
+        setupParagraphGraphics();
 
         // Apply initial syntax highlighting if there's text
         Platform.runLater(() -> {
@@ -189,6 +190,15 @@ public class XmlCodeEditor extends VBox {
 
         // Set up scene and parent change listeners
         setupSceneAndParentListeners();
+    }
+
+    /**
+     * Sets up the paragraph graphics factory combining line numbers and code folding.
+     */
+    private void setupParagraphGraphics() {
+        if (!isFoldingOperation) {
+            codeArea.setParagraphGraphicFactory(createCombinedParagraphGraphicFactory());
+        }
     }
 
     /**
@@ -593,12 +603,12 @@ public class XmlCodeEditor extends VBox {
         // Update code area font size
         codeArea.setStyle("-fx-font-size: " + size + "pt; -fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;");
 
-        // Update line numbers by recreating the paragraph graphic factory
-        codeArea.setParagraphGraphicFactory(createParagraphGraphicFactory());
+        // Update line numbers and folding by recreating the paragraph graphic factory
+        setupParagraphGraphics();
 
         // Refresh syntax highlighting to ensure consistent styling
         Platform.runLater(() -> {
-            if (codeArea.getText() != null && !codeArea.getText().isEmpty()) {
+            if (codeArea.getText() != null && !codeArea.getText().isEmpty() && !isFoldingOperation) {
                 syntaxHighlightManager.applySyntaxHighlighting(codeArea.getText());
             }
         });
@@ -660,7 +670,7 @@ public class XmlCodeEditor extends VBox {
         syntaxHighlightingDebouncer = new PauseTransition(Duration.millis(300));
         syntaxHighlightingDebouncer.setOnFinished(event -> {
             String currentText = codeArea.getText();
-            if (currentText != null && !currentText.isEmpty()) {
+            if (currentText != null && !currentText.isEmpty() && !isFoldingOperation) {
                 syntaxHighlightManager.applySyntaxHighlighting(currentText);
             }
         });
@@ -669,7 +679,7 @@ public class XmlCodeEditor extends VBox {
         errorHighlightingDebouncer = new PauseTransition(Duration.millis(500));
         errorHighlightingDebouncer.setOnFinished(event -> {
             String currentText = codeArea.getText();
-            if (currentText != null && !currentText.isEmpty()) {
+            if (currentText != null && !currentText.isEmpty() && !isFoldingOperation) {
                 validationManager.performLiveValidation(currentText);
             }
         });
@@ -681,7 +691,7 @@ public class XmlCodeEditor extends VBox {
     private void setupTextChangeListeners() {
         // Text change listener for syntax highlighting with debouncing
         codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText != null && !newText.equals(oldText)) {
+            if (newText != null && !newText.equals(oldText) && !isFoldingOperation) {
                 // Apply syntax highlighting immediately for small changes
                 if (newText.length() < 10000) {
                     Platform.runLater(() -> syntaxHighlightManager.applySyntaxHighlighting(newText));
@@ -720,7 +730,7 @@ public class XmlCodeEditor extends VBox {
             if (newScene != null) {
                 Platform.runLater(() -> {
                     String currentText = codeArea.getText();
-                    if (currentText != null && !currentText.isEmpty()) {
+                    if (currentText != null && !currentText.isEmpty() && !isFoldingOperation) {
                         syntaxHighlightManager.applySyntaxHighlighting(currentText);
                     }
                 });
@@ -732,7 +742,7 @@ public class XmlCodeEditor extends VBox {
             if (newParent != null) {
                 Platform.runLater(() -> {
                     String currentText = codeArea.getText();
-                    if (currentText != null && !currentText.isEmpty()) {
+                    if (currentText != null && !currentText.isEmpty() && !isFoldingOperation) {
                         syntaxHighlightManager.applySyntaxHighlighting(currentText);
                     }
                 });
@@ -744,7 +754,7 @@ public class XmlCodeEditor extends VBox {
             if (isFocused) {
                 Platform.runLater(() -> {
                     String currentText = codeArea.getText();
-                    if (currentText != null && !currentText.isEmpty()) {
+                    if (currentText != null && !currentText.isEmpty() && !isFoldingOperation) {
                         syntaxHighlightManager.applySyntaxHighlighting(currentText);
                     }
                 });
@@ -914,8 +924,118 @@ public class XmlCodeEditor extends VBox {
             }
         });
     }
-    
-    // Line number factory
+
+    // Combined line number and folding factory
+    private IntFunction<Node> createCombinedParagraphGraphicFactory() {
+        return lineIndex -> {
+            HBox container = new HBox(2);
+            container.setAlignment(Pos.CENTER_LEFT);
+
+            // Add folding indicator if this line has a foldable region
+            if (codeFoldingManager != null && codeFoldingManager.getFoldingRegions().containsKey(lineIndex)) {
+                Button foldButton = createFoldButton(lineIndex);
+                container.getChildren().add(foldButton);
+            } else {
+                // Add spacer to maintain alignment
+                javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+                spacer.setPrefSize(12, 12);
+                container.getChildren().add(spacer);
+            }
+
+            // Add line number
+            Label lineNumber = createLineNumberLabel(lineIndex);
+            container.getChildren().add(lineNumber);
+
+            return container;
+        };
+    }
+
+    /**
+     * Creates a fold/unfold button for a specific line
+     */
+    private Button createFoldButton(int lineIndex) {
+        Button button = new Button();
+        button.setPrefSize(12, 12);
+        button.setMinSize(12, 12);
+        button.setMaxSize(12, 12);
+        button.getStyleClass().add("fold-button");
+
+        // Create triangle indicator
+        javafx.scene.shape.Polygon triangle = new javafx.scene.shape.Polygon();
+        boolean isFolded = codeFoldingManager != null && codeFoldingManager.getFoldedRegions().contains(lineIndex);
+
+        if (isFolded) {
+            // Right-pointing triangle for folded state
+            triangle.getPoints().addAll(2.0, 2.0, 2.0, 10.0, 10.0, 6.0);
+        } else {
+            // Down-pointing triangle for unfolded state
+            triangle.getPoints().addAll(2.0, 2.0, 10.0, 2.0, 6.0, 10.0);
+        }
+
+        triangle.setFill(javafx.scene.paint.Color.GRAY);
+        button.setGraphic(triangle);
+
+        // Handle click to toggle fold
+        button.setOnAction(event -> {
+            if (codeFoldingManager != null) {
+                try {
+                    isFoldingOperation = true;
+                    codeFoldingManager.toggleFold(lineIndex);
+                    // Refresh the paragraph graphics to update the fold indicators
+                    Platform.runLater(this::setupParagraphGraphics);
+                } finally {
+                    isFoldingOperation = false;
+                }
+            }
+        });
+
+        // Add tooltip
+        javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(
+                isFolded ? "Unfold region" : "Fold region"
+        );
+        javafx.scene.control.Tooltip.install(button, tooltip);
+
+        return button;
+    }
+
+    /**
+     * Creates a line number label for a specific line index
+     */
+    private Label createLineNumberLabel(int lineIndex) {
+        // Create line number label
+        Label lineNumber = new Label(String.format("%4d", lineIndex + 1));
+        lineNumber.getStyleClass().addAll("lineno", "paragraph-graphic");
+
+        // Set consistent styling
+        lineNumber.setPadding(new Insets(0, 8, 0, 4));
+        lineNumber.setMinWidth(40);
+        lineNumber.setPrefWidth(40);
+        lineNumber.setMaxWidth(40);
+        lineNumber.setAlignment(Pos.CENTER_RIGHT);
+
+        // Apply dynamic font size and consistent colors
+        lineNumber.setStyle(String.format(
+                "-fx-text-fill: #888888; " +
+                        "-fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace; " +
+                        "-fx-font-size: %dpx; " +
+                        "-fx-background-color: #fafafa; " +
+                        "-fx-border-color: #e0e0e0; " +
+                        "-fx-border-width: 0 1 0 0;",
+                fontSize
+        ));
+
+        // Add hover effect for better UX
+        lineNumber.setOnMouseEntered(e ->
+                lineNumber.setStyle(lineNumber.getStyle() + "-fx-background-color: #f0f0f0;")
+        );
+        lineNumber.setOnMouseExited(e ->
+                lineNumber.setStyle(lineNumber.getStyle().replace("-fx-background-color: #f0f0f0;", "-fx-background-color: #fafafa;"))
+        );
+
+        return lineNumber;
+    }
+
+    // Original line number factory (kept for compatibility)
     private IntFunction<Node> createParagraphGraphicFactory() {
         return lineIndex -> {
             // Create line number label
@@ -996,7 +1116,26 @@ public class XmlCodeEditor extends VBox {
     }
 
     private void initializeCodeFoldingManager() {
-        // Placeholder
+        try {
+            // Create a custom folding manager that doesn't set up its own paragraph factory
+            codeFoldingManager = new XmlCodeFoldingManager(codeArea) {
+                @Override
+                protected void setupFoldingIndicators() {
+                    // Don't set up paragraph factory here - we'll handle it in XmlCodeEditor
+                }
+
+                @Override
+                public void refreshFoldingDisplay() {
+                    // Use our custom refresh mechanism instead, but only if not already in folding operation
+                    if (!isFoldingOperation) {
+                        Platform.runLater(() -> setupParagraphGraphics());
+                    }
+                }
+            };
+            logger.debug("Code folding manager initialized successfully");
+        } catch (Exception e) {
+            logger.error("Failed to initialize code folding manager: {}", e.getMessage(), e);
+        }
     }
 
     private void initializeSpecializedAutoComplete() {
@@ -1012,7 +1151,13 @@ public class XmlCodeEditor extends VBox {
     }
 
     private void updateFoldingRegions(String text) {
-        // Placeholder for code folding
+        if (codeFoldingManager != null && text != null && !text.isEmpty() && !isFoldingOperation) {
+            try {
+                codeFoldingManager.updateFoldingRegions(text);
+            } catch (Exception e) {
+                logger.error("Error updating folding regions: {}", e.getMessage(), e);
+            }
+        }
     }
 
     private void handleAutomaticTagCompletion(String oldText, String newText) {
@@ -2443,11 +2588,31 @@ public class XmlCodeEditor extends VBox {
     }
 
     private void expandAll() {
-        // Placeholder
+        if (codeFoldingManager != null) {
+            try {
+                isFoldingOperation = true;
+                codeFoldingManager.unfoldAll();
+                logger.debug("Expanded all folded regions");
+            } catch (Exception e) {
+                logger.error("Error expanding all regions: {}", e.getMessage(), e);
+            } finally {
+                isFoldingOperation = false;
+            }
+        }
     }
 
     private void collapseAll() {
-        // Placeholder
+        if (codeFoldingManager != null) {
+            try {
+                isFoldingOperation = true;
+                codeFoldingManager.foldAll();
+                logger.debug("Collapsed all foldable regions");
+            } catch (Exception e) {
+                logger.error("Error collapsing all regions: {}", e.getMessage(), e);
+            } finally {
+                isFoldingOperation = false;
+            }
+        }
     }
 
     private String getElementNameAtPosition(double x, double y) {
