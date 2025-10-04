@@ -379,6 +379,9 @@ public class XmlCodeEditor extends VBox {
         // Trigger immediate cache update when parent is set
         if (parentEditor != null) {
             Platform.runLater(this::updateEnumerationElementsCache);
+        } else {
+            // No parent editor means no XSD
+            setXsdParsingNotStarted();
         }
     }
 
@@ -389,6 +392,8 @@ public class XmlCodeEditor extends VBox {
     public void refreshXsdIntegrationData() {
         logger.debug("refreshXsdIntegrationData called");
         updateXsdIntegration();
+        // Also update the enumeration cache
+        Platform.runLater(this::updateEnumerationElementsCache);
     }
 
     /**
@@ -538,6 +543,73 @@ public class XmlCodeEditor extends VBox {
     public void refreshSyntaxHighlighting() {
         String currentText = codeArea.getText();
         syntaxHighlightManager.refreshSyntaxHighlighting(currentText);
+    }
+
+    // =====================================================
+    // XSD PARSING STATUS METHODS
+    // =====================================================
+
+    /**
+     * Updates the XSD parsing status in the status line.
+     *
+     * @param status The current XSD parsing status
+     */
+    public void updateXsdParsingStatus(StatusLineController.XsdParsingStatus status) {
+        if (statusLineController != null) {
+            statusLineController.updateXsdParsingStatus(status);
+        }
+    }
+
+    /**
+     * Sets XSD parsing status to indicate parsing has started.
+     */
+    public void setXsdParsingStarted() {
+        if (statusLineController != null) {
+            statusLineController.setXsdParsingStarted();
+            logger.debug("XSD parsing started - status updated");
+        }
+    }
+
+    /**
+     * Sets XSD parsing status to indicate parsing has completed successfully.
+     */
+    public void setXsdParsingCompleted() {
+        if (statusLineController != null) {
+            statusLineController.setXsdParsingCompleted();
+            logger.debug("XSD parsing completed - status updated");
+        }
+    }
+
+    /**
+     * Sets XSD parsing status to indicate parsing encountered an error.
+     */
+    public void setXsdParsingError() {
+        if (statusLineController != null) {
+            statusLineController.setXsdParsingError();
+            logger.debug("XSD parsing error - status updated");
+        }
+    }
+
+    /**
+     * Sets XSD parsing status to indicate no XSD is loaded.
+     */
+    public void setXsdParsingNotStarted() {
+        if (statusLineController != null) {
+            statusLineController.setXsdParsingNotStarted();
+            logger.debug("XSD parsing not started - status updated");
+        }
+    }
+
+    /**
+     * Gets the current XSD parsing status.
+     *
+     * @return The current XSD parsing status, or null if status controller is not available
+     */
+    public StatusLineController.XsdParsingStatus getXsdParsingStatus() {
+        if (statusLineController != null) {
+            return statusLineController.getXsdParsingStatus();
+        }
+        return null;
     }
 
     // =====================================================
@@ -1434,18 +1506,29 @@ public class XmlCodeEditor extends VBox {
             if (parentXmlEditor != null) {
                 var xsdDocumentationData = parentXmlEditor.getXsdDocumentationData();
                 if (xsdDocumentationData != null) {
+                    // Check if we have data - means parsing is complete
+                    setXsdParsingCompleted();
                     xsdIntegration.setXsdDocumentationData(xsdDocumentationData);
                     logger.debug("XSD integration connected with documentation data: {} elements",
                             xsdDocumentationData.getExtendedXsdElementMap().size());
                 } else {
-                    logger.debug("No XSD documentation data available from parent editor");
+                    // Check if an XSD file is set but no data yet - means parsing is in progress
+                    if (parentXmlEditor.getXsdFile() != null) {
+                        setXsdParsingStarted();
+                        logger.debug("XSD file available but documentation data not ready - parsing in progress");
+                    } else {
+                        setXsdParsingNotStarted();
+                        logger.debug("No XSD documentation data available from parent editor");
+                    }
                 }
             } else {
+                setXsdParsingNotStarted();
                 logger.debug("No parent XML editor available for XSD integration");
             }
             // This would be called when an XSD is associated with the XML
 
         } catch (Exception e) {
+            setXsdParsingError();
             logger.debug("XSD integration setup failed: {}", e.getMessage());
         }
     }
@@ -1718,11 +1801,18 @@ public class XmlCodeEditor extends VBox {
                 // Update cache with current XSD documentation data
                 var xsdData = parentXmlEditor.getXsdDocumentationData();
                 if (xsdData != null) {
+                    setXsdParsingCompleted();
                     xsdIntegration.setXsdDocumentationData(xsdData);
                     logger.debug("Enumeration elements cache updated");
+                } else {
+                    // Check if parsing is in progress
+                    if (parentXmlEditor.getXsdFile() != null) {
+                        setXsdParsingStarted();
+                    }
                 }
             }
         } catch (Exception e) {
+            setXsdParsingError();
             logger.error("Error updating enumeration elements cache: {}", e.getMessage(), e);
         }
     }

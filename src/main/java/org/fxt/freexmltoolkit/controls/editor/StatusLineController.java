@@ -30,12 +30,42 @@ public class StatusLineController {
     private final Label lineSeparatorLabel = new Label("LF");
     private final Label indentationLabel = new Label();
     private final Label documentInfoLabel = new Label("Ready");
+    private final Label xsdParsingStatusLabel = new Label();
 
     // File properties for status line
     private String currentEncoding = "UTF-8";
     private String currentLineSeparator = "LF";
     private int currentIndentationSize;
     private boolean useSpaces = true;
+
+    // XSD parsing status
+    private XsdParsingStatus xsdParsingStatus = XsdParsingStatus.NOT_STARTED;
+
+    /**
+     * Enumeration for XSD parsing status states.
+     */
+    public enum XsdParsingStatus {
+        NOT_STARTED("⚫", "No XSD"),
+        PARSING("🔄", "Parsing XSD..."),
+        COMPLETED("✅", "XSD Ready"),
+        ERROR("❌", "XSD Error");
+
+        private final String icon;
+        private final String text;
+
+        XsdParsingStatus(String icon, String text) {
+            this.icon = icon;
+            this.text = text;
+        }
+
+        public String getIcon() {
+            return icon;
+        }
+
+        public String getText() {
+            return text;
+        }
+    }
 
     /**
      * Constructor for StatusLineController.
@@ -79,6 +109,8 @@ public class StatusLineController {
         statusLine.getChildren().addAll(
                 documentInfoLabel,
                 createSeparator(),
+                xsdParsingStatusLabel,
+                createSeparator(),
                 cursorPositionLabel,
                 createSeparator(),
                 encodingLabel,
@@ -91,10 +123,14 @@ public class StatusLineController {
 
         // Apply consistent styling to all labels
         setupLabelStyling(documentInfoLabel, "📄");
+        setupLabelStyling(xsdParsingStatusLabel, "⚫");
         setupLabelStyling(cursorPositionLabel, "🧭");
         setupLabelStyling(encodingLabel, "💾");
         setupLabelStyling(lineSeparatorLabel, "⏎");
         setupLabelStyling(indentationLabel, "↹");
+
+        // Initialize XSD parsing status
+        updateXsdParsingStatus(XsdParsingStatus.NOT_STARTED);
 
         logger.debug("Modern status line initialized with XMLSpy-inspired styling");
     }
@@ -395,6 +431,8 @@ public class StatusLineController {
         // Set initial text with icon
         if (label == documentInfoLabel) {
             label.setText(icon + " Ready");
+        } else if (label == xsdParsingStatusLabel) {
+            label.setText(icon + " No XSD");
         }
     }
 
@@ -416,5 +454,62 @@ public class StatusLineController {
      */
     public void setStatusMessage(String message) {
         documentInfoLabel.setText("📄 " + message);
+    }
+
+    /**
+     * Updates the XSD parsing status display.
+     *
+     * @param status The current XSD parsing status
+     */
+    public void updateXsdParsingStatus(XsdParsingStatus status) {
+        this.xsdParsingStatus = status;
+        xsdParsingStatusLabel.setText(status.getIcon() + " " + status.getText());
+
+        // Apply special styling for parsing state (animated effect)
+        if (status == XsdParsingStatus.PARSING) {
+            // Add a subtle animation or styling for parsing state
+            xsdParsingStatusLabel.getStyleClass().add("parsing-status");
+            logger.debug("XSD parsing status updated to: PARSING");
+        } else {
+            xsdParsingStatusLabel.getStyleClass().remove("parsing-status");
+            logger.debug("XSD parsing status updated to: {}", status);
+        }
+    }
+
+    /**
+     * Gets the current XSD parsing status.
+     *
+     * @return The current XSD parsing status
+     */
+    public XsdParsingStatus getXsdParsingStatus() {
+        return xsdParsingStatus;
+    }
+
+    /**
+     * Sets XSD parsing status to PARSING state.
+     */
+    public void setXsdParsingStarted() {
+        updateXsdParsingStatus(XsdParsingStatus.PARSING);
+    }
+
+    /**
+     * Sets XSD parsing status to COMPLETED state.
+     */
+    public void setXsdParsingCompleted() {
+        updateXsdParsingStatus(XsdParsingStatus.COMPLETED);
+    }
+
+    /**
+     * Sets XSD parsing status to ERROR state.
+     */
+    public void setXsdParsingError() {
+        updateXsdParsingStatus(XsdParsingStatus.ERROR);
+    }
+
+    /**
+     * Sets XSD parsing status to NOT_STARTED state.
+     */
+    public void setXsdParsingNotStarted() {
+        updateXsdParsingStatus(XsdParsingStatus.NOT_STARTED);
     }
 }

@@ -62,7 +62,7 @@ public class XmlIntelliSenseEngine {
     private final boolean showHoverTooltips = true;
     private final boolean validateInRealTime = true;
     private final boolean enableBracketMatching = true;
-    private final boolean enableSmartIndent = true;
+    private final boolean enableSmartIndent = false; // Disabled to prevent conflicts with main editor
 
     public XmlIntelliSenseEngine(CodeArea codeArea) {
         this.codeArea = codeArea;
@@ -267,19 +267,32 @@ public class XmlIntelliSenseEngine {
             Matcher matcher = Pattern.compile("<([\\w:.-]+)(?:\\s+[^>]*)?>$").matcher(text);
             if (matcher.find()) {
                 String tagName = matcher.group(1);
-                // Check if it's not a self-closing tag
-                if (!text.trim().endsWith("/>")) {
+                // Check if it's not a self-closing tag and doesn't already have a closing tag
+                if (!text.trim().endsWith("/>") && !hasExistingClosingTag(tagName, caretPos)) {
                     String closeTag = "</" + tagName + ">";
                     int insertPos = codeArea.getCaretPosition();
 
                     javafx.application.Platform.runLater(() -> {
                         codeArea.insertText(insertPos, closeTag);
-                        codeArea.moveTo(insertPos);
+                        codeArea.moveTo(insertPos); // Position cursor between opening and closing tag
                     });
                 }
             }
         } catch (Exception e) {
             logger.debug("Error in auto-close tag: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Check if there's already a closing tag for the given element name after the current position
+     */
+    private boolean hasExistingClosingTag(String tagName, int fromPosition) {
+        try {
+            String remainingText = codeArea.getText(fromPosition, codeArea.getText().length());
+            String expectedClosingTag = "</" + tagName + ">";
+            return remainingText.contains(expectedClosingTag);
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -380,10 +393,19 @@ public class XmlIntelliSenseEngine {
             int indentLevel = calculateIndentLevel(currentLine);
             String indent = "    ".repeat(Math.max(0, indentLevel));
 
-            // Check if we need to add closing tag
+            // Check if we are in an opening tag context and need to add indentation for child elements
+            // But NOT if we are just entering content into an element
             if (currentLine.trim().matches("<[\\w:.-]+(?:\\s+[^>]*)?>")) {
-                // Opening tag - increase indent for content
-                indent += "    ";
+                // Check if we're creating a multi-line element with child content
+                String fullText = codeArea.getText();
+                int nextCloseTag = fullText.indexOf('>', caretPos);
+                int nextOpenTag = fullText.indexOf('<', caretPos);
+
+                // Only add extra indentation if this will be a complex element with children
+                // Not for simple text content
+                if (nextOpenTag != -1 && (nextCloseTag == -1 || nextOpenTag < nextCloseTag)) {
+                    indent += "    ";
+                }
             }
 
             final String finalIndent = indent;
