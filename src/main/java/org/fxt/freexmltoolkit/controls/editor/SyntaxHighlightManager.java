@@ -148,10 +148,8 @@ public class SyntaxHighlightManager {
             if (highlighting != null) {
                 codeArea.setStyleSpans(0, highlighting);
                 // Update paragraph graphics to show error markers
-                Platform.runLater(() -> {
-                    // Notify listeners that highlighting was updated
-                    notifyHighlightingUpdated();
-                });
+                // Notify listeners that highlighting was updated
+                Platform.runLater(this::notifyHighlightingUpdated);
             }
         });
 

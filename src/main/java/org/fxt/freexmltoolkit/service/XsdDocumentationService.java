@@ -230,20 +230,22 @@ public class XsdDocumentationService {
                     for (String childXPath : targetElement.getChildren()) {
                         XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
                         if (childElement != null && childElement.isMandatory()) {
-                            // Get nested children using the correct XPath context
-                            List<MandatoryChildInfo> nestedChildren = getMandatoryChildElementsByXPath(childXPath);
+                            // Skip attributes (elements starting with @)
+                            if (childElement.getElementName().startsWith("@")) {
+                                logger.debug("Skipping attribute: {} (xpath={})", childElement.getElementName(), childXPath);
+                                continue;
+                            }
 
+                            // For mandatory children, only create empty elements without recursive nesting
                             MandatoryChildInfo childInfo = new MandatoryChildInfo(
-                                    childElement.getElementName().startsWith("@")
-                                            ? childElement.getElementName().substring(1) // Remove @ for attributes
-                                            : childElement.getElementName(),
+                                    childElement.getElementName(),
                                     1, // Default minOccurs for mandatory elements
                                     1, // Default maxOccurs
-                                    nestedChildren
+                                    new ArrayList<>() // No nested children - just create empty elements
                             );
                             mandatoryChildren.add(childInfo);
-                            logger.debug("Added mandatory child from processed data: {} (xpath={}, hasChildren={})",
-                                    childElement.getElementName(), childXPath, !nestedChildren.isEmpty());
+                            logger.debug("Added mandatory child from processed data: {} (xpath={}, isAttribute=false)",
+                                    childElement.getElementName(), childXPath);
                         }
                     }
                     if (!mandatoryChildren.isEmpty()) {
@@ -403,20 +405,23 @@ public class XsdDocumentationService {
         for (String childXPath : parentElement.getChildren()) {
             XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
             if (childElement != null && childElement.isMandatory()) {
-                // Recursively get nested children using the correct XPath
-                List<MandatoryChildInfo> nestedChildren = getMandatoryChildElementsByXPath(childXPath);
+                // Skip attributes (elements starting with @)
+                if (childElement.getElementName().startsWith("@")) {
+                    logger.debug("Skipping attribute: {} (xpath={})", childElement.getElementName(), childXPath);
+                    continue;
+                }
 
+                // For mandatory children, only create empty elements without recursive nesting
+                // This prevents complex choice elements from being expanded
                 MandatoryChildInfo childInfo = new MandatoryChildInfo(
-                        childElement.getElementName().startsWith("@")
-                                ? childElement.getElementName().substring(1) // Remove @ for attributes
-                                : childElement.getElementName(),
+                        childElement.getElementName(),
                         1, // Default minOccurs for mandatory elements
                         1, // Default maxOccurs
-                        nestedChildren
+                        new ArrayList<>() // No nested children - just create empty elements
                 );
                 mandatoryChildren.add(childInfo);
-                logger.debug("Added mandatory child by XPath: {} (xpath={}, hasChildren={})",
-                        childElement.getElementName(), childXPath, !nestedChildren.isEmpty());
+                logger.debug("Added mandatory child by XPath: {} (xpath={}, isAttribute=false)",
+                        childElement.getElementName(), childXPath);
             }
         }
 

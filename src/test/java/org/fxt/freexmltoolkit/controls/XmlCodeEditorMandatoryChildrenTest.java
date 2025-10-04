@@ -140,7 +140,8 @@ class XmlCodeEditorMandatoryChildrenTest {
                     } else if ("mandatoryChild2".equals(childInfo.name())) {
                         foundMandatoryChild2 = true;
                         assertEquals(1, childInfo.minOccurs(), "mandatoryChild2 should have minOccurs=1");
-                        assertTrue(childInfo.hasChildren(), "mandatoryChild2 should have nested children");
+                        assertFalse(childInfo.children() != null && !childInfo.children().isEmpty(),
+                                "mandatoryChild2 should NOT have nested children to prevent complex expansion");
                     }
                 }
 

@@ -1,7 +1,12 @@
 package org.fxt.freexmltoolkit.controls.editor;
 
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
@@ -24,6 +29,7 @@ public class StatusLineController {
     private final Label encodingLabel = new Label("UTF-8");
     private final Label lineSeparatorLabel = new Label("LF");
     private final Label indentationLabel = new Label();
+    private final Label documentInfoLabel = new Label("Ready");
 
     // File properties for status line
     private String currentEncoding = "UTF-8";
@@ -51,25 +57,46 @@ public class StatusLineController {
      * Initializes the status line with all components.
      */
     private void initializeStatusLine() {
-        // Set initial spacing and styling for status line
-        statusLine.setSpacing(20);
+        // Set modern XMLSpy-inspired styling for status line
         statusLine.getStyleClass().add("status-line");
+        statusLine.setAlignment(Pos.CENTER_LEFT);
+        statusLine.setPadding(new Insets(4, 8, 4, 8));
+        statusLine.setSpacing(0);
 
-        // Add all status components
-        statusLine.getChildren().addAll(
-                cursorPositionLabel,
-                encodingLabel,
-                lineSeparatorLabel,
-                indentationLabel
+        // Apply modern styling with XMLSpy color scheme
+        statusLine.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #f5f5f5 0%, #e8e8e8 100%);" +
+                        "-fx-border-color: #c0c0c0;" +
+                        "-fx-border-width: 1 0 0 0;" +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 1, 0, 0, -1);"
         );
 
-        // Apply styling to labels
-        cursorPositionLabel.getStyleClass().add("status-label");
-        encodingLabel.getStyleClass().add("status-label");
-        lineSeparatorLabel.getStyleClass().add("status-label");
-        indentationLabel.getStyleClass().add("status-label");
+        // Create spacer for pushing right-aligned items
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        logger.debug("Status line initialized with cursor position, encoding, line separator, and indentation");
+        // Add all status components with separators
+        statusLine.getChildren().addAll(
+                documentInfoLabel,
+                createSeparator(),
+                cursorPositionLabel,
+                createSeparator(),
+                encodingLabel,
+                createSeparator(),
+                lineSeparatorLabel,
+                createSeparator(),
+                indentationLabel,
+                spacer
+        );
+
+        // Apply consistent styling to all labels
+        setupLabelStyling(documentInfoLabel, "📄");
+        setupLabelStyling(cursorPositionLabel, "🧭");
+        setupLabelStyling(encodingLabel, "💾");
+        setupLabelStyling(lineSeparatorLabel, "⏎");
+        setupLabelStyling(indentationLabel, "↹");
+
+        logger.debug("Modern status line initialized with XMLSpy-inspired styling");
     }
 
     /**
@@ -86,6 +113,11 @@ public class StatusLineController {
             updateCursorPosition(codeArea.getCaretPosition());
         });
 
+        // Update document info when text changes
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            updateDocumentInfo(newText);
+        });
+
         logger.debug("Status line event handlers set up");
     }
 
@@ -97,7 +129,7 @@ public class StatusLineController {
     private void updateCursorPosition(int caretPosition) {
         try {
             if (codeArea.getText() == null || codeArea.getText().isEmpty()) {
-                cursorPositionLabel.setText("Line: 1, Column: 1");
+                cursorPositionLabel.setText("🧭 Ln 1, Col 1");
                 return;
             }
 
@@ -113,11 +145,11 @@ public class StatusLineController {
                 selectionInfo = " (" + selectionLength + " selected)";
             }
 
-            cursorPositionLabel.setText("Line: " + line + ", Column: " + column + selectionInfo);
+            cursorPositionLabel.setText("🧭 Ln " + line + ", Col " + column + selectionInfo);
 
         } catch (Exception e) {
             logger.debug("Error updating cursor position: {}", e.getMessage());
-            cursorPositionLabel.setText("Line: ?, Column: ?");
+            cursorPositionLabel.setText("🧭 Ln ?, Col ?");
         }
     }
 
@@ -128,7 +160,7 @@ public class StatusLineController {
         int indentSpaces = propertiesService.getXmlIndentSpaces();
         currentIndentationSize = indentSpaces;
         String indentType = useSpaces ? "spaces" : "tabs";
-        indentationLabel.setText(indentSpaces + " " + indentType);
+        indentationLabel.setText("↹ " + indentSpaces + " " + indentType);
     }
 
     /**
@@ -147,7 +179,7 @@ public class StatusLineController {
      */
     public void setEncoding(String encoding) {
         this.currentEncoding = encoding != null ? encoding : "UTF-8";
-        encodingLabel.setText(this.currentEncoding);
+        encodingLabel.setText("💾 " + this.currentEncoding);
         logger.debug("Encoding updated to: {}", this.currentEncoding);
     }
 
@@ -167,7 +199,7 @@ public class StatusLineController {
      */
     public void setLineSeparator(String lineSeparator) {
         this.currentLineSeparator = lineSeparator != null ? lineSeparator : "LF";
-        lineSeparatorLabel.setText(this.currentLineSeparator);
+        lineSeparatorLabel.setText("⏎ " + this.currentLineSeparator);
         logger.debug("Line separator updated to: {}", this.currentLineSeparator);
     }
 
@@ -296,5 +328,93 @@ public class StatusLineController {
      */
     public void refreshCursorPosition() {
         updateCursorPosition(codeArea.getCaretPosition());
+    }
+
+    /**
+     * Creates a modern separator for status line components.
+     */
+    private Separator createSeparator() {
+        Separator separator = new Separator();
+        separator.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        separator.setPrefHeight(16);
+        separator.setStyle(
+                "-fx-background-color: #c0c0c0;" +
+                        "-fx-border-color: #c0c0c0;" +
+                        "-fx-padding: 2 4 2 4;"
+        );
+        return separator;
+    }
+
+    /**
+     * Sets up modern XMLSpy-inspired styling for status labels.
+     */
+    private void setupLabelStyling(Label label, String icon) {
+        label.getStyleClass().add("status-label");
+        label.setAlignment(Pos.CENTER_LEFT);
+        label.setPadding(new Insets(2, 8, 2, 8));
+
+        // Apply XMLSpy-inspired styling with icons and fixed border to prevent size changes
+        label.setStyle(
+                "-fx-text-fill: #333333;" +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+                        "-fx-font-size: 11px;" +
+                        "-fx-background-color: transparent;" +
+                        "-fx-border-radius: 3px;" +
+                        "-fx-background-radius: 3px;" +
+                        "-fx-border-color: transparent;" +
+                        "-fx-border-width: 1px;"
+        );
+
+        // Add hover effect with consistent sizing
+        label.setOnMouseEntered(e -> {
+            label.setStyle(
+                    "-fx-text-fill: #333333;" +
+                            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+                            "-fx-font-size: 11px;" +
+                            "-fx-background-color: rgba(74, 144, 226, 0.1);" +
+                            "-fx-border-radius: 3px;" +
+                            "-fx-background-radius: 3px;" +
+                            "-fx-border-color: #4a90e2;" +
+                            "-fx-border-width: 1px;"
+            );
+        });
+
+        label.setOnMouseExited(e -> {
+            label.setStyle(
+                    "-fx-text-fill: #333333;" +
+                            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+                            "-fx-font-size: 11px;" +
+                            "-fx-background-color: transparent;" +
+                            "-fx-border-radius: 3px;" +
+                            "-fx-background-radius: 3px;" +
+                            "-fx-border-color: transparent;" +
+                            "-fx-border-width: 1px;"
+            );
+        });
+
+        // Set initial text with icon
+        if (label == documentInfoLabel) {
+            label.setText(icon + " Ready");
+        }
+    }
+
+    /**
+     * Updates document information display.
+     */
+    private void updateDocumentInfo(String text) {
+        if (text == null || text.isEmpty()) {
+            documentInfoLabel.setText("📄 Empty Document");
+        } else {
+            int lineCount = text.split("\n").length;
+            int charCount = text.length();
+            documentInfoLabel.setText(String.format("📄 %d lines, %d chars", lineCount, charCount));
+        }
+    }
+
+    /**
+     * Sets a custom status message.
+     */
+    public void setStatusMessage(String message) {
+        documentInfoLabel.setText("📄 " + message);
     }
 }

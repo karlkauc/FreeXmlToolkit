@@ -1078,3 +1078,41 @@
     -fx-border-width: 1px;
     -fx-border-style: dashed;
 }
+
+/* =================================================================
+   Modern XMLSpy-inspired Status Line Styles
+   ================================================================= */
+.status-line {
+    -fx-background-color: linear-gradient(to bottom, #f5f5f5 0%, #e8e8e8 100%);
+    -fx-border-color: #c0c0c0;
+    -fx-border-width: 1 0 0 0;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 1, 0, 0, -1);
+    -fx-padding: 4 8 4 8;
+    -fx-alignment: center-left;
+}
+
+.status-label {
+    -fx-text-fill: #333333;
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-font-size: 11px;
+    -fx-background-color: transparent;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+    -fx-padding: 2 8 2 8;
+    -fx-alignment: center-left;
+}
+
+.status-label:hover {
+    -fx-background-color: rgba(74, 144, 226, 0.1);
+    -fx-border-color: #4a90e2;
+    -fx-border-width: 1px;
+    -fx-cursor: hand;
+}
+
+.status-separator {
+    -fx-background-color: #c0c0c0;
+    -fx-border-color: #c0c0c0;
+    -fx-padding: 2 4 2 4;
+}

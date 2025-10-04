@@ -92,19 +92,8 @@ public class XmlCodeEditor extends VBox {
     private XsltAutoComplete xsltAutoComplete;
     private XslFoAutoComplete xslFoAutoComplete;
 
-    // Enhanced IntelliSense Components (will be managed in future phases)
-    private EnhancedCompletionPopup enhancedCompletionPopup;
-    private FuzzySearch fuzzySearch;
-    private XsdDocumentationExtractor xsdDocExtractor;
-    private AttributeValueHelper attributeValueHelper;
-    private CompletionCache completionCache;
-    private PerformanceProfiler performanceProfiler;
-    private MultiSchemaManager multiSchemaManager;
-    private TemplateEngine templateEngine;
-    private QuickActionsIntegration quickActionsIntegration;
 
     private final boolean enhancedIntelliSenseEnabled = true;
-    private boolean isProcessingEnterKey = false;
     private org.fxt.freexmltoolkit.controls.intellisense.XsdIntegrationAdapter xsdIntegration;
     private XmlIntelliSenseEngine intelliSenseEngine;
     private XmlCodeFoldingManager codeFoldingManager;
@@ -159,7 +148,6 @@ public class XmlCodeEditor extends VBox {
 
         // Initialize IntelliSense (temporary, will be moved to manager in Phase 2)
         initializeIntelliSensePopup();
-        initializeEnhancedIntelliSense();
         initializeXmlIntelliSenseEngine();
         initializeCodeFoldingManager();
         initializeSpecializedAutoComplete();
@@ -709,9 +697,6 @@ public class XmlCodeEditor extends VBox {
 
                 // Handle automatic tag completion
                 handleAutomaticTagCompletion(oldText, newText);
-
-                // Handle intelligent enter
-                handleIntelligentEnter(oldText, newText);
             }
         });
 
@@ -763,7 +748,7 @@ public class XmlCodeEditor extends VBox {
             }
         });
     }
-    
+
     // Event handlers setup
     private void setupEventHandlers() {
         setupFontSizeHandlers();
@@ -923,6 +908,7 @@ public class XmlCodeEditor extends VBox {
                 if (intelliSensePopup != null && intelliSensePopup.isShowing()) {
                     Platform.runLater(this::updateIntelliSenseCompletion);
                 }
+
             }
         });
     }
@@ -1037,43 +1023,6 @@ public class XmlCodeEditor extends VBox {
         return lineNumber;
     }
 
-    // Original line number factory (kept for compatibility)
-    private IntFunction<Node> createParagraphGraphicFactory() {
-        return lineIndex -> {
-            // Create line number label
-            Label lineNumber = new Label(String.format("%4d", lineIndex + 1));
-            lineNumber.getStyleClass().addAll("lineno", "paragraph-graphic");
-
-            // Set consistent styling
-            lineNumber.setPadding(new Insets(0, 8, 0, 4));
-            lineNumber.setMinWidth(40);
-            lineNumber.setPrefWidth(40);
-            lineNumber.setMaxWidth(40);
-            lineNumber.setAlignment(Pos.CENTER_RIGHT);
-
-            // Apply dynamic font size and consistent colors
-            lineNumber.setStyle(String.format(
-                    "-fx-text-fill: #888888; " +
-                            "-fx-font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace; " +
-                            "-fx-font-size: %dpx; " +
-                            "-fx-background-color: #fafafa; " +
-                            "-fx-border-color: #e0e0e0; " +
-                            "-fx-border-width: 0 1 0 0;",
-                    fontSize
-            ));
-
-            // Add hover effect for better UX
-            lineNumber.setOnMouseEntered(e ->
-                    lineNumber.setStyle(lineNumber.getStyle() + "-fx-background-color: #f0f0f0;")
-            );
-            lineNumber.setOnMouseExited(e ->
-                    lineNumber.setStyle(lineNumber.getStyle().replace("-fx-background-color: #f0f0f0;", "-fx-background-color: #fafafa;"))
-            );
-
-            return lineNumber;
-        };
-    }
-
     // IntelliSense initialization
     private void initializeIntelliSensePopup() {
         // Create the enhanced 3-column IntelliSense popup
@@ -1106,53 +1055,6 @@ public class XmlCodeEditor extends VBox {
         ));
 
         logger.debug("Enhanced IntelliSense popup initialized");
-    }
-
-    // Temporary placeholder methods (to be moved to appropriate managers)
-    private void initializeEnhancedIntelliSense() {
-        try {
-            // Initialize enhanced completion popup (already partially done in initializeIntelliSensePopup)
-            if (enhancedIntelliSensePopup == null) {
-                enhancedIntelliSensePopup = new EnhancedCompletionPopup();
-                enhancedIntelliSensePopup.setOnItemSelected(this::insertEnhancedCompletion);
-            }
-
-            // Initialize fuzzy search
-            fuzzySearch = new FuzzySearch();
-            logger.debug("Fuzzy search initialized");
-
-            // Initialize XSD documentation extractor
-            xsdDocExtractor = new XsdDocumentationExtractor();
-            logger.debug("XSD documentation extractor initialized");
-
-            // Initialize attribute value helper
-            attributeValueHelper = new AttributeValueHelper();
-            logger.debug("Attribute value helper initialized");
-
-            // Initialize completion cache
-            completionCache = new CompletionCache();
-            logger.debug("Completion cache initialized");
-
-            // Initialize performance profiler (using singleton instance)
-            performanceProfiler = PerformanceProfiler.getInstance();
-            logger.debug("Performance profiler initialized");
-
-            // Initialize multi-schema manager
-            multiSchemaManager = new MultiSchemaManager();
-            logger.debug("Multi-schema manager initialized");
-
-            // Initialize template engine
-            templateEngine = new TemplateEngine();
-            logger.debug("Template engine initialized");
-
-            // Initialize quick actions integration
-            quickActionsIntegration = new QuickActionsIntegration(codeArea, xsdIntegration);
-            logger.debug("Quick actions integration initialized");
-
-            logger.info("Enhanced IntelliSense components initialized successfully");
-        } catch (Exception e) {
-            logger.error("Error initializing enhanced IntelliSense: {}", e.getMessage(), e);
-        }
     }
 
     private void initializeXmlIntelliSenseEngine() {
@@ -1269,55 +1171,7 @@ public class XmlCodeEditor extends VBox {
         return remainingText.contains(closingTag);
     }
 
-    private void handleIntelligentEnter(String oldText, String newText) {
-        // Prevent recursion
-        if (isProcessingEnterKey) {
-            return;
-        }
 
-        // Check if user pressed Enter
-        if (newText != null && oldText != null && newText.length() > oldText.length()) {
-            String added = newText.substring(oldText.length());
-            if (added.contains("\n")) {
-                isProcessingEnterKey = true;
-                try {
-                    int caretPos = codeArea.getCaretPosition();
-                    String textBeforeCaret = newText.substring(0, caretPos);
-
-                    // Extract current indentation from previous line
-                    String[] lines = textBeforeCaret.split("\n");
-                    if (lines.length >= 2) {
-                        String prevLine = lines[lines.length - 2];
-                        String indentation = extractIndentation(prevLine);
-
-                        // If previous line contains an opening tag, add extra indentation
-                        if (prevLine.trim().matches(".*<[^/][^>]*[^/]>.*")) {
-                            int indentSize = propertiesService.getXmlIndentSpaces();
-                            indentation += " ".repeat(indentSize);
-                        }
-
-                        if (!indentation.isEmpty()) {
-                            codeArea.insertText(caretPos, indentation);
-                        }
-                    }
-                } finally {
-                    isProcessingEnterKey = false;
-                }
-            }
-        }
-    }
-
-    private String extractIndentation(String line) {
-        StringBuilder indentation = new StringBuilder();
-        for (char c : line.toCharArray()) {
-            if (c == ' ' || c == '\t') {
-                indentation.append(c);
-            } else {
-                break;
-            }
-        }
-        return indentation.toString();
-    }
 
     // IntelliSense implementation methods
     private void moveIntelliSenseSelection(int delta) {
@@ -1355,33 +1209,8 @@ public class XmlCodeEditor extends VBox {
                 if (!isSelfClosingElement(elementName)) {
                     int insertPos = popupStartPosition + elementName.length() + 1;
                     String closingTag = "</" + elementName + ">";
-
-                    // Check for mandatory child elements and insert them
-                    List<String> mandatoryChildren = getMandatoryChildElements(elementName);
-                    if (!mandatoryChildren.isEmpty()) {
-                        StringBuilder childElements = new StringBuilder();
-                        String indentation = getCurrentIndentation();
-                        String childIndentation = indentation + " ".repeat(propertiesService.getXmlIndentSpaces());
-
-                        for (String childElement : mandatoryChildren) {
-                            // Get current XPath context and add parent element for child context
-                            String currentContext = getCurrentXPathContext();
-                            String childContext = (currentContext != null)
-                                    ? currentContext + "/" + elementName
-                                    : elementName;
-
-                            String childContent = createElementWithMandatoryChildren(childElement, childIndentation, 1, childContext);
-                            childElements.append("\n").append(childContent);
-                        }
-                        childElements.append("\n").append(indentation);
-
-                        codeArea.insertText(insertPos, childElements + closingTag);
-                        // Position cursor at the first leaf element with sample value
-                        positionCursorAtFirstSampleValue(insertPos, childElements.toString());
-                    } else {
-                        codeArea.insertText(insertPos, closingTag);
-                        codeArea.moveTo(insertPos); // Position cursor between tags
-                    }
+                    codeArea.insertText(insertPos, closingTag);
+                    codeArea.moveTo(insertPos); // Position cursor between tags
                 }
             } else {
                 // Trim completion text to remove any leading/trailing whitespace
@@ -1525,29 +1354,6 @@ public class XmlCodeEditor extends VBox {
         }
     }
 
-    private void showLegacyIntelliSenseCompletion() {
-        // Legacy implementation for backward compatibility
-        int caretPos = codeArea.getCaretPosition();
-        String textBeforeCaret = codeArea.getText().substring(0, caretPos);
-
-        List<String> completions = new ArrayList<>();
-
-        if (textBeforeCaret.endsWith("<")) {
-            isElementCompletionContext = true;
-            popupStartPosition = caretPos;
-            completions.addAll(availableElementNames);
-        } else if (isInAttributeContext()) {
-            isElementCompletionContext = false;
-            popupStartPosition = getWordStartPosition(textBeforeCaret, caretPos);
-            completions.addAll(java.util.List.of("id", "class", "name", "value", "type"));
-        }
-
-        if (!completions.isEmpty()) {
-            updateCompletionList(completions);
-            showIntelliSensePopupAtCaret();
-        }
-    }
-
     private int getWordStartPosition(String textBeforeCaret, int caretPos) {
         int pos = caretPos - 1;
         while (pos >= 0 && Character.isLetterOrDigit(textBeforeCaret.charAt(pos))) {
@@ -1643,110 +1449,7 @@ public class XmlCodeEditor extends VBox {
             logger.debug("XSD integration setup failed: {}", e.getMessage());
         }
     }
-    
-    /**
-     * Gets mandatory child elements for a given element name based on XSD schema.
-     */
-    private List<String> getMandatoryChildElements(String elementName) {
-        logger.debug("Getting mandatory children for element: {}", elementName);
 
-        // Primary approach: Use XsdDocumentationService directly if available with XPath context
-        if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationService() != null) {
-            try {
-                var xsdService = parentXmlEditor.getXsdDocumentationService();
-
-                // Try to determine the current XPath context for better element disambiguation
-                String contextPath = getCurrentXPathContext();
-                var mandatoryChildInfos = xsdService.getMandatoryChildElements(elementName, contextPath);
-
-                if (!mandatoryChildInfos.isEmpty()) {
-                    List<String> mandatoryChildren = mandatoryChildInfos.stream()
-                            .map(info -> info.name())
-                            .distinct()
-                            .collect(java.util.stream.Collectors.toList());
-
-                    logger.debug("Found {} mandatory children from XSD service for '{}' with context '{}': {}",
-                            mandatoryChildren.size(), elementName, contextPath, mandatoryChildren);
-                    return mandatoryChildren;
-                }
-            } catch (Exception e) {
-                logger.debug("Error getting mandatory children from XSD service for '{}': {}", elementName, e.getMessage());
-            }
-        }
-
-        // Secondary approach: Try to use XsdDocumentationData directly if available
-        if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationData() != null) {
-            var xsdData = parentXmlEditor.getXsdDocumentationData();
-            if (xsdData.getExtendedXsdElementMap() != null) {
-                List<String> mandatoryChildren = extractMandatoryChildrenFromXsdData(elementName, xsdData);
-                if (!mandatoryChildren.isEmpty()) {
-                    logger.debug("Found {} mandatory children from XSD data for '{}': {}",
-                            mandatoryChildren.size(), elementName, mandatoryChildren);
-                    return mandatoryChildren;
-                }
-            }
-        }
-
-        // Fallback: Check if we have context element names mapping but filter for mandatory only
-        if (contextElementNames.containsKey(elementName)) {
-            List<String> allChildren = contextElementNames.get(elementName);
-            // Remove duplicates and only keep truly mandatory ones based on known patterns
-            List<String> filteredChildren = allChildren.stream()
-                    .distinct()
-                    .filter(child -> isMandatoryChildBasedOnKnowledge(elementName, child))
-                    .collect(java.util.stream.Collectors.toList());
-
-            if (!filteredChildren.isEmpty()) {
-                logger.debug("Found {} filtered mandatory children from context for '{}': {}",
-                        filteredChildren.size(), elementName, filteredChildren);
-                return filteredChildren;
-            }
-        }
-
-        // Final fallback to hardcoded mandatory patterns
-        List<String> fallbackChildren = getHardcodedMandatoryChildren(elementName);
-
-        if (!fallbackChildren.isEmpty()) {
-            logger.debug("Using hardcoded mandatory children for '{}': {}", elementName, fallbackChildren);
-        } else {
-            logger.debug("No mandatory children available for '{}'", elementName);
-        }
-
-        return fallbackChildren;
-    }
-
-    /**
-     * Gets mandatory child elements with explicit XPath context.
-     * This method is used during recursive element creation to maintain context.
-     */
-    private List<String> getMandatoryChildElementsWithContext(String elementName, String xpathContext) {
-        logger.debug("Getting mandatory children for element '{}' with explicit context '{}'", elementName, xpathContext);
-
-        // Primary approach: Use XsdDocumentationService directly with explicit context
-        if (parentXmlEditor != null && parentXmlEditor.getXsdDocumentationService() != null) {
-            try {
-                var xsdService = parentXmlEditor.getXsdDocumentationService();
-                var mandatoryChildInfos = xsdService.getMandatoryChildElements(elementName, xpathContext);
-
-                if (!mandatoryChildInfos.isEmpty()) {
-                    List<String> mandatoryChildren = mandatoryChildInfos.stream()
-                            .map(info -> info.name())
-                            .distinct()
-                            .collect(java.util.stream.Collectors.toList());
-
-                    logger.debug("Found {} mandatory children from XSD service for '{}' with explicit context '{}': {}",
-                            mandatoryChildren.size(), elementName, xpathContext, mandatoryChildren);
-                    return mandatoryChildren;
-                }
-            } catch (Exception e) {
-                logger.debug("Error getting mandatory children from XSD service for '{}' with context '{}': {}",
-                        elementName, xpathContext, e.getMessage());
-            }
-        }
-
-        // Fallback to standard method without context
-        return getMandatoryChildElements(elementName);
-    }
 
     /**
      * Determines the current XPath context based on the cursor position.
@@ -1804,230 +1507,6 @@ public class XmlCodeEditor extends VBox {
         return null;
     }
 
-    /**
-     * Extracts mandatory children from XsdDocumentationData.
-     */
-    private List<String> extractMandatoryChildrenFromXsdData(String elementName, org.fxt.freexmltoolkit.domain.XsdDocumentationData xsdData) {
-        List<String> mandatoryChildren = new ArrayList<>();
-
-        // Look through extended element map for children of this element
-        for (var entry : xsdData.getExtendedXsdElementMap().entrySet()) {
-            String xpath = entry.getKey();
-            var element = entry.getValue();
-
-            if (element != null && element.getElementName() != null && element.isMandatory()) {
-                // Check if this element is a child of our target element
-                if (isChildOfElement(xpath, elementName)) {
-                    String childName = element.getElementName();
-                    if (!mandatoryChildren.contains(childName)) {
-                        mandatoryChildren.add(childName);
-                    }
-                }
-            }
-        }
-
-        return mandatoryChildren;
-    }
-
-    /**
-     * Checks if an XPath represents a child of the given element.
-     */
-    private boolean isChildOfElement(String xpath, String parentElement) {
-        if (xpath == null || parentElement == null) return false;
-
-        // Split xpath and check if parentElement is the direct parent
-        String[] parts = xpath.split("/");
-        for (int i = 0; i < parts.length - 1; i++) {
-            if (parts[i].equals(parentElement) && i < parts.length - 1) {
-                return true; // Found parent and there's a child after it
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Determines if a child is mandatory based on domain knowledge.
-     */
-    private boolean isMandatoryChildBasedOnKnowledge(String parentElement, String childElement) {
-        return switch (parentElement.toLowerCase()) {
-            case "controldata" -> switch (childElement.toLowerCase()) {
-                case "uniquedocumentid", "documentgenerated", "contentdate", "datasupplier", "dataoperation",
-                     "language" -> true;
-                default -> false;
-            };
-            case "datasupplier" -> switch (childElement.toLowerCase()) {
-                case "systemcountry", "short", "name", "type" -> true;
-                default -> false;
-            };
-            default -> true; // If we don't know, assume it's mandatory (conservative approach)
-        };
-    }
-
-    /**
-     * Returns hardcoded mandatory children patterns.
-     */
-    private List<String> getHardcodedMandatoryChildren(String elementName) {
-        return switch (elementName.toLowerCase()) {
-            case "controldata" ->
-                    java.util.List.of("UniqueDocumentID", "DocumentGenerated", "ContentDate", "DataSupplier", "DataOperation", "Language");
-            case "datasupplier" -> java.util.List.of("SystemCountry", "Short", "Name", "Type");
-            case "person" -> java.util.List.of("name", "age");
-            case "book" -> java.util.List.of("title", "author");
-            case "product" -> java.util.List.of("name", "price");
-            case "order" -> java.util.List.of("id", "date", "items");
-            case "address" -> java.util.List.of("street", "city", "zipcode");
-            case "contact" -> java.util.List.of("name", "email");
-            default -> java.util.List.of();
-        };
-    }
-
-    /**
-     * Gets a sample value for an element based on its name.
-     */
-    private String getSampleValue(String elementName) {
-        // First try to get from XSD documentation service if available
-        if (parentXmlEditor != null) {
-            var xsdService = parentXmlEditor.getXsdDocumentationService();
-            if (xsdService != null) {
-                try {
-                    // Try to generate sample value from XSD (without explicit type first)
-                    String xsdSample = xsdService.generateSampleValue(elementName, null);
-                    if (xsdSample != null && !xsdSample.isEmpty() && !"sample text".equals(xsdSample)) {
-                        return xsdSample;
-                    }
-                } catch (Exception e) {
-                    logger.debug("Error getting sample value from XSD service: {}", e.getMessage());
-                }
-            }
-        }
-
-        return switch (elementName.toLowerCase()) {
-            case "name" -> "Sample Name";
-            case "title" -> "Sample Title";
-            case "age" -> "25";
-            case "price" -> "19.99";
-            case "id" -> "001";
-            case "date" -> "2024-01-01";
-            case "author" -> "Sample Author";
-            case "email" -> "example@domain.com";
-            case "street" -> "123 Main St";
-            case "city" -> "Sample City";
-            case "zipcode" -> "12345";
-            case "items" -> ""; // Container elements typically empty
-            default -> ""; // Default empty for unknown elements
-        };
-    }
-
-    /**
-     * Creates an element with all its mandatory children recursively.
-     *
-     * @param elementName     The name of the element to create
-     * @param baseIndentation The base indentation for this element
-     * @param depth           Current depth (to prevent infinite recursion)
-     * @return The complete XML element string with all mandatory children
-     */
-    private String createElementWithMandatoryChildren(String elementName, String baseIndentation, int depth) {
-        return createElementWithMandatoryChildren(elementName, baseIndentation, depth, null);
-    }
-
-    /**
-     * Creates an element with all its mandatory children recursively with XPath context.
-     *
-     * @param elementName     The name of the element to create
-     * @param baseIndentation The base indentation for this element
-     * @param depth           Current depth (to prevent infinite recursion)
-     * @param xpathContext    The current XPath context for this element (e.g., "ControlData/DataSupplier")
-     * @return The complete XML element string with all mandatory children
-     */
-    private String createElementWithMandatoryChildren(String elementName, String baseIndentation, int depth, String xpathContext) {
-        // Prevent infinite recursion - limit depth
-        if (depth > 10) {
-            return baseIndentation + "<" + elementName + "></" + elementName + ">";
-        }
-
-        // Get mandatory children for this element with XPath context for better accuracy
-        List<String> mandatoryChildren = getMandatoryChildElementsWithContext(elementName, xpathContext);
-
-        StringBuilder elementBuilder = new StringBuilder();
-        elementBuilder.append(baseIndentation).append("<").append(elementName).append(">");
-
-        if (!mandatoryChildren.isEmpty()) {
-            // Element has mandatory children - create them recursively
-            String childIndentation = baseIndentation + " ".repeat(propertiesService.getXmlIndentSpaces());
-
-            // Use LinkedHashSet to preserve order and eliminate duplicates
-            java.util.Set<String> uniqueChildren = new java.util.LinkedHashSet<>(mandatoryChildren);
-
-            for (String childElement : uniqueChildren) {
-                // Build the XPath context for the child element
-                String childXPathContext = (xpathContext != null)
-                        ? xpathContext + "/" + elementName
-                        : elementName;
-
-                elementBuilder.append("\n");
-                elementBuilder.append(createElementWithMandatoryChildren(childElement, childIndentation, depth + 1, childXPathContext));
-            }
-
-            // Add closing tag with proper indentation
-            elementBuilder.append("\n").append(baseIndentation);
-        } else {
-            // No mandatory children - add sample value if appropriate
-            String sampleValue = getSampleValue(elementName);
-            if (sampleValue != null && !sampleValue.isEmpty()) {
-                elementBuilder.append(sampleValue);
-            }
-        }
-
-        elementBuilder.append("</").append(elementName).append(">");
-        return elementBuilder.toString();
-    }
-
-    /**
-     * Positions the cursor at the first sample value in the inserted content.
-     */
-    private void positionCursorAtFirstSampleValue(int insertPos, String insertedContent) {
-        // Try to find the first sample value (non-empty text between tags)
-        String[] lines = insertedContent.split("\n");
-        int currentOffset = insertPos;
-
-        for (String line : lines) {
-            // Look for patterns like >Sample Value<
-            int valueStart = line.indexOf('>');
-            int valueEnd = line.indexOf('<', valueStart + 1);
-
-            if (valueStart >= 0 && valueEnd > valueStart + 1) {
-                String value = line.substring(valueStart + 1, valueEnd).trim();
-                if (!value.isEmpty() && !"sample text".equalsIgnoreCase(value)) {
-                    // Found a sample value - position cursor there
-                    int absolutePos = currentOffset + valueStart + 1;
-                    codeArea.selectRange(absolutePos, absolutePos + value.length());
-                    return;
-                }
-            }
-
-            currentOffset += line.length() + 1; // +1 for newline
-        }
-
-        // Fallback: position at start of inserted content
-        codeArea.moveTo(insertPos);
-    }
-
-    /**
-     * Gets the current indentation level at the cursor position.
-     */
-    private String getCurrentIndentation() {
-        int caretPos = codeArea.getCaretPosition();
-        String text = codeArea.getText();
-
-        // Find the start of the current line
-        int lineStart = text.lastIndexOf('\n', caretPos - 1) + 1;
-        int lineEnd = text.indexOf('\n', caretPos);
-        if (lineEnd == -1) lineEnd = text.length();
-
-        String currentLine = text.substring(lineStart, lineEnd);
-        return extractIndentation(currentLine);
-    }
-
     // ================================================================================
     // XSD-based Context-Sensitive IntelliSense Methods
     // ================================================================================
@@ -2076,11 +1555,6 @@ public class XmlCodeEditor extends VBox {
             int baseScore = isRequired ? 150 : 100;
             builder.relevanceScore(baseScore + (1000 - index)); // Higher score for earlier XSD elements
 
-            // Add mandatory children information
-            List<String> mandatoryChildren = getMandatoryChildElements(elementName);
-            if (!mandatoryChildren.isEmpty()) {
-                builder.requiredAttributes(mandatoryChildren);
-            }
 
             completions.add(builder.build());
             index++; // Increment for next element
@@ -2547,41 +2021,8 @@ public class XmlCodeEditor extends VBox {
         if (!isSelfClosingElement(elementName)) {
             String closingTag = "</" + elementName + ">";
 
-            // Check for mandatory children using XSD service first, then fallback to CompletionItem
-            List<String> mandatoryChildren = getMandatoryChildElements(elementName);
-            if (mandatoryChildren.isEmpty()) {
-                // Fallback to CompletionItem data
-                List<String> itemChildren = item.getRequiredAttributes(); // Reusing this field for child elements
-                if (itemChildren != null) {
-                    mandatoryChildren = itemChildren;
-                }
-            }
-
-            if (!mandatoryChildren.isEmpty()) {
-                StringBuilder childElements = new StringBuilder();
-                String indentation = getCurrentIndentation();
-                String childIndentation = indentation + " ".repeat(propertiesService.getXmlIndentSpaces());
-
-                for (String childElement : mandatoryChildren) {
-                    // Get current XPath context and add parent element for child context
-                    String currentContext = getCurrentXPathContext();
-                    String childContext = (currentContext != null)
-                            ? currentContext + "/" + elementName
-                            : elementName;
-
-                    String childContent = createElementWithMandatoryChildren(childElement, childIndentation, 1, childContext);
-                    childElements.append("\n").append(childContent);
-                }
-                childElements.append("\n").append(indentation);
-
-                codeArea.insertText(insertPos, childElements + closingTag);
-
-                // Position cursor at the first leaf element with sample value
-                positionCursorAtFirstSampleValue(insertPos, childElements.toString());
-            } else {
-                codeArea.insertText(insertPos, closingTag);
-                codeArea.moveTo(insertPos); // Position cursor between tags
-            }
+            codeArea.insertText(insertPos, closingTag);
+            codeArea.moveTo(insertPos); // Position cursor between tags
         }
     }
 
@@ -2631,7 +2072,7 @@ public class XmlCodeEditor extends VBox {
             }
         }
     }
-    
+
     private void cutTextToClipboard() {
         String selectedText = codeArea.getSelectedText();
         if (selectedText != null && !selectedText.isEmpty()) {
@@ -2642,7 +2083,7 @@ public class XmlCodeEditor extends VBox {
             codeArea.replaceSelection("");
         }
     }
-    
+
     private void copyTextToClipboard() {
         String selectedText = codeArea.getSelectedText();
         if (selectedText != null && !selectedText.isEmpty()) {
@@ -2652,7 +2093,7 @@ public class XmlCodeEditor extends VBox {
             clipboard.setContent(content);
         }
     }
-    
+
     private void pasteTextFromClipboard() {
         javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
         if (clipboard.hasString()) {
@@ -2722,7 +2163,7 @@ public class XmlCodeEditor extends VBox {
     private void selectAll() {
         codeArea.selectAll();
     }
-    
+
     private void openFindReplace() {
         try {
             // Create a simple find/replace dialog
@@ -2929,7 +2370,7 @@ public class XmlCodeEditor extends VBox {
                 return text.substring(nameStart, nameEnd);
             }
         }
-        
+
         return null;
     }
 
@@ -3211,7 +2652,7 @@ public class XmlCodeEditor extends VBox {
             }
         }
     }
-    
+
     /**
      * Replaces all occurrences of text.
      */
@@ -3228,13 +2669,5 @@ public class XmlCodeEditor extends VBox {
     private boolean isXsdSchemaAvailable() {
         return parentXmlEditor != null &&
                 parentXmlEditor.getXsdFile() != null;
-    }
-
-    /**
-     * Requests completions for IntelliSense.
-     * Used by tests for reflection access.
-     */
-    private void requestCompletions() {
-        showIntelliSenseCompletion();
     }
 }
