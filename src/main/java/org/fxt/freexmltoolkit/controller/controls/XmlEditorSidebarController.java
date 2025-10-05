@@ -1067,12 +1067,30 @@ public class XmlEditorSidebarController {
             return null;
         }
 
-        // Remove type information in parentheses: "ElementName (xs:string)" -> "ElementName"
-        String withoutType = displayText.replaceAll("\\s*\\([^)]*\\)", "").trim();
+        String elementName = displayText.trim();
 
-        // Remove mandatory/optional indicator: "ElementName [mandatory]" -> "ElementName"
-        String elementName = withoutType.replaceAll("\\s*\\[.*?\\]", "").trim();
+        // Find the first occurrence of space, opening parenthesis, or opening bracket
+        // These indicate the start of type info or mandatory/optional indicator
+        int endIndex = elementName.length();
 
-        return elementName;
+        int spaceIndex = elementName.indexOf(' ');
+        int parenIndex = elementName.indexOf('(');
+        int bracketIndex = elementName.indexOf('[');
+
+        // Find the minimum valid index (excluding -1)
+        if (spaceIndex != -1 && spaceIndex < endIndex) {
+            endIndex = spaceIndex;
+        }
+        if (parenIndex != -1 && parenIndex < endIndex) {
+            endIndex = parenIndex;
+        }
+        if (bracketIndex != -1 && bracketIndex < endIndex) {
+            endIndex = bracketIndex;
+        }
+
+        // Extract only the element name part
+        elementName = elementName.substring(0, endIndex).trim();
+
+        return elementName.isEmpty() ? null : elementName;
     }
 }
