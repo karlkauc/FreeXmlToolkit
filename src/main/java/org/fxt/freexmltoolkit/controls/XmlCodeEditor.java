@@ -112,6 +112,9 @@ public class XmlCodeEditor extends VBox {
     // Flag to prevent infinite recursion in folding operations
     private boolean isFoldingOperation = false;
 
+    // Flag to prevent automatic tag completion when IntelliSense is inserting elements
+    private boolean isIntelliSenseInserting = false;
+
     /**
      * Editor modes enumeration.
      */
@@ -1212,6 +1215,11 @@ public class XmlCodeEditor extends VBox {
     }
 
     private void handleAutomaticTagCompletion(String oldText, String newText) {
+        // Skip if IntelliSense is currently inserting an element (prevents double closing tags)
+        if (isIntelliSenseInserting) {
+            return;
+        }
+
         // Check if user typed '>' to complete a tag
         if (newText != null && oldText != null && newText.length() > oldText.length()) {
             int caretPos = codeArea.getCaretPosition();
@@ -1223,14 +1231,22 @@ public class XmlCodeEditor extends VBox {
 
                 if (matcher.find()) {
                     String tagName = matcher.group(1);
-                    // Check if it's not a self-closing tag and doesn't already have a closing tag
-                    if (!textBeforeCaret.endsWith("/>") && !hasClosingTag(newText, tagName, caretPos)) {
-                        // Insert closing tag
-                        String closingTag = "</" + tagName + ">";
-                        Platform.runLater(() -> {
-                            codeArea.insertText(caretPos, closingTag);
-                            codeArea.moveTo(caretPos); // Move cursor back between tags
-                        });
+                    String closingTag = "</" + tagName + ">";
+
+                    // Check if it's not a self-closing tag
+                    if (!textBeforeCaret.endsWith("/>")) {
+                        // Check if closing tag already exists ANYWHERE after the caret (from IntelliSense or manual)
+                        if (!hasClosingTag(newText, tagName, caretPos)) {
+                            // Additional check: verify closing tag is not already at cursor position
+                            String textAfterCaret = newText.substring(caretPos);
+                            if (!textAfterCaret.startsWith(closingTag)) {
+                                // Insert closing tag only if not already present
+                                Platform.runLater(() -> {
+                                    codeArea.insertText(caretPos, closingTag);
+                                    codeArea.moveTo(caretPos); // Move cursor back between tags
+                                });
+                            }
+                        }
                     }
                 }
             }
@@ -1271,25 +1287,33 @@ public class XmlCodeEditor extends VBox {
                 codeArea.deleteText(popupStartPosition, currentPos);
             }
 
-            // Insert the completion
-            if (isElementCompletionContext) {
-                // For element completion, add closing bracket and potentially closing tag
-                String elementName = completion;
-                codeArea.insertText(popupStartPosition, elementName + ">");
+            try {
+                // Set flag to prevent handleAutomaticTagCompletion from interfering
+                isIntelliSenseInserting = true;
 
-                // Add closing tag if not self-closing
-                if (!isSelfClosingElement(elementName)) {
-                    int insertPos = popupStartPosition + elementName.length() + 1;
-                    String closingTag = "</" + elementName + ">";
-                    codeArea.insertText(insertPos, closingTag);
-                    codeArea.moveTo(insertPos); // Position cursor between tags
+                // Insert the completion
+                if (isElementCompletionContext) {
+                    // For element completion, add closing bracket and potentially closing tag
+                    String elementName = completion;
+                    codeArea.insertText(popupStartPosition, elementName + ">");
+
+                    // Add closing tag if not self-closing
+                    if (!isSelfClosingElement(elementName)) {
+                        int insertPos = popupStartPosition + elementName.length() + 1;
+                        String closingTag = "</" + elementName + ">";
+                        codeArea.insertText(insertPos, closingTag);
+                        codeArea.moveTo(insertPos); // Position cursor between tags
+                    }
+                } else {
+                    // Trim completion text to remove any leading/trailing whitespace
+                    String trimmedCompletion = completion.trim();
+                    codeArea.insertText(popupStartPosition, trimmedCompletion);
+                    // Position cursor after the inserted text
+                    codeArea.moveTo(popupStartPosition + trimmedCompletion.length());
                 }
-            } else {
-                // Trim completion text to remove any leading/trailing whitespace
-                String trimmedCompletion = completion.trim();
-                codeArea.insertText(popupStartPosition, trimmedCompletion);
-                // Position cursor after the inserted text
-                codeArea.moveTo(popupStartPosition + trimmedCompletion.length());
+            } finally {
+                // Reset flag to allow normal automatic tag completion
+                isIntelliSenseInserting = false;
             }
         }
     }
@@ -2103,16 +2127,24 @@ public class XmlCodeEditor extends VBox {
         String elementName = item.getLabel();
         int insertPos = popupStartPosition;
 
-        // Insert opening tag
-        codeArea.insertText(insertPos, elementName + ">");
-        insertPos += elementName.length() + 1;
+        try {
+            // Set flag to prevent handleAutomaticTagCompletion from interfering
+            isIntelliSenseInserting = true;
 
-        // Add closing tag and mandatory children if not self-closing
-        if (!isSelfClosingElement(elementName)) {
-            String closingTag = "</" + elementName + ">";
+            // Insert opening tag
+            codeArea.insertText(insertPos, elementName + ">");
+            insertPos += elementName.length() + 1;
 
-            codeArea.insertText(insertPos, closingTag);
-            codeArea.moveTo(insertPos); // Position cursor between tags
+            // Add closing tag and mandatory children if not self-closing
+            if (!isSelfClosingElement(elementName)) {
+                String closingTag = "</" + elementName + ">";
+
+                codeArea.insertText(insertPos, closingTag);
+                codeArea.moveTo(insertPos); // Position cursor between tags
+            }
+        } finally {
+            // Reset flag to allow normal automatic tag completion
+            isIntelliSenseInserting = false;
         }
     }
 
