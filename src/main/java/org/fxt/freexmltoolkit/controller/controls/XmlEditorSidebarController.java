@@ -147,6 +147,12 @@ public class XmlEditorSidebarController {
         // Initialize Schematron errors list view
         initializeSchematronErrorsList();
 
+        // Initialize example values list view with double-click handler
+        initializeExampleValuesList();
+
+        // Initialize child elements list view with double-click handler
+        initializeChildElementsList();
+
         // Setup manual validate button
         if (manualValidateButton != null) {
             manualValidateButton.setOnAction(event -> {
@@ -937,5 +943,136 @@ public class XmlEditorSidebarController {
         } catch (Exception e) {
             logger.error("Error navigating to Schematron error location", e);
         }
+    }
+
+    /**
+     * Initializes the example values list view with a double-click handler
+     * to insert selected values into the code editor at the cursor position.
+     */
+    private void initializeExampleValuesList() {
+        if (exampleValuesListView != null) {
+            exampleValuesListView.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) { // Double click
+                    String selectedValue = exampleValuesListView.getSelectionModel().getSelectedItem();
+                    if (selectedValue != null && !selectedValue.isEmpty() &&
+                        !"No example values available".equals(selectedValue)) {
+                        insertExampleValueIntoEditor(selectedValue);
+                    }
+                }
+            });
+
+            // Add visual feedback to indicate the list is double-clickable
+            exampleValuesListView.setStyle("-fx-cursor: hand;");
+            exampleValuesListView.setTooltip(new Tooltip("Double-click to insert example value at cursor position"));
+        }
+    }
+
+    /**
+     * Inserts an example value into the XML editor at the current cursor position.
+     *
+     * @param value The example value to insert
+     */
+    private void insertExampleValueIntoEditor(String value) {
+        if (xmlEditor == null) {
+            logger.warn("Cannot insert example value - xmlEditor is null");
+            return;
+        }
+
+        try {
+            // Get the code editor from the XmlEditor
+            var codeEditor = xmlEditor.getXmlCodeEditor();
+            if (codeEditor != null) {
+                codeEditor.insertTextAtCursor(value);
+                logger.info("Inserted example value '{}' into editor at cursor position", value);
+            } else {
+                logger.warn("Cannot insert example value - codeEditor is null");
+            }
+        } catch (Exception e) {
+            logger.error("Error inserting example value into editor", e);
+        }
+    }
+
+    /**
+     * Initializes the child elements list view with a double-click handler
+     * to insert selected elements as complete XML nodes into the code editor.
+     */
+    private void initializeChildElementsList() {
+        if (childElementsListView != null) {
+            childElementsListView.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) { // Double click
+                    String selectedElement = childElementsListView.getSelectionModel().getSelectedItem();
+                    if (selectedElement != null && !selectedElement.isEmpty() &&
+                        !selectedElement.startsWith("No ") && !selectedElement.startsWith("Error:")) {
+                        insertChildElementIntoEditor(selectedElement);
+                    }
+                }
+            });
+
+            // Add visual feedback to indicate the list is double-clickable
+            childElementsListView.setStyle("-fx-cursor: hand;");
+            childElementsListView.setTooltip(new Tooltip("Double-click to insert element with opening and closing tags"));
+        }
+    }
+
+    /**
+     * Inserts a child element into the XML editor at the current cursor position.
+     * The element is inserted as a complete XML node with opening and closing tags.
+     *
+     * @param elementDisplayText The element text from the list (may include type and mandatory info)
+     */
+    private void insertChildElementIntoEditor(String elementDisplayText) {
+        if (xmlEditor == null) {
+            logger.warn("Cannot insert child element - xmlEditor is null");
+            return;
+        }
+
+        try {
+            // Extract the element name from the display text
+            // Format can be: "ElementName", "ElementName (type)", "ElementName [mandatory]", or "ElementName (type) [mandatory]"
+            String elementName = extractElementName(elementDisplayText);
+
+            if (elementName != null && !elementName.isEmpty()) {
+                // Build the complete XML node with opening and closing tags
+                String xmlNode = "<" + elementName + "></" + elementName + ">";
+
+                // Get the code editor from the XmlEditor
+                var codeEditor = xmlEditor.getXmlCodeEditor();
+                if (codeEditor != null) {
+                    codeEditor.insertTextAtCursor(xmlNode);
+
+                    // Move cursor between the tags for easy content insertion
+                    // The cursor should be positioned after the opening tag
+                    int cursorOffset = elementName.length() + 2; // Length of "<elementName>"
+                    codeEditor.getCodeArea().moveTo(codeEditor.getCodeArea().getCaretPosition() - elementName.length() - 3);
+
+                    logger.info("Inserted child element '{}' as complete XML node at cursor position", elementName);
+                } else {
+                    logger.warn("Cannot insert child element - codeEditor is null");
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error inserting child element into editor", e);
+        }
+    }
+
+    /**
+     * Extracts the element name from the display text in the child elements list.
+     * Handles formats like "ElementName", "ElementName (type)", "ElementName [mandatory]", etc.
+     *
+     * @param displayText The display text from the list
+     * @return The extracted element name, or null if extraction fails
+     */
+    private String extractElementName(String displayText) {
+        if (displayText == null || displayText.trim().isEmpty()) {
+            return null;
+        }
+
+        // Remove type information in parentheses: "ElementName (xs:string)" -> "ElementName"
+        String withoutType = displayText.replaceAll("\\s*\\([^)]*\\)", "").trim();
+
+        // Remove mandatory/optional indicator: "ElementName [mandatory]" -> "ElementName"
+        String elementName = withoutType.replaceAll("\\s*\\[.*?\\]", "").trim();
+
+        return elementName;
     }
 }

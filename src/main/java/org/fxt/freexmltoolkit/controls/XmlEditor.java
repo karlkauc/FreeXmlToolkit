@@ -909,14 +909,24 @@ public class XmlEditor extends Tab {
                 if (elementName != null) {
                     String displayText;
                     if (includeTypes) {
+                        // Get the XsdExtendedElement for this child
+                        XsdExtendedElement childElement = xsdDocumentationData != null ?
+                                xsdDocumentationData.getExtendedXsdElementMap().get(childXPath) : null;
+
+                        // Check if element is mandatory or optional
+                        String mandatoryIndicator = "";
+                        if (childElement != null) {
+                            mandatoryIndicator = childElement.isMandatory() ? " [mandatory]" : " [optional]";
+                        }
+
                         // Try to get type information from the XSD documentation data
                         String elementType = getElementTypeFromXsdData(childXPath);
                         if (elementType != null && !elementType.isEmpty() && !elementType.equals("xs:string")) {
-                            // Show element name with type if available and not default string type
-                            displayText = elementName + " (" + elementType + ")";
+                            // Show element name with type and mandatory/optional indicator
+                            displayText = elementName + " (" + elementType + ")" + mandatoryIndicator;
                         } else {
-                            // Just show element name if no specific type info
-                            displayText = elementName;
+                            // Show element name with mandatory/optional indicator (no type info)
+                            displayText = elementName + mandatoryIndicator;
                         }
                     } else {
                         // IntelliSense mode: only show element name

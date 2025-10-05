@@ -400,6 +400,27 @@ public class XmlCodeEditor extends VBox {
     }
 
     /**
+     * Inserts text at the current cursor position in the editor.
+     * This is used for inserting example values from the sidebar.
+     *
+     * @param text The text to insert
+     */
+    public void insertTextAtCursor(String text) {
+        if (text == null || text.isEmpty()) {
+            logger.debug("Cannot insert null or empty text");
+            return;
+        }
+
+        int caretPos = codeArea.getCaretPosition();
+        codeArea.insertText(caretPos, text);
+        // Move cursor to the end of the inserted text
+        codeArea.moveTo(caretPos + text.length());
+        codeArea.requestFocus();
+
+        logger.debug("Inserted text '{}' at position {}", text, caretPos);
+    }
+
+    /**
      * Sets the current file being monitored.
      *
      * @param file The file to monitor
