@@ -295,3 +295,27 @@
     -fx-background-color: #007bff;
     -fx-text-fill: white;
 }
+
+/* XSD Documentation Toggle Button */
+.toggle-button {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #ced4da;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-text-fill: #495057;
+    -fx-cursor: hand;
+}
+
+.toggle-button:selected {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-border-color: #1e7e34;
+}
+
+.toggle-button:hover {
+    -fx-background-color: #e3f2fd;
+}
+
+.toggle-button:selected:hover {
+    -fx-background-color: #1e7e34;
+}

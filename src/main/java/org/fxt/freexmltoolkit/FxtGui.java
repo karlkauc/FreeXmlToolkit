@@ -57,13 +57,6 @@ import java.util.concurrent.TimeUnit;
  * It includes advanced XML editing capabilities with IntelliSense, schema-based auto-completion,
  * and real-time validation feedback.
  *
- * <p>Performance optimizations include:
- * <ul>
- *   <li>Multi-threaded background processing for heavy operations</li>
- *   <li>Memory monitoring with configurable thresholds</li>
- *   <li>Efficient file handling with encoding detection</li>
- *   <li>Cached schema processing for improved response times</li>
- * </ul>
  *
  * <p>Usage example:
  * <pre>{@code

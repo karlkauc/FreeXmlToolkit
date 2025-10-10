@@ -19,6 +19,7 @@ import org.fxt.freexmltoolkit.service.SchematronService;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class XmlEditorSidebarController {
 
@@ -100,6 +101,12 @@ public class XmlEditorSidebarController {
     private Button toggleSidebarButton;
 
     @FXML
+    private ToggleButton xsdDocumentationToggleButton;
+
+    @FXML
+    private Label xsdCommentsStatusLabel;
+
+    @FXML
     private VBox sidebarContent;
 
     private XmlEditor xmlEditor;
@@ -120,6 +127,10 @@ public class XmlEditorSidebarController {
     private double expandedWidth = 300; // Store the expanded width
     private final List<SchematronService.SchematronValidationError> currentSchematronErrors = new ArrayList<>();
     private final List<ValidationError> currentValidationErrors = new ArrayList<>();
+    
+    // XSD Documentation Comments tracking
+    private boolean xsdCommentsActive = false;
+    private static final String XSD_COMMENT_MARKER = " [XSD-DOC] ";
 
     public void setXmlEditor(XmlEditor xmlEditor) {
         this.xmlEditor = xmlEditor;
@@ -821,16 +832,6 @@ public class XmlEditorSidebarController {
         }
     }
 
-    /**
-     * Show alert dialog
-     */
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
 
     /**
      * Initializes the Schematron errors list view with custom cell factory
@@ -1092,5 +1093,235 @@ public class XmlEditorSidebarController {
         elementName = elementName.substring(0, endIndex).trim();
 
         return elementName.isEmpty() ? null : elementName;
+    }
+
+    /**
+     * Toggles XSD documentation comments in the XML editor.
+     */
+    @FXML
+    private void toggleXsdDocumentationComments() {
+        if (xmlEditor == null) {
+            logger.warn("Cannot toggle XSD comments - xmlEditor is null");
+            return;
+        }
+
+        if (xmlEditor.getXsdFile() == null) {
+            xsdDocumentationToggleButton.setSelected(false);
+            xsdCommentsStatusLabel.setText("No XSD linked");
+            showAlert("No XSD Schema", "Please link an XSD schema first to use this feature.");
+            return;
+        }
+
+        boolean isSelected = xsdDocumentationToggleButton.isSelected();
+        
+        if (isSelected && !xsdCommentsActive) {
+            // Add XSD documentation comments
+            addXsdDocumentationComments();
+        } else if (!isSelected && xsdCommentsActive) {
+            // Remove XSD documentation comments
+            removeXsdDocumentationComments();
+        }
+    }
+
+    /**
+     * Adds XSD documentation as comments before each XML element.
+     */
+    private void addXsdDocumentationComments() {
+        try {
+            String xmlContent = xmlEditor.getXmlCodeEditor().getText();
+            if (xmlContent == null || xmlContent.trim().isEmpty()) {
+                xsdCommentsStatusLabel.setText("No XML content");
+                return;
+            }
+
+            String modifiedXml = insertXsdCommentsIntoXml(xmlContent);
+            
+            if (!modifiedXml.equals(xmlContent)) {
+                xmlEditor.getXmlCodeEditor().setText(modifiedXml);
+                xsdCommentsActive = true;
+                xsdCommentsStatusLabel.setText("XSD comments active");
+                logger.info("XSD documentation comments added to XML");
+            } else {
+                xsdCommentsStatusLabel.setText("No changes made");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error adding XSD documentation comments", e);
+            xsdDocumentationToggleButton.setSelected(false);
+            xsdCommentsStatusLabel.setText("Error adding comments");
+            showAlert("Error", "Failed to add XSD documentation comments: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Removes XSD documentation comments from the XML.
+     */
+    private void removeXsdDocumentationComments() {
+        try {
+            String xmlContent = xmlEditor.getXmlCodeEditor().getText();
+            if (xmlContent == null || xmlContent.trim().isEmpty()) {
+                xsdCommentsStatusLabel.setText("No XML content");
+                return;
+            }
+
+            String modifiedXml = removeXsdCommentsFromXml(xmlContent);
+            
+            if (!modifiedXml.equals(xmlContent)) {
+                xmlEditor.getXmlCodeEditor().setText(modifiedXml);
+                xsdCommentsActive = false;
+                xsdCommentsStatusLabel.setText("XSD comments removed");
+                logger.info("XSD documentation comments removed from XML");
+            } else {
+                xsdCommentsStatusLabel.setText("No XSD comments found");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error removing XSD documentation comments", e);
+            xsdCommentsStatusLabel.setText("Error removing comments");
+            showAlert("Error", "Failed to remove XSD documentation comments: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Inserts XSD documentation comments before each XML element.
+     */
+    private String insertXsdCommentsIntoXml(String xmlContent) {
+        if (xmlEditor.getXsdDocumentationData() == null) {
+            return xmlContent;
+        }
+
+        StringBuilder result = new StringBuilder();
+        String[] lines = xmlContent.split("\n");
+        
+        for (String line : lines) {
+            // Check if this line contains an opening XML element
+            if (line.trim().matches(".*<[a-zA-Z][a-zA-Z0-9_:]*[^/>]*>.*") && 
+                !line.trim().startsWith("<?") && 
+                !line.trim().startsWith("<!--")) {
+                
+                String elementName = extractElementNameFromLine(line);
+                if (elementName != null) {
+                    String documentation = getDocumentationForElement(elementName, line);
+                    if (documentation != null && !documentation.trim().isEmpty()) {
+                        // Add indentation matching the element line
+                        String indent = getIndentation(line);
+                        String comment = indent + "<!--" + XSD_COMMENT_MARKER + documentation.trim() + " -->";
+                        result.append(comment).append("\n");
+                    }
+                }
+            }
+            result.append(line).append("\n");
+        }
+        
+        return result.toString().trim();
+    }
+
+    /**
+     * Removes XSD documentation comments from XML content.
+     * Handles both single-line and multi-line comments.
+     */
+    private String removeXsdCommentsFromXml(String xmlContent) {
+        // Use regex to find and remove complete XML comments that contain the XSD marker
+        // This pattern matches: <!-- ... [XSD-DOC] ... --> including multi-line comments
+        String pattern = "<!--[^>]*?" + Pattern.quote(XSD_COMMENT_MARKER) + ".*?-->";
+        
+        // Use DOTALL flag to make . match newlines as well
+        Pattern commentPattern = Pattern.compile(pattern, Pattern.DOTALL);
+        
+        // Replace all XSD documentation comments with empty string
+        String result = commentPattern.matcher(xmlContent).replaceAll("");
+        
+        // Clean up any extra blank lines that might be left behind
+        return cleanupExtraBlankLines(result);
+    }
+    
+    /**
+     * Removes excessive blank lines while preserving intentional spacing.
+     */
+    private String cleanupExtraBlankLines(String content) {
+        // Replace multiple consecutive newlines with at most two newlines
+        return content.replaceAll("\n\\s*\n\\s*\n+", "\n\n").trim();
+    }
+
+    /**
+     * Extracts element name from an XML line.
+     */
+    private String extractElementNameFromLine(String line) {
+        try {
+            String trimmed = line.trim();
+            if (trimmed.startsWith("<")) {
+                int start = trimmed.indexOf('<') + 1;
+                int end = trimmed.indexOf(' ', start);
+                if (end == -1) {
+                    end = trimmed.indexOf('>', start);
+                }
+                if (end > start) {
+                    return trimmed.substring(start, end);
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Error extracting element name from line: {}", line);
+        }
+        return null;
+    }
+
+    /**
+     * Gets documentation for a specific element from XSD data.
+     */
+    private String getDocumentationForElement(String elementName, String line) {
+        try {
+            // Build XPath context for this element
+            String xpath = buildXPathForElement(elementName, line);
+            
+            var xsdData = xmlEditor.getXsdDocumentationData();
+            if (xsdData != null) {
+                var elementInfo = xsdData.getExtendedXsdElementMap().get(xpath);
+                if (elementInfo == null) {
+                    elementInfo = xmlEditor.findBestMatchingElement(xpath);
+                }
+                
+                if (elementInfo != null) {
+                    return xmlEditor.getDocumentationFromExtendedElement(elementInfo);
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Error getting documentation for element: {}", elementName);
+        }
+        return null;
+    }
+
+    /**
+     * Builds XPath for an element (simplified version).
+     */
+    private String buildXPathForElement(String elementName, String line) {
+        // Simplified XPath building - in a real implementation, 
+        // you would need to track the full element hierarchy
+        return "/" + elementName;
+    }
+
+    /**
+     * Gets the indentation (leading whitespace) from a line.
+     */
+    private String getIndentation(String line) {
+        StringBuilder indent = new StringBuilder();
+        for (char c : line.toCharArray()) {
+            if (c == ' ' || c == '\t') {
+                indent.append(c);
+            } else {
+                break;
+            }
+        }
+        return indent.toString();
+    }
+
+    /**
+     * Shows an alert dialog.
+     */
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

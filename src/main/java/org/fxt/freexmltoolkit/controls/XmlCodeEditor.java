@@ -2309,81 +2309,13 @@ public class XmlCodeEditor extends VBox {
 
     private void openFindReplace() {
         try {
-            // Create a simple find/replace dialog
-            javafx.scene.control.Dialog<javafx.util.Pair<String, String>> dialog = new javafx.scene.control.Dialog<>();
-            dialog.setTitle("Find & Replace");
-            dialog.setHeaderText("Find and replace text in the XML document");
-
-            // Set the button types
-            javafx.scene.control.ButtonType findButtonType = new javafx.scene.control.ButtonType("Find", javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
-            javafx.scene.control.ButtonType replaceButtonType = new javafx.scene.control.ButtonType("Replace All", javafx.scene.control.ButtonBar.ButtonData.APPLY);
-            dialog.getDialogPane().getButtonTypes().addAll(findButtonType, replaceButtonType, javafx.scene.control.ButtonType.CANCEL);
-
-            // Create the find and replace fields
-            GridPane grid = new GridPane();
-            grid.setHgap(10);
-            grid.setVgap(10);
-            grid.setPadding(new javafx.geometry.Insets(20, 150, 10, 10));
-
-            javafx.scene.control.TextField findField = new javafx.scene.control.TextField();
-            findField.setPromptText("Find text...");
-            javafx.scene.control.TextField replaceField = new javafx.scene.control.TextField();
-            replaceField.setPromptText("Replace with...");
-
-            grid.add(new javafx.scene.control.Label("Find:"), 0, 0);
-            grid.add(findField, 1, 0);
-            grid.add(new javafx.scene.control.Label("Replace:"), 0, 1);
-            grid.add(replaceField, 1, 1);
-
-            dialog.getDialogPane().setContent(grid);
-
-            // Focus on find field by default
-            Platform.runLater(findField::requestFocus);
-
-            // Convert the result
-            dialog.setResultConverter(dialogButton -> {
-                if (dialogButton == findButtonType || dialogButton == replaceButtonType) {
-                    return new javafx.util.Pair<>(findField.getText(), replaceField.getText());
-                }
-                return null;
-            });
-
-            var result = dialog.showAndWait();
-            result.ifPresent(findReplace -> {
-                String findText = findReplace.getKey();
-                String replaceText = findReplace.getValue();
-
-                if (findText != null && !findText.isEmpty()) {
-                    performFindReplace(findText, replaceText);
-                }
-            });
-
+            FindReplaceDialog dialog = new FindReplaceDialog(codeArea);
+            dialog.showAndWait();
         } catch (Exception e) {
             logger.error("Error opening find/replace dialog: {}", e.getMessage(), e);
         }
     }
 
-    /**
-     * Performs find and replace operation on the text.
-     */
-    private void performFindReplace(String findText, String replaceText) {
-        try {
-            String currentText = codeArea.getText();
-            if (currentText == null || findText == null) {
-                return;
-            }
-
-            String newText = currentText.replace(findText, replaceText != null ? replaceText : "");
-            if (!newText.equals(currentText)) {
-                codeArea.replaceText(newText);
-                logger.debug("Find/replace completed: '{}' -> '{}'", findText, replaceText);
-            } else {
-                logger.debug("No occurrences found for: '{}'", findText);
-            }
-        } catch (Exception e) {
-            logger.error("Error performing find/replace: {}", e.getMessage(), e);
-        }
-    }
 
     private void formatXmlContent() {
         try {

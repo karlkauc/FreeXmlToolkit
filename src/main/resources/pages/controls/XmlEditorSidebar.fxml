@@ -38,6 +38,14 @@
                     <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"/>
                     <Button fx:id="manualValidateButton" text="Validate" prefWidth="70"/>
                 </HBox>
+                <HBox spacing="5" alignment="CENTER_LEFT">
+                    <ToggleButton fx:id="xsdDocumentationToggleButton" text="📖 XSD Comments" onAction="#toggleXsdDocumentationComments">
+                        <tooltip>
+                            <Tooltip text="Toggle XSD documentation as XML comments"/>
+                        </tooltip>
+                    </ToggleButton>
+                    <Label fx:id="xsdCommentsStatusLabel" text="" style="-fx-font-size: 10px; -fx-text-fill: #666666;"/>
+                </HBox>
             </VBox>
         </TitledPane>
 

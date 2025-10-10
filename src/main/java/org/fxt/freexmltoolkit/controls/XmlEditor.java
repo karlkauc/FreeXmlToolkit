@@ -554,10 +554,13 @@ public class XmlEditor extends Tab {
     }
 
     private void showSearchPopup(boolean isSearch) {
-        if (searchPopOver == null) return;
-        searchController.selectTab(isSearch ? searchController.getSearchTab() : searchController.getReplaceTab());
-        searchPopOver.show(codeArea, -5);
-        searchController.focusFindField();
+        try {
+            org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog dialog = 
+                new org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog(codeArea);
+            dialog.showAndWait();
+        } catch (Exception e) {
+            logger.error("Error opening find/replace dialog: {}", e.getMessage(), e);
+        }
     }
 
     /**
