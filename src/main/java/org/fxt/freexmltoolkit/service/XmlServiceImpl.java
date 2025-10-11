@@ -162,6 +162,9 @@ public class XmlServiceImpl implements XmlService {
 
         this.currentXmlFile = currentXmlFile;
 
+        // Reset remote XSD location for new file
+        this.remoteXsdLocation = null;
+
         try {
             if (currentXmlFile != null && currentXmlFile.exists() && currentXmlFile.getName().toLowerCase().endsWith("xml")) {
                 var schemaLocation = getSchemaNameFromCurrentXMLFile();
@@ -861,13 +864,27 @@ public class XmlServiceImpl implements XmlService {
                     // e.g. xsi:schemaLocation="http://www.fundsxml.org/XMLSchema/3.0.6 FundsXML3.0.6.xsd"
                     String[] splitStr = possibleSchemaLocation.split(" +");
                     String possibleFileName = splitStr[1];
+
+                    // First check if it's already a complete URL
+                    if (possibleFileName.startsWith("http://") || possibleFileName.startsWith("https://")) {
+                        logger.debug("Found remote Schema URL: {}", possibleFileName);
+                        return Optional.of(possibleFileName);
+                    }
+
+                    // Check for local file
                     String possibleFilePath = this.currentXmlFile.getParent() + "/" + possibleFileName;
                     if (new File(possibleFilePath).exists()) {
-                        logger.debug("Found Schema at: {}", possibleFilePath);
-
+                        logger.debug("Found local Schema at: {}", possibleFilePath);
                         return Optional.of("file://" + possibleFilePath);
                     } else {
-                        logger.debug("Do not found schema at: {}", possibleFilePath);
+                        logger.debug("Local schema not found at: {}, checking if second part is URL", possibleFilePath);
+                        // Only return if it looks like a URL, not just a filename
+                        if (possibleFileName.startsWith("http://") || possibleFileName.startsWith("https://") || possibleFileName.contains(".")) {
+                            logger.debug("Second part looks like a URL or path: {}", possibleFileName);
+                            return Optional.of(possibleFileName);
+                        } else {
+                            logger.debug("Second part is just a filename without URL indicators: {}", possibleFileName);
+                        }
                     }
                 }
 
