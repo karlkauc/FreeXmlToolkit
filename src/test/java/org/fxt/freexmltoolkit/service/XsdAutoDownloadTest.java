@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -240,5 +241,130 @@ public class XsdAutoDownloadTest {
         // Check that remote XSD location is set
         String remoteLocation = xmlService.getRemoteXsdLocation();
         assertEquals("https://example.org/schema.xsd", remoteLocation);
+    }
+
+    @Test
+    @DisplayName("Should parse xs:import statements from XSD content")
+    void testParseXsdImports() throws Exception {
+        // Create XSD content with import statements
+        String xsdContent = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           targetNamespace="http://example.org/main"
+                           elementFormDefault="qualified">
+                
+                    <xs:import namespace="http://www.w3.org/2000/09/xmldsig#" 
+                               schemaLocation="xmldsig-core-schema.xsd"/>
+                
+                    <xs:import namespace="http://example.org/common" 
+                               schemaLocation="common-types.xsd"/>
+                
+                    <xs:import namespace="http://example.org/remote" 
+                               schemaLocation="https://example.org/remote-schema.xsd"/>
+                
+                    <xs:element name="testElement" type="xs:string"/>
+                </xs:schema>
+                """;
+
+        // Use reflection to access private method for testing
+        java.lang.reflect.Method parseMethod = XmlServiceImpl.class.getDeclaredMethod("parseXsdImports", String.class);
+        parseMethod.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        List<String> imports = (List<String>) parseMethod.invoke(xmlService, xsdContent);
+
+        assertEquals(3, imports.size(), "Should find 3 import statements");
+        assertTrue(imports.contains("xmldsig-core-schema.xsd"), "Should find relative import");
+        assertTrue(imports.contains("common-types.xsd"), "Should find second relative import");
+        assertTrue(imports.contains("https://example.org/remote-schema.xsd"), "Should find absolute URL import");
+    }
+
+    @Test
+    @DisplayName("Should resolve relative import URLs correctly")
+    void testResolveImportUrl() throws Exception {
+        String baseUrl = "https://github.com/fundsxml/schema/releases/download/4.2.9/FundsXML.xsd";
+
+        // Use reflection to access private method for testing
+        java.lang.reflect.Method resolveMethod = XmlServiceImpl.class.getDeclaredMethod("resolveImportUrl", String.class, String.class);
+        resolveMethod.setAccessible(true);
+
+        // Test relative import
+        String resolvedRelative = (String) resolveMethod.invoke(xmlService, "xmldsig-core-schema.xsd", baseUrl);
+        assertEquals("https://github.com/fundsxml/schema/releases/download/4.2.9/xmldsig-core-schema.xsd",
+                resolvedRelative, "Should resolve relative import against base URL");
+
+        // Test absolute URL import (should remain unchanged)
+        String absoluteUrl = "https://example.org/absolute-schema.xsd";
+        String resolvedAbsolute = (String) resolveMethod.invoke(xmlService, absoluteUrl, baseUrl);
+        assertEquals(absoluteUrl, resolvedAbsolute, "Should keep absolute URL unchanged");
+
+        // Test local file reference (should return null)
+        String localFile = (String) resolveMethod.invoke(xmlService, "file:///local/schema.xsd", baseUrl);
+        assertNull(localFile, "Should return null for local file references");
+
+        // Test Windows path (should return null)
+        String windowsPath = (String) resolveMethod.invoke(xmlService, "C:\\schemas\\local.xsd", baseUrl);
+        assertNull(windowsPath, "Should return null for Windows local paths");
+    }
+
+    @Test
+    @DisplayName("Should extract filename from URL correctly")
+    void testExtractFilenameFromUrl() throws Exception {
+        // Use reflection to access private method for testing
+        java.lang.reflect.Method extractMethod = XmlServiceImpl.class.getDeclaredMethod("extractFilenameFromUrl", String.class);
+        extractMethod.setAccessible(true);
+
+        // Test normal URL with filename
+        String filename1 = (String) extractMethod.invoke(xmlService, "https://example.org/path/schema.xsd");
+        assertEquals("schema.xsd", filename1, "Should extract filename from URL");
+
+        // Test URL with parameters
+        String filename2 = (String) extractMethod.invoke(xmlService, "https://example.org/download/file.xsd?version=1.0");
+        assertEquals("file.xsd", filename2, "Should extract filename ignoring parameters");
+
+        // Test URL ending with slash
+        String filename3 = (String) extractMethod.invoke(xmlService, "https://example.org/path/");
+        assertNull(filename3, "Should return null for URL ending with slash");
+
+        // Test malformed URL
+        String filename4 = (String) extractMethod.invoke(xmlService, "not-a-url");
+        assertNull(filename4, "Should return null for malformed URL");
+    }
+
+    @Test
+    @DisplayName("Should handle XSD with no imports gracefully")
+    void testXsdWithNoImports() throws Exception {
+        String xsdContent = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                           targetNamespace="http://example.org/simple"
+                           elementFormDefault="qualified">
+                    <xs:element name="simpleElement" type="xs:string"/>
+                </xs:schema>
+                """;
+
+        // Use reflection to access private method for testing
+        java.lang.reflect.Method parseMethod = XmlServiceImpl.class.getDeclaredMethod("parseXsdImports", String.class);
+        parseMethod.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        List<String> imports = (List<String>) parseMethod.invoke(xmlService, xsdContent);
+
+        assertTrue(imports.isEmpty(), "Should return empty list for XSD with no imports");
+    }
+
+    @Test
+    @DisplayName("Should handle malformed XSD content gracefully")
+    void testMalformedXsdContent() throws Exception {
+        String malformedXsd = "This is not valid XML content";
+
+        // Use reflection to access private method for testing
+        java.lang.reflect.Method parseMethod = XmlServiceImpl.class.getDeclaredMethod("parseXsdImports", String.class);
+        parseMethod.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        List<String> imports = (List<String>) parseMethod.invoke(xmlService, malformedXsd);
+
+        assertTrue(imports.isEmpty(), "Should return empty list for malformed XSD content");
     }
 }

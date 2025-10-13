@@ -65,10 +65,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class XmlServiceImpl implements XmlService {
 
@@ -826,6 +823,10 @@ public class XmlServiceImpl implements XmlService {
                                     logger.debug("Write new file '{}' with {} Bytes.", pathNew.toFile().getAbsoluteFile(), pathNew.toFile().length());
                                     this.setCurrentXsdFile(new File(pathNew.toUri()));
                                     this.remoteXsdLocation = possibleSchemaLocation.get();
+
+                                    // Download imported XSD files recursively
+                                    downloadImportedSchemas(textContent, possibleSchemaLocation.get(), CURRENT_XSD_CACHE_PATH);
+                                    
                                     return true;
                                 } else {
                                     logger.error("Downloaded schema from {} is not valid and will not be saved.", possibleSchemaLocation.get());
@@ -1243,5 +1244,191 @@ public class XmlServiceImpl implements XmlService {
     @Override
     public String getLastXsdError() {
         return lastXsdError;
+    }
+
+    /**
+     * Download imported XSD schemas recursively
+     *
+     * @param xsdContent Content of the main XSD file
+     * @param baseUrl    Base URL of the main XSD file
+     * @param cacheDir   Cache directory for storing imported schemas
+     */
+    private void downloadImportedSchemas(String xsdContent, String baseUrl, Path cacheDir) {
+        logger.debug("Analyzing XSD content for imports from base URL: {}", baseUrl);
+
+        try {
+            // Parse XSD content to find xs:import statements
+            List<String> importLocations = parseXsdImports(xsdContent);
+
+            if (importLocations.isEmpty()) {
+                logger.debug("No xs:import statements found in XSD");
+                return;
+            }
+
+            logger.info("Found {} import(s) in XSD, downloading...", importLocations.size());
+
+            for (String importLocation : importLocations) {
+                downloadImportedSchema(importLocation, baseUrl, cacheDir);
+            }
+
+        } catch (Exception e) {
+            logger.warn("Error analyzing XSD imports: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Parse XSD content to extract xs:import schemaLocation attributes
+     *
+     * @param xsdContent Content of the XSD file
+     * @return List of schema locations from xs:import statements
+     */
+    private List<String> parseXsdImports(String xsdContent) {
+        List<String> importLocations = new ArrayList<>();
+
+        try {
+            // Parse as XML DOM
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+
+            Document doc = builder.parse(new ByteArrayInputStream(xsdContent.getBytes()));
+
+            // Find all xs:import elements
+            NodeList importNodes = doc.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "import");
+
+            for (int i = 0; i < importNodes.getLength(); i++) {
+                Element importElement = (Element) importNodes.item(i);
+                String schemaLocation = importElement.getAttribute("schemaLocation");
+
+                if (schemaLocation != null && !schemaLocation.trim().isEmpty()) {
+                    importLocations.add(schemaLocation.trim());
+                    logger.debug("Found xs:import with schemaLocation: {}", schemaLocation);
+                }
+            }
+
+        } catch (Exception e) {
+            logger.warn("Error parsing XSD for imports: {}", e.getMessage());
+        }
+
+        return importLocations;
+    }
+
+    /**
+     * Download a single imported schema file
+     *
+     * @param importLocation Schema location from xs:import statement
+     * @param baseUrl        Base URL of the main XSD file
+     * @param cacheDir       Cache directory for storing schemas
+     */
+    private void downloadImportedSchema(String importLocation, String baseUrl, Path cacheDir) {
+        try {
+            String resolvedUrl = resolveImportUrl(importLocation, baseUrl);
+
+            if (resolvedUrl == null) {
+                logger.debug("Skipping import (not a remote URL): {}", importLocation);
+                return;
+            }
+
+            logger.debug("Resolved import URL: {} -> {}", importLocation, resolvedUrl);
+
+            // Generate cache filename for imported schema
+            String filename = extractFilenameFromUrl(resolvedUrl);
+            if (filename == null || filename.isEmpty()) {
+                filename = "imported_" + Math.abs(resolvedUrl.hashCode()) + ".xsd";
+            }
+
+            Path importedSchemaPath = cacheDir.resolve(filename);
+
+            // Check if already cached
+            if (Files.exists(importedSchemaPath)) {
+                logger.debug("Imported schema already cached: {}", importedSchemaPath);
+                return;
+            }
+
+            // Download imported schema
+            logger.info("Downloading imported schema: {}", resolvedUrl);
+            String importedContent = connectionService.getTextContentFromURL(new URI(resolvedUrl));
+
+            // Validate imported schema
+            if (isSchemaValid(importedContent)) {
+                Files.write(importedSchemaPath, importedContent.getBytes());
+                logger.info("Downloaded imported schema: {} -> {}", resolvedUrl, importedSchemaPath);
+
+                // Recursively download imports of this imported schema
+                downloadImportedSchemas(importedContent, resolvedUrl, cacheDir);
+
+            } else {
+                logger.warn("Downloaded imported schema is not valid: {}", resolvedUrl);
+            }
+
+        } catch (Exception e) {
+            logger.error("Failed to download imported schema '{}': {}", importLocation, e.getMessage());
+        }
+    }
+
+    /**
+     * Resolve import URL relative to base URL
+     *
+     * @param importLocation Schema location from xs:import
+     * @param baseUrl        Base URL of the main XSD
+     * @return Resolved URL or null if not a remote import
+     */
+    private String resolveImportUrl(String importLocation, String baseUrl) {
+        // If import location is already a complete URL, use it as-is
+        if (importLocation.startsWith("http://") || importLocation.startsWith("https://") ||
+                importLocation.startsWith("ftp://") || importLocation.startsWith("ftps://")) {
+            return importLocation;
+        }
+
+        // If it's a local file reference, skip it
+        if (importLocation.startsWith("file://") || importLocation.startsWith("/") ||
+                importLocation.matches("[A-Za-z]:\\\\.+")) {
+            return null;
+        }
+
+        // Resolve relative URL against base URL
+        try {
+            URI baseUri = new URI(baseUrl);
+            String basePath = baseUri.getPath();
+
+            // Remove filename from base path to get directory
+            int lastSlash = basePath.lastIndexOf('/');
+            if (lastSlash >= 0) {
+                basePath = basePath.substring(0, lastSlash + 1);
+            }
+
+            // Construct resolved URL
+            URI resolvedUri = new URI(baseUri.getScheme(), baseUri.getAuthority(),
+                    basePath + importLocation, null, null);
+
+            return resolvedUri.toString();
+
+        } catch (URISyntaxException e) {
+            logger.warn("Failed to resolve import URL '{}' against base '{}': {}",
+                    importLocation, baseUrl, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Extract filename from URL
+     *
+     * @param url URL string
+     * @return Filename or null if not extractable
+     */
+    private String extractFilenameFromUrl(String url) {
+        try {
+            URI uri = new URI(url);
+            String path = uri.getPath();
+            if (path != null && !path.isEmpty()) {
+                int lastSlash = path.lastIndexOf('/');
+                if (lastSlash >= 0 && lastSlash < path.length() - 1) {
+                    return path.substring(lastSlash + 1);
+                }
+            }
+        } catch (URISyntaxException e) {
+            logger.debug("Could not extract filename from URL: {}", url);
+        }
+        return null;
     }
 }

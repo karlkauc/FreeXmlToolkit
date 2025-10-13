@@ -403,11 +403,15 @@ public class XsdDocumentationSvgService {
             if (parentPos != null) {
                 String connectorColor = COLOR_BORDER;
                 String connectorDash = "";
-                if ("SEQUENCE".equals(parent.getElementName())) {
+                String parentName = parent.getElementName();
+                if ("SEQUENCE".equals(parentName) || parentName.startsWith("SEQUENCE_")) {
                     connectorColor = COLOR_SEQUENCE;
-                } else if ("CHOICE".equals(parent.getElementName())) {
+                } else if ("CHOICE".equals(parentName) || parentName.startsWith("CHOICE_")) {
                     connectorColor = COLOR_CHOICE;
                     connectorDash = " stroke-dasharray=\"5,5\"";
+                } else if ("ALL".equals(parentName) || parentName.startsWith("ALL_")) {
+                    connectorColor = COLOR_SEQUENCE; // Same color as sequence but could be different
+                    connectorDash = " stroke-dasharray=\"3,3\""; // Different dash pattern for ALL
                 }
                 svgBuilder.append(String.format(
                         "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke=\"%s\" stroke-width=\"2\" class=\"connection\"%s/>",
@@ -515,7 +519,7 @@ public class XsdDocumentationSvgService {
             dashArray = isOptional ? "5,2" : "none";
             iconPath = "M8,12H16V14H8V12M10,20H6V4H13V9H18V12.1L20,10.1V8L14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H10V20Z"; // @ symbol path
             iconColor = COLOR_ATTRIBUTE;
-        } else if (element.getElementName().equals("SEQUENCE")) {
+        } else if (element.getElementName().equals("SEQUENCE") || element.getElementName().startsWith("SEQUENCE_")) {
             // Sequence styling matching XsdDiagramView (bi-list-ol icon)
             fillColor = "url(#sequenceGrad)";
             borderColor = COLOR_SEQUENCE;
@@ -523,7 +527,7 @@ public class XsdDocumentationSvgService {
             textColor = "#495057";
             iconPath = "M2,17H4V19H2V17M2,13H4V15H2V13M2,9H4V11H2V9M2,5H4V7H2V5M7,5H22V7H7V5M7,9H22V11H7V9M7,13H22V15H7V13M7,17H22V19H7V17Z"; // bi-list-ol path
             iconColor = COLOR_SEQUENCE;
-        } else if (element.getElementName().equals("CHOICE")) {
+        } else if (element.getElementName().equals("CHOICE") || element.getElementName().startsWith("CHOICE_")) {
             // Choice styling matching XsdDiagramView (bi-option icon)
             fillColor = "url(#choiceGrad)";
             borderColor = COLOR_CHOICE;
@@ -532,6 +536,14 @@ public class XsdDocumentationSvgService {
             dashArray = "5,5";
             iconPath = "M8,10V12H16V10H8M8,14V16H16V14H8M18,8C19.11,8 20,8.9 20,10V14C20,15.11 19.11,16 18,16H16V14H18V10H16V8H18M6,8V10H4V14H6V16H4C2.89,16 2,15.11 2,14V10C2,8.9 2.89,8 4,8H6Z"; // bi-option path
             iconColor = COLOR_CHOICE;
+        } else if (element.getElementName().equals("ALL") || element.getElementName().startsWith("ALL_")) {
+            // All styling similar to sequence but with different icon
+            fillColor = "url(#sequenceGrad)";
+            borderColor = COLOR_SEQUENCE;
+            borderWidth = "2";
+            textColor = "#495057";
+            iconPath = "M3,5H9V11H3V5M5,7V9H7V7H5M11,7H21V9H11V7M11,15H21V17H11V15M5,20L1.5,16.5L2.91,15.09L5,17.17L9.59,12.59L11,14L5,20Z"; // checklist icon
+            iconColor = COLOR_SEQUENCE;
         } else if (element.getElementName().equals("ANY") || element.getElementName().contains("any")) {
             // ANY element styling matching XsdDiagramView (bi-asterisk icon)
             fillColor = "url(#anyGrad)";

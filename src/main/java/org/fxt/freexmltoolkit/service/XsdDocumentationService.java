@@ -997,8 +997,11 @@ public class XsdDocumentationService {
             String localName = node.getLocalName();
             if ("element".equals(localName) || "attribute".equals(localName)) {
                 processElementOrAttribute(node, currentXPath, parentXPath, level, visitedOnPath);
-            } else if ("sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName) || "group".equals(localName)) {
-                // For containers, just traverse their children
+            } else if ("sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName)) {
+                // Create explicit sequence/choice/all nodes for SVG visualization
+                processElementOrAttribute(node, currentXPath, parentXPath, level, visitedOnPath);
+            } else if ("group".equals(localName)) {
+                // For groups, just traverse their children (groups are references)
                 for (Node child : getDirectChildElements(node)) {
                     String childName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
                     String childXPath = "element".equals(child.getLocalName()) ? currentXPath + "/" + childName : currentXPath;
@@ -1019,8 +1022,16 @@ public class XsdDocumentationService {
         extendedElem.setCurrentXpath(currentXPath);
         extendedElem.setParentXpath(parentXPath);
 
-        boolean isAttribute = "attribute".equals(node.getLocalName());
-        String name = getAttributeValue(node, "name");
+        String localName = node.getLocalName();
+        boolean isAttribute = "attribute".equals(localName);
+        boolean isContainer = "sequence".equals(localName) || "choice".equals(localName) || "all".equals(localName);
+
+        String name;
+        if (isContainer) {
+            name = localName.toUpperCase();
+        } else {
+            name = getAttributeValue(node, "name");
+        }
         extendedElem.setElementName(isAttribute ? "@" + name : name);
 
         // NEW: Read the origin of the namespace from the attribute set by the Flattener.
@@ -1048,10 +1059,14 @@ public class XsdDocumentationService {
         String typeName = getAttributeValue(node, "type");
         Node typeDefinitionNode = findTypeDefinition(node, typeName);
 
-        extendedElem.setElementType(typeName);
-        if (typeDefinitionNode != null && typeName == null) {
-            // Inline type definition
-            extendedElem.setElementType("(anonymous)");
+        if (isContainer) {
+            extendedElem.setElementType("(container)");
+        } else {
+            extendedElem.setElementType(typeName);
+            if (typeDefinitionNode != null && typeName == null) {
+                // Inline type definition
+                extendedElem.setElementType("(anonymous)");
+            }
         }
 
         // Process annotations from the element itself and its type definition
@@ -1062,16 +1077,35 @@ public class XsdDocumentationService {
 
         // Process content (children for elements, restrictions for attributes/simple types)
         if (!isAttribute) {
-            Node contentModel = findContentModel(node, typeDefinitionNode);
-            if (contentModel != null) {
-                // Handle complex content (sequence, choice, extension, etc.)
-                processComplexContent(contentModel, currentXPath, level, visitedOnPath);
-            }
+            if (isContainer) {
+                // For sequence/choice/all containers, process direct children
+                for (Node child : getDirectChildElements(node)) {
+                    String childName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
+                    String childLocalName = child.getLocalName();
+                    String childXPath;
 
-            // Additionally process attributes that are defined directly on the complexType
-            // (i.e., siblings of <sequence>/<choice>), which are not inside the content model.
-            Node attributeContext = (typeDefinitionNode != null) ? typeDefinitionNode : node;
-            processAttributes(attributeContext, currentXPath, level, visitedOnPath);
+                    if ("element".equals(childLocalName)) {
+                        childXPath = currentXPath + "/" + childName;
+                        traverseNode(child, childXPath, currentXPath, level + 1, visitedOnPath);
+                    } else if ("sequence".equals(childLocalName) || "choice".equals(childLocalName) || "all".equals(childLocalName)) {
+                        // Nested containers
+                        String containerName = childLocalName.toUpperCase();
+                        childXPath = currentXPath + "/" + containerName + "_" + counter;
+                        traverseNode(child, childXPath, currentXPath, level + 1, visitedOnPath);
+                    }
+                }
+            } else {
+                Node contentModel = findContentModel(node, typeDefinitionNode);
+                if (contentModel != null) {
+                    // Handle complex content (sequence, choice, extension, etc.)
+                    processComplexContent(contentModel, currentXPath, level, visitedOnPath);
+                }
+
+                // Additionally process attributes that are defined directly on the complexType
+                // (i.e., siblings of <sequence>/<choice>), which are not inside the content model.
+                Node attributeContext = (typeDefinitionNode != null) ? typeDefinitionNode : node;
+                processAttributes(attributeContext, currentXPath, level, visitedOnPath);
+            }
         }
 
         // Process restrictions
@@ -1145,8 +1179,10 @@ public class XsdDocumentationService {
         // Process all direct children (sequence, choice, element, attribute, etc.)
         for (Node child : getDirectChildElements(contentNode)) {
             String childName = getAttributeValue(child, "name", getAttributeValue(child, "ref"));
+            String childLocalName = child.getLocalName();
             String childXPath;
-            if ("attribute".equals(child.getLocalName())) {
+
+            if ("attribute".equals(childLocalName)) {
                 childXPath = parentXPath + "/@" + childName;
                 // Ensure attributes are added as children of the parent element (only if not already added)
                 if (xsdDocumentationData.getExtendedXsdElementMap().containsKey(parentXPath)) {
@@ -1155,10 +1191,16 @@ public class XsdDocumentationService {
                         parentChildren.add(childXPath);
                     }
                 }
-            } else if ("element".equals(child.getLocalName())) {
+            } else if ("element".equals(childLocalName)) {
                 childXPath = parentXPath + "/" + childName;
+            } else if ("sequence".equals(childLocalName) || "choice".equals(childLocalName) || "all".equals(childLocalName)) {
+                // Create explicit sequence/choice/all nodes for SVG visualization
+                String containerName = childLocalName.toUpperCase();
+                childXPath = parentXPath + "/" + containerName + "_" + counter;
+                traverseNode(child, childXPath, parentXPath, level + 1, visitedOnPath);
+                continue; // Skip normal traverseNode call for containers
             } else {
-                childXPath = parentXPath; // For containers like sequence/choice
+                childXPath = parentXPath; // For other containers
             }
             traverseNode(child, childXPath, parentXPath, level + 1, visitedOnPath);
         }
