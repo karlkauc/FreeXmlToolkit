@@ -41,12 +41,12 @@ jobs:
     steps:
       # Schritt 1: Code auschecken
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Schritt 2: Java Development Kit (JDK) einrichten
       # Stelle sicher, dass du eine JDK-Version wählst, die jpackage enthält (JDK 14+)
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-package: 'jdk+fx'
           java-version: '24'

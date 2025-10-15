@@ -240,8 +240,12 @@ tasks.register<Exec>("createRuntimeImage") {
         "javafx.swing"
     ).joinToString(",")
 
+    // JavaFX JMODs Pfad bestimmen
+    val javaHome = System.getProperty("java.home")
+
     commandLine(
         "jlink",
+        "--module-path", "$javaHome/jmods",
         "--add-modules", modules,
         "--strip-debug",
         "--no-header-files",
