@@ -1,3 +1,6 @@
+import java.net.URL
+import java.util.*
+
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
  * Copyright (c) Karl Kauc 2024.
@@ -194,6 +197,533 @@ tasks.register<Copy>("copyDistributionFiles") {
     }
 }
 
+// JavaFX Konfiguration
+val javafxVersion = "25" // oder Ihre gewünschte Version
+val jmodsDir = file("${projectDir}/javafx-jmods")
+
+// Betriebssystem-Erkennung für JavaFX
+fun getJavafxPlatform(): String {
+    val os = org.gradle.internal.os.OperatingSystem.current()
+    val arch = System.getProperty("os.arch").lowercase(Locale.getDefault())
+
+    return when {
+        os.isWindows -> "windows-x64" // Nur x64 verfügbar
+        os.isMacOsX -> if (arch.contains("aarch64") || arch.contains("arm")) "osx-aarch64" else "osx-x64"
+        os.isLinux -> "linux-x64" // Nur x64 verfügbar
+        else -> throw GradleException("Unsupported operating system")
+    }
+}
+
+// Task zum Herunterladen der JavaFX JMODs
+tasks.register("downloadJavaFXJmods") {
+    description = "Lädt JavaFX JMODs für alle verfügbaren Plattformen herunter"
+
+    doLast {
+        // Nur die verfügbaren Plattformen von Gluon
+        val platforms = mapOf(
+            "linux-x64" to "linux-x64",
+            "osx-aarch64" to "osx-aarch64",
+            "osx-x64" to "osx-x64",
+            "windows-x64" to "windows-x64"
+        )
+
+        platforms.forEach { (platform, urlPlatform) ->
+            val platformDir = file("$jmodsDir/$platform")
+
+            if (!platformDir.exists() || platformDir.listFiles { it.name.endsWith(".jmod") }.isNullOrEmpty()) {
+                println("Downloading JavaFX JMODs for $platform...")
+                platformDir.mkdirs()
+
+                val jmodsUrl =
+                    "https://download2.gluonhq.com/openjfx/${javafxVersion}/openjfx-${javafxVersion}_${urlPlatform}_bin-jmods.zip"
+                val zipFile = file("$layout.buildDirectory/tmp/javafx-${platform}-jmods.zip")
+                zipFile.parentFile.mkdirs()
+
+                println("Downloading from: $jmodsUrl")
+
+                // Download mit Ant
+                try {
+                    ant.invokeMethod(
+                        "get", mapOf(
+                            "src" to jmodsUrl,
+                            "dest" to zipFile,
+                            "verbose" to true,
+                            "skipexisting" to false
+                        )
+                    )
+
+                    // Extract
+                    println("Extracting JavaFX JMODs to $platformDir...")
+                    copy {
+                        from(zipTree(zipFile))
+                        into(platformDir)
+                        // Die JMODs sind in javafx-jmods-{version}/ Unterverzeichnis
+                        eachFile {
+                            if (path.startsWith("javafx-jmods-${javafxVersion}/")) {
+                                relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+                            }
+                        }
+                        includeEmptyDirs = false
+                    }
+
+                    // Cleanup ZIP file
+                    zipFile.delete()
+
+                    println("✅ JavaFX JMODs for $platform downloaded successfully")
+                } catch (e: Exception) {
+                    println("❌ Failed to download JavaFX JMODs for $platform: ${e.message}")
+                    platformDir.deleteRecursively()
+                    throw e
+                }
+            } else {
+                println("✅ JavaFX JMODs for $platform already exist in $platformDir")
+            }
+        }
+    }
+}
+
+// Alternative Download-Methode mit Gradle's download capabilities
+tasks.register("downloadJavaFXJmodsWithGradle") {
+    description = "Lädt JavaFX JMODs mit Gradle's eigenen Download-Mechanismen herunter"
+
+    doLast {
+        val platforms = listOf("linux-x64", "osx-aarch64", "osx-x64", "windows-x64")
+
+        platforms.forEach { platform ->
+            val platformDir = file("$jmodsDir/$platform")
+
+            if (!platformDir.exists() || platformDir.listFiles { it.name.endsWith(".jmod") }.isNullOrEmpty()) {
+                platformDir.mkdirs()
+
+                val jmodsUrl =
+                    "https://download2.gluonhq.com/openjfx/${javafxVersion}/openjfx-${javafxVersion}_${platform}_bin-jmods.zip"
+                val zipFile = file("$layout.buildDirectory/tmp/javafx-${platform}-jmods.zip")
+                zipFile.parentFile.mkdirs()
+
+                println("Downloading JavaFX JMODs for $platform from $jmodsUrl...")
+
+                // Download mit Java
+                val url = URL(jmodsUrl)
+                url.openStream().use { input ->
+                    zipFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                // Extract
+                println("Extracting JavaFX JMODs...")
+                copy {
+                    from(zipTree(zipFile))
+                    into(platformDir)
+                    eachFile {
+                        if (path.startsWith("javafx-jmods-${javafxVersion}/")) {
+                            relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+                        }
+                    }
+                    includeEmptyDirs = false
+                }
+
+                zipFile.delete()
+                println("✅ JavaFX JMODs for $platform installed")
+            }
+        }
+    }
+}
+
+// Modifizierter createRuntimeImage Task mit JavaFX JMODs
+tasks.register<Exec>("createRuntimeImage") {
+    dependsOn("downloadJavaFXJmods")
+    description = "Erstellt ein benutzerdefiniertes Runtime-Image mit JavaFX für alle Plattformen"
+
+    val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
+    val currentPlatform = getJavafxPlatform()
+    val javafxJmodsPath = file("$jmodsDir/$currentPlatform")
+
+    doFirst {
+        runtimeDir.deleteRecursively()
+
+        // Überprüfen, ob JMODs vorhanden sind
+        if (!javafxJmodsPath.exists() || javafxJmodsPath.listFiles { f -> f.name.endsWith(".jmod") }.isNullOrEmpty()) {
+            throw GradleException("JavaFX JMODs not found for platform $currentPlatform in $javafxJmodsPath. Run 'downloadJavaFXJmods' first.")
+        }
+
+        println("Using JavaFX JMODs from: $javafxJmodsPath")
+        println("Found JMODs: ${javafxJmodsPath.listFiles { it.name.endsWith(".jmod") }?.map { it.name }}")
+    }
+
+    workingDir = layout.buildDirectory.get().asFile
+
+    val modules = listOf(
+        "java.base",
+        "java.logging",
+        "java.xml",
+        "java.desktop",
+        "jdk.unsupported",
+        "jdk.crypto.ec",
+        "java.sql",
+        "java.naming",
+        "java.scripting",
+        "java.management",
+        "java.prefs",
+        "jdk.xml.dom",
+        "jdk.unsupported.desktop",
+        // JavaFX Module
+        "javafx.base",
+        "javafx.controls",
+        "javafx.fxml",
+        "javafx.graphics",
+        "javafx.media",
+        "javafx.web",
+        "javafx.swing"
+    ).joinToString(",")
+
+    val javaHome = System.getProperty("java.home")
+
+    // Erstelle den Module-Path mit System-JMODs und JavaFX-JMODs
+    val modulePath = listOf(
+        "$javaHome/jmods",
+        javafxJmodsPath.absolutePath
+    ).joinToString(File.pathSeparator)
+
+    println("Module path: $modulePath")
+
+    commandLine(
+        "jlink",
+        "--module-path", modulePath,
+        "--add-modules", modules,
+        "--strip-debug",
+        "--no-header-files",
+        "--no-man-pages",
+        "--compress", "zip-6",
+        "--output", runtimeDir.absolutePath
+    )
+}
+
+// Plattform-spezifische Runtime-Images erstellen
+tasks.register<Exec>("createRuntimeImageForWindows") {
+    dependsOn("downloadJavaFXJmods")
+    description = "Erstellt ein Runtime-Image speziell für Windows x64"
+
+    val runtimeDir = layout.buildDirectory.dir("image/runtime-windows-x64").get().asFile
+    val javafxJmodsPath = file("$jmodsDir/windows-x64")
+
+    doFirst {
+        runtimeDir.deleteRecursively()
+        if (!javafxJmodsPath.exists()) {
+            throw GradleException("JavaFX JMODs not found for Windows x64. Run 'downloadJavaFXJmods' first.")
+        }
+    }
+
+    workingDir = layout.buildDirectory.get().asFile
+
+    val modules = listOf(
+        "java.base",
+        "java.logging",
+        "java.xml",
+        "java.desktop",
+        "jdk.unsupported",
+        "jdk.crypto.ec",
+        "java.sql",
+        "java.naming",
+        "java.scripting",
+        "java.management",
+        "java.prefs",
+        "jdk.xml.dom",
+        "jdk.unsupported.desktop",
+        "javafx.base",
+        "javafx.controls",
+        "javafx.fxml",
+        "javafx.graphics",
+        "javafx.media",
+        "javafx.web",
+        "javafx.swing"
+    ).joinToString(",")
+
+    val javaHome = System.getProperty("java.home")
+    val modulePath = listOf(
+        "$javaHome/jmods",
+        javafxJmodsPath.absolutePath
+    ).joinToString(File.pathSeparator)
+
+    commandLine(
+        "jlink",
+        "--module-path", modulePath,
+        "--add-modules", modules,
+        "--strip-debug",
+        "--no-header-files",
+        "--no-man-pages",
+        "--compress", "zip-6",
+        "--output", runtimeDir.absolutePath
+    )
+}
+
+tasks.register<Exec>("createRuntimeImageForLinux") {
+    dependsOn("downloadJavaFXJmods")
+    description = "Erstellt ein Runtime-Image speziell für Linux x64"
+
+    val runtimeDir = layout.buildDirectory.dir("image/runtime-linux-x64").get().asFile
+    val javafxJmodsPath = file("$jmodsDir/linux-x64")
+
+    doFirst {
+        runtimeDir.deleteRecursively()
+        if (!javafxJmodsPath.exists()) {
+            throw GradleException("JavaFX JMODs not found for Linux x64. Run 'downloadJavaFXJmods' first.")
+        }
+    }
+
+    workingDir = layout.buildDirectory.get().asFile
+
+    val modules = listOf(
+        "java.base",
+        "java.logging",
+        "java.xml",
+        "java.desktop",
+        "jdk.unsupported",
+        "jdk.crypto.ec",
+        "java.sql",
+        "java.naming",
+        "java.scripting",
+        "java.management",
+        "java.prefs",
+        "jdk.xml.dom",
+        "jdk.unsupported.desktop",
+        "javafx.base",
+        "javafx.controls",
+        "javafx.fxml",
+        "javafx.graphics",
+        "javafx.media",
+        "javafx.web",
+        "javafx.swing"
+    ).joinToString(",")
+
+    val javaHome = System.getProperty("java.home")
+    val modulePath = listOf(
+        "$javaHome/jmods",
+        javafxJmodsPath.absolutePath
+    ).joinToString(File.pathSeparator)
+
+    commandLine(
+        "jlink",
+        "--module-path", modulePath,
+        "--add-modules", modules,
+        "--strip-debug",
+        "--no-header-files",
+        "--no-man-pages",
+        "--compress", "zip-6",
+        "--output", runtimeDir.absolutePath
+    )
+}
+
+tasks.register<Exec>("createRuntimeImageForMacOSX64") {
+    dependsOn("downloadJavaFXJmods")
+    description = "Erstellt ein Runtime-Image speziell für macOS Intel x64"
+
+    val runtimeDir = layout.buildDirectory.dir("image/runtime-osx-x64").get().asFile
+    val javafxJmodsPath = file("$jmodsDir/osx-x64")
+
+    doFirst {
+        runtimeDir.deleteRecursively()
+        if (!javafxJmodsPath.exists()) {
+            throw GradleException("JavaFX JMODs not found for macOS x64. Run 'downloadJavaFXJmods' first.")
+        }
+    }
+
+    workingDir = layout.buildDirectory.get().asFile
+
+    val modules = listOf(
+        "java.base",
+        "java.logging",
+        "java.xml",
+        "java.desktop",
+        "jdk.unsupported",
+        "jdk.crypto.ec",
+        "java.sql",
+        "java.naming",
+        "java.scripting",
+        "java.management",
+        "java.prefs",
+        "jdk.xml.dom",
+        "jdk.unsupported.desktop",
+        "javafx.base",
+        "javafx.controls",
+        "javafx.fxml",
+        "javafx.graphics",
+        "javafx.media",
+        "javafx.web",
+        "javafx.swing"
+    ).joinToString(",")
+
+    val javaHome = System.getProperty("java.home")
+    val modulePath = listOf(
+        "$javaHome/jmods",
+        javafxJmodsPath.absolutePath
+    ).joinToString(File.pathSeparator)
+
+    commandLine(
+        "jlink",
+        "--module-path", modulePath,
+        "--add-modules", modules,
+        "--strip-debug",
+        "--no-header-files",
+        "--no-man-pages",
+        "--compress", "zip-6",
+        "--output", runtimeDir.absolutePath
+    )
+}
+
+tasks.register<Exec>("createRuntimeImageForMacOSAArch64") {
+    dependsOn("downloadJavaFXJmods")
+    description = "Erstellt ein Runtime-Image speziell für macOS Apple Silicon"
+
+    val runtimeDir = layout.buildDirectory.dir("image/runtime-osx-aarch64").get().asFile
+    val javafxJmodsPath = file("$jmodsDir/osx-aarch64")
+
+    doFirst {
+        runtimeDir.deleteRecursively()
+        if (!javafxJmodsPath.exists()) {
+            throw GradleException("JavaFX JMODs not found for macOS AArch64. Run 'downloadJavaFXJmods' first.")
+        }
+    }
+
+    workingDir = layout.buildDirectory.get().asFile
+
+    val modules = listOf(
+        "java.base",
+        "java.logging",
+        "java.xml",
+        "java.desktop",
+        "jdk.unsupported",
+        "jdk.crypto.ec",
+        "java.sql",
+        "java.naming",
+        "java.scripting",
+        "java.management",
+        "java.prefs",
+        "jdk.xml.dom",
+        "jdk.unsupported.desktop",
+        "javafx.base",
+        "javafx.controls",
+        "javafx.fxml",
+        "javafx.graphics",
+        "javafx.media",
+        "javafx.web",
+        "javafx.swing"
+    ).joinToString(",")
+
+    val javaHome = System.getProperty("java.home")
+    val modulePath = listOf(
+        "$javaHome/jmods",
+        javafxJmodsPath.absolutePath
+    ).joinToString(File.pathSeparator)
+
+    commandLine(
+        "jlink",
+        "--module-path", modulePath,
+        "--add-modules", modules,
+        "--strip-debug",
+        "--no-header-files",
+        "--no-man-pages",
+        "--compress", "zip-6",
+        "--output", runtimeDir.absolutePath
+    )
+}
+
+// Task zum Bereinigen der JMODs
+tasks.register<Delete>("cleanJavaFXJmods") {
+    description = "Löscht heruntergeladene JavaFX JMODs"
+    delete(jmodsDir)
+}
+
+// Task zum Verifizieren der JMODs
+tasks.register("verifyJavaFXJmods") {
+    dependsOn("downloadJavaFXJmods")
+    description = "Überprüft, ob alle benötigten JavaFX JMODs vorhanden sind"
+
+    doLast {
+        val platforms = listOf("linux-x64", "osx-aarch64", "osx-x64", "windows-x64")
+        val requiredModules = listOf(
+            "javafx.base.jmod",
+            "javafx.controls.jmod",
+            "javafx.fxml.jmod",
+            "javafx.graphics.jmod",
+            "javafx.media.jmod",
+            "javafx.web.jmod",
+            "javafx.swing.jmod"
+        )
+
+        var allGood = true
+
+        platforms.forEach { platform ->
+            val platformDir = file("$jmodsDir/$platform")
+            println("\n📦 Checking JavaFX JMODs for $platform:")
+            println("   Directory: $platformDir")
+
+            if (!platformDir.exists()) {
+                println("   ❌ Directory not found!")
+                allGood = false
+            } else {
+                val missingModules = mutableListOf<String>()
+                requiredModules.forEach { module ->
+                    val moduleFile = file("$platformDir/$module")
+                    if (moduleFile.exists()) {
+                        val sizeMB = moduleFile.length() / 1024 / 1024
+                        println("   ✅ $module (${sizeMB} MB)")
+                    } else {
+                        println("   ❌ $module - MISSING!")
+                        missingModules.add(module)
+                        allGood = false
+                    }
+                }
+
+                if (missingModules.isEmpty()) {
+                    println("   ✅ All modules present for $platform")
+                } else {
+                    println("   ⚠️  Missing modules: ${missingModules.joinToString(", ")}")
+                }
+            }
+        }
+
+        if (allGood) {
+            println("\n✅ All JavaFX JMODs successfully verified!")
+        } else {
+            println("\n❌ Some JavaFX JMODs are missing. Run './gradlew downloadJavaFXJmods' to download them.")
+        }
+    }
+}
+
+// Info Task
+tasks.register("javaFXInfo") {
+    description = "Zeigt Informationen über die JavaFX-Konfiguration"
+
+    doLast {
+        println("\n╔════════════════════════════════════════════╗")
+        println("║          JavaFX JMODs Configuration        ║")
+        println("╚════════════════════════════════════════════╝")
+        println()
+        println("JavaFX Version: $javafxVersion")
+        println("JMODs Directory: $jmodsDir")
+        println("Current Platform: ${getJavafxPlatform()}")
+        println()
+        println("Available platforms:")
+        println("  • linux-x64    - Linux 64-bit")
+        println("  • osx-x64      - macOS Intel 64-bit")
+        println("  • osx-aarch64  - macOS Apple Silicon")
+        println("  • windows-x64  - Windows 64-bit")
+        println()
+        println("Download URLs:")
+        listOf("linux-x64", "osx-aarch64", "osx-x64", "windows-x64").forEach { platform ->
+            println("  • https://download2.gluonhq.com/openjfx/$javafxVersion/openjfx-${javafxVersion}_${platform}_bin-jmods.zip")
+        }
+        println()
+        println("Usage:")
+        println("  1. ./gradlew downloadJavaFXJmods    - Download JMODs")
+        println("  2. ./gradlew verifyJavaFXJmods      - Verify installation")
+        println("  3. ./gradlew createRuntimeImage     - Create runtime with JavaFX")
+        println()
+    }
+}
+
+
 tasks.register<Zip>("packageDistribution") {
     dependsOn("createAllExecutables", "copyDistributionFiles")
     archiveFileName.set("FreeXMLToolkit.zip")
@@ -214,7 +744,7 @@ tasks.register("createAllExecutables") {
     description = "Erstellt native Executables für alle unterstützten Betriebssysteme"
 }
 
-tasks.register<Exec>("createRuntimeImage") {
+tasks.register<Exec>("createRuntimeImageOLD") {
     description = "Erstellt ein benutzerdefiniertes Runtime-Image für alle Plattformen"
 
     val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
@@ -240,12 +770,8 @@ tasks.register<Exec>("createRuntimeImage") {
         "javafx.swing"
     ).joinToString(",")
 
-    // JavaFX JMODs Pfad bestimmen
-    val javaHome = System.getProperty("java.home")
-
     commandLine(
         "jlink",
-        "--module-path", "$javaHome/jmods",
         "--add-modules", modules,
         "--strip-debug",
         "--no-header-files",
