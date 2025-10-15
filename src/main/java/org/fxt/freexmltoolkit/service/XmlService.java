@@ -20,6 +20,7 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -170,4 +171,6 @@ public interface XmlService {
     void updateElementDocumentation(File xsdFile, String elementXpath, String documentation, String javadoc) throws Exception;
 
     void updateExampleValues(File xsdFile, String elementXpath, List<String> exampleValues) throws Exception;
+
+    XsdDocInfo getElementDocInfo(File xsdFile, String elementXpath) throws Exception;
 }

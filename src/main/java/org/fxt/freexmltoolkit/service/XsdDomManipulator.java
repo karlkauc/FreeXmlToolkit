@@ -276,6 +276,55 @@ public class XsdDomManipulator {
     }
 
     /**
+     * Updates enumeration values for an element by creating or updating a simpleType restriction
+     */
+    public boolean updateElementEnumerations(String xpath, List<String> enumerations) {
+        try {
+            Element element = findElementByXPath(xpath);
+            if (element == null) {
+                logger.error("Element not found: {}", xpath);
+                return false;
+            }
+
+            // Remove existing simpleType if present
+            NodeList existingSimpleTypes = element.getElementsByTagName(xsdPrefix + ":simpleType");
+            for (int i = 0; i < existingSimpleTypes.getLength(); i++) {
+                element.removeChild(existingSimpleTypes.item(i));
+            }
+
+            // If no enumerations, we're done (removed existing ones)
+            if (enumerations == null || enumerations.isEmpty()) {
+                logger.info("Removed all enumerations for element at {}", xpath);
+                return true;
+            }
+
+            // Create new simpleType with enumeration restriction
+            Element simpleType = document.createElement(xsdPrefix + ":simpleType");
+            Element restriction = document.createElement(xsdPrefix + ":restriction");
+            restriction.setAttribute("base", "xs:string"); // Default to string base
+
+            // Add enumeration values
+            for (String enumValue : enumerations) {
+                if (enumValue != null && !enumValue.trim().isEmpty()) {
+                    Element enumeration = document.createElement(xsdPrefix + ":enumeration");
+                    enumeration.setAttribute("value", enumValue.trim());
+                    restriction.appendChild(enumeration);
+                }
+            }
+
+            simpleType.appendChild(restriction);
+            element.appendChild(simpleType);
+
+            logger.info("Updated {} enumerations for element at {}", enumerations.size(), xpath);
+            return true;
+
+        } catch (Exception e) {
+            logger.error("Error updating element enumerations", e);
+            return false;
+        }
+    }
+
+    /**
      * Move an element to a new parent
      */
     public boolean moveElement(String elementXPath, String newParentXPath) {

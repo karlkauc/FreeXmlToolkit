@@ -22,6 +22,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controls.*;
+import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
 import org.jetbrains.annotations.NotNull;
@@ -3161,10 +3162,21 @@ public class XsdController {
         // UML and Grid views removed - only tree view remains active
     }
 
+    /**
+     * Gets XSD documentation info for a specific element
+     */
+    public XsdDocInfo getElementDocInfo(String xpath) {
+        File currentXsdFile = xmlService.getCurrentXsdFile();
+        if (currentXsdFile == null || !currentXsdFile.exists() || xpath == null || xpath.isBlank()) {
+            return null;
+        }
 
-
-
-
-
+        try {
+            return xmlService.getElementDocInfo(currentXsdFile, xpath);
+        } catch (Exception e) {
+            logger.warn("Could not extract XSD doc info for element at xpath: {}", xpath, e);
+            return null;
+        }
+    }
 
 }

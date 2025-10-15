@@ -697,6 +697,8 @@ public class XsdComplexTypeEditor extends Dialog<ComplexTypeResult> {
     private void loadExistingComplexType() {
         if (existingComplexType == null) return;
 
+        logger.debug("Loading existing ComplexType: {}", existingComplexType.getAttribute("name"));
+
         // Load basic properties
         nameField.setText(existingComplexType.getAttribute("name"));
 
@@ -708,10 +710,256 @@ public class XsdComplexTypeEditor extends Dialog<ComplexTypeResult> {
             abstractTypeCheckBox.setSelected(true);
         }
 
-        // TODO: Load content model, elements, attributes from existing ComplexType
-        // This would require parsing the existing XSD structure
+        // Load content model, elements, attributes from existing ComplexType
+        loadContentModel();
+        loadElements();
+        loadAttributes();
+        loadDocumentation();
 
+        logger.debug("Successfully loaded existing ComplexType data");
         updatePreview();
+    }
+
+    /**
+     * Load content model from existing ComplexType
+     */
+    private void loadContentModel() {
+        // Check for simpleContent or complexContent
+        var simpleContentNodes = existingComplexType.getElementsByTagName("xs:simpleContent");
+        var complexContentNodes = existingComplexType.getElementsByTagName("xs:complexContent");
+
+        if (simpleContentNodes.getLength() > 0) {
+            contentModelCombo.setValue("Simple Content");
+            loadSimpleContent((Element) simpleContentNodes.item(0));
+        } else if (complexContentNodes.getLength() > 0) {
+            contentModelCombo.setValue("Complex Content");
+            loadComplexContent((Element) complexContentNodes.item(0));
+        } else {
+            // Direct content model - sequence, choice, all, or group
+            contentModelCombo.setValue("Direct Content");
+            loadDirectContent();
+        }
+    }
+
+    /**
+     * Load simple content (extension or restriction)
+     */
+    private void loadSimpleContent(Element simpleContent) {
+        // Check for extension or restriction
+        var extensions = simpleContent.getElementsByTagName("xs:extension");
+        var restrictions = simpleContent.getElementsByTagName("xs:restriction");
+
+        if (extensions.getLength() > 0) {
+            derivationCombo.setValue("Extension");
+            Element extension = (Element) extensions.item(0);
+            String base = extension.getAttribute("base");
+            if (!base.isEmpty()) {
+                baseTypeCombo.setValue(base);
+            }
+            loadAttributesFromElement(extension);
+        } else if (restrictions.getLength() > 0) {
+            derivationCombo.setValue("Restriction");
+            Element restriction = (Element) restrictions.item(0);
+            String base = restriction.getAttribute("base");
+            if (!base.isEmpty()) {
+                baseTypeCombo.setValue(base);
+            }
+            loadAttributesFromElement(restriction);
+        }
+    }
+
+    /**
+     * Load complex content (extension or restriction)
+     */
+    private void loadComplexContent(Element complexContent) {
+        // Check for extension or restriction
+        var extensions = complexContent.getElementsByTagName("xs:extension");
+        var restrictions = complexContent.getElementsByTagName("xs:restriction");
+
+        if (extensions.getLength() > 0) {
+            derivationCombo.setValue("Extension");
+            Element extension = (Element) extensions.item(0);
+            String base = extension.getAttribute("base");
+            if (!base.isEmpty()) {
+                baseTypeCombo.setValue(base);
+            }
+            loadContentFromElement(extension);
+        } else if (restrictions.getLength() > 0) {
+            derivationCombo.setValue("Restriction");
+            Element restriction = (Element) restrictions.item(0);
+            String base = restriction.getAttribute("base");
+            if (!base.isEmpty()) {
+                baseTypeCombo.setValue(base);
+            }
+            loadContentFromElement(restriction);
+        }
+    }
+
+    /**
+     * Load direct content model (sequence, choice, all)
+     */
+    private void loadDirectContent() {
+        loadContentFromElement(existingComplexType);
+    }
+
+    /**
+     * Load content (elements) from an element
+     */
+    private void loadContentFromElement(Element parent) {
+        // Load sequence elements
+        var sequences = parent.getElementsByTagName("xs:sequence");
+        if (sequences.getLength() > 0) {
+            loadElementsFromContainer((Element) sequences.item(0));
+        }
+
+        // Load choice elements
+        var choices = parent.getElementsByTagName("xs:choice");
+        if (choices.getLength() > 0) {
+            loadElementsFromContainer((Element) choices.item(0));
+        }
+
+        // Load all elements
+        var alls = parent.getElementsByTagName("xs:all");
+        if (alls.getLength() > 0) {
+            loadElementsFromContainer((Element) alls.item(0));
+        }
+
+        // Load direct child elements
+        loadElementsFromContainer(parent);
+
+        // Load attributes
+        loadAttributesFromElement(parent);
+    }
+
+    /**
+     * Load elements from a container (sequence, choice, all, or direct parent)
+     */
+    private void loadElementsFromContainer(Element container) {
+        var elementNodes = container.getElementsByTagName("xs:element");
+        for (int i = 0; i < elementNodes.getLength(); i++) {
+            Element elementNode = (Element) elementNodes.item(i);
+
+            // Only process direct children, not nested elements
+            if (elementNode.getParentNode() == container) {
+                String name = elementNode.getAttribute("name");
+                String type = elementNode.getAttribute("type");
+                String minOccurs = elementNode.getAttribute("minOccurs");
+                String maxOccurs = elementNode.getAttribute("maxOccurs");
+
+                // Set defaults if not specified
+                if (minOccurs.isEmpty()) minOccurs = "1";
+                if (maxOccurs.isEmpty()) maxOccurs = "1";
+                if (type.isEmpty()) type = "xs:string"; // Default for inline types
+
+                // Check for inline anonymous type
+                if (type.isEmpty() && hasInlineType(elementNode)) {
+                    type = "[inline type]";
+                }
+
+                if (!name.isEmpty()) {
+                    elements.add(new ElementItem(name, type, minOccurs, maxOccurs));
+                    logger.debug("Loaded element: {} (type: {}, minOccurs: {}, maxOccurs: {})",
+                            name, type, minOccurs, maxOccurs);
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if element has inline type definition
+     */
+    private boolean hasInlineType(Element element) {
+        var simpleTypes = element.getElementsByTagName("xs:simpleType");
+        var complexTypes = element.getElementsByTagName("xs:complexType");
+        return simpleTypes.getLength() > 0 || complexTypes.getLength() > 0;
+    }
+
+    /**
+     * Load elements directly from the ComplexType
+     */
+    private void loadElements() {
+        // Elements are loaded through loadContentModel() which calls loadContentFromElement()
+        logger.debug("Loaded {} elements", elements.size());
+    }
+
+    /**
+     * Load attributes from the ComplexType
+     */
+    private void loadAttributes() {
+        loadAttributesFromElement(existingComplexType);
+
+        // Also check in content elements (simpleContent, complexContent extensions/restrictions)
+        var simpleContentNodes = existingComplexType.getElementsByTagName("xs:simpleContent");
+        if (simpleContentNodes.getLength() > 0) {
+            loadAttributesFromContentElement((Element) simpleContentNodes.item(0));
+        }
+
+        var complexContentNodes = existingComplexType.getElementsByTagName("xs:complexContent");
+        if (complexContentNodes.getLength() > 0) {
+            loadAttributesFromContentElement((Element) complexContentNodes.item(0));
+        }
+
+        logger.debug("Loaded {} attributes", attributes.size());
+    }
+
+    /**
+     * Load attributes from a content element (simpleContent or complexContent)
+     */
+    private void loadAttributesFromContentElement(Element contentElement) {
+        // Check extensions and restrictions
+        var extensions = contentElement.getElementsByTagName("xs:extension");
+        for (int i = 0; i < extensions.getLength(); i++) {
+            loadAttributesFromElement((Element) extensions.item(i));
+        }
+
+        var restrictions = contentElement.getElementsByTagName("xs:restriction");
+        for (int i = 0; i < restrictions.getLength(); i++) {
+            loadAttributesFromElement((Element) restrictions.item(i));
+        }
+    }
+
+    /**
+     * Load attributes from an element
+     */
+    private void loadAttributesFromElement(Element parent) {
+        var attributeNodes = parent.getElementsByTagName("xs:attribute");
+        for (int i = 0; i < attributeNodes.getLength(); i++) {
+            Element attributeNode = (Element) attributeNodes.item(i);
+
+            // Only process direct children
+            if (attributeNode.getParentNode() == parent) {
+                String name = attributeNode.getAttribute("name");
+                String type = attributeNode.getAttribute("type");
+                String use = attributeNode.getAttribute("use");
+
+                // Set defaults
+                if (type.isEmpty()) type = "xs:string";
+                if (use.isEmpty()) use = "optional";
+
+                if (!name.isEmpty()) {
+                    attributes.add(new AttributeItem(name, type, use));
+                    logger.debug("Loaded attribute: {} (type: {}, use: {})", name, type, use);
+                }
+            }
+        }
+    }
+
+    /**
+     * Load documentation from the ComplexType
+     */
+    private void loadDocumentation() {
+        var annotations = existingComplexType.getElementsByTagName("xs:annotation");
+        if (annotations.getLength() > 0) {
+            Element annotation = (Element) annotations.item(0);
+            var docs = annotation.getElementsByTagName("xs:documentation");
+            if (docs.getLength() > 0) {
+                String documentation = docs.item(0).getTextContent();
+                if (documentation != null && !documentation.trim().isEmpty()) {
+                    documentationArea.setText(documentation.trim());
+                    logger.debug("Loaded documentation: {}", documentation.trim());
+                }
+            }
+        }
     }
 
     /**

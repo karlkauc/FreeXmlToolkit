@@ -81,8 +81,7 @@ public class XsdDiagramView {
     private Timeline searchDebounceTimer;
 
     private XsdNodeInfo selectedNode;
-    private XsdPropertyPanel propertyPanel;
-    private XsdValidationPanel validationPanel;
+    private XsdControlPane controlPane;
 
     private ScrollPane treeScrollPane;
 
@@ -267,11 +266,8 @@ public class XsdDiagramView {
 
             System.out.println("DEBUG: XSD loaded successfully into DOM manipulator");
 
-            // Update property panel with DOM manipulator
-            if (propertyPanel != null) {
-                propertyPanel.setDomManipulator(domManipulator);
-                System.out.println("DEBUG: Property panel updated with DOM manipulator");
-            }
+            // DOM manipulator will be used when updating the control pane
+            System.out.println("DEBUG: DOM manipulator ready for control pane");
 
             // Trigger live validation
             triggerLiveValidation();
@@ -315,18 +311,11 @@ public class XsdDiagramView {
         leftContainer.getChildren().addAll(toolbar, treeScrollPane);
         VBox.setVgrow(treeScrollPane, javafx.scene.layout.Priority.ALWAYS);
 
-        // Create tabbed right pane with Properties and Validation
-        TabPane rightTabPane = new TabPane();
-        rightTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        // Create integrated control pane (replaces tabbed approach)
+        controlPane = new XsdControlPane();
 
-        // Properties Tab
-        Tab propertiesTab = new Tab("Properties");
-        propertiesTab.setGraphic(createColoredIcon("bi-gear", "#6c757d"));
-
-        propertyPanel = new XsdPropertyPanel();
-        propertyPanel.setDomManipulator(domManipulator);
-        propertyPanel.setController(controller);
-        propertyPanel.setOnPropertyChanged(message -> {
+        // Set up callback for property changes
+        controlPane.setOnPropertyChanged(message -> {
             System.out.println("DEBUG: Property changed callback triggered: " + message);
 
             // Use selective refresh instead of full rebuild to preserve expansion states
@@ -342,32 +331,7 @@ public class XsdDiagramView {
             triggerLiveValidation();
         });
 
-        // Set up command-based property changes (we'll need to modify XsdPropertyPanel for this)
-        // For now, the existing callback will work, but ideally we'd integrate commands here too
-
-        ScrollPane propertyScrollPane = new ScrollPane(propertyPanel);
-        propertyScrollPane.setFitToWidth(true);
-        propertyScrollPane.setFitToHeight(true);
-        propertyScrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
-
-        propertiesTab.setContent(propertyScrollPane);
-
-        // Validation Tab
-        Tab validationTab = new Tab("Validation");
-        validationTab.setGraphic(createColoredIcon("bi-shield-check", "#28a745"));
-
-        validationPanel = new XsdValidationPanel();
-
-        ScrollPane validationScrollPane = new ScrollPane(validationPanel);
-        validationScrollPane.setFitToWidth(true);
-        validationScrollPane.setFitToHeight(true);
-        validationScrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
-
-        validationTab.setContent(validationScrollPane);
-
-        rightTabPane.getTabs().addAll(propertiesTab, validationTab);
-
-        splitPane.getItems().addAll(leftContainer, rightTabPane);
+        splitPane.getItems().addAll(leftContainer, controlPane);
         return splitPane;
     }
 
@@ -1139,16 +1103,9 @@ public class XsdDiagramView {
 
         this.selectedNode = node;
 
-        // Update property panel with current data and force DOM sync
-        if (propertyPanel != null) {
-            propertyPanel.setSelectedNode(node);
-            propertyPanel.refreshTypes();
-            propertyPanel.forceUpdateFromDOM();
-        }
-
-        // Update validation panel
-        if (validationPanel != null) {
-            validationPanel.updateForNode(node);
+        // Update integrated control pane
+        if (controlPane != null) {
+            controlPane.updateForNode(node, domManipulator);
         }
     }
 
@@ -1903,19 +1860,7 @@ public class XsdDiagramView {
         // Switch to Properties tab and select the node
         updateDetailPane(node);
 
-        // Find the properties tab and select it
-        if (propertyPanel != null && propertyPanel.getParent() != null) {
-            Node parent = propertyPanel.getParent();
-            while (parent != null && !(parent instanceof TabPane)) {
-                parent = parent.getParent();
-            }
-            if (parent instanceof TabPane tabPane) {
-                // Select the Properties tab (should be the second tab)
-                if (tabPane.getTabs().size() > 1) {
-                    tabPane.getSelectionModel().select(1);
-                }
-            }
-        }
+        // Control pane is already integrated, no tab selection needed
     }
 
     /**
@@ -1965,13 +1910,10 @@ public class XsdDiagramView {
             return;
         }
 
-        // Create editor with current values
-        XsdSimpleTypeEditor editor = new XsdSimpleTypeEditor();
+        // Create editor with current values from the existing SimpleType element
+        XsdSimpleTypeEditor editor = new XsdSimpleTypeEditor(domManipulator.getDocument(), simpleTypeElement);
         editor.setTitle("Edit SimpleType");
         editor.setHeaderText("Edit XSD SimpleType definition: " + simpleTypeNode.name());
-
-        // TODO: Populate editor with current values from simpleTypeElement
-        // This requires parsing the existing restriction and facets
 
         Optional<SimpleTypeResult> result = editor.showAndWait();
         if (result.isPresent()) {
@@ -2469,9 +2411,7 @@ public class XsdDiagramView {
                 
                 triggerLiveValidation();
 
-                if (propertyPanel != null) {
-                    propertyPanel.refreshTypes();
-                }
+                // Refresh will be handled by controlPane.updateForNode() call
                 System.out.println("DEBUG: Selective refresh completed successfully");
             }
         } catch (Exception e) {
@@ -2654,18 +2594,11 @@ public class XsdDiagramView {
             // Update the selectedNode reference to the new info
             selectedNode = updatedNodeInfo;
 
-            // Update property panel with fresh data from DOM
-            if (propertyPanel != null) {
-                // Force refresh of property panel with updated node info
-                propertyPanel.setSelectedNode(updatedNodeInfo);
-                // Also refresh types to ensure all available types are up to date
-                propertyPanel.refreshTypes();
-
-                // Force update of property panel fields with current DOM values
+            // Update control pane with fresh data from DOM
+            if (controlPane != null) {
+                // Update integrated control pane with updated node info
                 Platform.runLater(() -> {
-                    propertyPanel.forceUpdateFromDOM();
-                    // Also force a complete field update to ensure all values are current
-                    propertyPanel.updateFields();
+                    controlPane.updateForNode(updatedNodeInfo, domManipulator);
                 });
             }
 
@@ -2867,10 +2800,7 @@ public class XsdDiagramView {
         // Clear caches before rebuilding
         nodeViewCache.clear();
 
-        // Refresh property panel types when diagram rebuilds
-        if (propertyPanel != null) {
-            propertyPanel.refreshTypes();
-        }
+        // Refresh will be handled by control pane updates
 
         // Find the diagram container
         Platform.runLater(() -> {

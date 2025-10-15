@@ -31,6 +31,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -1213,6 +1214,90 @@ public class XmlServiceImpl implements XmlService {
 
         // 8. Write back to file
         writeDocumentToFile(doc, xsdFile);
+    }
+
+    @Override
+    public XsdDocInfo getElementDocInfo(File xsdFile, String elementXpath) throws Exception {
+        // 1. Parse the document
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse(xsdFile);
+
+        // 2. Define namespaces
+        final String xsdNs = "http://www.w3.org/2001/XMLSchema";
+
+        // 3. Find the target element using the same XPath resolution logic
+        if (elementXpath == null || !elementXpath.startsWith("/")) {
+            throw new IllegalArgumentException("Invalid XPath provided (must start with '/'): " + elementXpath);
+        }
+
+        String[] parts = elementXpath.substring(1).split("/");
+        if (parts.length == 0 || parts[0].isEmpty()) {
+            throw new IllegalArgumentException("Invalid XPath provided (empty): " + elementXpath);
+        }
+
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        Node contextNode = doc;
+
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+
+            String query = getQuery(part);
+            Node foundNode = (Node) xpath.compile(query).evaluate(contextNode, XPathConstants.NODE);
+
+            if (foundNode == null && contextNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element contextElement = (Element) contextNode;
+                String typeAttr = contextElement.getAttribute("type");
+                if (!typeAttr.isEmpty()) {
+                    String typeName = typeAttr.contains(":") ? typeAttr.split(":")[1] : typeAttr;
+                    String typeQuery = "//*[local-name()='complexType' or local-name()='simpleType'][@name='" + typeName + "']";
+                    Node typeDefinitionNode = (Node) xpath.compile(typeQuery).evaluate(doc, XPathConstants.NODE);
+
+                    if (typeDefinitionNode != null) {
+                        foundNode = (Node) xpath.compile(query).evaluate(typeDefinitionNode, XPathConstants.NODE);
+                    }
+                }
+            }
+
+            if (foundNode == null) {
+                // Element not found - return null instead of throwing exception
+                return null;
+            }
+            contextNode = foundNode;
+        }
+
+        Node targetNode = contextNode;
+        if (targetNode.getNodeType() != Node.ELEMENT_NODE) {
+            return null;
+        }
+        Element targetElement = (Element) targetNode;
+
+        // 4. Extract XSD Doc annotations from xs:annotation/xs:appinfo
+        XsdDocInfo docInfo = new XsdDocInfo();
+        NodeList annotationList = targetElement.getElementsByTagNameNS(xsdNs, "annotation");
+
+        if (annotationList.getLength() > 0) {
+            Element annotation = (Element) annotationList.item(0);
+            NodeList appInfoList = annotation.getElementsByTagNameNS(xsdNs, "appinfo");
+
+            for (int i = 0; i < appInfoList.getLength(); i++) {
+                Element appInfo = (Element) appInfoList.item(i);
+                String source = appInfo.getAttribute("source");
+
+                if (source != null && !source.isBlank()) {
+                    if (source.startsWith("@since")) {
+                        docInfo.setSince(source.substring("@since".length()).trim());
+                    } else if (source.startsWith("@see")) {
+                        docInfo.getSee().add(source.substring("@see".length()).trim());
+                    } else if (source.startsWith("@deprecated")) {
+                        docInfo.setDeprecated(source.substring("@deprecated".length()).trim());
+                    }
+                }
+            }
+        }
+
+        return docInfo.hasData() ? docInfo : null;
     }
 
     private static @NotNull String getQuery(String part) {

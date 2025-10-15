@@ -345,28 +345,49 @@ public class XsdDocumentationSvgService {
         if (elementName.startsWith("@")) {
             elementName = elementName.substring(1); // Remove @ for attributes
         }
-        svgBuilder.append(String.format(
-                "<text x=\"%d\" y=\"%d\" class=\"title\" fill=\"%s\" text-anchor=\"middle\">%s</text>",
-                x, y - 15, visualInfo.textColor, escapeXml(elementName)
-        ));
 
-        // Draw data type with icon before it
-        String dataType = element.getElementType();
-        if (dataType != null && !dataType.isEmpty()) {
-            // Calculate text width to center icon + text combination
-            int textWidth = dataType.length() * 7; // Approximate character width
-            int iconWidth = 16;
-            int totalWidth = iconWidth + 5 + textWidth; // icon + spacing + text
-            int startX = x - totalWidth / 2;
+        // Check if this is a container element (SEQUENCE, CHOICE, ALL)
+        boolean isContainer = elementName.equals("SEQUENCE") || elementName.startsWith("SEQUENCE_") ||
+                elementName.equals("CHOICE") || elementName.startsWith("CHOICE_") ||
+                elementName.equals("ALL") || elementName.startsWith("ALL_");
 
-            // Draw icon before the data type
-            drawIcon(svgBuilder, startX, y + 5 - 6, visualInfo.iconPath, visualInfo.iconColor);
+        if (isContainer) {
+            // For container elements, show only the base name (e.g., "CHOICE" instead of "CHOICE_123")
+            String baseName = elementName.contains("_") ? elementName.substring(0, elementName.indexOf("_")) : elementName;
 
-            // Draw data type text next to the icon
+            // Draw the container name
             svgBuilder.append(String.format(
-                    "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"%s\" text-anchor=\"start\">%s</text>",
-                    startX + iconWidth + 5, y + 5, COLOR_TEXT, escapeXml(dataType)
+                    "<text x=\"%d\" y=\"%d\" class=\"title\" fill=\"%s\" text-anchor=\"middle\">%s</text>",
+                    x, y - 5, visualInfo.textColor, escapeXml(baseName)
             ));
+
+            // Draw icon centered below the text
+            drawIcon(svgBuilder, x - 8, y + 8, visualInfo.iconPath, visualInfo.iconColor);
+        } else {
+            // Regular element - draw name at top
+            svgBuilder.append(String.format(
+                    "<text x=\"%d\" y=\"%d\" class=\"title\" fill=\"%s\" text-anchor=\"middle\">%s</text>",
+                    x, y - 15, visualInfo.textColor, escapeXml(elementName)
+            ));
+
+            // Draw data type with icon before it
+            String dataType = element.getElementType();
+            if (dataType != null && !dataType.isEmpty() && !"(container)".equals(dataType)) {
+                // Calculate text width to center icon + text combination
+                int textWidth = dataType.length() * 7; // Approximate character width
+                int iconWidth = 16;
+                int totalWidth = iconWidth + 5 + textWidth; // icon + spacing + text
+                int startX = x - totalWidth / 2;
+
+                // Draw icon before the data type
+                drawIcon(svgBuilder, startX, y + 5 - 6, visualInfo.iconPath, visualInfo.iconColor);
+
+                // Draw data type text next to the icon
+                svgBuilder.append(String.format(
+                        "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"%s\" text-anchor=\"start\">%s</text>",
+                        startX + iconWidth + 5, y + 5, COLOR_TEXT, escapeXml(dataType)
+                ));
+            }
         }
 
         // Draw cardinality with proper styling
@@ -374,13 +395,15 @@ public class XsdDocumentationSvgService {
         if (!cardinality.isEmpty()) {
             // Draw cardinality background
             int cardWidth = cardinality.length() * 7 + 8;
+            int cardY = isContainer ? y + 20 : y + 12; // Position lower for container elements
+            
             svgBuilder.append(String.format(
                     "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"16\" rx=\"3\" ry=\"3\" fill=\"#f8f9fa\" stroke=\"#dee2e6\" stroke-width=\"1\"/>",
-                    x - cardWidth / 2, y + 12, cardWidth
+                    x - cardWidth / 2, cardY, cardWidth
             ));
             svgBuilder.append(String.format(
                     "<text x=\"%d\" y=\"%d\" class=\"cardinality\" fill=\"%s\" text-anchor=\"middle\">%s</text>",
-                    x, y + 23, "#6c757d", cardinality
+                    x, cardY + 11, "#6c757d", cardinality
             ));
         }
 
