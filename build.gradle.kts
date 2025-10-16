@@ -46,8 +46,8 @@ application {
 }
 
 dependencies {
-    implementation("net.sf.saxon:Saxon-HE:12.8")
-    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")
+    implementation("net.sf.saxon:Saxon-HE:12.9")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.4")
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.4.0")
@@ -64,7 +64,7 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.24.1")
 
     implementation("org.apache.santuario:xmlsec:4.0.4")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.81")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.82")
 
     implementation("org.controlsfx:controlsfx:11.2.2")
 
@@ -77,7 +77,7 @@ dependencies {
     implementation("org.apache.poi:poi:5.4.1")
     implementation("org.apache.poi:poi-ooxml:5.4.1")
 
-    implementation("org.apache.commons:commons-lang3:3.18.0")
+    implementation("org.apache.commons:commons-lang3:3.19.0")
     implementation("commons-io:commons-io:2.20.0")
     implementation("org.apache.commons:commons-text:1.14.0")
     implementation("commons-validator:commons-validator:1.10.0")
@@ -88,23 +88,23 @@ dependencies {
     implementation("jakarta.activation:jakarta.activation-api:2.1.3")
 
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.3.5")
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.5")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
 
     implementation("com.github.mifmif:generex:1.0.2")
     implementation("com.github.curious-odd-man:rgxgen:3.1")
 
-    testImplementation(platform("org.junit:junit-bom:5.13.2"))
+    testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.mockito:mockito-core:5.19.0")
+    testImplementation("org.mockito:mockito-core:5.20.0")
     testImplementation("org.testfx:testfx-core:4.0.18")
     testImplementation("org.testfx:testfx-junit5:4.0.18")
     testImplementation("org.testfx:openjfx-monocle:21.0.2")
 
     implementation("com.helger.schematron:ph-schematron-parent-pom:9.0.1")
-    implementation("com.helger.commons:ph-io:12.0.0")
-    // implementation("com.helger.commons:ph-commons:12.0.0")
-    // implementation("com.helger.commons:ph-xml:12.0.0")
+    implementation("com.helger.commons:ph-io:12.0.3")
+    // implementation("com.helger.commons:ph-commons:12.0.3")
+    // implementation("com.helger.commons:ph-xml:12.0.3")
     implementation("com.helger.schematron:ph-schematron-api:9.0.1")
     implementation("com.helger.schematron:ph-schematron-xslt:9.0.1")
     implementation("com.helger.schematron:ph-schematron-pure:9.0.1")
