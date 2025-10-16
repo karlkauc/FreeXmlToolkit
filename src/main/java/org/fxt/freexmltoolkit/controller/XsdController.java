@@ -6,22 +6,23 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.control.PopOver;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxt.freexmltoolkit.controller.controls.SearchReplaceController;
 import org.fxt.freexmltoolkit.controls.*;
+import org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
@@ -106,14 +107,13 @@ public class XsdController {
     private File currentXsdFile;
 
     // --- NEW: Search and replace functionality ---
-    private SearchReplaceController searchController;
-    private PopOver searchPopOver;
+    private FindReplaceDialog findReplaceDialog;
+    private javafx.event.EventHandler<KeyEvent> searchKeyEventFilter;
 
     // --- Auto-save functionality ---
     private Timer autoSaveTimer;
     private static final String AUTO_SAVE_PREFIX = ".autosave_";
 
-    private enum SearchMode {SEARCH, REPLACE}
 
     // --- NEW: Fields for documentation preview ---
     @FXML
@@ -364,6 +364,11 @@ public class XsdController {
         });
         textTab.setOnSelectionChanged(event -> {
             if (textTab.isSelected()) {
+                // Always ensure search shortcuts are available when text tab is selected
+                if (sourceCodeEditor != null) {
+                    ensureSourceCodeEditorInitialized();
+                }
+                
                 if (xmlService.getCurrentXsdFile() == null) {
                     noFileLoadedPaneText.setVisible(true);
                     noFileLoadedPaneText.setManaged(true);
@@ -429,6 +434,9 @@ public class XsdController {
      * Sets up keyboard shortcuts for search/replace without initializing the popup
      */
     private void setupSearchKeyboardShortcuts() {
+        // Initialize the search key event filter
+        initializeSearchKeyEventFilter();
+        
         // Add event filter only when sourceCodeEditor is first accessed
         textTab.setOnSelectionChanged(event -> {
             if (textTab.isSelected() && sourceCodeEditor != null) {
@@ -438,26 +446,60 @@ public class XsdController {
     }
 
     /**
+     * Initializes the search key event filter
+     */
+    private void initializeSearchKeyEventFilter() {
+        searchKeyEventFilter = event -> {
+            if (event.isControlDown()) {
+                switch (event.getCode()) {
+                    case F -> {
+                        showFindReplaceDialog();
+                        event.consume();
+                    }
+                    case R -> {
+                        showFindReplaceDialog();
+                        event.consume();
+                    }
+                }
+            }
+        };
+    }
+
+    /**
      * Ensures the source code editor is properly initialized with line numbers and search shortcuts
      */
     private void ensureSourceCodeEditorInitialized() {
-        if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea().getParagraphGraphicFactory() == null) {
-            // Initialize search shortcuts only when CodeArea is first used
-            sourceCodeEditor.getCodeArea().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-                if (event.isControlDown()) {
-                    switch (event.getCode()) {
-                        case F -> {
-                            showSearchPopup(SearchMode.SEARCH);
-                            event.consume();
-                        }
-                        case R -> {
-                            showSearchPopup(SearchMode.REPLACE);
-                            event.consume();
-                        }
-                    }
-                }
-            });
+        if (sourceCodeEditor != null) {
+            // Initialize line numbers if not already set
+            if (sourceCodeEditor.getCodeArea().getParagraphGraphicFactory() == null) {
+                sourceCodeEditor.getCodeArea().setParagraphGraphicFactory(LineNumberFactory.get(sourceCodeEditor.getCodeArea()));
+            }
+
+            // Always ensure search shortcuts are properly set - remove any existing filters first
+            setupSearchKeyboardShortcutsForEditor();
         }
+    }
+
+    /**
+     * Sets up keyboard shortcuts specifically for the source code editor
+     */
+    private void setupSearchKeyboardShortcutsForEditor() {
+        if (sourceCodeEditor == null || sourceCodeEditor.getCodeArea() == null) {
+            return;
+        }
+
+        // Initialize search key event filter if not already done
+        if (searchKeyEventFilter == null) {
+            initializeSearchKeyEventFilter();
+        }
+
+        // Remove existing event filters to avoid duplicates
+        sourceCodeEditor.getCodeArea().removeEventFilter(KeyEvent.KEY_PRESSED, searchKeyEventFilter);
+
+        // Add the search key event filter
+        sourceCodeEditor.getCodeArea().addEventFilter(KeyEvent.KEY_PRESSED, searchKeyEventFilter);
+
+        logger.debug("Search keyboard shortcuts set up for source code editor");
     }
 
     /**
@@ -479,27 +521,33 @@ public class XsdController {
     }
 
     /**
-     * Lazy initialization of search popup - only creates it when first needed
+     * Lazy initialization of FindReplaceDialog - only creates it when first needed
      */
-    private void initializeSearchPopup() {
-        if (searchPopOver != null) {
+    private void initializeFindReplaceDialog() {
+        if (findReplaceDialog != null) {
             return; // Already initialized
         }
 
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/controls/SearchReplaceControl.fxml"));
-            Pane searchPane = loader.load();
-            searchController = loader.getController();
-            searchController.setXmlCodeEditor(this.sourceCodeEditor);
-            searchPopOver = new PopOver(searchPane);
-            searchPopOver.setDetachable(false);
-            searchPopOver.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
-            searchPopOver.setTitle("Find/Replace");
-        } catch (IOException e) {
-            logger.error("Failed to initialize search popup for XSD editor.", e);
+            if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+                findReplaceDialog = new FindReplaceDialog(sourceCodeEditor.getCodeArea());
+                logger.debug("FindReplaceDialog initialized successfully for XSD editor");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to initialize FindReplaceDialog for XSD editor", e);
         }
     }
 
+    /**
+     * Shows the FindReplaceDialog for the XSD editor with lazy initialization
+     */
+    private void showFindReplaceDialog() {
+        initializeFindReplaceDialog(); // Lazy initialization
+        if (findReplaceDialog != null) {
+            findReplaceDialog.show();
+            logger.debug("FindReplaceDialog shown for XSD editor");
+        }
+    }
 
     @FXML
     private File openXsdFileChooser() {
@@ -524,23 +572,6 @@ public class XsdController {
         }
         return null;
     }
-
-    /**
-     * Shows the search popup for the XSD editor with lazy initialization.
-     */
-    private void showSearchPopup(SearchMode mode) {
-        initializeSearchPopup(); // Lazy initialization
-        if (searchPopOver == null) return;
-
-        if (mode == SearchMode.SEARCH) {
-            searchController.selectTab(searchController.getSearchTab());
-        } else {
-            searchController.selectTab(searchController.getReplaceTab());
-        }
-        searchPopOver.show(sourceCodeEditor.getCodeArea(), -5);
-        searchController.focusFindField();
-    }
-
 
     // ======================================================================
     // Methoden für den "Graphic" Tab

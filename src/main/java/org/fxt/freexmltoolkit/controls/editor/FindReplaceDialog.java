@@ -34,11 +34,11 @@ import java.util.regex.Pattern;
 public class FindReplaceDialog extends Dialog<Void> {
 
     private final CodeArea codeArea;
-    private TextField findField = new TextField();
-    private TextField replaceField = new TextField();
-    private CheckBox matchCaseCheck = new CheckBox("Match Case");
-    private CheckBox wholeWordCheck = new CheckBox("Whole Word");
-    private CheckBox regexCheck = new CheckBox("Regex");
+    private final TextField findField = new TextField();
+    private final TextField replaceField = new TextField();
+    private final CheckBox matchCaseCheck = new CheckBox("Match Case");
+    private final CheckBox wholeWordCheck = new CheckBox("Whole Word");
+    private final CheckBox regexCheck = new CheckBox("Regex");
 
     private int lastFoundIndex = -1;
 
@@ -55,6 +55,9 @@ public class FindReplaceDialog extends Dialog<Void> {
         
         // Focus management
         setupFocusManagement();
+
+        // Prevent dialog from closing except for Close button
+        setupResultConverter();
     }
     
     /**
@@ -178,16 +181,31 @@ public class FindReplaceDialog extends Dialog<Void> {
      * Sets up the dialog buttons with icons and modern styling.
      */
     private void setupButtons() {
-        ButtonType findButtonType = new ButtonType("Find Next", ButtonBar.ButtonData.OK_DONE);
-        ButtonType replaceButtonType = new ButtonType("Replace", ButtonBar.ButtonData.OK_DONE);
-        ButtonType replaceAllButtonType = new ButtonType("Replace All", ButtonBar.ButtonData.OK_DONE);
+        ButtonType findPrevButtonType = new ButtonType("Find Previous", ButtonBar.ButtonData.OTHER);
+        ButtonType findButtonType = new ButtonType("Find Next", ButtonBar.ButtonData.OTHER);
+        ButtonType replaceButtonType = new ButtonType("Replace", ButtonBar.ButtonData.OTHER);
+        ButtonType replaceAllButtonType = new ButtonType("Replace All", ButtonBar.ButtonData.OTHER);
         ButtonType closeButtonType = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-        getDialogPane().getButtonTypes().addAll(findButtonType, replaceButtonType, replaceAllButtonType, closeButtonType);
+        getDialogPane().getButtonTypes().addAll(findPrevButtonType, findButtonType, replaceButtonType, replaceAllButtonType, closeButtonType);
+
+        // Configure Find Previous button
+        final Button findPrevButton = (Button) getDialogPane().lookupButton(findPrevButtonType);
+        findPrevButton.setOnAction(e -> {
+            findPrevious();
+            e.consume(); // Prevent dialog from closing
+        });
+        findPrevButton.setDisable(true);
+        findPrevButton.getStyleClass().addAll("btn-primary");
+        addButtonIcon(findPrevButton, "/img/previous.png");
+        findField.textProperty().addListener((obs, old, text) -> findPrevButton.setDisable(text.isEmpty()));
 
         // Configure Find Next button
         final Button findButton = (Button) getDialogPane().lookupButton(findButtonType);
-        findButton.setOnAction(e -> findNext());
+        findButton.setOnAction(e -> {
+            findNext();
+            e.consume(); // Prevent dialog from closing
+        });
         findButton.setDisable(true);
         findButton.getStyleClass().addAll("btn-primary");
         addButtonIcon(findButton, "/img/next.png");
@@ -195,18 +213,28 @@ public class FindReplaceDialog extends Dialog<Void> {
 
         // Configure Replace button
         final Button replaceButton = (Button) getDialogPane().lookupButton(replaceButtonType);
-        replaceButton.setOnAction(e -> replace());
+        replaceButton.setOnAction(e -> {
+            replace();
+            e.consume(); // Prevent dialog from closing
+        });
         replaceButton.getStyleClass().addAll("btn-info");
         addButtonIcon(replaceButton, "/img/icons8-aktualisieren-48.png");
 
         // Configure Replace All button
         final Button replaceAllButton = (Button) getDialogPane().lookupButton(replaceAllButtonType);
-        replaceAllButton.setOnAction(e -> replaceAll());
+        replaceAllButton.setOnAction(e -> {
+            replaceAll();
+            e.consume(); // Prevent dialog from closing
+        });
         replaceAllButton.getStyleClass().addAll("btn-warning");
         addButtonIcon(replaceAllButton, "/img/icons8-aktualisieren-48.png");
         
         // Configure Close button
         final Button closeButton = (Button) getDialogPane().lookupButton(closeButtonType);
+        closeButton.setOnAction(e -> {
+            close(); // Explicitly close the dialog
+            e.consume();
+        });
         closeButton.getStyleClass().addAll("btn-secondary");
         addButtonIcon(closeButton, "/img/icons8-stornieren-48.png");
     }
@@ -243,6 +271,41 @@ public class FindReplaceDialog extends Dialog<Void> {
         // Keyboard shortcuts
         findField.setOnAction(e -> findNext());
         replaceField.setOnAction(e -> replace());
+
+        // Add keyboard shortcuts for F3 (Find Next) and Shift+F3 (Find Previous)
+        getDialogPane().setOnKeyPressed(event -> {
+            switch (event.getCode()) {
+                case F3 -> {
+                    if (event.isShiftDown()) {
+                        findPrevious();
+                    } else {
+                        findNext();
+                    }
+                    event.consume();
+                }
+                case ENTER -> {
+                    if (event.getSource() == findField) {
+                        findNext();
+                        event.consume();
+                    }
+                }
+                case ESCAPE -> {
+                    close();
+                    event.consume();
+                }
+            }
+        });
+    }
+
+    /**
+     * Sets up behavior to prevent dialog from closing except for Close button.
+     */
+    private void setupResultConverter() {
+        // Prevent dialog from closing by consuming close requests
+        setOnCloseRequest(event -> {
+            // Allow closing only if explicitly called via close() method
+            // This will be triggered by the Close button action
+        });
     }
 
     private void findNext() {
@@ -257,15 +320,105 @@ public class FindReplaceDialog extends Dialog<Void> {
         Pattern pattern = createPattern(searchText);
         Matcher matcher = pattern.matcher(content);
 
+        boolean found = false;
         if (matcher.find(fromIndex)) {
-            codeArea.selectRange(matcher.start(), matcher.end());
+            selectAndScrollToMatch(matcher.start(), matcher.end());
             lastFoundIndex = matcher.start();
+            found = true;
         } else { // Wrap search
             lastFoundIndex = -1;
             if (matcher.find(0)) {
-                codeArea.selectRange(matcher.start(), matcher.end());
+                selectAndScrollToMatch(matcher.start(), matcher.end());
                 lastFoundIndex = matcher.start();
+                found = true;
             }
+        }
+
+        // Provide visual feedback
+        updateSearchStatus(found, searchText);
+    }
+
+    private void findPrevious() {
+        String searchText = findField.getText();
+        if (searchText.isEmpty()) {
+            return;
+        }
+
+        String content = codeArea.getText();
+        int fromIndex = codeArea.getSelection().getStart() - 1;
+        if (fromIndex < 0) {
+            fromIndex = content.length(); // Start from end for wrap-around
+        }
+
+        Pattern pattern = createPattern(searchText);
+
+        // For searching backwards, we need to find all matches up to the current position
+        boolean found = false;
+        int lastMatchStart = -1;
+        int lastMatchEnd = -1;
+
+        Matcher matcher = pattern.matcher(content);
+
+        // Find the last match before the current position
+        while (matcher.find() && matcher.start() < fromIndex) {
+            lastMatchStart = matcher.start();
+            lastMatchEnd = matcher.end();
+            found = true;
+        }
+
+        // If no match found before current position, wrap to end and find last match
+        if (!found) {
+            matcher.reset();
+            while (matcher.find()) {
+                lastMatchStart = matcher.start();
+                lastMatchEnd = matcher.end();
+                found = true;
+            }
+        }
+
+        if (found) {
+            selectAndScrollToMatch(lastMatchStart, lastMatchEnd);
+            lastFoundIndex = lastMatchStart;
+        }
+
+        // Provide visual feedback
+        updateSearchStatus(found, searchText);
+    }
+
+    /**
+     * Selects the matched text and scrolls to make it visible
+     */
+    private void selectAndScrollToMatch(int start, int end) {
+        // Select the found text
+        codeArea.selectRange(start, end);
+
+        // Move the caret to the start of the selection
+        codeArea.moveTo(start);
+
+        // Scroll to make the selection visible
+        codeArea.requestFollowCaret();
+
+        // Temporarily give focus to the code area to ensure highlighting
+        codeArea.requestFocus();
+
+        // Return focus to the dialog after a short delay to keep it open and accessible
+        javafx.application.Platform.runLater(() -> {
+            if (isShowing()) {
+                findField.requestFocus();
+            }
+        });
+    }
+
+    /**
+     * Updates the search status to provide feedback to the user
+     */
+    private void updateSearchStatus(boolean found, String searchText) {
+        // This could be enhanced with a status label in the UI
+        if (found) {
+            // Visual confirmation could be added here
+            setTitle("Find and Replace - Found: \"" + searchText + "\"");
+        } else {
+            setTitle("Find and Replace - Not found: \"" + searchText + "\"");
         }
     }
 

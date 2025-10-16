@@ -1062,10 +1062,22 @@ public class XsdDocumentationService {
         if (isContainer) {
             extendedElem.setElementType("(container)");
         } else {
-            extendedElem.setElementType(typeName);
-            if (typeDefinitionNode != null && typeName == null) {
-                // Inline type definition
-                extendedElem.setElementType("(anonymous)");
+            if (typeName != null) {
+                // Named type reference
+                extendedElem.setElementType(typeName);
+            } else if (typeDefinitionNode != null) {
+                // Inline type definition - check if it's a simple type with restriction
+                Node restrictionNode = findRestriction(node, typeDefinitionNode);
+                if (restrictionNode != null) {
+                    String baseType = getAttributeValue(restrictionNode, "base");
+                    if (baseType != null && !baseType.isEmpty()) {
+                        extendedElem.setElementType(baseType);
+                    } else {
+                        extendedElem.setElementType("(anonymous)");
+                    }
+                } else {
+                    extendedElem.setElementType("(anonymous)");
+                }
             }
         }
 
