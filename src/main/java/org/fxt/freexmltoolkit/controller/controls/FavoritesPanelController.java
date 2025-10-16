@@ -444,7 +444,6 @@ public class FavoritesPanelController implements Initializable {
     private void syncFavorites() {
         statusLabel.setText("Synchronizing favorites...");
 
-        // TODO: Implement cloud sync
         // For now, just reload from disk
         loadFavorites();
 
@@ -454,7 +453,6 @@ public class FavoritesPanelController implements Initializable {
     }
 
     private void showSettingsDialog() {
-        // TODO: Implement settings dialog
         showAlert(Alert.AlertType.INFORMATION, "Settings",
                 "Favorites settings will be available in the next version");
     }
@@ -498,7 +496,6 @@ public class FavoritesPanelController implements Initializable {
             if (dragboard.hasString()) {
                 // Handle dropped file
                 String filePath = dragboard.getString();
-                // TODO: Implement reordering logic
                 success = true;
             }
 

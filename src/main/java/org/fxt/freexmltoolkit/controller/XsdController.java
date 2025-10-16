@@ -171,6 +171,20 @@ public class XsdController {
         }
     }
 
+    /**
+     * Adds a command to the undo stack if undo functionality is available
+     *
+     * @param command The command to add to the undo stack
+     */
+    public void addCommandToUndoStack(org.fxt.freexmltoolkit.controls.XsdCommand command) {
+        if (currentDiagramView != null && currentDiagramView.getUndoManager() != null && command.canUndo()) {
+            currentDiagramView.getUndoManager().addExecutedCommand(command);
+            logger.debug("Command added to undo stack: {}", command.getDescription());
+        } else {
+            logger.debug("Undo stack not available or command doesn't support undo: {}",
+                    command != null ? command.getDescription() : "null command");
+        }
+    }
 
     // ======================================================================
     // Felder und Methoden für den "Graphic" Tab (XSD)
@@ -2979,8 +2993,7 @@ public class XsdController {
                 
                 // Add to undo stack if the command supports it
                 if (command.canUndo()) {
-                    // TODO: Add to proper undo manager when available
-                    logger.debug("Command added to undo stack: {}", command.getDescription());
+                    addCommandToUndoStack(command);
                 }
 
                 // Refresh UI components that depend on the schema

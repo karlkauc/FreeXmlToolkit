@@ -15,12 +15,14 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.service.XmlValidationError;
 import org.fxt.freexmltoolkit.service.XmlValidationResult;
 import org.fxt.freexmltoolkit.service.XsdValidationService;
 
+import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -598,9 +600,56 @@ public class XmlValidationPanel extends VBox {
     }
 
     private void browseForSchema() {
-        // TODO: Implement file chooser for schema selection
-        // For now, this is a placeholder
-        logger.debug("Schema browse requested");
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Schema File");
+
+        // Add file extension filters
+        FileChooser.ExtensionFilter xsdFilter = new FileChooser.ExtensionFilter("XSD Schema Files (*.xsd)", "*.xsd");
+        FileChooser.ExtensionFilter dtdFilter = new FileChooser.ExtensionFilter("DTD Files (*.dtd)", "*.dtd");
+        FileChooser.ExtensionFilter rngFilter = new FileChooser.ExtensionFilter("RelaxNG Files (*.rng)", "*.rng");
+        FileChooser.ExtensionFilter allFilter = new FileChooser.ExtensionFilter("All Schema Files", "*.xsd", "*.dtd", "*.rng");
+
+        fileChooser.getExtensionFilters().addAll(allFilter, xsdFilter, dtdFilter, rngFilter);
+        fileChooser.setSelectedExtensionFilter(allFilter);
+
+        // Set initial directory to the current working directory or last used directory
+        try {
+            File initialDir = new File(System.getProperty("user.dir"));
+            if (initialDir.exists() && initialDir.isDirectory()) {
+                fileChooser.setInitialDirectory(initialDir);
+            }
+        } catch (Exception e) {
+            logger.debug("Could not set initial directory: {}", e.getMessage());
+        }
+
+        // Show the file chooser dialog
+        File selectedFile = fileChooser.showOpenDialog(this.getScene().getWindow());
+
+        if (selectedFile != null && selectedFile.exists()) {
+            try {
+                String schemaPath = selectedFile.getAbsolutePath();
+
+                // Update the schema field if it exists
+                if (schemaPathField != null) {
+                    schemaPathField.setText(schemaPath);
+                }
+
+                logger.info("Selected schema file: {}", schemaPath);
+
+                // Optionally trigger validation immediately
+                if (validationService != null && validationService.isRealTimeValidationEnabled()) {
+                    // Store the schema path for future validation
+                    logger.info("Schema selected for validation: {}", schemaPath);
+                    // Note: The validation will use the schema from schemaPathField when triggered
+                }
+
+            } catch (Exception e) {
+                logger.error("Error handling selected schema file: {}", e.getMessage());
+                showErrorAlert("File Error", "Could not process the selected schema file: " + e.getMessage());
+            }
+        } else {
+            logger.debug("No schema file selected or file does not exist");
+        }
     }
 
     // ========== Callback Setters ==========
@@ -619,6 +668,17 @@ public class XmlValidationPanel extends VBox {
 
     public void setOnValidationCompleted(Consumer<XmlValidationResult> onValidationCompleted) {
         this.onValidationCompleted = onValidationCompleted;
+    }
+
+    /**
+     * Shows an error alert dialog to the user
+     */
+    private void showErrorAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     // ========== Cleanup ==========

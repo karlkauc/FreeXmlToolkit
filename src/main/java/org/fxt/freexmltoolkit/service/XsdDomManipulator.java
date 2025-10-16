@@ -325,6 +325,62 @@ public class XsdDomManipulator {
     }
 
     /**
+     * Updates validation constraints for an element by creating or updating a simpleType restriction
+     *
+     * @param xpath       The XPath to the element
+     * @param constraints Map of constraint types to values (pattern, minLength, maxLength, etc.)
+     * @return true if successful, false otherwise
+     */
+    public boolean updateElementConstraints(String xpath, java.util.Map<String, String> constraints) {
+        try {
+            Element element = findElementByXPath(xpath);
+            if (element == null) {
+                logger.error("Element not found for xpath: {}", xpath);
+                return false;
+            }
+
+            // Remove existing simpleType if present
+            NodeList simpleTypes = element.getElementsByTagNameNS(XSD_NS, "simpleType");
+            for (int i = simpleTypes.getLength() - 1; i >= 0; i--) {
+                element.removeChild(simpleTypes.item(i));
+            }
+
+            // If no constraints, we're done (removed existing ones)
+            if (constraints == null || constraints.isEmpty()) {
+                logger.info("Removed all constraints for element at {}", xpath);
+                return true;
+            }
+
+            // Create new simpleType with constraint restrictions
+            Element simpleType = document.createElement(xsdPrefix + ":simpleType");
+            Element restriction = document.createElement(xsdPrefix + ":restriction");
+            restriction.setAttribute("base", "xs:string"); // Default to string base
+
+            // Add constraint facets
+            for (java.util.Map.Entry<String, String> entry : constraints.entrySet()) {
+                String constraintType = entry.getKey();
+                String constraintValue = entry.getValue();
+
+                if (constraintValue != null && !constraintValue.trim().isEmpty()) {
+                    Element facet = document.createElement(xsdPrefix + ":" + constraintType);
+                    facet.setAttribute("value", constraintValue.trim());
+                    restriction.appendChild(facet);
+                }
+            }
+
+            simpleType.appendChild(restriction);
+            element.appendChild(simpleType);
+
+            logger.info("Updated {} constraints for element at {}", constraints.size(), xpath);
+            return true;
+
+        } catch (Exception e) {
+            logger.error("Error updating element constraints", e);
+            return false;
+        }
+    }
+
+    /**
      * Move an element to a new parent
      */
     public boolean moveElement(String elementXPath, String newParentXPath) {

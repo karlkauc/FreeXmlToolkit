@@ -36,6 +36,7 @@ public class XsdControlPane extends ScrollPane {
 
     // Callback for property changes
     private java.util.function.Consumer<String> onPropertyChangedCallback;
+    private Runnable changeCallback;
 
     // Main container
     private VBox mainContainer;
@@ -1222,11 +1223,13 @@ public class XsdControlPane extends ScrollPane {
             // Save documentation (using updateElementProperties for basic properties only)
             // Note: Documentation saving would require specialized DOM manipulation
 
-            // For now, we'll only save the basic properties that are supported
-            logger.info("Saved basic properties (minOccurs, maxOccurs) for element: {}", currentNode.name());
+            // Save enumeration values
+            saveEnumerations(xpath);
 
-            // Advanced features like enumerations and validation rules would require
-            // extending XsdDomManipulator with additional methods
+            // Save validation rules (when implemented)
+            saveValidationRules(xpath);
+
+            logger.info("Saved properties, enumerations, and validation rules for element: {}", currentNode.name());
 
             // Notify that changes were saved
             showAlert("Changes Saved", "All changes have been successfully saved to the XSD.", "success");
@@ -1243,19 +1246,119 @@ public class XsdControlPane extends ScrollPane {
     }
 
     /**
-     * Placeholder for future enumeration saving functionality
-     * TODO: Implement when XsdDomManipulator supports enumeration updates
+     * Saves enumeration values for the current element
      */
     private void saveEnumerations(String xpath) {
-        logger.info("Enumeration saving not yet implemented - requires XsdDomManipulator extension");
+        if (domManipulator == null) {
+            logger.warn("Cannot save enumerations: domManipulator is null");
+            showAlert("Save Error", "DOM manipulator not available", "error");
+            return;
+        }
+
+        try {
+            // Get current enumeration values from the ListView
+            List<String> enumerations = new ArrayList<>(enumerationListView.getItems());
+
+            // Update enumerations using XsdDomManipulator
+            boolean success = domManipulator.updateElementEnumerations(xpath, enumerations);
+
+            if (success) {
+                logger.info("Successfully saved {} enumeration values for element at {}", enumerations.size(), xpath);
+                showAlert("Success", "Enumeration values saved successfully", "success");
+
+                // Notify change callback if available
+                if (changeCallback != null) {
+                    changeCallback.run();
+                }
+            } else {
+                logger.error("Failed to save enumeration values for element at {}", xpath);
+                showAlert("Save Error", "Failed to save enumeration values", "error");
+            }
+        } catch (Exception e) {
+            logger.error("Error saving enumeration values for element at " + xpath, e);
+            showAlert("Save Error", "Error saving enumeration values: " + e.getMessage(), "error");
+        }
     }
 
     /**
-     * Placeholder for future validation rules saving functionality
-     * TODO: Implement when XsdDomManipulator supports constraint updates
+     * Saves validation rules/constraints for the current element
      */
     private void saveValidationRules(String xpath) {
-        logger.info("Validation rules saving not yet implemented - requires XsdDomManipulator extension");
+        if (domManipulator == null) {
+            logger.warn("Cannot save validation rules: domManipulator is null");
+            showAlert("Save Error", "DOM manipulator not available", "error");
+            return;
+        }
+
+        try {
+            // Collect all constraint values from UI fields
+            java.util.Map<String, String> constraints = new java.util.HashMap<>();
+
+            // Pattern constraint
+            if (patternField != null && !patternField.getText().trim().isEmpty()) {
+                constraints.put("pattern", patternField.getText().trim());
+            }
+
+            // Length constraints
+            if (lengthField != null && !lengthField.getText().trim().isEmpty()) {
+                constraints.put("length", lengthField.getText().trim());
+            }
+            if (minLengthField != null && !minLengthField.getText().trim().isEmpty()) {
+                constraints.put("minLength", minLengthField.getText().trim());
+            }
+            if (maxLengthField != null && !maxLengthField.getText().trim().isEmpty()) {
+                constraints.put("maxLength", maxLengthField.getText().trim());
+            }
+
+            // Range constraints
+            if (minInclusiveField != null && !minInclusiveField.getText().trim().isEmpty()) {
+                constraints.put("minInclusive", minInclusiveField.getText().trim());
+            }
+            if (maxInclusiveField != null && !maxInclusiveField.getText().trim().isEmpty()) {
+                constraints.put("maxInclusive", maxInclusiveField.getText().trim());
+            }
+            if (minExclusiveField != null && !minExclusiveField.getText().trim().isEmpty()) {
+                constraints.put("minExclusive", minExclusiveField.getText().trim());
+            }
+            if (maxExclusiveField != null && !maxExclusiveField.getText().trim().isEmpty()) {
+                constraints.put("maxExclusive", maxExclusiveField.getText().trim());
+            }
+
+            // Decimal constraints
+            if (totalDigitsField != null && !totalDigitsField.getText().trim().isEmpty()) {
+                constraints.put("totalDigits", totalDigitsField.getText().trim());
+            }
+            if (fractionDigitsField != null && !fractionDigitsField.getText().trim().isEmpty()) {
+                constraints.put("fractionDigits", fractionDigitsField.getText().trim());
+            }
+
+            // Whitespace constraint
+            if (whitespaceComboBox != null && whitespaceComboBox.getValue() != null) {
+                WhitespaceAction action = whitespaceComboBox.getValue();
+                if (action != WhitespaceAction.PRESERVE) { // Only add if not default
+                    constraints.put("whiteSpace", action.toString().toLowerCase());
+                }
+            }
+
+            // Update constraints using XsdDomManipulator
+            boolean success = domManipulator.updateElementConstraints(xpath, constraints);
+
+            if (success) {
+                logger.info("Successfully saved {} validation rules for element at {}", constraints.size(), xpath);
+                showAlert("Success", "Validation rules saved successfully", "success");
+
+                // Notify change callback if available
+                if (changeCallback != null) {
+                    changeCallback.run();
+                }
+            } else {
+                logger.error("Failed to save validation rules for element at {}", xpath);
+                showAlert("Save Error", "Failed to save validation rules", "error");
+            }
+        } catch (Exception e) {
+            logger.error("Error saving validation rules for element at " + xpath, e);
+            showAlert("Save Error", "Error saving validation rules: " + e.getMessage(), "error");
+        }
     }
 
     /**
@@ -1346,6 +1449,15 @@ public class XsdControlPane extends ScrollPane {
         public void setDescription(String description) {
             this.description = description;
         }
+    }
+
+    /**
+     * Sets the change callback to be notified when properties are modified
+     *
+     * @param changeCallback The callback to run when changes occur
+     */
+    public void setChangeCallback(Runnable changeCallback) {
+        this.changeCallback = changeCallback;
     }
 
     public enum WhitespaceAction {

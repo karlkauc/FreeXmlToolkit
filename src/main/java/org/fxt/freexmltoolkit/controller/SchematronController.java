@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -950,7 +951,7 @@ public class SchematronController {
                 Platform.runLater(() -> {
                     try {
                         SchematronErrorDetector.SchematronErrorResult result = errorDetector.detectErrors(content);
-                        // TODO: Update UI with error markers in future enhancement
+                        updateErrorMarkersInUI(result);
                         logger.debug("Error detection completed: {} issues found",
                                 result.getAllIssues().size());
                     } catch (Exception e) {
@@ -1004,6 +1005,122 @@ public class SchematronController {
             showError("Validation Results", message.toString());
         } else {
             showWarning("Validation Results", message.toString());
+        }
+    }
+
+    /**
+     * Update UI with error markers based on validation results
+     */
+    private void updateErrorMarkersInUI(SchematronErrorDetector.SchematronErrorResult result) {
+        if (errorsContent != null) {
+            // Clear existing error markers
+            errorsContent.getChildren().clear();
+
+            if (result.hasAnyIssues()) {
+                // Add error summary
+                Label summaryLabel = new Label(String.format("Found %d issues (%d errors, %d warnings, %d info)",
+                        result.getAllIssues().size(), result.getErrors().size(),
+                        result.getWarnings().size(), result.getInfos().size()));
+                summaryLabel.getStyleClass().add("error-summary");
+                summaryLabel.setStyle("-fx-font-weight: bold; -fx-padding: 5px;");
+                errorsContent.getChildren().add(summaryLabel);
+
+                // Add separator
+                Separator separator = new Separator();
+                errorsContent.getChildren().add(separator);
+
+                // Add errors
+                if (result.hasErrors()) {
+                    addErrorSection("ERRORS", result.getErrors(), "error-item");
+                }
+
+                // Add warnings
+                if (result.hasWarnings()) {
+                    addErrorSection("WARNINGS", result.getWarnings(), "warning-item");
+                }
+
+                // Add info
+                if (result.hasInfos()) {
+                    addErrorSection("INFO", result.getInfos(), "info-item");
+                }
+            } else {
+                // Show success message
+                Label successLabel = new Label("✓ No validation errors found");
+                successLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold; -fx-padding: 10px;");
+                errorsContent.getChildren().add(successLabel);
+            }
+        }
+    }
+
+    /**
+     * Add an error section to the UI
+     */
+    private void addErrorSection(String title, java.util.List<SchematronErrorDetector.SchematronError> errors, String styleClass) {
+        if (errors.isEmpty()) return;
+
+        Label sectionLabel = new Label(title + " (" + errors.size() + "):");
+        sectionLabel.setStyle("-fx-font-weight: bold; -fx-padding: 5px 0px 2px 0px;");
+        errorsContent.getChildren().add(sectionLabel);
+
+        for (SchematronErrorDetector.SchematronError error : errors) {
+            HBox errorItem = new HBox(5);
+            errorItem.getStyleClass().add(styleClass);
+            errorItem.setStyle("-fx-padding: 2px 10px; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1px 0;");
+
+            // Line number label (clickable)
+            Label lineLabel = new Label("Line " + error.line() + ":");
+            lineLabel.setStyle("-fx-text-fill: #666; -fx-min-width: 60px; -fx-cursor: hand;");
+            lineLabel.setOnMouseClicked(e -> navigateToLine(error.line()));
+
+            // Error message
+            Label messageLabel = new Label(error.message());
+            messageLabel.setWrapText(true);
+            messageLabel.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(messageLabel, Priority.ALWAYS);
+
+            // Set different colors based on error type
+            if (styleClass.contains("error")) {
+                messageLabel.setStyle("-fx-text-fill: #c53030;");
+                lineLabel.setStyle(lineLabel.getStyle() + " -fx-text-fill: #c53030;");
+            } else if (styleClass.contains("warning")) {
+                messageLabel.setStyle("-fx-text-fill: #d69e2e;");
+                lineLabel.setStyle(lineLabel.getStyle() + " -fx-text-fill: #d69e2e;");
+            } else {
+                messageLabel.setStyle("-fx-text-fill: #3182ce;");
+                lineLabel.setStyle(lineLabel.getStyle() + " -fx-text-fill: #3182ce;");
+            }
+
+            errorItem.getChildren().addAll(lineLabel, messageLabel);
+            errorsContent.getChildren().add(errorItem);
+        }
+    }
+
+    /**
+     * Navigate to a specific line in the code editor
+     */
+    private void navigateToLine(int lineNumber) {
+        if (xmlCodeEditor != null) {
+            try {
+                // Calculate position for the specified line
+                String text = xmlCodeEditor.getText();
+                String[] lines = text.split("\n");
+
+                int position = 0;
+                for (int i = 0; i < Math.min(lineNumber - 1, lines.length); i++) {
+                    position += lines[i].length() + 1; // +1 for newline character
+                }
+
+                // Move cursor to the calculated position
+                xmlCodeEditor.getCodeArea().moveTo(position);
+                xmlCodeEditor.requestFocus();
+
+                // Scroll to make the line visible
+                xmlCodeEditor.getCodeArea().requestFollowCaret();
+
+                logger.debug("Navigated to line {} at position {}", lineNumber, position);
+            } catch (Exception e) {
+                logger.warn("Could not navigate to line {}: {}", lineNumber, e.getMessage());
+            }
         }
     }
 

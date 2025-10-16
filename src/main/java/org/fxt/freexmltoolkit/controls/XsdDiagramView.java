@@ -3766,8 +3766,8 @@ public class XsdDiagramView {
                 if (command.execute()) {
                     // Add command to undo stack if XsdController supports it
                     if (controller != null) {
-                        // TODO: Add command to undo stack when XsdController supports it
-                        logger.debug("Command executed successfully, undo stack integration pending");
+                        controller.addCommandToUndoStack(command);
+                        logger.debug("Command executed successfully and added to undo stack");
                     }
 
                     // Refresh the view to show changes

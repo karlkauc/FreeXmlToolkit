@@ -138,6 +138,29 @@ public class XsdUndoManager {
     }
 
     /**
+     * Add an already executed command to the undo stack
+     * This is useful when commands are executed outside of the undo manager
+     * but still need to be undoable
+     *
+     * @param command the already executed command to add to undo stack
+     */
+    public void addExecutedCommand(XsdCommand command) {
+        if (command != null && command.canUndo()) {
+            // Clear redo stack when new command is added
+            redoStack.clear();
+
+            undoStack.push(command);
+
+            // Limit undo stack size
+            while (undoStack.size() > maxUndoSize) {
+                undoStack.removeLast();
+            }
+
+            notifyStateChanged();
+        }
+    }
+
+    /**
      * Clear all undo/redo history
      */
     public void clear() {
