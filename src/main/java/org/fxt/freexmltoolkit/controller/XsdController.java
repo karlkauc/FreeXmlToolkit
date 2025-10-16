@@ -397,6 +397,9 @@ public class XsdController {
         // Initialize visualization toggle buttons
         setupVisualizationToggleButtons();
 
+        // Setup bidirectional synchronization between text and graphic tabs
+        setupTextToGraphicSync();
+
         applyEditorSettings();
     }
 
@@ -427,6 +430,87 @@ public class XsdController {
             }
         } catch (Exception e) {
             logger.error("Failed to apply editor settings.", e);
+        }
+    }
+
+    /**
+     * Sets up automatic synchronization from text tab to graphic tab.
+     * When the user switches from text tab to graphic tab, the graphic view
+     * is automatically updated with the current text content.
+     */
+    private void setupTextToGraphicSync() {
+        // Track the last selected tab to detect tab switches
+        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) -> {
+            // When switching FROM text tab TO graphic tab
+            if (oldTab == textTab && newTab == xsdTab) {
+                syncTextToGraphic();
+            }
+            // When switching FROM graphic tab TO text tab
+            else if (oldTab == xsdTab && newTab == textTab) {
+                syncGraphicToText();
+            }
+        });
+
+        logger.debug("Bidirectional text-graphic synchronization setup completed");
+    }
+
+    /**
+     * Synchronizes the text editor content to the graphic view.
+     * This is called when switching from text tab to graphic tab.
+     */
+    private void syncTextToGraphic() {
+        if (sourceCodeEditor == null || sourceCodeEditor.getCodeArea() == null) {
+            return;
+        }
+
+        String currentText = sourceCodeEditor.getCodeArea().getText();
+        if (currentText == null || currentText.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            // Update DOM manipulator with current text
+            if (currentDomManipulator == null) {
+                currentDomManipulator = new XsdDomManipulator();
+            }
+            currentDomManipulator.loadXsd(currentText);
+
+            // Reload graphic view without triggering text update
+            loadXsdIntoGraphicView(currentText);
+
+            logger.debug("Synchronized text content to graphic view");
+        } catch (Exception e) {
+            logger.error("Failed to synchronize text to graphic view", e);
+        }
+    }
+
+    /**
+     * Synchronizes the graphic view content to the text editor.
+     * This is called when switching from graphic tab to text tab.
+     */
+    private void syncGraphicToText() {
+        if (sourceCodeEditor == null || sourceCodeEditor.getCodeArea() == null) {
+            return;
+        }
+
+        if (currentDomManipulator == null) {
+            return;
+        }
+
+        try {
+            String xsdContent = currentDomManipulator.getXsdAsString();
+            if (xsdContent == null || xsdContent.trim().isEmpty()) {
+                return;
+            }
+
+            // Only update if content has changed to avoid unnecessary updates
+            String currentText = sourceCodeEditor.getCodeArea().getText();
+            if (!xsdContent.equals(currentText)) {
+                sourceCodeEditor.getCodeArea().replaceText(xsdContent);
+                logger.debug("Synchronized graphic content to text editor");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to synchronize graphic to text view", e);
         }
     }
 
@@ -914,14 +998,16 @@ public class XsdController {
                 saveXsdButtonGraphic.setDisable(false);
             }
 
-            // Store the manipulator for saving
-            if (currentDomManipulator == null) {
-                currentDomManipulator = new XsdDomManipulator();
-                try {
-                    currentDomManipulator.loadXsd(updatedXsd);
-                } catch (Exception e) {
-                    logger.error("Failed to load XSD into manipulator", e);
+            // Always update the DOM manipulator with the latest content
+            // This ensures that changes from graphic view are reflected in the manipulator
+            try {
+                if (currentDomManipulator == null) {
+                    currentDomManipulator = new XsdDomManipulator();
                 }
+                currentDomManipulator.loadXsd(updatedXsd);
+                logger.debug("Updated DOM manipulator with latest XSD content");
+            } catch (Exception e) {
+                logger.error("Failed to load XSD into manipulator", e);
             }
         }
     }
@@ -1558,19 +1644,25 @@ public class XsdController {
             // Create backup if enabled
             createBackupIfEnabled(file);
 
-            // Get the XSD content
-            String updatedXsd;
-            if (currentDomManipulator != null) {
-                updatedXsd = currentDomManipulator.getXsdAsString();
-            } else if (sourceCodeEditor != null) {
-                updatedXsd = sourceCodeEditor.getCodeArea().getText();
-            } else {
-                showError("Failed to get XSD content", "Could not retrieve the XSD content.");
-                return;
+            // Get the XSD content - ALWAYS prioritize the text editor if it has content
+            // This ensures that what the user sees in the text tab is what gets saved
+            String updatedXsd = null;
+            if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+                String textContent = sourceCodeEditor.getCodeArea().getText();
+                if (textContent != null && !textContent.trim().isEmpty()) {
+                    updatedXsd = textContent;
+                    logger.debug("Saving XSD from text editor (current view)");
+                }
             }
 
-            if (updatedXsd == null || updatedXsd.isEmpty()) {
-                showError("Failed to get XSD content", "XSD content is empty.");
+            // Fallback to DOM manipulator only if text editor is empty
+            if (updatedXsd == null && currentDomManipulator != null) {
+                updatedXsd = currentDomManipulator.getXsdAsString();
+                logger.debug("Saving XSD from DOM manipulator (fallback)");
+            }
+
+            if (updatedXsd == null || updatedXsd.trim().isEmpty()) {
+                showError("Failed to get XSD content", "Could not retrieve the XSD content.");
                 return;
             }
 
@@ -2927,16 +3019,19 @@ public class XsdController {
     public void updateValidationStatus(String statusMessage, boolean hasErrors) {
         Platform.runLater(() -> {
             try {
-                // Update status in a status label if available
-                // This could be integrated into the existing status bar or info label
                 logger.debug("Validation status update: {} (errors: {})", statusMessage, hasErrors);
 
-                // TODO: Add actual status label update when UI component is available
-                // For now, log the validation status
-                if (hasErrors) {
-                    logger.warn("XSD validation has errors: {}", statusMessage);
-                } else {
-                    logger.info("XSD validation status: {}", statusMessage);
+                // Update the status text label with validation status
+                if (statusText != null) {
+                    if (hasErrors) {
+                        statusText.setText("⚠ " + statusMessage);
+                        statusText.setStyle("-fx-text-fill: #d32f2f; -fx-font-weight: bold;");
+                        logger.warn("XSD validation has errors: {}", statusMessage);
+                    } else {
+                        statusText.setText("✓ " + statusMessage);
+                        statusText.setStyle("-fx-text-fill: #388e3c; -fx-font-weight: normal;");
+                        logger.info("XSD validation status: {}", statusMessage);
+                    }
                 }
 
             } catch (Exception e) {
@@ -3033,18 +3128,22 @@ public class XsdController {
                         // Refresh the XSD diagram if it exists
                         String updatedContent = currentDomManipulator.getXmlContent();
                         if (updatedContent != null) {
-                            // Update the text editor
-                            // TODO: Add method to XmlCodeEditor to replace entire content
-                            // if (sourceCodeEditor != null) {
-                            //     sourceCodeEditor.replaceAllText(updatedContent);
-                            // }
+                            // Update the text editor with the modified content
+                            if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+                                sourceCodeEditor.getCodeArea().replaceText(updatedContent);
+                                logger.debug("Text editor updated with modified XSD content after type command");
+                            }
 
-                            // Note: Diagram view refresh can be added later if needed
+                            // Refresh the graphic view without rebuilding (false parameter)
+                            updateXsdContent(updatedContent, false);
 
                             // Refresh the type library
                             if (typeLibraryPanel != null) {
                                 typeLibraryPanel.loadTypes();
                             }
+
+                            // Mark as modified
+                            markAsModified();
                         }
                     } catch (Exception e) {
                         logger.error("Error refreshing UI after command execution", e);
@@ -3109,14 +3208,34 @@ public class XsdController {
     }
 
     /**
-     * Marks the current XSD as modified and updates UI accordingly
+     * Marks the current XSD as modified and updates UI accordingly.
+     * This updates the unsaved changes flag, enables save buttons,
+     * and updates the status text to inform the user.
      */
     public void markAsModified() {
-        // Log that the XSD is marked as modified
         logger.debug("XSD marked as modified");
 
-        // TODO: Implement proper modified state tracking if needed
-        // This might involve updating the main tab title or status indicators
+        // Update the internal modified state
+        hasUnsavedChanges = true;
+
+        // Enable save buttons
+        Platform.runLater(() -> {
+            if (saveXsdButton != null) {
+                saveXsdButton.setDisable(false);
+            }
+            if (saveXsdButtonGraphic != null) {
+                saveXsdButtonGraphic.setDisable(false);
+            }
+
+            // Update status text to indicate unsaved changes
+            if (statusText != null) {
+                String currentFile = currentXsdFile != null ? currentXsdFile.getName() : "XSD";
+                statusText.setText("● " + currentFile + " - modified (unsaved changes)");
+                statusText.setStyle("-fx-text-fill: #ff9800; -fx-font-weight: bold;");
+            }
+
+            logger.debug("UI updated to reflect modified state");
+        });
     }
 
     /**
