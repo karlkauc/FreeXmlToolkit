@@ -55,6 +55,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 
 public class XsdDocumentationService {
@@ -79,6 +80,7 @@ public class XsdDocumentationService {
     private TaskProgressListener progressListener;
     private final XsdSampleDataGenerator xsdSampleDataGenerator = new XsdSampleDataGenerator();
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+    private final RandomGenerator random = RandomGenerator.getDefault();
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
     XsdDocumentationSvgService xsdDocumentationSvgService = new XsdDocumentationSvgService();
 
@@ -1457,12 +1459,95 @@ public class XsdDocumentationService {
 
                 if (!childElements.isEmpty()) {
                     sb.append("\n");
-                    for (XsdExtendedElement childElement : childElements) {
-                        buildXmlElementContent(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel + 1);
-                    }
+                    // Process children, handling CHOICE elements with random selection
+                    processChildElementsForGeneration(sb, childElements, mandatoryOnly, maxOccurrences, indentLevel + 1);
                     sb.append(indent);
                 }
                 sb.append("</").append(element.getElementName()).append(">\n");
+            }
+        }
+    }
+
+    /**
+     * Processes child elements for XML generation, handling CHOICE elements with random selection.
+     * When a child element is a CHOICE container, this method randomly selects one or more elements
+     * from the choice based on the choice's cardinality (minOccurs/maxOccurs).
+     *
+     * @param sb             StringBuilder to append the generated XML
+     * @param childElements  List of child elements to process
+     * @param mandatoryOnly  Whether to only generate mandatory elements
+     * @param maxOccurrences Maximum number of occurrences for repeating elements
+     * @param indentLevel    Current indentation level
+     */
+    private void processChildElementsForGeneration(StringBuilder sb, List<XsdExtendedElement> childElements,
+                                                   boolean mandatoryOnly, int maxOccurrences, int indentLevel) {
+        for (XsdExtendedElement childElement : childElements) {
+            // Check if this child is a CHOICE container
+            if (childElement.getElementName() != null && childElement.getElementName().startsWith("CHOICE")) {
+                // Get the choice's cardinality
+                Node choiceNode = childElement.getCurrentNode();
+                String minOccursStr = getAttributeValue(choiceNode, "minOccurs", "1");
+                String maxOccursStr = getAttributeValue(choiceNode, "maxOccurs", "1");
+
+                int minOccurs;
+                int maxOccurs;
+                try {
+                    minOccurs = Integer.parseInt(minOccursStr);
+                } catch (NumberFormatException e) {
+                    minOccurs = 1;
+                }
+
+                if ("unbounded".equalsIgnoreCase(maxOccursStr)) {
+                    maxOccurs = maxOccurrences;
+                } else {
+                    try {
+                        maxOccurs = Math.min(Integer.parseInt(maxOccursStr), maxOccurrences);
+                    } catch (NumberFormatException e) {
+                        maxOccurs = 1;
+                    }
+                }
+
+                // Skip optional choices if generating only mandatory elements
+                if (mandatoryOnly && minOccurs == 0) {
+                    continue;
+                }
+
+                // Get the options from the choice (the children of the CHOICE element)
+                List<XsdExtendedElement> choiceOptions = childElement.getChildren().stream()
+                        .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
+                        .filter(Objects::nonNull)
+                        .filter(e -> !e.getElementName().startsWith("@"))
+                        .toList();
+
+                if (choiceOptions.isEmpty()) {
+                    logger.debug("CHOICE element has no valid options, skipping");
+                    continue;
+                }
+
+                // Determine how many elements to select from the choice
+                // Use minOccurs as the count, but cap it at the available options
+                int selectCount = Math.max(1, Math.min(minOccurs, choiceOptions.size()));
+
+                // If not mandatory-only mode, we might select more based on maxOccurs
+                if (!mandatoryOnly && maxOccurs > selectCount) {
+                    // Randomly decide how many to select (between minOccurs and maxOccurs)
+                    selectCount = minOccurs + random.nextInt(Math.min(maxOccurs - minOccurs + 1, choiceOptions.size() - selectCount + 1));
+                }
+
+                // Randomly select elements from the choice
+                List<XsdExtendedElement> selectedOptions = new ArrayList<>(choiceOptions);
+                Collections.shuffle(selectedOptions, new Random(random.nextLong()));
+
+                // Generate XML for the selected options
+                for (int i = 0; i < selectCount && i < selectedOptions.size(); i++) {
+                    XsdExtendedElement selected = selectedOptions.get(i);
+                    logger.debug("Selected element '{}' from CHOICE (option {} of {})",
+                            selected.getElementName(), i + 1, selectCount);
+                    buildXmlElementContent(sb, selected, mandatoryOnly, maxOccurrences, indentLevel);
+                }
+            } else {
+                // Not a CHOICE element, process normally
+                buildXmlElementContent(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel);
             }
         }
     }
