@@ -108,7 +108,9 @@ public class XsdController {
 
     // --- NEW: Search and replace functionality ---
     private FindReplaceDialog findReplaceDialog;
+    private FindReplaceDialog sampleDataFindReplaceDialog;
     private javafx.event.EventHandler<KeyEvent> searchKeyEventFilter;
+    private javafx.event.EventHandler<KeyEvent> sampleDataSearchKeyEventFilter;
 
     // --- Auto-save functionality ---
     private Timer autoSaveTimer;
@@ -592,6 +594,72 @@ public class XsdController {
     private void ensureSampleDataTextAreaInitialized() {
         if (sampleDataTextArea.getParagraphGraphicFactory() == null) {
             sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));
+        }
+        // Setup search keyboard shortcuts for sample data text area
+        setupSampleDataSearchKeyboardShortcuts();
+    }
+
+    /**
+     * Sets up keyboard shortcuts for search/replace in the sample data text area
+     */
+    private void setupSampleDataSearchKeyboardShortcuts() {
+        if (sampleDataTextArea == null) {
+            return;
+        }
+
+        // Initialize the search key event filter if not already done
+        if (sampleDataSearchKeyEventFilter == null) {
+            sampleDataSearchKeyEventFilter = event -> {
+                if (event.isControlDown() || event.isMetaDown()) {
+                    switch (event.getCode()) {
+                        case F -> {
+                            showSampleDataFindReplaceDialog();
+                            event.consume();
+                        }
+                        case R -> {
+                            showSampleDataFindReplaceDialog();
+                            event.consume();
+                        }
+                    }
+                }
+            };
+        }
+
+        // Remove existing event filters to avoid duplicates
+        sampleDataTextArea.removeEventFilter(KeyEvent.KEY_PRESSED, sampleDataSearchKeyEventFilter);
+
+        // Add the search key event filter
+        sampleDataTextArea.addEventFilter(KeyEvent.KEY_PRESSED, sampleDataSearchKeyEventFilter);
+
+        logger.debug("Search keyboard shortcuts set up for sample data text area");
+    }
+
+    /**
+     * Lazy initialization of FindReplaceDialog for sample data text area
+     */
+    private void initializeSampleDataFindReplaceDialog() {
+        if (sampleDataFindReplaceDialog != null) {
+            return; // Already initialized
+        }
+
+        try {
+            if (sampleDataTextArea != null) {
+                sampleDataFindReplaceDialog = new FindReplaceDialog(sampleDataTextArea);
+                logger.debug("FindReplaceDialog initialized successfully for sample data text area");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to initialize FindReplaceDialog for sample data text area", e);
+        }
+    }
+
+    /**
+     * Shows the FindReplaceDialog for the sample data text area with lazy initialization
+     */
+    private void showSampleDataFindReplaceDialog() {
+        initializeSampleDataFindReplaceDialog(); // Lazy initialization
+        if (sampleDataFindReplaceDialog != null) {
+            sampleDataFindReplaceDialog.show();
+            logger.debug("FindReplaceDialog shown for sample data text area");
         }
     }
 
