@@ -23,6 +23,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.*;
 import org.fxt.freexmltoolkit.controls.editor.FindReplaceDialog;
+import org.fxt.freexmltoolkit.controls.intellisense.XmlCodeFoldingManager;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.*;
@@ -111,6 +112,9 @@ public class XsdController {
     private FindReplaceDialog sampleDataFindReplaceDialog;
     private javafx.event.EventHandler<KeyEvent> searchKeyEventFilter;
     private javafx.event.EventHandler<KeyEvent> sampleDataSearchKeyEventFilter;
+
+    // --- Code folding functionality ---
+    private XmlCodeFoldingManager sampleDataCodeFoldingManager;
 
     // --- Auto-save functionality ---
     private Timer autoSaveTimer;
@@ -592,9 +596,12 @@ public class XsdController {
      * Lazy initialization for sample data CodeArea
      */
     private void ensureSampleDataTextAreaInitialized() {
-        if (sampleDataTextArea.getParagraphGraphicFactory() == null) {
-            sampleDataTextArea.setParagraphGraphicFactory(LineNumberFactory.get(sampleDataTextArea));
+        // Initialize code folding manager if not already done
+        if (sampleDataCodeFoldingManager == null) {
+            sampleDataCodeFoldingManager = new XmlCodeFoldingManager(sampleDataTextArea);
+            logger.debug("Code folding manager initialized for sample data text area");
         }
+
         // Setup search keyboard shortcuts for sample data text area
         setupSampleDataSearchKeyboardShortcuts();
     }
@@ -660,6 +667,34 @@ public class XsdController {
         if (sampleDataFindReplaceDialog != null) {
             sampleDataFindReplaceDialog.show();
             logger.debug("FindReplaceDialog shown for sample data text area");
+        }
+    }
+
+    /**
+     * Gets the code folding manager for the sample data text area
+     * @return The XmlCodeFoldingManager instance, or null if not initialized
+     */
+    public XmlCodeFoldingManager getSampleDataCodeFoldingManager() {
+        return sampleDataCodeFoldingManager;
+    }
+
+    /**
+     * Folds all foldable regions in the sample data text area
+     */
+    public void foldAllSampleData() {
+        if (sampleDataCodeFoldingManager != null) {
+            sampleDataCodeFoldingManager.foldAll();
+            logger.debug("Folded all regions in sample data text area");
+        }
+    }
+
+    /**
+     * Unfolds all folded regions in the sample data text area
+     */
+    public void unfoldAllSampleData() {
+        if (sampleDataCodeFoldingManager != null) {
+            sampleDataCodeFoldingManager.unfoldAll();
+            logger.debug("Unfolded all regions in sample data text area");
         }
     }
 
@@ -2331,6 +2366,12 @@ public class XsdController {
             sampleDataTextArea.replaceText(resultXml);
             sampleDataTextArea.setStyleSpans(0, XmlCodeEditor.computeHighlighting(resultXml));
             applyEditorSettings();
+
+            // Update code folding regions after text is set
+            if (sampleDataCodeFoldingManager != null) {
+                sampleDataCodeFoldingManager.updateFoldingRegions(resultXml);
+                logger.debug("Updated code folding regions for sample data");
+            }
 
             // Validate the generated XML against the XSD schema
             Task<XsdDocumentationService.ValidationResult> validationTask = new Task<>() {
