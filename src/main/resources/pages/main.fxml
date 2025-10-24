@@ -86,13 +86,6 @@
                             <FontIcon iconLiteral="bi-search" iconSize="16"/>
                         </graphic>
                     </CheckMenuItem>
-                    <SeparatorMenuItem/>
-                    <CheckMenuItem fx:id="codeMinimapMenuItem" onAction="#toggleCodeMinimap"
-                                   text="Code Minimap">
-                        <graphic>
-                            <FontIcon iconLiteral="bi-map" iconSize="16"/>
-                        </graphic>
-                    </CheckMenuItem>
                 </Menu>
                 <Menu text="Help &amp; About">
                     <MenuItem text="Open Online Help">

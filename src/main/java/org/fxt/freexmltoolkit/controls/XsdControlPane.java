@@ -11,6 +11,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.commands.AddAssertionCommand;
+import org.fxt.freexmltoolkit.controls.commands.DeleteAssertionCommand;
+import org.fxt.freexmltoolkit.controls.commands.EditAssertionCommand;
+import org.fxt.freexmltoolkit.controls.dialogs.AssertionEditorDialog;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.XsdDomManipulator;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -33,6 +37,7 @@ public class XsdControlPane extends ScrollPane {
     // Current node and DOM manipulator
     private XsdNodeInfo currentNode;
     private XsdDomManipulator domManipulator;
+    private XsdUndoManager undoManager;
 
     // Callback for property changes
     private java.util.function.Consumer<String> onPropertyChangedCallback;
@@ -87,6 +92,11 @@ public class XsdControlPane extends ScrollPane {
     private TableView<CustomFacet> customFacetsTable;
     private ObservableList<CustomFacet> customFacetsData;
 
+    // XSD 1.1 Assertions Section
+    private VBox assertionsSection;
+    private ListView<AssertionItem> assertionsListView;
+    private ObservableList<AssertionItem> assertionsData;
+
     public XsdControlPane() {
         initializePane();
         createContent();
@@ -106,6 +116,7 @@ public class XsdControlPane extends ScrollPane {
     private void createContent() {
         createPropertiesSection();
         createValidationSection();
+        createAssertionsSection();
         showNoSelectionState();
     }
 
@@ -279,6 +290,96 @@ public class XsdControlPane extends ScrollPane {
         );
 
         mainContainer.getChildren().add(validationSection);
+    }
+
+    private void createAssertionsSection() {
+        assertionsSection = new VBox(15);
+        assertionsSection.setStyle("-fx-background-color: white; -fx-border-color: #dee2e6; " +
+                "-fx-border-width: 1px; -fx-border-radius: 5px; -fx-padding: 15px;");
+
+        // Title
+        Label titleLabel = new Label("XSD 1.1 Assertions");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
+        FontIcon assertIcon = new FontIcon("bi-check-circle");
+        assertIcon.setIconColor(javafx.scene.paint.Color.web("#1976d2"));
+        titleLabel.setGraphic(assertIcon);
+
+        // Info label
+        Label infoLabel = new Label("Define XPath 2.0 expressions to validate element content");
+        infoLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
+
+        // Assertions list
+        assertionsData = FXCollections.observableArrayList();
+        assertionsListView = new ListView<>(assertionsData);
+        assertionsListView.setPrefHeight(150);
+        assertionsListView.setPlaceholder(new Label("No assertions defined"));
+
+        // Custom cell factory for better display
+        assertionsListView.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(AssertionItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    VBox cellContent = new VBox(3);
+
+                    // Test expression
+                    Label testLabel = new Label(item.testExpression);
+                    testLabel.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; " +
+                            "-fx-font-size: 11px; -fx-font-weight: bold;");
+
+                    // Documentation (if present)
+                    if (item.documentation != null && !item.documentation.isEmpty()) {
+                        Label docLabel = new Label(item.documentation);
+                        docLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 10px;");
+                        docLabel.setWrapText(true);
+                        cellContent.getChildren().addAll(testLabel, docLabel);
+                    } else {
+                        cellContent.getChildren().add(testLabel);
+                    }
+
+                    setGraphic(cellContent);
+                }
+            }
+        });
+
+        // Controls
+        HBox controls = new HBox(10);
+        controls.setPadding(new Insets(5, 0, 0, 0));
+
+        Button addButton = new Button("Add Assertion");
+        addButton.setGraphic(new FontIcon("bi-plus"));
+        addButton.setStyle("-fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold;");
+        addButton.setOnAction(e -> showAddAssertionDialog());
+
+        Button editButton = new Button("Edit");
+        editButton.setGraphic(new FontIcon("bi-pencil"));
+        editButton.setOnAction(e -> showEditAssertionDialog());
+        editButton.disableProperty().bind(assertionsListView.getSelectionModel().selectedItemProperty().isNull());
+
+        Button deleteButton = new Button("Delete");
+        deleteButton.setGraphic(new FontIcon("bi-trash"));
+        deleteButton.setStyle("-fx-background-color: #d32f2f; -fx-text-fill: white;");
+        deleteButton.setOnAction(e -> deleteSelectedAssertion());
+        deleteButton.disableProperty().bind(assertionsListView.getSelectionModel().selectedItemProperty().isNull());
+
+        controls.getChildren().addAll(addButton, editButton, deleteButton);
+
+        // Initially hide the section (will be shown only for compatible nodes)
+        assertionsSection.setVisible(false);
+        assertionsSection.setManaged(false);
+
+        assertionsSection.getChildren().addAll(
+                titleLabel,
+                infoLabel,
+                new Separator(),
+                assertionsListView,
+                controls
+        );
+
+        mainContainer.getChildren().add(assertionsSection);
     }
 
     private VBox createGlobalTestSection() {
@@ -564,6 +665,9 @@ public class XsdControlPane extends ScrollPane {
         // Update validation section
         updateValidationSection(node);
 
+        // Update assertions section
+        updateAssertionsSection(node);
+
         logger.debug("Updated XsdControlPane for node: {}", node.name());
     }
 
@@ -605,6 +709,163 @@ public class XsdControlPane extends ScrollPane {
     private void updateValidationSectionVisibility(String dataType) {
         // For now, show all sections - could be optimized to show only relevant ones
         // based on data type like in the original XsdValidationPanel
+    }
+
+    private void updateAssertionsSection(XsdNodeInfo node) {
+        // Assertions are only applicable to complexType and element nodes
+        boolean isCompatibleNode = node.nodeType() == XsdNodeInfo.NodeType.ELEMENT ||
+                node.nodeType() == XsdNodeInfo.NodeType.COMPLEX_TYPE;
+
+        if (isCompatibleNode) {
+            assertionsSection.setVisible(true);
+            assertionsSection.setManaged(true);
+            loadAssertions(node);
+        } else {
+            assertionsSection.setVisible(false);
+            assertionsSection.setManaged(false);
+            if (assertionsData != null) {
+                assertionsData.clear();
+            }
+        }
+    }
+
+    private void loadAssertions(XsdNodeInfo node) {
+        if (assertionsData == null || domManipulator == null || node == null) {
+            return;
+        }
+
+        assertionsData.clear();
+
+        try {
+            // Find all assertion child nodes
+            if (node.children() != null) {
+                for (XsdNodeInfo child : node.children()) {
+                    if (child.nodeType() == XsdNodeInfo.NodeType.ASSERT) {
+                        String testExpr = child.xpathExpression();
+                        String doc = child.documentation();
+                        String namespace = child.xsd11Attributes() != null ?
+                                child.xsd11Attributes().get("xpath-default-namespace") : null;
+
+                        AssertionItem item = new AssertionItem(child, testExpr, namespace, doc);
+                        assertionsData.add(item);
+                    }
+                }
+            }
+
+            logger.debug("Loaded {} assertions for node: {}", assertionsData.size(), node.name());
+
+        } catch (Exception e) {
+            logger.error("Error loading assertions for node: " + node.name(), e);
+        }
+    }
+
+    private void showAddAssertionDialog() {
+        if (currentNode == null || domManipulator == null) {
+            showAlert("No Element Selected", "Please select an element to add an assertion.", "warning");
+            return;
+        }
+
+        try {
+            String elementContext = currentNode.name() != null ? currentNode.name() : "complexType";
+            AssertionEditorDialog dialog = new AssertionEditorDialog(elementContext);
+
+            dialog.showAndWait().ifPresent(result -> {
+                AddAssertionCommand command = new AddAssertionCommand(
+                        domManipulator,
+                        currentNode,
+                        result.testExpression(),
+                        result.xpathDefaultNamespace(),
+                        result.documentation()
+                );
+
+                if (undoManager != null && undoManager.executeCommand(command)) {
+                    // Reload assertions
+                    loadAssertions(currentNode);
+                    notifyChanges("Assertion added");
+                } else {
+                    showAlert("Failed to add assertion", "Could not add the assertion", "error");
+                }
+            });
+
+        } catch (Exception e) {
+            logger.error("Error showing add assertion dialog", e);
+            showAlert("Error", "Failed to open assertion dialog: " + e.getMessage(), "error");
+        }
+    }
+
+    private void showEditAssertionDialog() {
+        AssertionItem selected = assertionsListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        try {
+            String elementContext = currentNode.name() != null ? currentNode.name() : "complexType";
+            AssertionEditorDialog dialog = new AssertionEditorDialog(
+                    elementContext,
+                    selected.testExpression,
+                    selected.xpathDefaultNamespace,
+                    selected.documentation
+            );
+
+            dialog.showAndWait().ifPresent(result -> {
+                EditAssertionCommand command = new EditAssertionCommand(
+                        domManipulator,
+                        selected.assertionNode,
+                        result.testExpression(),
+                        result.xpathDefaultNamespace(),
+                        result.documentation()
+                );
+
+                if (undoManager != null && undoManager.executeCommand(command)) {
+                    // Reload assertions
+                    loadAssertions(currentNode);
+                    notifyChanges("Assertion edited");
+                } else {
+                    showAlert("Failed to edit assertion", "Could not edit the assertion", "error");
+                }
+            });
+
+        } catch (Exception e) {
+            logger.error("Error showing edit assertion dialog", e);
+            showAlert("Error", "Failed to open assertion dialog: " + e.getMessage(), "error");
+        }
+    }
+
+    private void deleteSelectedAssertion() {
+        AssertionItem selected = assertionsListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        try {
+            // Show confirmation dialog
+            Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmation.setTitle("Delete Assertion");
+            confirmation.setHeaderText("Are you sure you want to delete this assertion?");
+            confirmation.setContentText(selected.testExpression);
+
+            confirmation.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.OK) {
+                    DeleteAssertionCommand command = new DeleteAssertionCommand(
+                            domManipulator,
+                            selected.assertionNode
+                    );
+
+                    if (undoManager != null && undoManager.executeCommand(command)) {
+                        // Reload assertions
+                        loadAssertions(currentNode);
+                        notifyChanges("Assertion deleted");
+                    } else {
+                        showAlert("Failed to delete assertion", "Could not delete the assertion", "error");
+                    }
+                }
+            });
+
+        } catch (Exception e) {
+            logger.error("Error deleting assertion", e);
+            showAlert("Error", "Failed to delete assertion: " + e.getMessage(), "error");
+        }
     }
 
     private void showNoSelectionState() {
@@ -650,6 +911,9 @@ public class XsdControlPane extends ScrollPane {
         if (whitespaceComboBox != null) whitespaceComboBox.setValue(WhitespaceAction.PRESERVE);
 
         if (customFacetsData != null) customFacetsData.clear();
+
+        // Clear assertions
+        if (assertionsData != null) assertionsData.clear();
     }
 
     private void loadEnumerations() {
@@ -1459,6 +1723,29 @@ public class XsdControlPane extends ScrollPane {
     public void setChangeCallback(Runnable changeCallback) {
         this.changeCallback = changeCallback;
     }
+
+    /**
+     * Sets the undo manager for assertion operations
+     *
+     * @param undoManager The undo manager to use for commands
+     */
+    public void setUndoManager(XsdUndoManager undoManager) {
+        this.undoManager = undoManager;
+    }
+
+    /**
+         * Helper class to represent an assertion item in the ListView
+         */
+        private record AssertionItem(XsdNodeInfo assertionNode, String testExpression, String xpathDefaultNamespace,
+                                     String documentation) {
+            private AssertionItem(XsdNodeInfo assertionNode, String testExpression,
+                                  String xpathDefaultNamespace, String documentation) {
+                this.assertionNode = assertionNode;
+                this.testExpression = testExpression != null ? testExpression : "";
+                this.xpathDefaultNamespace = xpathDefaultNamespace;
+                this.documentation = documentation;
+            }
+        }
 
     public enum WhitespaceAction {
         PRESERVE("preserve"),

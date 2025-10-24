@@ -46,6 +46,9 @@ public class SyntaxHighlightManager {
     // Cache for enumeration elements
     private final Map<String, Set<String>> enumerationElementsByContext = new HashMap<>();
 
+    // Callback invoked after styles are applied
+    private Runnable onStylesApplied;
+
     /**
      * Constructor for SyntaxHighlightManager.
      *
@@ -89,15 +92,25 @@ public class SyntaxHighlightManager {
         syntaxHighlightingTask.setOnSucceeded(event -> {
             StyleSpans<Collection<String>> highlighting = syntaxHighlightingTask.getValue();
             if (highlighting != null) {
-                codeArea.setStyleSpans(0, highlighting);
+                // Apply only if the content length still matches the snapshot we computed for
+                if (codeArea.getLength() == text.length()) {
+                    applyStylesPreservingCaret(highlighting);
+                    if (onStylesApplied != null) {
+                        Platform.runLater(onStylesApplied);
+                    }
+                } else {
+                    logger.debug("Skip style apply: content length changed during highlight ({} -> {})", text.length(), codeArea.getLength());
+                }
             }
         });
 
         syntaxHighlightingTask.setOnFailed(event -> {
             logger.error("Syntax highlighting failed", syntaxHighlightingTask.getException());
-            // Fallback to basic highlighting
-            StyleSpans<Collection<String>> basicHighlighting = computeHighlighting(text);
-            codeArea.setStyleSpans(0, basicHighlighting);
+            // Fallback to basic highlighting if lengths still match
+            if (codeArea.getLength() == text.length()) {
+                StyleSpans<Collection<String>> basicHighlighting = computeHighlighting(text);
+                applyStylesPreservingCaret(basicHighlighting);
+            }
         });
 
         // Run the task using managed thread pool with proper Task execution
@@ -146,18 +159,26 @@ public class SyntaxHighlightManager {
         syntaxHighlightingTask.setOnSucceeded(event -> {
             StyleSpans<Collection<String>> highlighting = syntaxHighlightingTask.getValue();
             if (highlighting != null) {
-                codeArea.setStyleSpans(0, highlighting);
-                // Update paragraph graphics to show error markers
-                // Notify listeners that highlighting was updated
-                Platform.runLater(this::notifyHighlightingUpdated);
+                if (codeArea.getLength() == text.length()) {
+                    applyStylesPreservingCaret(highlighting);
+                    // Update paragraph graphics to show error markers
+                    Platform.runLater(this::notifyHighlightingUpdated);
+                    if (onStylesApplied != null) {
+                        Platform.runLater(onStylesApplied);
+                    }
+                } else {
+                    logger.debug("Skip style-with-errors apply: content length changed ({} -> {})", text.length(), codeArea.getLength());
+                }
             }
         });
 
         syntaxHighlightingTask.setOnFailed(event -> {
             logger.error("Syntax highlighting with errors failed", syntaxHighlightingTask.getException());
-            // Fallback to basic highlighting
-            StyleSpans<Collection<String>> basicHighlighting = computeHighlighting(text);
-            codeArea.setStyleSpans(0, basicHighlighting);
+            // Fallback to basic highlighting if still matching current length
+            if (codeArea.getLength() == text.length()) {
+                StyleSpans<Collection<String>> basicHighlighting = computeHighlighting(text);
+                applyStylesPreservingCaret(basicHighlighting);
+            }
         });
 
         // Run the task using managed thread pool
@@ -168,6 +189,32 @@ public class SyntaxHighlightManager {
             taskThread.start();
             return null;
         });
+    }
+
+    private void applyStylesPreservingCaret(StyleSpans<Collection<String>> styles) {
+        try {
+            int oldCaret = codeArea.getCaretPosition();
+            int oldAnchor = codeArea.getAnchor();
+            codeArea.setStyleSpans(0, styles);
+            int len = codeArea.getLength();
+            int restoreCaret = Math.max(0, Math.min(oldCaret, len));
+            int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
+            if (restoreCaret != restoreAnchor) {
+                codeArea.selectRange(restoreAnchor, restoreCaret);
+            } else {
+                codeArea.moveTo(restoreCaret);
+            }
+        } catch (Exception e) {
+            logger.debug("Failed to preserve caret during style application: {}", e.getMessage());
+            codeArea.setStyleSpans(0, styles);
+        }
+    }
+
+    /**
+     * Sets a callback to be run on the FX thread after styles are applied.
+     */
+    public void setOnStylesApplied(Runnable onStylesApplied) {
+        this.onStylesApplied = onStylesApplied;
     }
 
     /**

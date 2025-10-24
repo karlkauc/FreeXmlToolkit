@@ -12,7 +12,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -72,8 +71,6 @@ public class XmlCodeEditor extends VBox {
 
     // Layout components
     private HBox editorContainer;
-    private MinimapView minimapView;
-    private boolean minimapVisible = false;
 
     // IntelliSense components (will be moved to separate manager in future phases)
     private Popup intelliSensePopup;
@@ -101,6 +98,7 @@ public class XmlCodeEditor extends VBox {
     // Debouncing for syntax highlighting and validation
     private PauseTransition syntaxHighlightingDebouncer;
     private PauseTransition errorHighlightingDebouncer;
+    private PauseTransition foldingRefreshDebouncer;
 
     // Code folding (will be moved to separate manager in Phase 4)
     private final Map<Integer, Integer> foldingRegions = new HashMap<>();
@@ -190,7 +188,7 @@ public class XmlCodeEditor extends VBox {
      */
     private void setupParagraphGraphics() {
         if (!isFoldingOperation) {
-            codeArea.setParagraphGraphicFactory(createCombinedParagraphGraphicFactory());
+            withCaretPreserved(() -> codeArea.setParagraphGraphicFactory(createCombinedParagraphGraphicFactory()));
         }
     }
 
@@ -200,6 +198,13 @@ public class XmlCodeEditor extends VBox {
     private void initializeManagers() {
         // Initialize syntax highlight manager
         syntaxHighlightManager = new SyntaxHighlightManager(codeArea, threadPoolManager);
+        // After styles apply, re-follow caret to avoid any temporary jump
+        syntaxHighlightManager.setOnStylesApplied(() -> {
+            try {
+                codeArea.requestFollowCaret();
+            } catch (Exception ignored) {
+            }
+        });
 
         // Initialize validation manager
         validationManager = new XmlValidationManager(codeArea, threadPoolManager);
@@ -318,7 +323,7 @@ public class XmlCodeEditor extends VBox {
      * @param text The text to set
      */
     public void setText(String text) {
-        codeArea.replaceText(text);
+        withCaretPreserved(() -> codeArea.replaceText(text));
 
         // Auto-detect editor mode based on content
         autoDetectEditorMode(text);
@@ -674,9 +679,7 @@ public class XmlCodeEditor extends VBox {
      * Updates minimap with error information.
      */
     private void updateMinimapErrors() {
-        if (minimapView != null && minimapVisible) {
-            minimapView.updateErrors();
-        }
+        // Minimap removed
     }
 
     // =====================================================
@@ -700,6 +703,31 @@ public class XmlCodeEditor extends VBox {
         });
 
         logger.debug("Font size updated to: {} pt", size);
+    }
+
+    /**
+     * Executes a mutation while preserving caret and selection as best as possible.
+     */
+    private void withCaretPreserved(Runnable mutation) {
+        if (mutation == null) {
+            return;
+        }
+        int oldCaret = codeArea.getCaretPosition();
+        int oldAnchor = codeArea.getAnchor();
+        try {
+            mutation.run();
+        } finally {
+            int newLen = codeArea.getLength();
+            int restoredCaret = Math.max(0, Math.min(oldCaret, newLen));
+            int restoredAnchor = Math.max(0, Math.min(oldAnchor, newLen));
+            if (restoredCaret != restoredAnchor) {
+                codeArea.selectRange(restoredAnchor, restoredCaret);
+            } else {
+                codeArea.moveTo(restoredCaret);
+            }
+            // Ensure viewport follows the caret after layout
+            Platform.runLater(codeArea::requestFollowCaret);
+        }
     }
 
     /**
@@ -753,7 +781,7 @@ public class XmlCodeEditor extends VBox {
      */
     private void initializeDebouncers() {
         // Initialize debouncer for syntax highlighting
-        syntaxHighlightingDebouncer = new PauseTransition(Duration.millis(300));
+        syntaxHighlightingDebouncer = new PauseTransition(Duration.millis(120));
         syntaxHighlightingDebouncer.setOnFinished(event -> {
             String currentText = codeArea.getText();
             if (currentText != null && !currentText.isEmpty() && !isFoldingOperation) {
@@ -762,11 +790,19 @@ public class XmlCodeEditor extends VBox {
         });
 
         // Initialize debouncer for error highlighting
-        errorHighlightingDebouncer = new PauseTransition(Duration.millis(500));
+        errorHighlightingDebouncer = new PauseTransition(Duration.millis(350));
         errorHighlightingDebouncer.setOnFinished(event -> {
             String currentText = codeArea.getText();
             if (currentText != null && !currentText.isEmpty() && !isFoldingOperation) {
                 validationManager.performLiveValidation(currentText);
+            }
+        });
+
+        // Initialize debouncer for folding display refresh
+        foldingRefreshDebouncer = new PauseTransition(Duration.millis(120));
+        foldingRefreshDebouncer.setOnFinished(event -> {
+            if (!isFoldingOperation) {
+                setupParagraphGraphics();
             }
         });
     }
@@ -1177,9 +1213,14 @@ public class XmlCodeEditor extends VBox {
 
                 @Override
                 public void refreshFoldingDisplay() {
-                    // Use our custom refresh mechanism instead, but only if not already in folding operation
+                    // Use debounced refresh to avoid caret/viewport jumps on every keypress
                     if (!isFoldingOperation) {
-                        Platform.runLater(() -> setupParagraphGraphics());
+                        if (foldingRefreshDebouncer != null) {
+                            foldingRefreshDebouncer.stop();
+                            foldingRefreshDebouncer.playFromStart();
+                        } else {
+                            Platform.runLater(() -> setupParagraphGraphics());
+                        }
                     }
                 }
             };
@@ -2333,7 +2374,17 @@ public class XmlCodeEditor extends VBox {
                     try {
                         String formattedText = XmlService.prettyFormat(currentText, 2);
                         if (formattedText != null && !formattedText.equals(currentText)) {
+                            int oldCaret = codeArea.getCaretPosition();
+                            int oldAnchor = codeArea.getAnchor();
                             codeArea.replaceText(formattedText);
+                            int len = codeArea.getLength();
+                            int restoreCaret = Math.max(0, Math.min(oldCaret, len));
+                            int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
+                            if (restoreCaret != restoreAnchor) {
+                                codeArea.selectRange(restoreAnchor, restoreCaret);
+                            } else {
+                                codeArea.moveTo(restoreCaret);
+                            }
                             logger.debug("XML content formatted successfully");
                         }
                     } catch (Exception formatException) {
@@ -2610,35 +2661,6 @@ public class XmlCodeEditor extends VBox {
         return SyntaxHighlightManager.computeHighlighting(text);
     }
 
-    /**
-     * Toggles minimap visibility.
-     */
-    public void toggleMinimap() {
-        minimapVisible = !minimapVisible;
-        updateMinimapVisibility();
-    }
-
-    private void updateMinimapVisibility() {
-        if (minimapVisible && minimapView == null) {
-            minimapView = new MinimapView(codeArea, virtualizedScrollPane, new HashMap<>());
-            if (editorContainer.getChildren().size() == 1) {
-                editorContainer.getChildren().add(minimapView);
-            }
-        } else if (!minimapVisible && minimapView != null) {
-            editorContainer.getChildren().remove(minimapView);
-        }
-
-        if (minimapView != null) {
-            minimapView.setVisible(minimapVisible);
-        }
-    }
-
-    /**
-     * Checks if minimap is currently visible.
-     */
-    public boolean isMinimapVisible() {
-        return minimapVisible;
-    }
 
     /**
      * Sets Schematron mode for the editor.
@@ -2734,7 +2756,17 @@ public class XmlCodeEditor extends VBox {
     public void replaceAll(String findText, String replaceText) {
         String content = codeArea.getText();
         String newContent = content.replace(findText, replaceText);
+        int oldCaret = codeArea.getCaretPosition();
+        int oldAnchor = codeArea.getAnchor();
         codeArea.replaceText(newContent);
+        int len = codeArea.getLength();
+        int restoreCaret = Math.max(0, Math.min(oldCaret, len));
+        int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
+        if (restoreCaret != restoreAnchor) {
+            codeArea.selectRange(restoreAnchor, restoreCaret);
+        } else {
+            codeArea.moveTo(restoreCaret);
+        }
     }
 
     /**

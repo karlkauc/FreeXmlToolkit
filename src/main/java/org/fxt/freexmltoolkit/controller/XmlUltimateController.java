@@ -1624,27 +1624,6 @@ public class XmlUltimateController implements Initializable {
         return null;
     }
 
-    /**
-     * Toggles the minimap for the current XML editor.
-     */
-    public void toggleMinimapForCurrentEditor(boolean visible) {
-        XmlEditor currentEditor = getCurrentEditor();
-        if (currentEditor != null && currentEditor.getXmlCodeEditor() != null) {
-            if (visible) {
-                currentEditor.getXmlCodeEditor().toggleMinimap();
-                if (!currentEditor.getXmlCodeEditor().isMinimapVisible()) {
-                    currentEditor.getXmlCodeEditor().toggleMinimap(); // Ensure it's visible
-                }
-            } else {
-                if (currentEditor.getXmlCodeEditor().isMinimapVisible()) {
-                    currentEditor.getXmlCodeEditor().toggleMinimap(); // Hide it
-                }
-            }
-            logger.debug("Minimap toggled for current editor: {}", visible);
-        } else {
-            logger.debug("No current XML editor available for minimap toggle");
-        }
-    }
 
     @FXML
     private void runXpathQueryPressed() {

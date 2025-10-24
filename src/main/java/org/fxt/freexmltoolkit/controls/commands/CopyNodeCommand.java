@@ -98,6 +98,12 @@ public class CopyNodeCommand implements XsdCommand {
             case SIMPLE_TYPE -> "simpleType";
             case COMPLEX_TYPE -> "complexType";
             case SCHEMA -> "schema";
+            // XSD 1.1 node types
+            case ASSERT -> "assert";
+            case ALTERNATIVE -> "alternative";
+            case OPEN_CONTENT -> "openContent";
+            case OVERRIDE -> "override";
+            case ALL -> "all";
         };
     }
 }

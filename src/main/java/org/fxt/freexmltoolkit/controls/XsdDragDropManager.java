@@ -301,10 +301,18 @@ public class XsdDragDropManager {
 
             case SEQUENCE:
             case CHOICE:
+            case COMPLEX_TYPE:
+            case ALL:
+            case OPEN_CONTENT:
                 return true;
 
             case ATTRIBUTE:
             case ANY:
+            case SIMPLE_TYPE:
+            case SCHEMA:
+            case ASSERT:
+            case ALTERNATIVE:
+            case OVERRIDE:
             default:
                 return false;
         }
@@ -404,6 +412,14 @@ public class XsdDragDropManager {
             case SEQUENCE -> iconLiteral = "bi-list-ol";
             case CHOICE -> iconLiteral = "bi-option";
             case ANY -> iconLiteral = "bi-asterisk";
+            case SIMPLE_TYPE -> iconLiteral = "bi-type";
+            case COMPLEX_TYPE -> iconLiteral = "bi-diagram-3";
+            case SCHEMA -> iconLiteral = "bi-file-earmark-code";
+            case ASSERT -> iconLiteral = "bi-check-circle";
+            case ALTERNATIVE -> iconLiteral = "bi-arrows-angle-contract";
+            case OPEN_CONTENT -> iconLiteral = "bi-collection";
+            case OVERRIDE -> iconLiteral = "bi-arrow-repeat";
+            case ALL -> iconLiteral = "bi-grid-3x3";
             default -> iconLiteral = "bi-box";
         }
 

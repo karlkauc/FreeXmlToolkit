@@ -1889,4 +1889,35 @@ public class XsdDomManipulator {
             return false;
         }
     }
+
+    /**
+     * Detects the XSD version of the currently loaded schema.
+     * Returns "1.1" if vc:minVersion="1.1" is present, otherwise "1.0".
+     *
+     * @return The XSD version as string ("1.0" or "1.1")
+     */
+    public String getXsdVersion() {
+        if (schemaRoot == null) {
+            return "1.0"; // Default
+        }
+
+        // Check for vc:minVersion attribute
+        String minVersion = schemaRoot.getAttributeNS(
+                "http://www.w3.org/2007/XMLSchema-versioning", "minVersion");
+
+        if ("1.1".equals(minVersion)) {
+            return "1.1";
+        }
+
+        return "1.0";
+    }
+
+    /**
+     * Checks if the currently loaded schema is XSD 1.1.
+     *
+     * @return true if XSD 1.1, false otherwise
+     */
+    public boolean isXsd11() {
+        return "1.1".equals(getXsdVersion());
+    }
 }

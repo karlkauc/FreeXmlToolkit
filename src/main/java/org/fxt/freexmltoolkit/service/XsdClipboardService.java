@@ -320,6 +320,12 @@ public class XsdClipboardService {
             case SIMPLE_TYPE -> "SimpleType";
             case COMPLEX_TYPE -> "ComplexType";
             case SCHEMA -> "Schema";
+            // XSD 1.1 node types
+            case ASSERT -> "Assert";
+            case ALTERNATIVE -> "Alternative";
+            case OPEN_CONTENT -> "OpenContent";
+            case OVERRIDE -> "Override";
+            case ALL -> "All";
         };
     }
 }

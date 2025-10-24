@@ -78,6 +78,11 @@ public class XmlCodeFoldingManager {
             // Preserve fold state for existing regions
             Set<Integer> currentlyFolded = new HashSet<>(foldedRegions);
 
+            // If nothing changed, avoid refreshing paragraph graphics to prevent viewport jumps
+            if (foldingRegions.equals(newRegions)) {
+                return;
+            }
+
             foldingRegions.clear();
             foldingRegions.putAll(newRegions);
 
@@ -260,6 +265,8 @@ public class XmlCodeFoldingManager {
 
         try {
             isUpdatingFromFoldOperation = true;
+            int oldCaret = codeArea.getCaretPosition();
+            int oldAnchor = codeArea.getAnchor();
             String text = codeArea.getText();
             String[] lines = text.split("\n");
 
@@ -293,6 +300,16 @@ public class XmlCodeFoldingManager {
             // Update the text
             codeArea.replaceText(newText);
 
+            // Restore caret/selection as best as possible
+            int len = codeArea.getLength();
+            int restoreCaret = Math.max(0, Math.min(oldCaret, len));
+            int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
+            if (restoreCaret != restoreAnchor) {
+                codeArea.selectRange(restoreAnchor, restoreCaret);
+            } else {
+                codeArea.moveTo(restoreCaret);
+            }
+
             // Mark as folded
             foldedRegions.add(line);
 
@@ -319,6 +336,8 @@ public class XmlCodeFoldingManager {
 
         try {
             isUpdatingFromFoldOperation = true;
+            int oldCaret = codeArea.getCaretPosition();
+            int oldAnchor = codeArea.getAnchor();
             FoldingRegion region = foldingRegions.get(line);
             String text = codeArea.getText();
             String[] lines = text.split("\n");
@@ -336,6 +355,16 @@ public class XmlCodeFoldingManager {
 
                 // Update the text
                 codeArea.replaceText(newText);
+
+                // Restore caret/selection as best as possible
+                int len = codeArea.getLength();
+                int restoreCaret = Math.max(0, Math.min(oldCaret, len));
+                int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
+                if (restoreCaret != restoreAnchor) {
+                    codeArea.selectRange(restoreAnchor, restoreCaret);
+                } else {
+                    codeArea.moveTo(restoreCaret);
+                }
 
                 // Remove from folded set
                 foldedRegions.remove(line);
@@ -359,10 +388,20 @@ public class XmlCodeFoldingManager {
      */
     public void foldAll() {
         List<Integer> foldableLines = new ArrayList<>(foldingRegions.keySet());
+        int oldCaret = codeArea.getCaretPosition();
+        int oldAnchor = codeArea.getAnchor();
         for (Integer line : foldableLines) {
             if (!foldedRegions.contains(line)) {
                 fold(line);
             }
+        }
+        int len = codeArea.getLength();
+        int restoreCaret = Math.max(0, Math.min(oldCaret, len));
+        int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
+        if (restoreCaret != restoreAnchor) {
+            codeArea.selectRange(restoreAnchor, restoreCaret);
+        } else {
+            codeArea.moveTo(restoreCaret);
         }
     }
 
@@ -371,8 +410,18 @@ public class XmlCodeFoldingManager {
      */
     public void unfoldAll() {
         List<Integer> foldedLines = new ArrayList<>(foldedRegions);
+        int oldCaret = codeArea.getCaretPosition();
+        int oldAnchor = codeArea.getAnchor();
         for (Integer line : foldedLines) {
             unfold(line);
+        }
+        int len = codeArea.getLength();
+        int restoreCaret = Math.max(0, Math.min(oldCaret, len));
+        int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
+        if (restoreCaret != restoreAnchor) {
+            codeArea.selectRange(restoreAnchor, restoreCaret);
+        } else {
+            codeArea.moveTo(restoreCaret);
         }
     }
 

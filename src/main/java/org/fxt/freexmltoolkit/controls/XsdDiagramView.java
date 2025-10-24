@@ -20,8 +20,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controller.XsdController;
 import org.fxt.freexmltoolkit.controls.commands.*;
+import org.fxt.freexmltoolkit.controls.dialogs.AssertionEditorDialog;
 import org.fxt.freexmltoolkit.controls.dialogs.ExtractComplexTypeDialog;
 import org.fxt.freexmltoolkit.controls.dialogs.ImportIncludeManagerDialog;
+import org.fxt.freexmltoolkit.controls.dialogs.TypeAlternativeEditorDialog;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.domain.command.ConvertAttributeToElementCommand;
 import org.fxt.freexmltoolkit.domain.command.ConvertElementToAttributeCommand;
@@ -60,6 +62,7 @@ public class XsdDiagramView {
     private final XsdUndoManager undoManager;
     private Button undoButton;
     private Button redoButton;
+    private Label versionBadge;  // XSD 1.0/1.1 version indicator
 
     public XsdUndoManager getUndoManager() {
         return undoManager;
@@ -209,6 +212,33 @@ public class XsdDiagramView {
 
     private static final String SEARCH_HIGHLIGHT_TEXT_STYLE = "-fx-fill: #d63031; -fx-font-weight: bold;";
 
+    // XSD 1.1 Assertion node style - distinctive style with validation icon
+    private static final String ASSERT_NODE_STYLE =
+            "-fx-background-color: linear-gradient(to bottom, #e3f2fd, #bbdefb); " +
+                    "-fx-border-color: #1976d2; -fx-border-width: 2px; " +
+                    "-fx-border-radius: 4px; -fx-background-radius: 4px; " +
+                    "-fx-padding: 8px 12px; -fx-font-family: 'Segoe UI', sans-serif; " +
+                    "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0d47a1; " +
+                    "-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(25,118,210,0.3), 3, 0, 1, 1);";
+
+    // XSD 1.1 Type Alternative node style - conditional styling
+    private static final String ALTERNATIVE_NODE_STYLE =
+            "-fx-background-color: linear-gradient(to bottom, #f3e5f5, #e1bee7); " +
+                    "-fx-border-color: #8e24aa; -fx-border-width: 2px; -fx-border-style: solid; " +
+                    "-fx-border-radius: 4px; -fx-background-radius: 4px; " +
+                    "-fx-padding: 8px 12px; -fx-font-family: 'Segoe UI', sans-serif; " +
+                    "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4a148c; " +
+                    "-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(142,36,170,0.3), 3, 0, 1, 1);";
+
+    // XPath expression label style - monospace for code
+    private static final String XPATH_EXPRESSION_STYLE =
+            "-fx-font-family: 'Consolas', 'Monaco', 'Courier New', monospace; " +
+                    "-fx-font-size: 11px; -fx-text-fill: #2e7d32; " +
+                    "-fx-background-color: #f1f8e9; -fx-padding: 4px 8px; " +
+                    "-fx-background-radius: 3px; -fx-border-color: #c5e1a5; " +
+                    "-fx-border-width: 1px; -fx-border-radius: 3px; " +
+                    "-fx-font-style: italic;";
+
 
     public XsdDiagramView(XsdNodeInfo rootNode, XsdController controller, String initialDoc, String initialJavadoc) {
         this(rootNode, controller, initialDoc, initialJavadoc, null);
@@ -314,6 +344,9 @@ public class XsdDiagramView {
         // Create integrated control pane (replaces tabbed approach)
         controlPane = new XsdControlPane();
 
+        // Set undo manager for assertion operations
+        controlPane.setUndoManager(undoManager);
+
         // Set up callback for property changes
         controlPane.setOnPropertyChanged(message -> {
             System.out.println("DEBUG: Property changed callback triggered: " + message);
@@ -388,6 +421,13 @@ public class XsdDiagramView {
         Label statusLabel = new Label("XSD Editor");
         statusLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #495057;");
 
+        // Version badge (XSD 1.0/1.1 indicator)
+        versionBadge = new Label();
+        updateVersionBadge();
+        versionBadge.setTooltip(new Tooltip("Click to convert to XSD 1.1"));
+        versionBadge.setCursor(javafx.scene.Cursor.HAND);
+        versionBadge.setOnMouseClicked(e -> showConvertToXsd11Dialog());
+
         // Second separator for search section
         Separator separator2 = new Separator();
         separator2.setOrientation(javafx.geometry.Orientation.VERTICAL);
@@ -400,7 +440,7 @@ public class XsdDiagramView {
         HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
         toolbar.getChildren().addAll(
-                undoButton, redoButton, separator, statusLabel,
+                undoButton, redoButton, separator, statusLabel, versionBadge,
                 spacer, separator2, searchBox
         );
 
@@ -691,6 +731,14 @@ public class XsdDiagramView {
             case ANY -> createAnyNodeView(node);
             case SEQUENCE -> createStructuralNodeView(node, "SEQUENCE", SEQUENCE_NODE_STYLE);
             case CHOICE -> createStructuralNodeView(node, "CHOICE", CHOICE_NODE_STYLE);
+            case SIMPLE_TYPE -> createStructuralNodeView(node, "SIMPLE_TYPE", SEQUENCE_NODE_STYLE);
+            case COMPLEX_TYPE -> createStructuralNodeView(node, "COMPLEX_TYPE", SEQUENCE_NODE_STYLE);
+            case SCHEMA -> createStructuralNodeView(node, "SCHEMA", SEQUENCE_NODE_STYLE);
+            case ASSERT -> createAssertNodeView(node);  // XSD 1.1 - specialized visualization
+            case ALTERNATIVE -> createAlternativeNodeView(node);  // XSD 1.1 - specialized visualization
+            case OPEN_CONTENT -> createStructuralNodeView(node, "OPEN_CONTENT", SEQUENCE_NODE_STYLE);
+            case OVERRIDE -> createStructuralNodeView(node, "OVERRIDE", SEQUENCE_NODE_STYLE);
+            case ALL -> createStructuralNodeView(node, "ALL", SEQUENCE_NODE_STYLE);
             default -> new Label("Unknown Node Type: " + node.name());
         };
 
@@ -772,6 +820,10 @@ public class XsdDiagramView {
         } else {
             nameAndToggleRow.getChildren().add(nameLabel);
         }
+
+        // Add XSD 1.1 feature indicators
+        addXsd11FeatureIndicators(nameAndToggleRow, node);
+
         elementInfoContainer.getChildren().add(nameAndToggleRow);
 
         // Dokumentation für das Element hinzufügen
@@ -910,6 +962,12 @@ public class XsdDiagramView {
         } else {
             titleRow.getChildren().add(titleLabel);
         }
+
+        // Add XSD 1.1 feature indicators for COMPLEX_TYPE nodes
+        if ("COMPLEX_TYPE".equals(title)) {
+            addXsd11FeatureIndicators(titleRow, node);
+        }
+
         titleContainer.getChildren().add(titleRow);
 
         // Rechter Teil: Die eigentlichen Kinder der Sequenz/Choice mit Verbindungslinien
@@ -992,6 +1050,225 @@ public class XsdDiagramView {
             nodeContainer.getChildren().add(nameLabel);
         }
         return nodeContainer;
+    }
+
+    /**
+     * Erstellt die Ansicht für ein <xs:assert> Element (XSD 1.1 Feature).
+     * Zeigt die XPath 2.0 Test-Expression prominent an.
+     */
+    private Node createAssertNodeView(XsdNodeInfo node) {
+        VBox mainContainer = new VBox(5);
+        mainContainer.setAlignment(Pos.TOP_LEFT);
+
+        // Header row with icon and title
+        HBox headerRow = new HBox(8);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+        headerRow.setStyle(ASSERT_NODE_STYLE);
+
+        Label titleLabel = new Label("ASSERT");
+
+        // Add assertion/validation icon
+        FontIcon assertIcon = createColoredIcon("bi-check-circle", "#1976d2");
+        assertIcon.setIconColor(javafx.scene.paint.Color.web("#0d47a1"));
+        assertIcon.setIconSize(14);
+        titleLabel.setGraphic(assertIcon);
+
+        titleLabel.setOnMouseClicked(event -> {
+            if (event.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
+                showContextMenu(titleLabel, node);
+            } else {
+                updateDetailPane(node);
+            }
+        });
+
+        // Enable drag and drop
+        dragDropManager.makeDraggable(titleLabel, node);
+
+        headerRow.getChildren().add(titleLabel);
+
+        // XPath expression row - shows the test attribute
+        if (node.xpathExpression() != null && !node.xpathExpression().isEmpty()) {
+            HBox xpathRow = new HBox(5);
+            xpathRow.setAlignment(Pos.CENTER_LEFT);
+
+            Label xpathLabel = new Label("test: ");
+            xpathLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #666; -fx-font-size: 10px;");
+
+            Label expressionLabel = new Label(node.xpathExpression());
+            expressionLabel.setStyle(XPATH_EXPRESSION_STYLE);
+            expressionLabel.setMaxWidth(400);
+            expressionLabel.setWrapText(true);
+
+            // Add detailed tooltip with full expression and context
+            StringBuilder tooltipText = new StringBuilder();
+            tooltipText.append("XSD 1.1 Assertion\n\n");
+            tooltipText.append("Test Expression:\n");
+            tooltipText.append(node.xpathExpression());
+
+            // Add xpath-default-namespace if present
+            if (node.xsd11Attributes() != null) {
+                String xpathNs = node.xsd11Attributes().get("xpath-default-namespace");
+                if (xpathNs != null && !xpathNs.isEmpty()) {
+                    tooltipText.append("\n\nXPath Default Namespace:\n");
+                    tooltipText.append(xpathNs);
+                }
+            }
+
+            // Add documentation if present
+            if (node.documentation() != null && !node.documentation().isEmpty()) {
+                tooltipText.append("\n\nDocumentation:\n");
+                tooltipText.append(node.documentation());
+            }
+
+            tooltipText.append("\n\nRight-click for edit options");
+
+            Tooltip tooltip = new Tooltip(tooltipText.toString());
+            tooltip.setWrapText(true);
+            tooltip.setMaxWidth(500);
+            Tooltip.install(expressionLabel, tooltip);
+
+            xpathRow.getChildren().addAll(xpathLabel, expressionLabel);
+            mainContainer.getChildren().addAll(headerRow, xpathRow);
+        } else {
+            mainContainer.getChildren().add(headerRow);
+        }
+
+        // Add documentation if available
+        if (node.documentation() != null && !node.documentation().isEmpty()) {
+            Label docLabel = new Label(node.documentation());
+            docLabel.setStyle(DOC_LABEL_STYLE);
+            docLabel.setWrapText(true);
+            docLabel.setMaxWidth(400);
+            mainContainer.getChildren().add(docLabel);
+        }
+
+        return mainContainer;
+    }
+
+    /**
+     * Erstellt die Ansicht für ein <xs:alternative> Element (XSD 1.1 Feature).
+     * Zeigt die conditionale Typ-Zuordnung mit Test-Expression an.
+     */
+    private Node createAlternativeNodeView(XsdNodeInfo node) {
+        VBox mainContainer = new VBox(5);
+        mainContainer.setAlignment(Pos.TOP_LEFT);
+
+        // Header row with icon and type
+        HBox headerRow = new HBox(8);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+        headerRow.setStyle(ALTERNATIVE_NODE_STYLE);
+
+        String displayText = "ALTERNATIVE";
+        if (node.type() != null && !node.type().equals("Type Alternative")) {
+            displayText = "→ " + node.type();
+        }
+
+        Label titleLabel = new Label(displayText);
+
+        // Add alternative/branching icon
+        FontIcon altIcon = createColoredIcon("bi-diagram-3", "#8e24aa");
+        altIcon.setIconColor(javafx.scene.paint.Color.web("#4a148c"));
+        altIcon.setIconSize(14);
+        titleLabel.setGraphic(altIcon);
+
+        titleLabel.setOnMouseClicked(event -> {
+            if (event.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
+                showContextMenu(titleLabel, node);
+            } else {
+                updateDetailPane(node);
+            }
+        });
+
+        // Enable drag and drop
+        dragDropManager.makeDraggable(titleLabel, node);
+
+        headerRow.getChildren().add(titleLabel);
+
+        // XPath condition row - shows the test attribute
+        if (node.xpathExpression() != null && !node.xpathExpression().isEmpty()) {
+            HBox conditionRow = new HBox(5);
+            conditionRow.setAlignment(Pos.CENTER_LEFT);
+
+            Label conditionLabel = new Label("when: ");
+            conditionLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #666; -fx-font-size: 10px;");
+
+            Label expressionLabel = new Label(node.xpathExpression());
+            expressionLabel.setStyle(XPATH_EXPRESSION_STYLE);
+            expressionLabel.setMaxWidth(400);
+            expressionLabel.setWrapText(true);
+
+            // Add detailed tooltip with full information
+            StringBuilder tooltipText = new StringBuilder();
+            tooltipText.append("XSD 1.1 Type Alternative\n\n");
+            tooltipText.append("Type: ");
+            tooltipText.append(node.type() != null ? node.type() : "unknown");
+            tooltipText.append("\n\nTest Expression:\n");
+            tooltipText.append(node.xpathExpression());
+
+            // Add xpath-default-namespace if present
+            if (node.xsd11Attributes() != null) {
+                String xpathNs = node.xsd11Attributes().get("xpath-default-namespace");
+                if (xpathNs != null && !xpathNs.isEmpty()) {
+                    tooltipText.append("\n\nXPath Default Namespace:\n");
+                    tooltipText.append(xpathNs);
+                }
+            }
+
+            // Add documentation if present
+            if (node.documentation() != null && !node.documentation().isEmpty()) {
+                tooltipText.append("\n\nDocumentation:\n");
+                tooltipText.append(node.documentation());
+            }
+
+            tooltipText.append("\n\nRight-click for edit options");
+
+            Tooltip tooltip = new Tooltip(tooltipText.toString());
+            tooltip.setWrapText(true);
+            tooltip.setMaxWidth(500);
+            Tooltip.install(expressionLabel, tooltip);
+
+            conditionRow.getChildren().addAll(conditionLabel, expressionLabel);
+            mainContainer.getChildren().addAll(headerRow, conditionRow);
+        } else {
+            // Default alternative (no test expression)
+            Label defaultLabel = new Label("(default)");
+            defaultLabel.setStyle("-fx-font-style: italic; -fx-text-fill: #999; -fx-font-size: 10px;");
+
+            // Add tooltip for default alternative
+            StringBuilder tooltipText = new StringBuilder();
+            tooltipText.append("XSD 1.1 Type Alternative\n\n");
+            tooltipText.append("Type: ");
+            tooltipText.append(node.type() != null ? node.type() : "unknown");
+            tooltipText.append("\n\nDefault alternative (no test condition)");
+            tooltipText.append("\nUsed when no other alternatives match");
+
+            if (node.documentation() != null && !node.documentation().isEmpty()) {
+                tooltipText.append("\n\nDocumentation:\n");
+                tooltipText.append(node.documentation());
+            }
+
+            tooltipText.append("\n\nRight-click for edit options");
+
+            Tooltip tooltip = new Tooltip(tooltipText.toString());
+            tooltip.setWrapText(true);
+            tooltip.setMaxWidth(500);
+            Tooltip.install(titleLabel, tooltip);
+
+            HBox defaultRow = new HBox(5);
+            defaultRow.getChildren().add(defaultLabel);
+            mainContainer.getChildren().addAll(headerRow, defaultRow);
+        }
+
+        // Add documentation if available
+        if (node.documentation() != null && !node.documentation().isEmpty()) {
+            Label docLabel = new Label(node.documentation());
+            docLabel.setStyle(DOC_LABEL_STYLE);
+            docLabel.setWrapText(true);
+            docLabel.setMaxWidth(400);
+            mainContainer.getChildren().add(docLabel);
+        }
+
+        return mainContainer;
     }
 
 
@@ -1398,6 +1675,18 @@ public class XsdDiagramView {
             importIncludeManagerItem.setOnAction(e -> showImportIncludeManagerDialog());
             contextMenu.getItems().add(importIncludeManagerItem);
 
+            // XSD 1.1 conversion
+            String xsdVersion = domManipulator.getXsdVersion();
+            MenuItem convertToXsd11Item = new MenuItem(
+                    "1.1".equals(xsdVersion) ? "XSD 1.1 Features" : "Convert to XSD 1.1"
+            );
+            convertToXsd11Item.setGraphic(createColoredIcon(
+                    "1.1".equals(xsdVersion) ? "bi-check-circle" : "bi-arrow-up-circle",
+                    "1.1".equals(xsdVersion) ? "#28a745" : "#007bff"
+            ));
+            convertToXsd11Item.setOnAction(e -> showConvertToXsd11Dialog());
+            contextMenu.getItems().add(convertToXsd11Item);
+
             contextMenu.getItems().add(new SeparatorMenuItem());
         }
 
@@ -1459,6 +1748,13 @@ public class XsdDiagramView {
                 addChoiceItem.setDisable(!canHaveChildren);
                 contextMenu.getItems().add(addChoiceItem);
 
+                // XSD 1.1: Add Type Alternative - only for elements
+                contextMenu.getItems().add(new SeparatorMenuItem());
+                MenuItem addAlternativeItem = new MenuItem("Add Type Alternative (XSD 1.1)");
+                addAlternativeItem.setGraphic(createColoredIcon("bi-diagram-3", "#8e24aa"));
+                addAlternativeItem.setOnAction(e -> showAddTypeAlternativeDialog(nodeInfo));
+                contextMenu.getItems().add(addAlternativeItem);
+
                 // Convert to Complex Type - only show for elements with simple types
                 String type = nodeInfo.type();
                 if (type != null && (type.startsWith("xs:") || type.startsWith("xsd:"))) {
@@ -1469,6 +1765,64 @@ public class XsdDiagramView {
                     contextMenu.getItems().add(convertToComplexItem);
                 }
             }
+
+            contextMenu.getItems().add(new SeparatorMenuItem());
+        }
+
+        // XSD 1.1: Assertion menu items - only for complexTypes
+        if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.COMPLEX_TYPE ||
+                (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ELEMENT && canNodeHaveChildren(nodeInfo))) {
+
+            MenuItem addAssertionItem = new MenuItem("Add Assertion (XSD 1.1)");
+            addAssertionItem.setGraphic(createColoredIcon("bi-check-circle", "#1976d2"));
+            addAssertionItem.setOnAction(e -> showAddAssertionDialog(nodeInfo));
+            contextMenu.getItems().add(addAssertionItem);
+
+            contextMenu.getItems().add(new SeparatorMenuItem());
+        }
+
+        // XSD 1.1: Edit/Delete for assertions
+        if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ASSERT) {
+            MenuItem editAssertionItem = new MenuItem("Edit Assertion");
+            editAssertionItem.setGraphic(createColoredIcon("bi-pencil", "#1976d2"));
+            editAssertionItem.setOnAction(e -> showEditAssertionDialog(nodeInfo));
+            contextMenu.getItems().add(editAssertionItem);
+
+            MenuItem deleteAssertionItem = new MenuItem("Delete Assertion");
+            deleteAssertionItem.setGraphic(createColoredIcon("bi-trash", "#d32f2f"));
+            deleteAssertionItem.setOnAction(e -> {
+                DeleteAssertionCommand command = new DeleteAssertionCommand(domManipulator, nodeInfo);
+                if (undoManager.executeCommand(command)) {
+                    refreshView();
+                    logger.info("Deleted assertion");
+                } else {
+                    showErrorAlert("Failed to delete assertion", "Could not delete the assertion");
+                }
+            });
+            contextMenu.getItems().add(deleteAssertionItem);
+
+            contextMenu.getItems().add(new SeparatorMenuItem());
+        }
+
+        // XSD 1.1: Edit/Delete for type alternatives
+        if (nodeInfo.nodeType() == XsdNodeInfo.NodeType.ALTERNATIVE) {
+            MenuItem editAlternativeItem = new MenuItem("Edit Type Alternative");
+            editAlternativeItem.setGraphic(createColoredIcon("bi-pencil", "#8e24aa"));
+            editAlternativeItem.setOnAction(e -> showEditTypeAlternativeDialog(nodeInfo));
+            contextMenu.getItems().add(editAlternativeItem);
+
+            MenuItem deleteAlternativeItem = new MenuItem("Delete Type Alternative");
+            deleteAlternativeItem.setGraphic(createColoredIcon("bi-trash", "#d32f2f"));
+            deleteAlternativeItem.setOnAction(e -> {
+                DeleteTypeAlternativeCommand command = new DeleteTypeAlternativeCommand(domManipulator, nodeInfo);
+                if (undoManager.executeCommand(command)) {
+                    refreshView();
+                    logger.info("Deleted type alternative");
+                } else {
+                    showErrorAlert("Failed to delete type alternative", "Could not delete the type alternative");
+                }
+            });
+            contextMenu.getItems().add(deleteAlternativeItem);
 
             contextMenu.getItems().add(new SeparatorMenuItem());
         }
@@ -2387,6 +2741,8 @@ public class XsdDiagramView {
                 System.out.println("DEBUG: Performing SELECTIVE refresh");
                 refreshViewSelectively();
             }
+            // Update version badge after refresh
+            updateVersionBadge();
         }
     }
 
@@ -4072,6 +4428,170 @@ public class XsdDiagramView {
     }
 
     /**
+     * Shows dialog to add an assertion (XSD 1.1) to a complexType
+     */
+    private void showAddAssertionDialog(XsdNodeInfo parentNode) {
+        try {
+            AssertionEditorDialog dialog = new AssertionEditorDialog(parentNode.name());
+            dialog.showAndWait().ifPresent(result -> {
+                AddAssertionCommand command = new AddAssertionCommand(
+                        domManipulator,
+                        parentNode,
+                        result.testExpression(),
+                        result.xpathDefaultNamespace(),
+                        result.documentation()
+                );
+
+                if (undoManager.executeCommand(command)) {
+                    refreshView();
+                    logger.info("Added assertion to {}", parentNode.name());
+                } else {
+                    showErrorAlert("Failed to add assertion", "Could not add assertion to " + parentNode.name());
+                }
+            });
+        } catch (Exception e) {
+            logger.error("Error showing add assertion dialog", e);
+            showErrorAlert("Error", "Failed to show assertion editor: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows dialog to edit an existing assertion
+     */
+    private void showEditAssertionDialog(XsdNodeInfo assertionNode) {
+        try {
+            // Extract current values from the assertion node
+            String currentTest = assertionNode.xpathExpression();
+            String currentNamespace = assertionNode.xsd11Attributes() != null
+                    ? assertionNode.xsd11Attributes().get("xpath-default-namespace")
+                    : null;
+            String currentDoc = assertionNode.documentation();
+
+            // Find parent element name for context
+            String parentName = extractParentName(assertionNode.xpath());
+
+            AssertionEditorDialog dialog = new AssertionEditorDialog(
+                    parentName,
+                    currentTest,
+                    currentNamespace,
+                    currentDoc
+            );
+
+            dialog.showAndWait().ifPresent(result -> {
+                EditAssertionCommand command = new EditAssertionCommand(
+                        domManipulator,
+                        assertionNode,
+                        result.testExpression(),
+                        result.xpathDefaultNamespace(),
+                        result.documentation()
+                );
+
+                if (undoManager.executeCommand(command)) {
+                    refreshView();
+                    logger.info("Edited assertion");
+                } else {
+                    showErrorAlert("Failed to edit assertion", "Could not edit assertion");
+                }
+            });
+        } catch (Exception e) {
+            logger.error("Error showing edit assertion dialog", e);
+            showErrorAlert("Error", "Failed to show assertion editor: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows dialog to add a type alternative (XSD 1.1) to an element
+     */
+    private void showAddTypeAlternativeDialog(XsdNodeInfo elementNode) {
+        try {
+            TypeAlternativeEditorDialog dialog = new TypeAlternativeEditorDialog(elementNode.name());
+            dialog.showAndWait().ifPresent(result -> {
+                AddTypeAlternativeCommand command = new AddTypeAlternativeCommand(
+                        domManipulator,
+                        elementNode,
+                        result.testExpression(),
+                        result.typeName(),
+                        result.documentation()
+                );
+
+                if (undoManager.executeCommand(command)) {
+                    refreshView();
+                    logger.info("Added type alternative to {}", elementNode.name());
+                } else {
+                    showErrorAlert("Failed to add type alternative",
+                            "Could not add type alternative to " + elementNode.name());
+                }
+            });
+        } catch (Exception e) {
+            logger.error("Error showing add type alternative dialog", e);
+            showErrorAlert("Error", "Failed to add type alternative: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows dialog to edit an existing type alternative
+     */
+    private void showEditTypeAlternativeDialog(XsdNodeInfo alternativeNode) {
+        try {
+            String currentTest = alternativeNode.xpathExpression();
+            String currentType = alternativeNode.type();
+            String currentNamespace = alternativeNode.xsd11Attributes() != null
+                    ? alternativeNode.xsd11Attributes().get("xpath-default-namespace")
+                    : null;
+            String currentDoc = alternativeNode.documentation();
+            String parentName = extractParentName(alternativeNode.xpath());
+
+            TypeAlternativeEditorDialog dialog = new TypeAlternativeEditorDialog(
+                    parentName,
+                    currentTest,
+                    currentType,
+                    currentNamespace,
+                    currentDoc
+            );
+
+            dialog.showAndWait().ifPresent(result -> {
+                EditTypeAlternativeCommand command = new EditTypeAlternativeCommand(
+                        domManipulator,
+                        alternativeNode,
+                        result.testExpression(),
+                        result.typeName(),
+                        result.xpathDefaultNamespace(),
+                        result.documentation()
+                );
+
+                if (undoManager.executeCommand(command)) {
+                    refreshView();
+                    logger.info("Edited type alternative");
+                } else {
+                    showErrorAlert("Failed to edit type alternative", "Could not update type alternative");
+                }
+            });
+        } catch (Exception e) {
+            logger.error("Error showing edit type alternative dialog", e);
+            showErrorAlert("Error", "Failed to show type alternative editor: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Extracts parent element name from XPath
+     */
+    private String extractParentName(String xpath) {
+        if (xpath == null || xpath.isEmpty()) {
+            return "element";
+        }
+
+        // Extract last path component before /assert
+        String[] parts = xpath.split("/");
+        for (int i = parts.length - 1; i >= 0; i--) {
+            if (!parts[i].isEmpty() && !parts[i].equals("assert") && !parts[i].equals("alternative")) {
+                return parts[i];
+            }
+        }
+
+        return "element";
+    }
+
+    /**
      * Creates a colored FontIcon for menu items
      */
     private FontIcon createColoredIcon(String iconLiteral, String color) {
@@ -4079,5 +4599,208 @@ public class XsdDiagramView {
         icon.setIconColor(javafx.scene.paint.Color.web(color));
         icon.setIconSize(12);
         return icon;
+    }
+
+    /**
+     * Updates the XSD version badge in the toolbar
+     */
+    private void updateVersionBadge() {
+        if (versionBadge == null) {
+            return;
+        }
+
+        String version = domManipulator.getXsdVersion();
+        versionBadge.setText(version);
+
+        if ("1.1".equals(version)) {
+            // XSD 1.1 - green badge
+            versionBadge.setStyle(
+                    "-fx-background-color: #28a745; " +
+                            "-fx-text-fill: white; " +
+                            "-fx-padding: 3px 8px; " +
+                            "-fx-border-radius: 12px; " +
+                            "-fx-background-radius: 12px; " +
+                            "-fx-font-size: 11px; " +
+                            "-fx-font-weight: bold; " +
+                            "-fx-cursor: hand;"
+            );
+            versionBadge.setTooltip(new Tooltip("XSD 1.1 Schema - Supports assertions and type alternatives"));
+        } else {
+            // XSD 1.0 - blue badge
+            versionBadge.setStyle(
+                    "-fx-background-color: #007bff; " +
+                            "-fx-text-fill: white; " +
+                            "-fx-padding: 3px 8px; " +
+                            "-fx-border-radius: 12px; " +
+                            "-fx-background-radius: 12px; " +
+                            "-fx-font-size: 11px; " +
+                            "-fx-font-weight: bold; " +
+                            "-fx-cursor: hand;"
+            );
+            versionBadge.setTooltip(new Tooltip("XSD 1.0 Schema - Click to convert to XSD 1.1"));
+        }
+    }
+
+    /**
+     * Adds XSD 1.1 feature indicators (badges) to node rows.
+     * Shows small icon badges for nodes that contain assertions or type alternatives.
+     */
+    private void addXsd11FeatureIndicators(HBox parentRow, XsdNodeInfo node) {
+        if (node.children() == null || node.children().isEmpty()) {
+            return;
+        }
+
+        // Count assertions and type alternatives
+        long assertionCount = node.children().stream()
+                .filter(child -> child.nodeType() == XsdNodeInfo.NodeType.ASSERT)
+                .count();
+
+        long alternativeCount = node.children().stream()
+                .filter(child -> child.nodeType() == XsdNodeInfo.NodeType.ALTERNATIVE)
+                .count();
+
+        // Add assertion indicator if present
+        if (assertionCount > 0) {
+            Label assertBadge = new Label();
+            FontIcon assertIcon = new FontIcon("bi-check-circle");
+            assertIcon.setIconColor(javafx.scene.paint.Color.web("#1976d2"));
+            assertIcon.setIconSize(12);
+            assertBadge.setGraphic(assertIcon);
+            assertBadge.setStyle(
+                    "-fx-background-color: #e3f2fd; " +
+                            "-fx-padding: 2px 6px; " +
+                            "-fx-border-radius: 8px; " +
+                            "-fx-background-radius: 8px; " +
+                            "-fx-border-color: #1976d2; " +
+                            "-fx-border-width: 1px;"
+            );
+
+            // Create detailed tooltip
+            StringBuilder tooltipText = new StringBuilder();
+            tooltipText.append(assertionCount).append(assertionCount == 1 ? " Assertion" : " Assertions");
+
+            // Add assertion details
+            node.children().stream()
+                    .filter(child -> child.nodeType() == XsdNodeInfo.NodeType.ASSERT)
+                    .forEach(assertNode -> {
+                        tooltipText.append("\n\n• test: ");
+                        String expr = assertNode.xpathExpression();
+                        if (expr != null && !expr.isEmpty()) {
+                            tooltipText.append(expr.length() > 60 ? expr.substring(0, 60) + "..." : expr);
+                        }
+                    });
+
+            Tooltip tooltip = new Tooltip(tooltipText.toString());
+            tooltip.setWrapText(true);
+            tooltip.setMaxWidth(400);
+            assertBadge.setTooltip(tooltip);
+
+            parentRow.getChildren().add(assertBadge);
+        }
+
+        // Add type alternative indicator if present
+        if (alternativeCount > 0) {
+            Label altBadge = new Label();
+            FontIcon altIcon = new FontIcon("bi-diagram-3");
+            altIcon.setIconColor(javafx.scene.paint.Color.web("#8e24aa"));
+            altIcon.setIconSize(12);
+            altBadge.setGraphic(altIcon);
+            altBadge.setStyle(
+                    "-fx-background-color: #f3e5f5; " +
+                            "-fx-padding: 2px 6px; " +
+                            "-fx-border-radius: 8px; " +
+                            "-fx-background-radius: 8px; " +
+                            "-fx-border-color: #8e24aa; " +
+                            "-fx-border-width: 1px;"
+            );
+
+            // Create detailed tooltip
+            StringBuilder tooltipText = new StringBuilder();
+            tooltipText.append(alternativeCount).append(alternativeCount == 1 ? " Type Alternative" : " Type Alternatives");
+
+            // Add type alternative details
+            node.children().stream()
+                    .filter(child -> child.nodeType() == XsdNodeInfo.NodeType.ALTERNATIVE)
+                    .forEach(altNode -> {
+                        tooltipText.append("\n\n• type: ");
+                        String type = altNode.type();
+                        tooltipText.append(type != null ? type : "unknown");
+
+                        String test = altNode.xpathExpression();
+                        if (test != null && !test.isEmpty()) {
+                            tooltipText.append("\n  when: ");
+                            tooltipText.append(test.length() > 50 ? test.substring(0, 50) + "..." : test);
+                        } else {
+                            tooltipText.append("\n  (default alternative)");
+                        }
+                    });
+
+            Tooltip tooltip = new Tooltip(tooltipText.toString());
+            tooltip.setWrapText(true);
+            tooltip.setMaxWidth(400);
+            altBadge.setTooltip(tooltip);
+
+            parentRow.getChildren().add(altBadge);
+        }
+    }
+
+    /**
+     * Shows dialog to convert schema to XSD 1.1
+     */
+    private void showConvertToXsd11Dialog() {
+        String currentVersion = domManipulator.getXsdVersion();
+
+        if ("1.1".equals(currentVersion)) {
+            // Already XSD 1.1
+            Alert info = new Alert(Alert.AlertType.INFORMATION);
+            info.setTitle("XSD 1.1");
+            info.setHeaderText("Schema is already XSD 1.1");
+            info.setContentText("This schema is already using XSD 1.1 features.\n\n" +
+                    "XSD 1.1 features include:\n" +
+                    "• Assertions (xs:assert) for complex validation rules\n" +
+                    "• Type alternatives (xs:alternative) for conditional typing\n" +
+                    "• Open content for extensibility\n" +
+                    "• And more...");
+            info.showAndWait();
+            return;
+        }
+
+        // Show confirmation dialog
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Convert to XSD 1.1");
+        confirmation.setHeaderText("Convert schema to XSD 1.1?");
+        confirmation.setContentText(
+                "This will add the necessary attributes to enable XSD 1.1 features:\n\n" +
+                        "• vc:minVersion=\"1.1\"\n" +
+                        "• xmlns:vc=\"http://www.w3.org/2007/XMLSchema-versioning\"\n\n" +
+                        "After conversion, you can use:\n" +
+                        "• Assertions (xs:assert) for validation\n" +
+                        "• Type alternatives (xs:alternative)\n" +
+                        "• And other XSD 1.1 features\n\n" +
+                        "This operation can be undone."
+        );
+
+        confirmation.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                ConvertToXsd11Command command = new ConvertToXsd11Command(domManipulator);
+                if (undoManager.executeCommand(command)) {
+                    refreshView();
+                    updateVersionBadge();
+                    logger.info("Converted schema to XSD 1.1");
+
+                    // Show success message
+                    Alert success = new Alert(Alert.AlertType.INFORMATION);
+                    success.setTitle("Success");
+                    success.setHeaderText("Schema converted to XSD 1.1");
+                    success.setContentText("The schema has been successfully converted to XSD 1.1.\n\n" +
+                            "You can now use:\n" +
+                            "• Right-click on complexTypes to add assertions\n" +
+                            "• Right-click on elements to add type alternatives");
+                    success.showAndWait();
+                } else {
+                    showErrorAlert("Conversion Failed", "Could not convert schema to XSD 1.1");
+                }
+            }
+        });
     }
 }

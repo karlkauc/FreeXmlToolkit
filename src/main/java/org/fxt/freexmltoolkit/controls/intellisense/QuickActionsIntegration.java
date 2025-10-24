@@ -174,12 +174,24 @@ public class QuickActionsIntegration {
     private void handleActionResult(QuickAction action, QuickAction.ActionResult result) {
         if (result.isSuccess()) {
             if (result.hasTextModification()) {
+                int oldCaret = codeArea.getCaretPosition();
+                int oldAnchor = codeArea.getAnchor();
                 // Replace editor content
                 codeArea.replaceText(result.getModifiedText());
 
-                // Set caret position if specified
-                if (result.getNewCaretPosition() >= 0) {
-                    codeArea.moveTo(result.getNewCaretPosition());
+                // Set caret position if specified, otherwise restore previous
+                int newCaret = result.getNewCaretPosition();
+                if (newCaret >= 0) {
+                    codeArea.moveTo(Math.min(newCaret, codeArea.getLength()));
+                } else {
+                    int len = codeArea.getLength();
+                    int restoreCaret = Math.max(0, Math.min(oldCaret, len));
+                    int restoreAnchor = Math.max(0, Math.min(oldAnchor, len));
+                    if (restoreCaret != restoreAnchor) {
+                        codeArea.selectRange(restoreAnchor, restoreCaret);
+                    } else {
+                        codeArea.moveTo(restoreCaret);
+                    }
                 }
             }
 
