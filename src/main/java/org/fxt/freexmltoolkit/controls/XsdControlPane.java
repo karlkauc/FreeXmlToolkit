@@ -11,10 +11,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.commands.AddAssertionCommand;
-import org.fxt.freexmltoolkit.controls.commands.DeleteAssertionCommand;
-import org.fxt.freexmltoolkit.controls.commands.EditAssertionCommand;
+import org.fxt.freexmltoolkit.controls.commands.*;
 import org.fxt.freexmltoolkit.controls.dialogs.AssertionEditorDialog;
+import org.fxt.freexmltoolkit.controls.dialogs.XsdHelpDialog;
 import org.fxt.freexmltoolkit.domain.XsdNodeInfo;
 import org.fxt.freexmltoolkit.service.XsdDomManipulator;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -96,6 +95,7 @@ public class XsdControlPane extends ScrollPane {
     private VBox assertionsSection;
     private ListView<AssertionItem> assertionsListView;
     private ObservableList<AssertionItem> assertionsData;
+    private VBox assertionsUI;  // Container for actual assertions list and controls
 
     public XsdControlPane() {
         initializePane();
@@ -125,10 +125,25 @@ public class XsdControlPane extends ScrollPane {
         propertiesSection.setStyle("-fx-background-color: white; -fx-border-color: #dee2e6; " +
                 "-fx-border-width: 1px; -fx-border-radius: 5px; -fx-padding: 15px;");
 
-        // Title
+        // Title with Help button
+        HBox titleBox = new HBox(10);
+        titleBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
         Label titleLabel = new Label("Element Properties");
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
         titleLabel.setGraphic(new FontIcon("bi-gear"));
+
+        // Add spacer to push help button to the right
+        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+        HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+        // Help button
+        Button helpButton = new Button("Help");
+        helpButton.setGraphic(new FontIcon("bi-question-circle"));
+        helpButton.setStyle("-fx-background-color: #0d6efd; -fx-text-fill: white; -fx-font-weight: bold;");
+        helpButton.setOnAction(e -> showHelp());
+
+        titleBox.getChildren().addAll(titleLabel, spacer, helpButton);
 
         // Properties grid
         GridPane propertiesGrid = new GridPane();
@@ -226,7 +241,7 @@ public class XsdControlPane extends ScrollPane {
         saveButtonContainer.getChildren().add(saveButton);
 
         propertiesSection.getChildren().addAll(
-                titleLabel,
+                titleBox,
                 propertiesGrid,
                 new Separator(),
                 docLabel, documentationField,
@@ -308,6 +323,26 @@ public class XsdControlPane extends ScrollPane {
         Label infoLabel = new Label("Define XPath 2.0 expressions to validate element content");
         infoLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
 
+        // Create assertions UI (for both complexTypes and simpleTypes)
+        assertionsUI = createAssertionsUI();
+
+        // Initially hide the section (will be shown only for compatible nodes)
+        assertionsSection.setVisible(false);
+        assertionsSection.setManaged(false);
+
+        assertionsSection.getChildren().addAll(
+                titleLabel,
+                infoLabel,
+                new Separator(),
+                assertionsUI
+        );
+
+        mainContainer.getChildren().add(assertionsSection);
+    }
+
+    private VBox createAssertionsUI() {
+        VBox container = new VBox(10);
+
         // Assertions list
         assertionsData = FXCollections.observableArrayList();
         assertionsListView = new ListView<>(assertionsData);
@@ -367,19 +402,8 @@ public class XsdControlPane extends ScrollPane {
 
         controls.getChildren().addAll(addButton, editButton, deleteButton);
 
-        // Initially hide the section (will be shown only for compatible nodes)
-        assertionsSection.setVisible(false);
-        assertionsSection.setManaged(false);
-
-        assertionsSection.getChildren().addAll(
-                titleLabel,
-                infoLabel,
-                new Separator(),
-                assertionsListView,
-                controls
-        );
-
-        mainContainer.getChildren().add(assertionsSection);
+        container.getChildren().addAll(assertionsListView, controls);
+        return container;
     }
 
     private VBox createGlobalTestSection() {
@@ -712,21 +736,296 @@ public class XsdControlPane extends ScrollPane {
     }
 
     private void updateAssertionsSection(XsdNodeInfo node) {
-        // Assertions are only applicable to complexType and element nodes
-        boolean isCompatibleNode = node.nodeType() == XsdNodeInfo.NodeType.ELEMENT ||
-                node.nodeType() == XsdNodeInfo.NodeType.COMPLEX_TYPE;
+        // Assertions are applicable to:
+        // 1. Global complexType nodes
+        // 2. Global simpleType nodes
+        // 3. Element nodes with inline complexType
+        // 4. Element nodes with inline simpleType
+        // 5. Element nodes within a complexType (assertions will be added to parent complexType)
 
-        if (isCompatibleNode) {
-            assertionsSection.setVisible(true);
-            assertionsSection.setManaged(true);
-            loadAssertions(node);
-        } else {
+        boolean isCompatibleNode = false;
+
+        if (node.nodeType() == XsdNodeInfo.NodeType.COMPLEX_TYPE) {
+            // Global complexType: always compatible
+            isCompatibleNode = true;
+        } else if (node.nodeType() == XsdNodeInfo.NodeType.SIMPLE_TYPE) {
+            // Global simpleType: always compatible
+            isCompatibleNode = true;
+        } else if (node.nodeType() == XsdNodeInfo.NodeType.ELEMENT) {
+            // Element: compatible if it has inline type OR is within a complexType
+            if (hasInlineComplexType(node) || hasInlineSimpleType(node)) {
+                isCompatibleNode = true;
+            } else {
+                // Check if element is within a complexType (not inline, but parent)
+                isCompatibleNode = isElementWithinComplexType(node);
+            }
+        }
+
+        if (!isCompatibleNode) {
+            // Hide section for incompatible nodes
             assertionsSection.setVisible(false);
             assertionsSection.setManaged(false);
             if (assertionsData != null) {
                 assertionsData.clear();
             }
+            return;
         }
+
+        // Show section for compatible nodes (both complexTypes and simpleTypes)
+        assertionsSection.setVisible(true);
+        assertionsSection.setManaged(true);
+        assertionsUI.setVisible(true);
+        assertionsUI.setManaged(true);
+
+        // Load assertions from the node (or parent complexType if applicable)
+        loadAssertions(node);
+    }
+
+    /**
+     * Creates a XsdNodeInfo for the parent complexType of the given element node
+     */
+    private XsdNodeInfo getParentComplexTypeNodeInfo(XsdNodeInfo node) {
+        if (node == null || domManipulator == null) {
+            return null;
+        }
+
+        try {
+            Element element = domManipulator.findElementByXPath(node.xpath());
+            if (element == null) {
+                return null;
+            }
+
+            Element parentComplexType = findParentComplexType(element);
+            if (parentComplexType == null) {
+                return null;
+            }
+
+            // Get the name of the parent complexType
+            String complexTypeName = parentComplexType.getAttribute("name");
+            if (complexTypeName == null || complexTypeName.isEmpty()) {
+                complexTypeName = "anonymous";
+            }
+
+            // Build xpath for the parent complexType
+            // XsdDomManipulator expects simple paths like "/MenuItemType", not XPath predicates
+            String complexTypeXPath = "/" + complexTypeName;
+
+            logger.debug("Created parent complexType XPath: {} for element: {}", complexTypeXPath, node.name());
+
+            // Create XsdNodeInfo for the parent complexType
+            return new XsdNodeInfo(
+                    complexTypeName,
+                    null,
+                    complexTypeXPath,
+                    null,
+                    java.util.Collections.emptyList(),
+                    java.util.Collections.emptyList(),
+                    null,
+                    null,
+                    XsdNodeInfo.NodeType.COMPLEX_TYPE
+            );
+
+        } catch (Exception e) {
+            logger.error("Error getting parent complexType node info for: " + node.name(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Finds the parent complexType element in the DOM tree
+     */
+    private Element findParentComplexType(Element element) {
+        if (element == null) {
+            return null;
+        }
+
+        org.w3c.dom.Node current = element.getParentNode();
+        while (current != null) {
+            if (current.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                Element currentElement = (Element) current;
+                if ("complexType".equals(currentElement.getLocalName()) &&
+                        "http://www.w3.org/2001/XMLSchema".equals(currentElement.getNamespaceURI())) {
+                    return currentElement;
+                }
+            }
+            current = current.getParentNode();
+        }
+        return null;
+    }
+
+    /**
+     * Checks if an element is within a complexType (i.e., has a complexType ancestor in the DOM)
+     */
+    private boolean isElementWithinComplexType(XsdNodeInfo node) {
+        if (node == null || domManipulator == null) {
+            return false;
+        }
+
+        try {
+            Element element = domManipulator.findElementByXPath(node.xpath());
+            if (element == null) {
+                return false;
+            }
+
+            // Walk up the DOM tree to find a complexType ancestor
+            Element parentComplexType = findParentComplexType(element);
+            if (parentComplexType != null) {
+                logger.debug("Element {} is within complexType: {}", node.name(), parentComplexType.getAttribute("name"));
+                return true;
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            logger.error("Error checking if element is within complexType: " + node.name(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Checks if the given node has an inline complexType (not a type reference)
+     */
+    private boolean hasInlineComplexType(XsdNodeInfo node) {
+        if (node == null || domManipulator == null) {
+            return false;
+        }
+
+        try {
+            Element element = domManipulator.findElementByXPath(node.xpath());
+            if (element == null) {
+                return false;
+            }
+
+            // Check for inline complexType only
+            NodeList complexTypes = element.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "complexType");
+            return complexTypes.getLength() > 0;
+
+        } catch (Exception e) {
+            logger.error("Error checking if node has inline complexType: " + node.name(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Checks if the given node has an inline simpleType (not a type reference)
+     */
+    private boolean hasInlineSimpleType(XsdNodeInfo node) {
+        if (node == null || domManipulator == null) {
+            return false;
+        }
+
+        try {
+            Element element = domManipulator.findElementByXPath(node.xpath());
+            if (element == null) {
+                return false;
+            }
+
+            // Check for inline simpleType only
+            NodeList simpleTypes = element.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "simpleType");
+            return simpleTypes.getLength() > 0;
+
+        } catch (Exception e) {
+            logger.error("Error checking if node has inline simpleType: " + node.name(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Checks if the given node is a simpleType node or has an inline simpleType.
+     * This determines whether to use simpleType assertion commands.
+     */
+    private boolean isSimpleTypeForAssertions(XsdNodeInfo node) {
+        if (node == null) {
+            return false;
+        }
+
+        // Global simpleType nodes
+        if (node.nodeType() == XsdNodeInfo.NodeType.SIMPLE_TYPE) {
+            logger.debug("Node is a SIMPLE_TYPE: {}", node.name());
+            return true;
+        }
+
+        // Elements with inline simpleType
+        if (node.nodeType() == XsdNodeInfo.NodeType.ELEMENT) {
+            boolean hasInline = hasInlineSimpleType(node);
+            logger.debug("Element {} has inline simpleType: {}", node.name(), hasInline);
+
+            if (hasInline) {
+                return true;
+            }
+
+            // Check if element has a type reference to a simpleType
+            boolean hasSimpleTypeRef = hasSimpleTypeReference(node);
+            logger.debug("Element {} has simpleType reference: {}", node.name(), hasSimpleTypeRef);
+            return hasSimpleTypeRef;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if an element has a type attribute that references a simpleType
+     * (either built-in or custom).
+     */
+    private boolean hasSimpleTypeReference(XsdNodeInfo node) {
+        if (node == null || domManipulator == null) {
+            return false;
+        }
+
+        try {
+            Element element = domManipulator.findElementByXPath(node.xpath());
+            if (element == null) {
+                return false;
+            }
+
+            String typeAttr = element.getAttribute("type");
+            if (typeAttr == null || typeAttr.isEmpty()) {
+                return false;
+            }
+
+            // Check if it's a built-in XSD simple type
+            if (typeAttr.startsWith("xs:") || typeAttr.startsWith("xsd:")) {
+                String typeName = typeAttr.substring(typeAttr.indexOf(':') + 1);
+                // List of XSD built-in simple types
+                return isBuiltInSimpleType(typeName);
+            }
+
+            // Check if it references a custom simpleType in the schema
+            String localName = typeAttr;
+            if (typeAttr.contains(":")) {
+                localName = typeAttr.substring(typeAttr.indexOf(":") + 1);
+            }
+
+            // Try to find the referenced type
+            Element referencedType = findTypeDefinition(localName);
+            if (referencedType != null) {
+                return "simpleType".equals(referencedType.getLocalName());
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            logger.error("Error checking if node has simpleType reference: " + node.name(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a type name is a built-in XSD simple type.
+     */
+    private boolean isBuiltInSimpleType(String typeName) {
+        return switch (typeName) {
+            case "string", "boolean", "decimal", "float", "double",
+                 "duration", "dateTime", "time", "date", "gYearMonth", "gYear",
+                 "gMonthDay", "gDay", "gMonth", "hexBinary", "base64Binary",
+                 "anyURI", "QName", "NOTATION",
+                 "normalizedString", "token", "language", "NMTOKEN", "NMTOKENS",
+                 "Name", "NCName", "ID", "IDREF", "IDREFS", "ENTITY", "ENTITIES",
+                 "integer", "nonPositiveInteger", "negativeInteger", "long",
+                 "int", "short", "byte", "nonNegativeInteger", "unsignedLong",
+                 "unsignedInt", "unsignedShort", "unsignedByte", "positiveInteger" -> true;
+            default -> false;
+        };
     }
 
     private void loadAssertions(XsdNodeInfo node) {
@@ -737,19 +1036,50 @@ public class XsdControlPane extends ScrollPane {
         assertionsData.clear();
 
         try {
-            // Find all assertion child nodes
-            if (node.children() != null) {
-                for (XsdNodeInfo child : node.children()) {
-                    if (child.nodeType() == XsdNodeInfo.NodeType.ASSERT) {
-                        String testExpr = child.xpathExpression();
-                        String doc = child.documentation();
-                        String namespace = child.xsd11Attributes() != null ?
-                                child.xsd11Attributes().get("xpath-default-namespace") : null;
+            // Find the DOM element for this node
+            Element element = domManipulator.findElementByXPath(node.xpath());
+            if (element == null) {
+                logger.debug("Element not found for xpath: {}", node.xpath());
+                return;
+            }
 
-                        AssertionItem item = new AssertionItem(child, testExpr, namespace, doc);
-                        assertionsData.add(item);
-                    }
+            // For elements within a complexType (but not inline), load assertions from parent
+            Element targetElement = element;
+            if (node.nodeType() == XsdNodeInfo.NodeType.ELEMENT &&
+                    !hasInlineComplexType(node) &&
+                    !hasInlineSimpleType(node) &&
+                    isElementWithinComplexType(node)) {
+                // Find parent complexType
+                targetElement = findParentComplexType(element);
+                if (targetElement != null) {
+                    logger.debug("Loading assertions from parent complexType for element: {}", node.name());
+                } else {
+                    targetElement = element;  // Fallback to original element
                 }
+            }
+
+            // Get assertions from the DOM
+            List<Element> assertionElements = findAssertionElements(targetElement);
+
+            // Convert DOM assertions to AssertionItem objects
+            for (Element assertElement : assertionElements) {
+                String testExpr = assertElement.getAttribute("test");
+                String namespace = assertElement.getAttribute("xpath-default-namespace");
+
+                // Extract documentation from xs:annotation/xs:documentation
+                String doc = extractDocumentation(assertElement);
+
+                // Create a lightweight XsdNodeInfo for the assertion (needed for edit/delete)
+                // We'll use the node's xpath + "/assert" as a simple identifier
+                XsdNodeInfo assertionNodeInfo = createAssertionNodeInfo(node, assertElement, testExpr);
+
+                AssertionItem item = new AssertionItem(
+                        assertionNodeInfo,
+                        testExpr,
+                        namespace.isEmpty() ? null : namespace,
+                        doc
+                );
+                assertionsData.add(item);
             }
 
             logger.debug("Loaded {} assertions for node: {}", assertionsData.size(), node.name());
@@ -759,6 +1089,104 @@ public class XsdControlPane extends ScrollPane {
         }
     }
 
+    /**
+     * Finds all xs:assert elements within a given element.
+     * Handles both complexType assertions (direct children) and simpleType assertions (within restriction).
+     */
+    private List<Element> findAssertionElements(Element element) {
+        List<Element> assertions = new ArrayList<>();
+        String localName = element.getLocalName();
+
+        if ("simpleType".equals(localName)) {
+            // For global simpleType: assertions are inside xs:restriction
+            NodeList restrictions = element.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "restriction");
+            for (int i = 0; i < restrictions.getLength(); i++) {
+                Element restriction = (Element) restrictions.item(i);
+                addDirectChildAssertions(restriction, assertions);
+            }
+        } else if ("complexType".equals(localName)) {
+            // For global complexType: assertions are direct children
+            addDirectChildAssertions(element, assertions);
+        } else if ("element".equals(localName)) {
+            // For element nodes, check for inline simpleType or complexType
+            // First, check for inline simpleType with assertions in restriction
+            NodeList simpleTypes = element.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "simpleType");
+            if (simpleTypes.getLength() > 0) {
+                Element simpleType = (Element) simpleTypes.item(0);
+                NodeList restrictions = simpleType.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "restriction");
+                for (int i = 0; i < restrictions.getLength(); i++) {
+                    Element restriction = (Element) restrictions.item(i);
+                    addDirectChildAssertions(restriction, assertions);
+                }
+            }
+
+            // Also check for inline complexType with direct assertions
+            NodeList complexTypes = element.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "complexType");
+            if (complexTypes.getLength() > 0) {
+                Element complexType = (Element) complexTypes.item(0);
+                addDirectChildAssertions(complexType, assertions);
+            }
+        }
+
+        return assertions;
+    }
+
+    /**
+     * Adds all xs:assert elements that are direct children of the given parent element.
+     */
+    private void addDirectChildAssertions(Element parent, List<Element> assertions) {
+        org.w3c.dom.NodeList children = parent.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            org.w3c.dom.Node child = children.item(i);
+            if (child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                Element childElement = (Element) child;
+                if ("assert".equals(childElement.getLocalName()) &&
+                        "http://www.w3.org/2001/XMLSchema".equals(childElement.getNamespaceURI())) {
+                    assertions.add(childElement);
+                }
+            }
+        }
+    }
+
+    /**
+     * Extracts documentation text from an xs:assert element's xs:annotation/xs:documentation.
+     */
+    private String extractDocumentation(Element assertElement) {
+        NodeList annotations = assertElement.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "annotation");
+        if (annotations.getLength() > 0) {
+            Element annotation = (Element) annotations.item(0);
+            NodeList docs = annotation.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "documentation");
+            if (docs.getLength() > 0) {
+                return docs.item(0).getTextContent();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Creates a lightweight XsdNodeInfo for an assertion element.
+     * This is needed for edit/delete operations.
+     */
+    private XsdNodeInfo createAssertionNodeInfo(XsdNodeInfo parentNode, Element assertElement, String testExpr) {
+        // Build xpath for this assertion
+        String assertXPath = parentNode.xpath() + "/assert";
+
+        // Create a minimal XsdNodeInfo for the assertion using the correct constructor signature
+        return new XsdNodeInfo(
+                "assert",                                   // name
+                null,                                       // type
+                assertXPath,                                // xpath
+                null,                                       // documentation (we handle it separately)
+                java.util.Collections.emptyList(),          // children
+                java.util.Collections.emptyList(),          // exampleValues
+                null,                                       // minOccurs
+                null,                                       // maxOccurs
+                XsdNodeInfo.NodeType.ASSERT,                // nodeType
+                testExpr,                                   // xpathExpression (the test attribute)
+                java.util.Collections.emptyMap()            // xsd11Attributes
+        );
+    }
+
     private void showAddAssertionDialog() {
         if (currentNode == null || domManipulator == null) {
             showAlert("No Element Selected", "Please select an element to add an assertion.", "warning");
@@ -766,22 +1194,68 @@ public class XsdControlPane extends ScrollPane {
         }
 
         try {
-            String elementContext = currentNode.name() != null ? currentNode.name() : "complexType";
-            AssertionEditorDialog dialog = new AssertionEditorDialog(elementContext);
+            // Determine the target node for the assertion
+            XsdNodeInfo targetNode = currentNode;
+            String elementContext = currentNode.name() != null ? currentNode.name() : "";
 
+            // Check if current node is within a complexType (but not inline)
+            if (currentNode.nodeType() == XsdNodeInfo.NodeType.ELEMENT &&
+                    !hasInlineComplexType(currentNode) &&
+                    !hasInlineSimpleType(currentNode) &&
+                    isElementWithinComplexType(currentNode)) {
+                // Create XsdNodeInfo for parent complexType
+                targetNode = getParentComplexTypeNodeInfo(currentNode);
+                if (targetNode != null) {
+                    elementContext = "Parent complexType (" + targetNode.name() + ")";
+                    logger.debug("Adding assertion to parent complexType: {}", targetNode.name());
+                } else {
+                    // Fallback to current node if parent not found
+                    targetNode = currentNode;
+                }
+            }
+
+            // Check if target node is a simpleType or element with inline simpleType
+            boolean isSimpleType = isSimpleTypeForAssertions(targetNode);
+
+            if (elementContext.isEmpty()) {
+                elementContext = targetNode.name() != null ? targetNode.name() :
+                        (isSimpleType ? "simpleType" : "complexType");
+            }
+
+            AssertionEditorDialog dialog = new AssertionEditorDialog(elementContext, isSimpleType);
+
+            XsdNodeInfo finalTargetNode = targetNode;  // For lambda capture
             dialog.showAndWait().ifPresent(result -> {
-                AddAssertionCommand command = new AddAssertionCommand(
-                        domManipulator,
-                        currentNode,
-                        result.testExpression(),
-                        result.xpathDefaultNamespace(),
-                        result.documentation()
-                );
+                XsdCommand command;
+
+                if (isSimpleType) {
+                    // Use AddSimpleTypeAssertionCommand for simpleTypes and elements with inline simpleTypes
+                    command = new AddSimpleTypeAssertionCommand(
+                            domManipulator,
+                            finalTargetNode,
+                            result.testExpression(),
+                            result.xpathDefaultNamespace(),
+                            result.documentation()
+                    );
+                } else {
+                    // Use AddAssertionCommand for complexTypes
+                    command = new AddAssertionCommand(
+                            domManipulator,
+                            finalTargetNode,
+                            result.testExpression(),
+                            result.xpathDefaultNamespace(),
+                            result.documentation()
+                    );
+                }
 
                 if (undoManager != null && undoManager.executeCommand(command)) {
-                    // Reload assertions
+                    logger.info("Assertion added successfully");
+                    // Reload assertions to update the UI immediately
                     loadAssertions(currentNode);
-                    notifyChanges("Assertion added");
+                    // Notify that changes were made (triggers save)
+                    if (changeCallback != null) {
+                        changeCallback.run();
+                    }
                 } else {
                     showAlert("Failed to add assertion", "Could not add the assertion", "error");
                 }
@@ -800,9 +1274,14 @@ public class XsdControlPane extends ScrollPane {
         }
 
         try {
-            String elementContext = currentNode.name() != null ? currentNode.name() : "complexType";
+            // Check if current node is a simpleType or element with inline simpleType
+            boolean isSimpleType = isSimpleTypeForAssertions(currentNode);
+
+            String elementContext = currentNode.name() != null ? currentNode.name() :
+                    (isSimpleType ? "simpleType" : "complexType");
             AssertionEditorDialog dialog = new AssertionEditorDialog(
                     elementContext,
+                    isSimpleType,
                     selected.testExpression,
                     selected.xpathDefaultNamespace,
                     selected.documentation
@@ -818,9 +1297,13 @@ public class XsdControlPane extends ScrollPane {
                 );
 
                 if (undoManager != null && undoManager.executeCommand(command)) {
-                    // Reload assertions
+                    logger.info("Assertion edited successfully");
+                    // Reload assertions to update the UI immediately
                     loadAssertions(currentNode);
-                    notifyChanges("Assertion edited");
+                    // Notify that changes were made (triggers save)
+                    if (changeCallback != null) {
+                        changeCallback.run();
+                    }
                 } else {
                     showAlert("Failed to edit assertion", "Could not edit the assertion", "error");
                 }
@@ -847,15 +1330,33 @@ public class XsdControlPane extends ScrollPane {
 
             confirmation.showAndWait().ifPresent(response -> {
                 if (response == ButtonType.OK) {
-                    DeleteAssertionCommand command = new DeleteAssertionCommand(
-                            domManipulator,
-                            selected.assertionNode
-                    );
+                    // Check if current node is a simpleType or element with inline simpleType
+                    boolean isSimpleType = isSimpleTypeForAssertions(currentNode);
+
+                    XsdCommand command;
+
+                    if (isSimpleType) {
+                        // Use DeleteSimpleTypeAssertionCommand for simpleTypes and elements with inline simpleTypes
+                        command = new DeleteSimpleTypeAssertionCommand(
+                                domManipulator,
+                                selected.assertionNode
+                        );
+                    } else {
+                        // Use DeleteAssertionCommand for complexTypes
+                        command = new DeleteAssertionCommand(
+                                domManipulator,
+                                selected.assertionNode
+                        );
+                    }
 
                     if (undoManager != null && undoManager.executeCommand(command)) {
-                        // Reload assertions
+                        logger.info("Assertion deleted successfully");
+                        // Reload assertions to update the UI immediately
                         loadAssertions(currentNode);
-                        notifyChanges("Assertion deleted");
+                        // Notify that changes were made (triggers save)
+                        if (changeCallback != null) {
+                            changeCallback.run();
+                        }
                     } else {
                         showAlert("Failed to delete assertion", "Could not delete the assertion", "error");
                     }
@@ -1662,6 +2163,20 @@ public class XsdControlPane extends ScrollPane {
         }
     }
 
+    /**
+     * Shows the XSD Panel help dialog
+     */
+    private void showHelp() {
+        try {
+            XsdHelpDialog helpDialog = new XsdHelpDialog();
+            helpDialog.show();
+            logger.debug("XSD Help dialog displayed");
+        } catch (Exception e) {
+            logger.error("Error showing help dialog", e);
+            showAlert("Help Error", "Failed to open help dialog: " + e.getMessage(), "error");
+        }
+    }
+
     // Supporting classes from XsdValidationPanel
     public static class EnumerationValue {
         private String value;
@@ -1722,6 +2237,24 @@ public class XsdControlPane extends ScrollPane {
      */
     public void setChangeCallback(Runnable changeCallback) {
         this.changeCallback = changeCallback;
+    }
+
+    /**
+     * Gets the current XSD content as a string from the DOM manipulator.
+     * This can be used to save the current state to a file.
+     *
+     * @return The XSD content as a string, or null if no DOM manipulator is set
+     */
+    public String getCurrentXsdContent() {
+        if (domManipulator == null) {
+            return null;
+        }
+        try {
+            return domManipulator.getXsdAsString();
+        } catch (Exception e) {
+            logger.error("Error getting XSD content from DOM manipulator", e);
+            return null;
+        }
     }
 
     /**

@@ -76,6 +76,7 @@ public class XsdDocumentationService {
 
     public ImageOutputMethod imageOutputMethod = ImageOutputMethod.SVG;
     Boolean useMarkdownRenderer = true;
+    Boolean includeTypeDefinitionsInSourceCode = false;
 
     private TaskProgressListener progressListener;
     private final XsdSampleDataGenerator xsdSampleDataGenerator = new XsdSampleDataGenerator();
@@ -131,6 +132,10 @@ public class XsdDocumentationService {
 
     public void setUseMarkdownRenderer(Boolean useMarkdownRenderer) {
         this.useMarkdownRenderer = useMarkdownRenderer;
+    }
+
+    public void setIncludeTypeDefinitionsInSourceCode(Boolean includeTypeDefinitionsInSourceCode) {
+        this.includeTypeDefinitionsInSourceCode = includeTypeDefinitionsInSourceCode;
     }
 
     public void generateXsdDocumentation(File outputDirectory) throws Exception {
@@ -1136,7 +1141,7 @@ public class XsdDocumentationService {
         String defaultValue = getAttributeValue(node, "default");
 
         // Final steps
-        extendedElem.setSourceCode(nodeToString(node));
+        extendedElem.setSourceCode(generateSourceCodeWithOptionalTypeDefinition(node, typeName, typeDefinitionNode));
 
         if (fixedValue != null) {
             extendedElem.setSampleData(fixedValue);
@@ -2021,5 +2026,62 @@ public class XsdDocumentationService {
             logger.warn("Could not parse URL to get filename: {}", urlString, e);
             return "";
         }
+    }
+
+    /**
+     * Generates source code for a node, optionally including the full definition of referenced types.
+     * When includeTypeDefinitionsInSourceCode is enabled and the node references a complexType or simpleType,
+     * the complete type definition is appended to the source code.
+     *
+     * @param node               The current node (element or attribute)
+     * @param typeName           The name of the referenced type (if any)
+     * @param typeDefinitionNode The type definition node (if found)
+     * @return The source code string, potentially including the type definition
+     */
+    private String generateSourceCodeWithOptionalTypeDefinition(Node node, String typeName, Node typeDefinitionNode) {
+        // Always include the node's own source code
+        String baseSourceCode = nodeToString(node);
+
+        // If the option is disabled or there's no type reference, return base source code
+        if (!includeTypeDefinitionsInSourceCode || typeName == null || typeName.isEmpty()) {
+            return baseSourceCode;
+        }
+
+        // Check if this is a built-in XSD type (xs:string, xs:int, etc.)
+        if (typeName.startsWith("xs:") || typeName.startsWith("xsd:")) {
+            logger.debug("Skipping built-in type definition for: {}", typeName);
+            return baseSourceCode;
+        }
+
+        // If we have an inline type definition, it's already included in the base source code
+        if (typeDefinitionNode != null && typeDefinitionNode.getParentNode() == node) {
+            logger.debug("Type definition is inline, already included in base source code");
+            return baseSourceCode;
+        }
+
+        // Look up the global type definition
+        String cleanTypeName = stripNamespace(typeName);
+        Node globalTypeNode = complexTypeMap.get(cleanTypeName);
+        if (globalTypeNode == null) {
+            globalTypeNode = simpleTypeMap.get(cleanTypeName);
+        }
+
+        // If we found a global type definition, append it to the source code
+        if (globalTypeNode != null) {
+            String typeSourceCode = nodeToString(globalTypeNode);
+            logger.debug("Including type definition for '{}' in source code", cleanTypeName);
+
+            // Combine the base source code with the type definition
+            String combinedSource = "<!-- Element Definition -->\n" +
+                    baseSourceCode +
+                    "\n\n" +
+                    "<!-- Referenced Type Definition: " + cleanTypeName + " -->\n" +
+                    typeSourceCode;
+
+            return combinedSource;
+        }
+
+        logger.debug("No global type definition found for: {}", cleanTypeName);
+        return baseSourceCode;
     }
 }

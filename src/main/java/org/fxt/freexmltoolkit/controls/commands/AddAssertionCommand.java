@@ -52,15 +52,25 @@ public class AddAssertionCommand implements XsdCommand {
             // Find the complexType element where we'll add the assertion
             Element complexTypeElement;
             if ("complexType".equals(localName)) {
-                // Parent is already a complexType
+                // Parent is already a complexType (global or inline)
+                logger.debug("Adding assertion to complexType: {}", parentElement.getAttribute("name"));
                 complexTypeElement = parentElement;
             } else if ("element".equals(localName)) {
-                // Parent is an element, find its complexType child
+                // Parent is an element, find its inline complexType child
                 complexTypeElement = findComplexTypeInElement(parentElement);
                 if (complexTypeElement == null) {
-                    logger.error("Element does not have a complexType definition");
+                    String elementName = parentElement.getAttribute("name");
+                    String typeRef = parentElement.getAttribute("type");
+
+                    if (typeRef != null && !typeRef.isEmpty()) {
+                        logger.error("Element '{}' uses a type reference '{}'. Assertions can only be added to elements with inline complexType definitions or to global complexTypes directly.",
+                                elementName, typeRef);
+                    } else {
+                        logger.error("Element '{}' does not have an inline complexType definition", elementName);
+                    }
                     return false;
                 }
+                logger.debug("Adding assertion to inline complexType of element: {}", parentElement.getAttribute("name"));
             } else {
                 logger.error("Assertions can only be added to complexType or element nodes, not: {}", localName);
                 return false;

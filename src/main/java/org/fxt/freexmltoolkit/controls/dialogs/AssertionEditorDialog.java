@@ -22,18 +22,31 @@ public class AssertionEditorDialog extends Dialog<AssertionEditorDialog.Assertio
     private final TextArea previewArea;
     private final XPath2Service xpathService;
     private final String elementContext;
+    private final boolean isSimpleType;
 
     public AssertionEditorDialog(String elementContext) {
-        this(elementContext, null, null, null);
+        this(elementContext, false, null, null, null);
+    }
+
+    public AssertionEditorDialog(String elementContext, boolean isSimpleType) {
+        this(elementContext, isSimpleType, null, null, null);
     }
 
     public AssertionEditorDialog(String elementContext, String existingTest,
                                  String existingNamespace, String existingDocumentation) {
+        this(elementContext, false, existingTest, existingNamespace, existingDocumentation);
+    }
+
+    public AssertionEditorDialog(String elementContext, boolean isSimpleType, String existingTest,
+                                 String existingNamespace, String existingDocumentation) {
         this.elementContext = elementContext;
+        this.isSimpleType = isSimpleType;
         this.xpathService = new XPath2Service();
 
         setTitle("XSD 1.1 Assertion Editor");
-        setHeaderText("Create or edit xs:assert with XPath 2.0 validation");
+        setHeaderText(isSimpleType
+                ? "Create or edit xs:assert for simpleType restriction"
+                : "Create or edit xs:assert for complexType");
 
         // Set dialog icon
         setGraphic(new FontIcon("bi-check-circle"));
@@ -96,7 +109,10 @@ public class AssertionEditorDialog extends Dialog<AssertionEditorDialog.Assertio
         // Test expression (required)
         Label testLabel = new Label("XPath 2.0 Test Expression: *");
         testLabel.setStyle("-fx-font-weight: bold;");
-        testExpressionArea.setPromptText("Enter XPath 2.0 expression (e.g., price > discount)");
+        String promptText = isSimpleType
+                ? "Enter XPath 2.0 expression using $value (e.g., $value > 0 and $value < 100)"
+                : "Enter XPath 2.0 expression (e.g., price > discount)";
+        testExpressionArea.setPromptText(promptText);
         testExpressionArea.setPrefRowCount(3);
         testExpressionArea.setWrapText(true);
         testExpressionArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
@@ -238,38 +254,60 @@ public class AssertionEditorDialog extends Dialog<AssertionEditorDialog.Assertio
 
         StringBuilder preview = new StringBuilder();
         preview.append("<!-- XSD 1.1 Assertion -->\n");
-        preview.append("<xs:complexType name=\"").append(elementContext != null ? elementContext : "YourType").append("\">\n");
-        preview.append("  <xs:sequence>\n");
-        preview.append("    <!-- Your elements here -->\n");
-        preview.append("  </xs:sequence>\n");
-        preview.append("  \n");
-        preview.append("  <!-- Assertion -->\n");
 
-        if (!namespace.isEmpty()) {
-            preview.append("  <xs:assert test=\"").append(escapeXml(testExpr)).append("\"\n");
-            preview.append("             xpath-default-namespace=\"").append(escapeXml(namespace)).append("\"");
+        if (isSimpleType) {
+            // SimpleType context
+            preview.append("<xs:simpleType name=\"").append(elementContext != null ? elementContext : "YourType").append("\">\n");
+            preview.append("  <xs:restriction base=\"xs:integer\">\n");
+            preview.append("    <!-- Facets here (e.g., minInclusive, maxInclusive) -->\n");
+            preview.append("    \n");
+            preview.append("    <!-- Assertion -->\n");
         } else {
-            preview.append("  <xs:assert test=\"").append(escapeXml(testExpr)).append("\"");
+            // ComplexType context
+            preview.append("<xs:complexType name=\"").append(elementContext != null ? elementContext : "YourType").append("\">\n");
+            preview.append("  <xs:sequence>\n");
+            preview.append("    <!-- Your elements here -->\n");
+            preview.append("  </xs:sequence>\n");
+            preview.append("  \n");
+            preview.append("  <!-- Assertion -->\n");
+        }
+
+        String indent = isSimpleType ? "    " : "  ";
+        if (!namespace.isEmpty()) {
+            preview.append(indent).append("<xs:assert test=\"").append(escapeXml(testExpr)).append("\"\n");
+            preview.append(indent).append("           xpath-default-namespace=\"").append(escapeXml(namespace)).append("\"");
+        } else {
+            preview.append(indent).append("<xs:assert test=\"").append(escapeXml(testExpr)).append("\"");
         }
 
         if (!documentation.isEmpty()) {
             preview.append(">\n");
-            preview.append("    <xs:annotation>\n");
-            preview.append("      <xs:documentation>\n");
-            preview.append("        ").append(escapeXml(documentation)).append("\n");
-            preview.append("      </xs:documentation>\n");
-            preview.append("    </xs:annotation>\n");
-            preview.append("  </xs:assert>\n");
+            preview.append(indent).append("  <xs:annotation>\n");
+            preview.append(indent).append("    <xs:documentation>\n");
+            preview.append(indent).append("      ").append(escapeXml(documentation)).append("\n");
+            preview.append(indent).append("    </xs:documentation>\n");
+            preview.append(indent).append("  </xs:annotation>\n");
+            preview.append(indent).append("</xs:assert>\n");
         } else {
             preview.append("/>\n");
         }
 
-        preview.append("</xs:complexType>\n\n");
+        if (isSimpleType) {
+            preview.append("  </xs:restriction>\n");
+            preview.append("</xs:simpleType>\n\n");
+        } else {
+            preview.append("</xs:complexType>\n\n");
+        }
 
         // Add helpful notes
         preview.append("Notes:\n");
         preview.append("✓ XPath 2.0 syntax validated\n");
-        preview.append("✓ Test expression evaluated in the context of the complexType\n");
+        if (isSimpleType) {
+            preview.append("✓ Test expression evaluated with $value variable (the value being validated)\n");
+            preview.append("✓ Example: $value > 0 and $value < 100 (for a range check)\n");
+        } else {
+            preview.append("✓ Test expression evaluated in the context of the complexType\n");
+        }
         preview.append("✓ Schema must declare vc:minVersion=\"1.1\" for XSD 1.1 support\n");
 
         previewArea.setText(preview.toString());

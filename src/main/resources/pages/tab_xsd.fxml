@@ -540,6 +540,11 @@
                     <CheckBox fx:id="createExampleData" selected="true" GridPane.columnIndex="1"
                               GridPane.rowIndex="6"/>
 
+                    <Label text="include type definitions in source code" GridPane.columnIndex="0"
+                           GridPane.rowIndex="7"/>
+                    <CheckBox fx:id="includeTypeDefinitionsInSourceCode" selected="false" GridPane.columnIndex="1"
+                              GridPane.rowIndex="7"/>
+
                     <Label text="Grafik format" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
                     <ChoiceBox fx:id="grafikFormat" value="SVG" GridPane.columnIndex="1"
                                GridPane.rowIndex="8"/>

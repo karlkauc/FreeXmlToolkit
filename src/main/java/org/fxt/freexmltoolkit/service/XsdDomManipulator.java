@@ -598,9 +598,10 @@ public class XsdDomManipulator {
         // Debug: Print parent structure
         debugPrintElement(parent, 1);
 
-        // Special handling for structural elements (sequence, choice, all)
-        if ("sequence".equals(childName) || "choice".equals(childName) || "all".equals(childName)) {
-            logger.debug("Looking for structural element: {}", childName);
+        // Special handling for structural elements (sequence, choice, all) and XSD 1.1 elements (assert, alternative)
+        if ("sequence".equals(childName) || "choice".equals(childName) || "all".equals(childName) ||
+                "assert".equals(childName) || "alternative".equals(childName)) {
+            logger.debug("Looking for structural/XSD 1.1 element: {}", childName);
             // Look for direct structural children first
             NodeList directChildren = parent.getChildNodes();
             for (int i = 0; i < directChildren.getLength(); i++) {
@@ -608,7 +609,7 @@ public class XsdDomManipulator {
                 if (child.getNodeType() == Node.ELEMENT_NODE) {
                     Element childElement = (Element) child;
                     if (childName.equals(childElement.getLocalName())) {
-                        logger.debug("Found direct structural child: {}", childName);
+                        logger.debug("Found direct structural/XSD 1.1 child: {}", childName);
                         return childElement;
                     }
                 }
@@ -624,7 +625,7 @@ public class XsdDomManipulator {
                     if (child.getNodeType() == Node.ELEMENT_NODE) {
                         Element childElement = (Element) child;
                         if (childName.equals(childElement.getLocalName())) {
-                            logger.debug("Found structural child in complexType: {}", childName);
+                            logger.debug("Found structural/XSD 1.1 child in complexType: {}", childName);
                             return childElement;
                         }
                     }

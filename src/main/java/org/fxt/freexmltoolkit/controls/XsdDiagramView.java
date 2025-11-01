@@ -360,7 +360,24 @@ public class XsdDiagramView {
                 // Perform selective refresh of only the changed node
                 performSelectiveNodeRefresh();
             }
-            
+
+            triggerLiveValidation();
+        });
+
+        // Set up callback for assertion and other structural changes (triggers save)
+        controlPane.setChangeCallback(() -> {
+            System.out.println("DEBUG: Change callback triggered - updating XSD content");
+
+            // Get updated XSD content from DOM manipulator
+            String updatedXsd = domManipulator.getXsdAsString();
+            if (updatedXsd != null) {
+                // Update text editor and trigger save
+                controller.updateXsdContent(updatedXsd, false);
+
+                // Perform selective refresh of only the changed node
+                performSelectiveNodeRefresh();
+            }
+
             triggerLiveValidation();
         });
 

@@ -330,6 +330,8 @@ public class XsdViewService {
 
         // Find the type definition (either inline or globally referenced)
         Node complexTypeNode = getDirectChildElement(elementNode, "complexType");
+        Node simpleTypeNode = getDirectChildElement(elementNode, "simpleType");
+
         if (complexTypeNode == null && !type.isEmpty()) {
             complexTypeNode = complexTypeMap.get(stripNamespace(type));
         }
@@ -337,6 +339,12 @@ public class XsdViewService {
         if (complexTypeNode != null) {
             // Process the content of the complex type (particles and attributes)
             children.addAll(processComplexTypeContent(complexTypeNode, currentXPath, visitedOnPath));
+        } else if (simpleTypeNode != null) {
+            // Process inline simpleType (XSD 1.1: may contain assertions in restrictions)
+            XsdNodeInfo simpleTypeInfo = processSimpleType(simpleTypeNode, currentXPath);
+            if (simpleTypeInfo != null && !simpleTypeInfo.children().isEmpty()) {
+                children.addAll(simpleTypeInfo.children());
+            }
         } else if (type.isEmpty()) {
             // Element without type and without inline definition is implicitly 'xs:anyType'
             type = "xs:anyType";
@@ -491,11 +499,23 @@ public class XsdViewService {
 
         // Check if it's a restriction, list, or union
         String type = "simpleType";
+        List<XsdNodeInfo> children = new ArrayList<>();
+
         Node restriction = getDirectChildElement(simpleTypeNode, "restriction");
         if (restriction != null) {
             String base = getAttributeValue(restriction, "base");
             if (!base.isEmpty()) {
                 type = "restriction of " + stripNamespace(base);
+            }
+
+            // XSD 1.1: Process assertions within restriction
+            for (Node child : getDirectChildElements(restriction)) {
+                if ("assert".equals(child.getLocalName())) {
+                    XsdNodeInfo assertNode = processAssert(child, currentXPath);
+                    if (assertNode != null) {
+                        children.add(assertNode);
+                    }
+                }
             }
         }
         Node list = getDirectChildElement(simpleTypeNode, "list");
@@ -513,7 +533,7 @@ public class XsdViewService {
             }
         }
 
-        return new XsdNodeInfo(name, type, currentXPath, docParts.mainDocumentation(), Collections.emptyList(), Collections.emptyList(), "1", "1", NodeType.SIMPLE_TYPE);
+        return new XsdNodeInfo(name, type, currentXPath, docParts.mainDocumentation(), children, Collections.emptyList(), "1", "1", NodeType.SIMPLE_TYPE);
     }
 
     private XsdNodeInfo processComplexType(Node complexTypeNode, String currentXPath, Set<Node> visitedOnPath) {

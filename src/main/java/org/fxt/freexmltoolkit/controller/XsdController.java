@@ -282,6 +282,8 @@ public class XsdController {
     @FXML
     private CheckBox createExampleData;
     @FXML
+    private CheckBox includeTypeDefinitionsInSourceCode;
+    @FXML
     private ChoiceBox<String> grafikFormat;
     @FXML
     private VBox xsdPane;
@@ -2191,6 +2193,7 @@ public class XsdController {
                 // Set options from UI
                 docService.setXsdFilePath(xsdFile.getAbsolutePath());
                 docService.setUseMarkdownRenderer(useMarkdownRenderer.isSelected());
+                docService.setIncludeTypeDefinitionsInSourceCode(includeTypeDefinitionsInSourceCode.isSelected());
 
                 // Note: JPG is not supported by the service, it will default to SVG.
                 String format = grafikFormat.getValue();
