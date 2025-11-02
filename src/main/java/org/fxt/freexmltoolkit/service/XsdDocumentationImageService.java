@@ -590,12 +590,30 @@ public class XsdDocumentationImageService {
             String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
 
             var nameBounds = font.getStringBounds(elementName, frc);
-            var typeBounds = font.getStringBounds(elementType, frc);
-
             double nameWidth = nameBounds.getBounds2D().getWidth();
-            double typeWidth = typeBounds.getBounds2D().getWidth();
 
-            maxWidth = Math.max(maxWidth, Math.max(nameWidth, typeWidth));
+            // Get cardinality string and calculate badge width
+            org.w3c.dom.Node childDomNode = childElement.getCurrentNode();
+            String minOccurs = getAttributeValue(childDomNode, "minOccurs", "1");
+            String maxOccurs = getAttributeValue(childDomNode, "maxOccurs", "1");
+            String cardinality = getCardinalityString(minOccurs, maxOccurs);
+            double cardinalityWidth = font.getStringBounds(cardinality, frc).getBounds2D().getWidth() + 8; // +8 for badge padding
+
+            // Calculate width of second line: Type + spacing + cardinality badge (right-aligned)
+            double secondLineWidth = 0;
+            if (!elementType.isBlank()) {
+                var typeBounds = font.getStringBounds(elementType, frc);
+                double typeWidth = typeBounds.getBounds2D().getWidth();
+
+                // Minimum spacing between type and right-aligned cardinality
+                double minSpacing = 20;
+                secondLineWidth = typeWidth + minSpacing + cardinalityWidth;
+            } else {
+                // If no type, cardinality badge is right-aligned with name on first line
+                secondLineWidth = nameWidth;
+            }
+
+            maxWidth = Math.max(maxWidth, Math.max(nameWidth, secondLineWidth));
         }
         return maxWidth + boxPadding * 2;
     }
@@ -1692,43 +1710,50 @@ public class XsdDocumentationImageService {
                     svgRoot.appendChild(dashedOverlay);
                 }
 
-                // Text group
+                // Text group - XMLSpy style with vertical layout
                 Element textGroup = document.createElementNS(svgNS, "g");
-                double nameY = currentY + boxPadding + nameHeight;
+                double textY = currentY + boxPadding + nameHeight;
+
+                // Element name (bold, dark blue) - first line
                 Element nameTextNode = createSvgTextElement(document, elementName2,
-                        String.valueOf(startX + boxPadding), String.valueOf(nameY),
+                        String.valueOf(startX + boxPadding), String.valueOf(textY),
                         COLOR_TEXT_PRIMARY, font.getSize());
+                nameTextNode.setAttribute("font-weight", "600");
                 textGroup.appendChild(nameTextNode);
 
+                // Horizontal separator line below name
                 if (!elementType.isBlank()) {
-                    double lineY = nameY + 6;
-                    Element line = document.createElementNS(svgNS, "line");
-                    line.setAttribute("x1", String.valueOf(startX + boxPadding));
-                    line.setAttribute("y1", String.valueOf(lineY));
-                    line.setAttribute("x2", String.valueOf(startX + boxPadding + maxWidth));
-                    line.setAttribute("y2", String.valueOf(lineY));
-                    line.setAttribute("stroke", COLOR_STROKE_SEPARATOR);
-                    line.setAttribute("stroke-width", "1");
-                    textGroup.appendChild(line);
+                    Element separatorLine = document.createElementNS(svgNS, "line");
+                    separatorLine.setAttribute("x1", String.valueOf(startX + boxPadding));
+                    separatorLine.setAttribute("y1", String.valueOf(textY + 4));
+                    separatorLine.setAttribute("x2", String.valueOf(startX + boxPadding + maxWidth));
+                    separatorLine.setAttribute("y2", String.valueOf(textY + 4));
+                    separatorLine.setAttribute("stroke", "#e0e0e0");
+                    separatorLine.setAttribute("stroke-width", "1");
+                    textGroup.appendChild(separatorLine);
 
-                    Element typeIcon = createTypeSpecificIcon(document, elementType);
-                    if (typeIcon != null) {
-                        typeIcon.setAttribute("x", String.valueOf(startX + boxPadding));
-                        double typeY = lineY + typeBounds.getBounds2D().getHeight() + 4;
-                        double iconBaselineAlignedY = typeY - 10;
-                        typeIcon.setAttribute("y", String.valueOf(iconBaselineAlignedY));
-                        textGroup.appendChild(typeIcon);
-                    }
-
-                    double typeY = lineY + typeBounds.getBounds2D().getHeight() + 4;
-                    double typeTextX = startX + boxPadding;
-                    if (typeIcon != null) {
-                        typeTextX += 16;
-                    }
+                    // Type information (normal, gray) - second line below separator
+                    double typeY = textY + typeHeight;
                     Element typeTextNode = createSvgTextElement(document, elementType,
-                            String.valueOf(typeTextX), String.valueOf(typeY),
-                            getTypeSpecificColor(elementType), font.getSize() - 1);
+                            String.valueOf(startX + boxPadding), String.valueOf(typeY),
+                            COLOR_TEXT_SECONDARY, font.getSize() - 1);
                     textGroup.appendChild(typeTextNode);
+
+                    // Cardinality badge - XMLSpy style: [1], [0..1], [1..*] - right-aligned
+                    String cardinality = getCardinalityString(minOccurs, maxOccursVal);
+                    double cardinalityBadgeWidth = font.getStringBounds(cardinality, frc).getBounds2D().getWidth() + 8;
+                    double cardinalityX = startX + boxPadding + maxWidth - cardinalityBadgeWidth;
+                    Element cardinalityBadge = createCardinalityBadge(document, cardinality,
+                            String.valueOf(cardinalityX), String.valueOf(typeY - nameHeight + 4));
+                    textGroup.appendChild(cardinalityBadge);
+                } else {
+                    // If no type, show cardinality right-aligned
+                    String cardinality = getCardinalityString(minOccurs, maxOccursVal);
+                    double cardinalityBadgeWidth = font.getStringBounds(cardinality, frc).getBounds2D().getWidth() + 8;
+                    double cardinalityX = startX + boxPadding + maxWidth - cardinalityBadgeWidth;
+                    Element cardinalityBadge = createCardinalityBadge(document, cardinality,
+                            String.valueOf(cardinalityX), String.valueOf(textY - nameHeight + 4));
+                    textGroup.appendChild(cardinalityBadge);
                 }
 
                 // Modern plus icon for elements with children
@@ -1947,6 +1972,58 @@ public class XsdDocumentationImageService {
                 typeName.equals("unsignedByte") || typeName.equals("gYearMonth") || typeName.equals("gYear") ||
                 typeName.equals("gMonthDay") || typeName.equals("gDay") || typeName.equals("gMonth") ||
                 typeName.equals("anyType") || typeName.equals("anySimpleType");
+    }
+
+    /**
+     * Creates a cardinality string in XMLSpy format.
+     * Examples: [1], [0..1], [1..*], [0..*]
+     */
+    private String getCardinalityString(String minOccurs, String maxOccurs) {
+        String min = (minOccurs == null || minOccurs.isEmpty()) ? "1" : minOccurs;
+        String max = (maxOccurs == null || maxOccurs.isEmpty()) ? "1" : maxOccurs;
+
+        if ("unbounded".equals(max)) {
+            max = "*";
+        }
+
+        if (min.equals(max)) {
+            return "[" + min + "]";
+        } else {
+            return "[" + min + ".." + max + "]";
+        }
+    }
+
+    /**
+     * Creates an XMLSpy-style cardinality badge SVG element.
+     * Example: [1], [0..1], [1..*]
+     */
+    private Element createCardinalityBadge(Document document, String cardinality, String x, String y) {
+        Element group = document.createElementNS(svgNS, "g");
+
+        // Background rectangle
+        double textWidth = font.getStringBounds(cardinality, frc).getBounds2D().getWidth();
+        Element rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", x);
+        rect.setAttribute("y", y);
+        rect.setAttribute("width", String.valueOf(textWidth + 8));
+        rect.setAttribute("height", "16");
+        rect.setAttribute("rx", "2");
+        rect.setAttribute("ry", "2");
+        rect.setAttribute("fill", "#e9ecef");
+        rect.setAttribute("stroke", "#adb5bd");
+        rect.setAttribute("stroke-width", "1");
+        group.appendChild(rect);
+
+        // Text
+        Element text = createSvgTextElement(document, cardinality,
+                String.valueOf(Double.parseDouble(x) + 4),
+                String.valueOf(Double.parseDouble(y) + 11),
+                "#495057", 10);
+        text.setAttribute("font-family", "monospace");
+        text.setAttribute("font-weight", "500");
+        group.appendChild(text);
+
+        return group;
     }
 
     /**
