@@ -372,6 +372,7 @@ public class XsdDocumentationHtmlService {
 
     /**
      * Generiert die Breadcrumb-Navigation für ein Element.
+     * Container-Elemente (CHOICE/SEQUENCE/ALL) werden übersprungen.
      *
      * @param element Das aktuelle Element.
      * @return Ein HTML-String, der die Breadcrumb-Navigation darstellt.
@@ -385,15 +386,18 @@ public class XsdDocumentationHtmlService {
 
         // Traverse up the hierarchy from the current element to the root
         while (current != null) {
-            String link;
-            // The current page's element should not be a link
-            if (current == element) {
-                link = "<span class='font-medium text-slate-500'>" + escapeHtml(current.getElementName()) + "</span>";
-            } else {
-                // The link needs to be relative from the 'details' subdirectory
-                link = "<a href='" + getPageName(current.getCurrentXpath()) + "' class='text-sky-600 hover:underline'>" + escapeHtml(current.getElementName()) + "</a>";
+            // Skip container elements (CHOICE, SEQUENCE, ALL) in breadcrumbs
+            if (isNotContainerElement(current)) {
+                String link;
+                // The current page's element should not be a link
+                if (current == element) {
+                    link = "<span class='font-medium text-slate-500'>" + escapeHtml(current.getElementName()) + "</span>";
+                } else {
+                    // The link needs to be relative from the 'details' subdirectory
+                    link = "<a href='" + getPageName(current.getCurrentXpath()) + "' class='text-sky-600 hover:underline'>" + escapeHtml(current.getElementName()) + "</a>";
+                }
+                crumbs.addFirst(link);
             }
-            crumbs.addFirst(link);
             current = (current.getParentXpath() != null) ? xsdDocumentationData.getExtendedXsdElementMap().get(current.getParentXpath()) : null;
         }
 
@@ -463,10 +467,16 @@ public class XsdDocumentationHtmlService {
     void generateSearchIndex() {
         List<Map<String, String>> searchData = new ArrayList<>();
         for (XsdExtendedElement element : xsdDocumentationData.getExtendedXsdElementMap().values()) {
+            // Skip container elements (CHOICE, SEQUENCE, ALL) from search index
+            if (!isNotContainerElement(element)) {
+                continue;
+            }
+
             Map<String, String> item = new LinkedHashMap<>();
             item.put("name", element.getElementName());
             item.put("url", "details/" + element.getPageName());
-            item.put("xpath", element.getCurrentXpath());
+            // Use clean XPath without container elements for searching
+            item.put("xpath", getCleanXPath(element));
             String docText = element.getDocumentations().stream()
                     .map(XsdExtendedElement.DocumentationInfo::content)
                     .collect(Collectors.joining(" "));
@@ -951,14 +961,17 @@ public class XsdDocumentationHtmlService {
 
         // Traverse up the hierarchy from the current element to the root
         while (current != null) {
-            String link;
-            // The current page's element should not be a link
-            if (current == element) {
-                link = "<span class='text-slate-500'>" + escapeHtml(current.getElementName()) + "</span>";
-            } else {
-                link = "<a href='" + getPageName(current.getCurrentXpath()) + "' class='text-sky-600 hover:underline'>" + escapeHtml(current.getElementName()) + "</a>";
+            // Skip container elements (CHOICE, SEQUENCE, ALL) in breadcrumbs
+            if (isNotContainerElement(current)) {
+                String link;
+                // The current page's element should not be a link
+                if (current == element) {
+                    link = "<span class='text-slate-500'>" + escapeHtml(current.getElementName()) + "</span>";
+                } else {
+                    link = "<a href='" + getPageName(current.getCurrentXpath()) + "' class='text-sky-600 hover:underline'>" + escapeHtml(current.getElementName()) + "</a>";
+                }
+                crumbs.addFirst(link);
             }
-            crumbs.addFirst(link);
             current = (current.getParentXpath() != null) ? xsdDocumentationData.getExtendedXsdElementMap().get(current.getParentXpath()) : null;
         }
 
@@ -966,6 +979,34 @@ public class XsdDocumentationHtmlService {
         crumbs.addFirst("<a href='../index.html' class='text-sky-600 hover:underline'>Schema</a>");
 
         return String.join(" <span class='text-slate-400'>/</span> ", crumbs);
+    }
+
+    /**
+     * Returns the XPath of an element without container elements (CHOICE, SEQUENCE, ALL).
+     * This is used for displaying clean XPaths to users without internal container references.
+     *
+     * @param element The element whose clean XPath should be returned
+     * @return The XPath string without container elements
+     */
+    public String getCleanXPath(XsdExtendedElement element) {
+        if (element == null) {
+            return "";
+        }
+
+        List<String> pathParts = new ArrayList<>();
+        XsdExtendedElement current = element;
+
+        // Traverse up the hierarchy and collect only non-container elements
+        while (current != null) {
+            if (isNotContainerElement(current)) {
+                pathParts.add(0, current.getElementName());
+            }
+            current = (current.getParentXpath() != null) ?
+                    xsdDocumentationData.getExtendedXsdElementMap().get(current.getParentXpath()) : null;
+        }
+
+        // Join with "/" to create XPath
+        return "/" + String.join("/", pathParts);
     }
 
     /**

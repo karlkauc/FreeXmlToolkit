@@ -68,6 +68,7 @@ public class XsdDocumentationImageService {
     final int gapBetweenSides = 120;
     final int boxPadding = 12;
     final int borderRadius = 8;
+    final int plusIconApproxWidth = 24;
 
     // Colors matching XsdDiagramView styles
     private static final String COLOR_BG = "#f0f8ff";                    // Background matching XsdDiagramView
@@ -213,6 +214,7 @@ public class XsdDocumentationImageService {
     private Document generateSvgDocument(XsdExtendedElement rootElement) {
         final Document document = domImpl.createDocument(svgNS, "svg", null);
         var svgRoot = document.getDocumentElement();
+        final double[] maxRightEdge = {0d};
 
         // XMLSpy-inspired defs section with gradients and effects
         Element defs = document.createElementNS(svgNS, "defs");
@@ -356,6 +358,7 @@ public class XsdDocumentationImageService {
         leftRootLink.appendChild(rect1);
         leftRootLink.appendChild(text1);
         svgRoot.appendChild(leftRootLink);
+        updateMaxRightEdge(maxRightEdge, rootStartX + boxPadding * 2 + rootElementWidth);
 
         // Add documentation
         generateModernDocumentationElement(document, rootElement.getDocumentations(),
@@ -437,21 +440,14 @@ public class XsdDocumentationImageService {
         // Note: We keep childElements as-is (may contain nested compositor containers)
         // The recursive drawing method will handle nested compositors automatically
 
-        // Draw modern symbols for sequence/choice
-        double childPathStartX = rootPathEndX + gapBetweenSides;
-        double childPathStartY = rootPathCenterY;
-
         // Calculate symbol position explicitly
         final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2.0);
         final double symbolCenterY = rootPathCenterY; // Y-Position der Symbol-Mitte
-        final double symbolWidth = isSequence ? 50 : (isChoice ? 30 : (isAll ? 40 : 0));
-        final double finalSymbolWidth = symbolWidth;
         final double finalSymbolCenterX = symbolCenterX;
 
-        double symbolEndX = rootPathEndX; // Default to root element end
         if (isSequence || isChoice || isAll) {
-            symbolEndX = drawModernSequenceChoiceSymbol(document, rootPathEndX, rootPathCenterY,
-                    gapBetweenSides, isSequence, isChoice, childElements, svgRoot);
+            drawModernSequenceChoiceSymbol(document, rootPathEndX, rootPathCenterY,
+                    gapBetweenSides, isSequence, isChoice, childElements, svgRoot, maxRightEdge);
         }
 
         // Draw child elements with symmetric layout
@@ -462,8 +458,6 @@ public class XsdDocumentationImageService {
         final boolean hasCompositor = isSequence || isChoice || isAll;
         final boolean finalIsSequence = isSequence;
         final boolean finalIsChoice = isChoice;
-        final boolean finalIsAll = isAll;
-        final double finalSymbolEndX = symbolEndX; // Use the actual returned value
         final double finalSymbolCenterY = symbolCenterY;
 
         // Calculate connection start point based on whether there's a root-level compositor
@@ -480,8 +474,8 @@ public class XsdDocumentationImageService {
 
         // Draw children recursively - this handles nested compositors automatically
         double childrenHeight = drawChildrenRecursive(document, svgRoot, childElements,
-                actualHeight, finalRightStartX, maxChildWidth,
-                connectionStartX, connectionStartY);
+                actualHeight, finalRightStartX,
+                connectionStartX, connectionStartY, maxRightEdge);
 
         actualHeight += childrenHeight;
 
@@ -492,7 +486,10 @@ public class XsdDocumentationImageService {
         // Ensure minimum height to accommodate all content with proper margins
         var imageHeight = Math.max(rootElementTotalHeight + margin, actualHeight);
         svgRoot.setAttribute("height", String.valueOf(imageHeight + margin));
-        svgRoot.setAttribute("width", String.valueOf(finalRightStartX + boxPadding * 2 + maxChildWidth + margin * 3));
+        double computedWidth = Math.max(
+                finalRightStartX + boxPadding * 2 + maxChildWidth + margin * 3,
+                maxRightEdge[0] + margin * 2);
+        svgRoot.setAttribute("width", String.valueOf(computedWidth));
         svgRoot.setAttribute("style", "background-color: " + COLOR_BG);
 
         return document;
@@ -606,9 +603,10 @@ public class XsdDocumentationImageService {
     /**
      * Draws modern sequence/choice symbols
      */
-    private double drawModernSequenceChoiceSymbol(Document document, double rootPathEndX, double rootPathCenterY,
-                                                  double gapBetweenSides, boolean isSequence, boolean isChoice,
-                                                  List<XsdExtendedElement> childElements, Element svgRoot) {
+    private void drawModernSequenceChoiceSymbol(Document document, double rootPathEndX, double rootPathCenterY,
+                                                double gapBetweenSides, boolean isSequence, boolean isChoice,
+                                                List<XsdExtendedElement> childElements, Element svgRoot,
+                                                double[] maxRightEdge) {
 
         final double symbolWidth = isSequence ? 50 : 30;
         final double symbolHeight = 30;
@@ -716,8 +714,14 @@ public class XsdDocumentationImageService {
             svgRoot.appendChild(choiceGroup);
         }
 
-        // Return the right edge X position and center Y position of the symbol
-        return symbolCenterX + symbolWidth / 2;
+        // Track the right edge of the compositor symbol
+        updateMaxRightEdge(maxRightEdge, symbolCenterX + symbolWidth / 2);
+    }
+
+    private void updateMaxRightEdge(double[] maxRightEdge, double candidate) {
+        if (maxRightEdge != null && candidate > maxRightEdge[0]) {
+            maxRightEdge[0] = candidate;
+        }
     }
 
     /**
@@ -1557,20 +1561,22 @@ public class XsdDocumentationImageService {
      * @param children         List of child elements to draw
      * @param startY           Starting Y position
      * @param startX           Starting X position for elements
-     * @param maxWidth         Maximum width for child elements
      * @param connectionStartX X position where connections start from
      * @param connectionStartY Y position where connections start from
+     * @param maxRightEdge     Mutable tracker for the rightmost X coordinate drawn so far
      * @return Total height consumed by all drawn elements
      */
     private double drawChildrenRecursive(Document document, Element svgRoot,
                                          List<XsdExtendedElement> children,
-                                         double startY, double startX, double maxWidth,
-                                         double connectionStartX, double connectionStartY) {
+                                         double startY, double startX,
+                                         double connectionStartX, double connectionStartY,
+                                         double[] maxRightEdge) {
         if (children == null || children.isEmpty()) {
             return 0;
         }
 
         double currentY = startY;
+        double maxWidth = calculateMaxChildWidth(children);
 
         for (XsdExtendedElement child : children) {
             String childName = child.getElementName();
@@ -1604,7 +1610,7 @@ public class XsdDocumentationImageService {
                 double symbolHeight = 30;
 
                 // Draw the symbol
-                drawCompositorSymbolInline(document, svgRoot, compositorType, symbolX, symbolY, symbolWidth, symbolHeight);
+                drawCompositorSymbolInline(document, svgRoot, compositorType, symbolX, symbolY, symbolWidth, symbolHeight, maxRightEdge);
 
                 // Draw connection from parent to compositor symbol
                 Element connectionLine = document.createElementNS(svgNS, "line");
@@ -1624,8 +1630,8 @@ public class XsdDocumentationImageService {
                 double compositorConnectionStartY = symbolY + symbolHeight / 2;
 
                 double childrenHeight = drawChildrenRecursive(document, svgRoot, compositorChildren,
-                        symbolY, compositorChildrenStartX, maxWidth,
-                        compositorConnectionStartX, compositorConnectionStartY);
+                        symbolY, compositorChildrenStartX,
+                        compositorConnectionStartX, compositorConnectionStartY, maxRightEdge);
 
                 // Update currentY to account for the compositor and its children
                 currentY += Math.max(symbolHeight + 40, childrenHeight);
@@ -1753,6 +1759,13 @@ public class XsdDocumentationImageService {
                     }
                 }
 
+                double elementRightEdge = startX + boxPadding * 2 + maxWidth;
+                updateMaxRightEdge(maxRightEdge, elementRightEdge);
+                if (useIcon != null) {
+                    double plusIconRightEdge = startX + boxPadding + maxWidth + margin + plusIconApproxWidth;
+                    updateMaxRightEdge(maxRightEdge, plusIconRightEdge);
+                }
+
                 // Draw connection line from parent to this element
                 double childElementCenterY = currentY + (boxPadding * 2 + totalContentHeight) / 2;
                 Element connectionLine = document.createElementNS(svgNS, "line");
@@ -1833,8 +1846,8 @@ public class XsdDocumentationImageService {
                 }
             }
         } catch (Exception e) {
-            // Silently handle any DOM exceptions (e.g., when working with mock nodes in tests)
-            logger.debug("Could not detect compositor for element: {}", element.getElementName(), e);
+            // Silently handle any DOM exceptions (e.g., when working with mock nodes in tests or corrupted NodeList cache)
+            logger.trace("Could not detect compositor for element: {}", element.getElementName(), e);
             return null;
         }
 
@@ -1845,19 +1858,34 @@ public class XsdDocumentationImageService {
      * Searches for a compositor (sequence/choice/all) within a complexType node.
      */
     private String findCompositorInComplexType(org.w3c.dom.Node complexTypeNode) {
-        org.w3c.dom.NodeList children = complexTypeNode.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            org.w3c.dom.Node child = children.item(i);
-            if (child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                String localName = child.getLocalName();
-                if ("sequence".equals(localName)) {
-                    return "sequence";
-                } else if ("choice".equals(localName)) {
-                    return "choice";
-                } else if ("all".equals(localName)) {
-                    return "all";
+        if (complexTypeNode == null) {
+            return null;
+        }
+
+        try {
+            org.w3c.dom.NodeList children = complexTypeNode.getChildNodes();
+            if (children == null) {
+                return null;
+            }
+
+            int length = children.getLength();
+            for (int i = 0; i < length; i++) {
+                org.w3c.dom.Node child = children.item(i);
+                if (child != null && child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                    String localName = child.getLocalName();
+                    if ("sequence".equals(localName)) {
+                        return "sequence";
+                    } else if ("choice".equals(localName)) {
+                        return "choice";
+                    } else if ("all".equals(localName)) {
+                        return "all";
+                    }
                 }
             }
+        } catch (Exception e) {
+            // Handle DOM exceptions (e.g., corrupted NodeList cache)
+            logger.trace("Could not iterate children of complexType node", e);
+            return null;
         }
         return null;
     }
@@ -1870,19 +1898,30 @@ public class XsdDocumentationImageService {
             return null;
         }
 
-        // Get all complexType elements in the schema
-        org.w3c.dom.NodeList complexTypes = document.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "complexType");
+        try {
+            // Get all complexType elements in the schema
+            org.w3c.dom.NodeList complexTypes = document.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "complexType");
 
-        for (int i = 0; i < complexTypes.getLength(); i++) {
-            org.w3c.dom.Node complexType = complexTypes.item(i);
-            if (complexType.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                org.w3c.dom.Element complexTypeElement = (org.w3c.dom.Element) complexType;
-                String nameAttribute = complexTypeElement.getAttribute("name");
+            if (complexTypes == null) {
+                return null;
+            }
 
-                if (typeName.equals(nameAttribute)) {
-                    return complexType;
+            int length = complexTypes.getLength();
+            for (int i = 0; i < length; i++) {
+                org.w3c.dom.Node complexType = complexTypes.item(i);
+                if (complexType != null && complexType.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                    org.w3c.dom.Element complexTypeElement = (org.w3c.dom.Element) complexType;
+                    String nameAttribute = complexTypeElement.getAttribute("name");
+
+                    if (typeName.equals(nameAttribute)) {
+                        return complexType;
+                    }
                 }
             }
+        } catch (Exception e) {
+            // Handle DOM exceptions (e.g., corrupted NodeList cache)
+            logger.trace("Could not search for complexType: {}", typeName, e);
+            return null;
         }
 
         return null;
@@ -1915,7 +1954,7 @@ public class XsdDocumentationImageService {
      */
     private void drawCompositorSymbolInline(Document document, Element svgRoot,
                                             String compositorType, double x, double y,
-                                            double width, double height) {
+                                            double width, double height, double[] maxRightEdge) {
         Element group = document.createElementNS(svgNS, "g");
 
         if (compositorType.equals("sequence")) {
@@ -1975,6 +2014,7 @@ public class XsdDocumentationImageService {
         }
 
         svgRoot.appendChild(group);
+        updateMaxRightEdge(maxRightEdge, x + width / 2);
     }
 
 }

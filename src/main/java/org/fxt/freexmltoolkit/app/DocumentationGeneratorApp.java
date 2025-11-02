@@ -61,10 +61,10 @@ public class DocumentationGeneratorApp {
 
         XsdDocumentationService xsdDocService = new XsdDocumentationService();
         xsdDocService.setIncludeTypeDefinitionsInSourceCode(true);
-        xsdDocService.setXsdFilePath(xsdFilePath.toString());
         xsdDocService.setUseMarkdownRenderer(true);
-        xsdDocService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
         xsdDocService.setParallelProcessing(true);
+        xsdDocService.setXsdFilePath(xsdFilePath.toString());
+        xsdDocService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
 
         xsdDocService.generateXsdDocumentation(outputFilePath.toFile());
 
