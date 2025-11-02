@@ -284,9 +284,7 @@ public class XmlServiceImpl implements XmlService {
         this.currentXsdFile = xsdFile;
 
         try {
-            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            this.schema = schemaFactory.newSchema(xsdFile);
-
+            // STEP 1: Parse the XSD file as an XML document (this is required)
             builderFactory = DocumentBuilderFactory.newInstance();
             builderFactory.setNamespaceAware(true);
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -295,10 +293,23 @@ public class XmlServiceImpl implements XmlService {
             this.rootElement = document.getDocumentElement();
             this.targetNamespace = rootElement.getAttribute("targetNamespace");
             this.lastXsdError = null; // Clear any previous error on success
-            logger.debug("Successfully set and parsed XSD file: {}", xsdFile.getAbsolutePath());
+            logger.debug("Successfully parsed XSD file as XML document: {}", xsdFile.getAbsolutePath());
+
+            // STEP 2: Try to create a Schema object (optional, for XSD 1.0 validation)
+            // This may fail for XSD 1.1 features (assert, alternative, etc.), but that's okay
+            try {
+                SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                this.schema = schemaFactory.newSchema(xsdFile);
+                logger.debug("Successfully created Schema object from XSD file");
+            } catch (SAXException e) {
+                // Schema creation failed, likely due to XSD 1.1 features
+                logger.warn("Could not create Schema object from XSD file (possibly XSD 1.1 features): {}", e.getMessage());
+                logger.debug("XSD file will be used without schema validation support");
+                this.schema = null; // Set to null, but continue with the parsed document
+            }
 
         } catch (SAXException | IOException | ParserConfigurationException e) {
-            logger.error("Could not set current XSD File: {}", xsdFile.getAbsolutePath(), e);
+            logger.error("Could not parse XSD File as XML document: {}", xsdFile.getAbsolutePath(), e);
 
             // Store detailed error message
             String errorMessage = e.getMessage();
@@ -306,7 +317,7 @@ public class XmlServiceImpl implements XmlService {
                 errorMessage = e.getCause().getMessage();
             }
             this.lastXsdError = errorMessage;
-            
+
             // Also reset state on failure to ensure consistency
             this.currentXsdFile = null;
             this.schema = null;

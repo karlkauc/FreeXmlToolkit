@@ -929,29 +929,59 @@ public class XsdDocumentationHtmlService {
         if (content == null || content.isEmpty()) {
             return "";
         }
-        // Regex to find {@link SomeElementName}
+        // Regex to find {@link SomeElementName} or {@link /xpath/to/element}
         Pattern linkPattern = Pattern.compile("\\{@link\\s+([^}]+)\\}");
         Matcher matcher = linkPattern.matcher(content);
 
         // Replace each found link with a proper HTML <a> tag
         return matcher.replaceAll(matchResult -> {
-            String targetName = matchResult.group(1).trim();
+            String target = matchResult.group(1).trim();
 
-            // Find the element by its name. This is a simple lookup.
-            // For schemas with duplicate names, this might link to the first one found.
-            Optional<XsdExtendedElement> targetElement = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
-                    .filter(e -> targetName.equals(e.getElementName()))
-                    .findFirst();
+            XsdExtendedElement targetElement = null;
 
-            if (targetElement.isPresent()) {
+            // Check if target is an XPath (starts with /)
+            if (target.startsWith("/")) {
+                // Direct XPath lookup
+                targetElement = xsdDocumentationData.getExtendedXsdElementMap().get(target);
+
+                // If not found, try clean XPath (without CHOICE/SEQUENCE/ALL containers)
+                if (targetElement == null) {
+                    targetElement = findElementByCleanXPath(target);
+                }
+            } else {
+                // Element name lookup - find first match
+                targetElement = xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                        .filter(e -> target.equals(e.getElementName()))
+                        .findFirst()
+                        .orElse(null);
+            }
+
+            if (targetElement != null) {
                 // If found, create a link to its detail page
-                String url = "details/" + targetElement.get().getPageName();
-                return "<a href='" + url + "'><code>" + escapeHtml(targetName) + "</code></a>";
+                String displayName = target.startsWith("/") ? target.substring(target.lastIndexOf('/') + 1) : target;
+                String url = targetElement.getPageName();
+                return "<a href='" + url + "' class='text-sky-600 hover:text-sky-800 hover:underline'><code>" + escapeHtml(displayName) + "</code></a>";
             } else {
                 // If the link target is not found, just return the name as plain code text.
-                return "<code>" + escapeHtml(targetName) + "</code>";
+                String displayName = target.startsWith("/") ? target.substring(target.lastIndexOf('/') + 1) : target;
+                return "<code>" + escapeHtml(displayName) + "</code>";
             }
         });
+    }
+
+    /**
+     * Finds an element by its clean XPath (without CHOICE/SEQUENCE/ALL container elements).
+     * This is useful for linking to elements in documentation where container elements are filtered out.
+     */
+    private XsdExtendedElement findElementByCleanXPath(String cleanXPath) {
+        // Iterate through all elements and compare their clean XPath
+        for (XsdExtendedElement element : xsdDocumentationData.getExtendedXsdElementMap().values()) {
+            String elementCleanXPath = getCleanXPath(element);
+            if (cleanXPath.equals(elementCleanXPath)) {
+                return element;
+            }
+        }
+        return null;
     }
 
     public String getBreadCrumbs(XsdExtendedElement element) {
