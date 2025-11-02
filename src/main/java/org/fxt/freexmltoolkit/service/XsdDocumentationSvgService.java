@@ -708,9 +708,15 @@ public class XsdDocumentationSvgService {
                     connectorColor = COLOR_SEQUENCE; // Same color as sequence but could be different
                     connectorDash = " stroke-dasharray=\"3,3\""; // Different dash pattern for ALL
                 }
+
+                int startX = parentPos.x + NODE_WIDTH / 2;
+                int startY = parentPos.y;
+                int endX = x - NODE_WIDTH / 2;
+                int endY = y;
+
                 svgBuilder.append(String.format(
                         "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke=\"%s\" stroke-width=\"2\" class=\"connection\"%s/>",
-                        parentPos.x + NODE_WIDTH / 2, parentPos.y, x - NODE_WIDTH / 2, y, connectorColor, connectorDash
+                        startX, startY, endX, endY, connectorColor, connectorDash
                 ));
             }
         }

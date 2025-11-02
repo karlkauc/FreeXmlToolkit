@@ -473,9 +473,24 @@ public class XsdDocumentationImageService {
         }
 
         // Draw children recursively - this handles nested compositors automatically
+        String childConnectionColor;
+        if (hasCompositor) {
+            if (isChoice) {
+                childConnectionColor = COLOR_STROKE_CHOICE;
+            } else if (isSequence) {
+                childConnectionColor = COLOR_STROKE_SEQUENCE;
+            } else {
+                childConnectionColor = COLOR_STROKE_ANY;
+            }
+        } else {
+            childConnectionColor = COLOR_STROKE_ELEMENT;
+        }
+
         double childrenHeight = drawChildrenRecursive(document, svgRoot, childElements,
                 actualHeight, finalRightStartX,
-                connectionStartX, connectionStartY, maxRightEdge);
+                connectionStartX, connectionStartY, maxRightEdge,
+                hasCompositor,
+                childConnectionColor);
 
         actualHeight += childrenHeight;
 
@@ -1582,13 +1597,17 @@ public class XsdDocumentationImageService {
      * @param connectionStartX X position where connections start from
      * @param connectionStartY Y position where connections start from
      * @param maxRightEdge     Mutable tracker for the rightmost X coordinate drawn so far
+     * @param useElbowConnections whether to render connector lines using L-shaped elbows
+     * @param connectionStrokeColor stroke color to use for connections from this parent to its children
      * @return Total height consumed by all drawn elements
      */
     private double drawChildrenRecursive(Document document, Element svgRoot,
                                          List<XsdExtendedElement> children,
                                          double startY, double startX,
                                          double connectionStartX, double connectionStartY,
-                                         double[] maxRightEdge) {
+                                         double[] maxRightEdge,
+                                         boolean useElbowConnections,
+                                         String connectionStrokeColor) {
         if (children == null || children.isEmpty()) {
             return 0;
         }
@@ -1631,25 +1650,46 @@ public class XsdDocumentationImageService {
                 drawCompositorSymbolInline(document, svgRoot, compositorType, symbolX, symbolY, symbolWidth, symbolHeight, maxRightEdge);
 
                 // Draw connection from parent to compositor symbol
-                Element connectionLine = document.createElementNS(svgNS, "line");
-                connectionLine.setAttribute("x1", String.valueOf(connectionStartX));
-                connectionLine.setAttribute("y1", String.valueOf(connectionStartY));
-                connectionLine.setAttribute("x2", String.valueOf(symbolX));
-                connectionLine.setAttribute("y2", String.valueOf(symbolY + symbolHeight / 2));
                 String strokeColor = compositorType.equals("choice") ? COLOR_STROKE_CHOICE :
                         (compositorType.equals("sequence") ? COLOR_STROKE_SEQUENCE : COLOR_STROKE_ANY);
-                connectionLine.setAttribute("stroke", strokeColor);
-                connectionLine.setAttribute("stroke-width", "2");
-                svgRoot.appendChild(connectionLine);
+                double targetX = symbolX - symbolWidth / 2;
+                double targetY = symbolY + symbolHeight / 2;
+
+                if (useElbowConnections) {
+                    Double elbowX = computeElbowX(connectionStartX, targetX);
+                    if (elbowX != null) {
+                        Element connectionPath = document.createElementNS(svgNS, "path");
+                        String pathData = "M " + connectionStartX + " " + connectionStartY +
+                                " H " + elbowX +
+                                " V " + targetY +
+                                " H " + targetX;
+                        connectionPath.setAttribute("d", pathData);
+                        connectionPath.setAttribute("fill", "none");
+                        connectionPath.setAttribute("stroke", strokeColor);
+                        connectionPath.setAttribute("stroke-width", "2");
+                        svgRoot.appendChild(connectionPath);
+                    } else {
+                        svgRoot.appendChild(createStraightConnection(document, connectionStartX, connectionStartY,
+                                targetX, targetY, false, strokeColor));
+                    }
+                } else {
+                    svgRoot.appendChild(createStraightConnection(document, connectionStartX, connectionStartY,
+                            symbolX, symbolY + symbolHeight / 2, false, strokeColor));
+                }
 
                 // Recursively draw compositor's children
                 double compositorChildrenStartX = symbolX + symbolWidth + 40;
                 double compositorConnectionStartX = symbolX + symbolWidth;
                 double compositorConnectionStartY = symbolY + symbolHeight / 2;
 
+                String childStrokeColor = compositorType.equals("choice") ? COLOR_STROKE_CHOICE :
+                        (compositorType.equals("sequence") ? COLOR_STROKE_SEQUENCE : COLOR_STROKE_ANY);
+
                 double childrenHeight = drawChildrenRecursive(document, svgRoot, compositorChildren,
                         symbolY, compositorChildrenStartX,
-                        compositorConnectionStartX, compositorConnectionStartY, maxRightEdge);
+                        compositorConnectionStartX, compositorConnectionStartY, maxRightEdge,
+                        true,
+                        childStrokeColor);
 
                 // Update currentY to account for the compositor and its children
                 currentY += Math.max(symbolHeight + 40, childrenHeight);
@@ -1793,17 +1833,32 @@ public class XsdDocumentationImageService {
 
                 // Draw connection line from parent to this element
                 double childElementCenterY = currentY + (boxPadding * 2 + totalContentHeight) / 2;
-                Element connectionLine = document.createElementNS(svgNS, "line");
-                connectionLine.setAttribute("x1", String.valueOf(connectionStartX));
-                connectionLine.setAttribute("y1", String.valueOf(connectionStartY));
-                connectionLine.setAttribute("x2", String.valueOf(startX));
-                connectionLine.setAttribute("y2", String.valueOf(childElementCenterY));
-                connectionLine.setAttribute("stroke", COLOR_STROKE_ELEMENT);
-                connectionLine.setAttribute("stroke-width", "2");
-                if (isOptional) {
-                    connectionLine.setAttribute("stroke-dasharray", "5,5");
+                Element connectionElement;
+                if (useElbowConnections) {
+                    Double elbowX = computeElbowX(connectionStartX, startX);
+                    if (elbowX != null) {
+                        Element connectionPath = document.createElementNS(svgNS, "path");
+                        String pathData = "M " + connectionStartX + " " + connectionStartY +
+                                " H " + elbowX +
+                                " V " + childElementCenterY +
+                                " H " + startX;
+                        connectionPath.setAttribute("d", pathData);
+                        connectionPath.setAttribute("fill", "none");
+                        connectionPath.setAttribute("stroke", connectionStrokeColor);
+                        connectionPath.setAttribute("stroke-width", "2");
+                        if (isOptional) {
+                            connectionPath.setAttribute("stroke-dasharray", "5,5");
+                        }
+                        connectionElement = connectionPath;
+                    } else {
+                        connectionElement = createStraightConnection(document, connectionStartX, connectionStartY,
+                                startX, childElementCenterY, isOptional, connectionStrokeColor);
+                    }
+                } else {
+                    connectionElement = createStraightConnection(document, connectionStartX, connectionStartY,
+                            startX, childElementCenterY, isOptional, connectionStrokeColor);
                 }
-                svgRoot.appendChild(connectionLine);
+                svgRoot.appendChild(connectionElement);
 
                 // Update currentY for next element
                 currentY += boxPadding * 2 + totalContentHeight + margin * 2;
@@ -2024,6 +2079,42 @@ public class XsdDocumentationImageService {
         group.appendChild(text);
 
         return group;
+    }
+
+    @SuppressWarnings("unused")
+    private Element createStraightConnection(Document document, double x1, double y1,
+                                             double x2, double y2, boolean isOptional) {
+        return createStraightConnection(document, x1, y1, x2, y2, isOptional, COLOR_STROKE_ELEMENT);
+    }
+
+    private Element createStraightConnection(Document document, double x1, double y1,
+                                             double x2, double y2, boolean isOptional,
+                                             String strokeColor) {
+        Element connectionLine = document.createElementNS(svgNS, "line");
+        connectionLine.setAttribute("x1", String.valueOf(x1));
+        connectionLine.setAttribute("y1", String.valueOf(y1));
+        connectionLine.setAttribute("x2", String.valueOf(x2));
+        connectionLine.setAttribute("y2", String.valueOf(y2));
+        connectionLine.setAttribute("stroke", strokeColor);
+        connectionLine.setAttribute("stroke-width", "2");
+        if (isOptional) {
+            connectionLine.setAttribute("stroke-dasharray", "5,5");
+        }
+        return connectionLine;
+    }
+
+    private Double computeElbowX(double connectionStartX, double targetX) {
+        double available = targetX - connectionStartX;
+        if (available <= 6) {
+            return null;
+        }
+
+        double elbowOffset = Math.min(Math.max(available * 0.25, 16), available - 6);
+        if (elbowOffset <= 4 || elbowOffset >= available) {
+            return null;
+        }
+
+        return connectionStartX + elbowOffset;
     }
 
     /**
