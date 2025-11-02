@@ -321,6 +321,8 @@ public class XsdDocumentationHtmlService {
             context.setVariable("sampleData", element.getDisplaySampleData());
             context.setVariable("appInfos", element.getGenericAppInfos());
             context.setVariable("code", element.getSourceCode());
+            context.setVariable("referencedTypeCode", element.getReferencedTypeCode());
+            context.setVariable("referencedTypeName", element.getReferencedTypeName());
 
             // Flattened children list (without CHOICE/SEQUENCE/ALL containers)
             context.setVariable("flattenedChildren", getFlattenedChildren(element));

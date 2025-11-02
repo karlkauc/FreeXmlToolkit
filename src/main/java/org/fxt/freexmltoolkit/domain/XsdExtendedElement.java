@@ -49,6 +49,8 @@ public class XsdExtendedElement implements Serializable {
     private int level;
     private int counter;
     private String sourceCode;
+    private String referencedTypeCode;
+    private String referencedTypeName;
     private List<String> children = new ArrayList<>();
 
     // Parsed and structured data from the currentNode
@@ -318,6 +320,22 @@ public class XsdExtendedElement implements Serializable {
 
     public void setSourceCode(String sourceCode) {
         this.sourceCode = sourceCode;
+    }
+
+    public String getReferencedTypeCode() {
+        return referencedTypeCode;
+    }
+
+    public void setReferencedTypeCode(String referencedTypeCode) {
+        this.referencedTypeCode = referencedTypeCode;
+    }
+
+    public String getReferencedTypeName() {
+        return referencedTypeName;
+    }
+
+    public void setReferencedTypeName(String referencedTypeName) {
+        this.referencedTypeName = referencedTypeName;
     }
 
     /**

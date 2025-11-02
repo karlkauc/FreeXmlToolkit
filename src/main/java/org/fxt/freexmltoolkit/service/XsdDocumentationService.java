@@ -1140,8 +1140,8 @@ public class XsdDocumentationService {
         String fixedValue = getAttributeValue(node, "fixed");
         String defaultValue = getAttributeValue(node, "default");
 
-        // Final steps
-        extendedElem.setSourceCode(generateSourceCodeWithOptionalTypeDefinition(node, typeName, typeDefinitionNode));
+        // Final steps - generate separate source code snippets
+        setSourceCodeSnippets(extendedElem, node, typeName, typeDefinitionNode);
 
         if (fixedValue != null) {
             extendedElem.setSampleData(fixedValue);
@@ -2083,5 +2083,55 @@ public class XsdDocumentationService {
 
         logger.debug("No global type definition found for: {}", cleanTypeName);
         return baseSourceCode;
+    }
+
+    /**
+     * Sets separate source code snippets for element definition and referenced type definition.
+     * This method splits the source code into two parts for better display in collapsible containers.
+     *
+     * @param extendedElem       The extended element to update
+     * @param node               The current node
+     * @param typeName           The type name reference
+     * @param typeDefinitionNode The type definition node (if inline)
+     */
+    private void setSourceCodeSnippets(XsdExtendedElement extendedElem, Node node, String typeName, Node typeDefinitionNode) {
+        // Always set the element's own source code
+        String elementSourceCode = nodeToString(node);
+        extendedElem.setSourceCode(elementSourceCode);
+
+        // If the option is disabled or there's no type reference, don't set referenced type code
+        if (!includeTypeDefinitionsInSourceCode || typeName == null || typeName.isEmpty()) {
+            return;
+        }
+
+        // Check if this is a built-in XSD type (xs:string, xs:int, etc.)
+        if (typeName.startsWith("xs:") || typeName.startsWith("xsd:")) {
+            logger.debug("Skipping built-in type definition for: {}", typeName);
+            return;
+        }
+
+        // If we have an inline type definition, it's already included in the element source code
+        if (typeDefinitionNode != null && typeDefinitionNode.getParentNode() == node) {
+            logger.debug("Type definition is inline, already included in element source code");
+            return;
+        }
+
+        // Look up the global type definition
+        String cleanTypeName = stripNamespace(typeName);
+        Node globalTypeNode = complexTypeMap.get(cleanTypeName);
+        if (globalTypeNode == null) {
+            globalTypeNode = simpleTypeMap.get(cleanTypeName);
+        }
+
+        // If we found a global type definition, set it separately
+        if (globalTypeNode != null) {
+            String typeSourceCode = nodeToString(globalTypeNode);
+            logger.debug("Setting separate type definition for '{}' in source code", cleanTypeName);
+
+            extendedElem.setReferencedTypeCode(typeSourceCode);
+            extendedElem.setReferencedTypeName(cleanTypeName);
+        } else {
+            logger.debug("No global type definition found for: {}", cleanTypeName);
+        }
     }
 }
