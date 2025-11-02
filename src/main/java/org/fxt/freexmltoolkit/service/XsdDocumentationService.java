@@ -20,9 +20,7 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.XsdDocInfo;
-import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
-import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.domain.*;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
@@ -1094,6 +1092,11 @@ public class XsdDocumentationService {
             processAnnotations(getDirectChildElement(typeDefinitionNode, "annotation"), extendedElem);
         }
 
+        // Process list and union types (for simpleType definitions)
+        if (typeDefinitionNode != null && "simpleType".equals(typeDefinitionNode.getLocalName())) {
+            processListAndUnionTypes(typeDefinitionNode, extendedElem);
+        }
+
         // Process content (children for elements, restrictions for attributes/simple types)
         if (!isAttribute) {
             if (isContainer) {
@@ -1134,6 +1137,41 @@ public class XsdDocumentationService {
             if (extendedElem.getElementType() == null || extendedElem.getElementType().isEmpty()) {
                 extendedElem.setElementType(getAttributeValue(restrictionNode, "base"));
             }
+            // Process assertions on simpleType restrictions (xs:assertion)
+            processAssertions(restrictionNode, extendedElem);
+        }
+
+        // Process XSD 1.0 identity constraints (key, keyref, unique) on elements
+        if (!isAttribute && !isContainer) {
+            processIdentityConstraints(node, extendedElem);
+        }
+
+        // Process XSD 1.1 type alternatives on elements
+        if (!isAttribute && !isContainer) {
+            processTypeAlternatives(node, extendedElem);
+        }
+
+        // Process XSD 1.1 assertions on complexType (xs:assert)
+        if (typeDefinitionNode != null && "complexType".equals(typeDefinitionNode.getLocalName())) {
+            processAssertions(typeDefinitionNode, extendedElem);
+        }
+
+        // Process XSD 1.1 open content on complexType (xs:openContent)
+        if (typeDefinitionNode != null && "complexType".equals(typeDefinitionNode.getLocalName())) {
+            processOpenContent(typeDefinitionNode, extendedElem);
+        }
+
+        // Process wildcards (xs:any, xs:anyAttribute)
+        // Check in the element node itself
+        processWildcards(node, extendedElem);
+        // Check in the type definition (complexType)
+        if (typeDefinitionNode != null) {
+            processWildcards(typeDefinitionNode, extendedElem);
+        }
+        // Check in content model
+        Node contentModel = findContentModel(node, typeDefinitionNode);
+        if (contentModel != null) {
+            processWildcards(contentModel, extendedElem);
         }
 
         // Prefer fixed/default values where present (especially for attributes)
@@ -1614,6 +1652,13 @@ public class XsdDocumentationService {
         xsdDocumentationData.setAttributeFormDefault(getAttributeValue(schemaElement, "attributeFormDefault", "unqualified"));
         xsdDocumentationData.setElementFormDefault(getAttributeValue(schemaElement, "elementFormDefault", "unqualified"));
 
+        // XSD 1.1: Process xs:defaultOpenContent (applies to all types in schema)
+        Node defaultOpenContentNode = getDirectChildElement(schemaElement, "defaultOpenContent");
+        if (defaultOpenContentNode != null) {
+            OpenContent defaultOpenContent = parseOpenContentNode(defaultOpenContentNode, true);
+            xsdDocumentationData.setDefaultOpenContent(defaultOpenContent);
+        }
+
         // Get global elements from the main schema
         xsdDocumentationData.setGlobalElements(nodeListToList((NodeList) xpath.evaluate("/xs:schema/xs:element[@name]", doc, XPathConstants.NODESET)));
 
@@ -1771,6 +1816,358 @@ public class XsdDocumentationService {
             extendedElem.setGenericAppInfos(genericAppInfos);
         }
         // The 'exampleValues' list was modified directly, setExampleValues is not needed.
+    }
+
+    /**
+     * Processes XSD 1.0 identity constraints (xs:key, xs:keyref, xs:unique) on an element.
+     * Identity constraints define uniqueness and referential integrity rules within XML documents.
+     *
+     * @param elementNode  The element node that may contain identity constraints
+     * @param extendedElem The extended element to populate with identity constraint information
+     */
+    private void processIdentityConstraints(Node elementNode, XsdExtendedElement extendedElem) {
+        if (elementNode == null) {
+            return;
+        }
+
+        List<IdentityConstraint> identityConstraints = new ArrayList<>();
+
+        logger.debug("Processing identity constraints for element: {}, node type: {}",
+                extendedElem.getElementName(), elementNode.getLocalName());
+
+        for (Node child : getDirectChildElements(elementNode)) {
+            String localName = child.getLocalName();
+            logger.debug("Checking child node: {}", localName);
+            IdentityConstraint.Type type = null;
+
+            // Determine the type of identity constraint
+            if ("key".equals(localName)) {
+                type = IdentityConstraint.Type.KEY;
+            } else if ("keyref".equals(localName)) {
+                type = IdentityConstraint.Type.KEYREF;
+            } else if ("unique".equals(localName)) {
+                type = IdentityConstraint.Type.UNIQUE;
+            }
+
+            if (type != null) {
+                IdentityConstraint constraint = new IdentityConstraint();
+                constraint.setType(type);
+                constraint.setName(getAttributeValue(child, "name"));
+
+                // For keyref, extract the referenced key/unique name
+                if (type == IdentityConstraint.Type.KEYREF) {
+                    constraint.setRefer(getAttributeValue(child, "refer"));
+                }
+
+                // Extract selector XPath
+                Node selectorNode = getDirectChildElement(child, "selector");
+                if (selectorNode != null) {
+                    constraint.setSelector(getAttributeValue(selectorNode, "xpath"));
+                }
+
+                // Extract field XPath(s)
+                List<String> fields = new ArrayList<>();
+                for (Node fieldNode : getDirectChildElements(child, "field")) {
+                    String xpath = getAttributeValue(fieldNode, "xpath");
+                    if (xpath != null) {
+                        fields.add(xpath);
+                    }
+                }
+                constraint.setFields(fields);
+
+                // Extract documentation from annotation
+                Node annotationNode = getDirectChildElement(child, "annotation");
+                if (annotationNode != null) {
+                    Node docNode = getDirectChildElement(annotationNode, "documentation");
+                    if (docNode != null) {
+                        constraint.setDocumentation(docNode.getTextContent());
+                    }
+                }
+
+                identityConstraints.add(constraint);
+                logger.debug("Found identity constraint: {} of type {} on element {}",
+                        constraint.getName(), type, extendedElem.getElementName());
+            }
+        }
+
+        if (!identityConstraints.isEmpty()) {
+            extendedElem.setIdentityConstraints(identityConstraints);
+        }
+    }
+
+    /**
+     * Processes XSD 1.1 assertions (xs:assert on complexType, xs:assertion on simpleType).
+     * Assertions are XPath 2.0 boolean expressions that must evaluate to true for the instance to be valid.
+     *
+     * @param typeNode     The type node (complexType or simpleType) that may contain assertions
+     * @param extendedElem The extended element to populate with assertion information
+     */
+    private void processAssertions(Node typeNode, XsdExtendedElement extendedElem) {
+        if (typeNode == null) {
+            return;
+        }
+
+        List<XsdAssertion> assertions = new ArrayList<>();
+
+        for (Node child : getDirectChildElements(typeNode)) {
+            String localName = child.getLocalName();
+            XsdAssertion.Type type = null;
+
+            // Determine the type of assertion
+            if ("assert".equals(localName)) {
+                type = XsdAssertion.Type.ASSERT;  // xs:assert on complexType
+            } else if ("assertion".equals(localName)) {
+                type = XsdAssertion.Type.ASSERTION;  // xs:assertion on simpleType restriction
+            }
+
+            if (type != null) {
+                XsdAssertion assertion = new XsdAssertion();
+                assertion.setType(type);
+                assertion.setTest(getAttributeValue(child, "test"));
+                assertion.setXpathDefaultNamespace(getAttributeValue(child, "xpathDefaultNamespace"));
+
+                // Extract documentation from annotation
+                Node annotationNode = getDirectChildElement(child, "annotation");
+                if (annotationNode != null) {
+                    Node docNode = getDirectChildElement(annotationNode, "documentation");
+                    if (docNode != null) {
+                        assertion.setDocumentation(docNode.getTextContent());
+                    }
+                }
+
+                assertions.add(assertion);
+                logger.debug("Found {} assertion with test: {} on element {}",
+                        type, assertion.getTest(), extendedElem.getElementName());
+            }
+        }
+
+        if (!assertions.isEmpty()) {
+            extendedElem.setAssertions(assertions);
+        }
+    }
+
+    /**
+     * Processes XSD 1.1 type alternatives (xs:alternative) on an element.
+     * Type alternatives provide conditional type assignment based on XPath 2.0 expressions.
+     *
+     * @param elementNode  The element node that may contain type alternatives
+     * @param extendedElem The extended element to populate with type alternative information
+     */
+    private void processTypeAlternatives(Node elementNode, XsdExtendedElement extendedElem) {
+        if (elementNode == null) {
+            return;
+        }
+
+        List<TypeAlternative> typeAlternatives = new ArrayList<>();
+
+        for (Node child : getDirectChildElements(elementNode, "alternative")) {
+            TypeAlternative alternative = new TypeAlternative();
+            alternative.setTest(getAttributeValue(child, "test"));  // null for default alternative
+            alternative.setType(getAttributeValue(child, "type"));
+            alternative.setXpathDefaultNamespace(getAttributeValue(child, "xpathDefaultNamespace"));
+
+            // Extract documentation from annotation
+            Node annotationNode = getDirectChildElement(child, "annotation");
+            if (annotationNode != null) {
+                Node docNode = getDirectChildElement(annotationNode, "documentation");
+                if (docNode != null) {
+                    alternative.setDocumentation(docNode.getTextContent());
+                }
+            }
+
+            typeAlternatives.add(alternative);
+            logger.debug("Found type alternative with test: {} and type: {} on element {}",
+                    alternative.getTest() != null ? alternative.getTest() : "default",
+                    alternative.getType(), extendedElem.getElementName());
+        }
+
+        if (!typeAlternatives.isEmpty()) {
+            extendedElem.setTypeAlternatives(typeAlternatives);
+        }
+    }
+
+    /**
+     * Processes list and union types from simpleType definitions.
+     *
+     * @param typeDefinitionNode The simpleType node
+     * @param extendedElem       The extended element to populate with list/union information
+     */
+    private void processListAndUnionTypes(Node typeDefinitionNode, XsdExtendedElement extendedElem) {
+        if (typeDefinitionNode == null || !"simpleType".equals(typeDefinitionNode.getLocalName())) {
+            return;
+        }
+
+        // Check for xs:list
+        Node listNode = getDirectChildElement(typeDefinitionNode, "list");
+        if (listNode != null) {
+            String itemType = getAttributeValue(listNode, "itemType");
+            if (itemType != null && !itemType.isEmpty()) {
+                extendedElem.setListItemType(itemType);
+                logger.debug("Found list type with itemType: {} on element {}",
+                        itemType, extendedElem.getElementName());
+            }
+        }
+
+        // Check for xs:union
+        Node unionNode = getDirectChildElement(typeDefinitionNode, "union");
+        if (unionNode != null) {
+            String memberTypes = getAttributeValue(unionNode, "memberTypes");
+            if (memberTypes != null && !memberTypes.isEmpty()) {
+                // Split by whitespace to get individual member types
+                List<String> types = Arrays.stream(memberTypes.split("\\s+"))
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.toList());
+                extendedElem.setUnionMemberTypes(types);
+                logger.debug("Found union type with member types: {} on element {}",
+                        types, extendedElem.getElementName());
+            }
+        }
+    }
+
+    /**
+     * Processes XSD 1.1 open content (xs:openContent) on a complexType.
+     * Open content allows a type to accept additional elements beyond those explicitly defined.
+     *
+     * @param typeNode     The complexType node
+     * @param extendedElem The extended element to populate with open content information
+     */
+    private void processOpenContent(Node typeNode, XsdExtendedElement extendedElem) {
+        if (typeNode == null || !"complexType".equals(typeNode.getLocalName())) {
+            return;
+        }
+
+        // Look for xs:openContent as direct child of complexType
+        Node openContentNode = getDirectChildElement(typeNode, "openContent");
+        if (openContentNode != null) {
+            OpenContent openContent = parseOpenContentNode(openContentNode, false);
+            if (openContent != null) {
+                extendedElem.setOpenContent(openContent);
+                logger.debug("Found openContent with mode: {} on element {}",
+                        openContent.getMode(), extendedElem.getElementName());
+            }
+        }
+    }
+
+    /**
+     * Parses an xs:openContent or xs:defaultOpenContent node.
+     *
+     * @param openContentNode The openContent or defaultOpenContent node
+     * @param isDefault       Whether this is default open content
+     * @return The parsed OpenContent object, or null if parsing failed
+     */
+    private OpenContent parseOpenContentNode(Node openContentNode, boolean isDefault) {
+        if (openContentNode == null) {
+            return null;
+        }
+
+        OpenContent openContent = new OpenContent();
+        openContent.setDefault(isDefault);
+
+        // Parse mode attribute (interleave or suffix, default is interleave)
+        String modeStr = getAttributeValue(openContentNode, "mode", "interleave");
+        try {
+            openContent.setMode(OpenContent.Mode.valueOf(modeStr.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            openContent.setMode(OpenContent.Mode.INTERLEAVE);
+            logger.warn("Invalid openContent mode: {}, defaulting to INTERLEAVE", modeStr);
+        }
+
+        // Look for nested xs:any
+        Node anyNode = getDirectChildElement(openContentNode, "any");
+        if (anyNode != null) {
+            openContent.setNamespace(getAttributeValue(anyNode, "namespace", "##any"));
+            openContent.setProcessContents(getAttributeValue(anyNode, "processContents", "strict"));
+        }
+
+        // Extract documentation from annotation
+        Node annotationNode = getDirectChildElement(openContentNode, "annotation");
+        if (annotationNode != null) {
+            Node docNode = getDirectChildElement(annotationNode, "documentation");
+            if (docNode != null) {
+                openContent.setDocumentation(docNode.getTextContent());
+            }
+        }
+
+        return openContent;
+    }
+
+    /**
+     * Processes XSD wildcards (xs:any and xs:anyAttribute).
+     * Wildcards allow elements or attributes from specified namespaces to appear in the content model.
+     *
+     * @param contextNode  The context node (element, complexType, or extension) that may contain wildcards
+     * @param extendedElem The extended element to populate with wildcard information
+     */
+    private void processWildcards(Node contextNode, XsdExtendedElement extendedElem) {
+        if (contextNode == null) {
+            return;
+        }
+
+        List<Wildcard> wildcards = new ArrayList<>();
+
+        // Process xs:any (element wildcards)
+        for (Node child : getDirectChildElements(contextNode, "any")) {
+            Wildcard wildcard = new Wildcard();
+            wildcard.setType(Wildcard.Type.ANY);
+            wildcard.setNamespace(getAttributeValue(child, "namespace", "##any"));
+            wildcard.setMinOccurs(getAttributeValue(child, "minOccurs"));
+            wildcard.setMaxOccurs(getAttributeValue(child, "maxOccurs"));
+
+            // Parse processContents attribute
+            String processContentsStr = getAttributeValue(child, "processContents", "strict");
+            try {
+                wildcard.setProcessContents(Wildcard.ProcessContents.valueOf(processContentsStr.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                wildcard.setProcessContents(Wildcard.ProcessContents.STRICT);
+                logger.warn("Invalid processContents value: {}, defaulting to STRICT", processContentsStr);
+            }
+
+            // Extract documentation from annotation
+            Node annotationNode = getDirectChildElement(child, "annotation");
+            if (annotationNode != null) {
+                Node docNode = getDirectChildElement(annotationNode, "documentation");
+                if (docNode != null) {
+                    wildcard.setDocumentation(docNode.getTextContent());
+                }
+            }
+
+            wildcards.add(wildcard);
+            logger.debug("Found xs:any wildcard with namespace: {} on element {}",
+                    wildcard.getNamespace(), extendedElem.getElementName());
+        }
+
+        // Process xs:anyAttribute (attribute wildcards)
+        for (Node child : getDirectChildElements(contextNode, "anyAttribute")) {
+            Wildcard wildcard = new Wildcard();
+            wildcard.setType(Wildcard.Type.ANY_ATTRIBUTE);
+            wildcard.setNamespace(getAttributeValue(child, "namespace", "##any"));
+
+            // Parse processContents attribute
+            String processContentsStr = getAttributeValue(child, "processContents", "strict");
+            try {
+                wildcard.setProcessContents(Wildcard.ProcessContents.valueOf(processContentsStr.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                wildcard.setProcessContents(Wildcard.ProcessContents.STRICT);
+                logger.warn("Invalid processContents value: {}, defaulting to STRICT", processContentsStr);
+            }
+
+            // Extract documentation from annotation
+            Node annotationNode = getDirectChildElement(child, "annotation");
+            if (annotationNode != null) {
+                Node docNode = getDirectChildElement(annotationNode, "documentation");
+                if (docNode != null) {
+                    wildcard.setDocumentation(docNode.getTextContent());
+                }
+            }
+
+            wildcards.add(wildcard);
+            logger.debug("Found xs:anyAttribute wildcard with namespace: {} on element {}",
+                    wildcard.getNamespace(), extendedElem.getElementName());
+        }
+
+        if (!wildcards.isEmpty()) {
+            extendedElem.setWildcards(wildcards);
+        }
     }
 
     private RestrictionInfo parseRestriction(Node restrictionNode) {

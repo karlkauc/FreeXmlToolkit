@@ -53,12 +53,23 @@ public class XsdExtendedElement implements Serializable {
     private String referencedTypeName;
     private List<String> children = new ArrayList<>();
 
+    // List and Union type information
+    private String listItemType;           // For xs:list - the itemType
+    private List<String> unionMemberTypes; // For xs:union - the member types
+
     // Parsed and structured data from the currentNode
     private List<DocumentationInfo> documentations = new ArrayList<>();
     private RestrictionInfo restrictionInfo;
     private XsdDocInfo xsdDocInfo;
     private List<String> genericAppInfos;
     private List<String> exampleValues = new ArrayList<>();
+
+    // XSD 1.0 and 1.1 advanced features
+    private List<IdentityConstraint> identityConstraints = new ArrayList<>();
+    private List<XsdAssertion> assertions = new ArrayList<>();
+    private List<TypeAlternative> typeAlternatives = new ArrayList<>();
+    private List<Wildcard> wildcards = new ArrayList<>();
+    private OpenContent openContent;  // XSD 1.1 open content on this type
 
     // atrificial sample values:
     private String sampleData;
@@ -186,6 +197,34 @@ public class XsdExtendedElement implements Serializable {
                             .append("</code></li>");
                 }
                 stringWriter.append("</ul>");
+            } else if ("explicitTimezone".equals(key)) {
+                // XSD 1.1: Special handling for explicitTimezone facet
+                String value = values.isEmpty() ? "optional" : values.get(0);
+                stringWriter.append("<span class=\"font-semibold\">Timezone</span>: ");
+
+                // Add colored badge based on value
+                String badgeClass = switch (value.toLowerCase()) {
+                    case "required" -> "bg-emerald-100 text-emerald-800 border-emerald-300";
+                    case "prohibited" -> "bg-red-100 text-red-800 border-red-300";
+                    default -> "bg-slate-100 text-slate-700 border-slate-300"; // optional
+                };
+
+                stringWriter.append("<span class=\"inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold border ")
+                        .append(badgeClass)
+                        .append("\">")
+                        .append(capitalize(value))
+                        .append("</span>");
+
+                // Add explanation
+                String explanation = switch (value.toLowerCase()) {
+                    case "required" -> " - Timezone must be present";
+                    case "prohibited" -> " - Timezone must not be present";
+                    default -> " - Timezone is optional";
+                };
+                stringWriter.append("<span class=\"text-slate-600 ml-2\">")
+                        .append(explanation)
+                        .append("</span>")
+                        .append(lineBreak);
             } else {
                 // Join the list of values into a single string (e.g., "A, B, C")
                 String combinedValue = String.join(", ", values);
@@ -429,6 +468,90 @@ public class XsdExtendedElement implements Serializable {
 
     public void setExampleValues(List<String> exampleValues) {
         this.exampleValues = exampleValues;
+    }
+
+    public List<IdentityConstraint> getIdentityConstraints() {
+        return identityConstraints;
+    }
+
+    public void setIdentityConstraints(List<IdentityConstraint> identityConstraints) {
+        this.identityConstraints = identityConstraints;
+    }
+
+    public List<XsdAssertion> getAssertions() {
+        return assertions;
+    }
+
+    public void setAssertions(List<XsdAssertion> assertions) {
+        this.assertions = assertions;
+    }
+
+    public List<TypeAlternative> getTypeAlternatives() {
+        return typeAlternatives;
+    }
+
+    public void setTypeAlternatives(List<TypeAlternative> typeAlternatives) {
+        this.typeAlternatives = typeAlternatives;
+    }
+
+    public List<Wildcard> getWildcards() {
+        return wildcards;
+    }
+
+    public void setWildcards(List<Wildcard> wildcards) {
+        this.wildcards = wildcards;
+    }
+
+    public OpenContent getOpenContent() {
+        return openContent;
+    }
+
+    public void setOpenContent(OpenContent openContent) {
+        this.openContent = openContent;
+    }
+
+    public String getListItemType() {
+        return listItemType;
+    }
+
+    public void setListItemType(String listItemType) {
+        this.listItemType = listItemType;
+    }
+
+    public List<String> getUnionMemberTypes() {
+        return unionMemberTypes;
+    }
+
+    public void setUnionMemberTypes(List<String> unionMemberTypes) {
+        this.unionMemberTypes = unionMemberTypes;
+    }
+
+    /**
+     * Returns true if this element is a list type.
+     */
+    public boolean isListType() {
+        return listItemType != null && !listItemType.isEmpty();
+    }
+
+    /**
+     * Returns true if this element is a union type.
+     */
+    public boolean isUnionType() {
+        return unionMemberTypes != null && !unionMemberTypes.isEmpty();
+    }
+
+    /**
+     * Gets a display string for the type, including list/union information.
+     */
+    public String getTypeDisplayString() {
+        if (isListType()) {
+            return "List of " + listItemType;
+        } else if (isUnionType()) {
+            return "Union of " + String.join(" | ", unionMemberTypes);
+        } else if (elementType != null) {
+            return elementType;
+        }
+        return "";
     }
 
     public Boolean getUseMarkdownRenderer() {

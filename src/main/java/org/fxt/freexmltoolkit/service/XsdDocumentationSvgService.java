@@ -361,6 +361,28 @@ public class XsdDocumentationSvgService {
                     x, y - 5, visualInfo.textColor, escapeXml(baseName)
             ));
 
+            // For ANY elements, add wildcard details (namespace) below the name
+            if (baseName.equals("ANY") && element.getWildcards() != null && !element.getWildcards().isEmpty()) {
+                var wildcard = element.getWildcards().get(0);
+                String namespaceDisplay = wildcard.getNamespace();
+                if (namespaceDisplay != null && !namespaceDisplay.isEmpty()) {
+                    // Shorten common namespace patterns for display
+                    String shortNamespace = switch (namespaceDisplay) {
+                        case "##any" -> "any ns";
+                        case "##other" -> "other ns";
+                        case "##local" -> "no ns";
+                        case "##targetNamespace" -> "target ns";
+                        default ->
+                                namespaceDisplay.length() > 20 ? namespaceDisplay.substring(0, 17) + "..." : namespaceDisplay;
+                    };
+
+                    svgBuilder.append(String.format(
+                            "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"%s\" text-anchor=\"middle\" font-size=\"9\">%s</text>",
+                            x, y + 5, "#6c757d", escapeXml(shortNamespace)
+                    ));
+                }
+            }
+
             // Draw icon centered below the text
             drawIcon(svgBuilder, x - 8, y + 8, visualInfo.iconPath, visualInfo.iconColor);
         } else {
@@ -372,20 +394,69 @@ public class XsdDocumentationSvgService {
 
             // Draw data type with icon before it
             String dataType = element.getElementType();
-            if (dataType != null && !dataType.isEmpty() && !"(container)".equals(dataType)) {
+
+            // Check for List or Union types and display accordingly
+            String displayType = dataType;
+            String typeIconPath = visualInfo.iconPath;
+            String typeIconColor = visualInfo.iconColor;
+
+            if (element.isListType()) {
+                // List type: show "List of [itemType]"
+                displayType = "List of " + element.getListItemType();
+                typeIconPath = "M3,4H7V8H3V4M9,5V7H21V5H9M3,10H7V14H3V10M9,11V13H21V11H9M3,16H7V20H3V16M9,17V19H21V17H9"; // list icon
+                typeIconColor = "#6366f1"; // Indigo
+            } else if (element.isUnionType()) {
+                // Union type: show "type1 | type2 | ..."
+                displayType = String.join(" | ", element.getUnionMemberTypes());
+                typeIconPath = "M5,3V19H11V21H3V1H11V3H5M13,3H21V5H13V3M13,19H21V21H13V19M13,11H21V13H13V11Z"; // union icon
+                typeIconColor = "#ec4899"; // Pink
+            }
+
+            if (displayType != null && !displayType.isEmpty() && !"(container)".equals(displayType)) {
                 // Calculate text width to center icon + text combination
-                int textWidth = dataType.length() * 7; // Approximate character width
+                int textWidth = displayType.length() * 7; // Approximate character width
                 int iconWidth = 16;
                 int totalWidth = iconWidth + 5 + textWidth; // icon + spacing + text
                 int startX = x - totalWidth / 2;
 
                 // Draw icon before the data type
-                drawIcon(svgBuilder, startX, y + 5 - 6, visualInfo.iconPath, visualInfo.iconColor);
+                drawIcon(svgBuilder, startX, y + 5 - 6, typeIconPath, typeIconColor);
 
                 // Draw data type text next to the icon
                 svgBuilder.append(String.format(
                         "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"%s\" text-anchor=\"start\">%s</text>",
-                        startX + iconWidth + 5, y + 5, COLOR_TEXT, escapeXml(dataType)
+                        startX + iconWidth + 5, y + 5, COLOR_TEXT, escapeXml(displayType)
+                ));
+            }
+
+            // Draw List/Union badge in top right corner
+            if (element.isListType()) {
+                int badgeX = x + NODE_WIDTH / 2 - 28;
+                int badgeY = y - NODE_HEIGHT / 2 + 8;
+
+                // List badge background
+                svgBuilder.append(String.format(
+                        "<rect x=\"%d\" y=\"%d\" width=\"20\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#eef2ff\" stroke=\"#6366f1\" stroke-width=\"1\"/>",
+                        badgeX, badgeY
+                ));
+                // List badge text "[]"
+                svgBuilder.append(String.format(
+                        "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#6366f1\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\">[]</text>",
+                        badgeX + 10, badgeY + 10
+                ));
+            } else if (element.isUnionType()) {
+                int badgeX = x + NODE_WIDTH / 2 - 28;
+                int badgeY = y - NODE_HEIGHT / 2 + 8;
+
+                // Union badge background
+                svgBuilder.append(String.format(
+                        "<rect x=\"%d\" y=\"%d\" width=\"20\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#fdf2f8\" stroke=\"#ec4899\" stroke-width=\"1\"/>",
+                        badgeX, badgeY
+                ));
+                // Union badge text "|"
+                svgBuilder.append(String.format(
+                        "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#ec4899\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\">∪</text>",
+                        badgeX + 10, badgeY + 10
                 ));
             }
         }
@@ -396,7 +467,7 @@ public class XsdDocumentationSvgService {
             // Draw cardinality background
             int cardWidth = cardinality.length() * 7 + 8;
             int cardY = isContainer ? y + 20 : y + 12; // Position lower for container elements
-            
+
             svgBuilder.append(String.format(
                     "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"16\" rx=\"3\" ry=\"3\" fill=\"#f8f9fa\" stroke=\"#dee2e6\" stroke-width=\"1\"/>",
                     x - cardWidth / 2, cardY, cardWidth
@@ -405,6 +476,57 @@ public class XsdDocumentationSvgService {
                     "<text x=\"%d\" y=\"%d\" class=\"cardinality\" fill=\"%s\" text-anchor=\"middle\">%s</text>",
                     x, cardY + 11, "#6c757d", cardinality
             ));
+
+            // Draw explicitTimezone badge next to cardinality (if applicable)
+            if (element.getRestrictionInfo() != null &&
+                    element.getRestrictionInfo().facets() != null &&
+                    element.getRestrictionInfo().facets().containsKey("explicitTimezone")) {
+
+                var tzValues = element.getRestrictionInfo().facets().get("explicitTimezone");
+                if (tzValues != null && !tzValues.isEmpty()) {
+                    String tzValue = tzValues.get(0);
+                    String badgeText;
+                    String badgeColor;
+                    String backgroundColor;
+
+                    switch (tzValue.toLowerCase()) {
+                        case "required" -> {
+                            badgeText = "TZ✓";
+                            badgeColor = "#10b981"; // Green
+                            backgroundColor = "#d1fae5";
+                        }
+                        case "prohibited" -> {
+                            badgeText = "TZ✗";
+                            badgeColor = "#dc2626"; // Red
+                            backgroundColor = "#fee2e2";
+                        }
+                        case "optional" -> {
+                            badgeText = "TZ?";
+                            badgeColor = "#6c757d"; // Gray
+                            backgroundColor = "#e9ecef";
+                        }
+                        default -> {
+                            badgeText = "TZ";
+                            badgeColor = "#6c757d";
+                            backgroundColor = "#e9ecef";
+                        }
+                    }
+
+                    int tzBadgeX = x + cardWidth / 2 + 4;
+                    int tzBadgeY = cardY;
+
+                    // Timezone badge background
+                    svgBuilder.append(String.format(
+                            "<rect x=\"%d\" y=\"%d\" width=\"26\" height=\"16\" rx=\"3\" ry=\"3\" fill=\"%s\" stroke=\"%s\" stroke-width=\"1\"/>",
+                            tzBadgeX, tzBadgeY, backgroundColor, badgeColor
+                    ));
+                    // Timezone badge text
+                    svgBuilder.append(String.format(
+                            "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"%s\" text-anchor=\"middle\" font-size=\"9\" font-weight=\"bold\">%s</text>",
+                            tzBadgeX + 13, tzBadgeY + 11, badgeColor, badgeText
+                    ));
+                }
+            }
         }
 
         // Draw mandatory/optional indicator
@@ -417,6 +539,156 @@ public class XsdDocumentationSvgService {
             svgBuilder.append(String.format(
                     "<circle cx=\"%d\" cy=\"%d\" r=\"4\" fill=\"%s\" stroke=\"%s\" stroke-width=\"1\"/>",
                     x + NODE_WIDTH / 2 - 10, y - NODE_HEIGHT / 2 + 10, COLOR_OPTIONAL, COLOR_BORDER
+            ));
+        }
+
+        // Draw Assertions badge (left side, top corner)
+        if (element.getAssertions() != null && !element.getAssertions().isEmpty()) {
+            int badgeX = x - NODE_WIDTH / 2 + 8;
+            int badgeY = y - NODE_HEIGHT / 2 + 8;
+
+            // Assertion badge background (amber/orange)
+            svgBuilder.append(String.format(
+                    "<rect x=\"%d\" y=\"%d\" width=\"18\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#fef3c7\" stroke=\"#f59e0b\" stroke-width=\"1.5\"/>",
+                    badgeX, badgeY
+            ));
+            // Assertion badge text "!"
+            svgBuilder.append(String.format(
+                    "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#f59e0b\" text-anchor=\"middle\" font-size=\"12\" font-weight=\"bold\">!</text>",
+                    badgeX + 9, badgeY + 11
+            ));
+        }
+
+        // Draw ProcessContents badge for Wildcards (left side, top corner, right of assertion badge if present)
+        if (element.getWildcards() != null && !element.getWildcards().isEmpty()) {
+            var wildcard = element.getWildcards().get(0);
+            if (wildcard.getProcessContents() != null) {
+                // Position right of assertion badge if it exists
+                boolean hasAssertion = element.getAssertions() != null && !element.getAssertions().isEmpty();
+                int badgeX = hasAssertion ? x - NODE_WIDTH / 2 + 28 : x - NODE_WIDTH / 2 + 8;
+                int badgeY = y - NODE_HEIGHT / 2 + 8;
+
+                String badgeText;
+                String badgeColor;
+                String backgroundColor;
+
+                switch (wildcard.getProcessContents()) {
+                    case STRICT -> {
+                        badgeText = "S";
+                        badgeColor = "#10b981"; // Green
+                        backgroundColor = "#d1fae5";
+                    }
+                    case LAX -> {
+                        badgeText = "L";
+                        badgeColor = "#f59e0b"; // Orange
+                        backgroundColor = "#fef3c7";
+                    }
+                    case SKIP -> {
+                        badgeText = "×";
+                        badgeColor = "#dc2626"; // Red
+                        backgroundColor = "#fee2e2";
+                    }
+                    default -> {
+                        badgeText = "?";
+                        badgeColor = "#6c757d"; // Gray
+                        backgroundColor = "#e9ecef";
+                    }
+                }
+
+                // ProcessContents badge background
+                svgBuilder.append(String.format(
+                        "<rect x=\"%d\" y=\"%d\" width=\"16\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"%s\" stroke=\"%s\" stroke-width=\"1.5\"/>",
+                        badgeX, badgeY, backgroundColor, badgeColor
+                ));
+                // ProcessContents badge text
+                svgBuilder.append(String.format(
+                        "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"%s\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\">%s</text>",
+                        badgeX + 8, badgeY + 10, badgeColor, badgeText
+                ));
+            }
+        }
+
+        // Draw Identity Constraints badges (bottom left corner)
+        if (element.getIdentityConstraints() != null && !element.getIdentityConstraints().isEmpty()) {
+            int badgeStartX = x - NODE_WIDTH / 2 + 8;
+            int badgeY = y + NODE_HEIGHT / 2 - 20;
+
+            // Display multiple badges if element has multiple constraints (e.g., key + unique)
+            int offsetX = 0;
+            for (var constraint : element.getIdentityConstraints()) {
+                String badgeText = "";
+                String badgeColor = "";
+                String backgroundColor = "";
+
+                // Determine badge text and colors based on constraint type
+                switch (constraint.getType()) {
+                    case KEY -> {
+                        badgeText = "K";
+                        badgeColor = "#3b82f6"; // Blue
+                        backgroundColor = "#dbeafe";
+                    }
+                    case KEYREF -> {
+                        badgeText = "R";
+                        badgeColor = "#8b5cf6"; // Purple
+                        backgroundColor = "#ede9fe";
+                    }
+                    case UNIQUE -> {
+                        badgeText = "U";
+                        badgeColor = "#10b981"; // Green
+                        backgroundColor = "#d1fae5";
+                    }
+                }
+
+                int currentBadgeX = badgeStartX + offsetX;
+
+                // Identity constraint badge background
+                svgBuilder.append(String.format(
+                        "<rect x=\"%d\" y=\"%d\" width=\"16\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"%s\" stroke=\"%s\" stroke-width=\"1.5\"/>",
+                        currentBadgeX, badgeY, backgroundColor, badgeColor
+                ));
+                // Identity constraint badge text
+                svgBuilder.append(String.format(
+                        "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"%s\" text-anchor=\"middle\" font-size=\"10\" font-weight=\"bold\">%s</text>",
+                        currentBadgeX + 8, badgeY + 10, badgeColor, badgeText
+                ));
+
+                offsetX += 20; // Space between badges
+            }
+        }
+
+        // Draw Type Alternatives badge (bottom right corner)
+        if (element.getTypeAlternatives() != null && !element.getTypeAlternatives().isEmpty()) {
+            int badgeX = x + NODE_WIDTH / 2 - 34;
+            int badgeY = y + NODE_HEIGHT / 2 - 20;
+
+            // Type alternative badge background (violet)
+            svgBuilder.append(String.format(
+                    "<rect x=\"%d\" y=\"%d\" width=\"26\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#f3e8ff\" stroke=\"#a855f7\" stroke-width=\"1.5\"/>",
+                    badgeX, badgeY
+            ));
+            // Type alternative badge text "ALT"
+            svgBuilder.append(String.format(
+                    "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#a855f7\" text-anchor=\"middle\" font-size=\"9\" font-weight=\"bold\">ALT</text>",
+                    badgeX + 13, badgeY + 10
+            ));
+        }
+
+        // Draw Open Content badge (bottom right, left of ALT badge if present)
+        if (element.getOpenContent() != null) {
+            // Position left of ALT badge if it exists, otherwise at right bottom
+            boolean hasAltBadge = element.getTypeAlternatives() != null && !element.getTypeAlternatives().isEmpty();
+            int badgeX = hasAltBadge ? x + NODE_WIDTH / 2 - 62 : x + NODE_WIDTH / 2 - 30;
+            int badgeY = y + NODE_HEIGHT / 2 - 20;
+
+            // Open content badge background (violet)
+            svgBuilder.append(String.format(
+                    "<rect x=\"%d\" y=\"%d\" width=\"24\" height=\"14\" rx=\"3\" ry=\"3\" fill=\"#ede9fe\" stroke=\"#8b5cf6\" stroke-width=\"1.5\"/>",
+                    badgeX, badgeY
+            ));
+            // Open content badge text "OC"
+            svgBuilder.append(String.format(
+                    "<text x=\"%d\" y=\"%d\" class=\"text\" fill=\"#8b5cf6\" text-anchor=\"middle\" font-size=\"9\" font-weight=\"bold\">OC</text>",
+                    badgeX + 12, badgeY + 10
             ));
         }
 
@@ -594,6 +866,13 @@ public class XsdDocumentationSvgService {
                 borderColor = COLOR_ELEMENT + "," + "#87ceeb";
                 borderWidth = "2";
             }
+        }
+
+        // Check for Open Content - override dashArray to show extensibility
+        if (element.getOpenContent() != null) {
+            dashArray = "5,5";
+            borderColor = "#8b5cf6"; // Violet for open content
+            borderWidth = "2";
         }
 
         return new ElementVisualInfo(fillColor, borderColor, borderWidth, dashArray, textColor, iconPath, iconColor);

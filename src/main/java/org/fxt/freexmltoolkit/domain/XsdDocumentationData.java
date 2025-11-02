@@ -57,6 +57,16 @@ public class XsdDocumentationData {
     private String attributeFormDefault;
     private String elementFormDefault;
 
+    // XSD 1.1 default open content (applies to all types in schema)
+    private OpenContent defaultOpenContent;
+
+    public OpenContent getDefaultOpenContent() {
+        return defaultOpenContent;
+    }
+
+    public void setDefaultOpenContent(OpenContent defaultOpenContent) {
+        this.defaultOpenContent = defaultOpenContent;
+    }
 
     public String getAttributeFormDefault() {
         return attributeFormDefault;

@@ -92,10 +92,10 @@
             <h1 class="text-2xl font-bold text-slate-900" th:text="${element.elementName}">ElementName</h1>
             <!-- Container for XPath and copy buttons -->
             <div class="flex items-center space-x-2 mt-1">
-                <p class="text-sm text-slate-600 font-mono" th:text="${element.currentXpath}">/path/to/element</p>
+                <p class="text-sm text-slate-600 font-mono" th:text="${this.getCleanXPath(element)}">/path/to/element</p>
 
                 <!-- Button to copy the XPath -->
-                <button th:attr="data-xpath=${element.currentXpath}"
+                <button th:attr="data-xpath=${this.getCleanXPath(element)}"
                         onclick="copyXPath(this)"
                         class="relative group p-1 rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -109,7 +109,7 @@
                 </button>
 
                 <!-- Button to copy the Permalink -->
-                <button th:attr="data-xpath=${element.currentXpath}"
+                <button th:attr="data-xpath=${this.getCleanXPath(element)}"
                         onclick="copyPermalink(this)"
                         class="relative group p-1 rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -206,7 +206,17 @@
                 <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
                     <div class="flex flex-col">
                         <dt class="text-sm font-medium text-slate-500">Type</dt>
-                        <dd class="mt-1 text-slate-900 font-mono" th:text="${element.elementType}">element-type</dd>
+                        <dd class="mt-1 text-slate-900 font-mono">
+                            <span th:if="${element.isListType()}" class="inline-flex items-center">
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300 mr-2">List</span>
+                                <span th:text="${'List of ' + element.listItemType}">List of xs:int</span>
+                            </span>
+                            <span th:if="${element.isUnionType()}" class="inline-flex items-center">
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold bg-pink-100 text-pink-800 border border-pink-300 mr-2">Union</span>
+                                <span th:text="${'Union of ' + #strings.listJoin(element.unionMemberTypes, ' | ')}">Union of xs:string | xs:int</span>
+                            </span>
+                            <span th:if="${!element.isListType() and !element.isUnionType()}" th:text="${element.elementType}">element-type</span>
+                        </dd>
                     </div>
                     <div class="flex flex-col">
                         <dt class="text-sm font-medium text-slate-500">Cardinality</dt>
@@ -240,7 +250,7 @@
             </section>
 
             <!-- Section: Child Elements & Attributes -->
-            <section th:if="${element.children != null and not #lists.isEmpty(element.children)}">
+            <section th:if="${flattenedChildren != null and not #lists.isEmpty(flattenedChildren)}">
                 <h2 class="text-lg font-semibold text-slate-800 mb-3">Child Elements &amp; Attributes</h2>
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-left">
@@ -253,15 +263,33 @@
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 text-sm">
-                        <tr th:each="childXpath: ${element.children}">
+                        <tr th:each="childXpath: ${flattenedChildren}">
                             <td class="px-4 py-3 font-mono">
-                                <a th:href="${this.getPageName(childXpath)}"
-                                   th:title="${childXpath}"
-                                   class="text-sky-600 hover:text-sky-800 hover:underline">
-                                    <span th:with="pathParts=${#strings.arraySplit(childXpath, '/')}"
-                                          th:text="${(#arrays.length(pathParts) > 3) ? ('/' + pathParts[1] + '/.../' + pathParts[#arrays.length(pathParts) - 1]) : childXpath}">
+                                <div class="flex items-center gap-2">
+                                    <a th:href="${this.getPageName(childXpath)}"
+                                       th:title="${childXpath}"
+                                       class="text-sky-600 hover:text-sky-800 hover:underline">
+                                        <span th:with="pathParts=${#strings.arraySplit(childXpath, '/')}"
+                                              th:text="${(#arrays.length(pathParts) > 3) ? ('/' + pathParts[1] + '/.../' + pathParts[#arrays.length(pathParts) - 1]) : childXpath}">
+                                        </span>
+                                    </a>
+                                    <!-- Compositor badge -->
+                                    <span th:if="${this.getChildCompositorType(childXpath) == 'CHOICE'}"
+                                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800"
+                                          title="This element is part of a choice group - only one option from the group should be selected">
+                                        choice
                                     </span>
-                                </a>
+                                    <span th:if="${this.getChildCompositorType(childXpath) == 'SEQUENCE'}"
+                                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                                          title="This element is part of a sequence">
+                                        sequence
+                                    </span>
+                                    <span th:if="${this.getChildCompositorType(childXpath) == 'ALL'}"
+                                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
+                                          title="This element is part of an 'all' group - elements can appear in any order">
+                                        all
+                                    </span>
+                                </div>
                             </td>
 
                             <td class="px-4 py-3 font-mono">
@@ -297,12 +325,310 @@
                 </div>
             </section>
 
-            <!-- Section: XML Snippet -->
-            <section th:if="${code != null}">
-                <h2 class="text-lg font-semibold text-slate-800 mb-3">XML Snippet</h2>
-                <div class="rounded-lg overflow-hidden border border-slate-200">
-                    <pre class="language-xml !m-0"><code th:text="${code}">... code ...</code></pre>
+            <!-- Section: Identity Constraints (XSD 1.0) -->
+            <section th:if="${element.identityConstraints != null and not #lists.isEmpty(element.identityConstraints)}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-4">Identity Constraints</h2>
+                <div class="space-y-6">
+                    <div th:each="constraint: ${element.identityConstraints}"
+                         class="bg-slate-50 border-2 border-slate-200 rounded-lg p-5 shadow-sm">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-300">
+                            <!-- Constraint type badge -->
+                            <span th:if="${constraint.type.name() == 'KEY'}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">
+                                Key
+                            </span>
+                            <span th:if="${constraint.type.name() == 'KEYREF'}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-300">
+                                Key Reference
+                            </span>
+                            <span th:if="${constraint.type.name() == 'UNIQUE'}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
+                                Unique
+                            </span>
+                            <span class="font-mono font-bold text-lg text-slate-900" th:text="${constraint.name}">constraintName</span>
+                        </div>
+
+                        <dl class="grid grid-cols-1 gap-4 text-sm">
+                            <!-- Selector -->
+                            <div class="space-y-2">
+                                <dt class="font-semibold text-slate-600 uppercase text-xs tracking-wide">Selector</dt>
+                                <dd class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-slate-300 shadow-sm"
+                                    th:text="${constraint.selector}">xpath</dd>
+                            </div>
+
+                            <!-- Fields -->
+                            <div th:if="${constraint.fields != null and not #lists.isEmpty(constraint.fields)}" class="space-y-2">
+                                <dt class="font-semibold text-slate-600 uppercase text-xs tracking-wide">Field(s)</dt>
+                                <dd class="space-y-2">
+                                    <div th:each="field: ${constraint.fields}"
+                                         class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-slate-300 shadow-sm"
+                                         th:text="${field}">field xpath</div>
+                                </dd>
+                            </div>
+
+                            <!-- Refer (for keyref) -->
+                            <div th:if="${constraint.refer != null}" class="space-y-2">
+                                <dt class="font-semibold text-slate-600 uppercase text-xs tracking-wide">Refers to</dt>
+                                <dd class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-slate-300 shadow-sm"
+                                    th:text="${constraint.refer}">referenced key</dd>
+                            </div>
+
+                            <!-- Documentation -->
+                            <div th:if="${constraint.documentation != null and not #strings.isEmpty(constraint.documentation)}" class="space-y-2">
+                                <dt class="font-semibold text-slate-600 uppercase text-xs tracking-wide">Documentation</dt>
+                                <dd class="text-slate-700 bg-white px-4 py-3 rounded-md border border-slate-300 prose prose-sm max-w-none"
+                                    th:text="${constraint.documentation}">documentation</dd>
+                            </div>
+                        </dl>
+                    </div>
                 </div>
+            </section>
+
+            <!-- Section: Assertions (XSD 1.1) -->
+            <section th:if="${element.assertions != null and not #lists.isEmpty(element.assertions)}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-4">Assertions (XSD 1.1)</h2>
+                <div class="space-y-6">
+                    <div th:each="assertion: ${element.assertions}"
+                         class="bg-amber-50 border-2 border-amber-200 rounded-lg p-5 shadow-sm">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-amber-300">
+                            <!-- Assertion type badge -->
+                            <span th:if="${assertion.type.name() == 'ASSERT'}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-400">
+                                Assert (complexType)
+                            </span>
+                            <span th:if="${assertion.type.name() == 'ASSERTION'}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-400">
+                                Assertion (simpleType)
+                            </span>
+                        </div>
+
+                        <dl class="grid grid-cols-1 gap-4 text-sm">
+                            <!-- Test expression -->
+                            <div class="space-y-2">
+                                <dt class="font-semibold text-amber-900 uppercase text-xs tracking-wide">Test (XPath 2.0)</dt>
+                                <dd class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-amber-300 shadow-sm"
+                                    th:text="${assertion.test}">xpath expression</dd>
+                            </div>
+
+                            <!-- XPath default namespace -->
+                            <div th:if="${assertion.xpathDefaultNamespace != null and not #strings.isEmpty(assertion.xpathDefaultNamespace)}" class="space-y-2">
+                                <dt class="font-semibold text-amber-900 uppercase text-xs tracking-wide">XPath Default Namespace</dt>
+                                <dd class="font-mono text-sm text-slate-700 bg-white px-4 py-3 rounded-md border border-amber-300"
+                                    th:text="${assertion.xpathDefaultNamespace}">namespace</dd>
+                            </div>
+
+                            <!-- Documentation -->
+                            <div th:if="${assertion.documentation != null and not #strings.isEmpty(assertion.documentation)}" class="space-y-2">
+                                <dt class="font-semibold text-amber-900 uppercase text-xs tracking-wide">Documentation</dt>
+                                <dd class="text-slate-700 bg-white px-4 py-3 rounded-md border border-amber-300 prose prose-sm max-w-none"
+                                    th:text="${assertion.documentation}">documentation</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Type Alternatives (XSD 1.1) -->
+            <section th:if="${element.typeAlternatives != null and not #lists.isEmpty(element.typeAlternatives)}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-4">Type Alternatives (XSD 1.1)</h2>
+                <div class="space-y-6">
+                    <div th:each="alternative: ${element.typeAlternatives}"
+                         class="bg-purple-50 border-2 border-purple-200 rounded-lg p-5 shadow-sm">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-purple-300">
+                            <!-- Default vs conditional badge -->
+                            <span th:if="${alternative.test == null or #strings.isEmpty(alternative.test)}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-300">
+                                Default (otherwise)
+                            </span>
+                            <span th:unless="${alternative.test == null or #strings.isEmpty(alternative.test)}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-400">
+                                Conditional
+                            </span>
+                            <span class="font-mono font-bold text-lg text-slate-900" th:text="${alternative.type}">TypeName</span>
+                        </div>
+
+                        <dl class="grid grid-cols-1 gap-4 text-sm">
+                            <!-- Test condition (only for conditional alternatives) -->
+                            <div th:if="${alternative.test != null and not #strings.isEmpty(alternative.test)}" class="space-y-2">
+                                <dt class="font-semibold text-purple-900 uppercase text-xs tracking-wide">When (XPath 2.0)</dt>
+                                <dd class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-purple-300 shadow-sm"
+                                    th:text="${alternative.test}">xpath expression</dd>
+                            </div>
+
+                            <!-- XPath default namespace -->
+                            <div th:if="${alternative.xpathDefaultNamespace != null and not #strings.isEmpty(alternative.xpathDefaultNamespace)}" class="space-y-2">
+                                <dt class="font-semibold text-purple-900 uppercase text-xs tracking-wide">XPath Default Namespace</dt>
+                                <dd class="font-mono text-sm text-slate-700 bg-white px-4 py-3 rounded-md border border-purple-300"
+                                    th:text="${alternative.xpathDefaultNamespace}">namespace</dd>
+                            </div>
+
+                            <!-- Documentation -->
+                            <div th:if="${alternative.documentation != null and not #strings.isEmpty(alternative.documentation)}" class="space-y-2">
+                                <dt class="font-semibold text-purple-900 uppercase text-xs tracking-wide">Documentation</dt>
+                                <dd class="text-slate-700 bg-white px-4 py-3 rounded-md border border-purple-300 prose prose-sm max-w-none"
+                                    th:text="${alternative.documentation}">documentation</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Wildcards (xs:any, xs:anyAttribute) -->
+            <section th:if="${element.wildcards != null and not #lists.isEmpty(element.wildcards)}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-4">Wildcards</h2>
+                <div class="space-y-6">
+                    <div th:each="wildcard: ${element.wildcards}"
+                         class="bg-teal-50 border-2 border-teal-200 rounded-lg p-5 shadow-sm">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-teal-300">
+                            <!-- Wildcard type badge -->
+                            <span th:if="${wildcard.type.name() == 'ANY'}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-teal-100 text-teal-800 border border-teal-400">
+                                Any Element
+                            </span>
+                            <span th:if="${wildcard.type.name() == 'ANY_ATTRIBUTE'}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-cyan-100 text-cyan-800 border border-cyan-400">
+                                Any Attribute
+                            </span>
+                            <span class="font-semibold text-slate-900" th:text="${wildcard.namespaceDisplayName}">Namespace</span>
+                            <!-- Cardinality badge for xs:any -->
+                            <span th:if="${wildcard.type.name() == 'ANY' and wildcard.cardinality != null}"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-mono bg-slate-100 text-slate-700 border border-slate-300"
+                                  th:text="${wildcard.cardinality}">[1..*]</span>
+                        </div>
+
+                        <dl class="grid grid-cols-1 gap-4 text-sm">
+                            <!-- Namespace -->
+                            <div class="space-y-2">
+                                <dt class="font-semibold text-teal-900 uppercase text-xs tracking-wide">Namespace</dt>
+                                <dd class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-teal-300 shadow-sm"
+                                    th:text="${wildcard.namespace}">##any</dd>
+                            </div>
+
+                            <!-- Process Contents -->
+                            <div th:if="${wildcard.processContents != null}" class="space-y-2">
+                                <dt class="font-semibold text-teal-900 uppercase text-xs tracking-wide">Process Contents</dt>
+                                <dd class="text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-teal-300 shadow-sm">
+                                    <span class="font-semibold" th:text="${wildcard.processContents.name()}">STRICT</span>
+                                    <span class="text-slate-600 ml-2" th:if="${wildcard.processContents.name() == 'STRICT'}">
+                                        (Must be valid according to schema)
+                                    </span>
+                                    <span class="text-slate-600 ml-2" th:if="${wildcard.processContents.name() == 'LAX'}">
+                                        (Validate if schema available, otherwise skip)
+                                    </span>
+                                    <span class="text-slate-600 ml-2" th:if="${wildcard.processContents.name() == 'SKIP'}">
+                                        (No validation)
+                                    </span>
+                                </dd>
+                            </div>
+
+                            <!-- Documentation -->
+                            <div th:if="${wildcard.documentation != null and not #strings.isEmpty(wildcard.documentation)}" class="space-y-2">
+                                <dt class="font-semibold text-teal-900 uppercase text-xs tracking-wide">Documentation</dt>
+                                <dd class="text-slate-700 bg-white px-4 py-3 rounded-md border border-teal-300 prose prose-sm max-w-none"
+                                    th:text="${wildcard.documentation}">documentation</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Open Content (XSD 1.1) -->
+            <section th:if="${element.openContent != null}">
+                <h2 class="text-lg font-semibold text-slate-800 mb-4">Open Content (XSD 1.1)</h2>
+                <div class="bg-violet-50 border-2 border-violet-200 rounded-lg p-5 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-violet-300">
+                        <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-violet-100 text-violet-800 border border-violet-400">
+                            Open Content
+                        </span>
+                        <span class="font-semibold text-slate-900" th:text="${element.openContent.modeDisplayName}">Mode</span>
+                    </div>
+
+                    <dl class="grid grid-cols-1 gap-4 text-sm">
+                        <!-- Mode -->
+                        <div class="space-y-2">
+                            <dt class="font-semibold text-violet-900 uppercase text-xs tracking-wide">Mode</dt>
+                            <dd class="text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-violet-300 shadow-sm">
+                                <span class="font-semibold" th:text="${element.openContent.mode.name()}">INTERLEAVE</span>
+                                <span class="text-slate-600 ml-2" th:if="${element.openContent.mode.name() == 'INTERLEAVE'}">
+                                    - Elements can appear anywhere among the explicitly defined elements
+                                </span>
+                                <span class="text-slate-600 ml-2" th:if="${element.openContent.mode.name() == 'SUFFIX'}">
+                                    - Elements can only appear after the explicitly defined elements
+                                </span>
+                            </dd>
+                        </div>
+
+                        <!-- Namespace -->
+                        <div th:if="${element.openContent.namespace != null and not #strings.isEmpty(element.openContent.namespace)}" class="space-y-2">
+                            <dt class="font-semibold text-violet-900 uppercase text-xs tracking-wide">Namespace</dt>
+                            <dd class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-violet-300 shadow-sm">
+                                <span th:text="${element.openContent.namespaceDisplayName}">##any</span>
+                            </dd>
+                        </div>
+
+                        <!-- Process Contents -->
+                        <div th:if="${element.openContent.processContents != null and not #strings.isEmpty(element.openContent.processContents)}" class="space-y-2">
+                            <dt class="font-semibold text-violet-900 uppercase text-xs tracking-wide">Process Contents</dt>
+                            <dd class="text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-violet-300 shadow-sm">
+                                <span class="font-semibold" th:text="${element.openContent.processContents}">strict</span>
+                                <span class="text-slate-600 ml-2" th:if="${element.openContent.processContents == 'strict'}">
+                                    - Must be valid according to schema
+                                </span>
+                                <span class="text-slate-600 ml-2" th:if="${element.openContent.processContents == 'lax'}">
+                                    - Validate if schema is available, otherwise skip
+                                </span>
+                                <span class="text-slate-600 ml-2" th:if="${element.openContent.processContents == 'skip'}">
+                                    - No validation
+                                </span>
+                            </dd>
+                        </div>
+
+                        <!-- Documentation -->
+                        <div th:if="${element.openContent.documentation != null and not #strings.isEmpty(element.openContent.documentation)}" class="space-y-2">
+                            <dt class="font-semibold text-violet-900 uppercase text-xs tracking-wide">Documentation</dt>
+                            <dd class="text-slate-700 bg-white px-4 py-3 rounded-md border border-violet-300 prose prose-sm max-w-none"
+                                th:text="${element.openContent.documentation}">documentation</dd>
+                        </div>
+                    </dl>
+                </div>
+            </section>
+
+            <!-- Section: Element Definition -->
+            <section th:if="${code != null}">
+                <details open class="group">
+                    <summary class="cursor-pointer select-none list-none">
+                        <div class="flex items-center gap-2 p-3 bg-slate-50 rounded-t-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+                            <svg class="w-5 h-5 text-slate-600 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            <h2 class="text-lg font-semibold text-slate-800">Element Definition</h2>
+                        </div>
+                    </summary>
+                    <div class="rounded-b-lg overflow-hidden border border-t-0 border-slate-200">
+                        <pre class="language-xml !m-0"><code th:text="${code}">... code ...</code></pre>
+                    </div>
+                </details>
+            </section>
+
+            <!-- Section: Referenced Type Definition -->
+            <section th:if="${referencedTypeCode != null}">
+                <details open class="group">
+                    <summary class="cursor-pointer select-none list-none">
+                        <div class="flex items-center gap-2 p-3 bg-slate-50 rounded-t-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+                            <svg class="w-5 h-5 text-slate-600 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            <h2 class="text-lg font-semibold text-slate-800">Referenced Type Definition
+                                <span class="font-mono text-sm text-slate-600" th:if="${referencedTypeName != null}">
+                                    (<span th:text="${referencedTypeName}">TypeName</span>)
+                                </span>
+                            </h2>
+                        </div>
+                    </summary>
+                    <div class="rounded-b-lg overflow-hidden border border-t-0 border-slate-200">
+                        <pre class="language-xml !m-0"><code th:text="${referencedTypeCode}">... type code ...</code></pre>
+                    </div>
+                </details>
             </section>
 
         </div>
