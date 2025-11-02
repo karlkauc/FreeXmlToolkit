@@ -278,14 +278,36 @@ public class XsdDocumentationHtmlService {
 
     public void generateDetailPages() {
         logger.debug("Generating detail pages for all elements...");
-        xsdDocumentationData.getExtendedXsdElementMap().values().forEach(this::generateDetailPage);
+        xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(this::isNotContainerElement)
+                .forEach(this::generateDetailPage);
         logger.debug("Finished generating detail pages.");
     }
 
     public void generateDetailsPagesInParallel() {
         logger.debug("Generating detail pages for all elements (in parallel)...");
-        xsdDocumentationData.getExtendedXsdElementMap().values().parallelStream().forEach(this::generateDetailPage);
+        xsdDocumentationData.getExtendedXsdElementMap().values().parallelStream()
+                .filter(this::isNotContainerElement)
+                .forEach(this::generateDetailPage);
         logger.debug("Finished generating detail pages (in parallel).");
+    }
+
+    /**
+     * Checks if an element is NOT a compositor container (CHOICE, SEQUENCE, ALL).
+     * These container elements are internal structures for SVG visualization and should not
+     * have their own detail pages in the HTML documentation.
+     *
+     * @param element The element to check
+     * @return true if the element is not a container, false if it is a CHOICE/SEQUENCE/ALL container
+     */
+    private boolean isNotContainerElement(XsdExtendedElement element) {
+        if (element == null || element.getElementName() == null) {
+            return true;
+        }
+        String elementName = element.getElementName();
+        return !elementName.startsWith("CHOICE") &&
+                !elementName.startsWith("SEQUENCE") &&
+                !elementName.startsWith("ALL");
     }
 
     private void generateDetailPage(XsdExtendedElement element) {
@@ -299,6 +321,9 @@ public class XsdDocumentationHtmlService {
             context.setVariable("sampleData", element.getDisplaySampleData());
             context.setVariable("appInfos", element.getGenericAppInfos());
             context.setVariable("code", element.getSourceCode());
+
+            // Flattened children list (without CHOICE/SEQUENCE/ALL containers)
+            context.setVariable("flattenedChildren", getFlattenedChildren(element));
 
             // Bestehende Variablen (aus anderen Templates abgeleitet)
             context.setVariable("diagramType", xsdDocService.imageOutputMethod.name());
@@ -708,6 +733,72 @@ public class XsdDocumentationHtmlService {
     public String getChildSampleData(String childXpath) {
         XsdExtendedElement child = xsdDocService.xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
         return (child != null) ? child.getSampleData() : "";
+    }
+
+    /**
+     * Returns a flattened list of children for an element, with CHOICE/SEQUENCE/ALL containers
+     * removed and replaced by their actual child elements.
+     * This ensures that container elements used for SVG visualization don't appear in the
+     * HTML documentation's child element tables.
+     *
+     * @param element The parent element
+     * @return A list of child XPaths with container elements flattened
+     */
+    public List<String> getFlattenedChildren(XsdExtendedElement element) {
+        if (element == null || element.getChildren() == null) {
+            return Collections.emptyList();
+        }
+
+        List<String> flattenedChildren = new ArrayList<>();
+        for (String childXpath : element.getChildren()) {
+            XsdExtendedElement child = xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
+            if (child == null) {
+                continue;
+            }
+
+            String childName = child.getElementName();
+            // If it's a container element (CHOICE, SEQUENCE, ALL), add its children instead
+            if (childName != null && (childName.startsWith("CHOICE") ||
+                    childName.startsWith("SEQUENCE") ||
+                    childName.startsWith("ALL"))) {
+                // Recursively flatten in case of nested containers
+                flattenedChildren.addAll(getFlattenedChildren(child));
+            } else {
+                // Regular element, add it directly
+                flattenedChildren.add(childXpath);
+            }
+        }
+        return flattenedChildren;
+    }
+
+    /**
+     * Determines the compositor type (CHOICE, SEQUENCE, ALL, or null) for a child element's parent.
+     * Returns the compositor type if the element's direct parent is a compositor container,
+     * which can be used to display visual indicators in the documentation.
+     *
+     * @param childXpath The XPath of the child element
+     * @return The compositor type ("CHOICE", "SEQUENCE", "ALL") or null if not in a compositor
+     */
+    public String getChildCompositorType(String childXpath) {
+        XsdExtendedElement child = xsdDocumentationData.getExtendedXsdElementMap().get(childXpath);
+        if (child == null || child.getParentXpath() == null) {
+            return null;
+        }
+
+        XsdExtendedElement parent = xsdDocumentationData.getExtendedXsdElementMap().get(child.getParentXpath());
+        if (parent == null || parent.getElementName() == null) {
+            return null;
+        }
+
+        String parentName = parent.getElementName();
+        if (parentName.startsWith("CHOICE")) {
+            return "CHOICE";
+        } else if (parentName.startsWith("SEQUENCE")) {
+            return "SEQUENCE";
+        } else if (parentName.startsWith("ALL")) {
+            return "ALL";
+        }
+        return null;
     }
 
     // Fügen Sie auch diese private Hilfsmethode hinzu, falls sie nicht schon existiert

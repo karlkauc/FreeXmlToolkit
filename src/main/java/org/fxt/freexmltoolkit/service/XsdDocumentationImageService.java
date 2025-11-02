@@ -36,7 +36,6 @@ import java.awt.font.FontRenderContext;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -236,7 +235,7 @@ public class XsdDocumentationImageService {
 
         // Enhanced drop shadow filter for XMLSpy look
         Element filter = document.createElementNS(svgNS, "filter");
-        filter.setAttribute("id", "xmlspy-shadow");
+        filter.setAttribute("id", "dropShadow");
         filter.setAttribute("x", "-50%");
         filter.setAttribute("y", "-50%");
         filter.setAttribute("width", "200%");
@@ -311,7 +310,7 @@ public class XsdDocumentationImageService {
             return document;
         }
 
-        // Collect child elements
+        // Collect child elements (including compositor containers)
         List<XsdExtendedElement> childElements = new ArrayList<>();
         if (rootElement.getChildren() != null) {
             for (String temp : rootElement.getChildren()) {
@@ -345,7 +344,7 @@ public class XsdDocumentationImageService {
         Element rect1 = createModernSvgRect(document, rootElement.getCurrentXpath(),
                 rootElementHeight, rootElementWidth,
                 String.valueOf(rootStartX), String.valueOf(rootStartY));
-        rect1.setAttribute("filter", "url(#xmlspy-shadow)");
+        rect1.setAttribute("filter", "url(#dropShadow)");
         rect1.setAttribute("style", rootElement.isMandatory() ? ELEMENT_MANDATORY_FORMAT : ELEMENT_OPTIONAL_FORMAT);
         rect1.setAttribute("class", "hoverable-rect");
 
@@ -367,21 +366,76 @@ public class XsdDocumentationImageService {
         final double rootPathEndX = rootStartX + boxPadding * 2 + rootElementWidth;
         final double rootPathCenterY = rootStartY + (boxPadding * 2 + rootElementHeight) / 2;
 
-        // Determine sequence/choice type
+        // Check if there is exactly one child and it's a compositor container
+        // In that case, we'll draw the compositor symbol and use its children
         boolean isSequence = false;
         boolean isChoice = false;
-        if (!childElements.isEmpty()) {
-            XsdExtendedElement firstChild = childElements.getFirst();
-            if (firstChild.getCurrentNode() != null && firstChild.getCurrentNode().getParentNode() != null) {
-                var parentOfChildren = firstChild.getCurrentNode().getParentNode();
-                String parentName = parentOfChildren.getLocalName();
-                if ("sequence".equals(parentName)) {
+        boolean isAll = false;
+
+        if (childElements.size() == 1) {
+            XsdExtendedElement onlyChild = childElements.get(0);
+            String childName = onlyChild.getElementName();
+            if (childName != null) {
+                if (childName.startsWith("SEQUENCE")) {
                     isSequence = true;
-                } else if ("choice".equals(parentName)) {
+                    // Replace childElements with the compositor's children
+                    childElements = new ArrayList<>();
+                    if (onlyChild.getChildren() != null) {
+                        for (String compositorChildXpath : onlyChild.getChildren()) {
+                            XsdExtendedElement compositorChild = extendedXsdElements.get(compositorChildXpath);
+                            if (compositorChild != null) {
+                                childElements.add(compositorChild);
+                            }
+                        }
+                    }
+                } else if (childName.startsWith("CHOICE")) {
                     isChoice = true;
+                    // Replace childElements with the compositor's children
+                    childElements = new ArrayList<>();
+                    if (onlyChild.getChildren() != null) {
+                        for (String compositorChildXpath : onlyChild.getChildren()) {
+                            XsdExtendedElement compositorChild = extendedXsdElements.get(compositorChildXpath);
+                            if (compositorChild != null) {
+                                childElements.add(compositorChild);
+                            }
+                        }
+                    }
+                } else if (childName.startsWith("ALL")) {
+                    isAll = true;
+                    // Replace childElements with the compositor's children
+                    childElements = new ArrayList<>();
+                    if (onlyChild.getChildren() != null) {
+                        for (String compositorChildXpath : onlyChild.getChildren()) {
+                            XsdExtendedElement compositorChild = extendedXsdElements.get(compositorChildXpath);
+                            if (compositorChild != null) {
+                                childElements.add(compositorChild);
+                            }
+                        }
+                    }
                 }
             }
         }
+
+        // Also check if root element has a type-level compositor (sequence/choice/all in complexType)
+        if (!isSequence && !isChoice && !isAll && !childElements.isEmpty()) {
+            String compositorType = detectTypeCompositor(rootElement);
+            if (compositorType != null) {
+                switch (compositorType) {
+                    case "sequence":
+                        isSequence = true;
+                        break;
+                    case "choice":
+                        isChoice = true;
+                        break;
+                    case "all":
+                        isAll = true;
+                        break;
+                }
+            }
+        }
+
+        // Note: We keep childElements as-is (may contain nested compositor containers)
+        // The recursive drawing method will handle nested compositors automatically
 
         // Draw modern symbols for sequence/choice
         double childPathStartX = rootPathEndX + gapBetweenSides;
@@ -390,12 +444,12 @@ public class XsdDocumentationImageService {
         // Calculate symbol position explicitly
         final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2.0);
         final double symbolCenterY = rootPathCenterY; // Y-Position der Symbol-Mitte
-        final double symbolWidth = isSequence ? 50 : (isChoice ? 30 : 0);
+        final double symbolWidth = isSequence ? 50 : (isChoice ? 30 : (isAll ? 40 : 0));
         final double finalSymbolWidth = symbolWidth;
         final double finalSymbolCenterX = symbolCenterX;
 
         double symbolEndX = rootPathEndX; // Default to root element end
-        if (isSequence || isChoice) {
+        if (isSequence || isChoice || isAll) {
             symbolEndX = drawModernSequenceChoiceSymbol(document, rootPathEndX, rootPathCenterY,
                     gapBetweenSides, isSequence, isChoice, childElements, svgRoot);
         }
@@ -404,255 +458,32 @@ public class XsdDocumentationImageService {
         double actualHeight = margin * 2;
         final double finalRightStartX = rightStartX;
 
-        // Make sequence/choice flags and symbol position available in the loop
-        final boolean hasSequenceOrChoice = isSequence || isChoice;
+        // Make sequence/choice/all flags and symbol position available in the loop
+        final boolean hasCompositor = isSequence || isChoice || isAll;
+        final boolean finalIsSequence = isSequence;
+        final boolean finalIsChoice = isChoice;
+        final boolean finalIsAll = isAll;
         final double finalSymbolEndX = symbolEndX; // Use the actual returned value
         final double finalSymbolCenterY = symbolCenterY;
 
-        for (int i = 0; i < childElements.size(); i++) {
-            XsdExtendedElement childElement = childElements.get(i);
-            String elementName = childElement.getElementName();
-            String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
-
-            var nameBounds = font.getStringBounds(elementName, frc);
-            var typeBounds = font.getStringBounds(elementType, frc);
-
-            double nameHeight = nameBounds.getBounds2D().getHeight();
-            double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
-            double totalContentHeight = nameHeight + typeHeight;
-
-            // Center the element vertically if it's the only one, but ensure it's not positioned above the top margin
-            double elementY = actualHeight;
-            if (childElements.size() == 1) {
-                double maxChildHeight = calculateMaxChildHeight(childElements);
-                elementY = Math.max(margin, (maxChildHeight / 2) - ((boxPadding * 2 + totalContentHeight) / 2));
-            }
-
-            // Modern box for child element
-            Element rightBox = createModernSvgRect(document, childElement.getCurrentXpath(), totalContentHeight,
-                    maxChildWidth, String.valueOf(finalRightStartX), String.valueOf(elementY));
-            rightBox.setAttribute("filter", "url(#xmlspy-shadow)");
-            // Apply cardinality-based styling
-            rightBox.setAttribute("style", determineNodeLabelStyle(childElement));
-            rightBox.setAttribute("class", "hoverable-rect");
-
-            // Optional overlay dashed border for optional elements (like OPTIONAL_NODE_LABEL_STYLE)
-            org.w3c.dom.Node childDomNode = childElement.getCurrentNode();
-            String minOccurs = getAttributeValue(childDomNode, "minOccurs", "1");
-            boolean isOptional = "0".equals(minOccurs);
-            String maxOccurs = getAttributeValue(childDomNode, "maxOccurs", "1");
-            boolean isRepeatable = "unbounded".equals(maxOccurs) || (maxOccurs != null && !"1".equals(maxOccurs) && !"0".equals(maxOccurs));
-
-            if (isRepeatable) {
-                // Inner secondary border (double border effect, light blue)
-                Element innerBorder = document.createElementNS(svgNS, "rect");
-                innerBorder.setAttribute("x", String.valueOf(finalRightStartX + 2));
-                innerBorder.setAttribute("y", String.valueOf(elementY + 2));
-                innerBorder.setAttribute("width", String.valueOf(boxPadding * 2 + maxChildWidth - 4));
-                innerBorder.setAttribute("height", String.valueOf(boxPadding * 2 + totalContentHeight - 4));
-                innerBorder.setAttribute("rx", String.valueOf(borderRadius));
-                innerBorder.setAttribute("ry", String.valueOf(borderRadius));
-                innerBorder.setAttribute("fill", "none");
-                innerBorder.setAttribute("stroke", "#87ceeb");
-                innerBorder.setAttribute("stroke-width", "1");
-                svgRoot.appendChild(innerBorder);
-            }
-
-            if (isOptional) {
-                // Dashed overlay border
-                Element dashedOverlay = document.createElementNS(svgNS, "rect");
-                dashedOverlay.setAttribute("x", String.valueOf(finalRightStartX));
-                dashedOverlay.setAttribute("y", String.valueOf(elementY));
-                dashedOverlay.setAttribute("width", String.valueOf(boxPadding * 2 + maxChildWidth));
-                dashedOverlay.setAttribute("height", String.valueOf(boxPadding * 2 + totalContentHeight));
-                dashedOverlay.setAttribute("rx", String.valueOf(borderRadius));
-                dashedOverlay.setAttribute("ry", String.valueOf(borderRadius));
-                dashedOverlay.setAttribute("fill", "none");
-                dashedOverlay.setAttribute("stroke", COLOR_STROKE_ELEMENT);
-                dashedOverlay.setAttribute("stroke-width", "2");
-                dashedOverlay.setAttribute("stroke-dasharray", "5,2");
-                svgRoot.appendChild(dashedOverlay);
-            }
-
-            // Text group with modern layout
-            Element textGroup = document.createElementNS(svgNS, "g");
-            double nameY = elementY + boxPadding + nameHeight;
-            Element nameTextNode = createSvgTextElement(document, elementName,
-                    String.valueOf(finalRightStartX + boxPadding), String.valueOf(nameY),
-                    COLOR_TEXT_PRIMARY, font.getSize());
-            textGroup.appendChild(nameTextNode);
-
-            if (!elementType.isBlank()) {
-                // Modern separator line
-                double lineY = nameY + 6;
-                Element line = document.createElementNS(svgNS, "line");
-                line.setAttribute("x1", String.valueOf(finalRightStartX + boxPadding));
-                line.setAttribute("y1", String.valueOf(lineY));
-                line.setAttribute("x2", String.valueOf(finalRightStartX + boxPadding + maxChildWidth));
-                line.setAttribute("y2", String.valueOf(lineY));
-                line.setAttribute("stroke", COLOR_STROKE_SEPARATOR);
-                line.setAttribute("stroke-width", "1");
-                textGroup.appendChild(line);
-
-                // Type-specific icon before the type name
-                Element typeIcon = createTypeSpecificIcon(document, elementType);
-                if (typeIcon != null) {
-                    typeIcon.setAttribute("x", String.valueOf(finalRightStartX + boxPadding));
-                    double typeY = lineY + typeBounds.getBounds2D().getHeight() + 4;
-                    // Align icon visually with the type text baseline (assume ~16px icon height)
-                    double iconBaselineAlignedY = typeY - 10; // moved 2px further down
-                    typeIcon.setAttribute("y", String.valueOf(iconBaselineAlignedY));
-                    textGroup.appendChild(typeIcon);
-                }
-
-                double typeY = lineY + typeBounds.getBounds2D().getHeight() + 4;
-                double typeTextX = finalRightStartX + boxPadding;
-                if (typeIcon != null) {
-                    typeTextX += 16; // Make space for icon
-                }
-                Element typeTextNode = createSvgTextElement(document, elementType,
-                        String.valueOf(typeTextX), String.valueOf(typeY),
-                        getTypeSpecificColor(elementType), font.getSize() - 1);
-                textGroup.appendChild(typeTextNode);
-            }
-
-            // Modern plus icon
-            Element useIcon = null;
-            if (childElement.hasChildren()) {
-                useIcon = document.createElementNS(svgNS, "use");
-                useIcon.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#modern-plus-icon");
-                useIcon.setAttribute("x", String.valueOf(finalRightStartX + boxPadding + maxChildWidth + margin));
-                double boxCenterY = elementY + (boxPadding * 2 + totalContentHeight) / 2;
-                useIcon.setAttribute("y", String.valueOf(boxCenterY - 12));
-            }
-
-            // Link around the box
-            Element rightLink = document.createElementNS(svgNS, "a");
-            if (childElement.hasChildren() && childElement.getPageName() != null) {
-                rightLink.setAttribute("href", childElement.getPageName());
-                rightLink.appendChild(rightBox);
-                rightLink.appendChild(textGroup);
-                if (useIcon != null) {
-                    rightLink.appendChild(useIcon);
-                }
-                svgRoot.appendChild(rightLink);
-            } else {
-                svgRoot.appendChild(rightBox);
-                svgRoot.appendChild(textGroup);
-            }
-
-            // L-shaped connection line from sequence/choice symbol to child element
-            double childElementCenterY = elementY + (boxPadding * 2 + totalContentHeight) / 2;
-
-            // Start coordinates based on whether we have a sequence/choice symbol
-            double lineStartX, lineStartY;
-            if (hasSequenceOrChoice) {
-                // Start from the RIGHT EDGE of the sequence/choice symbol
-                lineStartX = finalSymbolCenterX + (isSequence ? 25 : 15); // symbolWidth/2 (50/2 or 30/2)
-                lineStartY = finalSymbolCenterY;
-            } else {
-                // Start from root element
-                lineStartX = rootPathEndX;
-                lineStartY = rootPathCenterY;
-            }
-
-            Element path = document.createElementNS(svgNS, "path");
-            String pathData;
-
-            // For single child elements, use straight line; for multiple, use L-shaped path
-            if (childElements.size() == 1 && hasSequenceOrChoice) {
-                // Straight horizontal line from sequence/choice symbol to child element
-                pathData = String.format(Locale.ROOT, "M %.1f %.1f H %.1f",
-                        lineStartX, lineStartY,          // Start at symbol right edge
-                        finalRightStartX);               // Go directly to child left edge
-            } else {
-                // Create L-shaped path: horizontal -> vertical -> horizontal
-                double horizontalSegmentLength = 30; // Distance to go right before turning
-                double turnX = lineStartX + horizontalSegmentLength;
-
-                pathData = String.format(Locale.ROOT, "M %.1f %.1f H %.1f V %.1f H %.1f",
-                        lineStartX, lineStartY,          // Start at symbol right edge
-                        turnX,                           // Go right 30px
-                        childElementCenterY,             // Go up/down to child center
-                        finalRightStartX);               // Go right to child left edge
-            }
-
-            path.setAttribute("d", pathData);
-            path.setAttribute("class", "connection-line");
-            // Style connectors: same color as root→symbol; dashed only if child is optional
-            boolean childOptional;
-            if (elementName != null && elementName.startsWith("@")) {
-                childOptional = "optional".equals(getAttributeValue(childDomNode, "use", "optional"));
-            } else {
-                childOptional = "0".equals(getAttributeValue(childDomNode, "minOccurs", "1"));
-            }
-            if (hasSequenceOrChoice) {
-                String groupStroke = isSequence ? COLOR_STROKE_SEQUENCE : COLOR_STROKE_CHOICE;
-                String childStyle = "stroke: " + groupStroke + "; stroke-width: 2; fill: none;";
-                if (childOptional) {
-                    childStyle += " stroke-dasharray: 5,5;";
-                }
-                path.setAttribute("style", childStyle);
-            } else {
-                path.setAttribute("style", childElement.isMandatory() ? CONNECTION_LINE : CONNECTION_LINE_OPTIONAL);
-            }
-            path.setAttribute("fill", "none");
-            svgRoot.appendChild(path);
-
-            // Modern cardinality
-            Node childNode = childElement.getCurrentNode();
-            String cardinality = formatCardinality(
-                    getAttributeValue(childNode, "minOccurs", "1"),
-                    getAttributeValue(childNode, "maxOccurs", "1")
-            );
-
-            if (!cardinality.isEmpty()) {
-                int cardinalityFontSize = font.getSize() - 4;
-                var cardinalityBounds = font.getStringBounds(cardinality, frc);
-
-                // Position cardinality based on connection type
-                double textWidth = cardinalityBounds.getWidth();
-                double halfWidth = textWidth / 2.0;
-                double cardinalityX, cardinalityY;
-
-                if (childElements.size() == 1 && hasSequenceOrChoice) {
-                    // For straight line: position in the middle of the horizontal connection
-                    double centerX = lineStartX + (finalRightStartX - lineStartX) / 2;
-                    cardinalityX = centerX - halfWidth;
-                    cardinalityY = lineStartY - 15; // Above the horizontal line
-                } else {
-                    // For L-shaped path: position closer to the child element without overlapping its border
-                    double turnX = lineStartX + 30; // Same as horizontalSegmentLength above
-                    double desiredCenterX = turnX + (finalRightStartX - turnX) * 0.65;
-                    double maxCenterX = finalRightStartX - 10 - halfWidth; // keep at least 10px from child border
-                    double minCenterX = turnX + 10 + halfWidth;            // keep at least 10px from turn point
-                    double centerX = Math.max(minCenterX, Math.min(desiredCenterX, maxCenterX));
-                    cardinalityX = centerX - halfWidth;
-                    cardinalityY = childElementCenterY - 15; // Above the horizontal line to child
-                }
-
-                // Background rect for cardinality
-                Element cardinalityBg = document.createElementNS(svgNS, "rect");
-                cardinalityBg.setAttribute("x", String.valueOf(cardinalityX - 4));
-                cardinalityBg.setAttribute("y", String.valueOf(cardinalityY - cardinalityBounds.getHeight()));
-                cardinalityBg.setAttribute("width", String.valueOf(cardinalityBounds.getWidth() + 8));
-                cardinalityBg.setAttribute("height", String.valueOf(cardinalityBounds.getHeight() + 4));
-                cardinalityBg.setAttribute("fill", COLOR_BOX_FILL_ELEMENT);
-                cardinalityBg.setAttribute("stroke", COLOR_STROKE_SEPARATOR);
-                cardinalityBg.setAttribute("stroke-width", "1");
-                cardinalityBg.setAttribute("rx", "3");
-                svgRoot.appendChild(cardinalityBg);
-
-                Element cardinalityTextNode = createSvgTextElement(document, cardinality,
-                        String.valueOf(cardinalityX), String.valueOf(cardinalityY - 2),
-                        COLOR_TEXT_SECONDARY, cardinalityFontSize);
-                cardinalityTextNode.setAttribute("class", "cardinality-text");
-                cardinalityTextNode.setAttribute("font-weight", "600");
-                svgRoot.appendChild(cardinalityTextNode);
-            }
-
-            actualHeight += boxPadding * 2 + totalContentHeight + margin * 2;
+        // Calculate connection start point based on whether there's a root-level compositor
+        double connectionStartX, connectionStartY;
+        if (hasCompositor) {
+            // Start from the RIGHT EDGE of the compositor symbol
+            connectionStartX = finalSymbolCenterX + (finalIsSequence ? 25 : (finalIsChoice ? 15 : 20));
+            connectionStartY = finalSymbolCenterY;
+        } else {
+            // Start from root element
+            connectionStartX = rootPathEndX;
+            connectionStartY = rootPathCenterY;
         }
+
+        // Draw children recursively - this handles nested compositors automatically
+        double childrenHeight = drawChildrenRecursive(document, svgRoot, childElements,
+                actualHeight, finalRightStartX, maxChildWidth,
+                connectionStartX, connectionStartY);
+
+        actualHeight += childrenHeight;
 
         // Calculate total height of root element including documentation
         double rootElementTotalHeight = rootStartY + (boxPadding * 2 + rootElementHeight) + docHeightTotal;
@@ -1715,6 +1546,435 @@ public class XsdDocumentationImageService {
         } else {
             return ELEMENT_MANDATORY_FORMAT;
         }
+    }
+
+    /**
+     * Recursively draws children elements, including compositor containers (CHOICE/SEQUENCE/ALL).
+     * Compositor containers are drawn as symbols with their children nested beneath them.
+     *
+     * @param document         SVG document
+     * @param svgRoot          SVG root element
+     * @param children         List of child elements to draw
+     * @param startY           Starting Y position
+     * @param startX           Starting X position for elements
+     * @param maxWidth         Maximum width for child elements
+     * @param connectionStartX X position where connections start from
+     * @param connectionStartY Y position where connections start from
+     * @return Total height consumed by all drawn elements
+     */
+    private double drawChildrenRecursive(Document document, Element svgRoot,
+                                         List<XsdExtendedElement> children,
+                                         double startY, double startX, double maxWidth,
+                                         double connectionStartX, double connectionStartY) {
+        if (children == null || children.isEmpty()) {
+            return 0;
+        }
+
+        double currentY = startY;
+
+        for (XsdExtendedElement child : children) {
+            String childName = child.getElementName();
+
+            // Check if this is a compositor container
+            boolean isCompositor = childName != null &&
+                    (childName.startsWith("CHOICE") ||
+                            childName.startsWith("SEQUENCE") ||
+                            childName.startsWith("ALL"));
+
+            if (isCompositor) {
+                // Draw compositor symbol and its children
+                String compositorType = childName.startsWith("CHOICE") ? "choice" :
+                        (childName.startsWith("SEQUENCE") ? "sequence" : "all");
+
+                // Get compositor's children
+                List<XsdExtendedElement> compositorChildren = new ArrayList<>();
+                if (child.getChildren() != null) {
+                    for (String compositorChildXpath : child.getChildren()) {
+                        XsdExtendedElement compositorChild = extendedXsdElements.get(compositorChildXpath);
+                        if (compositorChild != null) {
+                            compositorChildren.add(compositorChild);
+                        }
+                    }
+                }
+
+                // Draw compositor symbol
+                double symbolX = startX + 60; // Position for the symbol
+                double symbolY = currentY + 20;
+                double symbolWidth = compositorType.equals("choice") ? 30 : (compositorType.equals("sequence") ? 50 : 40);
+                double symbolHeight = 30;
+
+                // Draw the symbol
+                drawCompositorSymbolInline(document, svgRoot, compositorType, symbolX, symbolY, symbolWidth, symbolHeight);
+
+                // Draw connection from parent to compositor symbol
+                Element connectionLine = document.createElementNS(svgNS, "line");
+                connectionLine.setAttribute("x1", String.valueOf(connectionStartX));
+                connectionLine.setAttribute("y1", String.valueOf(connectionStartY));
+                connectionLine.setAttribute("x2", String.valueOf(symbolX));
+                connectionLine.setAttribute("y2", String.valueOf(symbolY + symbolHeight / 2));
+                String strokeColor = compositorType.equals("choice") ? COLOR_STROKE_CHOICE :
+                        (compositorType.equals("sequence") ? COLOR_STROKE_SEQUENCE : COLOR_STROKE_ANY);
+                connectionLine.setAttribute("stroke", strokeColor);
+                connectionLine.setAttribute("stroke-width", "2");
+                svgRoot.appendChild(connectionLine);
+
+                // Recursively draw compositor's children
+                double compositorChildrenStartX = symbolX + symbolWidth + 40;
+                double compositorConnectionStartX = symbolX + symbolWidth;
+                double compositorConnectionStartY = symbolY + symbolHeight / 2;
+
+                double childrenHeight = drawChildrenRecursive(document, svgRoot, compositorChildren,
+                        symbolY, compositorChildrenStartX, maxWidth,
+                        compositorConnectionStartX, compositorConnectionStartY);
+
+                // Update currentY to account for the compositor and its children
+                currentY += Math.max(symbolHeight + 40, childrenHeight);
+
+            } else {
+                // Regular element - draw it normally
+                String elementName2 = child.getElementName();
+                String elementType = child.getElementType() != null ? child.getElementType() : "";
+
+                var nameBounds = font.getStringBounds(elementName2, frc);
+                var typeBounds = font.getStringBounds(elementType, frc);
+
+                double nameHeight = nameBounds.getBounds2D().getHeight();
+                double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
+                double totalContentHeight = nameHeight + typeHeight;
+
+                // Draw the element box
+                Element elementBox = createModernSvgRect(document, child.getCurrentXpath(), totalContentHeight,
+                        maxWidth, String.valueOf(startX), String.valueOf(currentY));
+                elementBox.setAttribute("filter", "url(#dropShadow)");
+                elementBox.setAttribute("style", determineNodeLabelStyle(child));
+                elementBox.setAttribute("class", "hoverable-rect");
+
+                // Check for optional/repeatable
+                org.w3c.dom.Node childDomNode = child.getCurrentNode();
+                String minOccurs = getAttributeValue(childDomNode, "minOccurs", "1");
+                boolean isOptional = "0".equals(minOccurs);
+                String maxOccursVal = getAttributeValue(childDomNode, "maxOccurs", "1");
+                boolean isRepeatable = "unbounded".equals(maxOccursVal) ||
+                        (maxOccursVal != null && !"1".equals(maxOccursVal) && !"0".equals(maxOccursVal));
+
+                if (isRepeatable) {
+                    Element innerBorder = document.createElementNS(svgNS, "rect");
+                    innerBorder.setAttribute("x", String.valueOf(startX + 2));
+                    innerBorder.setAttribute("y", String.valueOf(currentY + 2));
+                    innerBorder.setAttribute("width", String.valueOf(boxPadding * 2 + maxWidth - 4));
+                    innerBorder.setAttribute("height", String.valueOf(boxPadding * 2 + totalContentHeight - 4));
+                    innerBorder.setAttribute("rx", String.valueOf(borderRadius));
+                    innerBorder.setAttribute("ry", String.valueOf(borderRadius));
+                    innerBorder.setAttribute("fill", "none");
+                    innerBorder.setAttribute("stroke", "#87ceeb");
+                    innerBorder.setAttribute("stroke-width", "1");
+                    svgRoot.appendChild(innerBorder);
+                }
+
+                if (isOptional) {
+                    Element dashedOverlay = document.createElementNS(svgNS, "rect");
+                    dashedOverlay.setAttribute("x", String.valueOf(startX));
+                    dashedOverlay.setAttribute("y", String.valueOf(currentY));
+                    dashedOverlay.setAttribute("width", String.valueOf(boxPadding * 2 + maxWidth));
+                    dashedOverlay.setAttribute("height", String.valueOf(boxPadding * 2 + totalContentHeight));
+                    dashedOverlay.setAttribute("rx", String.valueOf(borderRadius));
+                    dashedOverlay.setAttribute("ry", String.valueOf(borderRadius));
+                    dashedOverlay.setAttribute("fill", "none");
+                    dashedOverlay.setAttribute("stroke", COLOR_STROKE_ELEMENT);
+                    dashedOverlay.setAttribute("stroke-width", "2");
+                    dashedOverlay.setAttribute("stroke-dasharray", "5,2");
+                    svgRoot.appendChild(dashedOverlay);
+                }
+
+                // Text group
+                Element textGroup = document.createElementNS(svgNS, "g");
+                double nameY = currentY + boxPadding + nameHeight;
+                Element nameTextNode = createSvgTextElement(document, elementName2,
+                        String.valueOf(startX + boxPadding), String.valueOf(nameY),
+                        COLOR_TEXT_PRIMARY, font.getSize());
+                textGroup.appendChild(nameTextNode);
+
+                if (!elementType.isBlank()) {
+                    double lineY = nameY + 6;
+                    Element line = document.createElementNS(svgNS, "line");
+                    line.setAttribute("x1", String.valueOf(startX + boxPadding));
+                    line.setAttribute("y1", String.valueOf(lineY));
+                    line.setAttribute("x2", String.valueOf(startX + boxPadding + maxWidth));
+                    line.setAttribute("y2", String.valueOf(lineY));
+                    line.setAttribute("stroke", COLOR_STROKE_SEPARATOR);
+                    line.setAttribute("stroke-width", "1");
+                    textGroup.appendChild(line);
+
+                    Element typeIcon = createTypeSpecificIcon(document, elementType);
+                    if (typeIcon != null) {
+                        typeIcon.setAttribute("x", String.valueOf(startX + boxPadding));
+                        double typeY = lineY + typeBounds.getBounds2D().getHeight() + 4;
+                        double iconBaselineAlignedY = typeY - 10;
+                        typeIcon.setAttribute("y", String.valueOf(iconBaselineAlignedY));
+                        textGroup.appendChild(typeIcon);
+                    }
+
+                    double typeY = lineY + typeBounds.getBounds2D().getHeight() + 4;
+                    double typeTextX = startX + boxPadding;
+                    if (typeIcon != null) {
+                        typeTextX += 16;
+                    }
+                    Element typeTextNode = createSvgTextElement(document, elementType,
+                            String.valueOf(typeTextX), String.valueOf(typeY),
+                            getTypeSpecificColor(elementType), font.getSize() - 1);
+                    textGroup.appendChild(typeTextNode);
+                }
+
+                // Modern plus icon for elements with children
+                Element useIcon = null;
+                if (child.hasChildren()) {
+                    useIcon = document.createElementNS(svgNS, "use");
+                    useIcon.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#modern-plus-icon");
+                    useIcon.setAttribute("x", String.valueOf(startX + boxPadding + maxWidth + margin));
+                    double boxCenterY = currentY + (boxPadding * 2 + totalContentHeight) / 2;
+                    useIcon.setAttribute("y", String.valueOf(boxCenterY - 12));
+                }
+
+                // Link around the box for all elements with pageName
+                if (child.getPageName() != null && !child.getPageName().isEmpty()) {
+                    Element rightLink = document.createElementNS(svgNS, "a");
+                    rightLink.setAttribute("href", child.getPageName());
+                    rightLink.appendChild(elementBox);
+                    rightLink.appendChild(textGroup);
+                    if (useIcon != null) {
+                        rightLink.appendChild(useIcon);
+                    }
+                    svgRoot.appendChild(rightLink);
+                } else {
+                    svgRoot.appendChild(elementBox);
+                    svgRoot.appendChild(textGroup);
+                    if (useIcon != null) {
+                        svgRoot.appendChild(useIcon);
+                    }
+                }
+
+                // Draw connection line from parent to this element
+                double childElementCenterY = currentY + (boxPadding * 2 + totalContentHeight) / 2;
+                Element connectionLine = document.createElementNS(svgNS, "line");
+                connectionLine.setAttribute("x1", String.valueOf(connectionStartX));
+                connectionLine.setAttribute("y1", String.valueOf(connectionStartY));
+                connectionLine.setAttribute("x2", String.valueOf(startX));
+                connectionLine.setAttribute("y2", String.valueOf(childElementCenterY));
+                connectionLine.setAttribute("stroke", COLOR_STROKE_ELEMENT);
+                connectionLine.setAttribute("stroke-width", "2");
+                if (isOptional) {
+                    connectionLine.setAttribute("stroke-dasharray", "5,5");
+                }
+                svgRoot.appendChild(connectionLine);
+
+                // Update currentY for next element
+                currentY += boxPadding * 2 + totalContentHeight + margin * 2;
+            }
+        }
+
+        return currentY - startY;
+    }
+
+    /**
+     * Detects if an element has a type-level compositor (sequence/choice/all in its complexType definition).
+     * Returns "sequence", "choice", "all", or null if no compositor is found.
+     */
+    private String detectTypeCompositor(XsdExtendedElement element) {
+        if (element == null || element.getCurrentNode() == null) {
+            return null;
+        }
+
+        org.w3c.dom.Node node = element.getCurrentNode();
+
+        try {
+            // First, check for inline xs:complexType child
+            org.w3c.dom.NodeList childNodes = node.getChildNodes();
+            if (childNodes != null) {
+                for (int i = 0; i < childNodes.getLength(); i++) {
+                    org.w3c.dom.Node child = childNodes.item(i);
+                    if (child != null && child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                        String localName = child.getLocalName();
+                        if ("complexType".equals(localName)) {
+                            // Found inline complexType, check for compositor
+                            String compositor = findCompositorInComplexType(child);
+                            if (compositor != null) {
+                                return compositor;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Second, check if element has a type attribute referencing a named type
+            if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                org.w3c.dom.Element elementNode = (org.w3c.dom.Element) node;
+                String typeAttribute = elementNode.getAttribute("type");
+
+                if (typeAttribute != null && !typeAttribute.isEmpty()) {
+                    // Remove namespace prefix if present (e.g., "xs:string" -> "string")
+                    String typeName = typeAttribute.contains(":") ?
+                            typeAttribute.substring(typeAttribute.indexOf(":") + 1) :
+                            typeAttribute;
+
+                    // Skip built-in types
+                    if (isBuiltInType(typeName)) {
+                        return null;
+                    }
+
+                    // Find the named complexType definition in the schema
+                    org.w3c.dom.Document document = node.getOwnerDocument();
+                    if (document != null) {
+                        org.w3c.dom.Node typeDefinition = findNamedComplexType(document, typeName);
+
+                        if (typeDefinition != null) {
+                            return findCompositorInComplexType(typeDefinition);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Silently handle any DOM exceptions (e.g., when working with mock nodes in tests)
+            logger.debug("Could not detect compositor for element: {}", element.getElementName(), e);
+            return null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Searches for a compositor (sequence/choice/all) within a complexType node.
+     */
+    private String findCompositorInComplexType(org.w3c.dom.Node complexTypeNode) {
+        org.w3c.dom.NodeList children = complexTypeNode.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            org.w3c.dom.Node child = children.item(i);
+            if (child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                String localName = child.getLocalName();
+                if ("sequence".equals(localName)) {
+                    return "sequence";
+                } else if ("choice".equals(localName)) {
+                    return "choice";
+                } else if ("all".equals(localName)) {
+                    return "all";
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds a named complexType definition in the schema document.
+     */
+    private org.w3c.dom.Node findNamedComplexType(org.w3c.dom.Document document, String typeName) {
+        if (document == null || typeName == null) {
+            return null;
+        }
+
+        // Get all complexType elements in the schema
+        org.w3c.dom.NodeList complexTypes = document.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "complexType");
+
+        for (int i = 0; i < complexTypes.getLength(); i++) {
+            org.w3c.dom.Node complexType = complexTypes.item(i);
+            if (complexType.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                org.w3c.dom.Element complexTypeElement = (org.w3c.dom.Element) complexType;
+                String nameAttribute = complexTypeElement.getAttribute("name");
+
+                if (typeName.equals(nameAttribute)) {
+                    return complexType;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Checks if a type name is a built-in XSD type.
+     */
+    private boolean isBuiltInType(String typeName) {
+        return typeName.equals("string") || typeName.equals("int") || typeName.equals("integer") ||
+                typeName.equals("decimal") || typeName.equals("boolean") || typeName.equals("date") ||
+                typeName.equals("dateTime") || typeName.equals("time") || typeName.equals("duration") ||
+                typeName.equals("float") || typeName.equals("double") || typeName.equals("long") ||
+                typeName.equals("short") || typeName.equals("byte") || typeName.equals("base64Binary") ||
+                typeName.equals("hexBinary") || typeName.equals("anyURI") || typeName.equals("QName") ||
+                typeName.equals("NOTATION") || typeName.equals("normalizedString") || typeName.equals("token") ||
+                typeName.equals("language") || typeName.equals("Name") || typeName.equals("NCName") ||
+                typeName.equals("ID") || typeName.equals("IDREF") || typeName.equals("IDREFS") ||
+                typeName.equals("ENTITY") || typeName.equals("ENTITIES") || typeName.equals("NMTOKEN") ||
+                typeName.equals("NMTOKENS") || typeName.equals("positiveInteger") || typeName.equals("negativeInteger") ||
+                typeName.equals("nonPositiveInteger") || typeName.equals("nonNegativeInteger") ||
+                typeName.equals("unsignedLong") || typeName.equals("unsignedInt") || typeName.equals("unsignedShort") ||
+                typeName.equals("unsignedByte") || typeName.equals("gYearMonth") || typeName.equals("gYear") ||
+                typeName.equals("gMonthDay") || typeName.equals("gDay") || typeName.equals("gMonth") ||
+                typeName.equals("anyType") || typeName.equals("anySimpleType");
+    }
+
+    /**
+     * Draws a compositor symbol (CHOICE, SEQUENCE, or ALL) at the specified position.
+     */
+    private void drawCompositorSymbolInline(Document document, Element svgRoot,
+                                            String compositorType, double x, double y,
+                                            double width, double height) {
+        Element group = document.createElementNS(svgNS, "g");
+
+        if (compositorType.equals("sequence")) {
+            // Sequence as filled rounded rectangle with icon
+            Element rect = document.createElementNS(svgNS, "rect");
+            rect.setAttribute("x", String.valueOf(x - width / 2));
+            rect.setAttribute("y", String.valueOf(y));
+            rect.setAttribute("width", String.valueOf(width));
+            rect.setAttribute("height", String.valueOf(height));
+            rect.setAttribute("fill", "url(#sequenceGradient)");
+            rect.setAttribute("stroke", COLOR_STROKE_SEQUENCE);
+            rect.setAttribute("stroke-width", "2");
+            rect.setAttribute("rx", "4");
+            rect.setAttribute("ry", "4");
+            group.appendChild(rect);
+
+            Element icon = document.createElementNS(svgNS, "use");
+            icon.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#sequence-icon");
+            icon.setAttribute("x", String.valueOf(x - width / 2 + 8));
+            icon.setAttribute("y", String.valueOf(y + 5));
+            group.appendChild(icon);
+
+        } else if (compositorType.equals("choice")) {
+            // Choice as dashed rounded rectangle with icon
+            Element rect = document.createElementNS(svgNS, "rect");
+            rect.setAttribute("x", String.valueOf(x - width / 2));
+            rect.setAttribute("y", String.valueOf(y));
+            rect.setAttribute("width", String.valueOf(width));
+            rect.setAttribute("height", String.valueOf(height));
+            rect.setAttribute("fill", "url(#choiceGradient)");
+            rect.setAttribute("stroke", COLOR_STROKE_CHOICE);
+            rect.setAttribute("stroke-width", "2");
+            rect.setAttribute("stroke-dasharray", "5,5");
+            rect.setAttribute("rx", "4");
+            rect.setAttribute("ry", "4");
+            group.appendChild(rect);
+
+            Element icon = document.createElementNS(svgNS, "use");
+            icon.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#choice-icon");
+            icon.setAttribute("x", String.valueOf(x - width / 2 + 6));
+            icon.setAttribute("y", String.valueOf(y + 7));
+            group.appendChild(icon);
+
+        } else { // "all"
+            // All as filled rounded rectangle
+            Element rect = document.createElementNS(svgNS, "rect");
+            rect.setAttribute("x", String.valueOf(x - width / 2));
+            rect.setAttribute("y", String.valueOf(y));
+            rect.setAttribute("width", String.valueOf(width));
+            rect.setAttribute("height", String.valueOf(height));
+            rect.setAttribute("fill", COLOR_BOX_FILL_ANY);
+            rect.setAttribute("stroke", COLOR_STROKE_ANY);
+            rect.setAttribute("stroke-width", "2");
+            rect.setAttribute("rx", "4");
+            rect.setAttribute("ry", "4");
+            group.appendChild(rect);
+        }
+
+        svgRoot.appendChild(group);
     }
 
 }

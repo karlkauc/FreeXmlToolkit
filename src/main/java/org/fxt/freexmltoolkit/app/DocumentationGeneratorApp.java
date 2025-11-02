@@ -50,7 +50,7 @@ public class DocumentationGeneratorApp {
      * @param args Command-line arguments (not currently used).
      * @throws Exception if an error occurs during documentation generation.
      */
-    public static void main(String[] args) throws Exception {
+    static void main(String[] args) throws Exception {
         // --- 1. Configuration and Generation ---
         final Path xsdFilePath = Paths.get(XSD_FILE_PATH);
         final Path outputFilePath = Paths.get(OUTPUT_DIRECTORY);
@@ -60,6 +60,7 @@ public class DocumentationGeneratorApp {
         logger.info("Output Directory: {}", outputFilePath.toAbsolutePath());
 
         XsdDocumentationService xsdDocService = new XsdDocumentationService();
+        xsdDocService.setIncludeTypeDefinitionsInSourceCode(true);
         xsdDocService.setXsdFilePath(xsdFilePath.toString());
         xsdDocService.setUseMarkdownRenderer(true);
         xsdDocService.imageOutputMethod = XsdDocumentationService.ImageOutputMethod.SVG;
