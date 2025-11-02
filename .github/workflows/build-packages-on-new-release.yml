@@ -19,11 +19,11 @@ jobs:
             arch: arm64
             gradle-tasks: "createWindowsExecutableArm64 createWindowsMsiArm64 zipWindowsAppImageArm64"
           
-          # macOS builds
-          - os: macos-13  # Intel runners
+          # macOS builds (both on macos-15 ARM runners with cross-compilation for x64)
+          - os: macos-15  # ARM runner, cross-compiles for x64
             arch: x64
             gradle-tasks: "createMacOSExecutableX64 createMacOSPkgX64 zipMacOSAppImageX64"
-          - os: macos-latest  # ARM runners
+          - os: macos-15  # ARM runner, native ARM build
             arch: arm64
             gradle-tasks: "createMacOSExecutableArm64 createMacOSPkgArm64 zipMacOSAppImageArm64"
           
