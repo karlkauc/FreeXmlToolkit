@@ -47,6 +47,7 @@ application {
 
 dependencies {
     implementation("net.sf.saxon:Saxon-HE:12.9")
+    implementation("xerces:xercesImpl:2.12.2")
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.4")
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")

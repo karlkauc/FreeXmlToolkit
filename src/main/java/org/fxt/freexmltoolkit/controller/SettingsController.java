@@ -30,6 +30,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.ModernXmlThemeManager;
 import org.fxt.freexmltoolkit.domain.ConnectionResult;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
+import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.service.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -87,6 +88,9 @@ public class SettingsController {
     @FXML
     ComboBox<String> xmlThemeComboBox;
 
+    @FXML
+    ComboBox<XmlParserType> xmlParserComboBox;
+
     // Favorites Management FXML components
     @FXML
     TableView<FileFavorite> favoritesTable;
@@ -123,9 +127,34 @@ public class SettingsController {
         ModernXmlThemeManager themeManager = ModernXmlThemeManager.getInstance();
         xmlThemeComboBox.getItems().addAll(themeManager.getThemeNames());
 
+        // Initialize XML parser ComboBox
+        xmlParserComboBox.setItems(FXCollections.observableArrayList(XmlParserType.values()));
+        xmlParserComboBox.setCellFactory(param -> new ListCell<>() {
+            @Override
+            protected void updateItem(XmlParserType item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getDisplayName());
+                }
+            }
+        });
+        xmlParserComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(XmlParserType item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getDisplayName());
+                }
+            }
+        });
+
         // Initialize favorites table
         initializeFavoritesTable();
-        
+
         loadCurrentSettings();
 
         // Listener to enable/disable input fields
@@ -253,6 +282,12 @@ public class SettingsController {
                 ModernXmlThemeManager.getInstance().setCurrentThemeByDisplayName(selectedTheme);
             }
 
+            // Save XML parser type
+            XmlParserType selectedParser = xmlParserComboBox.getSelectionModel().getSelectedItem();
+            if (selectedParser != null) {
+                propertiesService.setXmlParserType(selectedParser);
+            }
+
             propertiesService.saveProperties(props);
 
             // Show success message
@@ -371,6 +406,10 @@ public class SettingsController {
             String currentThemeName = themeManager.getCurrentTheme().getDisplayName();
             xmlThemeComboBox.getSelectionModel().select(currentThemeName);
         }
+
+        // Load XML parser type
+        XmlParserType parserType = propertiesService.getXmlParserType();
+        xmlParserComboBox.getSelectionModel().select(parserType);
     }
 
     // Favorites Management Methods

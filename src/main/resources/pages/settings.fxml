@@ -120,16 +120,29 @@
                             <CheckBox fx:id="schematronPrettyPrintOnLoad" text="Autoformat Schematron files after loading"
                                       GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2"/>
 
+                            <!-- Separator for Parser Settings -->
+                            <Label text="XML Parser Settings" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                                   GridPane.columnSpan="2"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0; -fx-padding: 10 0 5 0;"/>
+
+                            <Label text="XSD Validation Parser:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                            <ComboBox fx:id="xmlParserComboBox" prefWidth="250" GridPane.columnIndex="1"
+                                      GridPane.rowIndex="4"/>
+
+                            <Label text="Note: XSLT and XQuery operations always use Saxon"
+                                   GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="2"
+                                   style="-fx-font-size: 10px; -fx-text-fill: #6c757d; -fx-font-style: italic; -fx-padding: 5 0 0 0;"/>
+
                             <!-- Separator for Auto-Creation Settings -->
-                            <Label text="Auto-Creation Settings" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                            <Label text="Auto-Creation Settings" GridPane.columnIndex="0" GridPane.rowIndex="6"
                                    GridPane.columnSpan="2"
                                    style="-fx-font-weight: bold; -fx-text-fill: #2c5aa0; -fx-padding: 10 0 5 0;"/>
 
                             <CheckBox fx:id="createAllChildNodes" text="Create all child nodes (not only mandatory)"
-                                      GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.columnSpan="2"/>
+                                      GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.columnSpan="2"/>
 
                             <CheckBox fx:id="fillNodesWithSampleValues" text="Fill nodes with sample values"
-                                      GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="2"/>
+                                      GridPane.columnIndex="0" GridPane.rowIndex="8" GridPane.columnSpan="2"/>
 
                             <columnConstraints>
                                 <ColumnConstraints hgrow="NEVER" minWidth="150.0"/>

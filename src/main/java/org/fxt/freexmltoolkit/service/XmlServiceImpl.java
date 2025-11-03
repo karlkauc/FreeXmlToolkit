@@ -31,6 +31,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -75,6 +76,10 @@ public class XmlServiceImpl implements XmlService {
     private static final XmlServiceImpl instance = new XmlServiceImpl();
     private static final ConnectionService connectionService = ConnectionServiceImpl.getInstance();
     private static final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
+
+    // Validation services for different parsers
+    private final XmlValidationService saxonValidationService = new SaxonXmlValidationService();
+    private final XmlValidationService xercesValidationService = new XercesXmlValidationService();
 
     final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
     XPathFactory xPathFactory = new net.sf.saxon.xpath.XPathFactoryImpl();
@@ -550,84 +555,26 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public List<SAXParseException> validateText(String xmlString, File schemaFile) {
-        final List<SAXParseException> exceptions = new LinkedList<>();
+        // Get the configured validation service based on user settings
+        XmlValidationService validationService = getValidationService();
+        logger.debug("Using {} for XML validation", validationService.getValidatorName());
 
-        // If no schema is provided, only check for well-formedness.
-        if (schemaFile == null) {
-            return checkWellFormednessOnly(xmlString);
-        }
+        // Delegate validation to the selected service
+        return validationService.validateText(xmlString, schemaFile);
+    }
 
-        try {
-            // Check if this is an XSD 1.1 schema
-            String schemaContent = Files.readString(schemaFile.toPath());
-            boolean isXsd11 = isXsd11Schema(schemaContent);
+    /**
+     * Gets the appropriate validation service based on user settings.
+     *
+     * @return the configured validation service
+     */
+    private XmlValidationService getValidationService() {
+        XmlParserType parserType = propertiesService.getXmlParserType();
 
-            if (isXsd11) {
-                // XSD 1.1 validation is not fully supported with Saxon-HE
-                // We can only check well-formedness of the XML
-                logger.info("XSD 1.1 schema detected. Full schema validation is not available with Saxon-HE. Checking XML well-formedness only.");
-                exceptions.add(new SAXParseException(
-                    "Note: XSD 1.1 features detected in schema (e.g., assertions, type alternatives). " +
-                    "Full schema validation requires Saxon-EE or Saxon-PE. Only checking XML well-formedness.",
-                    null, null, -1, -1));
-                exceptions.addAll(checkWellFormednessOnly(xmlString));
-                return exceptions;
-            }
-
-            // Check if the schema itself is valid (for XSD 1.0)
-            if (!isSchemaValid(schemaFile)) {
-                logger.warn("Schema validation skipped because the schema file is invalid: {}", schemaFile.getAbsolutePath());
-                // Add a custom error to inform the user about the invalid schema.
-                exceptions.add(new SAXParseException("Schema is invalid or unreadable. XML validation was not performed.", null));
-                // As a fallback, at least check if the XML itself is well-formed.
-                exceptions.addAll(checkWellFormednessOnly(xmlString));
-                return exceptions;
-            }
-
-            // If the schema is valid XSD 1.0, proceed with full validation
-            logger.debug("Validating against XSD 1.0 schema: {}", schemaFile.getAbsolutePath());
-            Schema schemaToUse = factory.newSchema(new StreamSource(schemaFile));
-            Validator localValidator = schemaToUse.newValidator();
-
-            localValidator.setErrorHandler(new ErrorHandler() {
-                @Override
-                public void warning(SAXParseException exception) {
-                    exceptions.add(exception);
-                }
-
-                @Override
-                public void fatalError(SAXParseException exception) {
-                    exceptions.add(exception);
-                }
-
-                @Override
-                public void error(SAXParseException exception) {
-                    exceptions.add(exception);
-                }
-            });
-
-            // The validate method checks for well-formedness and, if a schema is loaded, for schema validity.
-            StreamSource xmlStreamSource = new StreamSource(new StringReader(xmlString));
-            localValidator.validate(xmlStreamSource);
-
-            return exceptions;
-
-        } catch (IOException e) {
-            logger.error("Could not read schema file", e);
-            exceptions.add(new SAXParseException("Could not read schema file: " + e.getMessage(), null));
-            return exceptions;
-        } catch (SAXException e) {
-            // A SAXException here is often a fatal parsing error (e.g., not well-formed).
-            // We add it to the error list to report it to the user.
-            if (e instanceof SAXParseException) {
-                exceptions.add((SAXParseException) e);
-            } else {
-                // For other system errors, create a synthetic exception.
-                logger.error("Unexpected system error during validation", e);
-                exceptions.add(new SAXParseException("System error during validation: " + e.getMessage(), null));
-            }
-            return exceptions;
-        }
+        return switch (parserType) {
+            case XERCES -> xercesValidationService;
+            case SAXON -> saxonValidationService;
+        };
     }
 
     @Override
