@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.XmlParserType;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -309,5 +310,25 @@ public class PropertiesServiceImpl implements PropertiesService {
     public void setSchematronPrettyPrintOnLoad(boolean enabled) {
         properties.setProperty("schematron.prettyPrint.onLoad", String.valueOf(enabled));
         saveProperties(properties);
+    }
+
+    @Override
+    public XmlParserType getXmlParserType() {
+        String parserName = properties.getProperty("xml.parser.type", XmlParserType.SAXON.name());
+        try {
+            return XmlParserType.valueOf(parserName);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid parser type '{}', defaulting to SAXON", parserName);
+            return XmlParserType.SAXON;
+        }
+    }
+
+    @Override
+    public void setXmlParserType(XmlParserType parserType) {
+        if (parserType != null) {
+            properties.setProperty("xml.parser.type", parserType.name());
+            saveProperties(properties);
+            logger.debug("Set XML parser type to: {}", parserType);
+        }
     }
 }

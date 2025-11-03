@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import org.fxt.freexmltoolkit.domain.XmlParserType;
+
 import java.io.File;
 import java.util.List;
 import java.util.Properties;
@@ -154,4 +156,18 @@ public interface PropertiesService {
      * @param enabled true to enable pretty-print, false to disable
      */
     void setSchematronPrettyPrintOnLoad(boolean enabled);
+
+    /**
+     * Gets the XML parser type to use for XSD validation.
+     *
+     * @return the XML parser type (default: SAXON)
+     */
+    XmlParserType getXmlParserType();
+
+    /**
+     * Sets the XML parser type to use for XSD validation.
+     *
+     * @param parserType the XML parser type
+     */
+    void setXmlParserType(XmlParserType parserType);
 }
