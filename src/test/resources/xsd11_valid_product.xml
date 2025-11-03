@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Product xmlns="http://example.com/test">
+    <Name>Test Product</Name>
+    <Price>100.00</Price>
+    <Discount>20.00</Discount>
+</Product>

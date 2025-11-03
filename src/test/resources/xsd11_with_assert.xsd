@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://example.com/test"
+           xmlns:tns="http://example.com/test"
+           elementFormDefault="qualified"
+           version="1.1">
+
+    <xs:element name="Product" type="tns:ProductType"/>
+
+    <xs:complexType name="ProductType">
+        <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+            <xs:element name="Price" type="xs:decimal"/>
+            <xs:element name="Discount" type="xs:decimal" minOccurs="0"/>
+        </xs:sequence>
+
+        <!-- XSD 1.1 Assertion: Discount must be less than Price -->
+        <xs:assert test="not(Discount) or Discount &lt; Price"
+                   xpathDefaultNamespace="##targetNamespace"/>
+    </xs:complexType>
+
+    <!-- Example of another XSD 1.1 feature: Alternative Types -->
+    <xs:element name="Asset" type="tns:AssetDetailsType"/>
+
+    <xs:complexType name="AssetDetailsType">
+        <xs:sequence>
+            <xs:element name="AssetID" type="xs:string"/>
+            <xs:element name="Value" type="xs:decimal"/>
+        </xs:sequence>
+
+        <!-- XSD 1.1 Assertion -->
+        <xs:assert test="Value &gt; 0"
+                   xpathDefaultNamespace="##targetNamespace"/>
+    </xs:complexType>
+
+</xs:schema>
