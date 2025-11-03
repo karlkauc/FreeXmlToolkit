@@ -85,8 +85,9 @@
 
                     <td class="px-6 py-4 font-mono whitespace-nowrap">
                         <a th:href="${'details/' + element.pageName}"
-                           th:title="${element.currentXpath}"
-                           th:text="${#strings.length(element.currentXpath) > 60 ? #strings.substring(element.currentXpath, 0, 10) + '...' + #strings.substring(element.currentXpath, #strings.length(element.currentXpath) - 30) : element.currentXpath}"
+                           th:with="cleanXpath=${this.getCleanXPath(element)}"
+                           th:title="${cleanXpath}"
+                           th:text="${#strings.length(cleanXpath) > 60 ? #strings.substring(cleanXpath, 0, 10) + '...' + #strings.substring(cleanXpath, #strings.length(cleanXpath) - 30) : cleanXpath}"
                            class="text-sky-600 hover:text-sky-800 hover:underline">
                         </a>
                     </td>

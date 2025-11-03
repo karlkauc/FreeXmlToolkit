@@ -201,7 +201,8 @@
                                 <a th:href="${'../details/' + element.pageName}" th:text="${element.elementName}"
                                    class="text-sky-600 hover:text-sky-800 hover:underline"></a>
                             </td>
-                            <td class="px-4 py-3 font-mono text-slate-600" th:text="${element.currentXpath}"></td>
+                            <td class="px-4 py-3 font-mono text-slate-600"
+                                th:text="${this.getCleanXPath(element)}"></td>
                         </tr>
                         </tbody>
                     </table>
