@@ -223,6 +223,7 @@ public class XsdDocumentationImageService {
         addGradientDefinitions(document, defs);
 
         // Modern CSS styles with smooth transitions
+        // Note: Inter font is loaded centrally in the HTML CSS, not embedded in each SVG
         Element styleElement = document.createElementNS(svgNS, "style");
         String css = ".hoverable-rect { transition: all 0.3s ease; cursor: pointer; } " +
                 ".hoverable-rect:hover { transform: translateY(-1px); " +
@@ -859,12 +860,24 @@ public class XsdDocumentationImageService {
     private Element createSvgTextElement(Document document, String textContent, String x, String y, String fill, int fontSize) {
         Element textElement = document.createElementNS(svgNS, "text");
         textElement.setAttribute("fill", fill);
-        textElement.setAttribute("font-family", font.getFontName());
+        textElement.setAttribute("font-family", getFontFamilyWithFallbacks());
         textElement.setAttribute("font-size", String.valueOf(fontSize));
         textElement.setAttribute("x", x);
         textElement.setAttribute("y", y);
         textElement.setTextContent(textContent);
         return textElement;
+    }
+
+    /**
+     * Returns the font-family string with fallback fonts for maximum compatibility.
+     * This ensures the SVG displays correctly even if the Inter font is not embedded or available.
+     *
+     * @return font-family string with fallbacks
+     */
+    private String getFontFamilyWithFallbacks() {
+        // Use Inter as primary font (will be embedded in SVG),
+        // with comprehensive fallbacks for different operating systems
+        return "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
     }
 
     /**
@@ -883,7 +896,7 @@ public class XsdDocumentationImageService {
         docText.setAttribute("y", String.valueOf(startY + (boxPadding * 3) + rootElementHeight + (boxPadding / 2.0)));
         docText.setAttribute("fill", COLOR_TEXT_SECONDARY);
         docText.setAttribute("font-size", String.valueOf(docFont.getSize()));
-        docText.setAttribute("font-family", docFont.getFontName());
+        docText.setAttribute("font-family", getFontFamilyWithFallbacks());
         docText.setAttribute("font-style", "italic");
 
         double docHeightTotal = 0;

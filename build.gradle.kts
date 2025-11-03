@@ -1,4 +1,4 @@
-import java.net.URL
+import java.net.URI
 import java.util.*
 
 /*
@@ -49,7 +49,7 @@ dependencies {
     implementation("net.sf.saxon:Saxon-HE:12.9")
     implementation("xerces:xercesImpl:2.12.2")
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.4")
-    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("com.google.code.gson:gson:2.13.2")
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-bootstrapicons-pack:12.4.0")
     implementation("org.kordamp.ikonli:ikonli-win10-pack:12.4.0")
@@ -62,7 +62,7 @@ dependencies {
 
     implementation("org.apache.logging.log4j:log4j-api:2.24.1")
     implementation("org.apache.logging.log4j:log4j-core:2.24.1")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.24.1")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.24.1")
 
     implementation("org.apache.santuario:xmlsec:4.0.4")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.82")
@@ -70,7 +70,7 @@ dependencies {
     implementation("org.controlsfx:controlsfx:11.2.2")
 
     implementation("org.apache.xmlgraphics:fop:2.11")
-    implementation("org.apache.pdfbox:pdfbox:3.0.5")
+    implementation("org.apache.pdfbox:pdfbox:3.0.6")
     implementation("org.apache.xmlgraphics:batik-svggen:1.19")
     implementation("org.apache.xmlgraphics:batik-all:1.19")
     implementation("org.apache.xmlgraphics:batik-transcoder:1.19")
@@ -94,7 +94,7 @@ dependencies {
     implementation("com.github.mifmif:generex:1.0.2")
     implementation("com.github.curious-odd-man:rgxgen:3.1")
 
-    testImplementation(platform("org.junit:junit-bom:6.0.0"))
+    testImplementation(platform("org.junit:junit-bom:6.0.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.mockito:mockito-core:5.20.0")
@@ -110,6 +110,14 @@ dependencies {
     implementation("com.helger.schematron:ph-schematron-xslt:9.0.1")
     implementation("com.helger.schematron:ph-schematron-pure:9.0.1")
     implementation("com.helger.schematron:ph-schematron-schxslt:9.0.1")
+}
+
+// Exclude old SLF4J bindings to avoid conflicts with SLF4J 2.x
+configurations.all {
+    exclude(group = "org.slf4j", module = "slf4j-simple")
+    exclude(group = "org.slf4j", module = "slf4j-log4j12")
+    exclude(group = "org.slf4j", module = "slf4j-jdk14")
+    exclude(group = "ch.qos.logback", module = "logback-classic")
 }
 
 tasks {
@@ -304,7 +312,7 @@ tasks.register("downloadJavaFXJmodsWithGradle") {
                 println("Downloading JavaFX JMODs for $platform from $jmodsUrl...")
 
                 // Download mit Java
-                val url = URL(jmodsUrl)
+                val url = URI(jmodsUrl).toURL()
                 url.openStream().use { input ->
                     zipFile.outputStream().use { output ->
                         input.copyTo(output)

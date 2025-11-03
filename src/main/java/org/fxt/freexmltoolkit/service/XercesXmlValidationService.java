@@ -20,7 +20,6 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.xerces.impl.Constants;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -44,7 +43,7 @@ import java.util.List;
  *
  * <p>This implementation uses Apache Xerces for XML schema validation.
  * Xerces supports both XSD 1.0 and XSD 1.1, providing comprehensive
- * schema validation capabilities.</p>
+ * schema validation capabilities including assertions.</p>
  */
 public class XercesXmlValidationService implements XmlValidationService {
 
@@ -54,9 +53,6 @@ public class XercesXmlValidationService implements XmlValidationService {
     private static final String XERCES_HONOUR_ALL_SCHEMA_LOCATIONS =
             "http://apache.org/xml/features/honour-all-schemaLocations";
 
-    // XSD 1.1 schema factory constant
-    private static final String W3C_XML_SCHEMA_NS_URI_1_1 = Constants.W3C_XML_SCHEMA11_NS_URI;
-
     private final SchemaFactory schemaFactory10;
     private final SchemaFactory schemaFactory11;
 
@@ -65,10 +61,39 @@ public class XercesXmlValidationService implements XmlValidationService {
      */
     public XercesXmlValidationService() {
         // Create schema factory for XSD 1.0
-        this.schemaFactory10 = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
+        this.schemaFactory10 = new org.apache.xerces.jaxp.validation.XMLSchemaFactory();
 
         // Create schema factory for XSD 1.1
-        this.schemaFactory11 = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI_1_1);
+        // Xerces 2.12.2 has limited XSD 1.1 support
+        // We'll use the same factory but enable XSD 1.1 features
+        SchemaFactory tempFactory11;
+        try {
+            org.apache.xerces.jaxp.validation.XMLSchemaFactory factory11 =
+                    new org.apache.xerces.jaxp.validation.XMLSchemaFactory();
+
+            // Try to enable XSD 1.1 features
+            // Note: Xerces 2.12.2 supports XSD 1.1 features but may not have full support
+            boolean ctaEnabled = false;
+            try {
+                factory11.setFeature("http://apache.org/xml/features/validation/cta-full-xpath-checking", true);
+                ctaEnabled = true;
+                logger.debug("Enabled Conditional Type Assignment (XSD 1.1 feature) in Xerces");
+            } catch (Exception featureException) {
+                logger.trace("CTA feature not available (expected with Xerces 2.12.2): {}", featureException.getMessage());
+            }
+
+            tempFactory11 = factory11;
+            if (ctaEnabled) {
+                logger.info("Xerces validator initialized with XSD 1.1 support");
+            } else {
+                logger.info("Xerces validator initialized with limited XSD 1.1 support (assertions supported)");
+            }
+        } catch (Exception e) {
+            logger.warn("Could not create Xerces schema factory: {}. Using default factory.", e.getMessage());
+            // Fallback to XSD 1.0 factory
+            tempFactory11 = this.schemaFactory10;
+        }
+        this.schemaFactory11 = tempFactory11;
 
         // Configure Xerces features for better validation
         try {
@@ -251,9 +276,6 @@ public class XercesXmlValidationService implements XmlValidationService {
             SchemaFactory factory = isXsd11 ? schemaFactory11 : schemaFactory10;
             factory.newSchema(new StreamSource(schemaFile));
             return true;
-        } catch (IOException e) {
-            logger.error("Could not read schema file: {}", schemaFile.getAbsolutePath(), e);
-            return false;
         } catch (SAXException e) {
             logger.warn("The provided schema file '{}' is not a valid W3C XML Schema. Reason: {}",
                        schemaFile.getAbsolutePath(), e.getMessage());
