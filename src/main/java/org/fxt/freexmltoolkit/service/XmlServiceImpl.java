@@ -434,7 +434,37 @@ public class XmlServiceImpl implements XmlService {
     }
 
     /**
+     * Detects if a schema uses XSD 1.1 features.
+     * @param schemaContent The XSD content to check.
+     * @return true if XSD 1.1 features are detected, false otherwise.
+     */
+    private boolean isXsd11Schema(String schemaContent) {
+        if (schemaContent == null || schemaContent.isBlank()) {
+            return false;
+        }
+
+        // XSD 1.1 specific elements and attributes
+        String[] xsd11Features = {
+            "<xs:assert", "<xsd:assert", // assertions
+            "<xs:alternative", "<xsd:alternative", // type alternatives
+            "<xs:openContent", "<xsd:openContent", // open content
+            "vc:minVersion=\"1.1\"", // version declaration
+            "explicitTimezone=" // XSD 1.1 facet
+        };
+
+        for (String feature : xsd11Features) {
+            if (schemaContent.contains(feature)) {
+                logger.debug("Detected XSD 1.1 feature: {}", feature);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Checks if the given file is a valid W3C XML Schema.
+     * Handles both XSD 1.0 and XSD 1.1 schemas appropriately.
      * @param schemaFile The XSD file to check.
      * @return true if the schema is valid, false otherwise.
      */
@@ -442,10 +472,35 @@ public class XmlServiceImpl implements XmlService {
         if (schemaFile == null || !schemaFile.exists()) {
             return false;
         }
+
         try {
-            // Attempt to create a schema object. If this fails, the schema is not valid.
+            // First, check if this is an XSD 1.1 schema
+            String schemaContent = Files.readString(schemaFile.toPath());
+
+            if (isXsd11Schema(schemaContent)) {
+                // For XSD 1.1, we can't use the standard SchemaFactory (it only supports 1.0)
+                // Instead, just verify it's well-formed XML
+                logger.debug("Detected XSD 1.1 schema: {}", schemaFile.getAbsolutePath());
+
+                try {
+                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                    dbf.setNamespaceAware(true);
+                    DocumentBuilder db = dbf.newDocumentBuilder();
+                    db.parse(schemaFile);
+                    logger.debug("XSD 1.1 schema is well-formed XML");
+                    return true;
+                } catch (Exception e) {
+                    logger.warn("XSD 1.1 schema is not well-formed XML: {}", e.getMessage());
+                    return false;
+                }
+            }
+
+            // For XSD 1.0, use the standard validation
             factory.newSchema(new StreamSource(schemaFile));
             return true;
+        } catch (IOException e) {
+            logger.error("Could not read schema file: {}", schemaFile.getAbsolutePath(), e);
+            return false;
         } catch (SAXException e) {
             // This exception indicates that the schema itself is invalid.
             logger.warn("The provided schema file '{}' is not a valid W3C XML Schema. Reason: {}", schemaFile.getAbsolutePath(), e.getMessage());
@@ -455,6 +510,7 @@ public class XmlServiceImpl implements XmlService {
 
     /**
      * Checks if the given string content is a valid W3C XML Schema.
+     * Handles both XSD 1.0 and XSD 1.1 schemas appropriately.
      * @param schemaContent The XSD content as a string.
      * @return true if the schema is valid, false otherwise.
      */
@@ -462,8 +518,27 @@ public class XmlServiceImpl implements XmlService {
         if (schemaContent == null || schemaContent.isBlank()) {
             return false;
         }
+
         try {
-            // Attempt to create a schema object from a string. If this fails, the schema is not valid.
+            if (isXsd11Schema(schemaContent)) {
+                // For XSD 1.1, we can't use the standard SchemaFactory (it only supports 1.0)
+                // Instead, just verify it's well-formed XML
+                logger.debug("Detected XSD 1.1 schema content");
+
+                try {
+                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                    dbf.setNamespaceAware(true);
+                    DocumentBuilder db = dbf.newDocumentBuilder();
+                    db.parse(new org.xml.sax.InputSource(new StringReader(schemaContent)));
+                    logger.debug("XSD 1.1 schema content is well-formed XML");
+                    return true;
+                } catch (Exception e) {
+                    logger.warn("XSD 1.1 schema content is not well-formed XML: {}", e.getMessage());
+                    return false;
+                }
+            }
+
+            // For XSD 1.0, use the standard validation
             factory.newSchema(new StreamSource(new StringReader(schemaContent)));
             return true;
         } catch (SAXException e) {
@@ -482,19 +557,35 @@ public class XmlServiceImpl implements XmlService {
             return checkWellFormednessOnly(xmlString);
         }
 
-        // NEW: First, check if the schema itself is valid.
-        if (!isSchemaValid(schemaFile)) {
-            logger.warn("Schema validation skipped because the schema file is invalid: {}", schemaFile.getAbsolutePath());
-            // Add a custom error to inform the user about the invalid schema.
-            exceptions.add(new SAXParseException("Schema is invalid or unreadable. XML validation was not performed.", null));
-            // As a fallback, at least check if the XML itself is well-formed.
-            exceptions.addAll(checkWellFormednessOnly(xmlString));
-            return exceptions;
-        }
-
-        // If the schema is valid, proceed with the validation of the XML against the schema.
         try {
-            logger.debug("Validating against schema: {}", schemaFile.getAbsolutePath());
+            // Check if this is an XSD 1.1 schema
+            String schemaContent = Files.readString(schemaFile.toPath());
+            boolean isXsd11 = isXsd11Schema(schemaContent);
+
+            if (isXsd11) {
+                // XSD 1.1 validation is not fully supported with Saxon-HE
+                // We can only check well-formedness of the XML
+                logger.info("XSD 1.1 schema detected. Full schema validation is not available with Saxon-HE. Checking XML well-formedness only.");
+                exceptions.add(new SAXParseException(
+                    "Note: XSD 1.1 features detected in schema (e.g., assertions, type alternatives). " +
+                    "Full schema validation requires Saxon-EE or Saxon-PE. Only checking XML well-formedness.",
+                    null, null, -1, -1));
+                exceptions.addAll(checkWellFormednessOnly(xmlString));
+                return exceptions;
+            }
+
+            // Check if the schema itself is valid (for XSD 1.0)
+            if (!isSchemaValid(schemaFile)) {
+                logger.warn("Schema validation skipped because the schema file is invalid: {}", schemaFile.getAbsolutePath());
+                // Add a custom error to inform the user about the invalid schema.
+                exceptions.add(new SAXParseException("Schema is invalid or unreadable. XML validation was not performed.", null));
+                // As a fallback, at least check if the XML itself is well-formed.
+                exceptions.addAll(checkWellFormednessOnly(xmlString));
+                return exceptions;
+            }
+
+            // If the schema is valid XSD 1.0, proceed with full validation
+            logger.debug("Validating against XSD 1.0 schema: {}", schemaFile.getAbsolutePath());
             Schema schemaToUse = factory.newSchema(new StreamSource(schemaFile));
             Validator localValidator = schemaToUse.newValidator();
 
@@ -521,7 +612,11 @@ public class XmlServiceImpl implements XmlService {
 
             return exceptions;
 
-        } catch (SAXException | IOException e) {
+        } catch (IOException e) {
+            logger.error("Could not read schema file", e);
+            exceptions.add(new SAXParseException("Could not read schema file: " + e.getMessage(), null));
+            return exceptions;
+        } catch (SAXException e) {
             // A SAXException here is often a fatal parsing error (e.g., not well-formed).
             // We add it to the error list to report it to the user.
             if (e instanceof SAXParseException) {
