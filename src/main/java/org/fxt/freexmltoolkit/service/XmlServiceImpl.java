@@ -830,6 +830,34 @@ public class XmlServiceImpl implements XmlService {
         if (possibleSchemaLocation.isPresent()) {
             var temp = possibleSchemaLocation.get().trim();
 
+            // Check if it's a file:// URL first (before URL validation)
+            if (temp.startsWith("file://")) {
+                logger.debug("Detected file:// URL: {}", temp);
+                try {
+                    URL url = new URI(temp).toURL();
+                    File localFile = new File(url.getPath());
+                    logger.debug("Attempting to load local XSD file: {}", localFile.getAbsolutePath());
+
+                    if (localFile.exists()) {
+                        if (isSchemaValid(localFile)) {
+                            logger.info("Loading local XSD schema: {}", localFile.getAbsolutePath());
+                            this.setCurrentXsdFile(localFile);
+                            this.remoteXsdLocation = possibleSchemaLocation.get();
+                            return true;
+                        } else {
+                            logger.error("Local schema file is not a valid XSD: {}", localFile.getAbsolutePath());
+                            return false;
+                        }
+                    } else {
+                        logger.warn("Local schema file does not exist: {}", localFile.getAbsolutePath());
+                        return false;
+                    }
+                } catch (URISyntaxException | MalformedURLException e) {
+                    logger.error("Error parsing file:// URL: {}", e.getMessage());
+                    return false;
+                }
+            }
+
             var validUrl = urlValidator.isValid(temp);
             logger.debug("Valid URL: {}", validUrl);
 
@@ -880,7 +908,7 @@ public class XmlServiceImpl implements XmlService {
 
                                     // Download imported XSD files recursively
                                     downloadImportedSchemas(textContent, possibleSchemaLocation.get(), CURRENT_XSD_CACHE_PATH);
-                                    
+
                                     return true;
                                 } else {
                                     logger.error("Downloaded schema from {} is not valid and will not be saved.", possibleSchemaLocation.get());
@@ -892,7 +920,7 @@ public class XmlServiceImpl implements XmlService {
                             }
                         }
                     } else {
-                        logger.debug("Schema do not start with http!");
+                        logger.debug("Schema protocol not supported: {}", protocol);
                     }
                 } catch (URISyntaxException | MalformedURLException e) {
                     logger.error(e.getMessage());
@@ -947,7 +975,23 @@ public class XmlServiceImpl implements XmlService {
                 possibleSchemaLocation = root.getAttribute("xsi:noNamespaceSchemaLocation");
                 if (!possibleSchemaLocation.isEmpty()) {
                     logger.debug("Possible Schema Location: {}", possibleSchemaLocation);
-                    return Optional.of(possibleSchemaLocation);
+
+                    // Check if it's already a complete URL
+                    if (possibleSchemaLocation.startsWith("http://") || possibleSchemaLocation.startsWith("https://")) {
+                        return Optional.of(possibleSchemaLocation);
+                    }
+
+                    // Check for local file relative to XML file
+                    String possibleFilePath = this.currentXmlFile.getParent() + File.separator + possibleSchemaLocation;
+                    File localSchemaFile = new File(possibleFilePath);
+                    if (localSchemaFile.exists()) {
+                        logger.debug("Found local Schema at: {}", possibleFilePath);
+                        return Optional.of("file://" + localSchemaFile.getAbsolutePath());
+                    } else {
+                        logger.debug("Local schema not found at: {}", possibleFilePath);
+                        // Return the raw value anyway, it might be a URL
+                        return Optional.of(possibleSchemaLocation);
+                    }
                 } else {
                     logger.debug("No possible Schema Location found!");
                 }

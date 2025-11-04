@@ -27,11 +27,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.xml.sax.SAXParseException;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class XmlServiceTest {
 
@@ -106,5 +108,34 @@ public class XmlServiceTest {
         List<SAXParseException> errors = xmlService.validateText(whitespaceXml, null);
         assertFalse(errors.isEmpty(), "Ein String nur mit Leerzeichen ist kein wohlgeformtes XML und sollte einen Fehler erzeugen.");
         assertTrue(errors.get(0).getMessage().contains("Premature end of file"), "Die Fehlermeldung für einen reinen Leerzeichen-String sollte 'Premature end of file' sein.");
+    }
+
+    @Test
+    @DisplayName("Should load local XSD schema from XML file with relative schema location")
+    void testLoadLocalSchemaFromXMLFile() {
+        // Arrange: Get the test XML file with local schema reference
+        File testXmlFile = Paths.get("src/test/resources/FundsXML_428.xml").toFile();
+        File expectedXsdFile = Paths.get("src/test/resources/FundsXML_428.xsd").toFile();
+
+        assertTrue(testXmlFile.exists(), "Test XML file should exist: " + testXmlFile.getAbsolutePath());
+        assertTrue(expectedXsdFile.exists(), "Test XSD file should exist: " + expectedXsdFile.getAbsolutePath());
+
+        // Act: Set the XML file and try to load the schema
+        xmlService.setCurrentXmlFile(testXmlFile);
+        boolean schemaLoaded = xmlService.loadSchemaFromXMLFile();
+
+        // Assert: Schema should be loaded successfully
+        assertTrue(schemaLoaded, "Schema should be loaded from local file");
+
+        File loadedXsdFile = xmlService.getCurrentXsdFile();
+        assertNotNull(loadedXsdFile, "Loaded XSD file should not be null");
+        assertEquals(expectedXsdFile.getAbsolutePath(), loadedXsdFile.getAbsolutePath(),
+                "Loaded XSD file should match the expected local schema file");
+
+        // Verify the schema name was detected correctly
+        String schemaName = xmlService.getSchemaNameFromCurrentXMLFile().orElse(null);
+        assertNotNull(schemaName, "Schema name should be detected from XML file");
+        assertTrue(schemaName.startsWith("file://") || schemaName.contains("FundsXML_428.xsd"),
+                "Schema name should be a file:// URL or contain the XSD filename");
     }
 }
