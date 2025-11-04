@@ -54,8 +54,6 @@ public class XercesXmlValidationService implements XmlValidationService {
             "http://apache.org/xml/features/validation/schema-full-checking";
     private static final String XERCES_HONOUR_ALL_SCHEMA_LOCATIONS =
             "http://apache.org/xml/features/honour-all-schemaLocations";
-    private static final String XERCES_XSD_11_FEATURE =
-            "http://apache.org/xml/features/validation/schema/version/1.1";
 
     private final SchemaFactory schemaFactory10;
     private final SchemaFactory schemaFactory11;
@@ -68,32 +66,23 @@ public class XercesXmlValidationService implements XmlValidationService {
         this.schemaFactory10 = new org.apache.xerces.jaxp.validation.XMLSchemaFactory();
 
         // Create schema factory for XSD 1.1
-        // Xerces supports XSD 1.1 with assertions
+        // Use SchemaFactory.newInstance with XSD 1.1 namespace URI for full XSD 1.1 support
         SchemaFactory tempFactory11;
         try {
-            org.apache.xerces.jaxp.validation.XMLSchemaFactory factory11 =
-                    new org.apache.xerces.jaxp.validation.XMLSchemaFactory();
+            // Request XSD 1.1 factory using the XSD 1.1 namespace URI
+            tempFactory11 = SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1");
 
-            // Enable XSD 1.1 support by setting the schema version feature
-            try {
-                factory11.setFeature(XERCES_XSD_11_FEATURE, true);
-                logger.info("Xerces validator initialized with full XSD 1.1 support (including assertions)");
-            } catch (Exception featureException) {
-                logger.warn("Could not enable XSD 1.1 feature: {}. XSD 1.1 features may not work.",
-                          featureException.getMessage());
-            }
+            logger.info("Xerces validator initialized with full XSD 1.1 support (including assertions)");
 
             // Try to enable additional XSD 1.1 features
             try {
-                factory11.setFeature("http://apache.org/xml/features/validation/cta-full-xpath-checking", true);
+                tempFactory11.setFeature("http://apache.org/xml/features/validation/cta-full-xpath-checking", true);
                 logger.debug("Enabled Conditional Type Assignment (XSD 1.1 feature) in Xerces");
             } catch (Exception featureException) {
                 logger.trace("CTA feature not available: {}", featureException.getMessage());
             }
-
-            tempFactory11 = factory11;
         } catch (Exception e) {
-            logger.warn("Could not create Xerces schema factory: {}. Using default factory.", e.getMessage());
+            logger.warn("Could not create Xerces XSD 1.1 schema factory: {}. Using default factory.", e.getMessage());
             // Fallback to XSD 1.0 factory
             tempFactory11 = this.schemaFactory10;
         }
@@ -279,17 +268,8 @@ public class XercesXmlValidationService implements XmlValidationService {
                 return exceptions;
             }
 
-            // For XSD 1.1, ensure the version feature is set before loading schema for validation
-            if (isXsd11) {
-                try {
-                    factory.setFeature(XERCES_XSD_11_FEATURE, true);
-                    logger.debug("Enabled XSD 1.1 feature for XML validation");
-                } catch (Exception e) {
-                    logger.warn("Could not enable XSD 1.1 feature for validation: {}", e.getMessage());
-                }
-            }
-
             // Perform validation with the appropriate schema version
+            // The factory already supports the correct XSD version
             Schema schema = factory.newSchema(new StreamSource(schemaFile));
             Validator validator = schema.newValidator();
 
@@ -433,16 +413,7 @@ public class XercesXmlValidationService implements XmlValidationService {
         try {
             SchemaFactory factory = isXsd11 ? schemaFactory11 : schemaFactory10;
 
-            // For XSD 1.1, ensure the version feature is set before loading schema
-            if (isXsd11) {
-                try {
-                    factory.setFeature(XERCES_XSD_11_FEATURE, true);
-                    logger.debug("Enabled XSD 1.1 feature for schema validation");
-                } catch (Exception e) {
-                    logger.warn("Could not enable XSD 1.1 feature: {}", e.getMessage());
-                }
-            }
-
+            // The factory already supports the correct XSD version
             factory.newSchema(new StreamSource(schemaFile));
             return null; // Schema is valid
         } catch (SAXException e) {

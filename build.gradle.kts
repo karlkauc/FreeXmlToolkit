@@ -47,7 +47,18 @@ application {
 
 dependencies {
     implementation("net.sf.saxon:Saxon-HE:12.9")
-    implementation("xerces:xercesImpl:2.12.2")
+
+    // XSD 1.1 support with assertions - requires special Xerces build
+    implementation("org.exist-db.thirdparty.xerces:xercesImpl:2.12.2") {
+        artifact {
+            classifier = "xml-schema-1.1"
+        }
+    }
+    // XPath 2.0 processor required for XSD 1.1 assertions
+    runtimeOnly("org.exist-db.thirdparty.org.eclipse.wst.xml:xpath2:1.2.0")
+    // Java CUP runtime required for XPath 2.0 processor
+    runtimeOnly("edu.princeton.cup:java-cup:10k")
+
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.4")
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("org.kordamp.ikonli:ikonli-javafx:12.4.0")
