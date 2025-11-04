@@ -1577,7 +1577,13 @@ public class XsdDocumentationImageService {
      * matching XsdDiagramView behavior
      */
     private String determineNodeLabelStyle(XsdExtendedElement element) {
-        Node node = element.getCurrentNode();
+        // For element references, use the cardinality node (which has minOccurs/maxOccurs)
+        // Otherwise, use the current node
+        Node node = element.getCardinalityNode();
+        if (node == null) {
+            node = element.getCurrentNode();
+        }
+
         if (node == null) {
             return ELEMENT_MANDATORY_FORMAT;
         }
@@ -1589,10 +1595,12 @@ public class XsdDocumentationImageService {
         boolean isRepeatable = "unbounded".equals(maxOccurs) ||
                 (maxOccurs != null && !"1".equals(maxOccurs) && !"0".equals(maxOccurs));
 
-        if (isRepeatable) {
-            return ELEMENT_REPEATABLE_FORMAT;
-        } else if (isOptional) {
+        // Check optional first - an element with minOccurs="0" should always have a dashed border
+        // regardless of whether it's repeatable or not
+        if (isOptional) {
             return ELEMENT_OPTIONAL_FORMAT;
+        } else if (isRepeatable) {
+            return ELEMENT_REPEATABLE_FORMAT;
         } else {
             return ELEMENT_MANDATORY_FORMAT;
         }
@@ -1727,7 +1735,11 @@ public class XsdDocumentationImageService {
                 elementBox.setAttribute("class", "hoverable-rect");
 
                 // Check for optional/repeatable
-                org.w3c.dom.Node childDomNode = child.getCurrentNode();
+                // For element references, use the cardinality node (which has minOccurs/maxOccurs)
+                org.w3c.dom.Node childDomNode = child.getCardinalityNode();
+                if (childDomNode == null) {
+                    childDomNode = child.getCurrentNode();
+                }
                 String minOccurs = getAttributeValue(childDomNode, "minOccurs", "1");
                 boolean isOptional = "0".equals(minOccurs);
                 String maxOccursVal = getAttributeValue(childDomNode, "maxOccurs", "1");

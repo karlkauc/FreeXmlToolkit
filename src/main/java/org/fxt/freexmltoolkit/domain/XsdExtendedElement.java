@@ -42,6 +42,7 @@ public class XsdExtendedElement implements Serializable {
 
     // Core data based on DOM
     private Node currentNode;
+    private Node cardinalityNode;  // For element references: the ref node with minOccurs/maxOccurs
     private String elementName;
     private String elementType;
     private String currentXpath;
@@ -303,6 +304,14 @@ public class XsdExtendedElement implements Serializable {
 
     public void setCurrentNode(Node currentNode) {
         this.currentNode = currentNode;
+    }
+
+    public Node getCardinalityNode() {
+        return cardinalityNode;
+    }
+
+    public void setCardinalityNode(Node cardinalityNode) {
+        this.cardinalityNode = cardinalityNode;
     }
 
     public String getElementName() {

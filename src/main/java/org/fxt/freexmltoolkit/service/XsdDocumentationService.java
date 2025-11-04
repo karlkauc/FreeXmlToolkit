@@ -92,6 +92,9 @@ public class XsdDocumentationService {
     private Map<String, Node> groupMap = new HashMap<>();
     private Map<String, Node> attributeGroupMap = new HashMap<>();
 
+    // Thread-local storage for element reference nodes (to preserve cardinality attributes)
+    private static final ThreadLocal<Node> referenceNodeThreadLocal = new ThreadLocal<>();
+
     // Provides a separate, thread-safe Transformer instance for each thread.
     // This avoids the cost of constant recreation in a parallel environment.
     private static final ThreadLocal<Transformer> transformerThreadLocal = ThreadLocal.withInitial(() -> {
@@ -992,7 +995,13 @@ public class XsdDocumentationService {
             if (ref != null && !ref.isEmpty()) {
                 Node referencedNode = findReferencedNode(node.getLocalName(), ref);
                 if (referencedNode != null) {
-                    traverseNode(referencedNode, currentXPath, parentXPath, level, visitedOnPath);
+                    // Store the reference node to preserve cardinality attributes (minOccurs/maxOccurs)
+                    referenceNodeThreadLocal.set(node);
+                    try {
+                        traverseNode(referencedNode, currentXPath, parentXPath, level, visitedOnPath);
+                    } finally {
+                        referenceNodeThreadLocal.remove();
+                    }
                 } else {
                     logger.warn("Reference '{}' for node '{}' could not be resolved.", ref, node.getLocalName());
                 }
@@ -1022,6 +1031,13 @@ public class XsdDocumentationService {
         XsdExtendedElement extendedElem = new XsdExtendedElement();
         extendedElem.setUseMarkdownRenderer(this.useMarkdownRenderer);
         extendedElem.setCurrentNode(node);
+
+        // Check if this element is from a reference and set the cardinality node
+        Node refNode = referenceNodeThreadLocal.get();
+        if (refNode != null) {
+            extendedElem.setCardinalityNode(refNode);
+        }
+
         extendedElem.setCounter(counter++);
         extendedElem.setLevel(level);
         extendedElem.setCurrentXpath(currentXPath);
