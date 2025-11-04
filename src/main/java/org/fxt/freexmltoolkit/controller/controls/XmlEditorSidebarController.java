@@ -13,7 +13,10 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.XmlEditor;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.domain.ValidationError;
+import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.service.PropertiesService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.SchematronService;
 
 import java.io.File;
@@ -45,6 +48,9 @@ public class XmlEditorSidebarController {
 
     @FXML
     private Button resetXsdButton;
+
+    @FXML
+    private ComboBox<XmlParserType> validatorTypeComboBox;
 
     @FXML
     private TextField xpathField;
@@ -113,6 +119,7 @@ public class XmlEditorSidebarController {
 
     // Services
     private final FavoritesService favoritesService = FavoritesService.getInstance();
+    private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
 
     // XSD management
     private File originalXsdFile; // Store the original linked XSD
@@ -175,6 +182,9 @@ public class XmlEditorSidebarController {
 
         // Setup XSD favorites dropdown
         setupXsdFavoritesDropdown();
+
+        // Setup validator type combobox
+        setupValidatorTypeComboBox();
 
         // Setup reset XSD button
         if (resetXsdButton != null) {
@@ -830,6 +840,40 @@ public class XmlEditorSidebarController {
         } else {
             logger.debug("No original XSD to reset to");
         }
+    }
+
+    /**
+     * Setup validator type combobox with available validators
+     */
+    private void setupValidatorTypeComboBox() {
+        if (validatorTypeComboBox == null) {
+            return;
+        }
+
+        // Add all validator types to the combobox
+        validatorTypeComboBox.getItems().addAll(XmlParserType.values());
+
+        // Set current validator from properties
+        XmlParserType currentValidator = propertiesService.getXmlParserType();
+        validatorTypeComboBox.setValue(currentValidator);
+
+        // Handle selection changes
+        validatorTypeComboBox.setOnAction(event -> {
+            XmlParserType selectedValidator = validatorTypeComboBox.getValue();
+            if (selectedValidator != null) {
+                // Save the selection to properties (setXmlParserType already persists the change)
+                propertiesService.setXmlParserType(selectedValidator);
+
+                logger.info("Changed validator to: {}", selectedValidator.getDisplayName());
+
+                // Trigger re-validation with the new validator
+                if (xmlEditor != null) {
+                    xmlEditor.validateXml();
+                }
+            }
+        });
+
+        logger.debug("Validator type combobox initialized with current validator: {}", currentValidator);
     }
 
 

@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.editor;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -458,22 +459,27 @@ public class StatusLineController {
 
     /**
      * Updates the XSD parsing status display.
+     * This method ensures UI updates happen on the JavaFX Application Thread.
      *
      * @param status The current XSD parsing status
      */
     public void updateXsdParsingStatus(XsdParsingStatus status) {
         this.xsdParsingStatus = status;
-        xsdParsingStatusLabel.setText(status.getIcon() + " " + status.getText());
 
-        // Apply special styling for parsing state (animated effect)
-        if (status == XsdParsingStatus.PARSING) {
-            // Add a subtle animation or styling for parsing state
-            xsdParsingStatusLabel.getStyleClass().add("parsing-status");
-            logger.debug("XSD parsing status updated to: PARSING");
-        } else {
-            xsdParsingStatusLabel.getStyleClass().remove("parsing-status");
-            logger.debug("XSD parsing status updated to: {}", status);
-        }
+        // Ensure UI updates happen on JavaFX Application Thread
+        Platform.runLater(() -> {
+            xsdParsingStatusLabel.setText(status.getIcon() + " " + status.getText());
+
+            // Apply special styling for parsing state (animated effect)
+            if (status == XsdParsingStatus.PARSING) {
+                // Add a subtle animation or styling for parsing state
+                xsdParsingStatusLabel.getStyleClass().add("parsing-status");
+                logger.debug("XSD parsing status updated to: PARSING");
+            } else {
+                xsdParsingStatusLabel.getStyleClass().remove("parsing-status");
+                logger.debug("XSD parsing status updated to: {}", status);
+            }
+        });
     }
 
     /**

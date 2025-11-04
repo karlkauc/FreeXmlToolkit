@@ -20,6 +20,8 @@ package org.fxt.freexmltoolkit.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.w3c.dom.ls.LSInput;
+import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -31,10 +33,10 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -52,6 +54,8 @@ public class XercesXmlValidationService implements XmlValidationService {
             "http://apache.org/xml/features/validation/schema-full-checking";
     private static final String XERCES_HONOUR_ALL_SCHEMA_LOCATIONS =
             "http://apache.org/xml/features/honour-all-schemaLocations";
+    private static final String XERCES_XSD_11_FEATURE =
+            "http://apache.org/xml/features/validation/schema/version/1.1";
 
     private final SchemaFactory schemaFactory10;
     private final SchemaFactory schemaFactory11;
@@ -64,30 +68,30 @@ public class XercesXmlValidationService implements XmlValidationService {
         this.schemaFactory10 = new org.apache.xerces.jaxp.validation.XMLSchemaFactory();
 
         // Create schema factory for XSD 1.1
-        // Xerces 2.12.2 has limited XSD 1.1 support
-        // We'll use the same factory but enable XSD 1.1 features
+        // Xerces supports XSD 1.1 with assertions
         SchemaFactory tempFactory11;
         try {
             org.apache.xerces.jaxp.validation.XMLSchemaFactory factory11 =
                     new org.apache.xerces.jaxp.validation.XMLSchemaFactory();
 
-            // Try to enable XSD 1.1 features
-            // Note: Xerces 2.12.2 supports XSD 1.1 features but may not have full support
-            boolean ctaEnabled = false;
+            // Enable XSD 1.1 support by setting the schema version feature
+            try {
+                factory11.setFeature(XERCES_XSD_11_FEATURE, true);
+                logger.info("Xerces validator initialized with full XSD 1.1 support (including assertions)");
+            } catch (Exception featureException) {
+                logger.warn("Could not enable XSD 1.1 feature: {}. XSD 1.1 features may not work.",
+                          featureException.getMessage());
+            }
+
+            // Try to enable additional XSD 1.1 features
             try {
                 factory11.setFeature("http://apache.org/xml/features/validation/cta-full-xpath-checking", true);
-                ctaEnabled = true;
                 logger.debug("Enabled Conditional Type Assignment (XSD 1.1 feature) in Xerces");
             } catch (Exception featureException) {
-                logger.trace("CTA feature not available (expected with Xerces 2.12.2): {}", featureException.getMessage());
+                logger.trace("CTA feature not available: {}", featureException.getMessage());
             }
 
             tempFactory11 = factory11;
-            if (ctaEnabled) {
-                logger.info("Xerces validator initialized with XSD 1.1 support");
-            } else {
-                logger.info("Xerces validator initialized with limited XSD 1.1 support (assertions supported)");
-            }
         } catch (Exception e) {
             logger.warn("Could not create Xerces schema factory: {}. Using default factory.", e.getMessage());
             // Fallback to XSD 1.0 factory
@@ -105,7 +109,144 @@ public class XercesXmlValidationService implements XmlValidationService {
         } catch (SAXException e) {
             logger.warn("Could not set Xerces features: {}", e.getMessage());
         }
+
+        // Configure resource resolver to handle relative schema references
+        LSResourceResolver resourceResolver = createResourceResolver();
+        schemaFactory10.setResourceResolver(resourceResolver);
+        schemaFactory11.setResourceResolver(resourceResolver);
     }
+
+    /**
+     * Creates a resource resolver that can resolve relative schema references.
+     * This resolver looks for schema files in the same directory as the main schema file.
+     *
+     * @return LSResourceResolver instance
+     */
+    private LSResourceResolver createResourceResolver() {
+        return new LSResourceResolver() {
+            @Override
+            public LSInput resolveResource(String type, String namespaceURI, String publicId,
+                                          String systemId, String baseURI) {
+                logger.debug("Resolving resource - type: {}, namespace: {}, systemId: {}, baseURI: {}",
+                           type, namespaceURI, systemId, baseURI);
+
+                if (systemId == null) {
+                    return null;
+                }
+
+                try {
+                    // Try to resolve relative path based on baseURI
+                    Path resolvedPath;
+                    if (baseURI != null && !baseURI.isEmpty()) {
+                        // Convert file:// URI to path
+                        String basePath = baseURI.startsWith("file://")
+                            ? baseURI.substring(7)
+                            : baseURI.startsWith("file:")
+                                ? baseURI.substring(5)
+                                : baseURI;
+
+                        Path baseDir = Paths.get(basePath).getParent();
+                        if (baseDir != null) {
+                            resolvedPath = baseDir.resolve(systemId).normalize();
+                        } else {
+                            resolvedPath = Paths.get(systemId);
+                        }
+                    } else {
+                        resolvedPath = Paths.get(systemId);
+                    }
+
+                    if (Files.exists(resolvedPath)) {
+                        logger.debug("Resolved schema reference to: {}", resolvedPath);
+                        return new LSInputImpl(publicId, systemId, Files.newInputStream(resolvedPath));
+                    } else {
+                        logger.warn("Could not resolve schema reference: {}", resolvedPath);
+                    }
+                } catch (Exception e) {
+                    logger.warn("Error resolving resource {}: {}", systemId, e.getMessage());
+                }
+
+                return null;
+            }
+        };
+    }
+
+    /**
+         * Simple implementation of LSInput for schema resolution.
+         */
+        private record LSInputImpl(String publicId, String systemId, InputStream byteStream) implements LSInput {
+
+        @Override
+            public Reader getCharacterStream() {
+                return null;
+            }
+
+            @Override
+            public void setCharacterStream(Reader characterStream) {
+            }
+
+            @Override
+            public InputStream getByteStream() {
+                return byteStream;
+            }
+
+            @Override
+            public void setByteStream(InputStream byteStream) {
+            }
+
+            @Override
+            public String getStringData() {
+                return null;
+            }
+
+            @Override
+            public void setStringData(String stringData) {
+            }
+
+            @Override
+            public String getSystemId() {
+                return systemId;
+            }
+
+            @Override
+            public void setSystemId(String systemId) {
+            }
+
+            @Override
+            public String getPublicId() {
+                return publicId;
+            }
+
+            @Override
+            public void setPublicId(String publicId) {
+            }
+
+            @Override
+            public String getBaseURI() {
+                return null;
+            }
+
+            @Override
+            public void setBaseURI(String baseURI) {
+            }
+
+            @Override
+            public String getEncoding() {
+                return null;
+            }
+
+            @Override
+            public void setEncoding(String encoding) {
+            }
+
+            @Override
+            public boolean getCertifiedText() {
+                return false;
+            }
+
+            @Override
+            public void setCertifiedText(boolean certifiedText) {
+            }
+        }
 
     @Override
     public List<SAXParseException> validateText(String xmlString, File schemaFile) {
@@ -129,13 +270,23 @@ public class XercesXmlValidationService implements XmlValidationService {
                         schemaFile.getAbsolutePath());
 
             // Check if the schema itself is valid
-            if (!isSchemaValid(schemaFile, isXsd11)) {
+            String schemaError = getSchemaValidationError(schemaFile, isXsd11);
+            if (schemaError != null) {
                 logger.warn("Schema validation skipped because the schema file is invalid: {}",
                            schemaFile.getAbsolutePath());
-                exceptions.add(new SAXParseException(
-                    "Schema is invalid or unreadable. XML validation was not performed.", null));
+                exceptions.add(new SAXParseException(schemaError, null));
                 exceptions.addAll(checkWellFormednessOnly(xmlString));
                 return exceptions;
+            }
+
+            // For XSD 1.1, ensure the version feature is set before loading schema for validation
+            if (isXsd11) {
+                try {
+                    factory.setFeature(XERCES_XSD_11_FEATURE, true);
+                    logger.debug("Enabled XSD 1.1 feature for XML validation");
+                } catch (Exception e) {
+                    logger.warn("Could not enable XSD 1.1 feature for validation: {}", e.getMessage());
+                }
             }
 
             // Perform validation with the appropriate schema version
@@ -267,19 +418,38 @@ public class XercesXmlValidationService implements XmlValidationService {
      * @param isXsd11    whether the schema is XSD 1.1
      * @return true if valid, false otherwise
      */
-    private boolean isSchemaValid(File schemaFile, boolean isXsd11) {
+    /**
+     * Checks if the schema file is valid and returns an error message if not.
+     *
+     * @param schemaFile the schema file to validate
+     * @param isXsd11    whether this is an XSD 1.1 schema
+     * @return null if valid, or detailed error message if invalid
+     */
+    private String getSchemaValidationError(File schemaFile, boolean isXsd11) {
         if (schemaFile == null || !schemaFile.exists()) {
-            return false;
+            return "Schema file does not exist or is null";
         }
 
         try {
             SchemaFactory factory = isXsd11 ? schemaFactory11 : schemaFactory10;
+
+            // For XSD 1.1, ensure the version feature is set before loading schema
+            if (isXsd11) {
+                try {
+                    factory.setFeature(XERCES_XSD_11_FEATURE, true);
+                    logger.debug("Enabled XSD 1.1 feature for schema validation");
+                } catch (Exception e) {
+                    logger.warn("Could not enable XSD 1.1 feature: {}", e.getMessage());
+                }
+            }
+
             factory.newSchema(new StreamSource(schemaFile));
-            return true;
+            return null; // Schema is valid
         } catch (SAXException e) {
+            String errorMsg = "Schema validation error: " + e.getMessage();
             logger.warn("The provided schema file '{}' is not a valid W3C XML Schema. Reason: {}",
                        schemaFile.getAbsolutePath(), e.getMessage());
-            return false;
+            return errorMsg;
         }
     }
 }

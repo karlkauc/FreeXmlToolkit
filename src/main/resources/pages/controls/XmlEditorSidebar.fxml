@@ -33,6 +33,14 @@
                         </tooltip>
                     </Button>
                 </HBox>
+                <HBox spacing="3" alignment="CENTER_LEFT">
+                    <Label text="Validator:" prefWidth="55"/>
+                    <ComboBox fx:id="validatorTypeComboBox" HBox.hgrow="ALWAYS" promptText="Select validator">
+                        <tooltip>
+                            <Tooltip text="Choose XML validator (Xerces supports XSD 1.1 with assertions)"/>
+                        </tooltip>
+                    </ComboBox>
+                </HBox>
                 <Label fx:id="validationStatusLabel" text="Validation status: Unknown" wrapText="true"/>
                 <HBox spacing="5" alignment="CENTER_LEFT">
                     <CheckBox fx:id="continuousValidationCheckBox" text="Continuous validation"/>
