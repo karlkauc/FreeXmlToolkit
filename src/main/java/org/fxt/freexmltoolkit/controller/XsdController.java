@@ -60,7 +60,9 @@ import java.util.concurrent.TimeUnit;
 public class XsdController {
 
     private XsdDiagramView currentDiagramView;
-    
+    private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView currentGraphViewV2;
+    private org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel currentSchemaModelV2;
+
     @FXML
     private TabPane tabPane;
     @FXML
@@ -197,6 +199,10 @@ public class XsdController {
     // ======================================================================
     @FXML
     private StackPane xsdStackPane;
+    @FXML
+    private StackPane xsdStackPaneV2;
+    @FXML
+    private ToggleButton editorVersionToggle;
     @FXML
     private VBox noFileLoadedPane;
     @FXML
@@ -520,6 +526,35 @@ public class XsdController {
         } catch (Exception e) {
             logger.error("Failed to synchronize graphic to text view", e);
         }
+    }
+
+    /**
+     * Toggles between V1 (stable) and V2 (beta) XSD editor.
+     * This method is called when the user clicks the editor version toggle button.
+     */
+    @FXML
+    private void toggleEditorVersion() {
+        boolean useV2 = editorVersionToggle.isSelected();
+
+        // Toggle visibility of V1 editor
+        xsdStackPane.setVisible(!useV2);
+        xsdStackPane.setManaged(!useV2);
+
+        // Toggle visibility of V2 editor
+        if (xsdStackPaneV2 != null) {
+            xsdStackPaneV2.setVisible(useV2);
+            xsdStackPaneV2.setManaged(useV2);
+        }
+
+        // If switching to V2 and we have content but V2 is not loaded yet, load it
+        if (useV2 && currentGraphViewV2 == null && sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+            String xsdContent = sourceCodeEditor.getCodeArea().getText();
+            if (xsdContent != null && !xsdContent.trim().isEmpty()) {
+                loadXsdIntoGraphicViewV2(xsdContent);
+            }
+        }
+
+        logger.info("Switched to XSD Editor {}", useV2 ? "V2 (Beta)" : "V1 (Stable)");
     }
 
     /**
@@ -1197,6 +1232,46 @@ public class XsdController {
         task.setOnFailed(event -> {
             logger.error("Failed to reload XSD diagram", task.getException());
             statusText.setText("Error reloading XSD diagram");
+        });
+
+        executorService.submit(task);
+    }
+
+    /**
+     * Loads XSD content into the V2 graphical view using the new model-based architecture.
+     */
+    private void loadXsdIntoGraphicViewV2(String xsdContent) {
+        Task<org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel> task = new Task<>() {
+            @Override
+            protected org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel call() throws Exception {
+                org.fxt.freexmltoolkit.controls.v2.model.XsdModelFactory factory =
+                        new org.fxt.freexmltoolkit.controls.v2.model.XsdModelFactory();
+                return factory.fromString(xsdContent);
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+            currentSchemaModelV2 = task.getValue();
+            xsdStackPaneV2.getChildren().clear();
+
+            if (currentSchemaModelV2 != null) {
+                currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(currentSchemaModelV2);
+                xsdStackPaneV2.getChildren().add(currentGraphViewV2);
+
+                logger.info("XSD loaded into V2 editor: {} global elements",
+                        currentSchemaModelV2.getGlobalElements().size());
+            } else {
+                javafx.scene.control.Label errorLabel = new javafx.scene.control.Label("Failed to parse XSD schema");
+                xsdStackPaneV2.getChildren().add(errorLabel);
+            }
+        });
+
+        task.setOnFailed(event -> {
+            logger.error("Failed to load XSD into V2 editor", task.getException());
+            javafx.scene.control.Label errorLabel = new javafx.scene.control.Label(
+                    "Error loading XSD: " + task.getException().getMessage());
+            xsdStackPaneV2.getChildren().clear();
+            xsdStackPaneV2.getChildren().add(errorLabel);
         });
 
         executorService.submit(task);
