@@ -31,6 +31,12 @@ public class XsdComplexTypeModel {
     // Compositors (sequence, choice, all) that organize elements
     private final List<XsdCompositorModel> compositors = new ArrayList<>();
 
+    // XSD 1.1 assertions (xs:assert) for complex types
+    private final List<XsdAssertModel> assertions = new ArrayList<>();
+
+    // XSD 1.1 open content (xs:openContent)
+    private XsdOpenContentModel openContent;
+
     public XsdComplexTypeModel(String id, String name) {
         this.id = Objects.requireNonNull(id, "ID cannot be null");
         this.name = name;
@@ -114,6 +120,51 @@ public class XsdComplexTypeModel {
 
     public void removeCompositor(XsdCompositorModel compositor) {
         compositors.remove(compositor);
+    }
+
+    /**
+     * Returns all XSD 1.1 assertions (xs:assert) for this complex type.
+     *
+     * @return unmodifiable list of assertions
+     */
+    public List<XsdAssertModel> getAssertions() {
+        return Collections.unmodifiableList(assertions);
+    }
+
+    /**
+     * Adds an XSD 1.1 assertion (xs:assert) to this complex type.
+     *
+     * @param assertion the assertion to add
+     */
+    public void addAssertion(XsdAssertModel assertion) {
+        assertions.add(assertion);
+    }
+
+    /**
+     * Removes an assertion from this complex type.
+     *
+     * @param assertion the assertion to remove
+     */
+    public void removeAssertion(XsdAssertModel assertion) {
+        assertions.remove(assertion);
+    }
+
+    /**
+     * Returns the XSD 1.1 open content (xs:openContent) for this complex type.
+     *
+     * @return the open content, or null if not present
+     */
+    public XsdOpenContentModel getOpenContent() {
+        return openContent;
+    }
+
+    /**
+     * Sets the XSD 1.1 open content (xs:openContent) for this complex type.
+     *
+     * @param openContent the open content
+     */
+    public void setOpenContent(XsdOpenContentModel openContent) {
+        this.openContent = openContent;
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {

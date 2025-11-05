@@ -20,6 +20,8 @@ public class XsdModelFactory {
 
     private static final String XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
     private int elementCounter = 0;
+    private int groupCounter = 0;
+    private int attributeGroupCounter = 0;
 
     /**
      * Creates an XSD model from a file.
@@ -112,8 +114,20 @@ public class XsdModelFactory {
             } else if (isXsdElement(childElement, "simpleType")) {
                 XsdSimpleTypeModel simpleType = parseSimpleType(childElement);
                 schema.addGlobalSimpleType(simpleType.getName(), simpleType);
+            } else if (isXsdElement(childElement, "group")) {
+                XsdGroupModel group = parseGroup(childElement);
+                schema.addGlobalGroup(group.getName(), group);
+            } else if (isXsdElement(childElement, "attributeGroup")) {
+                XsdAttributeGroupModel attributeGroup = parseAttributeGroup(childElement);
+                schema.addGlobalAttributeGroup(attributeGroup.getName(), attributeGroup);
+            } else if (isXsdElement(childElement, "import")) {
+                parseImport(childElement, schema);
+            } else if (isXsdElement(childElement, "include")) {
+                parseInclude(childElement, schema);
+            } else if (isXsdElement(childElement, "override")) {
+                // XSD 1.1 override support
+                parseOverride(childElement, schema);
             }
-            // TODO: Add support for xs:group, xs:attributeGroup, xs:import, xs:include
         }
 
         return schema;
@@ -182,7 +196,13 @@ public class XsdModelFactory {
             } else if (isXsdElement(childElement, "complexType")) {
                 parseInlineComplexType(childElement, element);
             } else if (isXsdElement(childElement, "simpleType")) {
-                // TODO: Handle inline simple type
+                parseInlineSimpleType(childElement, element);
+            } else if (isXsdElement(childElement, "alternative")) {
+                // XSD 1.1 alternative support (Conditional Type Assignment)
+                XsdAlternativeModel alternative = parseAlternative(childElement);
+                if (alternative != null) {
+                    element.addAlternative(alternative);
+                }
             }
         }
 
@@ -216,6 +236,39 @@ public class XsdModelFactory {
                 parentElement.addAttribute(attribute);
             }
         }
+    }
+
+    /**
+     * Parses inline simple type within an element.
+     */
+    private void parseInlineSimpleType(Element simpleTypeElement, XsdElementModel parentElement) {
+        String typeId = generateId("simpleType");
+        String name = "anonymousSimpleType_" + elementCounter++;
+
+        XsdSimpleTypeModel simpleType = new XsdSimpleTypeModel(typeId, name);
+
+        // Parse child elements
+        NodeList children = simpleTypeElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element childElement = (Element) child;
+
+            if (isXsdElement(childElement, "annotation")) {
+                parseAnnotation(childElement, simpleType);
+            } else if (isXsdElement(childElement, "restriction")) {
+                parseRestriction(childElement, simpleType);
+            } else if (isXsdElement(childElement, "list")) {
+                parseList(childElement, simpleType);
+            } else if (isXsdElement(childElement, "union")) {
+                parseUnion(childElement, simpleType);
+            }
+        }
+
+        parentElement.setInlineSimpleType(simpleType);
     }
 
     /**
@@ -322,10 +375,36 @@ public class XsdModelFactory {
 
     /**
      * Parses xs:all compositor.
+     * <p>
+     * XSD 1.1 enhancement: xs:all can now have minOccurs and maxOccurs attributes.
+     * In XSD 1.0, these were restricted to 0 or 1. In XSD 1.1, they can have any value.
+     * </p>
      */
     private XsdCompositorModel parseAllCompositor(Element allElement) {
         String compositorId = generateId("all");
         XsdCompositorModel compositor = new XsdCompositorModel.XsdAllModel(compositorId);
+
+        // Parse min/maxOccurs attributes (XSD 1.1 enhancement)
+        if (allElement.hasAttribute("minOccurs")) {
+            try {
+                compositor.setMinOccurs(Integer.parseInt(allElement.getAttribute("minOccurs")));
+            } catch (NumberFormatException e) {
+                // Keep default value of 1
+            }
+        }
+
+        if (allElement.hasAttribute("maxOccurs")) {
+            String maxOccursValue = allElement.getAttribute("maxOccurs");
+            if ("unbounded".equals(maxOccursValue)) {
+                compositor.setMaxOccurs(Integer.MAX_VALUE);
+            } else {
+                try {
+                    compositor.setMaxOccurs(Integer.parseInt(maxOccursValue));
+                } catch (NumberFormatException e) {
+                    // Keep default value of 1
+                }
+            }
+        }
 
         // Parse child elements
         NodeList children = allElement.getChildNodes();
@@ -420,6 +499,10 @@ public class XsdModelFactory {
 
             if (isXsdElement(childElement, "annotation")) {
                 parseAnnotation(childElement, complexType);
+            } else if (isXsdElement(childElement, "openContent")) {
+                // XSD 1.1 open content support
+                XsdOpenContentModel openContent = parseOpenContent(childElement);
+                complexType.setOpenContent(openContent);
             } else if (isXsdElement(childElement, "sequence")) {
                 XsdCompositorModel compositor = parseSequenceCompositor(childElement);
                 complexType.addCompositor(compositor);
@@ -432,6 +515,12 @@ public class XsdModelFactory {
             } else if (isXsdElement(childElement, "attribute")) {
                 XsdAttributeModel attribute = parseAttribute(childElement);
                 complexType.addAttribute(attribute);
+            } else if (isXsdElement(childElement, "assert")) {
+                // XSD 1.1 assertion support
+                XsdAssertModel assertion = parseAssertion(childElement);
+                if (assertion != null) {
+                    complexType.addAssertion(assertion);
+                }
             }
         }
 
@@ -465,8 +554,11 @@ public class XsdModelFactory {
                 parseAnnotation(childElement, simpleType);
             } else if (isXsdElement(childElement, "restriction")) {
                 parseRestriction(childElement, simpleType);
+            } else if (isXsdElement(childElement, "list")) {
+                parseList(childElement, simpleType);
+            } else if (isXsdElement(childElement, "union")) {
+                parseUnion(childElement, simpleType);
             }
-            // TODO: Add support for xs:list, xs:union
         }
 
         return simpleType;
@@ -493,6 +585,12 @@ public class XsdModelFactory {
             if ("enumeration".equals(localName)) {
                 if (childElement.hasAttribute("value")) {
                     simpleType.addEnumeration(childElement.getAttribute("value"));
+                }
+            } else if (isXsdElement(childElement, "assertion")) {
+                // XSD 1.1 assertion support for simple types
+                XsdAssertModel assertion = parseAssertion(childElement);
+                if (assertion != null) {
+                    simpleType.addAssertion(assertion);
                 }
             } else if (childElement.hasAttribute("value")) {
                 // Other facets: minLength, maxLength, pattern, etc.
@@ -524,6 +622,18 @@ public class XsdModelFactory {
                     ((XsdComplexTypeModel) target).setDocumentation(documentation);
                 } else if (target instanceof XsdSimpleTypeModel) {
                     ((XsdSimpleTypeModel) target).setDocumentation(documentation);
+                } else if (target instanceof XsdGroupModel) {
+                    ((XsdGroupModel) target).setDocumentation(documentation);
+                } else if (target instanceof XsdAttributeGroupModel) {
+                    ((XsdAttributeGroupModel) target).setDocumentation(documentation);
+                } else if (target instanceof XsdAssertModel) {
+                    ((XsdAssertModel) target).setDocumentation(documentation);
+                } else if (target instanceof XsdAlternativeModel) {
+                    ((XsdAlternativeModel) target).setDocumentation(documentation);
+                } else if (target instanceof XsdOpenContentModel) {
+                    ((XsdOpenContentModel) target).setDocumentation(documentation);
+                } else if (target instanceof XsdOverrideModel) {
+                    ((XsdOverrideModel) target).setDocumentation(documentation);
                 }
             } else if (isXsdElement(childElement, "appinfo")) {
                 parseAppInfo(childElement, target);
@@ -564,8 +674,378 @@ public class XsdModelFactory {
             return ((XsdComplexTypeModel) target).getDocInfo();
         } else if (target instanceof XsdSimpleTypeModel) {
             return ((XsdSimpleTypeModel) target).getDocInfo();
+        } else if (target instanceof XsdAssertModel) {
+            return ((XsdAssertModel) target).getDocInfo();
         }
         return null;
+    }
+
+    /**
+     * Parses XSD 1.1 xs:assert or xs:assertion element.
+     * Both elements use the same structure with a required "test" attribute.
+     *
+     * @param assertElement the xs:assert or xs:assertion element
+     * @return the parsed assertion model
+     */
+    private XsdAssertModel parseAssertion(Element assertElement) {
+        String assertId = generateId("assert");
+        String test = assertElement.getAttribute("test");
+        if (test == null || test.isEmpty()) {
+            // test attribute is required
+            return null;
+        }
+
+        XsdAssertModel assertion = new XsdAssertModel(assertId, test);
+
+        // Parse optional xpathDefaultNamespace attribute
+        String xpathDefaultNs = assertElement.getAttribute("xpathDefaultNamespace");
+        if (xpathDefaultNs != null && !xpathDefaultNs.isEmpty()) {
+            assertion.setXpathDefaultNamespace(xpathDefaultNs);
+        }
+
+        // Parse optional annotation child element
+        NodeList children = assertElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element childElement = (Element) child;
+            if (isXsdElement(childElement, "annotation")) {
+                parseAnnotation(childElement, assertion);
+            }
+        }
+
+        return assertion;
+    }
+
+    /**
+     * Parses XSD 1.1 xs:alternative element.
+     * Alternatives provide conditional type assignment based on XPath expressions.
+     *
+     * @param alternativeElement the xs:alternative element
+     * @return the parsed alternative model
+     */
+    private XsdAlternativeModel parseAlternative(Element alternativeElement) {
+        String alternativeId = generateId("alternative");
+        XsdAlternativeModel alternative = new XsdAlternativeModel(alternativeId);
+
+        // Parse optional test attribute (if missing, this is the default alternative)
+        String test = alternativeElement.getAttribute("test");
+        if (test != null && !test.isEmpty()) {
+            alternative.setTest(test);
+        }
+
+        // Parse optional type attribute
+        String type = alternativeElement.getAttribute("type");
+        if (type != null && !type.isEmpty()) {
+            alternative.setType(type);
+        }
+
+        // Parse optional xpathDefaultNamespace attribute
+        String xpathDefaultNs = alternativeElement.getAttribute("xpathDefaultNamespace");
+        if (xpathDefaultNs != null && !xpathDefaultNs.isEmpty()) {
+            alternative.setXpathDefaultNamespace(xpathDefaultNs);
+        }
+
+        // Parse child elements (annotation, inline simpleType or complexType)
+        NodeList children = alternativeElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element childElement = (Element) child;
+            if (isXsdElement(childElement, "annotation")) {
+                parseAnnotation(childElement, alternative);
+            } else if (isXsdElement(childElement, "simpleType")) {
+                // Inline simple type definition
+                XsdSimpleTypeModel simpleType = parseSimpleType(childElement);
+                alternative.setInlineSimpleType(simpleType);
+            } else if (isXsdElement(childElement, "complexType")) {
+                // Inline complex type definition
+                XsdComplexTypeModel complexType = parseComplexType(childElement);
+                alternative.setInlineComplexType(complexType);
+            }
+        }
+
+        return alternative;
+    }
+
+    /**
+     * Parses xs:list element.
+     *
+     * @param listElement      the xs:list element
+     * @param parentSimpleType the parent simple type model to configure
+     */
+    private void parseList(Element listElement, XsdSimpleTypeModel parentSimpleType) {
+        parentSimpleType.setDerivationMethod(XsdSimpleTypeModel.DerivationMethod.LIST);
+
+        // Parse itemType attribute (type reference)
+        String itemType = listElement.getAttribute("itemType");
+        if (itemType != null && !itemType.isEmpty()) {
+            parentSimpleType.setListItemType(itemType);
+        }
+
+        // Parse inline simpleType child
+        NodeList children = listElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element childElement = (Element) child;
+            if (isXsdElement(childElement, "simpleType")) {
+                XsdSimpleTypeModel inlineType = parseSimpleType(childElement);
+                parentSimpleType.setInlineListItemType(inlineType);
+                break; // Only one inline type allowed
+            }
+        }
+    }
+
+    /**
+     * Parses xs:union element.
+     *
+     * @param unionElement     the xs:union element
+     * @param parentSimpleType the parent simple type model to configure
+     */
+    private void parseUnion(Element unionElement, XsdSimpleTypeModel parentSimpleType) {
+        parentSimpleType.setDerivationMethod(XsdSimpleTypeModel.DerivationMethod.UNION);
+
+        // Parse memberTypes attribute (space-separated list of type references)
+        String memberTypes = unionElement.getAttribute("memberTypes");
+        if (memberTypes != null && !memberTypes.isEmpty()) {
+            // Split by whitespace and add each type
+            String[] types = memberTypes.trim().split("\\s+");
+            for (String type : types) {
+                if (!type.isEmpty()) {
+                    parentSimpleType.addUnionMemberType(type);
+                }
+            }
+        }
+
+        // Parse inline simpleType children
+        NodeList children = unionElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element childElement = (Element) child;
+            if (isXsdElement(childElement, "simpleType")) {
+                XsdSimpleTypeModel inlineType = parseSimpleType(childElement);
+                parentSimpleType.addInlineUnionMemberType(inlineType);
+            }
+        }
+    }
+
+    /**
+     * Parses xs:openContent element (XSD 1.1).
+     *
+     * @param openContentElement the xs:openContent element
+     * @return the open content model
+     */
+    private XsdOpenContentModel parseOpenContent(Element openContentElement) {
+        String openContentId = generateId("openContent");
+        XsdOpenContentModel openContent = new XsdOpenContentModel(openContentId);
+
+        // Parse mode attribute (default: interleave)
+        String mode = openContentElement.getAttribute("mode");
+        if (mode != null && !mode.isEmpty()) {
+            if ("suffix".equals(mode)) {
+                openContent.setMode(XsdOpenContentModel.Mode.SUFFIX);
+            } else {
+                openContent.setMode(XsdOpenContentModel.Mode.INTERLEAVE);
+            }
+        }
+
+        // Parse child elements (annotation and xs:any wildcard)
+        NodeList children = openContentElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element childElement = (Element) child;
+            if (isXsdElement(childElement, "annotation")) {
+                parseAnnotation(childElement, openContent);
+            } else if (isXsdElement(childElement, "any")) {
+                // Parse xs:any wildcard attributes
+                String namespace = childElement.getAttribute("namespace");
+                if (namespace != null && !namespace.isEmpty()) {
+                    openContent.setWildcardNamespace(namespace);
+                }
+
+                String processContents = childElement.getAttribute("processContents");
+                if (processContents != null && !processContents.isEmpty()) {
+                    switch (processContents) {
+                        case "lax":
+                            openContent.setProcessContents(XsdOpenContentModel.ProcessContents.LAX);
+                            break;
+                        case "skip":
+                            openContent.setProcessContents(XsdOpenContentModel.ProcessContents.SKIP);
+                            break;
+                        default:
+                            openContent.setProcessContents(XsdOpenContentModel.ProcessContents.STRICT);
+                    }
+                }
+
+                // XSD 1.1 notNamespace and notQName attributes
+                String notNamespace = childElement.getAttribute("notNamespace");
+                if (notNamespace != null && !notNamespace.isEmpty()) {
+                    openContent.setNotNamespace(notNamespace);
+                }
+
+                String notQName = childElement.getAttribute("notQName");
+                if (notQName != null && !notQName.isEmpty()) {
+                    openContent.setNotQName(notQName);
+                }
+            }
+        }
+
+        return openContent;
+    }
+
+    /**
+     * Parses xs:group.
+     */
+    private XsdGroupModel parseGroup(Element groupElement) {
+        String groupId = generateId("group");
+        String name = groupElement.getAttribute("name");
+        if (name == null || name.isEmpty()) {
+            name = "group_" + groupCounter++;
+        }
+
+        XsdGroupModel group = new XsdGroupModel(groupId, name);
+
+        // Parse documentation
+        NodeList children = groupElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element childElement = (Element) child;
+
+            if (isXsdElement(childElement, "annotation")) {
+                parseAnnotation(childElement, group);
+            } else if (isXsdElement(childElement, "sequence")) {
+                XsdCompositorModel compositor = parseSequenceCompositor(childElement);
+                group.setCompositor(compositor);
+            } else if (isXsdElement(childElement, "choice")) {
+                XsdCompositorModel compositor = parseChoiceCompositor(childElement);
+                group.setCompositor(compositor);
+            } else if (isXsdElement(childElement, "all")) {
+                XsdCompositorModel compositor = parseAllCompositor(childElement);
+                group.setCompositor(compositor);
+            }
+        }
+
+        return group;
+    }
+
+    /**
+     * Parses xs:attributeGroup.
+     */
+    private XsdAttributeGroupModel parseAttributeGroup(Element attributeGroupElement) {
+        String groupId = generateId("attributeGroup");
+        String name = attributeGroupElement.getAttribute("name");
+        if (name == null || name.isEmpty()) {
+            name = "attributeGroup_" + attributeGroupCounter++;
+        }
+
+        XsdAttributeGroupModel attributeGroup = new XsdAttributeGroupModel(groupId, name);
+
+        // Parse documentation and attributes
+        NodeList children = attributeGroupElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element childElement = (Element) child;
+
+            if (isXsdElement(childElement, "annotation")) {
+                parseAnnotation(childElement, attributeGroup);
+            } else if (isXsdElement(childElement, "attribute")) {
+                XsdAttributeModel attribute = parseAttribute(childElement);
+                attributeGroup.addAttribute(attribute);
+            }
+        }
+
+        return attributeGroup;
+    }
+
+    /**
+     * Parses xs:import.
+     */
+    private void parseImport(Element importElement, XsdSchemaModel schema) {
+        String namespace = importElement.getAttribute("namespace");
+        if (namespace != null && !namespace.isEmpty()) {
+            schema.addImport(namespace);
+        }
+    }
+
+    /**
+     * Parses xs:include.
+     */
+    private void parseInclude(Element includeElement, XsdSchemaModel schema) {
+        String schemaLocation = includeElement.getAttribute("schemaLocation");
+        if (schemaLocation != null && !schemaLocation.isEmpty()) {
+            schema.addInclude(schemaLocation);
+        }
+    }
+
+    /**
+     * Parses xs:override (XSD 1.1).
+     * <p>
+     * xs:override allows including another schema while overriding specific components.
+     * It can contain complexType, simpleType, group, and attributeGroup definitions
+     * that override components from the included schema.
+     * </p>
+     */
+    private void parseOverride(Element overrideElement, XsdSchemaModel schema) {
+        String schemaLocation = overrideElement.getAttribute("schemaLocation");
+        if (schemaLocation == null || schemaLocation.isEmpty()) {
+            return; // schemaLocation is required
+        }
+
+        String overrideId = generateId("override");
+        XsdOverrideModel override = new XsdOverrideModel(overrideId, schemaLocation);
+
+        // Parse child elements (annotation, complexType, simpleType, group, attributeGroup)
+        NodeList children = overrideElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) continue;
+
+            Element childElement = (Element) child;
+
+            if (isXsdElement(childElement, "annotation")) {
+                parseAnnotation(childElement, override);
+            } else if (isXsdElement(childElement, "complexType")) {
+                XsdComplexTypeModel complexType = parseComplexType(childElement);
+                override.addOverriddenComplexType(complexType.getName(), complexType);
+            } else if (isXsdElement(childElement, "simpleType")) {
+                XsdSimpleTypeModel simpleType = parseSimpleType(childElement);
+                override.addOverriddenSimpleType(simpleType.getName(), simpleType);
+            } else if (isXsdElement(childElement, "group")) {
+                XsdGroupModel group = parseGroup(childElement);
+                override.addOverriddenGroup(group.getName(), group);
+            } else if (isXsdElement(childElement, "attributeGroup")) {
+                XsdAttributeGroupModel attributeGroup = parseAttributeGroup(childElement);
+                override.addOverriddenAttributeGroup(attributeGroup.getName(), attributeGroup);
+            }
+        }
+
+        schema.addOverride(override);
     }
 
     /**

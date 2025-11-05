@@ -34,6 +34,12 @@ public class XsdElementModel {
     // Compositors (sequence, choice, all) that organize child elements
     private final List<XsdCompositorModel> compositors = new ArrayList<>();
 
+    // Inline simple type (for elements with inline simple type definitions)
+    private XsdSimpleTypeModel inlineSimpleType;
+
+    // XSD 1.1 alternatives for conditional type assignment
+    private final List<XsdAlternativeModel> alternatives = new ArrayList<>();
+
     // Property names
     public static final String PROP_NAME = "name";
     public static final String PROP_TYPE = "type";
@@ -163,6 +169,41 @@ public class XsdElementModel {
 
     public void removeCompositor(XsdCompositorModel compositor) {
         compositors.remove(compositor);
+    }
+
+    public XsdSimpleTypeModel getInlineSimpleType() {
+        return inlineSimpleType;
+    }
+
+    public void setInlineSimpleType(XsdSimpleTypeModel inlineSimpleType) {
+        this.inlineSimpleType = inlineSimpleType;
+    }
+
+    /**
+     * Returns all XSD 1.1 alternatives (xs:alternative) for this element.
+     *
+     * @return unmodifiable list of alternatives
+     */
+    public List<XsdAlternativeModel> getAlternatives() {
+        return Collections.unmodifiableList(alternatives);
+    }
+
+    /**
+     * Adds an XSD 1.1 alternative (xs:alternative) to this element.
+     *
+     * @param alternative the alternative to add
+     */
+    public void addAlternative(XsdAlternativeModel alternative) {
+        alternatives.add(alternative);
+    }
+
+    /**
+     * Removes an alternative from this element.
+     *
+     * @param alternative the alternative to remove
+     */
+    public void removeAlternative(XsdAlternativeModel alternative) {
+        alternatives.remove(alternative);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {

@@ -428,6 +428,19 @@
                                             <FontIcon iconLiteral="bi-arrow-repeat"/>
                                         </graphic>
                                     </Button>
+
+                                    <Separator orientation="VERTICAL" style="-fx-padding: 0 5 0 5;"/>
+
+                                    <!-- V1/V2 Editor Toggle -->
+                                    <ToggleButton fx:id="editorVersionToggle" style="-fx-font-size: 11px;"
+                                                  text="Editor V2 (Beta)" onAction="#toggleEditorVersion">
+                                        <graphic>
+                                            <FontIcon iconLiteral="bi-star" iconColor="#ff6b6b"/>
+                                        </graphic>
+                                        <tooltip>
+                                            <Tooltip text="Switch between V1 (stable) and V2 (beta) editor"/>
+                                        </tooltip>
+                                    </ToggleButton>
                                 </children>
                             </HBox>
                         </content>
@@ -471,9 +484,15 @@
                                                 </children>
                                             </VBox>
 
-                                            <!-- Tree View Container -->
-                                            <StackPane fx:id="xsdStackPane"/>
+                                            <!-- V1 Editor Container (Current/Legacy) -->
+                                            <StackPane fx:id="xsdStackPane" visible="true" managed="true"/>
 
+                                            <!-- V2 Editor Container (New/Beta) -->
+                                            <StackPane fx:id="xsdStackPaneV2" visible="false" managed="false"
+                                                       style="-fx-background-color: white;">
+                                                <Label text="XSD Editor V2 - Coming Soon!"
+                                                       style="-fx-font-size: 16px; -fx-text-fill: #6c757d;"/>
+                                            </StackPane>
 
                                             <ProgressIndicator fx:id="xsdDiagramProgress" maxHeight="80" maxWidth="80"
                                                                visible="false"/>

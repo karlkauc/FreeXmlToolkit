@@ -1,39 +1,35 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
- * Model representing an XSD group (sequence, choice, all).
+ * Model representing an XSD group definition (xs:group).
+ * Groups allow reusing a set of element declarations.
+ *
+ * Example:
+ * <pre>{@code
+ * <xs:group name="AddressGroup">
+ *   <xs:sequence>
+ *     <xs:element name="street" type="xs:string"/>
+ *     <xs:element name="city" type="xs:string"/>
+ *   </xs:sequence>
+ * </xs:group>
+ * }</pre>
  *
  * @since 2.0
  */
 public class XsdGroupModel {
 
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private final String id;
+    private final String name;
+    private String documentation;
 
-    private String name;
-    private GroupType groupType;
-    private int minOccurs = 1;
-    private int maxOccurs = 1;
+    // A group contains a compositor (sequence, choice, or all)
+    private XsdCompositorModel compositor;
 
-    private final List<XsdElementModel> elements = new ArrayList<>();
-
-    public enum GroupType {
-        SEQUENCE,
-        CHOICE,
-        ALL
-    }
-
-    public XsdGroupModel(String id, String name, GroupType groupType) {
+    public XsdGroupModel(String id, String name) {
         this.id = Objects.requireNonNull(id, "ID cannot be null");
-        this.name = name;
-        this.groupType = Objects.requireNonNull(groupType, "Group type cannot be null");
+        this.name = Objects.requireNonNull(name, "Name cannot be null");
     }
 
     public String getId() {
@@ -44,56 +40,24 @@ public class XsdGroupModel {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getDocumentation() {
+        return documentation;
     }
 
-    public GroupType getGroupType() {
-        return groupType;
+    public void setDocumentation(String documentation) {
+        this.documentation = documentation;
     }
 
-    public void setGroupType(GroupType groupType) {
-        this.groupType = groupType;
+    public XsdCompositorModel getCompositor() {
+        return compositor;
     }
 
-    public int getMinOccurs() {
-        return minOccurs;
-    }
-
-    public void setMinOccurs(int minOccurs) {
-        this.minOccurs = minOccurs;
-    }
-
-    public int getMaxOccurs() {
-        return maxOccurs;
-    }
-
-    public void setMaxOccurs(int maxOccurs) {
-        this.maxOccurs = maxOccurs;
-    }
-
-    public List<XsdElementModel> getElements() {
-        return Collections.unmodifiableList(elements);
-    }
-
-    public void addElement(XsdElementModel element) {
-        elements.add(element);
-    }
-
-    public void removeElement(XsdElementModel element) {
-        elements.remove(element);
-    }
-
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(listener);
-    }
-
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(listener);
+    public void setCompositor(XsdCompositorModel compositor) {
+        this.compositor = compositor;
     }
 
     @Override
     public String toString() {
-        return "XsdGroupModel{name='" + name + "', type=" + groupType + '}';
+        return "XsdGroupModel{name='" + name + "'}";
     }
 }

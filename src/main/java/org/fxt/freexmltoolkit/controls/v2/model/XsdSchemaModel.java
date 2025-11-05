@@ -31,6 +31,14 @@ public class XsdSchemaModel {
     private final Map<String, XsdComplexTypeModel> globalComplexTypes = new LinkedHashMap<>();
     private final Map<String, XsdSimpleTypeModel> globalSimpleTypes = new LinkedHashMap<>();
     private final Map<String, XsdGroupModel> globalGroups = new LinkedHashMap<>();
+    private final Map<String, XsdAttributeGroupModel> globalAttributeGroups = new LinkedHashMap<>();
+
+    // Import and include tracking
+    private final List<String> imports = new ArrayList<>();  // List of imported namespaces
+    private final List<String> includes = new ArrayList<>();  // List of included schema locations
+
+    // XSD 1.1 override tracking
+    private final List<XsdOverrideModel> overrides = new ArrayList<>();  // List of override declarations
 
     // Property names for change events
     public static final String PROP_VERSION = "version";
@@ -41,6 +49,10 @@ public class XsdSchemaModel {
     public static final String PROP_GLOBAL_COMPLEX_TYPES = "globalComplexTypes";
     public static final String PROP_GLOBAL_SIMPLE_TYPES = "globalSimpleTypes";
     public static final String PROP_GLOBAL_GROUPS = "globalGroups";
+    public static final String PROP_GLOBAL_ATTRIBUTE_GROUPS = "globalAttributeGroups";
+    public static final String PROP_IMPORTS = "imports";
+    public static final String PROP_INCLUDES = "includes";
+    public static final String PROP_OVERRIDES = "overrides";
 
     /**
      * Creates a new XSD schema model with a generated unique ID.
@@ -370,6 +382,131 @@ public class XsdSchemaModel {
         return globalGroups.get(name);
     }
 
+    // ==================== Global Attribute Groups ====================
+
+    /**
+     * Returns all global attribute groups.
+     *
+     * @return unmodifiable map of attribute group name to attribute group model
+     */
+    public Map<String, XsdAttributeGroupModel> getGlobalAttributeGroups() {
+        return Collections.unmodifiableMap(globalAttributeGroups);
+    }
+
+    /**
+     * Adds a global attribute group.
+     *
+     * @param name           the attribute group name
+     * @param attributeGroup the attribute group model
+     */
+    public void addGlobalAttributeGroup(String name, XsdAttributeGroupModel attributeGroup) {
+        Objects.requireNonNull(name, "Name cannot be null");
+        Objects.requireNonNull(attributeGroup, "Attribute group cannot be null");
+        globalAttributeGroups.put(name, attributeGroup);
+        pcs.firePropertyChange(PROP_GLOBAL_ATTRIBUTE_GROUPS, null, attributeGroup);
+    }
+
+    /**
+     * Removes a global attribute group.
+     *
+     * @param name the attribute group name
+     */
+    public void removeGlobalAttributeGroup(String name) {
+        XsdAttributeGroupModel removed = globalAttributeGroups.remove(name);
+        if (removed != null) {
+            pcs.firePropertyChange(PROP_GLOBAL_ATTRIBUTE_GROUPS, removed, null);
+        }
+    }
+
+    /**
+     * Finds a global attribute group by name.
+     *
+     * @param name the attribute group name
+     * @return the attribute group, or null if not found
+     */
+    public XsdAttributeGroupModel findGlobalAttributeGroup(String name) {
+        return globalAttributeGroups.get(name);
+    }
+
+    // ==================== Imports and Includes ====================
+
+    /**
+     * Returns all imported namespaces.
+     *
+     * @return unmodifiable list of imported namespaces
+     */
+    public List<String> getImports() {
+        return Collections.unmodifiableList(imports);
+    }
+
+    /**
+     * Adds an import declaration.
+     *
+     * @param namespace the namespace to import
+     */
+    public void addImport(String namespace) {
+        Objects.requireNonNull(namespace, "Namespace cannot be null");
+        if (!imports.contains(namespace)) {
+            imports.add(namespace);
+            pcs.firePropertyChange(PROP_IMPORTS, null, namespace);
+        }
+    }
+
+    /**
+     * Returns all included schema locations.
+     *
+     * @return unmodifiable list of included schema locations
+     */
+    public List<String> getIncludes() {
+        return Collections.unmodifiableList(includes);
+    }
+
+    /**
+     * Adds an include declaration.
+     *
+     * @param schemaLocation the schema location to include
+     */
+    public void addInclude(String schemaLocation) {
+        Objects.requireNonNull(schemaLocation, "Schema location cannot be null");
+        if (!includes.contains(schemaLocation)) {
+            includes.add(schemaLocation);
+            pcs.firePropertyChange(PROP_INCLUDES, null, schemaLocation);
+        }
+    }
+
+    // ==================== Overrides (XSD 1.1) ====================
+
+    /**
+     * Returns all override declarations (XSD 1.1).
+     *
+     * @return unmodifiable list of override models
+     */
+    public List<XsdOverrideModel> getOverrides() {
+        return Collections.unmodifiableList(overrides);
+    }
+
+    /**
+     * Adds an override declaration (XSD 1.1).
+     *
+     * @param override the override to add
+     */
+    public void addOverride(XsdOverrideModel override) {
+        Objects.requireNonNull(override, "Override cannot be null");
+        overrides.add(override);
+        pcs.firePropertyChange(PROP_OVERRIDES, null, override);
+    }
+
+    /**
+     * Removes an override declaration.
+     *
+     * @param override the override to remove
+     */
+    public void removeOverride(XsdOverrideModel override) {
+        if (overrides.remove(override)) {
+            pcs.firePropertyChange(PROP_OVERRIDES, override, null);
+        }
+    }
+
     // ==================== Property Change Support ====================
 
     /**
@@ -420,6 +557,10 @@ public class XsdSchemaModel {
                 ", globalComplexTypes=" + globalComplexTypes.size() +
                 ", globalSimpleTypes=" + globalSimpleTypes.size() +
                 ", globalGroups=" + globalGroups.size() +
+                ", globalAttributeGroups=" + globalAttributeGroups.size() +
+                ", imports=" + imports.size() +
+                ", includes=" + includes.size() +
+                ", overrides=" + overrides.size() +
                 '}';
     }
 }

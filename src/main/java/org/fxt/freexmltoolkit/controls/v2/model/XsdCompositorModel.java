@@ -147,6 +147,10 @@ public abstract class XsdCompositorModel {
 
     /**
      * All compositor - all elements can appear in any order.
+     * <p>
+     * XSD 1.0: minOccurs and maxOccurs must be 0 or 1.
+     * XSD 1.1: minOccurs and maxOccurs can have any non-negative integer value.
+     * </p>
      */
     public static class XsdAllModel extends XsdCompositorModel {
         public XsdAllModel(String id) {
