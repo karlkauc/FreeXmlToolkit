@@ -407,9 +407,11 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         double actualWidth = isCompositor ? compositorSize : nodeWidth;
         double actualHeight = isCompositor ? compositorSize : nodeHeight;
 
-        // Position this node
+        // Position this node and set dimensions
         node.setX(x);
         node.setY(y);
+        node.setWidth(actualWidth);
+        node.setHeight(actualHeight);
 
         if (!node.isExpanded() || !node.hasChildren()) {
             return actualHeight;

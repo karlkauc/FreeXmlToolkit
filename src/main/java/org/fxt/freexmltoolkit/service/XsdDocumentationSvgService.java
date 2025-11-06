@@ -48,8 +48,8 @@ public class XsdDocumentationSvgService {
     // SVG Layout Constants
     private final int NODE_WIDTH = 200;
     private final int NODE_HEIGHT = 80;
-    private final int HORIZONTAL_SPACING = 250;
-    private final int VERTICAL_SPACING = 120;
+    private final int HORIZONTAL_SPACING = 350;  // Increased from 250 for better spacing
+    private final int VERTICAL_SPACING = 150;    // Increased from 120 for better spacing
     private final int START_X = 50;
     private final int START_Y = 50;
     private final int FONT_SIZE = 12;
@@ -709,14 +709,22 @@ public class XsdDocumentationSvgService {
                     connectorDash = " stroke-dasharray=\"3,3\""; // Different dash pattern for ALL
                 }
 
-                int startX = parentPos.x + NODE_WIDTH / 2;
-                int startY = parentPos.y;
-                int endX = x - NODE_WIDTH / 2;
-                int endY = y;
+                // Draw L-shaped connector: right side of parent → left side of child
+                int startX = parentPos.x + NODE_WIDTH / 2;  // Right edge of parent
+                int startY = parentPos.y;                   // Vertical center of parent
+                int endX = x - NODE_WIDTH / 2;              // Left edge of child
+                int endY = y;                               // Vertical center of child
+
+                // Create L-shaped path: horizontal line, then vertical line, then horizontal to child
+                int midX = startX + (endX - startX) / 2;    // Midpoint for the corner
 
                 svgBuilder.append(String.format(
-                        "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke=\"%s\" stroke-width=\"2\" class=\"connection\"%s/>",
-                        startX, startY, endX, endY, connectorColor, connectorDash
+                        "<path d=\"M %d %d L %d %d L %d %d L %d %d\" stroke=\"%s\" stroke-width=\"2\" fill=\"none\" class=\"connection\"%s/>\n",
+                        startX, startY,      // Start at right of parent
+                        midX, startY,        // Horizontal line to midpoint
+                        midX, endY,          // Vertical line to child level
+                        endX, endY,          // Horizontal line to left of child
+                        connectorColor, connectorDash
                 ));
             }
         }

@@ -128,6 +128,18 @@ public class XsdController {
     private Tab docPreviewTab;
     @FXML
     private WebView docWebView;
+    @FXML
+    private Button zoomInButton;
+    @FXML
+    private Button zoomOutButton;
+    @FXML
+    private Button zoomResetButton;
+    @FXML
+    private Label zoomLabel;
+    private double currentZoom = 1.0;  // 100% zoom
+    private static final double ZOOM_STEP = 0.1;  // 10% per step
+    private static final double MIN_ZOOM = 0.1;  // 10% minimum
+    private static final double MAX_ZOOM = 5.0;   // 500% maximum
     private HttpServer docServer;
     private static final int DOC_SERVER_PORT = 8080;
 
@@ -413,6 +425,9 @@ public class XsdController {
 
         // Setup bidirectional synchronization between text and graphic tabs
         setupTextToGraphicSync();
+
+        // Setup zoom functionality for documentation preview WebView
+        setupWebViewZoom();
 
         applyEditorSettings();
     }
@@ -3527,6 +3542,115 @@ public class XsdController {
             logger.warn("Could not extract XSD doc info for element at xpath: {}", xpath, e);
             return null;
         }
+    }
+
+    // ==================== WebView Zoom Handlers ====================
+
+    /**
+     * Handles zoom in button click.
+     */
+    @FXML
+    private void handleZoomIn() {
+        setZoom(currentZoom + ZOOM_STEP);
+    }
+
+    /**
+     * Handles zoom out button click.
+     */
+    @FXML
+    private void handleZoomOut() {
+        setZoom(currentZoom - ZOOM_STEP);
+    }
+
+    /**
+     * Handles reset zoom button click (100%).
+     */
+    @FXML
+    private void handleZoomReset() {
+        setZoom(1.0);
+    }
+
+    /**
+     * Sets the zoom level for the documentation WebView.
+     *
+     * @param zoom the new zoom level (1.0 = 100%)
+     */
+    private void setZoom(double zoom) {
+        // Clamp zoom to min/max range
+        currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
+
+        // Apply zoom to WebView
+        if (docWebView != null) {
+            docWebView.setZoom(currentZoom);
+        }
+
+        // Update label
+        if (zoomLabel != null) {
+            zoomLabel.setText(String.format("%.0f%%", currentZoom * 100));
+        }
+
+        logger.debug("Zoom set to {}%", currentZoom * 100);
+    }
+
+    /**
+     * Initializes mouse wheel zoom and keyboard shortcuts for the documentation WebView.
+     * Call this from the initialize() method.
+     */
+    private void setupWebViewZoom() {
+        if (docWebView == null || docPreviewTab == null) {
+            return;
+        }
+
+        // Setup mouse wheel zoom on the WebView parent (BorderPane)
+        // We need to wait until the scene is available
+        Platform.runLater(() -> {
+            if (docWebView.getParent() != null) {
+                docWebView.getParent().setOnScroll(event -> {
+                    // Check if Ctrl (or Cmd on Mac) is pressed
+                    if (event.isControlDown()) {
+                        event.consume();
+
+                        // Determine zoom direction from scroll delta
+                        double deltaY = event.getDeltaY();
+                        if (deltaY > 0) {
+                            // Scroll up = zoom in
+                            setZoom(currentZoom + ZOOM_STEP);
+                        } else if (deltaY < 0) {
+                            // Scroll down = zoom out
+                            setZoom(currentZoom - ZOOM_STEP);
+                        }
+                    }
+                });
+            }
+
+            // Setup keyboard shortcuts on the tab's content
+            if (docPreviewTab.getContent() != null) {
+                docPreviewTab.getContent().setOnKeyPressed(event -> {
+                    if (event.isControlDown()) {
+                        switch (event.getCode()) {
+                            case PLUS, EQUALS -> {
+                                // CTRL + or CTRL =
+                                event.consume();
+                                setZoom(currentZoom + ZOOM_STEP);
+                            }
+                            case MINUS -> {
+                                // CTRL -
+                                event.consume();
+                                setZoom(currentZoom - ZOOM_STEP);
+                            }
+                            case DIGIT0, NUMPAD0 -> {
+                                // CTRL 0
+                                event.consume();
+                                setZoom(1.0);
+                            }
+                        }
+                    }
+                });
+
+                // Make sure the content is focusable to receive key events
+                docPreviewTab.getContent().setFocusTraversable(true);
+            }
+        });
     }
 
 }

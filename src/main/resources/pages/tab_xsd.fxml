@@ -626,9 +626,43 @@
         <!-- NEU: Tab für die Live-Vorschau der Dokumentation -->
         <Tab fx:id="docPreviewTab" text="Preview">
             <content>
-                <StackPane>
-                    <WebView fx:id="docWebView"/>
-                </StackPane>
+                <BorderPane>
+                    <!-- Zoom controls at the top -->
+                    <top>
+                        <HBox spacing="5"
+                              style="-fx-padding: 10px; -fx-background-color: #f0f0f0; -fx-alignment: CENTER_LEFT;">
+                            <Button fx:id="zoomInButton" text="+" onAction="#handleZoomIn">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-zoom-in" iconSize="16"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Zoom In (Ctrl +)"/>
+                                </tooltip>
+                            </Button>
+                            <Button fx:id="zoomOutButton" text="-" onAction="#handleZoomOut">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-zoom-out" iconSize="16"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Zoom Out (Ctrl -)"/>
+                                </tooltip>
+                            </Button>
+                            <Button fx:id="zoomResetButton" text="100%" onAction="#handleZoomReset">
+                                <graphic>
+                                    <FontIcon iconLiteral="bi-aspect-ratio" iconSize="16"/>
+                                </graphic>
+                                <tooltip>
+                                    <Tooltip text="Reset Zoom to 100% (Ctrl 0)"/>
+                                </tooltip>
+                            </Button>
+                            <Label fx:id="zoomLabel" text="100%" style="-fx-padding: 5px; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </top>
+                    <!-- WebView in the center -->
+                    <center>
+                        <WebView fx:id="docWebView"/>
+                    </center>
+                </BorderPane>
             </content>
         </Tab>
 

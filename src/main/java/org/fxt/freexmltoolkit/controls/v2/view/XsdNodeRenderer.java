@@ -221,23 +221,27 @@ public class XsdNodeRenderer {
 
     /**
      * Draws a connection line between parent and child nodes.
+     * Creates an L-shaped connector from the right side of parent to the left side of child.
      */
     public void renderConnection(GraphicsContext gc, VisualNode parent, VisualNode child) {
         gc.setStroke(Color.GRAY);
         gc.setLineWidth(1);
 
-        double startX = parent.getX() + parent.getWidth() / 2;
-        double startY = parent.getY() + parent.getHeight();
+        // Start at right side of parent node (vertical center)
+        double startX = parent.getX() + parent.getWidth();
+        double startY = parent.getY() + parent.getHeight() / 2;
 
-        double endX = child.getX() + child.getWidth() / 2;
-        double endY = child.getY();
+        // End at left side of child node (vertical center)
+        double endX = child.getX();
+        double endY = child.getY() + child.getHeight() / 2;
 
-        // Draw L-shaped connection
-        double midY = startY + VERTICAL_SPACING / 2;
+        // Draw L-shaped connection: horizontal → vertical → horizontal
+        double midX = startX + (endX - startX) / 2;
 
-        gc.strokeLine(startX, startY, startX, midY);
-        gc.strokeLine(startX, midY, endX, midY);
-        gc.strokeLine(endX, midY, endX, endY);
+        // Three line segments forming an L-shape
+        gc.strokeLine(startX, startY, midX, startY);    // Horizontal from parent to midpoint
+        gc.strokeLine(midX, startY, midX, endY);        // Vertical from parent level to child level
+        gc.strokeLine(midX, endY, endX, endY);          // Horizontal from midpoint to child
     }
 
     /**
