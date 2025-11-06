@@ -42,6 +42,13 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private VisualNode selectedNode;
     private final Map<String, VisualNode> nodeMap = new HashMap<>();
 
+    // Zoom state
+    private double zoomLevel = 1.0;
+    private static final double ZOOM_MIN = 0.1;
+    private static final double ZOOM_MAX = 5.0;
+    private static final double ZOOM_STEP = 0.1;
+    private Label zoomLabel;
+
     public XsdGraphView(XsdSchemaModel model) {
         this.model = model;
         this.renderer = new XsdNodeRenderer();
@@ -120,13 +127,41 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         Button fitBtn = new Button("Fit to View");
         fitBtn.setOnAction(e -> fitToView());
 
+        // Separator
+        Separator separator = new Separator();
+        separator.setOrientation(javafx.geometry.Orientation.VERTICAL);
+
+        // Zoom buttons
+        Button zoomInBtn = new Button("+");
+        zoomInBtn.setStyle("-fx-font-weight: bold; -fx-padding: 5 10;");
+        zoomInBtn.setTooltip(new Tooltip("Zoom In (Ctrl +)"));
+        zoomInBtn.setOnAction(e -> zoomIn());
+
+        Button zoomOutBtn = new Button("-");
+        zoomOutBtn.setStyle("-fx-font-weight: bold; -fx-padding: 5 10;");
+        zoomOutBtn.setTooltip(new Tooltip("Zoom Out (Ctrl -)"));
+        zoomOutBtn.setOnAction(e -> zoomOut());
+
+        Button zoomResetBtn = new Button("100%");
+        zoomResetBtn.setStyle("-fx-padding: 5 10;");
+        zoomResetBtn.setTooltip(new Tooltip("Reset Zoom to 100% (Ctrl 0)"));
+        zoomResetBtn.setOnAction(e -> zoomReset());
+
+        zoomLabel = new Label("100%");
+        zoomLabel.setStyle("-fx-padding: 5; -fx-font-weight: bold;");
+
         Label infoLabel = new Label("XSD Editor V2 (Beta) - Graphical View");
         infoLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-style: italic;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        toolbar.getItems().addAll(expandAllBtn, collapseAllBtn, fitBtn, spacer, infoLabel);
+        toolbar.getItems().addAll(
+                expandAllBtn, collapseAllBtn, fitBtn,
+                separator,
+                zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel,
+                spacer, infoLabel
+        );
 
         return toolbar;
     }
@@ -514,6 +549,42 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      */
     private void setupMouseHandlers() {
         canvas.setOnMouseClicked(this::handleMouseClick);
+
+        // Setup keyboard shortcuts for zoom
+        this.setOnKeyPressed(event -> {
+            if (event.isControlDown()) {
+                switch (event.getCode()) {
+                    case PLUS, EQUALS -> {
+                        event.consume();
+                        zoomIn();
+                    }
+                    case MINUS -> {
+                        event.consume();
+                        zoomOut();
+                    }
+                    case DIGIT0, NUMPAD0 -> {
+                        event.consume();
+                        zoomReset();
+                    }
+                }
+            }
+        });
+
+        // Setup mouse wheel zoom
+        canvas.setOnScroll(event -> {
+            if (event.isControlDown()) {
+                event.consume();
+                double deltaY = event.getDeltaY();
+                if (deltaY > 0) {
+                    zoomIn();
+                } else if (deltaY < 0) {
+                    zoomOut();
+                }
+            }
+        });
+
+        // Make this component focusable for keyboard shortcuts
+        this.setFocusTraversable(true);
     }
 
     /**
@@ -643,5 +714,44 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             buildVisualTree();
             redraw();
         });
+    }
+
+    /**
+     * Zooms in by one step.
+     */
+    private void zoomIn() {
+        setZoom(zoomLevel + ZOOM_STEP);
+    }
+
+    /**
+     * Zooms out by one step.
+     */
+    private void zoomOut() {
+        setZoom(zoomLevel - ZOOM_STEP);
+    }
+
+    /**
+     * Resets zoom to 100%.
+     */
+    private void zoomReset() {
+        setZoom(1.0);
+    }
+
+    /**
+     * Sets the zoom level and updates the canvas.
+     */
+    private void setZoom(double zoom) {
+        zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom));
+
+        // Update zoom label
+        if (zoomLabel != null) {
+            zoomLabel.setText(String.format("%.0f%%", zoomLevel * 100));
+        }
+
+        // Apply zoom to canvas
+        canvas.setScaleX(zoomLevel);
+        canvas.setScaleY(zoomLevel);
+
+        logger.debug("Zoom level set to: {}%", zoomLevel * 100);
     }
 }
