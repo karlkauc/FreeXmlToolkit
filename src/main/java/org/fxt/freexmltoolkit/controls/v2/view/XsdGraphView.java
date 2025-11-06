@@ -429,7 +429,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      * Recursively layouts nodes in a tree structure.
      */
     private double layoutNode(VisualNode node, double x, double y) {
-        double nodeWidth = renderer.getNodeWidth();
         double nodeHeight = renderer.getNodeHeight();
         double vSpacing = renderer.getVerticalSpacing();
         double hSpacing = renderer.getHorizontalSpacing();
@@ -441,7 +440,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
         // Use actual node dimensions (compositor symbols are smaller)
         double compositorSize = renderer.getCompositorSize();
-        double actualWidth = isCompositor ? compositorSize : nodeWidth;
+        double actualWidth = isCompositor ? compositorSize : renderer.calculateNodeWidth(node);
         double actualHeight = isCompositor ? compositorSize : nodeHeight;
 
         // Position this node and set dimensions
@@ -454,12 +453,28 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             return actualHeight;
         }
 
+        // Calculate maximum width among all children for uniform sizing
+        double maxChildWidth = 0;
+        for (VisualNode child : node.getChildren()) {
+            double childWidth = renderer.calculateNodeWidth(child);
+            maxChildWidth = Math.max(maxChildWidth, childWidth);
+        }
+
         // Layout children - use actual width for positioning
         double childX = x + actualWidth + hSpacing;
         double childY = y;
         double totalHeight = 0;
 
         for (VisualNode child : node.getChildren()) {
+            // Pre-set uniform width for all siblings before layout
+            boolean isChildCompositor = child.getType() == XsdNodeRenderer.NodeWrapperType.SEQUENCE ||
+                    child.getType() == XsdNodeRenderer.NodeWrapperType.CHOICE ||
+                    child.getType() == XsdNodeRenderer.NodeWrapperType.ALL;
+
+            if (!isChildCompositor) {
+                child.setWidth(maxChildWidth);
+            }
+
             double childHeight = layoutNode(child, childX, childY);
 
             // Use smaller spacing after compositor symbols

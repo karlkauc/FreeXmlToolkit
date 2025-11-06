@@ -14,22 +14,61 @@ import javafx.scene.text.TextAlignment;
  */
 public class XsdNodeRenderer {
 
-    private static final double NODE_WIDTH = 180;
+    private static final double MIN_NODE_WIDTH = 120;
+    private static final double MAX_NODE_WIDTH = 300;
     private static final double NODE_HEIGHT = 50;
     private static final double COMPOSITOR_SIZE = 28;  // Small square for compositors
     private static final double EXPAND_BUTTON_SIZE = 16;
     private static final double HORIZONTAL_SPACING = 40;
     private static final double VERTICAL_SPACING = 20;
     private static final double CORNER_RADIUS = 5;
+    private static final double PADDING = 20; // Padding inside node
 
     private final XsdNodeStyler styler;
     private final Font nodeFont;
     private final Font detailFont;
+    private final javafx.scene.text.Text textMeasurer;
 
     public XsdNodeRenderer() {
         this.styler = new XsdNodeStyler();
         this.nodeFont = Font.font("Arial", 12);
         this.detailFont = Font.font("Arial", 10);
+        this.textMeasurer = new javafx.scene.text.Text();
+    }
+
+    /**
+     * Calculates the required width for a node based on its label and detail text.
+     */
+    public double calculateNodeWidth(VisualNode node) {
+        if (isCompositorNode(node)) {
+            return COMPOSITOR_SIZE;
+        }
+
+        // Measure label text
+        textMeasurer.setFont(nodeFont);
+        textMeasurer.setText(node.getLabel());
+        double labelWidth = textMeasurer.getLayoutBounds().getWidth();
+
+        // Measure detail text
+        double detailWidth = 0;
+        if (node.getDetail() != null && !node.getDetail().isEmpty()) {
+            textMeasurer.setFont(detailFont);
+            textMeasurer.setText(node.getDetail());
+            detailWidth = textMeasurer.getLayoutBounds().getWidth();
+        }
+
+        // Take maximum of both, add padding and button space
+        double maxTextWidth = Math.max(labelWidth, detailWidth);
+        double requiredWidth = maxTextWidth + PADDING + EXPAND_BUTTON_SIZE + 20;
+
+        // Clamp to min/max bounds
+        return Math.max(MIN_NODE_WIDTH, Math.min(MAX_NODE_WIDTH, requiredWidth));
+    }
+
+    private boolean isCompositorNode(VisualNode node) {
+        return node.getType() == NodeWrapperType.SEQUENCE ||
+                node.getType() == NodeWrapperType.CHOICE ||
+                node.getType() == NodeWrapperType.ALL;
     }
 
     /**
@@ -57,10 +96,9 @@ public class XsdNodeRenderer {
      * Renders a regular node (element, attribute, etc.)
      */
     private void renderRegularNode(GraphicsContext gc, VisualNode node, double x, double y) {
-        node.setX(x);
-        node.setY(y);
-        node.setWidth(NODE_WIDTH);
-        node.setHeight(NODE_HEIGHT);
+        // Use the width and height already set during layout
+        double width = node.getWidth();
+        double height = node.getHeight();
 
         // Determine colors based on node type
         Color fillColor = getNodeFillColor(node.getType());
@@ -80,17 +118,17 @@ public class XsdNodeRenderer {
         gc.setLineWidth(lineWidth);
 
         // Draw filled rectangle
-        gc.fillRoundRect(x, y, NODE_WIDTH, NODE_HEIGHT, CORNER_RADIUS, CORNER_RADIUS);
+        gc.fillRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
 
         // Draw border (dashed if optional, solid otherwise)
         if (node.getMinOccurs() == 0) {
             // Dashed border for optional nodes
             gc.setLineDashes(6, 4);
-            gc.strokeRoundRect(x, y, NODE_WIDTH, NODE_HEIGHT, CORNER_RADIUS, CORNER_RADIUS);
+            gc.strokeRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
             gc.setLineDashes(null);  // Reset to solid
         } else {
             // Solid border for required nodes
-            gc.strokeRoundRect(x, y, NODE_WIDTH, NODE_HEIGHT, CORNER_RADIUS, CORNER_RADIUS);
+            gc.strokeRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
         }
 
         // Draw node text
@@ -99,20 +137,20 @@ public class XsdNodeRenderer {
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setTextBaseline(VPos.TOP);
 
-        String displayText = truncateText(node.getLabel(), NODE_WIDTH - 40);
+        String displayText = truncateText(node.getLabel(), width - 40);
         gc.fillText(displayText, x + 10, y + 10);
 
         // Draw detail text (type, cardinality)
         if (node.getDetail() != null && !node.getDetail().isEmpty()) {
             gc.setFont(detailFont);
             gc.setFill(Color.GRAY);
-            String detailText = truncateText(node.getDetail(), NODE_WIDTH - 40);
+            String detailText = truncateText(node.getDetail(), width - 40);
             gc.fillText(detailText, x + 10, y + 28);
         }
 
         // Draw expand/collapse button if node has children
         if (node.hasChildren()) {
-            drawExpandButton(gc, node, x, y);
+            drawExpandButton(gc, node, x, y, width, height);
         }
     }
 
@@ -120,10 +158,8 @@ public class XsdNodeRenderer {
      * Renders a small compositor symbol (sequence, choice, all).
      */
     private void renderCompositorSymbol(GraphicsContext gc, VisualNode node, double x, double y) {
-        node.setX(x);
-        node.setY(y);
-        node.setWidth(COMPOSITOR_SIZE);
-        node.setHeight(COMPOSITOR_SIZE);
+        // Use the width and height already set during layout (should be COMPOSITOR_SIZE)
+        double size = node.getWidth();
 
         Color borderColor = getNodeBorderColor(node.getType());
 
@@ -135,22 +171,22 @@ public class XsdNodeRenderer {
             case SEQUENCE -> {
                 // Draw rounded square for sequence
                 gc.setFill(Color.rgb(207, 250, 254, 0.8));
-                gc.fillRoundRect(x, y, COMPOSITOR_SIZE, COMPOSITOR_SIZE, 4, 4);
-                gc.strokeRoundRect(x, y, COMPOSITOR_SIZE, COMPOSITOR_SIZE, 4, 4);
+                gc.fillRoundRect(x, y, size, size, 4, 4);
+                gc.strokeRoundRect(x, y, size, size, 4, 4);
 
                 // Draw "SEQ" or lines symbol
                 gc.setFill(borderColor);
                 gc.setFont(Font.font("Arial", 9));
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setTextBaseline(VPos.CENTER);
-                gc.fillText("=", x + COMPOSITOR_SIZE / 2, y + COMPOSITOR_SIZE / 2);
+                gc.fillText("=", x + size / 2, y + size / 2);
             }
             case CHOICE -> {
                 // Draw diamond for choice
                 gc.setFill(Color.rgb(254, 243, 199, 0.8));
-                double centerX = x + COMPOSITOR_SIZE / 2;
-                double centerY = y + COMPOSITOR_SIZE / 2;
-                double halfSize = COMPOSITOR_SIZE / 2;
+                double centerX = x + size / 2;
+                double centerY = y + size / 2;
+                double halfSize = size / 2;
                 gc.fillPolygon(
                         new double[]{centerX, centerX + halfSize, centerX, centerX - halfSize},
                         new double[]{centerY - halfSize, centerY, centerY + halfSize, centerY},
@@ -172,15 +208,15 @@ public class XsdNodeRenderer {
             case ALL -> {
                 // Draw circle for all
                 gc.setFill(Color.rgb(237, 233, 254, 0.8));
-                gc.fillOval(x, y, COMPOSITOR_SIZE, COMPOSITOR_SIZE);
-                gc.strokeOval(x, y, COMPOSITOR_SIZE, COMPOSITOR_SIZE);
+                gc.fillOval(x, y, size, size);
+                gc.strokeOval(x, y, size, size);
 
                 // Draw "*" symbol
                 gc.setFill(borderColor);
                 gc.setFont(Font.font("Arial", 11));
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setTextBaseline(VPos.CENTER);
-                gc.fillText("*", x + COMPOSITOR_SIZE / 2, y + COMPOSITOR_SIZE / 2);
+                gc.fillText("*", x + size / 2, y + size / 2);
             }
         }
 
@@ -190,9 +226,9 @@ public class XsdNodeRenderer {
     /**
      * Draws the expand/collapse button (+/-).
      */
-    private void drawExpandButton(GraphicsContext gc, VisualNode node, double x, double y) {
-        double btnX = x + NODE_WIDTH - EXPAND_BUTTON_SIZE - 8;
-        double btnY = y + (NODE_HEIGHT - EXPAND_BUTTON_SIZE) / 2;
+    private void drawExpandButton(GraphicsContext gc, VisualNode node, double x, double y, double nodeWidth, double nodeHeight) {
+        double btnX = x + nodeWidth - EXPAND_BUTTON_SIZE - 8;
+        double btnY = y + (nodeHeight - EXPAND_BUTTON_SIZE) / 2;
 
         node.setExpandButtonBounds(btnX, btnY, EXPAND_BUTTON_SIZE, EXPAND_BUTTON_SIZE);
 
@@ -294,7 +330,7 @@ public class XsdNodeRenderer {
     }
 
     public double getNodeWidth() {
-        return NODE_WIDTH;
+        return MIN_NODE_WIDTH;  // Return minimum width for backwards compatibility
     }
 
     public double getNodeHeight() {
