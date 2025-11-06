@@ -375,17 +375,54 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private void redraw() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        // Clear canvas
-        gc.setFill(Color.WHITE);
-        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-
         if (rootNode == null) {
             return;
         }
 
-        // Layout and render
+        // Layout nodes
         layoutNode(rootNode, 50, 50);
+
+        // Calculate required canvas size based on node positions
+        double[] bounds = calculateCanvasBounds(rootNode);
+        double requiredWidth = bounds[0] + 100;  // Add padding
+        double requiredHeight = bounds[1] + 100; // Add padding
+
+        // Ensure minimum size
+        double canvasWidth = Math.max(requiredWidth, 800);
+        double canvasHeight = Math.max(requiredHeight, 600);
+
+        // Resize canvas if needed
+        if (canvas.getWidth() != canvasWidth || canvas.getHeight() != canvasHeight) {
+            canvas.setWidth(canvasWidth);
+            canvas.setHeight(canvasHeight);
+            logger.debug("Canvas resized to {}x{}", canvasWidth, canvasHeight);
+        }
+
+        // Clear canvas
+        gc.setFill(Color.WHITE);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
+        // Render tree
         renderTree(gc, rootNode);
+    }
+
+    /**
+     * Calculates the required canvas bounds based on all visible nodes.
+     * Returns [maxX, maxY] coordinates.
+     */
+    private double[] calculateCanvasBounds(VisualNode node) {
+        double maxX = node.getX() + node.getWidth();
+        double maxY = node.getY() + node.getHeight();
+
+        if (node.isExpanded() && node.hasChildren()) {
+            for (VisualNode child : node.getChildren()) {
+                double[] childBounds = calculateCanvasBounds(child);
+                maxX = Math.max(maxX, childBounds[0]);
+                maxY = Math.max(maxY, childBounds[1]);
+            }
+        }
+
+        return new double[]{maxX, maxY};
     }
 
     /**
