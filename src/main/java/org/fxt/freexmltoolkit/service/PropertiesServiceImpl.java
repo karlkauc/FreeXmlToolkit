@@ -314,12 +314,12 @@ public class PropertiesServiceImpl implements PropertiesService {
 
     @Override
     public XmlParserType getXmlParserType() {
-        String parserName = properties.getProperty("xml.parser.type", XmlParserType.SAXON.name());
+        String parserName = properties.getProperty("xml.parser.type", XmlParserType.XERCES.name());
         try {
             return XmlParserType.valueOf(parserName);
         } catch (IllegalArgumentException e) {
-            logger.warn("Invalid parser type '{}', defaulting to SAXON", parserName);
-            return XmlParserType.SAXON;
+            logger.warn("Invalid parser type '{}', defaulting to XERCES", parserName);
+            return XmlParserType.XERCES;
         }
     }
 

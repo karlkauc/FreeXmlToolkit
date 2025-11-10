@@ -51,5 +51,11 @@
         <Logger name="org.fxt.freexmltoolkit.controls.FileExplorerTreeItem" level="WARN" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
+        <Logger name="org.fxt.freexmltoolkit.controls.editor.SyntaxHighlightManager" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.fxt.freexmltoolkit.controls.intellisense.XmlIntelliSenseEngine" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
     </Loggers>
 </Configuration>

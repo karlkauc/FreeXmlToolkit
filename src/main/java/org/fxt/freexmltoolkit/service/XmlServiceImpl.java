@@ -555,8 +555,8 @@ public class XmlServiceImpl implements XmlService {
 
     @Override
     public List<SAXParseException> validateText(String xmlString, File schemaFile) {
-        // Get the configured validation service based on user settings
-        XmlValidationService validationService = getValidationService();
+        // Get the appropriate validation service based on schema content and user settings
+        XmlValidationService validationService = getValidationService(schemaFile);
         logger.debug("Using {} for XML validation", validationService.getValidatorName());
 
         // Delegate validation to the selected service
@@ -564,17 +564,54 @@ public class XmlServiceImpl implements XmlService {
     }
 
     /**
-     * Gets the appropriate validation service based on user settings.
+     * Gets the appropriate validation service based on user settings and schema content.
      *
+     * @param schemaFile the XSD file to check for XSD 1.1 features (optional)
      * @return the configured validation service
      */
-    private XmlValidationService getValidationService() {
+    private XmlValidationService getValidationService(File schemaFile) {
         XmlParserType parserType = propertiesService.getXmlParserType();
+
+        // Auto-detect XSD 1.1 features and force Xerces if needed
+        if (schemaFile != null && hasXsd11Features(schemaFile)) {
+            logger.info("XSD 1.1 features detected in schema, using Xerces for validation");
+            return xercesValidationService;
+        }
 
         return switch (parserType) {
             case XERCES -> xercesValidationService;
             case SAXON -> saxonValidationService;
         };
+    }
+
+    /**
+     * Gets the appropriate validation service based on user settings only.
+     *
+     * @return the configured validation service
+     */
+    private XmlValidationService getValidationService() {
+        return getValidationService(null);
+    }
+
+    /**
+     * Checks if the given XSD file contains XSD 1.1 features.
+     *
+     * @param schemaFile the XSD file to check
+     * @return true if XSD 1.1 features are detected
+     */
+    private boolean hasXsd11Features(File schemaFile) {
+        try {
+            String content = Files.readString(schemaFile.toPath());
+            // Check for XSD 1.1 features
+            return content.contains("<xs:assert") || 
+                   content.contains("vc:minVersion=\"1.1\"") ||
+                   content.contains("<xs:alternative") ||
+                   content.contains("<xs:openContent") ||
+                   content.contains("explicitTimezone=");
+        } catch (Exception e) {
+            logger.debug("Error checking XSD 1.1 features: {}", e.getMessage());
+            return false;
+        }
     }
 
     @Override
