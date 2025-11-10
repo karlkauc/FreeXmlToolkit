@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.v2.view;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -11,6 +12,10 @@ import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.menu.XsdContextMenuFactory;
+import org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdPropertiesPanel;
+import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
@@ -32,14 +37,23 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
     private static final Logger logger = LogManager.getLogger(XsdGraphView.class);
 
-    private final XsdSchemaModel model;
+    private final XsdSchemaModel model;  // Old model (may be null for XsdSchema-based views)
+    private final XsdSchema xsdSchema;   // New XsdNode-based model (may be null for XsdSchemaModel-based views)
     private final Canvas canvas;
     private final ScrollPane scrollPane;
     private final XsdNodeRenderer renderer;
     private final TextArea documentationArea;
+    private final SelectionModel selectionModel;
+    private XsdEditorContext editorContext;
+    private XsdContextMenuFactory contextMenuFactory;
+    private XsdPropertiesPanel propertiesPanel;
+    private SplitPane mainSplitPane;
+    private SplitPane rightPanel;
+    private ToggleButton propertiesToggle;
 
     private VisualNode rootNode;
     private VisualNode selectedNode;
+    private VisualNode hoveredNode;
     private final Map<String, VisualNode> nodeMap = new HashMap<>();
 
     // Zoom state
@@ -49,9 +63,17 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private static final double ZOOM_STEP = 0.1;
     private Label zoomLabel;
 
+    /**
+     * Constructor using the old XsdSchemaModel (flat structure).
+     *
+     * @deprecated Use XsdGraphView(XsdSchema) instead for better integration with XsdNode model
+     */
+    @Deprecated
     public XsdGraphView(XsdSchemaModel model) {
         this.model = model;
+        this.xsdSchema = null;
         this.renderer = new XsdNodeRenderer();
+        this.selectionModel = new SelectionModel();
 
         // Create canvas for drawing
         this.canvas = new Canvas(2000, 2000);
@@ -66,6 +88,87 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         documentationArea.setPrefHeight(150);
         documentationArea.setPromptText("Select a node to view documentation...");
 
+        // Initialize with default EditorContext (view mode)
+        this.editorContext = new XsdEditorContext(model);
+        this.contextMenuFactory = new XsdContextMenuFactory(editorContext);
+
+        initializeUI();
+    }
+
+    /**
+     * Constructor using the new XsdSchema (XsdNode-based tree structure).
+     * This is the preferred constructor for direct XsdNode model integration.
+     *
+     * @param schema the XSD schema to visualize
+     * @since 2.0
+     */
+    public XsdGraphView(XsdSchema schema) {
+        this.xsdSchema = schema;
+        this.model = null;
+        this.renderer = new XsdNodeRenderer();
+        this.selectionModel = new SelectionModel();
+
+        // Create canvas for drawing
+        this.canvas = new Canvas(2000, 2000);
+        this.scrollPane = new ScrollPane(canvas);
+        scrollPane.setPannable(true);
+        scrollPane.setStyle("-fx-background-color: white;");
+
+        // Documentation panel
+        this.documentationArea = new TextArea();
+        documentationArea.setEditable(false);
+        documentationArea.setWrapText(true);
+        documentationArea.setPrefHeight(150);
+        documentationArea.setPromptText("Select a node to view documentation...");
+
+        // Create a temporary model for EditorContext compatibility
+        // TODO: Refactor EditorContext to work with XsdSchema directly
+        XsdSchemaModel tempModel = new XsdSchemaModel();
+        if (schema.getTargetNamespace() != null) {
+            tempModel.setTargetNamespace(schema.getTargetNamespace());
+        }
+        this.editorContext = new XsdEditorContext(tempModel);
+        this.contextMenuFactory = new XsdContextMenuFactory(editorContext);
+
+        initializeUI();
+    }
+
+    /**
+     * Initializes the UI components (called from constructors).
+     */
+    private void initializeUI() {
+
+        // Setup selection listener
+        selectionModel.addSelectionListener((oldSelection, newSelection) -> {
+            // Update visual state of previously selected nodes
+            for (VisualNode node : oldSelection) {
+                node.setSelected(false);
+                node.setFocused(false);
+                node.setInEditMode(false);
+            }
+            // Update visual state of newly selected nodes
+            boolean editMode = editorContext != null && editorContext.isEditMode();
+            for (VisualNode node : newSelection) {
+                node.setSelected(true);
+                node.setInEditMode(editMode);
+            }
+            // Set focus on primary selection
+            VisualNode primarySelection = selectionModel.getPrimarySelection();
+            if (primarySelection != null) {
+                primarySelection.setFocused(true);
+            }
+            // Update legacy selectedNode reference for documentation
+            if (!newSelection.isEmpty()) {
+                selectedNode = newSelection.iterator().next();
+                showDocumentation(selectedNode);
+            } else {
+                selectedNode = null;
+                documentationArea.clear();
+            }
+            // Redraw to show selection changes
+            redraw();
+        });
+
         // Setup UI
         setupLayout();
 
@@ -76,12 +179,16 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         redraw();
 
         // Register for model changes
-        model.addPropertyChangeListener(this);
+        if (model != null) {
+            model.addPropertyChangeListener(this);
+        } else if (xsdSchema != null) {
+            xsdSchema.addPropertyChangeListener(this);
+        }
 
         // Setup mouse interaction
         setupMouseHandlers();
 
-        logger.info("XsdGraphView initialized (graphical mode)");
+        logger.info("XsdGraphView initialized (graphical mode) using {}", model != null ? "XsdSchemaModel" : "XsdSchema");
     }
 
     /**
@@ -92,17 +199,28 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         ToolBar toolbar = createToolbar();
         setTop(toolbar);
 
+        // Properties panel (initially hidden)
+        propertiesPanel = new XsdPropertiesPanel(editorContext);
+        propertiesPanel.setPrefWidth(300);
+        propertiesPanel.setMinWidth(200);
+        propertiesPanel.setMaxWidth(500);
+
         // Documentation panel
         TitledPane docPane = new TitledPane("Documentation", documentationArea);
         docPane.setCollapsible(true);
         docPane.setExpanded(false);
 
-        // Split pane
-        SplitPane splitPane = new SplitPane(scrollPane, docPane);
-        splitPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
-        splitPane.setDividerPositions(0.7);
+        // Right side: vertical split with properties and documentation
+        rightPanel = new SplitPane(propertiesPanel, docPane);
+        rightPanel.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        rightPanel.setDividerPositions(0.6);
 
-        setCenter(splitPane);
+        // Main split pane: horizontal split with canvas and right panel
+        mainSplitPane = new SplitPane(scrollPane, rightPanel);
+        mainSplitPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
+        mainSplitPane.setDividerPositions(0.7);
+
+        setCenter(mainSplitPane);
         setStyle("-fx-background-color: #f5f5f5;");
     }
 
@@ -130,6 +248,26 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         // Separator
         Separator separator = new Separator();
         separator.setOrientation(javafx.geometry.Orientation.VERTICAL);
+
+        // Properties Panel Toggle Button
+        propertiesToggle = new ToggleButton("Properties");
+        propertiesToggle.setSelected(true); // Initially visible
+        propertiesToggle.setTooltip(new Tooltip("Show/Hide Properties Panel (Ctrl+P)"));
+        propertiesToggle.setOnAction(e -> {
+            if (propertiesToggle.isSelected()) {
+                // Show right panel
+                if (!mainSplitPane.getItems().contains(rightPanel)) {
+                    mainSplitPane.getItems().add(rightPanel);
+                    mainSplitPane.setDividerPositions(0.7);
+                }
+            } else {
+                // Hide right panel
+                mainSplitPane.getItems().remove(rightPanel);
+            }
+        });
+
+        Separator separator2 = new Separator();
+        separator2.setOrientation(javafx.geometry.Orientation.VERTICAL);
 
         // Zoom buttons
         Button zoomInBtn = new Button("+");
@@ -159,6 +297,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         toolbar.getItems().addAll(
                 expandAllBtn, collapseAllBtn, fitBtn,
                 separator,
+                propertiesToggle,
+                separator2,
                 zoomInBtn, zoomOutBtn, zoomResetBtn, zoomLabel,
                 spacer, infoLabel
         );
@@ -174,6 +314,17 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private void buildVisualTree() {
         nodeMap.clear();
 
+        // Use new XsdSchema-based builder if available
+        if (xsdSchema != null) {
+            XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
+            // Provide redraw callback for Model → View synchronization
+            rootNode = builder.buildFromSchema(xsdSchema, this::redraw);
+            nodeMap.putAll(builder.getNodeMap());
+            logger.debug("Visual tree built from XsdSchema with {} nodes (with auto-redraw on model changes)", nodeMap.size());
+            return;
+        }
+
+        // Fallback to old XsdSchemaModel-based builder
         if (model.getGlobalElements().isEmpty()) {
             // No global elements - create empty schema node
             rootNode = new VisualNode(
@@ -549,8 +700,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      */
     private void setupMouseHandlers() {
         canvas.setOnMouseClicked(this::handleMouseClick);
+        canvas.setOnMouseMoved(this::handleMouseMove);
 
-        // Setup keyboard shortcuts for zoom
+        // Setup keyboard shortcuts for zoom and properties toggle
         this.setOnKeyPressed(event -> {
             if (event.isControlDown()) {
                 switch (event.getCode()) {
@@ -565,6 +717,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                     case DIGIT0, NUMPAD0 -> {
                         event.consume();
                         zoomReset();
+                    }
+                    case P -> {
+                        event.consume();
+                        togglePropertiesPanel();
                     }
                 }
             }
@@ -588,11 +744,51 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
+     * Handles mouse move events for hover detection.
+     */
+    private void handleMouseMove(MouseEvent event) {
+        // Adjust coordinates for zoom level
+        double x = event.getX() / zoomLevel;
+        double y = event.getY() / zoomLevel;
+
+        VisualNode nodeAtPosition = findNodeAt(rootNode, x, y);
+
+        // Update hover state
+        if (nodeAtPosition != hoveredNode) {
+            // Clear previous hover
+            if (hoveredNode != null) {
+                hoveredNode.setHovered(false);
+            }
+
+            // Set new hover
+            hoveredNode = nodeAtPosition;
+            if (hoveredNode != null) {
+                hoveredNode.setHovered(true);
+            }
+
+            // Redraw to show hover effect
+            redraw();
+        }
+    }
+
+    /**
      * Handles mouse clicks on the canvas.
      */
     private void handleMouseClick(MouseEvent event) {
-        double x = event.getX();
-        double y = event.getY();
+        // Handle right-click for context menu
+        if (event.getButton() == MouseButton.SECONDARY) {
+            handleContextMenu(event);
+            return;
+        }
+
+        // Handle left-click for selection
+        if (event.getButton() != MouseButton.PRIMARY) {
+            return;
+        }
+
+        // Adjust coordinates for zoom level
+        double x = event.getX() / zoomLevel;
+        double y = event.getY() / zoomLevel;
 
         VisualNode clickedNode = findNodeAt(rootNode, x, y);
 
@@ -602,11 +798,49 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
                 clickedNode.toggleExpanded();
                 redraw();
             } else {
-                // Node body clicked - select it
-                selectedNode = clickedNode;
-                showDocumentation(clickedNode);
+                // Node body clicked - select it via SelectionModel
+                if (event.isControlDown()) {
+                    // Ctrl+Click: toggle selection
+                    selectionModel.toggleSelection(clickedNode);
+                } else if (event.isShiftDown() && !selectionModel.isEmpty()) {
+                    // Shift+Click: add to selection
+                    selectionModel.addToSelection(clickedNode);
+                } else {
+                    // Normal click: single selection
+                    selectionModel.select(clickedNode);
+                }
             }
+        } else {
+            // Clicked on empty space - clear selection
+            selectionModel.clearSelection();
         }
+    }
+
+    /**
+     * Handles right-click context menu.
+     */
+    private void handleContextMenu(MouseEvent event) {
+        if (contextMenuFactory == null) {
+            logger.warn("Context menu factory not initialized");
+            return;
+        }
+
+        // Adjust coordinates for zoom level
+        double x = event.getX() / zoomLevel;
+        double y = event.getY() / zoomLevel;
+
+        VisualNode clickedNode = findNodeAt(rootNode, x, y);
+
+        // If node is clicked but not selected, select it first
+        if (clickedNode != null && !selectionModel.isSelected(clickedNode)) {
+            selectionModel.select(clickedNode);
+        }
+
+        // Create and show context menu
+        ContextMenu contextMenu = contextMenuFactory.createContextMenu(clickedNode);
+        contextMenu.show(canvas, event.getScreenX(), event.getScreenY());
+
+        logger.debug("Context menu shown for node: {}", clickedNode != null ? clickedNode.getLabel() : "empty canvas");
     }
 
     /**
@@ -738,6 +972,16 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
+     * Toggles the visibility of the properties panel.
+     * Triggered by Ctrl+P keyboard shortcut.
+     */
+    private void togglePropertiesPanel() {
+        propertiesToggle.setSelected(!propertiesToggle.isSelected());
+        propertiesToggle.fire();
+        logger.debug("Properties panel toggled: {}", propertiesToggle.isSelected() ? "visible" : "hidden");
+    }
+
+    /**
      * Sets the zoom level and updates the canvas.
      */
     private void setZoom(double zoom) {
@@ -753,5 +997,61 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         canvas.setScaleY(zoomLevel);
 
         logger.debug("Zoom level set to: {}%", zoomLevel * 100);
+    }
+
+    /**
+     * Gets the selection model.
+     *
+     * @return the selection model
+     */
+    public SelectionModel getSelectionModel() {
+        return selectionModel;
+    }
+
+    /**
+     * Sets the editor context and registers listeners for edit mode changes.
+     *
+     * @param editorContext the editor context
+     */
+    public void setEditorContext(XsdEditorContext editorContext) {
+        // Remove old listener if present
+        if (this.editorContext != null) {
+            this.editorContext.removePropertyChangeListener("editMode", this::handleEditModeChange);
+        }
+
+        this.editorContext = editorContext != null ? editorContext : new XsdEditorContext(model);
+
+        // Add listener for edit mode changes
+        this.editorContext.addPropertyChangeListener("editMode", this::handleEditModeChange);
+        // Update visual state immediately
+        updateEditModeVisuals();
+
+        // Reinitialize context menu factory with new context
+        this.contextMenuFactory = new XsdContextMenuFactory(this.editorContext);
+
+        logger.debug("EditorContext set, editMode: {}", this.editorContext.isEditMode());
+    }
+
+    /**
+     * Handles edit mode changes from EditorContext.
+     */
+    private void handleEditModeChange(PropertyChangeEvent evt) {
+        logger.debug("Edit mode changed: {} -> {}", evt.getOldValue(), evt.getNewValue());
+        updateEditModeVisuals();
+    }
+
+    /**
+     * Updates the visual edit mode indicators for all selected nodes.
+     */
+    private void updateEditModeVisuals() {
+        boolean editMode = editorContext != null && editorContext.isEditMode();
+
+        // Update all selected nodes
+        for (VisualNode node : selectionModel.getSelectedNodes()) {
+            node.setInEditMode(editMode);
+        }
+
+        // Redraw to show changes
+        redraw();
     }
 }

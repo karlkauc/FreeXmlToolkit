@@ -104,13 +104,26 @@ public class XsdNodeRenderer {
         Color fillColor = getNodeFillColor(node.getType());
         Color borderColor = getNodeBorderColor(node.getType());
 
+        // Apply visual feedback modifications
+        if (node.isHovered()) {
+            // Brighten fill color for hover effect
+            fillColor = fillColor.brighter();
+        }
+
+        if (node.isSelected()) {
+            // Use brighter, more saturated color for selected nodes
+            fillColor = fillColor.deriveColor(0, 1.2, 1.1, 1.0);
+        }
+
         // Draw node rectangle with cardinality-based border style
         gc.setFill(fillColor);
         gc.setStroke(borderColor);
 
-        // Determine line width based on maxOccurs
+        // Determine line width based on state and maxOccurs
         double lineWidth;
-        if (node.getMaxOccurs() > 1 || node.getMaxOccurs() == Integer.MAX_VALUE) {
+        if (node.isSelected()) {
+            lineWidth = 4.0;  // Thicker border for selected nodes
+        } else if (node.getMaxOccurs() > 1 || node.getMaxOccurs() == Integer.MAX_VALUE) {
             lineWidth = 3.5;  // Thicker border for multiple occurrences
         } else {
             lineWidth = 2;    // Normal border for single occurrence
@@ -131,6 +144,22 @@ public class XsdNodeRenderer {
             gc.strokeRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
         }
 
+        // Draw selection highlight (additional colored border)
+        if (node.isSelected()) {
+            gc.setStroke(Color.rgb(59, 130, 246));  // Blue highlight
+            gc.setLineWidth(3);
+            gc.strokeRoundRect(x - 2, y - 2, width + 4, height + 4, CORNER_RADIUS + 2, CORNER_RADIUS + 2);
+        }
+
+        // Draw focus indicator (dashed outline)
+        if (node.isFocused()) {
+            gc.setStroke(Color.rgb(139, 92, 246));  // Purple for focus
+            gc.setLineWidth(2);
+            gc.setLineDashes(4, 4);
+            gc.strokeRoundRect(x - 3, y - 3, width + 6, height + 6, CORNER_RADIUS + 3, CORNER_RADIUS + 3);
+            gc.setLineDashes(null);  // Reset to solid
+        }
+
         // Draw node text
         gc.setFill(Color.BLACK);
         gc.setFont(nodeFont);
@@ -146,6 +175,24 @@ public class XsdNodeRenderer {
             gc.setFill(Color.GRAY);
             String detailText = truncateText(node.getDetail(), width - 40);
             gc.fillText(detailText, x + 10, y + 28);
+        }
+
+        // Draw edit mode indicator (small badge in top-right corner)
+        if (node.isInEditMode()) {
+            double badgeSize = 8;
+            double badgeX = x + width - badgeSize - 4;
+            double badgeY = y + 4;
+
+            // Draw badge circle
+            gc.setFill(Color.rgb(234, 179, 8));  // Amber color
+            gc.fillOval(badgeX, badgeY, badgeSize, badgeSize);
+
+            // Draw pencil symbol
+            gc.setStroke(Color.WHITE);
+            gc.setLineWidth(1.5);
+            double pencilX = badgeX + badgeSize / 2;
+            double pencilY = badgeY + badgeSize / 2;
+            gc.strokeLine(pencilX - 2, pencilY + 2, pencilX + 2, pencilY - 2);
         }
 
         // Draw expand/collapse button if node has children
@@ -372,21 +419,35 @@ public class XsdNodeRenderer {
         private final String label;
         private final String detail;
         private final NodeWrapperType type;
-        private final Object modelObject;
+        private final Object modelObject;  // Can be XsdNode (new) or XsdModel objects (old)
         private final VisualNode parent;
         private final java.util.List<VisualNode> children = new java.util.ArrayList<>();
         private final int minOccurs;
         private final int maxOccurs;
+        private final Runnable onModelChangeCallback;
 
         private double x, y, width, height;
         private double expandBtnX, expandBtnY, expandBtnW, expandBtnH;
         private boolean expanded = false;
 
+        // Visual feedback states
+        private boolean selected = false;
+        private boolean hovered = false;
+        private boolean focused = false;
+        private boolean inEditMode = false;
+
+        // PropertyChangeListener for model updates
+        private final java.beans.PropertyChangeListener modelListener;
+
         public VisualNode(String label, String detail, NodeWrapperType type, Object modelObject, VisualNode parent) {
-            this(label, detail, type, modelObject, parent, 1, 1);
+            this(label, detail, type, modelObject, parent, 1, 1, null);
         }
 
         public VisualNode(String label, String detail, NodeWrapperType type, Object modelObject, VisualNode parent, int minOccurs, int maxOccurs) {
+            this(label, detail, type, modelObject, parent, minOccurs, maxOccurs, null);
+        }
+
+        public VisualNode(String label, String detail, NodeWrapperType type, Object modelObject, VisualNode parent, int minOccurs, int maxOccurs, Runnable onModelChangeCallback) {
             this.label = label;
             this.detail = detail;
             this.type = type;
@@ -394,6 +455,22 @@ public class XsdNodeRenderer {
             this.parent = parent;
             this.minOccurs = minOccurs;
             this.maxOccurs = maxOccurs;
+            this.onModelChangeCallback = onModelChangeCallback;
+
+            // Setup PropertyChangeListener for model updates (only for XsdNode objects)
+            this.modelListener = evt -> {
+                // Auto-update when model changes
+                // This will trigger visual refresh in the view
+                if (onModelChangeCallback != null) {
+                    // Use Platform.runLater to ensure UI updates happen on JavaFX Application Thread
+                    javafx.application.Platform.runLater(onModelChangeCallback);
+                }
+            };
+
+            // Register listener with model if it's an XsdNode
+            if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+                xsdNode.addPropertyChangeListener(modelListener);
+            }
         }
 
         public void addChild(VisualNode child) {
@@ -428,6 +505,18 @@ public class XsdNodeRenderer {
 
         public NodeWrapperType getType() {
             return type;
+        }
+
+        /**
+         * Gets the model node if the model object is an XsdNode.
+         *
+         * @return the XsdNode, or null if model object is not an XsdNode
+         */
+        public org.fxt.freexmltoolkit.controls.v2.model.XsdNode getModelNode() {
+            if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+                return xsdNode;
+            }
+            return null;
         }
 
         public Object getModelObject() {
@@ -495,6 +584,38 @@ public class XsdNodeRenderer {
             this.expandBtnY = y;
             this.expandBtnW = w;
             this.expandBtnH = h;
+        }
+
+        public boolean isSelected() {
+            return selected;
+        }
+
+        public void setSelected(boolean selected) {
+            this.selected = selected;
+        }
+
+        public boolean isHovered() {
+            return hovered;
+        }
+
+        public void setHovered(boolean hovered) {
+            this.hovered = hovered;
+        }
+
+        public boolean isFocused() {
+            return focused;
+        }
+
+        public void setFocused(boolean focused) {
+            this.focused = focused;
+        }
+
+        public boolean isInEditMode() {
+            return inEditMode;
+        }
+
+        public void setInEditMode(boolean inEditMode) {
+            this.inEditMode = inEditMode;
         }
     }
 }

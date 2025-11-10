@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://test.example.com"
+           targetNamespace="http://test.example.com"
+           elementFormDefault="qualified">
+
+    <xs:simpleType name="Text256Type">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="256"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Transaction">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="TransactionID" type="tns:Text256Type">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en">Unique Transaction ID</xs:documentation>
+                        <xs:documentation xml:lang="de">Eindeutige Transaktionsnummer</xs:documentation>
+                        <xs:appinfo source="@since 1.0.0"/>
+                        <xs:appinfo source="@see {@link /Transaction/TransactionKind}"/>
+                        <xs:appinfo source="@see Additional reference information"/>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element minOccurs="0" name="CancellationFlag" type="xs:boolean">
+                    <xs:annotation>
+                        <xs:documentation xml:lang="en">Indicates whether transaction has been cancelled
+                        </xs:documentation>
+                        <xs:documentation xml:lang="de">Kennzeichen ob die Transaktion storniert wurde
+                        </xs:documentation>
+                        <xs:appinfo source="@deprecated Use TransactionStatus instead"/>
+                        <xs:appinfo source="@since 1.0.0"/>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="TransactionKind" type="xs:string"/>
+                <xs:element name="TransactionStatus" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

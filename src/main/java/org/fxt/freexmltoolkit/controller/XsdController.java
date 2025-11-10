@@ -1259,9 +1259,13 @@ public class XsdController {
         Task<org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel> task = new Task<>() {
             @Override
             protected org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel call() throws Exception {
-                org.fxt.freexmltoolkit.controls.v2.model.XsdModelFactory factory =
-                        new org.fxt.freexmltoolkit.controls.v2.model.XsdModelFactory();
-                return factory.fromString(xsdContent);
+                // Use new XsdNodeFactory to parse the schema
+                org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory factory =
+                        new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
+                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = factory.fromString(xsdContent);
+
+                // Convert to XsdSchemaModel for compatibility with XsdGraphView
+                return org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaAdapter.toSchemaModel(schema);
             }
         };
 
@@ -1271,9 +1275,16 @@ public class XsdController {
 
             if (currentSchemaModelV2 != null) {
                 currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(currentSchemaModelV2);
+
+                // Enable edit mode by creating and setting up an editor context
+                org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext =
+                        new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(currentSchemaModelV2);
+                editorContext.setEditMode(true);
+                currentGraphViewV2.setEditorContext(editorContext);
+
                 xsdStackPaneV2.getChildren().add(currentGraphViewV2);
 
-                logger.info("XSD loaded into V2 editor: {} global elements",
+                logger.info("XSD loaded into V2 editor with edit mode enabled: {} global elements",
                         currentSchemaModelV2.getGlobalElements().size());
             } else {
                 javafx.scene.control.Label errorLabel = new javafx.scene.control.Label("Failed to parse XSD schema");
