@@ -3,6 +3,8 @@
            targetNamespace="http://example.com/test"
            xmlns:tns="http://example.com/test"
            elementFormDefault="qualified"
+           xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+           vc:minVersion="1.1"
            version="1.1">
 
     <xs:element name="Product" type="tns:ProductType"/>
