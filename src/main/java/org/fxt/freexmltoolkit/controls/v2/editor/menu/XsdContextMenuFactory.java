@@ -83,7 +83,7 @@ public class XsdContextMenuFactory {
         // Add submenu
         Menu addMenu = new Menu("Add");
         addMenu.getItems().addAll(
-                createMenuItem("Child Element", () -> logger.info("Add child element to {}", node.getLabel())),
+                createMenuItem("Child Element", () -> handleAddChildElement(node)),
                 createMenuItem("Attribute", () -> logger.info("Add attribute to {}", node.getLabel())),
                 new SeparatorMenuItem(),
                 createMenuItem("Sequence", () -> logger.info("Add sequence to {}", node.getLabel())),
@@ -430,6 +430,34 @@ public class XsdContextMenuFactory {
                     }
                 } catch (NumberFormatException e) {
                     logger.warn("Failed to parse cardinality: {}", cardinality, e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Handles add child element operation for a node.
+     *
+     * @param node the parent node
+     */
+    private void handleAddChildElement(VisualNode node) {
+        TextInputDialog dialog = new TextInputDialog("newElement");
+        dialog.setTitle("Add Child Element");
+        dialog.setHeaderText("Add child element to '" + node.getLabel() + "'");
+        dialog.setContentText("Element name:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(elementName -> {
+            if (!elementName.trim().isEmpty()) {
+                // Extract XsdNode from VisualNode for the command
+                Object modelObject = node.getModelObject();
+                if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode parentNode) {
+                    AddElementCommand command = new AddElementCommand(parentNode, elementName.trim());
+                    editorContext.getCommandManager().executeCommand(command);
+                    logger.info("Added child element '{}' to '{}'", elementName, node.getLabel());
+                } else {
+                    logger.warn("Cannot add child element - model object is not an XsdNode: {}",
+                            modelObject != null ? modelObject.getClass() : "null");
                 }
             }
         });

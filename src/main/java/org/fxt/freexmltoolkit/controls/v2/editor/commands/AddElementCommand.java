@@ -22,6 +22,7 @@ public class AddElementCommand implements XsdCommand {
     private final String elementName;
     private final String elementType;
     private XsdElement addedElement;
+    private XsdNode actualParent;  // The actual parent where element was added (might be compositor)
 
     /**
      * Creates a new add element command with default string type.
@@ -60,23 +61,63 @@ public class AddElementCommand implements XsdCommand {
         addedElement = new XsdElement(elementName);
         addedElement.setType(elementType);
 
-        parentNode.addChild(addedElement);
+        // Find the correct parent to add to:
+        // If parent is an element with complexType containing a compositor, add to compositor
+        // Otherwise add directly to parent
+        actualParent = findTargetParent(parentNode);
+        actualParent.addChild(addedElement);
 
         logger.info("Added element '{}' with type '{}' to parent '{}'",
-                elementName, elementType, parentNode.getName());
+                elementName, elementType, actualParent.getClass().getSimpleName());
         return true;
+    }
+
+    /**
+     * Finds the correct parent node to add the new element to.
+     * If the parent element has a complexType with a compositor (sequence/choice/all),
+     * returns the compositor. Otherwise returns the parent itself.
+     */
+    private XsdNode findTargetParent(XsdNode parent) {
+        // Check if parent has children (complexType, sequence, etc.)
+        for (XsdNode child : parent.getChildren()) {
+            // If it's a complexType, look for compositor inside
+            if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType) {
+                for (XsdNode complexTypeChild : child.getChildren()) {
+                    // Found a compositor - this is where elements should go
+                    if (complexTypeChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSequence ||
+                            complexTypeChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdChoice ||
+                            complexTypeChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAll) {
+                        logger.debug("Found compositor {} in complexType, using as target parent",
+                                complexTypeChild.getClass().getSimpleName());
+                        return complexTypeChild;
+                    }
+                }
+            }
+            // If it's directly a compositor (for ref elements or groups)
+            else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSequence ||
+                    child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdChoice ||
+                    child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAll) {
+                logger.debug("Found direct compositor {}, using as target parent",
+                        child.getClass().getSimpleName());
+                return child;
+            }
+        }
+
+        // No compositor found, add directly to parent
+        logger.debug("No compositor found, adding directly to parent");
+        return parent;
     }
 
     @Override
     public boolean undo() {
-        if (addedElement == null) {
+        if (addedElement == null || actualParent == null) {
             logger.warn("Cannot undo: no element was added");
             return false;
         }
 
         // Remove from model - this will fire PropertyChangeEvent
-        parentNode.removeChild(addedElement);
-        logger.info("Removed added element '{}'", elementName);
+        actualParent.removeChild(addedElement);
+        logger.info("Removed added element '{}' from '{}'", elementName, actualParent.getClass().getSimpleName());
         return true;
     }
 

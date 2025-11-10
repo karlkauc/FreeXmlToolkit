@@ -125,6 +125,9 @@ public class XsdVisualTreeBuilder {
         VisualNode node = new VisualNode(label, detail, NodeWrapperType.ELEMENT, element, parent,
                 minOccurs, maxOccurs, onModelChangeCallback);
 
+        // Add to nodeMap for later lookup
+        nodeMap.put(element.getId(), node);
+
         // Process children
         for (XsdNode child : element.getChildren()) {
             if (child instanceof XsdComplexType) {
@@ -143,11 +146,17 @@ public class XsdVisualTreeBuilder {
      * Processes a complex type and adds its content to the parent node.
      */
     private void processComplexType(XsdComplexType complexType, VisualNode parentNode) {
+        logger.debug("Processing complexType with {} children", complexType.getChildren().size());
+
         // Process children to find compositors and attributes
         for (XsdNode child : complexType.getChildren()) {
+            logger.debug("ComplexType child: {} (type: {})", child.getClass().getSimpleName(), child.getClass().getName());
+
             if (child instanceof XsdSequence) {
                 VisualNode compositor = createCompositorNode(child, parentNode, "sequence");
+                logger.debug("Created compositor node '{}' with {} visual children", compositor.getLabel(), compositor.getChildren().size());
                 parentNode.addChild(compositor);
+                logger.debug("Added compositor to parent '{}' which now has {} children", parentNode.getLabel(), parentNode.getChildren().size());
             } else if (child instanceof XsdChoice) {
                 VisualNode compositor = createCompositorNode(child, parentNode, "choice");
                 parentNode.addChild(compositor);
@@ -177,11 +186,26 @@ public class XsdVisualTreeBuilder {
 
         VisualNode node = new VisualNode(label, detail, nodeType, compositorNode, parent, 1, 1, onModelChangeCallback);
 
+        // Expand compositors by default so their children are visible
+        node.setExpanded(true);
+
+        // Add to nodeMap for later lookup
+        if (compositorNode instanceof XsdNode) {
+            nodeMap.put(compositorNode.getId(), node);
+        }
+
         // Add child elements
+        logger.debug("Compositor {} has {} children", compositorType, compositorNode.getChildren().size());
+
         for (XsdNode child : compositorNode.getChildren()) {
-            if (child instanceof XsdElement) {
-                VisualNode elementNode = createElementNode((XsdElement) child, node);
+            logger.debug("Compositor child: {} (type: {})", child.getClass().getSimpleName(), child.getClass().getName());
+
+            if (child instanceof XsdElement element) {
+                logger.debug("Creating element node for: {}", element.getName());
+                VisualNode elementNode = createElementNode(element, node);
+                logger.debug("Adding element {} to compositor {}", elementNode.getLabel(), node.getLabel());
                 node.addChild(elementNode);
+                logger.debug("Compositor {} now has {} children", node.getLabel(), node.getChildren().size());
             } else if (child instanceof XsdSequence || child instanceof XsdChoice || child instanceof XsdAll) {
                 // Nested compositor
                 String nestedType = child instanceof XsdSequence ? "sequence" :
@@ -206,6 +230,10 @@ public class XsdVisualTreeBuilder {
         }
 
         VisualNode node = new VisualNode(label, detail, NodeWrapperType.ATTRIBUTE, attribute, parent, 1, 1, onModelChangeCallback);
+
+        // Add to nodeMap for later lookup
+        nodeMap.put(attribute.getId(), node);
+
         return node;
     }
 

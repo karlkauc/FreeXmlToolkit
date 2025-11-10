@@ -414,17 +414,23 @@ public class XsdNodeRenderer {
 
     /**
      * Visual representation of a node in the graph.
+     * Now supports dynamic updates from the model layer.
      */
     public static class VisualNode {
-        private final String label;
-        private final String detail;
+        // Mutable fields - can be updated when model changes
+        private String label;
+        private String detail;
+        private int minOccurs;
+        private int maxOccurs;
+
+        // Immutable fields
         private final NodeWrapperType type;
         private final Object modelObject;  // Can be XsdNode (new) or XsdModel objects (old)
         private final VisualNode parent;
         private final java.util.List<VisualNode> children = new java.util.ArrayList<>();
-        private final int minOccurs;
-        private final int maxOccurs;
-        private final Runnable onModelChangeCallback;
+
+        // Mutable callback - can be updated when tree is rebuilt
+        private Runnable onModelChangeCallback;
 
         private double x, y, width, height;
         private double expandBtnX, expandBtnY, expandBtnW, expandBtnH;
@@ -459,18 +465,80 @@ public class XsdNodeRenderer {
 
             // Setup PropertyChangeListener for model updates (only for XsdNode objects)
             this.modelListener = evt -> {
-                // Auto-update when model changes
-                // This will trigger visual refresh in the view
-                if (onModelChangeCallback != null) {
-                    // Use Platform.runLater to ensure UI updates happen on JavaFX Application Thread
-                    javafx.application.Platform.runLater(onModelChangeCallback);
-                }
+                // Auto-update this VisualNode from model when model changes
+                // Use Platform.runLater to ensure UI updates happen on JavaFX Application Thread
+                javafx.application.Platform.runLater(() -> {
+                    updateFromModel();
+                    // Also trigger callback for view refresh if provided
+                    if (onModelChangeCallback != null) {
+                        onModelChangeCallback.run();
+                    }
+                });
             };
 
             // Register listener with model if it's an XsdNode
             if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
                 xsdNode.addPropertyChangeListener(modelListener);
             }
+        }
+
+        /**
+         * Updates this VisualNode's display properties from the underlying XsdNode model.
+         * Called automatically when the model fires PropertyChangeEvents.
+         * <p>
+         * This method enables in-place updates instead of rebuilding the entire visual tree,
+         * making the editor more efficient and preserving UI state (selection, expansion).
+         */
+        private void updateFromModel() {
+            if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode)) {
+                return;  // Not an XsdNode, cannot update
+            }
+
+            // Update name/label
+            this.label = xsdNode.getName() != null ? xsdNode.getName() : "(unnamed)";
+
+            // Update cardinality
+            this.minOccurs = xsdNode.getMinOccurs();
+            this.maxOccurs = xsdNode.getMaxOccurs();
+
+            // Rebuild detail string based on node type
+            this.detail = buildDetailString(xsdNode);
+        }
+
+        /**
+         * Builds the detail string for display based on the node type.
+         * <p>
+         * Detail formats:
+         * - XsdElement: "xs:string" (just the type)
+         * - XsdAttribute: "xs:int (required)" (type + use)
+         * - Compositor: "3 items" (child count)
+         * - Other nodes: "" (empty)
+         *
+         * @param xsdNode the XSD node
+         * @return the detail string
+         */
+        private String buildDetailString(org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+            // Handle XsdElement - show type
+            if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+                return element.getType() != null ? element.getType() : "";
+            }
+
+            // Handle XsdAttribute - show type and use
+            if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
+                String detail = attribute.getType() != null ? attribute.getType() : "";
+                if ("required".equals(attribute.getUse())) {
+                    detail += " (required)";
+                }
+                return detail;
+            }
+
+            // Handle Compositor nodes (sequence, choice, all) - show child count
+            if (type == NodeWrapperType.SEQUENCE || type == NodeWrapperType.CHOICE || type == NodeWrapperType.ALL) {
+                return xsdNode.getChildren().size() + " items";
+            }
+
+            // Default: empty detail
+            return "";
         }
 
         public void addChild(VisualNode child) {
@@ -616,6 +684,17 @@ public class XsdNodeRenderer {
 
         public void setInEditMode(boolean inEditMode) {
             this.inEditMode = inEditMode;
+        }
+
+        /**
+         * Sets the callback to be invoked when the underlying model changes.
+         * This allows updating the callback after tree rebuild operations.
+         *
+         * @param callback the callback to invoke on model changes
+         * @since 2.0
+         */
+        public void setOnModelChangeCallback(Runnable callback) {
+            this.onModelChangeCallback = callback;
         }
     }
 }

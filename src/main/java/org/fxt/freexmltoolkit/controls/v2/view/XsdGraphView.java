@@ -317,10 +317,11 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         // Use new XsdSchema-based builder if available
         if (xsdSchema != null) {
             XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
-            // Provide redraw callback for Model → View synchronization
-            rootNode = builder.buildFromSchema(xsdSchema, this::redraw);
+            // Provide rebuild callback for Model → View synchronization
+            // For structural changes (add/delete child), we need to rebuild the tree
+            rootNode = builder.buildFromSchema(xsdSchema, this::rebuildVisualTree);
             nodeMap.putAll(builder.getNodeMap());
-            logger.debug("Visual tree built from XsdSchema with {} nodes (with auto-redraw on model changes)", nodeMap.size());
+            logger.debug("Visual tree built from XsdSchema with {} nodes (with auto-rebuild on model changes)", nodeMap.size());
             return;
         }
 
@@ -554,14 +555,177 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         return node;
     }
 
+    /**
+     * Rebuilds the visual tree while preserving expansion and selection state.
+     * This is called when structural changes occur (add/delete child elements).
+     * <p>
+     * The method:
+     * 1. Saves which nodes are currently expanded
+     * 2. Saves current selection
+     * 3. Rebuilds the entire VisualNode tree from the model
+     * 4. Restores expansion state
+     * 5. Restores selection
+     * 6. Triggers a redraw
+     *
+     * @since 2.0
+     */
+    private void rebuildVisualTree() {
+        if (rootNode == null) {
+            logger.warn("Cannot rebuild visual tree: rootNode is null");
+            return;
+        }
+
+        // Prevent infinite recursion during rebuild
+        // When we call buildVisualTree(), it creates new VisualNodes with this::rebuildVisualTree as callback
+        // We need to prevent those new nodes from triggering another rebuild during construction
+        if (isRebuilding) {
+            logger.trace("Already rebuilding, skipping nested rebuild call");
+            return;
+        }
+
+        try {
+            isRebuilding = true;
+
+            logger.debug("Rebuilding visual tree (structural change detected)");
+
+            // 1. Save expansion state
+            Set<String> expandedNodeIds = new HashSet<>();
+            collectExpandedNodes(rootNode, expandedNodeIds);
+            logger.trace("Saved {} expanded nodes", expandedNodeIds.size());
+
+            // 2. Save selection state
+            Set<String> selectedNodeIds = new HashSet<>();
+            for (VisualNode selected : selectionModel.getSelectedNodes()) {
+                Object modelObj = selected.getModelObject();
+                if (modelObj instanceof XsdNode xsdNode) {
+                    selectedNodeIds.add(xsdNode.getId());
+                }
+            }
+            logger.trace("Saved {} selected nodes", selectedNodeIds.size());
+
+            // 3. Rebuild tree from model
+            // Temporarily use this::redraw to avoid recursion during rebuild
+            if (xsdSchema != null) {
+                XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
+                rootNode = builder.buildFromSchema(xsdSchema, this::redraw);
+                nodeMap.clear();
+                nodeMap.putAll(builder.getNodeMap());
+                logger.debug("Visual tree rebuilt with {} nodes", nodeMap.size());
+                logger.debug("Root node has {} children", rootNode.getChildren().size());
+            } else if (model != null) {
+                buildVisualTree();
+            }
+
+            // 4. Restore expansion state
+            restoreExpansionState(rootNode, expandedNodeIds);
+            logger.trace("Restored expansion state");
+
+            // 5. Restore selection
+            selectionModel.clearSelection();
+            for (String selectedId : selectedNodeIds) {
+                VisualNode nodeToSelect = findNodeById(rootNode, selectedId);
+                if (nodeToSelect != null) {
+                    selectionModel.addToSelection(nodeToSelect);
+                }
+            }
+            logger.trace("Restored selection state");
+
+            // 6. Now update all VisualNodes to use this::rebuildVisualTree as callback again
+            updateCallbacks(rootNode, this::rebuildVisualTree);
+
+        } finally {
+            isRebuilding = false;
+        }
+
+        // 7. Trigger redraw on JavaFX thread
+        logger.debug("Triggering redraw after rebuild");
+        javafx.application.Platform.runLater(this::redraw);
+    }
+
+    private boolean isRebuilding = false;
+
+    /**
+     * Recursively collects IDs of all expanded nodes.
+     */
+    private void collectExpandedNodes(VisualNode node, Set<String> expandedIds) {
+        if (node == null) return;
+
+        if (node.isExpanded()) {
+            Object modelObj = node.getModelObject();
+            if (modelObj instanceof XsdNode xsdNode) {
+                expandedIds.add(xsdNode.getId());
+            }
+        }
+
+        for (VisualNode child : node.getChildren()) {
+            collectExpandedNodes(child, expandedIds);
+        }
+    }
+
+    /**
+     * Recursively restores expansion state based on saved node IDs.
+     */
+    private void restoreExpansionState(VisualNode node, Set<String> expandedIds) {
+        if (node == null) return;
+
+        Object modelObj = node.getModelObject();
+        if (modelObj instanceof XsdNode xsdNode) {
+            if (expandedIds.contains(xsdNode.getId())) {
+                node.setExpanded(true);
+            }
+        }
+
+        for (VisualNode child : node.getChildren()) {
+            restoreExpansionState(child, expandedIds);
+        }
+    }
+
+    /**
+     * Finds a VisualNode by its model's ID.
+     */
+    private VisualNode findNodeById(VisualNode node, String id) {
+        if (node == null) return null;
+
+        Object modelObj = node.getModelObject();
+        if (modelObj instanceof XsdNode xsdNode) {
+            if (xsdNode.getId().equals(id)) {
+                return node;
+            }
+        }
+
+        for (VisualNode child : node.getChildren()) {
+            VisualNode found = findNodeById(child, id);
+            if (found != null) {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Updates the callback for all VisualNodes in the tree.
+     * This is needed after rebuilding to ensure all nodes use the correct callback.
+     */
+    private void updateCallbacks(VisualNode node, Runnable callback) {
+        if (node == null) return;
+
+        node.setOnModelChangeCallback(callback);
+
+        for (VisualNode child : node.getChildren()) {
+            updateCallbacks(child, callback);
+        }
+    }
 
     /**
      * Redraws the entire canvas.
      */
     private void redraw() {
+        logger.debug("redraw() called, rootNode has {} children", rootNode != null ? rootNode.getChildren().size() : "null");
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         if (rootNode == null) {
+            logger.warn("redraw() aborted: rootNode is null");
             return;
         }
 

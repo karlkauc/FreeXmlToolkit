@@ -1256,36 +1256,42 @@ public class XsdController {
      * Loads XSD content into the V2 graphical view using the new model-based architecture.
      */
     private void loadXsdIntoGraphicViewV2(String xsdContent) {
-        Task<org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel> task = new Task<>() {
+        Task<org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> task = new Task<>() {
             @Override
-            protected org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel call() throws Exception {
+            protected org.fxt.freexmltoolkit.controls.v2.model.XsdSchema call() throws Exception {
                 // Use new XsdNodeFactory to parse the schema
                 org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory factory =
                         new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
-                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = factory.fromString(xsdContent);
-
-                // Convert to XsdSchemaModel for compatibility with XsdGraphView
-                return org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaAdapter.toSchemaModel(schema);
+                return factory.fromString(xsdContent);
             }
         };
 
         task.setOnSucceeded(event -> {
-            currentSchemaModelV2 = task.getValue();
+            org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = task.getValue();
             xsdStackPaneV2.getChildren().clear();
 
-            if (currentSchemaModelV2 != null) {
-                currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(currentSchemaModelV2);
+            if (schema != null) {
+                // Use new XsdSchema-based constructor
+                currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(schema);
 
                 // Enable edit mode by creating and setting up an editor context
+                // Create a temporary XsdSchemaModel for EditorContext compatibility
+                org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel tempModel =
+                        new org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel();
+                if (schema.getTargetNamespace() != null) {
+                    tempModel.setTargetNamespace(schema.getTargetNamespace());
+                }
                 org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext =
-                        new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(currentSchemaModelV2);
+                        new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(tempModel);
                 editorContext.setEditMode(true);
                 currentGraphViewV2.setEditorContext(editorContext);
 
                 xsdStackPaneV2.getChildren().add(currentGraphViewV2);
 
                 logger.info("XSD loaded into V2 editor with edit mode enabled: {} global elements",
-                        currentSchemaModelV2.getGlobalElements().size());
+                        schema.getChildren().stream()
+                                .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement)
+                                .count());
             } else {
                 javafx.scene.control.Label errorLabel = new javafx.scene.control.Label("Failed to parse XSD schema");
                 xsdStackPaneV2.getChildren().add(errorLabel);
