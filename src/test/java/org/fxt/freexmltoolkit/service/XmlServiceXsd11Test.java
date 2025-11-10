@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import org.fxt.freexmltoolkit.domain.XmlParserType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,16 +37,33 @@ import static org.junit.jupiter.api.Assertions.*;
  * XSD 1.1 features include assertions, type alternatives, and open content.
  *
  * Note: Saxon-HE (Home Edition) does not support XSD 1.1 validation.
- * These tests verify that the application gracefully handles XSD 1.1 schemas
- * by detecting them and checking XML well-formedness instead of full validation.
+ * This test suite verifies behavior with both Saxon (XSD 1.0 only, graceful degradation)
+ * and Xerces (full XSD 1.1 support).
  */
 public class XmlServiceXsd11Test {
 
     private XmlService xmlService;
+    private PropertiesService propertiesService;
+    private XmlParserType originalParserType;
 
     @BeforeEach
     void setUp() {
         xmlService = XmlServiceImpl.getInstance();
+        propertiesService = PropertiesServiceImpl.getInstance();
+
+        // Save original parser type
+        originalParserType = propertiesService.getXmlParserType();
+
+        // Set parser to XERCES for XSD 1.1 tests
+        propertiesService.setXmlParserType(XmlParserType.XERCES);
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Restore original parser type
+        if (originalParserType != null) {
+            propertiesService.setXmlParserType(originalParserType);
+        }
     }
 
     @Test
@@ -84,18 +103,11 @@ public class XmlServiceXsd11Test {
         // Assert
         assertNotNull(errors, "Validation should return a result");
 
-        // Check if the first message is the XSD 1.1 info message
-        assertFalse(errors.isEmpty(), "Should contain at least the XSD 1.1 info message");
-
-        SAXParseException firstException = errors.get(0);
-        assertTrue(firstException.getMessage().contains("XSD 1.1 features detected"),
-                "First message should inform about XSD 1.1 features");
-        assertTrue(firstException.getMessage().contains("Only checking XML well-formedness"),
-                "Message should explain that only well-formedness is checked");
-
-        // The XML should be well-formed, so only the info message should be present
-        assertEquals(1, errors.size(),
-                "Only the XSD 1.1 info message should be present for well-formed XML");
+        // With Xerces (XSD 1.1 support): Valid XML should have no errors
+        // With Saxon (XSD 1.0 only): Would have info message about XSD 1.1
+        // Since we're using Xerces in this test, we expect no errors
+        assertTrue(errors.isEmpty(),
+                "Valid XML with XSD 1.1 schema should have no errors when using Xerces validator");
     }
 
     @Test
@@ -120,18 +132,14 @@ public class XmlServiceXsd11Test {
 
         // Assert
         assertNotNull(errors, "Validation should return a result");
-        assertTrue(errors.size() > 1, "Should contain XSD 1.1 info message AND well-formedness errors");
+        assertFalse(errors.isEmpty(), "Should contain validation errors");
 
-        // First error should be the XSD 1.1 info message
-        assertTrue(errors.get(0).getMessage().contains("XSD 1.1 features detected"),
-                "First message should inform about XSD 1.1 features");
-
-        // Subsequent errors should be about malformed XML
+        // With Xerces: Should detect malformed XML directly
         boolean hasMalformednessError = errors.stream()
-                .skip(1) // Skip the info message
                 .anyMatch(e -> e.getMessage().contains("element type") ||
                               e.getMessage().contains("malformed") ||
-                              e.getMessage().contains("must be terminated"));
+                              e.getMessage().contains("must be terminated") ||
+                              e.getMessage().contains("XML document structures must start and end"));
 
         assertTrue(hasMalformednessError,
                 "Should detect that XML is not well-formed");
@@ -164,8 +172,8 @@ public class XmlServiceXsd11Test {
     }
 
     @Test
-    @DisplayName("Should provide helpful message about XSD 1.1 limitations")
-    void testXsd11LimitationsMessageIsHelpful() throws Exception {
+    @DisplayName("Should provide full XSD 1.1 validation with Xerces")
+    void testXsd11FullValidationWithXerces() throws Exception {
         // Arrange
         File xsd11Schema = new File("src/test/resources/xsd11_with_assert.xsd");
         String validXml = Files.readString(Paths.get("src/test/resources/xsd11_valid_product.xml"));
@@ -173,18 +181,41 @@ public class XmlServiceXsd11Test {
         // Act
         List<SAXParseException> errors = xmlService.validateText(validXml, xsd11Schema);
 
-        // Assert - Check message content
-        assertFalse(errors.isEmpty());
-        String message = errors.get(0).getMessage();
+        // Assert - Xerces provides full XSD 1.1 validation
+        // Valid XML should have no errors
+        assertTrue(errors.isEmpty(),
+                "Xerces should fully validate XSD 1.1 schemas without errors for valid XML");
+    }
 
-        // The message should be informative and mention key points
-        assertTrue(message.contains("XSD 1.1"), "Message should mention XSD 1.1");
-        assertTrue(message.contains("assertions") || message.contains("type alternatives"),
-                "Message should mention specific XSD 1.1 features");
-        assertTrue(message.contains("Saxon-EE") || message.contains("Saxon-PE"),
-                "Message should mention what's needed for full support");
-        assertTrue(message.contains("well-formedness"),
-                "Message should explain what is being checked instead");
+    @Test
+    @DisplayName("Should validate XSD 1.1 assertions (Discount < Price)")
+    void testXsd11AssertionValidation() throws Exception {
+        // Arrange
+        File xsd11Schema = new File("src/test/resources/xsd11_with_assert.xsd");
+
+        // XML that violates the assertion: Discount (150) >= Price (100)
+        String invalidXml = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <Product xmlns="http://example.com/test">
+                    <Name>Test Product</Name>
+                    <Price>100.00</Price>
+                    <Discount>150.00</Discount>
+                </Product>
+                """;
+
+        // Act
+        List<SAXParseException> errors = xmlService.validateText(invalidXml, xsd11Schema);
+
+        // Assert - Xerces should detect the assertion violation
+        assertFalse(errors.isEmpty(),
+                "XSD 1.1 assertion violation should be detected by Xerces");
+
+        boolean hasAssertionError = errors.stream()
+                .anyMatch(e -> e.getMessage().toLowerCase().contains("assert") ||
+                              e.getMessage().toLowerCase().contains("assertion"));
+
+        assertTrue(hasAssertionError,
+                "Error message should indicate assertion failure");
     }
 
     @Test

@@ -54,6 +54,12 @@ public class XercesXmlValidationService implements XmlValidationService {
             "http://apache.org/xml/features/validation/schema-full-checking";
     private static final String XERCES_HONOUR_ALL_SCHEMA_LOCATIONS =
             "http://apache.org/xml/features/honour-all-schemaLocations";
+    private static final String XERCES_XSD11_VERSION_PROPERTY =
+            "http://apache.org/xml/properties/validation/schema/version";
+    private static final String XERCES_CTA_FULL_XPATH_CHECKING =
+            "http://apache.org/xml/features/validation/cta-full-xpath-checking";
+    private static final String XSD_11_CONSTANTS = "http://www.w3.org/XML/XMLSchema/v1.1";
+    private static final String XSD_10_CONSTANTS = "http://www.w3.org/TR/XMLSchema/v1.0";
 
     private final SchemaFactory schemaFactory10;
     private final SchemaFactory schemaFactory11;
@@ -66,23 +72,45 @@ public class XercesXmlValidationService implements XmlValidationService {
         this.schemaFactory10 = new org.apache.xerces.jaxp.validation.XMLSchemaFactory();
 
         // Create schema factory for XSD 1.1
-        // Use SchemaFactory.newInstance with XSD 1.1 namespace URI for full XSD 1.1 support
+        // Xerces uses the same XMLSchemaFactory for both XSD 1.0 and 1.1
+        // The difference is in the properties/features set on the factory
         SchemaFactory tempFactory11;
         try {
-            // Request XSD 1.1 factory using the XSD 1.1 namespace URI
-            tempFactory11 = SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1");
+            // Try creating with XSD 1.1 namespace first
+            try {
+                tempFactory11 = SchemaFactory.newInstance(XSD_11_CONSTANTS);
+                logger.debug("Created SchemaFactory using XSD 1.1 namespace URI");
+            } catch (IllegalArgumentException e) {
+                // If XSD 1.1 URI is not recognized, create using Xerces directly
+                logger.debug("XSD 1.1 URI not recognized, creating Xerces factory directly");
+                tempFactory11 = new org.apache.xerces.jaxp.validation.XMLSchemaFactory();
+            }
 
-            logger.info("Xerces validator initialized with full XSD 1.1 support (including assertions)");
+            // Set XSD 1.1 version property
+            try {
+                tempFactory11.setProperty(XERCES_XSD11_VERSION_PROPERTY, XSD_11_CONSTANTS);
+                logger.info("Xerces validator initialized with full XSD 1.1 support (including assertions)");
+            } catch (SAXException propException) {
+                // Try alternative property value
+                try {
+                    tempFactory11.setProperty(XERCES_XSD11_VERSION_PROPERTY, "http://www.w3.org/2009/XMLSchema/XMLSchema.xsd");
+                    logger.info("Xerces validator initialized with XSD 1.1 using alternative property");
+                } catch (Exception altException) {
+                    logger.warn("Could not set XSD 1.1 version property: {}. Validation may use XSD 1.0 only.",
+                               altException.getMessage());
+                }
+            }
 
             // Try to enable additional XSD 1.1 features
             try {
-                tempFactory11.setFeature("http://apache.org/xml/features/validation/cta-full-xpath-checking", true);
-                logger.debug("Enabled Conditional Type Assignment (XSD 1.1 feature) in Xerces");
+                tempFactory11.setFeature(XERCES_CTA_FULL_XPATH_CHECKING, true);
+                logger.debug("Enabled Conditional Type Assignment (CTA) - XSD 1.1 feature");
             } catch (Exception featureException) {
                 logger.trace("CTA feature not available: {}", featureException.getMessage());
             }
+
         } catch (Exception e) {
-            logger.warn("Could not create Xerces XSD 1.1 schema factory: {}. Using default factory.", e.getMessage());
+            logger.warn("Could not create Xerces XSD 1.1 schema factory: {}. Using XSD 1.0 factory.", e.getMessage());
             // Fallback to XSD 1.0 factory
             tempFactory11 = this.schemaFactory10;
         }
