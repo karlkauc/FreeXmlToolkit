@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Product xmlns="http://example.com/test"
-	xmlns:xs="http://www.w3.org/2001/XMLSchema" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://example.com/test xsd11_with_assert.xsd"
-	xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
-	vc:minVersion="1.1">
+	xsi:schemaLocation="http://example.com/test xsd11_with_assert.xsd">
     <Name>Test Product</Name>
     <Price>100.00</Price>
     <Discount>150.00</Discount><!-- This violates the assertion: Discount > Price -->

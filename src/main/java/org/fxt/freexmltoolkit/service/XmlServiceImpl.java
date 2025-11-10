@@ -868,11 +868,11 @@ public class XmlServiceImpl implements XmlService {
             var temp = possibleSchemaLocation.get().trim();
 
             // Check if it's a file:// URL first (before URL validation)
-            if (temp.startsWith("file://")) {
-                logger.debug("Detected file:// URL: {}", temp);
+            if (temp.startsWith("file://") || temp.startsWith("file:")) {
+                logger.debug("Detected file URL: {}", temp);
                 try {
-                    URL url = new URI(temp).toURL();
-                    File localFile = new File(url.getPath());
+                    URI uri = new URI(temp);
+                    File localFile = new File(uri);
                     logger.debug("Attempting to load local XSD file: {}", localFile.getAbsolutePath());
 
                     if (localFile.exists()) {
@@ -889,8 +889,8 @@ public class XmlServiceImpl implements XmlService {
                         logger.warn("Local schema file does not exist: {}", localFile.getAbsolutePath());
                         return false;
                     }
-                } catch (URISyntaxException | MalformedURLException e) {
-                    logger.error("Error parsing file:// URL: {}", e.getMessage());
+                } catch (URISyntaxException | IllegalArgumentException e) {
+                    logger.error("Error parsing file URL '{}': {}", temp, e.getMessage());
                     return false;
                 }
             }
@@ -992,12 +992,12 @@ public class XmlServiceImpl implements XmlService {
                     }
 
                     // Check for local file
-                    String possibleFilePath = this.currentXmlFile.getParent() + "/" + possibleFileName;
-                    if (new File(possibleFilePath).exists()) {
-                        logger.debug("Found local Schema at: {}", possibleFilePath);
-                        return Optional.of("file://" + possibleFilePath);
+                    File localSchemaFile = new File(this.currentXmlFile.getParentFile(), possibleFileName);
+                    if (localSchemaFile.exists()) {
+                        logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
+                        return Optional.of(localSchemaFile.toURI().toString());
                     } else {
-                        logger.debug("Local schema not found at: {}, checking if second part is URL", possibleFilePath);
+                        logger.debug("Local schema not found at: {}, checking if second part is URL", localSchemaFile.getAbsolutePath());
                         // Only return if it looks like a URL, not just a filename
                         if (possibleFileName.startsWith("http://") || possibleFileName.startsWith("https://") || possibleFileName.contains(".")) {
                             logger.debug("Second part looks like a URL or path: {}", possibleFileName);
@@ -1019,13 +1019,12 @@ public class XmlServiceImpl implements XmlService {
                     }
 
                     // Check for local file relative to XML file
-                    String possibleFilePath = this.currentXmlFile.getParent() + File.separator + possibleSchemaLocation;
-                    File localSchemaFile = new File(possibleFilePath);
+                    File localSchemaFile = new File(this.currentXmlFile.getParentFile(), possibleSchemaLocation);
                     if (localSchemaFile.exists()) {
-                        logger.debug("Found local Schema at: {}", possibleFilePath);
-                        return Optional.of("file://" + localSchemaFile.getAbsolutePath());
+                        logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
+                        return Optional.of(localSchemaFile.toURI().toString());
                     } else {
-                        logger.debug("Local schema not found at: {}", possibleFilePath);
+                        logger.debug("Local schema not found at: {}", localSchemaFile.getAbsolutePath());
                         // Return the raw value anyway, it might be a URL
                         return Optional.of(possibleSchemaLocation);
                     }
