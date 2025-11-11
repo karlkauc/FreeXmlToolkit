@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
@@ -297,6 +298,25 @@ public class XsdPropertiesPanel extends VBox {
                 handleAppinfoChange();
             }
         });
+
+        // Constraint checkboxes
+        nillableCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!updating && currentNode != null) {
+                handleConstraintsChange();
+            }
+        });
+
+        abstractCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!updating && currentNode != null) {
+                handleConstraintsChange();
+            }
+        });
+
+        fixedCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!updating && currentNode != null) {
+                handleConstraintsChange();
+            }
+        });
     }
 
     /**
@@ -322,6 +342,12 @@ public class XsdPropertiesPanel extends VBox {
             unboundedCheckBox.setDisable(!isEditMode);
             documentationArea.setEditable(isEditMode);
             appinfoArea.setEditable(isEditMode);
+
+            // Constraint checkboxes only for elements
+            boolean isElement = node.getModelObject() instanceof XsdElement;
+            nillableCheckBox.setDisable(!isEditMode || !isElement);
+            abstractCheckBox.setDisable(!isEditMode || !isElement);
+            fixedCheckBox.setDisable(!isEditMode || !isElement);
 
             logger.debug("Controls editable state set: nameField={}, documentationArea={}",
                     nameField.isEditable(), documentationArea.isEditable());
@@ -362,7 +388,7 @@ public class XsdPropertiesPanel extends VBox {
             logger.debug("ModelObject type: {}", modelObject != null ? modelObject.getClass().getName() : "null");
             if (modelObject instanceof XsdNode xsdNode) {
                 String documentation = xsdNode.getDocumentation();
-                String appinfo = xsdNode.getAppinfo();
+                String appinfo = xsdNode.getAppinfoAsString();
                 logger.debug("Loading documentation: '{}', appinfo: '{}'", documentation, appinfo);
                 documentationArea.setText(documentation != null ? documentation : "");
                 appinfoArea.setText(appinfo != null ? appinfo : "");
@@ -373,10 +399,18 @@ public class XsdPropertiesPanel extends VBox {
                 appinfoArea.setText("");
             }
 
-            // Update Constraints section (placeholder)
-            nillableCheckBox.setSelected(false);
-            abstractCheckBox.setSelected(false);
-            fixedCheckBox.setSelected(false);
+            // Update Constraints section
+            if (modelObject instanceof XsdElement xsdElement) {
+                nillableCheckBox.setSelected(xsdElement.isNillable());
+                abstractCheckBox.setSelected(xsdElement.isAbstract());
+                fixedCheckBox.setSelected(xsdElement.getFixed() != null && !xsdElement.getFixed().isEmpty());
+                logger.debug("Loaded constraints: nillable={}, abstract={}, fixed={}",
+                        xsdElement.isNillable(), xsdElement.isAbstract(), xsdElement.getFixed());
+            } else {
+                nillableCheckBox.setSelected(false);
+                abstractCheckBox.setSelected(false);
+                fixedCheckBox.setSelected(false);
+            }
 
             // Update Advanced section (placeholder)
             formComboBox.setValue(null);
@@ -520,7 +554,7 @@ public class XsdPropertiesPanel extends VBox {
         Object modelObject = currentNode.getModelObject();
         if (modelObject instanceof XsdNode xsdNode) {
             // Only create command if appinfo actually changed
-            String oldAppinfo = xsdNode.getAppinfo();
+            String oldAppinfo = xsdNode.getAppinfoAsString();
             if (!newAppinfo.equals(oldAppinfo != null ? oldAppinfo : "")) {
                 ChangeAppinfoCommand command = new ChangeAppinfoCommand(
                         editorContext, xsdNode, newAppinfo.isEmpty() ? null : newAppinfo);
@@ -529,6 +563,39 @@ public class XsdPropertiesPanel extends VBox {
             }
         } else {
             logger.warn("Cannot change appinfo - model object is not an XsdNode: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles constraint changes via ChangeConstraintsCommand.
+     */
+    private void handleConstraintsChange() {
+        // Extract XsdElement from VisualNode for the command
+        Object modelObject = currentNode.getModelObject();
+        if (modelObject instanceof XsdElement xsdElement) {
+            // Get new values from checkboxes
+            boolean newNillable = nillableCheckBox.isSelected();
+            boolean newAbstract = abstractCheckBox.isSelected();
+            boolean newFixedChecked = fixedCheckBox.isSelected();
+
+            // For fixed, we'll use a simple value if checked, or null if unchecked
+            // In a real implementation, you'd probably want a TextField for the fixed value
+            String newFixed = newFixedChecked ? "" : null;
+
+            // Check if anything actually changed
+            boolean nillableChanged = newNillable != xsdElement.isNillable();
+            boolean abstractChanged = newAbstract != xsdElement.isAbstract();
+            boolean fixedChanged = (newFixed == null) != (xsdElement.getFixed() == null);
+
+            if (nillableChanged || abstractChanged || fixedChanged) {
+                ChangeConstraintsCommand command = new ChangeConstraintsCommand(
+                        editorContext, xsdElement, newNillable, newAbstract, newFixed);
+                editorContext.getCommandManager().executeCommand(command);
+                logger.info("Changed constraints for element: {}", xsdElement.getName());
+            }
+        } else {
+            logger.warn("Cannot change constraints - model object is not an XsdElement: {}",
                     modelObject != null ? modelObject.getClass() : "null");
         }
     }
