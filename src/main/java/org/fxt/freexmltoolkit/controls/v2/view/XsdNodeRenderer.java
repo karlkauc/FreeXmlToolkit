@@ -2,7 +2,11 @@ package org.fxt.freexmltoolkit.controls.v2.view;
 
 import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 
@@ -21,7 +25,7 @@ public class XsdNodeRenderer {
     private static final double EXPAND_BUTTON_SIZE = 16;
     private static final double HORIZONTAL_SPACING = 40;
     private static final double VERTICAL_SPACING = 20;
-    private static final double CORNER_RADIUS = 5;
+    private static final double CORNER_RADIUS = 4;  // XMLSpy uses 4px radius
     private static final double PADDING = 20; // Padding inside node
 
     private final XsdNodeStyler styler;
@@ -31,8 +35,9 @@ public class XsdNodeRenderer {
 
     public XsdNodeRenderer() {
         this.styler = new XsdNodeStyler();
-        this.nodeFont = Font.font("Arial", 12);
-        this.detailFont = Font.font("Arial", 10);
+        // XMLSpy uses Segoe UI font family
+        this.nodeFont = Font.font("Segoe UI", 11);
+        this.detailFont = Font.font("Segoe UI", 10);
         this.textMeasurer = new javafx.scene.text.Text();
     }
 
@@ -100,23 +105,23 @@ public class XsdNodeRenderer {
         double width = node.getWidth();
         double height = node.getHeight();
 
-        // Determine colors based on node type
-        Color fillColor = getNodeFillColor(node.getType());
-        Color borderColor = getNodeBorderColor(node.getType());
+        // Determine gradient fill and border colors based on node type (XMLSpy style)
+        LinearGradient fillGradient = getNodeFillGradient(node.getType(), x, y, width, height);
+        Color borderColor = getXMLSpyBorderColor(node.getType());
 
-        // Apply visual feedback modifications
+        // Apply visual feedback modifications for hover/selection
         if (node.isHovered()) {
-            // Brighten fill color for hover effect
-            fillColor = fillColor.brighter();
+            // Brighten gradient for hover effect
+            fillGradient = brightenGradient(fillGradient);
         }
 
         if (node.isSelected()) {
-            // Use brighter, more saturated color for selected nodes
-            fillColor = fillColor.deriveColor(0, 1.2, 1.1, 1.0);
+            // Use brighter gradient for selected nodes
+            fillGradient = brightenGradient(fillGradient);
         }
 
-        // Draw node rectangle with cardinality-based border style
-        gc.setFill(fillColor);
+        // Draw node rectangle with gradient fill
+        gc.setFill(fillGradient);
         gc.setStroke(borderColor);
 
         // Determine line width based on state and maxOccurs
@@ -160,8 +165,15 @@ public class XsdNodeRenderer {
             gc.setLineDashes(null);  // Reset to solid
         }
 
-        // Draw node text
-        gc.setFill(Color.BLACK);
+        // Draw node text with XMLSpy styling
+        // Element and attribute names use specific colors
+        Color textColor = switch (node.getType()) {
+            case ELEMENT -> Color.rgb(44, 90, 160);        // #2c5aa0 - XMLSpy element text
+            case ATTRIBUTE -> Color.rgb(139, 105, 20);     // #8b6914 - XMLSpy attribute text
+            default -> Color.rgb(51, 51, 51);              // #333333 - Default text
+        };
+
+        gc.setFill(textColor);
         gc.setFont(nodeFont);
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setTextBaseline(VPos.TOP);
@@ -172,7 +184,7 @@ public class XsdNodeRenderer {
         // Draw detail text (type, cardinality)
         if (node.getDetail() != null && !node.getDetail().isEmpty()) {
             gc.setFont(detailFont);
-            gc.setFill(Color.GRAY);
+            gc.setFill(Color.rgb(108, 117, 125));  // #6c757d - XMLSpy secondary text
             String detailText = truncateText(node.getDetail(), width - 40);
             gc.fillText(detailText, x + 10, y + 28);
         }
@@ -208,7 +220,7 @@ public class XsdNodeRenderer {
         // Use the width and height already set during layout (should be COMPOSITOR_SIZE)
         double size = node.getWidth();
 
-        Color borderColor = getNodeBorderColor(node.getType());
+        Color borderColor = getXMLSpyBorderColor(node.getType());
 
         // Draw small filled circle/diamond based on type
         gc.setStroke(borderColor);
@@ -223,7 +235,7 @@ public class XsdNodeRenderer {
 
                 // Draw "SEQ" or lines symbol
                 gc.setFill(borderColor);
-                gc.setFont(Font.font("Arial", 9));
+                gc.setFont(Font.font("Segoe UI", 9));
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setTextBaseline(VPos.CENTER);
                 gc.fillText("=", x + size / 2, y + size / 2);
@@ -247,7 +259,7 @@ public class XsdNodeRenderer {
 
                 // Draw "?" symbol
                 gc.setFill(borderColor);
-                gc.setFont(Font.font("Arial", 11));
+                gc.setFont(Font.font("Segoe UI", 11));
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setTextBaseline(VPos.CENTER);
                 gc.fillText("?", centerX, centerY);
@@ -260,7 +272,7 @@ public class XsdNodeRenderer {
 
                 // Draw "*" symbol
                 gc.setFill(borderColor);
-                gc.setFont(Font.font("Arial", 11));
+                gc.setFont(Font.font("Segoe UI", 11));
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setTextBaseline(VPos.CENTER);
                 gc.fillText("*", x + size / 2, y + size / 2);
@@ -328,37 +340,83 @@ public class XsdNodeRenderer {
     }
 
     /**
-     * Gets the fill color for a node based on its type.
+     * Gets the fill gradient for a node based on its type (XMLSpy style).
+     * XMLSpy uses vertical gradients from white to a light color.
      */
-    private Color getNodeFillColor(NodeWrapperType type) {
-        return switch (type) {
-            case ELEMENT -> Color.rgb(219, 234, 254);        // Light blue
-            case ATTRIBUTE -> Color.rgb(254, 226, 226);       // Light red
-            case COMPLEX_TYPE -> Color.rgb(243, 232, 255);    // Light purple
-            case SIMPLE_TYPE -> Color.rgb(220, 252, 231);     // Light green
-            case SCHEMA -> Color.rgb(241, 245, 249);          // Light gray
-            case SEQUENCE -> Color.rgb(207, 250, 254);        // Light cyan
-            case CHOICE -> Color.rgb(254, 243, 199);          // Light amber
-            case ALL -> Color.rgb(237, 233, 254);             // Light violet
-            default -> Color.WHITE;
+    private LinearGradient getNodeFillGradient(NodeWrapperType type, double x, double y, double width, double height) {
+        Stop[] stops = switch (type) {
+            case ELEMENT -> new Stop[]{
+                    new Stop(0, Color.WHITE),
+                    new Stop(1, Color.rgb(240, 248, 255))  // #f0f8ff - XMLSpy element background
+            };
+            case ATTRIBUTE -> new Stop[]{
+                    new Stop(0, Color.WHITE),
+                    new Stop(1, Color.rgb(255, 254, 247))  // #fffef7 - XMLSpy attribute background
+            };
+            case COMPLEX_TYPE, SCHEMA -> new Stop[]{
+                    new Stop(0, Color.WHITE),
+                    new Stop(1, Color.rgb(248, 249, 250))  // #f8f9fa - XMLSpy structural background
+            };
+            case SIMPLE_TYPE -> new Stop[]{
+                    new Stop(0, Color.WHITE),
+                    new Stop(1, Color.rgb(220, 252, 231))  // Light green
+            };
+            case SEQUENCE -> new Stop[]{
+                    new Stop(0, Color.WHITE),
+                    new Stop(1, Color.rgb(207, 250, 254))  // Light cyan
+            };
+            case CHOICE -> new Stop[]{
+                    new Stop(0, Color.WHITE),
+                    new Stop(1, Color.rgb(254, 243, 199))  // Light amber
+            };
+            case ALL -> new Stop[]{
+                    new Stop(0, Color.WHITE),
+                    new Stop(1, Color.rgb(237, 233, 254))  // Light violet
+            };
+            default -> new Stop[]{
+                    new Stop(0, Color.WHITE),
+                    new Stop(1, Color.WHITE)
+            };
         };
+
+        // Create vertical gradient (top to bottom)
+        return new LinearGradient(0, y, 0, y + height, false, CycleMethod.NO_CYCLE, stops);
     }
 
     /**
-     * Gets the border color for a node based on its type.
+     * Gets the border color for a node based on its type (XMLSpy style).
      */
-    private Color getNodeBorderColor(NodeWrapperType type) {
+    private Color getXMLSpyBorderColor(NodeWrapperType type) {
         return switch (type) {
-            case ELEMENT -> Color.rgb(37, 99, 235);           // Blue
-            case ATTRIBUTE -> Color.rgb(220, 38, 38);         // Red
-            case COMPLEX_TYPE -> Color.rgb(124, 58, 237);     // Purple
+            case ELEMENT -> Color.rgb(74, 144, 226);          // #4a90e2 - XMLSpy element border
+            case ATTRIBUTE -> Color.rgb(212, 161, 71);        // #d4a147 - XMLSpy attribute border
+            case COMPLEX_TYPE, SCHEMA -> Color.rgb(108, 117, 125);  // #6c757d - XMLSpy structural border
             case SIMPLE_TYPE -> Color.rgb(5, 150, 105);       // Green
-            case SCHEMA -> Color.rgb(30, 41, 59);             // Dark gray
             case SEQUENCE -> Color.rgb(8, 145, 178);          // Cyan
             case CHOICE -> Color.rgb(245, 158, 11);           // Amber
             case ALL -> Color.rgb(139, 92, 246);              // Violet
             default -> Color.LIGHTGRAY;
         };
+    }
+
+    /**
+     * Brightens a gradient for hover/selection effects.
+     */
+    private LinearGradient brightenGradient(LinearGradient gradient) {
+        Stop[] oldStops = gradient.getStops().toArray(new Stop[0]);
+        Stop[] newStops = new Stop[oldStops.length];
+
+        for (int i = 0; i < oldStops.length; i++) {
+            Color oldColor = oldStops[i].getColor();
+            Color newColor = oldColor.brighter();
+            newStops[i] = new Stop(oldStops[i].getOffset(), newColor);
+        }
+
+        return new LinearGradient(
+                gradient.getStartX(), gradient.getStartY(),
+                gradient.getEndX(), gradient.getEndY(),
+                gradient.isProportional(), gradient.getCycleMethod(), newStops
+        );
     }
 
     /**
@@ -509,27 +567,76 @@ public class XsdNodeRenderer {
          * Builds the detail string for display based on the node type.
          * <p>
          * Detail formats:
-         * - XsdElement: "xs:string" (just the type)
-         * - XsdAttribute: "xs:int (required)" (type + use)
+         * - XsdElement: "xs:string [N] [A] [F] [Q]" (type + flags: nillable, abstract, fixed, qualified)
+         * - XsdAttribute: "xs:int (required) [Q]" (type + use + qualified)
          * - Compositor: "3 items" (child count)
          * - Other nodes: "" (empty)
+         * <p>
+         * Flags:
+         * - [N] = nillable
+         * - [A] = abstract
+         * - [F] = fixed value set
+         * - [Q] = qualified form
+         * - [U] = unqualified form
+         * - [Doc] = has documentation
+         * - [App] = has appinfo
          *
          * @param xsdNode the XSD node
          * @return the detail string
          */
         private String buildDetailString(org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
-            // Handle XsdElement - show type
+            StringBuilder detail = new StringBuilder();
+
+            // Handle XsdElement - show type and constraints
             if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
-                return element.getType() != null ? element.getType() : "";
+                // Add type
+                if (element.getType() != null) {
+                    detail.append(element.getType());
+                }
+
+                // Add constraint flags
+                if (element.isNillable()) {
+                    detail.append(" [N]");
+                }
+                if (element.isAbstract()) {
+                    detail.append(" [A]");
+                }
+                if (element.getFixed() != null && !element.getFixed().isEmpty()) {
+                    detail.append(" [F]");
+                }
+
+                // Add form flag
+                if ("qualified".equals(element.getForm())) {
+                    detail.append(" [Q]");
+                } else if ("unqualified".equals(element.getForm())) {
+                    detail.append(" [U]");
+                }
+
+                return detail.toString().trim();
             }
 
-            // Handle XsdAttribute - show type and use
+            // Handle XsdAttribute - show type, use, and form
             if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
-                String detail = attribute.getType() != null ? attribute.getType() : "";
-                if ("required".equals(attribute.getUse())) {
-                    detail += " (required)";
+                // Add type
+                if (attribute.getType() != null) {
+                    detail.append(attribute.getType());
                 }
-                return detail;
+
+                // Add use indicator
+                if ("required".equals(attribute.getUse())) {
+                    detail.append(" (required)");
+                } else if ("prohibited".equals(attribute.getUse())) {
+                    detail.append(" (prohibited)");
+                }
+
+                // Add form flag
+                if ("qualified".equals(attribute.getForm())) {
+                    detail.append(" [Q]");
+                } else if ("unqualified".equals(attribute.getForm())) {
+                    detail.append(" [U]");
+                }
+
+                return detail.toString().trim();
             }
 
             // Handle Compositor nodes (sequence, choice, all) - show child count
