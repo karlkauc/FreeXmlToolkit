@@ -2,7 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,10 +21,12 @@ class ChangeDocumentationCommandTest {
 
     @BeforeEach
     void setUp() {
+        // Create test schema
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/test");
+
         // Create editor context
-        XsdSchemaModel schemaModel = new XsdSchemaModel();
-        schemaModel.setTargetNamespace("http://example.com/test");
-        editorContext = new XsdEditorContext(schemaModel);
+        editorContext = new XsdEditorContext(schema);
 
         // Create test element
         element = new XsdElement("TestElement");
