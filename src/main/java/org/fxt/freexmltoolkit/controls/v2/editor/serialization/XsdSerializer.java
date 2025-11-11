@@ -134,6 +134,10 @@ public class XsdSerializer {
             serializeUnion(union, sb, indentation, indent);
         } else if (node instanceof XsdFacet facet) {
             serializeFacet(facet, sb, indentation);
+        } else if (node instanceof XsdGroup group) {
+            serializeGroup(group, sb, indentation, indent);
+        } else if (node instanceof XsdAttributeGroup attributeGroup) {
+            serializeAttributeGroup(attributeGroup, sb, indentation, indent);
         } else {
             logger.warn("Unknown node type: {}", node.getClass().getSimpleName());
         }
@@ -416,6 +420,72 @@ public class XsdSerializer {
         }
 
         sb.append("/>\n");
+    }
+
+    /**
+     * Serializes xs:group element (element group).
+     * Groups can be either definitions (with name + compositor) or references (with ref).
+     *
+     * @param group       the XSD group
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeGroup(XsdGroup group, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:group");
+
+        // Check if this is a group reference or definition
+        if (group.isReference()) {
+            // Group reference: has ref attribute, no children
+            sb.append(" ref=\"").append(escapeXml(group.getRef())).append("\"");
+            sb.append("/>\n");
+        } else {
+            // Group definition: has name + compositor (sequence/choice/all)
+            if (group.getName() != null && !group.getName().isEmpty()) {
+                sb.append(" name=\"").append(escapeXml(group.getName())).append("\"");
+            }
+            sb.append(">\n");
+
+            // Serialize compositor children (sequence/choice/all)
+            for (XsdNode child : group.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+
+            sb.append(indentation).append("</xs:group>\n");
+        }
+    }
+
+    /**
+     * Serializes xs:attributeGroup element.
+     * Attribute groups can be either definitions (with name + attributes) or references (with ref).
+     *
+     * @param attributeGroup the XSD attribute group
+     * @param sb             the string builder
+     * @param indentation    the indentation string
+     * @param indent         the indentation level
+     */
+    private void serializeAttributeGroup(XsdAttributeGroup attributeGroup, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:attributeGroup");
+
+        // Check if this is an attribute group reference or definition
+        if (attributeGroup.isReference()) {
+            // AttributeGroup reference: has ref attribute, no children
+            sb.append(" ref=\"").append(escapeXml(attributeGroup.getRef())).append("\"");
+            sb.append("/>\n");
+        } else {
+            // AttributeGroup definition: has name + attributes
+            if (attributeGroup.getName() != null && !attributeGroup.getName().isEmpty()) {
+                sb.append(" name=\"").append(escapeXml(attributeGroup.getName())).append("\"");
+            }
+            sb.append(">\n");
+
+            // Serialize attribute children
+            for (XsdNode child : attributeGroup.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+
+            sb.append(indentation).append("</xs:attributeGroup>\n");
+        }
     }
 
     /**
