@@ -433,7 +433,7 @@
 
                                     <!-- V1/V2 Editor Toggle -->
                                     <ToggleButton fx:id="editorVersionToggle" style="-fx-font-size: 11px;"
-                                                  text="Editor V2 (Beta)" onAction="#toggleEditorVersion">
+                                                  text="Editor V2 (Beta)" selected="true" onAction="#toggleEditorVersion">
                                         <graphic>
                                             <FontIcon iconLiteral="bi-star" iconColor="#ff6b6b"/>
                                         </graphic>
@@ -485,10 +485,10 @@
                                             </VBox>
 
                                             <!-- V1 Editor Container (Current/Legacy) -->
-                                            <StackPane fx:id="xsdStackPane" visible="true" managed="true"/>
+                                            <StackPane fx:id="xsdStackPane" visible="false" managed="false"/>
 
                                             <!-- V2 Editor Container (New/Beta) -->
-                                            <StackPane fx:id="xsdStackPaneV2" visible="false" managed="false"
+                                            <StackPane fx:id="xsdStackPaneV2" visible="true" managed="true"
                                                        style="-fx-background-color: white;">
                                                 <Label text="XSD Editor V2 - Coming Soon!"
                                                        style="-fx-font-size: 16px; -fx-text-fill: #6c757d;"/>

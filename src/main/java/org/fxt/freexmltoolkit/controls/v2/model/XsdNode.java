@@ -33,7 +33,7 @@ public abstract class XsdNode {
 
     // Documentation
     private String documentation;
-    private String appinfo;
+    private XsdAppInfo appinfo;
 
     /**
      * Creates a new XSD node with a unique ID.
@@ -212,23 +212,43 @@ public abstract class XsdNode {
     }
 
     /**
-     * Gets the appinfo annotation.
+     * Gets the appinfo annotation (structured).
      *
      * @return the appinfo, or null if not set
      */
-    public String getAppinfo() {
+    public XsdAppInfo getAppinfo() {
         return appinfo;
     }
 
     /**
-     * Sets the appinfo annotation.
+     * Sets the appinfo annotation (structured).
      *
-     * @param appinfo the appinfo text
+     * @param appinfo the appinfo object
      */
-    public void setAppinfo(String appinfo) {
-        String oldValue = this.appinfo;
+    public void setAppinfo(XsdAppInfo appinfo) {
+        XsdAppInfo oldValue = this.appinfo;
         this.appinfo = appinfo;
         pcs.firePropertyChange("appinfo", oldValue, appinfo);
+    }
+
+    /**
+     * Gets the appinfo as display string for backward compatibility.
+     *
+     * @return the appinfo as string, or empty string if not set
+     */
+    public String getAppinfoAsString() {
+        return appinfo != null ? appinfo.toDisplayString() : "";
+    }
+
+    /**
+     * Sets the appinfo from a display string for backward compatibility.
+     *
+     * @param appinfoString the appinfo text
+     */
+    public void setAppinfoFromString(String appinfoString) {
+        XsdAppInfo oldValue = this.appinfo;
+        this.appinfo = XsdAppInfo.fromDisplayString(appinfoString);
+        pcs.firePropertyChange("appinfo", oldValue, this.appinfo);
     }
 
     /**

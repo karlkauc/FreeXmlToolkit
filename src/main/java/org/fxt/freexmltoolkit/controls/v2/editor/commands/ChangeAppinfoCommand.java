@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**
@@ -22,8 +23,8 @@ public class ChangeAppinfoCommand implements XsdCommand {
 
     private final XsdEditorContext editorContext;
     private final XsdNode node;
-    private final String oldAppinfo;
-    private final String newAppinfo;
+    private final XsdAppInfo oldAppinfo;
+    private final XsdAppInfo newAppinfo;
 
     /**
      * Creates a new change appinfo command.
@@ -44,7 +45,10 @@ public class ChangeAppinfoCommand implements XsdCommand {
         this.editorContext = editorContext;
         this.node = node;
         this.oldAppinfo = node.getAppinfo();
-        this.newAppinfo = newAppinfo;
+        // Convert string to XsdAppInfo
+        this.newAppinfo = (newAppinfo == null || newAppinfo.isEmpty())
+            ? null
+            : XsdAppInfo.fromDisplayString(newAppinfo);
     }
 
     @Override
@@ -86,9 +90,9 @@ public class ChangeAppinfoCommand implements XsdCommand {
     @Override
     public String getDescription() {
         String nodeName = node.getName() != null ? node.getName() : "(unnamed)";
-        if (newAppinfo == null || newAppinfo.isEmpty()) {
+        if (newAppinfo == null || !newAppinfo.hasEntries()) {
             return "Remove appinfo from " + nodeName;
-        } else if (oldAppinfo == null || oldAppinfo.isEmpty()) {
+        } else if (oldAppinfo == null || !oldAppinfo.hasEntries()) {
             return "Add appinfo to " + nodeName;
         } else {
             return "Change appinfo of " + nodeName;
@@ -121,20 +125,20 @@ public class ChangeAppinfoCommand implements XsdCommand {
     }
 
     /**
-     * Gets the old appinfo text.
+     * Gets the old appinfo.
      *
      * @return the old appinfo (can be null)
      */
-    public String getOldAppinfo() {
+    public XsdAppInfo getOldAppinfo() {
         return oldAppinfo;
     }
 
     /**
-     * Gets the new appinfo text.
+     * Gets the new appinfo.
      *
      * @return the new appinfo (can be null)
      */
-    public String getNewAppinfo() {
+    public XsdAppInfo getNewAppinfo() {
         return newAppinfo;
     }
 }

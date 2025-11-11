@@ -31,7 +31,7 @@ class DuplicateNodeCommandTest {
         originalElement.setMinOccurs(0);
         originalElement.setMaxOccurs(5);
         originalElement.setDocumentation("Test documentation");
-        originalElement.setAppinfo("Test appinfo");
+        originalElement.setAppinfoFromString("Test appinfo");
         parentElement.addChild(originalElement);
     }
 

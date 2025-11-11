@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           elementFormDefault="qualified"
+           targetNamespace="http://example.com/enums"
+           xmlns:tns="http://example.com/enums">
+
+    <!-- Simple enumeration as inline simpleType -->
+    <xs:element name="Color">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="RED"/>
+                <xs:enumeration value="GREEN"/>
+                <xs:enumeration value="BLUE"/>
+                <xs:enumeration value="YELLOW"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Named simpleType with enumeration -->
+    <xs:simpleType name="SizeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="SMALL"/>
+            <xs:enumeration value="MEDIUM"/>
+            <xs:enumeration value="LARGE"/>
+            <xs:enumeration value="EXTRA_LARGE"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Element referencing the named type -->
+    <xs:element name="Size" type="tns:SizeType"/>
+
+    <!-- Complex type with enumeration -->
+    <xs:complexType name="ProductType">
+        <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+            <xs:element name="Category">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="ELECTRONICS"/>
+                        <xs:enumeration value="CLOTHING"/>
+                        <xs:enumeration value="BOOKS"/>
+                        <xs:enumeration value="HOME_GARDEN"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="Size" type="tns:SizeType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="Product" type="tns:ProductType"/>
+
+</xs:schema>

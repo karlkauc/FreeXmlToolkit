@@ -198,7 +198,7 @@ public class XsdContextMenuFactory {
         }
 
         menu.getItems().addAll(
-                createMenuItem("Add Element", () -> logger.info("Add element to compositor {}", node.getLabel())),
+                createMenuItem("Add Element", () -> handleAddChildElement(node)),
                 changeTypeMenu,
                 createMenuItem("Edit Cardinality", () -> logger.info("Edit cardinality of compositor")),
                 new SeparatorMenuItem(),
@@ -231,7 +231,7 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Add Element", () -> logger.info("Add element to group {}", node.getLabel())),
+                createMenuItem("Add Element", () -> handleAddChildElement(node)),
                 new SeparatorMenuItem(),
                 createMenuItem("Rename", () -> handleRename(node)),
                 createMenuItem("Delete", () -> handleDelete(node))

@@ -851,7 +851,7 @@ public class XsdNodeFactory {
      */
     private void parseAnnotation(Element annotationElement, XsdNode target) {
         StringBuilder documentationBuilder = new StringBuilder();
-        StringBuilder appinfoBuilder = new StringBuilder();
+        XsdAppInfo appInfo = new XsdAppInfo();
 
         NodeList children = annotationElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
@@ -876,22 +876,22 @@ public class XsdNodeFactory {
                     documentationBuilder.append(documentation.trim());
                 }
             } else if (isXsdElement(childElement, "appinfo")) {
-                String appinfo = childElement.getTextContent();
-                if (appinfo != null && !appinfo.trim().isEmpty()) {
-                    if (appinfoBuilder.length() > 0) {
-                        appinfoBuilder.append("\n\n"); // Separate multiple appinfo elements
-                    }
-                    appinfoBuilder.append(appinfo.trim());
+                String appinfoContent = childElement.getTextContent();
+                if (appinfoContent != null && !appinfoContent.trim().isEmpty()) {
+                    // Get the "source" attribute
+                    String source = childElement.getAttribute("source");
+                    // Parse and add entry (will automatically detect JavaDoc-style tags like @since, @see, etc.)
+                    appInfo.addEntry(source, appinfoContent.trim());
                 }
             }
         }
 
-        // Set the combined documentation and appinfo
+        // Set the combined documentation and structured appinfo
         if (documentationBuilder.length() > 0) {
             target.setDocumentation(documentationBuilder.toString());
         }
-        if (appinfoBuilder.length() > 0) {
-            target.setAppinfo(appinfoBuilder.toString());
+        if (appInfo.hasEntries()) {
+            target.setAppinfo(appInfo);
         }
     }
 

@@ -37,8 +37,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
     private static final Logger logger = LogManager.getLogger(XsdGraphView.class);
 
-    private final XsdSchemaModel model;  // Old model (may be null for XsdSchema-based views)
-    private final XsdSchema xsdSchema;   // New XsdNode-based model (may be null for XsdSchemaModel-based views)
+    private final XsdSchema xsdSchema;
     private final Canvas canvas;
     private final ScrollPane scrollPane;
     private final XsdNodeRenderer renderer;
@@ -66,41 +65,17 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private Button saveButton;
 
     /**
-     * Constructor using the old XsdSchemaModel (flat structure).
-     *
-     * @deprecated Use XsdGraphView(XsdSchema) instead for better integration with XsdNode model
-     */
-    @Deprecated
-    public XsdGraphView(XsdSchemaModel model) {
-        this.model = model;
-        this.xsdSchema = null;
-        this.renderer = new XsdNodeRenderer();
-        this.selectionModel = new SelectionModel();
-
-        // Create canvas for drawing
-        this.canvas = new Canvas(2000, 2000);
-        this.scrollPane = new ScrollPane(canvas);
-        scrollPane.setPannable(true);
-        scrollPane.setStyle("-fx-background-color: white;");
-
-        // Initialize with default EditorContext (view mode)
-        // Pass the existing selectionModel to EditorContext so they share the same instance
-        this.editorContext = new XsdEditorContext(model, this.selectionModel);
-        this.contextMenuFactory = new XsdContextMenuFactory(editorContext);
-
-        initializeUI();
-    }
-
-    /**
-     * Constructor using the new XsdSchema (XsdNode-based tree structure).
-     * This is the preferred constructor for direct XsdNode model integration.
+     * Constructor using the XsdSchema (XsdNode-based tree structure).
      *
      * @param schema the XSD schema to visualize
      * @since 2.0
      */
     public XsdGraphView(XsdSchema schema) {
+        if (schema == null) {
+            throw new IllegalArgumentException("Schema cannot be null");
+        }
+
         this.xsdSchema = schema;
-        this.model = null;
         this.renderer = new XsdNodeRenderer();
         this.selectionModel = new SelectionModel();
 
@@ -110,14 +85,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         scrollPane.setPannable(true);
         scrollPane.setStyle("-fx-background-color: white;");
 
-        // Create a temporary model for EditorContext compatibility
-        // TODO: Refactor EditorContext to work with XsdSchema directly
-        XsdSchemaModel tempModel = new XsdSchemaModel();
-        if (schema.getTargetNamespace() != null) {
-            tempModel.setTargetNamespace(schema.getTargetNamespace());
-        }
         // Pass the existing selectionModel to EditorContext so they share the same instance
-        this.editorContext = new XsdEditorContext(tempModel, this.selectionModel);
+        this.editorContext = new XsdEditorContext(schema, this.selectionModel);
         this.contextMenuFactory = new XsdContextMenuFactory(editorContext);
 
         initializeUI();
@@ -167,16 +136,12 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         redraw();
 
         // Register for model changes
-        if (model != null) {
-            model.addPropertyChangeListener(this);
-        } else if (xsdSchema != null) {
-            xsdSchema.addPropertyChangeListener(this);
-        }
+        xsdSchema.addPropertyChangeListener(this);
 
         // Setup mouse interaction
         setupMouseHandlers();
 
-        logger.info("XsdGraphView initialized (graphical mode) using {}", model != null ? "XsdSchemaModel" : "XsdSchema");
+        logger.info("XsdGraphView initialized (graphical mode) using XsdSchema");
     }
 
     /**
@@ -299,252 +264,19 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
-     * Builds the visual tree from the model.
+     * Builds the visual tree from the schema.
      * Shows only global elements (not complex/simple types directly).
      * Types are resolved when elements reference them.
      */
     private void buildVisualTree() {
         nodeMap.clear();
 
-        // Use new XsdSchema-based builder if available
-        if (xsdSchema != null) {
-            XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
-            // Provide rebuild callback for Model → View synchronization
-            // For structural changes (add/delete child), we need to rebuild the tree
-            rootNode = builder.buildFromSchema(xsdSchema, this::rebuildVisualTree);
-            nodeMap.putAll(builder.getNodeMap());
-            logger.debug("Visual tree built from XsdSchema with {} nodes (with auto-rebuild on model changes)", nodeMap.size());
-            return;
-        }
-
-        // Fallback to old XsdSchemaModel-based builder
-        if (model.getGlobalElements().isEmpty()) {
-            // No global elements - create empty schema node
-            rootNode = new VisualNode(
-                    "Schema: " + (model.getTargetNamespace() != null ? model.getTargetNamespace() : "empty"),
-                    "No elements",
-                    NodeWrapperType.SCHEMA,
-                    model,
-                    null
-            );
-            nodeMap.put(model.getId(), rootNode);
-            logger.debug("Visual tree built with no elements");
-            return;
-        }
-
-        if (model.getGlobalElements().size() == 1) {
-            // Single root element - use it directly as root node
-            XsdElementModel rootElement = model.getGlobalElements().get(0);
-            rootNode = createElementNode(rootElement, null, new HashSet<>());
-            rootNode.setExpanded(true);
-            logger.debug("Visual tree built with single root element: {}", rootElement.getName());
-        } else {
-            // Multiple global elements - create schema node as root
-            rootNode = new VisualNode(
-                    "Schema: " + (model.getTargetNamespace() != null ? model.getTargetNamespace() : "default"),
-                    model.getGlobalElements().size() + " elements",
-                    NodeWrapperType.SCHEMA,
-                    model,
-                    null
-            );
-            rootNode.setExpanded(true);
-            nodeMap.put(model.getId(), rootNode);
-
-            // Add global elements only (types will be resolved on demand)
-            for (XsdElementModel element : model.getGlobalElements()) {
-                VisualNode elementNode = createElementNode(element, rootNode, new HashSet<>());
-                rootNode.addChild(elementNode);
-            }
-
-            logger.debug("Visual tree built with {} global elements", rootNode.getChildren().size());
-        }
-    }
-
-    /**
-     * Creates a visual node for an element.
-     * Resolves type references to show the structure of referenced types.
-     *
-     * @param element      The element model to create a node for
-     * @param parent       The parent visual node
-     * @param visitedTypes Set of type names already visited in the current path (to prevent infinite recursion)
-     * @return The created visual node
-     */
-    private VisualNode createElementNode(XsdElementModel element, VisualNode parent, Set<String> visitedTypes) {
-        String label = element.getName();
-        String detail = "";
-
-        if (element.getType() != null) {
-            detail = element.getType();
-        }
-        if (element.getMinOccurs() != 1 || element.getMaxOccurs() != 1) {
-            detail += " [" + element.getMinOccurs() + ".." +
-                    (element.getMaxOccurs() == Integer.MAX_VALUE ? "*" : element.getMaxOccurs()) + "]";
-        }
-
-        VisualNode node = new VisualNode(label, detail, NodeWrapperType.ELEMENT, element, parent,
-                element.getMinOccurs(), element.getMaxOccurs());
-        nodeMap.put(element.getId(), node);
-
-        // First priority: Compositors (sequence, choice, all)
-        boolean hasCompositors = !element.getCompositors().isEmpty();
-        if (hasCompositors) {
-            for (XsdCompositorModel compositor : element.getCompositors()) {
-                node.addChild(createCompositorNode(compositor, node, visitedTypes));
-            }
-        }
-
-        // Second priority: inline child elements (without compositors)
-        boolean hasInlineChildren = !element.getChildren().isEmpty();
-        if (hasInlineChildren && !hasCompositors) {
-            for (XsdElementModel child : element.getChildren()) {
-                node.addChild(createElementNode(child, node, visitedTypes));
-            }
-        }
-
-        // Add inline attributes
-        for (XsdAttributeModel attr : element.getAttributes()) {
-            node.addChild(createAttributeNode(attr, node));
-        }
-
-        // If no inline content and element has a type reference, resolve the type
-        if (!hasInlineChildren && !hasCompositors && element.getType() != null) {
-            resolveTypeReference(element.getType(), node, visitedTypes);
-        }
-
-        return node;
-    }
-
-    /**
-     * Resolves a type reference and adds its structure to the parent node.
-     * Prevents infinite recursion by tracking visited types on the current path.
-     *
-     * @param typeRef      the type reference (e.g. "ControlDataType" or "xs:string")
-     * @param parentNode   the parent node to add children to
-     * @param visitedTypes set of type names already visited in the current path
-     */
-    private void resolveTypeReference(String typeRef, VisualNode parentNode, Set<String> visitedTypes) {
-        if (typeRef == null || typeRef.isEmpty()) {
-            return;
-        }
-
-        // Skip built-in XML Schema types
-        if (typeRef.startsWith("xs:") || typeRef.startsWith("xsd:")) {
-            return;
-        }
-
-        // Remove namespace prefix if present
-        String typeName = typeRef;
-        if (typeName.contains(":")) {
-            typeName = typeName.substring(typeName.indexOf(":") + 1);
-        }
-
-        // Check if this type is already being processed (circular reference)
-        if (visitedTypes.contains(typeName)) {
-            logger.warn("Recursion detected: type '{}' is already being processed. Aborting to prevent infinite loop.", typeName);
-            return;
-        }
-
-        // Add type to visited set
-        visitedTypes.add(typeName);
-
-        try {
-            // Try to resolve as complex type
-            XsdComplexTypeModel complexType = model.getGlobalComplexTypes().get(typeName);
-            if (complexType != null) {
-                // First, add compositors from complex type
-                for (XsdCompositorModel compositor : complexType.getCompositors()) {
-                    parentNode.addChild(createCompositorNode(compositor, parentNode, visitedTypes));
-                }
-
-                // Add elements from complex type (if no compositors)
-                if (complexType.getCompositors().isEmpty()) {
-                    for (XsdElementModel child : complexType.getElements()) {
-                        parentNode.addChild(createElementNode(child, parentNode, visitedTypes));
-                    }
-                }
-
-                // Add attributes from complex type
-                for (XsdAttributeModel attr : complexType.getAttributes()) {
-                    parentNode.addChild(createAttributeNode(attr, parentNode));
-                }
-                logger.debug("Resolved complex type '{}' for element '{}'", typeName,
-                        ((XsdElementModel) parentNode.getModelObject()).getName());
-                return;
-            }
-
-            // Try to resolve as simple type (simple types don't have children, so nothing to add)
-            XsdSimpleTypeModel simpleType = model.getGlobalSimpleTypes().get(typeName);
-            if (simpleType != null) {
-                logger.debug("Element '{}' has simple type '{}' (no children)",
-                        ((XsdElementModel) parentNode.getModelObject()).getName(), typeName);
-            }
-        } finally {
-            // Remove type from visited set when done (backtrack)
-            visitedTypes.remove(typeName);
-        }
-    }
-
-    /**
-     * Creates a visual node for an attribute.
-     */
-    private VisualNode createAttributeNode(XsdAttributeModel attribute, VisualNode parent) {
-        String label = "@" + attribute.getName();
-        String detail = attribute.getType() != null ? attribute.getType() : "";
-        if (attribute.isRequired()) {
-            detail += " (required)";
-        }
-
-        VisualNode node = new VisualNode(label, detail, NodeWrapperType.ATTRIBUTE, attribute, parent);
-        nodeMap.put(attribute.getId(), node);
-
-        return node;
-    }
-
-    /**
-     * Creates a visual node for a compositor (sequence, choice, all).
-     *
-     * @param compositor   The compositor model
-     * @param parent       The parent visual node
-     * @param visitedTypes Set of type names already visited in the current path (to prevent infinite recursion)
-     * @return The created visual node
-     */
-    private VisualNode createCompositorNode(XsdCompositorModel compositor, VisualNode parent, Set<String> visitedTypes) {
-        // Determine node type based on compositor type
-        NodeWrapperType nodeType = switch (compositor.getType()) {
-            case SEQUENCE -> NodeWrapperType.SEQUENCE;
-            case CHOICE -> NodeWrapperType.CHOICE;
-            case ALL -> NodeWrapperType.ALL;
-        };
-
-        String label = compositor.getLabel();
-        String detail = "";
-
-        // Add cardinality if not default (1..1)
-        if (compositor.getMinOccurs() != 1 || compositor.getMaxOccurs() != 1) {
-            detail = "[" + compositor.getMinOccurs() + ".." +
-                    (compositor.getMaxOccurs() == Integer.MAX_VALUE ? "*" : compositor.getMaxOccurs()) + "]";
-        }
-
-        VisualNode node = new VisualNode(label, detail, nodeType, compositor, parent,
-                compositor.getMinOccurs(), compositor.getMaxOccurs());
-        nodeMap.put(compositor.getId(), node);
-
-        // Compositor nodes are always expanded to show their children directly
-        node.setExpanded(true);
-
-        // Add all children (elements and compositors) in document order
-        for (Object child : compositor.getChildrenInOrder()) {
-            if (child instanceof XsdElementModel element) {
-                node.addChild(createElementNode(element, node, visitedTypes));
-            } else if (child instanceof XsdCompositorModel nestedCompositor) {
-                node.addChild(createCompositorNode(nestedCompositor, node, visitedTypes));
-            }
-        }
-
-        logger.debug("Created compositor node '{}' with {} children in document order (auto-expanded)",
-                compositor.getLabel(), compositor.getChildrenInOrder().size());
-
-        return node;
+        XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
+        // Provide rebuild callback for Model → View synchronization
+        // For structural changes (add/delete child), we need to rebuild the tree
+        rootNode = builder.buildFromSchema(xsdSchema, this::rebuildVisualTree);
+        nodeMap.putAll(builder.getNodeMap());
+        logger.debug("Visual tree built from XsdSchema with {} nodes (with auto-rebuild on model changes)", nodeMap.size());
     }
 
     /**
@@ -595,18 +327,14 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             }
             logger.trace("Saved {} selected nodes", selectedNodeIds.size());
 
-            // 3. Rebuild tree from model
+            // 3. Rebuild tree from schema
             // Temporarily use this::redraw to avoid recursion during rebuild
-            if (xsdSchema != null) {
-                XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
-                rootNode = builder.buildFromSchema(xsdSchema, this::redraw);
-                nodeMap.clear();
-                nodeMap.putAll(builder.getNodeMap());
-                logger.debug("Visual tree rebuilt with {} nodes", nodeMap.size());
-                logger.debug("Root node has {} children", rootNode.getChildren().size());
-            } else if (model != null) {
-                buildVisualTree();
-            }
+            XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
+            rootNode = builder.buildFromSchema(xsdSchema, this::redraw);
+            nodeMap.clear();
+            nodeMap.putAll(builder.getNodeMap());
+            logger.debug("Visual tree rebuilt with {} nodes", nodeMap.size());
+            logger.debug("Root node has {} children", rootNode.getChildren().size());
 
             // 4. Restore expansion state
             restoreExpansionState(rootNode, expandedNodeIds);
@@ -1131,7 +859,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             this.editorContext.removePropertyChangeListener("editMode", this::handleEditModeChange);
         }
 
-        this.editorContext = editorContext != null ? editorContext : new XsdEditorContext(model);
+        this.editorContext = editorContext != null ? editorContext : new XsdEditorContext(xsdSchema);
 
         // Add listener for edit mode changes
         this.editorContext.addPropertyChangeListener("editMode", this::handleEditModeChange);
@@ -1169,9 +897,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
-     * Gets the XSD schema model.
+     * Gets the XSD schema.
      *
-     * @return the XSD schema, or null if using old XsdSchemaModel
+     * @return the XSD schema
      */
     public XsdSchema getXsdSchema() {
         return xsdSchema;
@@ -1207,7 +935,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         if (saveButton != null) {
             boolean hasCallback = onSaveCallback != null;
             boolean inEditMode = editorContext != null && editorContext.isEditMode();
-            boolean hasSchema = xsdSchema != null || model != null;
+            boolean hasSchema = xsdSchema != null;
 
             saveButton.setDisable(!hasCallback || !inEditMode || !hasSchema);
         }

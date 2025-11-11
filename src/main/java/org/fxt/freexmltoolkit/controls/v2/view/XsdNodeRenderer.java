@@ -537,6 +537,8 @@ public class XsdNodeRenderer {
             // Register listener with model if it's an XsdNode
             if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
                 xsdNode.addPropertyChangeListener(modelListener);
+                // Initialize detail string from model immediately
+                updateFromModel();
             }
         }
 

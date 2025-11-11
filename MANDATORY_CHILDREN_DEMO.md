@@ -98,3 +98,4 @@ Die Funktionalität wurde erfolgreich getestet:
 
 Die automatische Erstellung von Pflicht-Kindknoten funktioniert wie gewünscht. Wenn ein XSD verknüpft ist, werden beim
 Erstellen neuer Knoten automatisch alle mandatory Kindknoten erstellt.
+

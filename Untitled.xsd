@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:annotation>
+    <xs:documentation>
+      Auto-generated schema by FreeXmlToolkit Schema Generator
+      Generated on: 2025-08-25T16:33:26.240590
+      Source documents: 0
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:element name="api-documentation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="api">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="base-url" type="xs:string"/>
+              <xs:element name="endpoint">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="response">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="schema">
+                            <xs:complexType>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="status-code" type="xs:long"/>
+                          <xs:element name="content-type" type="xs:string"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="description">
+                      <xs:complexType>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="parameters">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="parameter">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="description">
+                                  <xs:complexType>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute name="name" type="xs:string" use="required"/>
+                              <xs:attribute name="type" type="xs:string" use="required"/>
+                              <xs:attribute name="required" type="xs:boolean" use="required"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="path" type="xs:string" use="required"/>
+                  <xs:attribute name="method" type="xs:string" use="required"/>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="description" type="xs:string"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+            <xs:attribute name="version" type="xs:decimal" use="required"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

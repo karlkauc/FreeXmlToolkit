@@ -117,21 +117,11 @@ public class XsdVisualTreeBuilder {
      */
     private VisualNode createElementNode(XsdElement element, VisualNode parent, Set<String> visitedTypes) {
         String label = element.getName() != null ? element.getName() : "(unnamed)";
-        String detail = "";
-
-        if (element.getType() != null) {
-            detail = element.getType();
-        }
-
         int minOccurs = element.getMinOccurs();
         int maxOccurs = element.getMaxOccurs();
 
-        if (minOccurs != 1 || maxOccurs != 1) {
-            detail += " [" + minOccurs + ".." +
-                    (maxOccurs == XsdNode.UNBOUNDED ? "*" : maxOccurs) + "]";
-        }
-
-        VisualNode node = new VisualNode(label, detail, NodeWrapperType.ELEMENT, element, parent,
+        // Detail string will be built by VisualNode.buildDetailString() from model properties
+        VisualNode node = new VisualNode(label, "", NodeWrapperType.ELEMENT, element, parent,
                 minOccurs, maxOccurs, onModelChangeCallback);
 
         // Add to nodeMap for later lookup
@@ -250,13 +240,9 @@ public class XsdVisualTreeBuilder {
      */
     private VisualNode createAttributeNode(XsdAttribute attribute, VisualNode parent) {
         String label = "@" + (attribute.getName() != null ? attribute.getName() : "(unnamed)");
-        String detail = attribute.getType() != null ? attribute.getType() : "";
 
-        if ("required".equals(attribute.getUse())) {
-            detail += " (required)";
-        }
-
-        VisualNode node = new VisualNode(label, detail, NodeWrapperType.ATTRIBUTE, attribute, parent, 1, 1, onModelChangeCallback);
+        // Detail string will be built by VisualNode.buildDetailString() from model properties
+        VisualNode node = new VisualNode(label, "", NodeWrapperType.ATTRIBUTE, attribute, parent, 1, 1, onModelChangeCallback);
 
         // Add to nodeMap for later lookup
         nodeMap.put(attribute.getId(), node);

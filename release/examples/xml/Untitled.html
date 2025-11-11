@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Schematron Test Results</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #f2f2f2; }
+.passed { color: #28a745; }
+.failed { color: #dc3545; }
+.details { margin-top: 30px; }
+.file-details { margin-bottom: 25px; border: 1px solid #ccc; padding: 15px; border-radius: 5px; }
+.file-details h3 { margin-top: 0; color: #333; }
+.test-result { margin: 5px 0; padding: 8px; border-left: 4px solid #ddd; background-color: #f9f9f9; }
+.test-result.assert { border-left-color: #dc3545; }
+.test-result.report { border-left-color: #ffc107; }
+.test-result.error { border-left-color: #dc3545; }
+.result-type { font-weight: bold; text-transform: uppercase; font-size: 0.9em; }
+.result-location { font-style: italic; color: #666; }
+</style>
+</head>
+<body>
+<h1>Schematron Test Results</h1>
+<p>Generated: 2025-08-27 22:09:36</p>
+<p>Schema: test-schematron.sch</p>
+<table>
+<thead>
+<tr>
+<th>File</th><th>Status</th><th>Violations</th><th>Warnings</th><th>Duration</th><th>Last Tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FundsXML_422_Bond_Fund.xml</td>
+<td class='passed'>Passed</td>
+<td>0</td>
+<td>1</td>
+<td>255ms</td>
+<td>2025-08-27 22:09:20</td>
+</tr>
+</tbody>
+</table>
+<div class='details'>
+<h2>Detailed Test Results</h2>
+<div class='file-details'>
+<h3>FundsXML_422_Bond_Fund.xml</h3>
+<p><strong>Status:</strong> Passed</p>
+<p><strong>Test Duration:</strong> 255ms</p>
+<div class='test-result report'>
+<span class='result-type'>report</span>: Sample warning message 1 for demonstration<br>
+<span class='result-location'>Location: /root/element[1] (Line 15)</span><br>
+<strong>Rule ID:</strong> rule-warn-1<br>
+<strong>Pattern:</strong> Sample Warning Pattern
+</div>
+</div>
+</div>
+</body>
+</html>

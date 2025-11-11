@@ -3,7 +3,6 @@ package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,12 +39,8 @@ class SaveCommandTest {
         rootElement.setType("xs:string");
         schema.addChild(rootElement);
 
-        // Create schema model
-        XsdSchemaModel schemaModel = new XsdSchemaModel();
-        schemaModel.setTargetNamespace("http://example.com/test");
-
         // Create editor context
-        editorContext = new XsdEditorContext(schemaModel);
+        editorContext = new XsdEditorContext(schema);
 
         // Create test file path
         testFilePath = tempDir.resolve("test.xsd");

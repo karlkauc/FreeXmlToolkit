@@ -300,9 +300,9 @@ public class XsdSerializer {
      */
     private void serializeAnnotation(XsdNode node, StringBuilder sb, String indentation, int indent) {
         String documentation = node.getDocumentation();
-        String appinfo = node.getAppinfo();
+        XsdAppInfo appinfo = node.getAppinfo();
 
-        if (documentation == null && appinfo == null) {
+        if (documentation == null && (appinfo == null || !appinfo.hasEntries())) {
             return; // Nothing to serialize
         }
 
@@ -315,12 +315,11 @@ public class XsdSerializer {
             sb.append("</xs:documentation>\n");
         }
 
-        // Serialize appinfo
-        if (appinfo != null) {
-            sb.append(indentation).append(indentString).append("<xs:appinfo>");
-            // Note: appinfo may contain XML fragments, but we escape it for safety
-            sb.append(escapeXml(appinfo));
-            sb.append("</xs:appinfo>\n");
+        // Serialize structured appinfo entries
+        if (appinfo != null && appinfo.hasEntries()) {
+            for (String xmlString : appinfo.toXmlStrings()) {
+                sb.append(indentation).append(indentString).append(xmlString).append("\n");
+            }
         }
 
         sb.append(indentation).append("</xs:annotation>\n");

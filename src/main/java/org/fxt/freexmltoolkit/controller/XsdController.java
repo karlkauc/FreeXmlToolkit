@@ -61,7 +61,6 @@ public class XsdController {
 
     private XsdDiagramView currentDiagramView;
     private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView currentGraphViewV2;
-    private org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel currentSchemaModelV2;
 
     @FXML
     private TabPane tabPane;
@@ -1279,18 +1278,12 @@ public class XsdController {
             xsdStackPaneV2.getChildren().clear();
 
             if (schema != null) {
-                // Use new XsdSchema-based constructor
+                // Use XsdSchema-based constructor
                 currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(schema);
 
                 // Enable edit mode by creating and setting up an editor context
-                // Create a temporary XsdSchemaModel for EditorContext compatibility
-                org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel tempModel =
-                        new org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel();
-                if (schema.getTargetNamespace() != null) {
-                    tempModel.setTargetNamespace(schema.getTargetNamespace());
-                }
                 org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext =
-                        new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(tempModel);
+                        new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(schema);
                 editorContext.setEditMode(true);
                 currentGraphViewV2.setEditorContext(editorContext);
 
