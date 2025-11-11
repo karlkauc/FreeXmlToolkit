@@ -138,6 +138,16 @@ public class XsdSerializer {
             serializeGroup(group, sb, indentation, indent);
         } else if (node instanceof XsdAttributeGroup attributeGroup) {
             serializeAttributeGroup(attributeGroup, sb, indentation, indent);
+        } else if (node instanceof XsdKey key) {
+            serializeKey(key, sb, indentation, indent);
+        } else if (node instanceof XsdKeyRef keyRef) {
+            serializeKeyRef(keyRef, sb, indentation, indent);
+        } else if (node instanceof XsdUnique unique) {
+            serializeUnique(unique, sb, indentation, indent);
+        } else if (node instanceof XsdSelector selector) {
+            serializeSelector(selector, sb, indentation);
+        } else if (node instanceof XsdField field) {
+            serializeField(field, sb, indentation);
         } else {
             logger.warn("Unknown node type: {}", node.getClass().getSimpleName());
         }
@@ -521,6 +531,125 @@ public class XsdSerializer {
         }
 
         sb.append(indentation).append("</xs:annotation>\n");
+    }
+
+    /**
+     * Serializes xs:key element (identity constraint).
+     *
+     * @param key         the XSD key
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeKey(XsdKey key, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:key");
+
+        // Add name attribute
+        if (key.getName() != null && !key.getName().isEmpty()) {
+            sb.append(" name=\"").append(escapeXml(key.getName())).append("\"");
+        }
+
+        sb.append(">\n");
+
+        // Serialize selector and fields (children)
+        for (XsdNode child : key.getChildren()) {
+            serializeXsdNode(child, sb, indent + 1);
+        }
+
+        sb.append(indentation).append("</xs:key>\n");
+    }
+
+    /**
+     * Serializes xs:keyref element (referential constraint).
+     *
+     * @param keyRef      the XSD keyref
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeKeyRef(XsdKeyRef keyRef, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:keyref");
+
+        // Add name attribute
+        if (keyRef.getName() != null && !keyRef.getName().isEmpty()) {
+            sb.append(" name=\"").append(escapeXml(keyRef.getName())).append("\"");
+        }
+
+        // Add refer attribute (required)
+        if (keyRef.getRefer() != null && !keyRef.getRefer().isEmpty()) {
+            sb.append(" refer=\"").append(escapeXml(keyRef.getRefer())).append("\"");
+        }
+
+        sb.append(">\n");
+
+        // Serialize selector and fields (children)
+        for (XsdNode child : keyRef.getChildren()) {
+            serializeXsdNode(child, sb, indent + 1);
+        }
+
+        sb.append(indentation).append("</xs:keyref>\n");
+    }
+
+    /**
+     * Serializes xs:unique element (uniqueness constraint).
+     *
+     * @param unique      the XSD unique
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeUnique(XsdUnique unique, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:unique");
+
+        // Add name attribute
+        if (unique.getName() != null && !unique.getName().isEmpty()) {
+            sb.append(" name=\"").append(escapeXml(unique.getName())).append("\"");
+        }
+
+        sb.append(">\n");
+
+        // Serialize selector and fields (children)
+        for (XsdNode child : unique.getChildren()) {
+            serializeXsdNode(child, sb, indent + 1);
+        }
+
+        sb.append(indentation).append("</xs:unique>\n");
+    }
+
+    /**
+     * Serializes xs:selector element.
+     *
+     * @param selector    the XSD selector
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     */
+    private void serializeSelector(XsdSelector selector, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:selector");
+
+        // Add xpath attribute
+        if (selector.getXpath() != null && !selector.getXpath().isEmpty()) {
+            sb.append(" xpath=\"").append(escapeXml(selector.getXpath())).append("\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    /**
+     * Serializes xs:field element.
+     *
+     * @param field       the XSD field
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     */
+    private void serializeField(XsdField field, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:field");
+
+        // Add xpath attribute
+        if (field.getXpath() != null && !field.getXpath().isEmpty()) {
+            sb.append(" xpath=\"").append(escapeXml(field.getXpath())).append("\"");
+        }
+
+        sb.append("/>\n");
     }
 
     /**

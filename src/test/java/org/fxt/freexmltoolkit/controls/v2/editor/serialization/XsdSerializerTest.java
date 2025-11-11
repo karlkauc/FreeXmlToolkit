@@ -842,4 +842,244 @@ class XsdSerializerTest {
         assertNotNull(xml);
         assertTrue(xml.contains("<xs:union memberTypes=\"xs:string\"/>"));
     }
+
+    // ========== Identity Constraint Serialization Tests ==========
+
+    @Test
+    @DisplayName("serializeKey() should serialize key constraint with selector and field")
+    void testSerializeKey() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement employeeElement = new XsdElement("Employee");
+
+        XsdKey key = new XsdKey("employeeKey");
+        XsdSelector selector = new XsdSelector(".//employee");
+        XsdField field = new XsdField("@id");
+
+        key.addChild(selector);
+        key.addChild(field);
+        employeeElement.addChild(key);
+        schema.addChild(employeeElement);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:key name=\"employeeKey\">"));
+        assertTrue(xml.contains("<xs:selector xpath=\".//employee\"/>"));
+        assertTrue(xml.contains("<xs:field xpath=\"@id\"/>"));
+        assertTrue(xml.contains("</xs:key>"));
+    }
+
+    @Test
+    @DisplayName("serializeKey() should serialize key with multiple fields")
+    void testSerializeKeyMultipleFields() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement personElement = new XsdElement("Person");
+
+        XsdKey key = new XsdKey("personKey");
+        XsdSelector selector = new XsdSelector(".//person");
+        XsdField field1 = new XsdField("@firstName");
+        XsdField field2 = new XsdField("@lastName");
+        XsdField field3 = new XsdField("@birthDate");
+
+        key.addChild(selector);
+        key.addChild(field1);
+        key.addChild(field2);
+        key.addChild(field3);
+        personElement.addChild(key);
+        schema.addChild(personElement);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:key name=\"personKey\">"));
+        assertTrue(xml.contains("<xs:selector xpath=\".//person\"/>"));
+        assertTrue(xml.contains("<xs:field xpath=\"@firstName\"/>"));
+        assertTrue(xml.contains("<xs:field xpath=\"@lastName\"/>"));
+        assertTrue(xml.contains("<xs:field xpath=\"@birthDate\"/>"));
+        assertTrue(xml.contains("</xs:key>"));
+    }
+
+    @Test
+    @DisplayName("serializeKeyRef() should serialize keyref constraint with refer attribute")
+    void testSerializeKeyRef() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement departmentElement = new XsdElement("Department");
+
+        XsdKeyRef keyRef = new XsdKeyRef("employeeRef");
+        keyRef.setRefer("employeeKey");
+        XsdSelector selector = new XsdSelector(".//department");
+        XsdField field = new XsdField("@managerId");
+
+        keyRef.addChild(selector);
+        keyRef.addChild(field);
+        departmentElement.addChild(keyRef);
+        schema.addChild(departmentElement);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:keyref name=\"employeeRef\" refer=\"employeeKey\">"));
+        assertTrue(xml.contains("<xs:selector xpath=\".//department\"/>"));
+        assertTrue(xml.contains("<xs:field xpath=\"@managerId\"/>"));
+        assertTrue(xml.contains("</xs:keyref>"));
+    }
+
+    @Test
+    @DisplayName("serializeUnique() should serialize unique constraint")
+    void testSerializeUnique() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement userElement = new XsdElement("User");
+
+        XsdUnique unique = new XsdUnique("emailUnique");
+        XsdSelector selector = new XsdSelector(".//user");
+        XsdField field = new XsdField("@email");
+
+        unique.addChild(selector);
+        unique.addChild(field);
+        userElement.addChild(unique);
+        schema.addChild(userElement);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:unique name=\"emailUnique\">"));
+        assertTrue(xml.contains("<xs:selector xpath=\".//user\"/>"));
+        assertTrue(xml.contains("<xs:field xpath=\"@email\"/>"));
+        assertTrue(xml.contains("</xs:unique>"));
+    }
+
+    @Test
+    @DisplayName("serialize complete schema with key and keyref")
+    void testSerializeSchemaWithKeyAndKeyRef() {
+        XsdSchema schema = new XsdSchema();
+
+        // Employee element with key
+        XsdElement employeeElement = new XsdElement("Employee");
+        XsdKey key = new XsdKey("employeeKey");
+        XsdSelector keySelector = new XsdSelector(".//employee");
+        XsdField keyField = new XsdField("@id");
+        key.addChild(keySelector);
+        key.addChild(keyField);
+        employeeElement.addChild(key);
+        schema.addChild(employeeElement);
+
+        // Department element with keyref
+        XsdElement departmentElement = new XsdElement("Department");
+        XsdKeyRef keyRef = new XsdKeyRef("managerRef");
+        keyRef.setRefer("employeeKey");
+        XsdSelector refSelector = new XsdSelector(".//department");
+        XsdField refField = new XsdField("@managerId");
+        keyRef.addChild(refSelector);
+        keyRef.addChild(refField);
+        departmentElement.addChild(keyRef);
+        schema.addChild(departmentElement);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Verify key
+        assertTrue(xml.contains("<xs:key name=\"employeeKey\">"));
+        assertTrue(xml.contains("<xs:selector xpath=\".//employee\"/>"));
+        assertTrue(xml.contains("<xs:field xpath=\"@id\"/>"));
+        // Verify keyref
+        assertTrue(xml.contains("<xs:keyref name=\"managerRef\" refer=\"employeeKey\">"));
+        assertTrue(xml.contains("<xs:selector xpath=\".//department\"/>"));
+        assertTrue(xml.contains("<xs:field xpath=\"@managerId\"/>"));
+    }
+
+    @Test
+    @DisplayName("serialize schema with multiple identity constraints")
+    void testSerializeMultipleIdentityConstraints() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement personElement = new XsdElement("Person");
+
+        // Key constraint
+        XsdKey key = new XsdKey("personKey");
+        XsdSelector keySelector = new XsdSelector(".//person");
+        XsdField keyField = new XsdField("@ssn");
+        key.addChild(keySelector);
+        key.addChild(keyField);
+        personElement.addChild(key);
+
+        // Unique constraint
+        XsdUnique unique = new XsdUnique("emailUnique");
+        XsdSelector uniqueSelector = new XsdSelector(".//person");
+        XsdField uniqueField = new XsdField("@email");
+        unique.addChild(uniqueSelector);
+        unique.addChild(uniqueField);
+        personElement.addChild(unique);
+
+        schema.addChild(personElement);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Verify both constraints are present
+        assertTrue(xml.contains("<xs:key name=\"personKey\">"));
+        assertTrue(xml.contains("<xs:unique name=\"emailUnique\">"));
+        assertTrue(xml.contains("<xs:field xpath=\"@ssn\"/>"));
+        assertTrue(xml.contains("<xs:field xpath=\"@email\"/>"));
+    }
+
+    @Test
+    @DisplayName("serialize identity constraint with complex XPath expressions")
+    void testSerializeComplexXPathInConstraints() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement rootElement = new XsdElement("Root");
+
+        XsdKey key = new XsdKey("complexKey");
+        XsdSelector selector = new XsdSelector("./ns:items/ns:item[@type='primary']");
+        XsdField field = new XsdField("ns:id/@value");
+
+        key.addChild(selector);
+        key.addChild(field);
+        rootElement.addChild(key);
+        schema.addChild(rootElement);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:key name=\"complexKey\">"));
+        assertTrue(xml.contains("<xs:selector xpath=\"./ns:items/ns:item[@type=&apos;primary&apos;]\"/>"));
+        assertTrue(xml.contains("<xs:field xpath=\"ns:id/@value\"/>"));
+    }
+
+    @Test
+    @DisplayName("serialize identity constraint without selector should serialize empty")
+    void testSerializeIdentityConstraintWithoutSelector() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement element = new XsdElement("Test");
+
+        XsdKey key = new XsdKey("incompleteKey");
+        // No selector or fields added
+        element.addChild(key);
+        schema.addChild(element);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:key name=\"incompleteKey\">"));
+        assertTrue(xml.contains("</xs:key>"));
+    }
+
+    @Test
+    @DisplayName("serialize identity constraint with XML special characters")
+    void testSerializeIdentityConstraintWithSpecialCharacters() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement element = new XsdElement("Test");
+
+        XsdKey key = new XsdKey("key<>&\"'");
+        XsdSelector selector = new XsdSelector(".//test[@attr='value<>&']");
+
+        key.addChild(selector);
+        element.addChild(key);
+        schema.addChild(element);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Verify XML escaping
+        assertTrue(xml.contains("key&lt;&gt;&amp;&quot;&apos;"));
+        assertTrue(xml.contains(".//test[@attr=&apos;value&lt;&gt;&amp;&apos;]"));
+    }
 }
