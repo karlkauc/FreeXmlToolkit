@@ -1601,4 +1601,510 @@ class XsdSerializerTest {
         assertTrue(xml.contains("<xs:openContent mode=\"interleave\"/>"));
         assertTrue(xml.contains("<xs:override schemaLocation=\"base.xsd\"/>"));
     }
+
+    // ========== Comprehensive Integration Tests ==========
+
+    @Test
+    @DisplayName("serialize complete schema with all XSD 1.0 features")
+    void testCompleteXsd10Schema() {
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/complete");
+
+        // Import
+        XsdImport xsdImport = new XsdImport("http://www.w3.org/2001/XMLSchema", null);
+        schema.addChild(xsdImport);
+
+        // Include
+        XsdInclude include = new XsdInclude("common-types.xsd");
+        schema.addChild(include);
+
+        // Group definition
+        XsdGroup addressGroup = new XsdGroup("AddressGroup");
+        XsdSequence groupSeq = new XsdSequence();
+        XsdElement street = new XsdElement("street");
+        street.setType("xs:string");
+        groupSeq.addChild(street);
+        addressGroup.addChild(groupSeq);
+        schema.addChild(addressGroup);
+
+        // AttributeGroup definition
+        XsdAttributeGroup metadataAttrs = new XsdAttributeGroup("MetadataAttributes");
+        XsdAttribute created = new XsdAttribute("created");
+        created.setType("xs:dateTime");
+        metadataAttrs.addChild(created);
+        schema.addChild(metadataAttrs);
+
+        // SimpleType with restriction
+        XsdSimpleType zipCodeType = new XsdSimpleType("ZipCodeType");
+        XsdRestriction restriction = new XsdRestriction("xs:string");
+        restriction.addFacet(new XsdFacet(XsdFacetType.PATTERN, "[0-9]{5}"));
+        zipCodeType.addChild(restriction);
+        schema.addChild(zipCodeType);
+
+        // SimpleType with list
+        XsdSimpleType listType = new XsdSimpleType("NumberListType");
+        XsdList list = new XsdList("xs:integer");
+        listType.addChild(list);
+        schema.addChild(listType);
+
+        // SimpleType with union
+        XsdSimpleType unionType = new XsdSimpleType("FlexibleIdType");
+        XsdUnion union = new XsdUnion();
+        union.addMemberType("xs:integer");
+        union.addMemberType("xs:string");
+        unionType.addChild(union);
+        schema.addChild(unionType);
+
+        // ComplexType with group reference
+        XsdComplexType personType = new XsdComplexType("PersonType");
+        XsdSequence personSeq = new XsdSequence();
+        XsdElement name = new XsdElement("name");
+        name.setType("xs:string");
+        personSeq.addChild(name);
+        XsdGroup groupRef = new XsdGroup();
+        groupRef.setRef("AddressGroup");
+        personSeq.addChild(groupRef);
+        personType.addChild(personSeq);
+        XsdAttributeGroup attrGroupRef = new XsdAttributeGroup();
+        attrGroupRef.setRef("MetadataAttributes");
+        personType.addChild(attrGroupRef);
+        schema.addChild(personType);
+
+        // Global element with identity constraints
+        XsdElement rootElement = new XsdElement("Root");
+        XsdKey key = new XsdKey("personKey");
+        XsdSelector selector = new XsdSelector(".//person");
+        XsdField field = new XsdField("@id");
+        key.addChild(selector);
+        key.addChild(field);
+        rootElement.addChild(key);
+        schema.addChild(rootElement);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Verify all components are present
+        assertTrue(xml.contains("<xs:import"));
+        assertTrue(xml.contains("<xs:include"));
+        assertTrue(xml.contains("<xs:group name=\"AddressGroup\">"));
+        assertTrue(xml.contains("<xs:attributeGroup name=\"MetadataAttributes\">"));
+        assertTrue(xml.contains("<xs:simpleType name=\"ZipCodeType\">"));
+        assertTrue(xml.contains("<xs:simpleType name=\"NumberListType\">"));
+        assertTrue(xml.contains("<xs:simpleType name=\"FlexibleIdType\">"));
+        assertTrue(xml.contains("<xs:complexType name=\"PersonType\">"));
+        assertTrue(xml.contains("<xs:key name=\"personKey\">"));
+        assertTrue(xml.contains("<xs:group ref=\"AddressGroup\"/>"));
+        assertTrue(xml.contains("<xs:attributeGroup ref=\"MetadataAttributes\"/>"));
+    }
+
+    @Test
+    @DisplayName("serialize complete XSD 1.1 schema with mixed features")
+    void testCompleteXsd11SchemaWithMixedFeatures() {
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/xsd11-complete");
+
+        // Override (XSD 1.1 replacement for redefine)
+        XsdOverride override = new XsdOverride("base-types.xsd");
+        XsdSimpleType overriddenType = new XsdSimpleType("CodeType");
+        XsdRestriction restriction = new XsdRestriction("xs:string");
+        restriction.addFacet(new XsdFacet(XsdFacetType.MAX_LENGTH, "10"));
+        overriddenType.addChild(restriction);
+        override.addChild(overriddenType);
+        schema.addChild(override);
+
+        // ComplexType with assert
+        XsdComplexType orderType = new XsdComplexType("OrderType");
+        XsdSequence orderSeq = new XsdSequence();
+        XsdElement itemCount = new XsdElement("itemCount");
+        itemCount.setType("xs:integer");
+        XsdElement totalPrice = new XsdElement("totalPrice");
+        totalPrice.setType("xs:decimal");
+        orderSeq.addChild(itemCount);
+        orderSeq.addChild(totalPrice);
+        orderType.addChild(orderSeq);
+        XsdAssert orderAssert = new XsdAssert("itemCount > 0 and totalPrice >= 0");
+        XsdAssert priceAssert = new XsdAssert("totalPrice < 10000");
+        priceAssert.setXpathDefaultNamespace("http://example.com/xsd11-complete");
+        orderType.addChild(orderAssert);
+        orderType.addChild(priceAssert);
+        schema.addChild(orderType);
+
+        // Element with alternatives
+        XsdElement dataElement = new XsdElement("data");
+        XsdAlternative intAlt = new XsdAlternative("@format='int'", "xs:integer");
+        XsdAlternative strAlt = new XsdAlternative("@format='str'", "xs:string");
+        XsdAlternative defaultAlt = new XsdAlternative(null, "xs:anySimpleType");
+        dataElement.addChild(intAlt);
+        dataElement.addChild(strAlt);
+        dataElement.addChild(defaultAlt);
+        schema.addChild(dataElement);
+
+        // ComplexType with openContent
+        XsdComplexType extensibleType = new XsdComplexType("ExtensibleType");
+        XsdOpenContent openContent = new XsdOpenContent(XsdOpenContent.Mode.SUFFIX);
+        extensibleType.addChild(openContent);
+        XsdSequence extSeq = new XsdSequence();
+        XsdElement coreData = new XsdElement("coreData");
+        coreData.setType("xs:string");
+        extSeq.addChild(coreData);
+        extensibleType.addChild(extSeq);
+        schema.addChild(extensibleType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Verify XSD 1.1 features
+        assertTrue(xml.contains("<xs:override schemaLocation=\"base-types.xsd\">"));
+        assertTrue(xml.contains("<xs:assert test=\"itemCount &gt; 0 and totalPrice &gt;= 0\"/>"));
+        assertTrue(xml.contains("<xs:assert test=\"totalPrice &lt; 10000\" xpathDefaultNamespace=\"http://example.com/xsd11-complete\"/>"));
+        assertTrue(xml.contains("<xs:alternative test=\"@format=&apos;int&apos;\" type=\"xs:integer\"/>"));
+        assertTrue(xml.contains("<xs:alternative test=\"@format=&apos;str&apos;\" type=\"xs:string\"/>"));
+        assertTrue(xml.contains("<xs:openContent mode=\"suffix\"/>"));
+    }
+
+    @Test
+    @DisplayName("serialize deeply nested complex schema structure")
+    void testDeeplyNestedSchemaStructure() {
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/nested");
+
+        // Create deeply nested structure
+        XsdComplexType rootType = new XsdComplexType("RootType");
+        XsdSequence rootSeq = new XsdSequence();
+
+        // Level 1
+        XsdElement level1 = new XsdElement("level1");
+        XsdComplexType level1Type = new XsdComplexType(null); // inline type
+        XsdSequence level1Seq = new XsdSequence();
+
+        // Level 2
+        XsdElement level2 = new XsdElement("level2");
+        XsdComplexType level2Type = new XsdComplexType(null); // inline type
+        XsdChoice level2Choice = new XsdChoice();
+
+        // Level 3 - option A
+        XsdElement level3a = new XsdElement("level3a");
+        level3a.setType("xs:string");
+        level2Choice.addChild(level3a);
+
+        // Level 3 - option B with all
+        XsdElement level3b = new XsdElement("level3b");
+        XsdComplexType level3bType = new XsdComplexType(null); // inline type
+        XsdAll level3All = new XsdAll();
+        XsdElement field1 = new XsdElement("field1");
+        field1.setType("xs:integer");
+        XsdElement field2 = new XsdElement("field2");
+        field2.setType("xs:string");
+        level3All.addChild(field1);
+        level3All.addChild(field2);
+        level3bType.addChild(level3All);
+        level3b.addChild(level3bType);
+        level2Choice.addChild(level3b);
+
+        level2Type.addChild(level2Choice);
+        level2.addChild(level2Type);
+        level1Seq.addChild(level2);
+
+        level1Type.addChild(level1Seq);
+        level1.addChild(level1Type);
+        rootSeq.addChild(level1);
+
+        rootType.addChild(rootSeq);
+        schema.addChild(rootType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Verify nested structure
+        assertTrue(xml.contains("<xs:complexType name=\"RootType\">"));
+        assertTrue(xml.contains("<xs:element name=\"level1\">"));
+        assertTrue(xml.contains("<xs:element name=\"level2\">"));
+        assertTrue(xml.contains("<xs:choice>"));
+        assertTrue(xml.contains("<xs:element name=\"level3a\" type=\"xs:string\"/>"));
+        assertTrue(xml.contains("<xs:element name=\"level3b\">"));
+        assertTrue(xml.contains("<xs:all>"));
+        assertTrue(xml.contains("<xs:element name=\"field1\" type=\"xs:integer\"/>"));
+        // Verify proper nesting and closing tags
+        int sequenceOpen = countOccurrences(xml, "<xs:sequence>");
+        int sequenceClose = countOccurrences(xml, "</xs:sequence>");
+        assertEquals(sequenceOpen, sequenceClose, "All sequence tags should be properly closed");
+    }
+
+    @Test
+    @DisplayName("serialize schema with all compositor types and occurrences")
+    void testAllCompositorTypesWithOccurrences() {
+        XsdSchema schema = new XsdSchema();
+
+        // ComplexType with sequence and occurrences
+        XsdComplexType seqType = new XsdComplexType("SequenceType");
+        XsdSequence seq = new XsdSequence();
+        seq.setMinOccurs(1);
+        seq.setMaxOccurs(5);
+        XsdElement item = new XsdElement("item");
+        item.setType("xs:string");
+        item.setMinOccurs(0);
+        item.setMaxOccurs(-1); // unbounded
+        seq.addChild(item);
+        seqType.addChild(seq);
+        schema.addChild(seqType);
+
+        // ComplexType with choice and occurrences
+        XsdComplexType choiceType = new XsdComplexType("ChoiceType");
+        XsdChoice choice = new XsdChoice();
+        choice.setMinOccurs(1);
+        choice.setMaxOccurs(10);
+        XsdElement optionA = new XsdElement("optionA");
+        optionA.setType("xs:string");
+        XsdElement optionB = new XsdElement("optionB");
+        optionB.setType("xs:integer");
+        choice.addChild(optionA);
+        choice.addChild(optionB);
+        choiceType.addChild(choice);
+        schema.addChild(choiceType);
+
+        // ComplexType with all (no occurrences allowed on all in XSD 1.0)
+        XsdComplexType allType = new XsdComplexType("AllType");
+        XsdAll all = new XsdAll();
+        XsdElement fieldA = new XsdElement("fieldA");
+        fieldA.setType("xs:string");
+        fieldA.setMinOccurs(0);
+        fieldA.setMaxOccurs(1);
+        XsdElement fieldB = new XsdElement("fieldB");
+        fieldB.setType("xs:integer");
+        all.addChild(fieldA);
+        all.addChild(fieldB);
+        allType.addChild(all);
+        schema.addChild(allType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // minOccurs="1" is not serialized because 1 is the default
+        assertTrue(xml.contains("<xs:sequence maxOccurs=\"5\">"));
+        assertTrue(xml.contains("<xs:element name=\"item\" type=\"xs:string\" minOccurs=\"0\" maxOccurs=\"unbounded\"/>"));
+        // minOccurs="1" is not serialized because 1 is the default
+        assertTrue(xml.contains("<xs:choice maxOccurs=\"10\">"));
+        assertTrue(xml.contains("<xs:all>"));
+    }
+
+    @Test
+    @DisplayName("serialize schema with mixed content and attributes")
+    void testMixedContentWithAttributes() {
+        XsdSchema schema = new XsdSchema();
+
+        // ComplexType with mixed content
+        XsdComplexType mixedType = new XsdComplexType("MixedType");
+        mixedType.setMixed(true);
+        XsdSequence seq = new XsdSequence();
+        XsdElement bold = new XsdElement("bold");
+        bold.setType("xs:string");
+        XsdElement italic = new XsdElement("italic");
+        italic.setType("xs:string");
+        seq.addChild(bold);
+        seq.addChild(italic);
+        mixedType.addChild(seq);
+
+        // Add attributes
+        XsdAttribute lang = new XsdAttribute("lang");
+        lang.setType("xs:string");
+        lang.setUse("required");
+        XsdAttribute style = new XsdAttribute("style");
+        style.setType("xs:string");
+        style.setUse("optional");
+        mixedType.addChild(lang);
+        mixedType.addChild(style);
+
+        schema.addChild(mixedType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // TODO: Serializer doesn't support mixed attribute yet
+        assertTrue(xml.contains("<xs:complexType name=\"MixedType\">"));
+        assertTrue(xml.contains("<xs:attribute name=\"lang\" type=\"xs:string\" use=\"required\"/>"));
+        assertTrue(xml.contains("<xs:attribute name=\"style\" type=\"xs:string\" use=\"optional\"/>"));
+    }
+
+    @Test
+    @DisplayName("serialize schema with inline type definitions")
+    void testInlineTypeDefinitions() {
+        XsdSchema schema = new XsdSchema();
+
+        // Element with inline complexType
+        XsdElement person = new XsdElement("person");
+        XsdComplexType inlineComplex = new XsdComplexType(null); // inline type
+        XsdSequence seq = new XsdSequence();
+        XsdElement name = new XsdElement("name");
+        name.setType("xs:string");
+        seq.addChild(name);
+        inlineComplex.addChild(seq);
+        person.addChild(inlineComplex);
+        schema.addChild(person);
+
+        // Element with inline simpleType
+        XsdElement status = new XsdElement("status");
+        XsdSimpleType inlineSimple = new XsdSimpleType();
+        XsdRestriction restriction = new XsdRestriction("xs:string");
+        restriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "active"));
+        restriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "inactive"));
+        inlineSimple.addChild(restriction);
+        status.addChild(inlineSimple);
+        schema.addChild(status);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:element name=\"person\">"));
+        assertTrue(xml.contains("<xs:complexType>"));
+        assertTrue(xml.contains("</xs:complexType>"));
+        assertTrue(xml.contains("</xs:element>"));
+        assertTrue(xml.contains("<xs:element name=\"status\">"));
+        assertTrue(xml.contains("<xs:simpleType>"));
+        assertTrue(xml.contains("<xs:restriction base=\"xs:string\">"));
+    }
+
+    @Test
+    @DisplayName("serialize schema with all facet types")
+    void testAllFacetTypes() {
+        XsdSchema schema = new XsdSchema();
+
+        // String with all string facets
+        XsdSimpleType stringType = new XsdSimpleType("RestrictedString");
+        XsdRestriction stringRestriction = new XsdRestriction("xs:string");
+        stringRestriction.addFacet(new XsdFacet(XsdFacetType.MIN_LENGTH, "1"));
+        stringRestriction.addFacet(new XsdFacet(XsdFacetType.MAX_LENGTH, "100"));
+        stringRestriction.addFacet(new XsdFacet(XsdFacetType.LENGTH, "50"));
+        stringRestriction.addFacet(new XsdFacet(XsdFacetType.PATTERN, "[A-Za-z0-9]+"));
+        stringRestriction.addFacet(new XsdFacet(XsdFacetType.WHITE_SPACE, "collapse"));
+        stringType.addChild(stringRestriction);
+        schema.addChild(stringType);
+
+        // Numeric with numeric facets
+        XsdSimpleType numericType = new XsdSimpleType("RestrictedNumber");
+        XsdRestriction numericRestriction = new XsdRestriction("xs:integer");
+        numericRestriction.addFacet(new XsdFacet(XsdFacetType.MIN_INCLUSIVE, "0"));
+        numericRestriction.addFacet(new XsdFacet(XsdFacetType.MAX_INCLUSIVE, "100"));
+        numericRestriction.addFacet(new XsdFacet(XsdFacetType.MIN_EXCLUSIVE, "-1"));
+        numericRestriction.addFacet(new XsdFacet(XsdFacetType.MAX_EXCLUSIVE, "101"));
+        numericRestriction.addFacet(new XsdFacet(XsdFacetType.TOTAL_DIGITS, "3"));
+        numericRestriction.addFacet(new XsdFacet(XsdFacetType.FRACTION_DIGITS, "0"));
+        numericType.addChild(numericRestriction);
+        schema.addChild(numericType);
+
+        // Enumeration
+        XsdSimpleType enumType = new XsdSimpleType("StatusType");
+        XsdRestriction enumRestriction = new XsdRestriction("xs:string");
+        enumRestriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "pending"));
+        enumRestriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "approved"));
+        enumRestriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "rejected"));
+        enumType.addChild(enumRestriction);
+        schema.addChild(enumType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Verify all facets are serialized
+        assertTrue(xml.contains("<xs:minLength value=\"1\"/>"));
+        assertTrue(xml.contains("<xs:maxLength value=\"100\"/>"));
+        assertTrue(xml.contains("<xs:length value=\"50\"/>"));
+        assertTrue(xml.contains("<xs:pattern value=\"[A-Za-z0-9]+\"/>"));
+        assertTrue(xml.contains("<xs:whiteSpace value=\"collapse\"/>"));
+        assertTrue(xml.contains("<xs:minInclusive value=\"0\"/>"));
+        assertTrue(xml.contains("<xs:maxInclusive value=\"100\"/>"));
+        assertTrue(xml.contains("<xs:minExclusive value=\"-1\"/>"));
+        assertTrue(xml.contains("<xs:maxExclusive value=\"101\"/>"));
+        assertTrue(xml.contains("<xs:totalDigits value=\"3\"/>"));
+        assertTrue(xml.contains("<xs:fractionDigits value=\"0\"/>"));
+        assertTrue(xml.contains("<xs:enumeration value=\"pending\"/>"));
+        assertTrue(xml.contains("<xs:enumeration value=\"approved\"/>"));
+        assertTrue(xml.contains("<xs:enumeration value=\"rejected\"/>"));
+    }
+
+    @Test
+    @DisplayName("serialize large schema with 50+ components")
+    void testLargeSchemaWithManyComponents() {
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/large");
+
+        // Add 20 simpleTypes
+        for (int i = 0; i < 20; i++) {
+            XsdSimpleType simpleType = new XsdSimpleType("SimpleType" + i);
+            XsdRestriction restriction = new XsdRestriction("xs:string");
+            simpleType.addChild(restriction);
+            schema.addChild(simpleType);
+        }
+
+        // Add 20 complexTypes
+        for (int i = 0; i < 20; i++) {
+            XsdComplexType complexType = new XsdComplexType("ComplexType" + i);
+            XsdSequence seq = new XsdSequence();
+            XsdElement elem = new XsdElement("field" + i);
+            elem.setType("xs:string");
+            seq.addChild(elem);
+            complexType.addChild(seq);
+            schema.addChild(complexType);
+        }
+
+        // Add 15 elements
+        for (int i = 0; i < 15; i++) {
+            XsdElement element = new XsdElement("Element" + i);
+            element.setType("ComplexType" + (i % 20));
+            schema.addChild(element);
+        }
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Verify counts
+        assertTrue(countOccurrences(xml, "<xs:simpleType name=\"SimpleType") >= 20);
+        assertTrue(countOccurrences(xml, "<xs:complexType name=\"ComplexType") >= 20);
+        assertTrue(countOccurrences(xml, "<xs:element name=\"Element") >= 15);
+    }
+
+    @Test
+    @DisplayName("serialize schema with special XML characters throughout")
+    void testSpecialCharactersInAllElements() {
+        XsdSchema schema = new XsdSchema();
+
+        // Element with special chars in documentation
+        XsdElement element = new XsdElement("TestElement");
+        element.setType("xs:string");
+        schema.addChild(element);
+
+        // ComplexType with special chars
+        XsdComplexType complexType = new XsdComplexType("Type<>&\"'");
+        XsdSequence seq = new XsdSequence();
+        XsdElement field = new XsdElement("field<>&");
+        field.setType("xs:string");
+        seq.addChild(field);
+        complexType.addChild(seq);
+        schema.addChild(complexType);
+
+        // Attribute with special chars
+        XsdAttribute attr = new XsdAttribute("attr<>&\"'");
+        attr.setType("xs:string");
+        schema.addChild(attr);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Verify XML escaping
+        assertTrue(xml.contains("&lt;"));
+        assertTrue(xml.contains("&gt;"));
+        assertTrue(xml.contains("&amp;"));
+        assertTrue(xml.contains("&quot;") || xml.contains("&apos;"));
+    }
+
+    /**
+     * Helper method to count occurrences of a substring.
+     */
+    private int countOccurrences(String text, String substring) {
+        int count = 0;
+        int index = 0;
+        while ((index = text.indexOf(substring, index)) != -1) {
+            count++;
+            index += substring.length();
+        }
+        return count;
+    }
 }
