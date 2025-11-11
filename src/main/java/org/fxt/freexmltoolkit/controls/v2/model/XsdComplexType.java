@@ -59,6 +59,79 @@ public class XsdComplexType extends XsdNode {
         pcs.firePropertyChange("abstract", oldValue, abstractType);
     }
 
+    /**
+     * Gets the complexContent child, if present.
+     * ComplexContent is used for extending/restricting complex types.
+     *
+     * @return the complexContent, or null
+     */
+    public XsdComplexContent getComplexContent() {
+        return getChildren().stream()
+                .filter(child -> child instanceof XsdComplexContent)
+                .map(child -> (XsdComplexContent) child)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Gets the simpleContent child, if present.
+     * SimpleContent is used for extending/restricting types with text content only.
+     *
+     * @return the simpleContent, or null
+     */
+    public XsdSimpleContent getSimpleContent() {
+        return getChildren().stream()
+                .filter(child -> child instanceof XsdSimpleContent)
+                .map(child -> (XsdSimpleContent) child)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Gets the sequence child, if present.
+     * Sequence is used for direct child elements in order.
+     * This is backwards-compatible with pre-ComplexContent structure.
+     *
+     * @return the sequence, or null
+     */
+    public XsdSequence getSequence() {
+        return getChildren().stream()
+                .filter(child -> child instanceof XsdSequence)
+                .map(child -> (XsdSequence) child)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Gets the choice child, if present.
+     * Choice is used for alternative child elements.
+     * This is backwards-compatible with pre-ComplexContent structure.
+     *
+     * @return the choice, or null
+     */
+    public XsdChoice getChoice() {
+        return getChildren().stream()
+                .filter(child -> child instanceof XsdChoice)
+                .map(child -> (XsdChoice) child)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Gets the all child, if present.
+     * All is used for unordered child elements.
+     * This is backwards-compatible with pre-ComplexContent structure.
+     *
+     * @return the all, or null
+     */
+    public XsdAll getAll() {
+        return getChildren().stream()
+                .filter(child -> child instanceof XsdAll)
+                .map(child -> (XsdAll) child)
+                .findFirst()
+                .orElse(null);
+    }
+
     @Override
     public XsdNodeType getNodeType() {
         return XsdNodeType.COMPLEX_TYPE;
