@@ -345,12 +345,13 @@ public class XsdPropertiesPanel extends VBox {
 
             // Constraint checkboxes only for elements
             boolean isElement = node.getModelObject() instanceof XsdElement;
-            nillableCheckBox.setDisable(!isEditMode || !isElement);
-            abstractCheckBox.setDisable(!isEditMode || !isElement);
-            fixedCheckBox.setDisable(!isEditMode || !isElement);
+            boolean constraintsEnabled = isEditMode && isElement;
+            nillableCheckBox.setDisable(!constraintsEnabled);
+            abstractCheckBox.setDisable(!constraintsEnabled);
+            fixedCheckBox.setDisable(!constraintsEnabled);
 
-            logger.debug("Controls editable state set: nameField={}, documentationArea={}",
-                    nameField.isEditable(), documentationArea.isEditable());
+            logger.debug("Controls editable state set: nameField={}, documentationArea={}, isEditMode={}, isElement={}, constraintsEnabled={}",
+                    nameField.isEditable(), documentationArea.isEditable(), isEditMode, isElement, constraintsEnabled);
 
             // Update General section
             nameField.setText(node.getLabel());

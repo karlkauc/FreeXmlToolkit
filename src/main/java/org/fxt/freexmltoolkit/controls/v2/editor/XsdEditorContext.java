@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.CommandManager;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -19,35 +19,35 @@ public class XsdEditorContext {
 
     private static final Logger logger = LogManager.getLogger(XsdEditorContext.class);
 
-    private final XsdSchemaModel model;
+    private final XsdSchema schema;
     private final CommandManager commandManager;
     private final SelectionModel selectionModel;
     private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
-    private boolean editMode = false;
+    private boolean editMode = true;  // Default to true to enable editing
     private boolean dirty = false;
 
     /**
-     * Creates a new editor context for the given schema model.
+     * Creates a new editor context for the given schema.
      *
-     * @param model the XSD schema model
+     * @param schema the XSD schema
      */
-    public XsdEditorContext(XsdSchemaModel model) {
-        this(model, null);
+    public XsdEditorContext(XsdSchema schema) {
+        this(schema, null);
     }
 
     /**
-     * Creates a new editor context for the given schema model with a shared selection model.
+     * Creates a new editor context for the given schema with a shared selection model.
      *
-     * @param model          the XSD schema model
+     * @param schema         the XSD schema
      * @param selectionModel the selection model to use (if null, a new one will be created)
      */
-    public XsdEditorContext(XsdSchemaModel model, SelectionModel selectionModel) {
-        if (model == null) {
-            throw new IllegalArgumentException("Model cannot be null");
+    public XsdEditorContext(XsdSchema schema, SelectionModel selectionModel) {
+        if (schema == null) {
+            throw new IllegalArgumentException("Schema cannot be null");
         }
 
-        this.model = model;
+        this.schema = schema;
         this.commandManager = new CommandManager();
         this.selectionModel = selectionModel != null ? selectionModel : new SelectionModel();
 
@@ -62,12 +62,12 @@ public class XsdEditorContext {
     }
 
     /**
-     * Gets the schema model.
+     * Gets the XSD schema.
      *
-     * @return the schema model
+     * @return the schema
      */
-    public XsdSchemaModel getModel() {
-        return model;
+    public XsdSchema getSchema() {
+        return schema;
     }
 
     /**
