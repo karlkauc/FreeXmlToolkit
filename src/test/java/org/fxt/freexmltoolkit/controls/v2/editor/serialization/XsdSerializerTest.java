@@ -1082,4 +1082,242 @@ class XsdSerializerTest {
         assertTrue(xml.contains("key&lt;&gt;&amp;&quot;&apos;"));
         assertTrue(xml.contains(".//test[@attr=&apos;value&lt;&gt;&amp;&apos;]"));
     }
+
+    // ========== Import/Include/Redefine Serialization Tests ==========
+
+    @Test
+    @DisplayName("serializeImport() should serialize import with namespace and schemaLocation")
+    void testSerializeImportWithNamespaceAndLocation() {
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/main");
+
+        XsdImport xsdImport = new XsdImport("http://example.com/types", "types.xsd");
+        schema.addChild(xsdImport);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:import namespace=\"http://example.com/types\" schemaLocation=\"types.xsd\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeImport() should serialize import with only namespace")
+    void testSerializeImportWithNamespaceOnly() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdImport xsdImport = new XsdImport("http://www.w3.org/2001/XMLSchema");
+        schema.addChild(xsdImport);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:import namespace=\"http://www.w3.org/2001/XMLSchema\"/>"));
+        assertFalse(xml.contains("schemaLocation"));
+    }
+
+    @Test
+    @DisplayName("serializeImport() should handle multiple imports")
+    void testSerializeMultipleImports() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdImport import1 = new XsdImport("http://example.com/types", "types.xsd");
+        XsdImport import2 = new XsdImport("http://example.com/elements", "elements.xsd");
+
+        schema.addChild(import1);
+        schema.addChild(import2);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:import namespace=\"http://example.com/types\" schemaLocation=\"types.xsd\"/>"));
+        assertTrue(xml.contains("<xs:import namespace=\"http://example.com/elements\" schemaLocation=\"elements.xsd\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeInclude() should serialize include with schemaLocation")
+    void testSerializeIncludeWithSchemaLocation() {
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/ns");
+
+        XsdInclude include = new XsdInclude("common-types.xsd");
+        schema.addChild(include);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:include schemaLocation=\"common-types.xsd\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeInclude() should handle multiple includes")
+    void testSerializeMultipleIncludes() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdInclude include1 = new XsdInclude("types.xsd");
+        XsdInclude include2 = new XsdInclude("elements.xsd");
+
+        schema.addChild(include1);
+        schema.addChild(include2);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:include schemaLocation=\"types.xsd\"/>"));
+        assertTrue(xml.contains("<xs:include schemaLocation=\"elements.xsd\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeInclude() should serialize include with relative path")
+    void testSerializeIncludeWithRelativePath() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdInclude include = new XsdInclude("../shared/common.xsd");
+        schema.addChild(include);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:include schemaLocation=\"../shared/common.xsd\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeRedefine() should serialize redefine with schemaLocation")
+    void testSerializeRedefineWithSchemaLocation() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdRedefine redefine = new XsdRedefine("base-types.xsd");
+        schema.addChild(redefine);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:redefine schemaLocation=\"base-types.xsd\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeRedefine() should serialize redefine with redefined complexType")
+    void testSerializeRedefineWithComplexType() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdRedefine redefine = new XsdRedefine("types.xsd");
+
+        // Redefine a complex type
+        XsdComplexType complexType = new XsdComplexType("PersonType");
+        XsdSequence sequence = new XsdSequence();
+        XsdElement name = new XsdElement("name");
+        name.setType("xs:string");
+        sequence.addChild(name);
+        complexType.addChild(sequence);
+        redefine.addChild(complexType);
+
+        schema.addChild(redefine);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:redefine schemaLocation=\"types.xsd\">"));
+        assertTrue(xml.contains("<xs:complexType name=\"PersonType\">"));
+        assertTrue(xml.contains("<xs:sequence>"));
+        assertTrue(xml.contains("<xs:element name=\"name\" type=\"xs:string\"/>"));
+        assertTrue(xml.contains("</xs:sequence>"));
+        assertTrue(xml.contains("</xs:complexType>"));
+        assertTrue(xml.contains("</xs:redefine>"));
+    }
+
+    @Test
+    @DisplayName("serializeRedefine() should serialize redefine with redefined simpleType")
+    void testSerializeRedefineWithSimpleType() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdRedefine redefine = new XsdRedefine("base-types.xsd");
+
+        // Redefine a simple type with restriction
+        XsdSimpleType simpleType = new XsdSimpleType("CountryCodeType");
+        XsdRestriction restriction = new XsdRestriction("xs:string");
+        XsdFacet facet = new XsdFacet(XsdFacetType.PATTERN, "[A-Z]{2}");
+        restriction.addChild(facet);
+        simpleType.addChild(restriction);
+        redefine.addChild(simpleType);
+
+        schema.addChild(redefine);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:redefine schemaLocation=\"base-types.xsd\">"));
+        assertTrue(xml.contains("<xs:simpleType name=\"CountryCodeType\">"));
+        assertTrue(xml.contains("<xs:restriction base=\"xs:string\">"));
+        assertTrue(xml.contains("<xs:pattern value=\"[A-Z]{2}\"/>"));
+        assertTrue(xml.contains("</xs:restriction>"));
+        assertTrue(xml.contains("</xs:simpleType>"));
+        assertTrue(xml.contains("</xs:redefine>"));
+    }
+
+    @Test
+    @DisplayName("serializeRedefine() should handle multiple redefined components")
+    void testSerializeRedefineWithMultipleComponents() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdRedefine redefine = new XsdRedefine("base.xsd");
+
+        // Add complex type
+        XsdComplexType complexType = new XsdComplexType("Type1");
+        redefine.addChild(complexType);
+
+        // Add simple type
+        XsdSimpleType simpleType = new XsdSimpleType("Type2");
+        redefine.addChild(simpleType);
+
+        schema.addChild(redefine);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:redefine schemaLocation=\"base.xsd\">"));
+        assertTrue(xml.contains("<xs:complexType name=\"Type1\">"));
+        assertTrue(xml.contains("<xs:simpleType name=\"Type2\">"));
+        assertTrue(xml.contains("</xs:redefine>"));
+    }
+
+    @Test
+    @DisplayName("serialize schema with import, include, and redefine together")
+    void testSerializeSchemaWithAllReferences() {
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/main");
+
+        // Add import
+        XsdImport xsdImport = new XsdImport("http://example.com/external", "external.xsd");
+        schema.addChild(xsdImport);
+
+        // Add include
+        XsdInclude include = new XsdInclude("common.xsd");
+        schema.addChild(include);
+
+        // Add redefine
+        XsdRedefine redefine = new XsdRedefine("base.xsd");
+        schema.addChild(redefine);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:import namespace=\"http://example.com/external\" schemaLocation=\"external.xsd\"/>"));
+        assertTrue(xml.contains("<xs:include schemaLocation=\"common.xsd\"/>"));
+        assertTrue(xml.contains("<xs:redefine schemaLocation=\"base.xsd\"/>"));
+    }
+
+    @Test
+    @DisplayName("serialize import with XML special characters in namespace")
+    void testSerializeImportWithSpecialCharacters() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdImport xsdImport = new XsdImport("http://example.com/types?param=value&test=true", "types<>&.xsd");
+        schema.addChild(xsdImport);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Verify XML escaping
+        assertTrue(xml.contains("http://example.com/types?param=value&amp;test=true"));
+        assertTrue(xml.contains("types&lt;&gt;&amp;.xsd"));
+    }
 }

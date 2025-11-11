@@ -148,6 +148,12 @@ public class XsdSerializer {
             serializeSelector(selector, sb, indentation);
         } else if (node instanceof XsdField field) {
             serializeField(field, sb, indentation);
+        } else if (node instanceof XsdImport xsdImport) {
+            serializeImport(xsdImport, sb, indentation);
+        } else if (node instanceof XsdInclude include) {
+            serializeInclude(include, sb, indentation);
+        } else if (node instanceof XsdRedefine redefine) {
+            serializeRedefine(redefine, sb, indentation, indent);
         } else {
             logger.warn("Unknown node type: {}", node.getClass().getSimpleName());
         }
@@ -650,6 +656,79 @@ public class XsdSerializer {
         }
 
         sb.append("/>\n");
+    }
+
+    /**
+     * Serializes xs:import element (schema reference for different namespace).
+     *
+     * @param xsdImport   the XSD import
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     */
+    private void serializeImport(XsdImport xsdImport, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:import");
+
+        // Add namespace attribute (required for import)
+        if (xsdImport.getNamespace() != null && !xsdImport.getNamespace().isEmpty()) {
+            sb.append(" namespace=\"").append(escapeXml(xsdImport.getNamespace())).append("\"");
+        }
+
+        // Add schemaLocation attribute (optional)
+        if (xsdImport.getSchemaLocation() != null && !xsdImport.getSchemaLocation().isEmpty()) {
+            sb.append(" schemaLocation=\"").append(escapeXml(xsdImport.getSchemaLocation())).append("\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    /**
+     * Serializes xs:include element (schema reference for same namespace).
+     *
+     * @param include     the XSD include
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     */
+    private void serializeInclude(XsdInclude include, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:include");
+
+        // Add schemaLocation attribute (required for include)
+        if (include.getSchemaLocation() != null && !include.getSchemaLocation().isEmpty()) {
+            sb.append(" schemaLocation=\"").append(escapeXml(include.getSchemaLocation())).append("\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    /**
+     * Serializes xs:redefine element (schema refinement, deprecated in XSD 1.1).
+     *
+     * @param redefine    the XSD redefine
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeRedefine(XsdRedefine redefine, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:redefine");
+
+        // Add schemaLocation attribute (required for redefine)
+        if (redefine.getSchemaLocation() != null && !redefine.getSchemaLocation().isEmpty()) {
+            sb.append(" schemaLocation=\"").append(escapeXml(redefine.getSchemaLocation())).append("\"");
+        }
+
+        // Check if redefine has redefinition children
+        if (redefine.hasChildren()) {
+            sb.append(">\n");
+
+            // Serialize redefined components (simpleType, complexType, group, attributeGroup)
+            for (XsdNode child : redefine.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+
+            sb.append(indentation).append("</xs:redefine>\n");
+        } else {
+            // Self-closing tag if no redefinitions (just includes)
+            sb.append("/>\n");
+        }
     }
 
     /**
