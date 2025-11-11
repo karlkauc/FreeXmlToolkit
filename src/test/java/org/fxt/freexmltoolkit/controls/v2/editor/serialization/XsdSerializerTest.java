@@ -578,4 +578,268 @@ class XsdSerializerTest {
         assertTrue(xml.contains("elementFormDefault=\"qualified\""));
         assertTrue(xml.contains("</xs:schema>"));
     }
+
+    // ========== List Serialization Tests ==========
+
+    @Test
+    @DisplayName("serializeList() should serialize list with itemType")
+    void testSerializeListWithItemType() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdSimpleType integerListType = new XsdSimpleType("IntegerListType");
+        XsdList list = new XsdList("xs:integer");
+        integerListType.addChild(list);
+        schema.addChild(integerListType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:simpleType name=\"IntegerListType\">"));
+        assertTrue(xml.contains("<xs:list itemType=\"xs:integer\"/>"));
+        assertTrue(xml.contains("</xs:simpleType>"));
+    }
+
+    @Test
+    @DisplayName("serializeList() should serialize list with inline simpleType")
+    void testSerializeListWithInlineSimpleType() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdSimpleType colorListType = new XsdSimpleType("ColorListType");
+        XsdList list = new XsdList();
+
+        // Inline simpleType with restriction
+        XsdSimpleType inlineType = new XsdSimpleType();
+        XsdRestriction restriction = new XsdRestriction("xs:string");
+        restriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "red"));
+        restriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "green"));
+        inlineType.addChild(restriction);
+        list.addChild(inlineType);
+
+        colorListType.addChild(list);
+        schema.addChild(colorListType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:list>"));
+        assertTrue(xml.contains("<xs:simpleType>"));
+        assertTrue(xml.contains("<xs:restriction base=\"xs:string\">"));
+        assertTrue(xml.contains("</xs:list>"));
+    }
+
+    @Test
+    @DisplayName("serializeList() should serialize string list")
+    void testSerializeStringList() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdSimpleType stringList = new XsdSimpleType("StringListType");
+        XsdList list = new XsdList("xs:string");
+        stringList.addChild(list);
+        schema.addChild(stringList);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:list itemType=\"xs:string\"/>"));
+    }
+
+    // ========== Union Serialization Tests ==========
+
+    @Test
+    @DisplayName("serializeUnion() should serialize union with memberTypes")
+    void testSerializeUnionWithMemberTypes() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdSimpleType numericOrString = new XsdSimpleType("NumericOrString");
+        XsdUnion union = new XsdUnion();
+        union.addMemberType("xs:integer");
+        union.addMemberType("xs:string");
+        numericOrString.addChild(union);
+        schema.addChild(numericOrString);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:simpleType name=\"NumericOrString\">"));
+        assertTrue(xml.contains("<xs:union memberTypes=\"xs:integer xs:string\"/>"));
+        assertTrue(xml.contains("</xs:simpleType>"));
+    }
+
+    @Test
+    @DisplayName("serializeUnion() should serialize union with inline simpleTypes")
+    void testSerializeUnionWithInlineSimpleTypes() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdSimpleType sizeType = new XsdSimpleType("SizeType");
+        XsdUnion union = new XsdUnion();
+
+        // Inline simpleType 1: integer restriction
+        XsdSimpleType intType = new XsdSimpleType();
+        XsdRestriction intRestriction = new XsdRestriction("xs:integer");
+        intRestriction.addFacet(new XsdFacet(XsdFacetType.MIN_INCLUSIVE, "1"));
+        intType.addChild(intRestriction);
+        union.addChild(intType);
+
+        // Inline simpleType 2: string enumeration
+        XsdSimpleType stringType = new XsdSimpleType();
+        XsdRestriction stringRestriction = new XsdRestriction("xs:string");
+        stringRestriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "small"));
+        stringRestriction.addFacet(new XsdFacet(XsdFacetType.ENUMERATION, "large"));
+        stringType.addChild(stringRestriction);
+        union.addChild(stringType);
+
+        sizeType.addChild(union);
+        schema.addChild(sizeType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:union>"));
+        assertTrue(xml.contains("<xs:simpleType>"));
+        assertTrue(xml.contains("<xs:restriction base=\"xs:integer\">"));
+        assertTrue(xml.contains("<xs:restriction base=\"xs:string\">"));
+        assertTrue(xml.contains("</xs:union>"));
+    }
+
+    @Test
+    @DisplayName("serializeUnion() should serialize multiple member types")
+    void testSerializeUnionWithMultipleMemberTypes() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdSimpleType numericType = new XsdSimpleType("NumericType");
+        XsdUnion union = new XsdUnion();
+        union.addMemberType("xs:integer");
+        union.addMemberType("xs:decimal");
+        union.addMemberType("xs:double");
+        numericType.addChild(union);
+        schema.addChild(numericType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:union memberTypes=\"xs:integer xs:decimal xs:double\"/>"));
+    }
+
+    // ========== List and Union Integration Tests ==========
+
+    @Test
+    @DisplayName("serialize schema with both list and union types")
+    void testSchemaWithListAndUnion() {
+        XsdSchema schema = new XsdSchema();
+
+        // List type
+        XsdSimpleType intList = new XsdSimpleType("IntegerListType");
+        XsdList list = new XsdList("xs:integer");
+        intList.addChild(list);
+        schema.addChild(intList);
+
+        // Union type
+        XsdSimpleType numOrString = new XsdSimpleType("NumericOrString");
+        XsdUnion union = new XsdUnion();
+        union.addMemberType("xs:integer");
+        union.addMemberType("xs:string");
+        numOrString.addChild(union);
+        schema.addChild(numOrString);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        // Check list
+        assertTrue(xml.contains("<xs:simpleType name=\"IntegerListType\">"));
+        assertTrue(xml.contains("<xs:list itemType=\"xs:integer\"/>"));
+        // Check union
+        assertTrue(xml.contains("<xs:simpleType name=\"NumericOrString\">"));
+        assertTrue(xml.contains("<xs:union memberTypes=\"xs:integer xs:string\"/>"));
+    }
+
+    @Test
+    @DisplayName("serialize complex schema with list, union, and restriction")
+    void testComplexSchemaWithListUnionRestriction() {
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/test");
+
+        // 1. Restriction type
+        XsdSimpleType zipCode = new XsdSimpleType("ZipCodeType");
+        XsdRestriction restriction = new XsdRestriction("xs:string");
+        restriction.addFacet(new XsdFacet(XsdFacetType.PATTERN, "[0-9]{5}"));
+        zipCode.addChild(restriction);
+        schema.addChild(zipCode);
+
+        // 2. List type
+        XsdSimpleType zipCodeList = new XsdSimpleType("ZipCodeListType");
+        XsdList list = new XsdList("ZipCodeType");
+        zipCodeList.addChild(list);
+        schema.addChild(zipCodeList);
+
+        // 3. Union type
+        XsdSimpleType flexibleId = new XsdSimpleType("FlexibleIdType");
+        XsdUnion union = new XsdUnion();
+        union.addMemberType("xs:integer");
+        union.addMemberType("xs:string");
+        flexibleId.addChild(union);
+        schema.addChild(flexibleId);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("targetNamespace=\"http://example.com/test\""));
+        // Check all three types
+        assertTrue(xml.contains("<xs:simpleType name=\"ZipCodeType\">"));
+        assertTrue(xml.contains("<xs:simpleType name=\"ZipCodeListType\">"));
+        assertTrue(xml.contains("<xs:simpleType name=\"FlexibleIdType\">"));
+        assertTrue(xml.contains("<xs:restriction"));
+        assertTrue(xml.contains("<xs:list"));
+        assertTrue(xml.contains("<xs:union"));
+    }
+
+    // ========== Edge Cases ==========
+
+    @Test
+    @DisplayName("serializeList() should handle empty itemType")
+    void testSerializeListWithoutItemType() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdSimpleType listType = new XsdSimpleType("EmptyListType");
+        XsdList list = new XsdList(); // No itemType
+        listType.addChild(list);
+        schema.addChild(listType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:list/>"));
+    }
+
+    @Test
+    @DisplayName("serializeUnion() should handle empty memberTypes")
+    void testSerializeUnionWithoutMemberTypes() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdSimpleType unionType = new XsdSimpleType("EmptyUnionType");
+        XsdUnion union = new XsdUnion(); // No memberTypes
+        unionType.addChild(union);
+        schema.addChild(unionType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:union/>"));
+    }
+
+    @Test
+    @DisplayName("serializeUnion() should handle single member type")
+    void testSerializeUnionWithSingleMemberType() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdSimpleType unionType = new XsdSimpleType("SingleMemberUnion");
+        XsdUnion union = new XsdUnion();
+        union.addMemberType("xs:string");
+        unionType.addChild(union);
+        schema.addChild(unionType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:union memberTypes=\"xs:string\"/>"));
+    }
 }

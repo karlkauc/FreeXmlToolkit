@@ -12,10 +12,10 @@ public class XsdSimpleType extends XsdNode {
     private boolean isFinal; // final attribute
 
     /**
-     * Creates a new XSD simple type.
+     * Creates a new XSD simple type (inline, without name).
      */
     public XsdSimpleType() {
-        super("simpleType");
+        super(null);
     }
 
     /**
