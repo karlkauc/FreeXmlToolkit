@@ -126,6 +126,14 @@ public class XsdSerializer {
             serializeAttribute(attribute, sb, indentation);
         } else if (node instanceof XsdSimpleType simpleType) {
             serializeSimpleType(simpleType, sb, indentation, indent);
+        } else if (node instanceof XsdRestriction restriction) {
+            serializeRestriction(restriction, sb, indentation, indent);
+        } else if (node instanceof XsdList list) {
+            serializeList(list, sb, indentation, indent);
+        } else if (node instanceof XsdUnion union) {
+            serializeUnion(union, sb, indentation, indent);
+        } else if (node instanceof XsdFacet facet) {
+            serializeFacet(facet, sb, indentation);
         } else {
             logger.warn("Unknown node type: {}", node.getClass().getSimpleName());
         }
@@ -282,12 +290,132 @@ public class XsdSerializer {
 
         sb.append(">\n");
 
-        // Serialize children (restrictions, etc.)
+        // Serialize children (restrictions, list, union, etc.)
         for (XsdNode child : simpleType.getChildren()) {
             serializeXsdNode(child, sb, indent + 1);
         }
 
         sb.append(indentation).append("</xs:simpleType>\n");
+    }
+
+    /**
+     * Serializes xs:restriction element.
+     *
+     * @param restriction the XSD restriction
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeRestriction(XsdRestriction restriction, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:restriction");
+
+        // Add base attribute
+        if (restriction.getBase() != null && !restriction.getBase().isEmpty()) {
+            sb.append(" base=\"").append(escapeXml(restriction.getBase())).append("\"");
+        }
+
+        sb.append(">\n");
+
+        // Serialize facets (children)
+        for (XsdNode child : restriction.getChildren()) {
+            serializeXsdNode(child, sb, indent + 1);
+        }
+
+        sb.append(indentation).append("</xs:restriction>\n");
+    }
+
+    /**
+     * Serializes xs:list element.
+     *
+     * @param list        the XSD list
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeList(XsdList list, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:list");
+
+        // Add itemType attribute if specified
+        if (list.getItemType() != null && !list.getItemType().isEmpty()) {
+            sb.append(" itemType=\"").append(escapeXml(list.getItemType())).append("\"");
+        }
+
+        // Check if list has inline simpleType children
+        if (list.hasChildren()) {
+            sb.append(">\n");
+
+            // Serialize inline simpleType children
+            for (XsdNode child : list.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+
+            sb.append(indentation).append("</xs:list>\n");
+        } else {
+            // Self-closing tag if no children
+            sb.append("/>\n");
+        }
+    }
+
+    /**
+     * Serializes xs:union element.
+     *
+     * @param union       the XSD union
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeUnion(XsdUnion union, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:union");
+
+        // Add memberTypes attribute if specified
+        if (union.getMemberTypes() != null && !union.getMemberTypes().isEmpty()) {
+            String memberTypesStr = String.join(" ", union.getMemberTypes());
+            sb.append(" memberTypes=\"").append(escapeXml(memberTypesStr)).append("\"");
+        }
+
+        // Check if union has inline simpleType children
+        if (union.hasChildren()) {
+            sb.append(">\n");
+
+            // Serialize inline simpleType children
+            for (XsdNode child : union.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+
+            sb.append(indentation).append("</xs:union>\n");
+        } else {
+            // Self-closing tag if no children
+            sb.append("/>\n");
+        }
+    }
+
+    /**
+     * Serializes xs:facet elements (pattern, minLength, maxLength, enumeration, etc.).
+     *
+     * @param facet       the XSD facet
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     */
+    private void serializeFacet(XsdFacet facet, StringBuilder sb, String indentation) {
+        if (facet.getFacetType() == null) {
+            logger.warn("Cannot serialize facet without type");
+            return;
+        }
+
+        String facetName = facet.getFacetType().getXmlName();
+        sb.append(indentation).append("<xs:").append(facetName);
+
+        // Add value attribute
+        if (facet.getValue() != null && !facet.getValue().isEmpty()) {
+            sb.append(" value=\"").append(escapeXml(facet.getValue())).append("\"");
+        }
+
+        // Add fixed attribute if true
+        if (facet.isFixed()) {
+            sb.append(" fixed=\"true\"");
+        }
+
+        sb.append("/>\n");
     }
 
     /**
