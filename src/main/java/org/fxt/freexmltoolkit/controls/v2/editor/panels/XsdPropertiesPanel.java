@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
@@ -317,6 +318,20 @@ public class XsdPropertiesPanel extends VBox {
                 handleConstraintsChange();
             }
         });
+
+        // Form ComboBox
+        formComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (!updating && currentNode != null) {
+                handleFormChange();
+            }
+        });
+
+        // Use ComboBox
+        useComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (!updating && currentNode != null) {
+                handleUseChange();
+            }
+        });
     }
 
     /**
@@ -345,10 +360,17 @@ public class XsdPropertiesPanel extends VBox {
 
             // Constraint checkboxes only for elements
             boolean isElement = node.getModelObject() instanceof XsdElement;
+            boolean isAttribute = node.getModelObject() instanceof XsdAttribute;
             boolean constraintsEnabled = isEditMode && isElement;
             nillableCheckBox.setDisable(!constraintsEnabled);
             abstractCheckBox.setDisable(!constraintsEnabled);
             fixedCheckBox.setDisable(!constraintsEnabled);
+
+            // Form ComboBox for both elements and attributes
+            formComboBox.setDisable(!isEditMode || (!isElement && !isAttribute));
+
+            // Use ComboBox only for attributes
+            useComboBox.setDisable(!isEditMode || !isAttribute);
 
             logger.debug("Controls editable state set: nameField={}, documentationArea={}, isEditMode={}, isElement={}, constraintsEnabled={}",
                     nameField.isEditable(), documentationArea.isEditable(), isEditMode, isElement, constraintsEnabled);
@@ -413,9 +435,17 @@ public class XsdPropertiesPanel extends VBox {
                 fixedCheckBox.setSelected(false);
             }
 
-            // Update Advanced section (placeholder)
-            formComboBox.setValue(null);
-            useComboBox.setValue(null);
+            // Update Advanced section
+            if (modelObject instanceof XsdElement xsdElement) {
+                formComboBox.setValue(xsdElement.getForm());
+                useComboBox.setValue(null); // Elements don't have use
+            } else if (modelObject instanceof XsdAttribute xsdAttribute) {
+                formComboBox.setValue(xsdAttribute.getForm());
+                useComboBox.setValue(xsdAttribute.getUse());
+            } else {
+                formComboBox.setValue(null);
+                useComboBox.setValue(null);
+            }
             substitutionGroupField.setText("");
 
             logger.debug("Updated properties panel for node: {}", node.getLabel());
@@ -597,6 +627,58 @@ public class XsdPropertiesPanel extends VBox {
             }
         } else {
             logger.warn("Cannot change constraints - model object is not an XsdElement: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles form change via ChangeFormCommand.
+     */
+    private void handleFormChange() {
+        String newForm = formComboBox.getValue();
+
+        // Extract node from VisualNode for the command
+        Object modelObject = currentNode.getModelObject();
+        if (modelObject instanceof XsdElement xsdElement) {
+            // Only create command if form actually changed
+            String oldForm = xsdElement.getForm();
+            if ((newForm == null && oldForm != null) || (newForm != null && !newForm.equals(oldForm))) {
+                ChangeFormCommand command = new ChangeFormCommand(editorContext, xsdElement, newForm);
+                editorContext.getCommandManager().executeCommand(command);
+                logger.info("Changed form for element: {}", xsdElement.getName());
+            }
+        } else if (modelObject instanceof XsdAttribute xsdAttribute) {
+            // Only create command if form actually changed
+            String oldForm = xsdAttribute.getForm();
+            if ((newForm == null && oldForm != null) || (newForm != null && !newForm.equals(oldForm))) {
+                ChangeFormCommand command = new ChangeFormCommand(editorContext, xsdAttribute, newForm);
+                editorContext.getCommandManager().executeCommand(command);
+                logger.info("Changed form for attribute: {}", xsdAttribute.getName());
+            }
+        } else {
+            logger.warn("Cannot change form - model object is not an XsdElement or XsdAttribute: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles use change via ChangeUseCommand.
+     */
+    private void handleUseChange() {
+        String newUse = useComboBox.getValue();
+
+        // Extract XsdAttribute from VisualNode for the command
+        Object modelObject = currentNode.getModelObject();
+        if (modelObject instanceof XsdAttribute xsdAttribute) {
+            // Only create command if use actually changed
+            String oldUse = xsdAttribute.getUse();
+            if (!newUse.equals(oldUse)) {
+                ChangeUseCommand command = new ChangeUseCommand(editorContext, xsdAttribute, newUse);
+                editorContext.getCommandManager().executeCommand(command);
+                logger.info("Changed use for attribute: {}", xsdAttribute.getName());
+            }
+        } else {
+            logger.warn("Cannot change use - model object is not an XsdAttribute: {}",
                     modelObject != null ? modelObject.getClass() : "null");
         }
     }

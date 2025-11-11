@@ -13,6 +13,7 @@ public class XsdElement extends XsdNode {
     private String fixed;
     private String defaultValue;
     private String substitutionGroup;
+    private String form; // qualified, unqualified
 
     /**
      * Creates a new XSD element.
@@ -143,6 +144,26 @@ public class XsdElement extends XsdNode {
         pcs.firePropertyChange("substitutionGroup", oldValue, substitutionGroup);
     }
 
+    /**
+     * Gets the form attribute (qualified, unqualified).
+     *
+     * @return the form value
+     */
+    public String getForm() {
+        return form;
+    }
+
+    /**
+     * Sets the form attribute.
+     *
+     * @param form the form value (qualified, unqualified)
+     */
+    public void setForm(String form) {
+        String oldValue = this.form;
+        this.form = form;
+        pcs.firePropertyChange("form", oldValue, form);
+    }
+
     @Override
     public XsdNodeType getNodeType() {
         return XsdNodeType.ELEMENT;
@@ -161,6 +182,7 @@ public class XsdElement extends XsdNode {
         copy.setFixed(this.fixed);
         copy.setDefaultValue(this.defaultValue);
         copy.setSubstitutionGroup(this.substitutionGroup);
+        copy.setForm(this.form);
 
         // Copy base properties and children
         copyBasicPropertiesTo(copy);
