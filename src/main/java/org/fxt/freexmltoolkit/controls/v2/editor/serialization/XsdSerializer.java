@@ -154,6 +154,14 @@ public class XsdSerializer {
             serializeInclude(include, sb, indentation);
         } else if (node instanceof XsdRedefine redefine) {
             serializeRedefine(redefine, sb, indentation, indent);
+        } else if (node instanceof XsdAssert xsdAssert) {
+            serializeAssert(xsdAssert, sb, indentation);
+        } else if (node instanceof XsdAlternative alternative) {
+            serializeAlternative(alternative, sb, indentation, indent);
+        } else if (node instanceof XsdOpenContent openContent) {
+            serializeOpenContent(openContent, sb, indentation, indent);
+        } else if (node instanceof XsdOverride override) {
+            serializeOverride(override, sb, indentation, indent);
         } else {
             logger.warn("Unknown node type: {}", node.getClass().getSimpleName());
         }
@@ -727,6 +735,130 @@ public class XsdSerializer {
             sb.append(indentation).append("</xs:redefine>\n");
         } else {
             // Self-closing tag if no redefinitions (just includes)
+            sb.append("/>\n");
+        }
+    }
+
+    /**
+     * Serializes xs:assert element (XSD 1.1 feature).
+     *
+     * @param xsdAssert   the XSD assert
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     */
+    private void serializeAssert(XsdAssert xsdAssert, StringBuilder sb, String indentation) {
+        sb.append(indentation).append("<xs:assert");
+
+        // Add test attribute (XPath 2.0 expression)
+        if (xsdAssert.getTest() != null && !xsdAssert.getTest().isEmpty()) {
+            sb.append(" test=\"").append(escapeXml(xsdAssert.getTest())).append("\"");
+        }
+
+        // Add xpathDefaultNamespace attribute (optional)
+        if (xsdAssert.getXpathDefaultNamespace() != null && !xsdAssert.getXpathDefaultNamespace().isEmpty()) {
+            sb.append(" xpathDefaultNamespace=\"").append(escapeXml(xsdAssert.getXpathDefaultNamespace())).append("\"");
+        }
+
+        sb.append("/>\n");
+    }
+
+    /**
+     * Serializes xs:alternative element (XSD 1.1 conditional type assignment).
+     *
+     * @param alternative the XSD alternative
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeAlternative(XsdAlternative alternative, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:alternative");
+
+        // Add test attribute (XPath 2.0 expression, optional if no type)
+        if (alternative.getTest() != null && !alternative.getTest().isEmpty()) {
+            sb.append(" test=\"").append(escapeXml(alternative.getTest())).append("\"");
+        }
+
+        // Add type attribute (type reference, optional if inline type)
+        if (alternative.getType() != null && !alternative.getType().isEmpty()) {
+            sb.append(" type=\"").append(escapeXml(alternative.getType())).append("\"");
+        }
+
+        // Check if alternative has inline type children
+        if (alternative.hasChildren()) {
+            sb.append(">\n");
+
+            // Serialize inline simpleType or complexType
+            for (XsdNode child : alternative.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+
+            sb.append(indentation).append("</xs:alternative>\n");
+        } else {
+            // Self-closing tag if no inline types
+            sb.append("/>\n");
+        }
+    }
+
+    /**
+     * Serializes xs:openContent element (XSD 1.1 feature for controlled wildcard integration).
+     *
+     * @param openContent the XSD openContent
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeOpenContent(XsdOpenContent openContent, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:openContent");
+
+        // Add mode attribute ("interleave" or "suffix")
+        if (openContent.getMode() != null) {
+            sb.append(" mode=\"").append(openContent.getMode().getValue()).append("\"");
+        }
+
+        // Check if openContent has wildcard child
+        if (openContent.hasChildren()) {
+            sb.append(">\n");
+
+            // Serialize wildcard (any element)
+            for (XsdNode child : openContent.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+
+            sb.append(indentation).append("</xs:openContent>\n");
+        } else {
+            // Self-closing tag if no wildcard
+            sb.append("/>\n");
+        }
+    }
+
+    /**
+     * Serializes xs:override element (XSD 1.1 replacement for redefine).
+     *
+     * @param override    the XSD override
+     * @param sb          the string builder
+     * @param indentation the indentation string
+     * @param indent      the indentation level
+     */
+    private void serializeOverride(XsdOverride override, StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:override");
+
+        // Add schemaLocation attribute (required for override)
+        if (override.getSchemaLocation() != null && !override.getSchemaLocation().isEmpty()) {
+            sb.append(" schemaLocation=\"").append(escapeXml(override.getSchemaLocation())).append("\"");
+        }
+
+        // Check if override has component children
+        if (override.hasChildren()) {
+            sb.append(">\n");
+
+            // Serialize override components (simpleType, complexType, group, attributeGroup, etc.)
+            for (XsdNode child : override.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+
+            sb.append(indentation).append("</xs:override>\n");
+        } else {
+            // Self-closing tag if no overrides
             sb.append("/>\n");
         }
     }

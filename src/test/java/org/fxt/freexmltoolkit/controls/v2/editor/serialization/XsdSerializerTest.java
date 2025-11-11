@@ -1320,4 +1320,285 @@ class XsdSerializerTest {
         assertTrue(xml.contains("http://example.com/types?param=value&amp;test=true"));
         assertTrue(xml.contains("types&lt;&gt;&amp;.xsd"));
     }
+
+    // ========== XSD 1.1 Features Serialization Tests ==========
+
+    @Test
+    @DisplayName("serializeAssert() should serialize assert with test expression")
+    void testSerializeAssertWithTest() {
+        XsdSchema schema = new XsdSchema();
+        XsdComplexType complexType = new XsdComplexType("ProductType");
+
+        XsdAssert xsdAssert = new XsdAssert("@price > 0");
+        complexType.addChild(xsdAssert);
+        schema.addChild(complexType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:assert test=\"@price &gt; 0\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeAssert() should serialize assert with xpathDefaultNamespace")
+    void testSerializeAssertWithNamespace() {
+        XsdSchema schema = new XsdSchema();
+        XsdComplexType complexType = new XsdComplexType("ProductType");
+
+        XsdAssert xsdAssert = new XsdAssert("count(item) > 0");
+        xsdAssert.setXpathDefaultNamespace("http://example.com/ns");
+        complexType.addChild(xsdAssert);
+        schema.addChild(complexType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:assert test=\"count(item) &gt; 0\" xpathDefaultNamespace=\"http://example.com/ns\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeAssert() should handle multiple asserts in complexType")
+    void testSerializeMultipleAsserts() {
+        XsdSchema schema = new XsdSchema();
+        XsdComplexType complexType = new XsdComplexType("ProductType");
+
+        XsdAssert assert1 = new XsdAssert("@price > 0");
+        XsdAssert assert2 = new XsdAssert("@quantity >= 1");
+        complexType.addChild(assert1);
+        complexType.addChild(assert2);
+        schema.addChild(complexType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:assert test=\"@price &gt; 0\"/>"));
+        assertTrue(xml.contains("<xs:assert test=\"@quantity &gt;= 1\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeAlternative() should serialize alternative with test and type")
+    void testSerializeAlternativeWithTestAndType() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement element = new XsdElement("value");
+
+        XsdAlternative alternative = new XsdAlternative("@type='integer'", "xs:integer");
+        element.addChild(alternative);
+        schema.addChild(element);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:alternative test=\"@type=&apos;integer&apos;\" type=\"xs:integer\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeAlternative() should serialize alternative with inline simpleType")
+    void testSerializeAlternativeWithInlineType() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement element = new XsdElement("value");
+
+        XsdAlternative alternative = new XsdAlternative("@format='restricted'", null);
+        XsdSimpleType simpleType = new XsdSimpleType();
+        XsdRestriction restriction = new XsdRestriction("xs:string");
+        XsdFacet facet = new XsdFacet(XsdFacetType.MAX_LENGTH, "50");
+        restriction.addChild(facet);
+        simpleType.addChild(restriction);
+        alternative.addChild(simpleType);
+
+        element.addChild(alternative);
+        schema.addChild(element);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:alternative test=\"@format=&apos;restricted&apos;\">"));
+        assertTrue(xml.contains("<xs:simpleType>"));
+        assertTrue(xml.contains("<xs:restriction base=\"xs:string\">"));
+        assertTrue(xml.contains("<xs:maxLength value=\"50\"/>"));
+        assertTrue(xml.contains("</xs:restriction>"));
+        assertTrue(xml.contains("</xs:simpleType>"));
+        assertTrue(xml.contains("</xs:alternative>"));
+    }
+
+    @Test
+    @DisplayName("serializeAlternative() should handle multiple alternatives")
+    void testSerializeMultipleAlternatives() {
+        XsdSchema schema = new XsdSchema();
+        XsdElement element = new XsdElement("value");
+
+        XsdAlternative alt1 = new XsdAlternative("@type='integer'", "xs:integer");
+        XsdAlternative alt2 = new XsdAlternative("@type='string'", "xs:string");
+
+        element.addChild(alt1);
+        element.addChild(alt2);
+        schema.addChild(element);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:alternative test=\"@type=&apos;integer&apos;\" type=\"xs:integer\"/>"));
+        assertTrue(xml.contains("<xs:alternative test=\"@type=&apos;string&apos;\" type=\"xs:string\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeOpenContent() should serialize openContent with interleave mode")
+    void testSerializeOpenContentInterleave() {
+        XsdSchema schema = new XsdSchema();
+        XsdComplexType complexType = new XsdComplexType("ExtensibleType");
+
+        XsdOpenContent openContent = new XsdOpenContent(XsdOpenContent.Mode.INTERLEAVE);
+        complexType.addChild(openContent);
+        schema.addChild(complexType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:openContent mode=\"interleave\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeOpenContent() should serialize openContent with suffix mode")
+    void testSerializeOpenContentSuffix() {
+        XsdSchema schema = new XsdSchema();
+        XsdComplexType complexType = new XsdComplexType("ExtensibleType");
+
+        XsdOpenContent openContent = new XsdOpenContent(XsdOpenContent.Mode.SUFFIX);
+        complexType.addChild(openContent);
+        schema.addChild(complexType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:openContent mode=\"suffix\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeOpenContent() should serialize openContent with wildcard child")
+    void testSerializeOpenContentWithWildcard() {
+        XsdSchema schema = new XsdSchema();
+        XsdComplexType complexType = new XsdComplexType("ExtensibleType");
+
+        XsdOpenContent openContent = new XsdOpenContent(XsdOpenContent.Mode.INTERLEAVE);
+        // Add wildcard child (using XsdElement as placeholder for any element)
+        XsdElement wildcardNode = new XsdElement("any");
+        openContent.addChild(wildcardNode);
+        complexType.addChild(openContent);
+        schema.addChild(complexType);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:openContent mode=\"interleave\">"));
+        assertTrue(xml.contains("</xs:openContent>"));
+    }
+
+    @Test
+    @DisplayName("serializeOverride() should serialize override with schemaLocation")
+    void testSerializeOverrideWithSchemaLocation() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdOverride override = new XsdOverride("base-types.xsd");
+        schema.addChild(override);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:override schemaLocation=\"base-types.xsd\"/>"));
+    }
+
+    @Test
+    @DisplayName("serializeOverride() should serialize override with overridden complexType")
+    void testSerializeOverrideWithComplexType() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdOverride override = new XsdOverride("types.xsd");
+
+        // Override a complex type
+        XsdComplexType complexType = new XsdComplexType("PersonType");
+        XsdSequence sequence = new XsdSequence();
+        XsdElement name = new XsdElement("name");
+        name.setType("xs:string");
+        sequence.addChild(name);
+        complexType.addChild(sequence);
+        override.addChild(complexType);
+
+        schema.addChild(override);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:override schemaLocation=\"types.xsd\">"));
+        assertTrue(xml.contains("<xs:complexType name=\"PersonType\">"));
+        assertTrue(xml.contains("<xs:sequence>"));
+        assertTrue(xml.contains("<xs:element name=\"name\" type=\"xs:string\"/>"));
+        assertTrue(xml.contains("</xs:sequence>"));
+        assertTrue(xml.contains("</xs:complexType>"));
+        assertTrue(xml.contains("</xs:override>"));
+    }
+
+    @Test
+    @DisplayName("serializeOverride() should serialize override with overridden simpleType")
+    void testSerializeOverrideWithSimpleType() {
+        XsdSchema schema = new XsdSchema();
+
+        XsdOverride override = new XsdOverride("base-types.xsd");
+
+        // Override a simple type with restriction
+        XsdSimpleType simpleType = new XsdSimpleType("CountryCodeType");
+        XsdRestriction restriction = new XsdRestriction("xs:string");
+        XsdFacet facet = new XsdFacet(XsdFacetType.PATTERN, "[A-Z]{2}");
+        restriction.addChild(facet);
+        simpleType.addChild(restriction);
+        override.addChild(simpleType);
+
+        schema.addChild(override);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:override schemaLocation=\"base-types.xsd\">"));
+        assertTrue(xml.contains("<xs:simpleType name=\"CountryCodeType\">"));
+        assertTrue(xml.contains("<xs:restriction base=\"xs:string\">"));
+        assertTrue(xml.contains("<xs:pattern value=\"[A-Z]{2}\"/>"));
+        assertTrue(xml.contains("</xs:restriction>"));
+        assertTrue(xml.contains("</xs:simpleType>"));
+        assertTrue(xml.contains("</xs:override>"));
+    }
+
+    @Test
+    @DisplayName("serialize complete XSD 1.1 schema with all features")
+    void testSerializeCompleteXsd11Schema() {
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/xsd11");
+
+        // Add assert
+        XsdComplexType productType = new XsdComplexType("ProductType");
+        XsdAssert priceAssert = new XsdAssert("@price > 0");
+        productType.addChild(priceAssert);
+        schema.addChild(productType);
+
+        // Add alternative
+        XsdElement valueElement = new XsdElement("value");
+        XsdAlternative alternative = new XsdAlternative("@type='integer'", "xs:integer");
+        valueElement.addChild(alternative);
+        schema.addChild(valueElement);
+
+        // Add openContent
+        XsdComplexType extensibleType = new XsdComplexType("ExtensibleType");
+        XsdOpenContent openContent = new XsdOpenContent(XsdOpenContent.Mode.INTERLEAVE);
+        extensibleType.addChild(openContent);
+        schema.addChild(extensibleType);
+
+        // Add override
+        XsdOverride override = new XsdOverride("base.xsd");
+        schema.addChild(override);
+
+        String xml = serializer.serialize(schema);
+
+        assertNotNull(xml);
+        assertTrue(xml.contains("<xs:assert test=\"@price &gt; 0\"/>"));
+        assertTrue(xml.contains("<xs:alternative test=\"@type=&apos;integer&apos;\" type=\"xs:integer\"/>"));
+        assertTrue(xml.contains("<xs:openContent mode=\"interleave\"/>"));
+        assertTrue(xml.contains("<xs:override schemaLocation=\"base.xsd\"/>"));
+    }
 }
