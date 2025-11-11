@@ -8,9 +8,8 @@ import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeCardinalityCommand;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.RenameNodeCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
@@ -284,6 +283,20 @@ public class XsdPropertiesPanel extends VBox {
                 handleCardinalityChange();
             }
         });
+
+        // Documentation field
+        documentationArea.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!isNowFocused && !updating && currentNode != null) {
+                handleDocumentationChange();
+            }
+        });
+
+        // AppInfo field
+        appinfoArea.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!isNowFocused && !updating && currentNode != null) {
+                handleAppinfoChange();
+            }
+        });
     }
 
     /**
@@ -294,8 +307,24 @@ public class XsdPropertiesPanel extends VBox {
         updating = true;
 
         try {
-            // Enable panel
-            setDisable(!editorContext.isEditMode());
+            // Enable panel for editing only in edit mode, but always allow viewing
+            boolean isEditMode = editorContext.isEditMode();
+            logger.info("==== Updating properties panel for node: {}, Edit Mode: {} ====", node.getLabel(), isEditMode);
+
+            // Always enable the panel for viewing, but disable editing controls
+            setDisable(false);
+
+            // Disable editing controls if not in edit mode
+            nameField.setEditable(isEditMode);
+            typeField.setEditable(isEditMode);
+            minOccursSpinner.setDisable(!isEditMode);
+            maxOccursSpinner.setDisable(!isEditMode || unboundedCheckBox.isSelected());
+            unboundedCheckBox.setDisable(!isEditMode);
+            documentationArea.setEditable(isEditMode);
+            appinfoArea.setEditable(isEditMode);
+
+            logger.debug("Controls editable state set: nameField={}, documentationArea={}",
+                    nameField.isEditable(), documentationArea.isEditable());
 
             // Update General section
             nameField.setText(node.getLabel());
@@ -328,9 +357,21 @@ public class XsdPropertiesPanel extends VBox {
                 maxOccursSpinner.getValueFactory().setValue(maxOccurs);
             }
 
-            // Update Documentation section (placeholder - would need model access)
-            documentationArea.setText("");
-            appinfoArea.setText("");
+            // Update Documentation section from model
+            Object modelObject = node.getModelObject();
+            logger.debug("ModelObject type: {}", modelObject != null ? modelObject.getClass().getName() : "null");
+            if (modelObject instanceof XsdNode xsdNode) {
+                String documentation = xsdNode.getDocumentation();
+                String appinfo = xsdNode.getAppinfo();
+                logger.debug("Loading documentation: '{}', appinfo: '{}'", documentation, appinfo);
+                documentationArea.setText(documentation != null ? documentation : "");
+                appinfoArea.setText(appinfo != null ? appinfo : "");
+                logger.debug("Documentation panel updated with values");
+            } else {
+                logger.warn("ModelObject is not an XsdNode, cannot load documentation/appinfo");
+                documentationArea.setText("");
+                appinfoArea.setText("");
+            }
 
             // Update Constraints section (placeholder)
             nillableCheckBox.setSelected(false);
@@ -442,6 +483,52 @@ public class XsdPropertiesPanel extends VBox {
                     maxOccurs == ChangeCardinalityCommand.UNBOUNDED ? "*" : maxOccurs);
         } else {
             logger.warn("Cannot change cardinality - model object is not an XsdNode: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles documentation change via ChangeDocumentationCommand.
+     */
+    private void handleDocumentationChange() {
+        String newDocumentation = documentationArea.getText().trim();
+
+        // Extract XsdNode from VisualNode for the command
+        Object modelObject = currentNode.getModelObject();
+        if (modelObject instanceof XsdNode xsdNode) {
+            // Only create command if documentation actually changed
+            String oldDocumentation = xsdNode.getDocumentation();
+            if (!newDocumentation.equals(oldDocumentation != null ? oldDocumentation : "")) {
+                ChangeDocumentationCommand command = new ChangeDocumentationCommand(
+                        editorContext, xsdNode, newDocumentation.isEmpty() ? null : newDocumentation);
+                editorContext.getCommandManager().executeCommand(command);
+                logger.info("Changed documentation for node: {}", xsdNode.getName());
+            }
+        } else {
+            logger.warn("Cannot change documentation - model object is not an XsdNode: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles appinfo change via ChangeAppinfoCommand.
+     */
+    private void handleAppinfoChange() {
+        String newAppinfo = appinfoArea.getText().trim();
+
+        // Extract XsdNode from VisualNode for the command
+        Object modelObject = currentNode.getModelObject();
+        if (modelObject instanceof XsdNode xsdNode) {
+            // Only create command if appinfo actually changed
+            String oldAppinfo = xsdNode.getAppinfo();
+            if (!newAppinfo.equals(oldAppinfo != null ? oldAppinfo : "")) {
+                ChangeAppinfoCommand command = new ChangeAppinfoCommand(
+                        editorContext, xsdNode, newAppinfo.isEmpty() ? null : newAppinfo);
+                editorContext.getCommandManager().executeCommand(command);
+                logger.info("Changed appinfo for node: {}", xsdNode.getName());
+            }
+        } else {
+            logger.warn("Cannot change appinfo - model object is not an XsdNode: {}",
                     modelObject != null ? modelObject.getClass() : "null");
         }
     }

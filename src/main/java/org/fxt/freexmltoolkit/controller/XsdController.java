@@ -430,6 +430,9 @@ public class XsdController {
         setupWebViewZoom();
 
         applyEditorSettings();
+
+        // Setup Ctrl+S keyboard shortcut for V2 editor
+        setupV2EditorSaveShortcut();
     }
 
     private void applyEditorSettings() {
@@ -505,9 +508,14 @@ public class XsdController {
             currentDomManipulator.loadXsd(currentText);
 
             // Reload graphic view without triggering text update
-            loadXsdIntoGraphicView(currentText);
-
-            logger.debug("Synchronized text content to graphic view");
+            // Check which editor version is active
+            if (editorVersionToggle != null && editorVersionToggle.isSelected()) {
+                loadXsdIntoGraphicViewV2(currentText);
+                logger.debug("Synchronized text content to V2 graphic view");
+            } else {
+                loadXsdIntoGraphicView(currentText);
+                logger.debug("Synchronized text content to V1 graphic view");
+            }
         } catch (Exception e) {
             logger.error("Failed to synchronize text to graphic view", e);
         }
@@ -1285,6 +1293,9 @@ public class XsdController {
                         new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(tempModel);
                 editorContext.setEditMode(true);
                 currentGraphViewV2.setEditorContext(editorContext);
+
+                // Set save callback for Save button in toolbar
+                currentGraphViewV2.setOnSaveCallback(this::handleSaveV2Editor);
 
                 xsdStackPaneV2.getChildren().add(currentGraphViewV2);
 
@@ -3188,6 +3199,180 @@ public class XsdController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
+     * Sets up Ctrl+S keyboard shortcut for saving in the V2 editor.
+     * The shortcut is attached to the xsdTab and works when the tab is active.
+     */
+    private void setupV2EditorSaveShortcut() {
+        if (xsdTab == null) {
+            logger.warn("xsdTab is null, cannot setup V2 editor save shortcut");
+            return;
+        }
+
+        // Add keyboard event filter to the xsdTab
+        xsdTab.setOnSelectionChanged(event -> {
+            if (xsdTab.isSelected() && xsdStackPaneV2 != null) {
+                // Add event filter when tab is selected
+                xsdStackPaneV2.addEventFilter(KeyEvent.KEY_PRESSED, this::handleV2EditorKeyPress);
+            }
+        });
+
+        logger.debug("V2 editor save shortcut (Ctrl+S) has been configured");
+    }
+
+    /**
+     * Handles keyboard events for the V2 editor, specifically Ctrl+S for save.
+     */
+    private void handleV2EditorKeyPress(KeyEvent event) {
+        if (event.isControlDown() && event.getCode() == javafx.scene.input.KeyCode.S) {
+            event.consume();
+            handleSaveV2Editor();
+        }
+    }
+
+    /**
+     * Handles saving the V2 editor XSD schema to file.
+     * Uses the SaveCommand to serialize the XsdSchema model to XSD XML.
+     */
+    private void handleSaveV2Editor() {
+        if (currentGraphViewV2 == null) {
+            logger.warn("No V2 editor active");
+            showAlertDialog(Alert.AlertType.WARNING, "No Editor Active",
+                    "The XSD V2 editor is not currently active.");
+            return;
+        }
+
+        if (currentXsdFile == null) {
+            logger.warn("No file to save");
+            showAlertDialog(Alert.AlertType.WARNING, "No File Open",
+                    "No XSD file is currently open. Please open a file first.");
+            return;
+        }
+
+        org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = currentGraphViewV2.getXsdSchema();
+        org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext context = currentGraphViewV2.getEditorContext();
+
+        if (schema == null || context == null) {
+            logger.error("Schema or context is null - cannot save");
+            showAlertDialog(Alert.AlertType.ERROR, "Save Failed",
+                    "Cannot access schema or editor context. The editor may not be properly initialized.");
+            return;
+        }
+
+        try {
+            long startTime = System.currentTimeMillis();
+            long fileSizeBefore = currentXsdFile.exists() ? currentXsdFile.length() : 0;
+
+            // Create and execute save command
+            org.fxt.freexmltoolkit.controls.v2.editor.commands.SaveCommand saveCmd =
+                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.SaveCommand(
+                            context, schema, currentXsdFile.toPath(), true);
+
+            if (saveCmd.execute()) {
+                long endTime = System.currentTimeMillis();
+                long duration = endTime - startTime;
+                long fileSizeAfter = currentXsdFile.length();
+
+                // Get backup file path from SaveCommand
+                java.nio.file.Path backupPath = saveCmd.getBackupPath();
+
+                logger.info("XSD file saved successfully: {}", currentXsdFile.getAbsolutePath());
+
+                // Build detailed success message
+                StringBuilder message = new StringBuilder();
+                message.append("✓ File saved successfully\n\n");
+                message.append("File: ").append(currentXsdFile.getName()).append("\n");
+                message.append("Path: ").append(currentXsdFile.getAbsolutePath()).append("\n");
+                message.append("Size: ").append(formatFileSize(fileSizeAfter));
+
+                if (fileSizeBefore > 0) {
+                    long sizeDiff = fileSizeAfter - fileSizeBefore;
+                    if (sizeDiff != 0) {
+                        message.append(" (").append(sizeDiff > 0 ? "+" : "")
+                                .append(formatFileSize(Math.abs(sizeDiff))).append(")");
+                    }
+                }
+                message.append("\n");
+
+                message.append("Duration: ").append(duration).append(" ms\n");
+
+                if (backupPath != null && java.nio.file.Files.exists(backupPath)) {
+                    message.append("Backup: ").append(backupPath.getFileName()).append("\n");
+                    message.append("Backup size: ").append(formatFileSize(java.nio.file.Files.size(backupPath))).append("\n");
+                }
+
+                message.append("\nTimestamp: ").append(java.time.LocalDateTime.now()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
+                final String detailedMessage = message.toString();
+
+                Platform.runLater(() -> {
+                    showDetailedAlertDialog(Alert.AlertType.INFORMATION, "Save Successful", detailedMessage);
+                });
+            } else {
+                logger.error("Save command execution failed");
+                Platform.runLater(() -> {
+                    String message = "✗ Save operation failed\n\n" +
+                            "File: " + currentXsdFile.getName() + "\n" +
+                            "Path: " + currentXsdFile.getAbsolutePath() + "\n\n" +
+                            "The save command returned false. Check the log for details.";
+
+                    showDetailedAlertDialog(Alert.AlertType.ERROR, "Save Failed", message);
+                });
+            }
+        } catch (Exception e) {
+            logger.error("Error saving XSD file", e);
+            Platform.runLater(() -> {
+                String message = "✗ An error occurred during save\n\n" +
+                        "File: " + currentXsdFile.getName() + "\n" +
+                        "Error: " + e.getClass().getSimpleName() + "\n" +
+                        "Message: " + e.getMessage() + "\n\n" +
+                        "Timestamp: " + LocalDateTime.now()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+                showDetailedAlertDialog(Alert.AlertType.ERROR, "Save Failed", message);
+            });
+        }
+    }
+
+    /**
+     * Formats a file size in bytes to a human-readable format.
+     *
+     * @param bytes the file size in bytes
+     * @return formatted string (e.g., "1.5 KB", "2.3 MB")
+     */
+    private String formatFileSize(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        } else if (bytes < 1024 * 1024) {
+            return String.format("%.2f KB", bytes / 1024.0);
+        } else if (bytes < 1024 * 1024 * 1024) {
+            return String.format("%.2f MB", bytes / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.2f GB", bytes / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
+
+    /**
+     * Shows a detailed alert dialog with formatted message.
+     * The dialog is wider to accommodate detailed information.
+     */
+    private void showDetailedAlertDialog(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        // Make dialog wider to accommodate detailed information
+        alert.getDialogPane().setMinWidth(600);
+        alert.getDialogPane().setPrefWidth(600);
+
+        // Use monospace font for better alignment of details
+        alert.getDialogPane().setStyle("-fx-font-family: 'monospace';");
+
         alert.showAndWait();
     }
 

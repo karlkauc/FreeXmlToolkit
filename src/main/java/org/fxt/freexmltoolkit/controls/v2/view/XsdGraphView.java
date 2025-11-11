@@ -42,13 +42,11 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private final Canvas canvas;
     private final ScrollPane scrollPane;
     private final XsdNodeRenderer renderer;
-    private final TextArea documentationArea;
     private final SelectionModel selectionModel;
     private XsdEditorContext editorContext;
     private XsdContextMenuFactory contextMenuFactory;
     private XsdPropertiesPanel propertiesPanel;
     private SplitPane mainSplitPane;
-    private SplitPane rightPanel;
     private ToggleButton propertiesToggle;
 
     private VisualNode rootNode;
@@ -62,6 +60,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private static final double ZOOM_MAX = 5.0;
     private static final double ZOOM_STEP = 0.1;
     private Label zoomLabel;
+
+    // Save callback
+    private Runnable onSaveCallback;
+    private Button saveButton;
 
     /**
      * Constructor using the old XsdSchemaModel (flat structure).
@@ -81,15 +83,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         scrollPane.setPannable(true);
         scrollPane.setStyle("-fx-background-color: white;");
 
-        // Documentation panel
-        this.documentationArea = new TextArea();
-        documentationArea.setEditable(false);
-        documentationArea.setWrapText(true);
-        documentationArea.setPrefHeight(150);
-        documentationArea.setPromptText("Select a node to view documentation...");
-
         // Initialize with default EditorContext (view mode)
-        this.editorContext = new XsdEditorContext(model);
+        // Pass the existing selectionModel to EditorContext so they share the same instance
+        this.editorContext = new XsdEditorContext(model, this.selectionModel);
         this.contextMenuFactory = new XsdContextMenuFactory(editorContext);
 
         initializeUI();
@@ -114,20 +110,14 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         scrollPane.setPannable(true);
         scrollPane.setStyle("-fx-background-color: white;");
 
-        // Documentation panel
-        this.documentationArea = new TextArea();
-        documentationArea.setEditable(false);
-        documentationArea.setWrapText(true);
-        documentationArea.setPrefHeight(150);
-        documentationArea.setPromptText("Select a node to view documentation...");
-
         // Create a temporary model for EditorContext compatibility
         // TODO: Refactor EditorContext to work with XsdSchema directly
         XsdSchemaModel tempModel = new XsdSchemaModel();
         if (schema.getTargetNamespace() != null) {
             tempModel.setTargetNamespace(schema.getTargetNamespace());
         }
-        this.editorContext = new XsdEditorContext(tempModel);
+        // Pass the existing selectionModel to EditorContext so they share the same instance
+        this.editorContext = new XsdEditorContext(tempModel, this.selectionModel);
         this.contextMenuFactory = new XsdContextMenuFactory(editorContext);
 
         initializeUI();
@@ -157,13 +147,11 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
             if (primarySelection != null) {
                 primarySelection.setFocused(true);
             }
-            // Update legacy selectedNode reference for documentation
+            // Update legacy selectedNode reference
             if (!newSelection.isEmpty()) {
                 selectedNode = newSelection.iterator().next();
-                showDocumentation(selectedNode);
             } else {
                 selectedNode = null;
-                documentationArea.clear();
             }
             // Redraw to show selection changes
             redraw();
@@ -205,18 +193,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         propertiesPanel.setMinWidth(200);
         propertiesPanel.setMaxWidth(500);
 
-        // Documentation panel
-        TitledPane docPane = new TitledPane("Documentation", documentationArea);
-        docPane.setCollapsible(true);
-        docPane.setExpanded(false);
-
-        // Right side: vertical split with properties and documentation
-        rightPanel = new SplitPane(propertiesPanel, docPane);
-        rightPanel.setOrientation(javafx.geometry.Orientation.VERTICAL);
-        rightPanel.setDividerPositions(0.6);
-
-        // Main split pane: horizontal split with canvas and right panel
-        mainSplitPane = new SplitPane(scrollPane, rightPanel);
+        // Main split pane: horizontal split with canvas and properties panel
+        mainSplitPane = new SplitPane(scrollPane, propertiesPanel);
         mainSplitPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
         mainSplitPane.setDividerPositions(0.7);
 
@@ -229,6 +207,18 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
      */
     private ToolBar createToolbar() {
         ToolBar toolbar = new ToolBar();
+
+        // Save Button
+        saveButton = new Button("Save");
+        saveButton.setTooltip(new Tooltip("Save XSD file (Ctrl+S)"));
+        saveButton.setStyle("-fx-font-weight: bold;");
+        saveButton.setOnAction(e -> {
+            if (onSaveCallback != null) {
+                onSaveCallback.run();
+            }
+        });
+        // Initially disabled until callback is set and edit mode is active
+        saveButton.setDisable(true);
 
         Button expandAllBtn = new Button("Expand All");
         expandAllBtn.setOnAction(e -> {
@@ -255,14 +245,14 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         propertiesToggle.setTooltip(new Tooltip("Show/Hide Properties Panel (Ctrl+P)"));
         propertiesToggle.setOnAction(e -> {
             if (propertiesToggle.isSelected()) {
-                // Show right panel
-                if (!mainSplitPane.getItems().contains(rightPanel)) {
-                    mainSplitPane.getItems().add(rightPanel);
+                // Show properties panel
+                if (!mainSplitPane.getItems().contains(propertiesPanel)) {
+                    mainSplitPane.getItems().add(propertiesPanel);
                     mainSplitPane.setDividerPositions(0.7);
                 }
             } else {
-                // Hide right panel
-                mainSplitPane.getItems().remove(rightPanel);
+                // Hide properties panel
+                mainSplitPane.getItems().remove(propertiesPanel);
             }
         });
 
@@ -295,6 +285,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         toolbar.getItems().addAll(
+                saveButton,
+                new Separator(javafx.geometry.Orientation.VERTICAL),
                 expandAllBtn, collapseAllBtn, fitBtn,
                 separator,
                 propertiesToggle,
@@ -1027,50 +1019,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
         return null;
     }
 
-    /**
-     * Shows documentation for the selected node.
-     */
-    private void showDocumentation(VisualNode node) {
-        if (node == null || node.getModelObject() == null) {
-            documentationArea.clear();
-            return;
-        }
-
-        StringBuilder doc = new StringBuilder();
-        Object modelObj = node.getModelObject();
-
-        if (modelObj instanceof XsdElementModel element) {
-            doc.append("Element: ").append(element.getName()).append("\n");
-            doc.append("Type: ").append(element.getType() != null ? element.getType() : "inline").append("\n");
-            doc.append("Cardinality: ").append(element.getMinOccurs()).append("..")
-                    .append(element.getMaxOccurs() == Integer.MAX_VALUE ? "unbounded" : element.getMaxOccurs()).append("\n");
-            if (element.getDocumentation() != null) {
-                doc.append("\n").append(element.getDocumentation());
-            }
-        } else if (modelObj instanceof XsdAttributeModel attr) {
-            doc.append("Attribute: ").append(attr.getName()).append("\n");
-            doc.append("Type: ").append(attr.getType() != null ? attr.getType() : "string").append("\n");
-            doc.append("Use: ").append(attr.isRequired() ? "required" : "optional").append("\n");
-            if (attr.getDocumentation() != null) {
-                doc.append("\n").append(attr.getDocumentation());
-            }
-        } else if (modelObj instanceof XsdComplexTypeModel ct) {
-            doc.append("Complex Type: ").append(ct.getName()).append("\n");
-            doc.append("Elements: ").append(ct.getElements().size()).append("\n");
-            doc.append("Attributes: ").append(ct.getAttributes().size()).append("\n");
-            if (ct.getDocumentation() != null) {
-                doc.append("\n").append(ct.getDocumentation());
-            }
-        } else if (modelObj instanceof XsdSimpleTypeModel st) {
-            doc.append("Simple Type: ").append(st.getName()).append("\n");
-            doc.append("Base Type: ").append(st.getBaseType() != null ? st.getBaseType() : "none").append("\n");
-            if (st.getDocumentation() != null) {
-                doc.append("\n").append(st.getDocumentation());
-            }
-        }
-
-        documentationArea.setText(doc.toString());
-    }
 
     /**
      * Expands all nodes recursively.
@@ -1202,6 +1150,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     private void handleEditModeChange(PropertyChangeEvent evt) {
         logger.debug("Edit mode changed: {} -> {}", evt.getOldValue(), evt.getNewValue());
         updateEditModeVisuals();
+        updateSaveButtonState();
     }
 
     /**
@@ -1217,5 +1166,50 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
 
         // Redraw to show changes
         redraw();
+    }
+
+    /**
+     * Gets the XSD schema model.
+     *
+     * @return the XSD schema, or null if using old XsdSchemaModel
+     */
+    public XsdSchema getXsdSchema() {
+        return xsdSchema;
+    }
+
+    /**
+     * Gets the editor context.
+     *
+     * @return the editor context
+     */
+    public XsdEditorContext getEditorContext() {
+        return editorContext;
+    }
+
+    /**
+     * Sets the callback to be invoked when the Save button is clicked.
+     *
+     * @param callback the save callback (typically calls XsdController.handleSaveV2Editor())
+     */
+    public void setOnSaveCallback(Runnable callback) {
+        this.onSaveCallback = callback;
+        updateSaveButtonState();
+    }
+
+    /**
+     * Updates the enabled/disabled state of the Save button.
+     * Button is enabled only when:
+     * - A save callback is set
+     * - Editor is in edit mode
+     * - There is a schema to save
+     */
+    public void updateSaveButtonState() {
+        if (saveButton != null) {
+            boolean hasCallback = onSaveCallback != null;
+            boolean inEditMode = editorContext != null && editorContext.isEditMode();
+            boolean hasSchema = xsdSchema != null || model != null;
+
+            saveButton.setDisable(!hasCallback || !inEditMode || !hasSchema);
+        }
     }
 }

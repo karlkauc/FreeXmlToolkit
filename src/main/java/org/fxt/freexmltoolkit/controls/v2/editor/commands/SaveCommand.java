@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer;
-import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -14,6 +14,7 @@ import java.nio.file.Path;
  * Creates a backup before overwriting existing files.
  * Resets the dirty flag on successful save.
  * <p>
+ * Serializes from XsdSchema model (not VisualNode view layer).
  * Note: Save commands are typically not undoable since they involve
  * file system operations. This command returns false for canUndo().
  *
@@ -24,7 +25,7 @@ public class SaveCommand implements XsdCommand {
     private static final Logger logger = LogManager.getLogger(SaveCommand.class);
 
     private final XsdEditorContext editorContext;
-    private final VisualNode rootNode;
+    private final XsdSchema schema;
     private final Path filePath;
     private final boolean createBackup;
     private final XsdSerializer serializer;
@@ -36,24 +37,24 @@ public class SaveCommand implements XsdCommand {
      * Creates a new save command.
      *
      * @param editorContext the editor context
-     * @param rootNode      the root visual node to serialize
+     * @param schema        the XSD schema model to serialize
      * @param filePath      the file path to save to
      * @param createBackup  whether to create a backup before saving
      */
-    public SaveCommand(XsdEditorContext editorContext, VisualNode rootNode,
+    public SaveCommand(XsdEditorContext editorContext, XsdSchema schema,
                        Path filePath, boolean createBackup) {
         if (editorContext == null) {
             throw new IllegalArgumentException("Editor context cannot be null");
         }
-        if (rootNode == null) {
-            throw new IllegalArgumentException("Root node cannot be null");
+        if (schema == null) {
+            throw new IllegalArgumentException("Schema cannot be null");
         }
         if (filePath == null) {
             throw new IllegalArgumentException("File path cannot be null");
         }
 
         this.editorContext = editorContext;
-        this.rootNode = rootNode;
+        this.schema = schema;
         this.filePath = filePath;
         this.createBackup = createBackup;
         this.serializer = new XsdSerializer();
@@ -62,29 +63,25 @@ public class SaveCommand implements XsdCommand {
     @Override
     public boolean execute() {
         try {
-            logger.info("Saving XSD to file: {}", filePath);
+            logger.info("Saving XSD schema to file: {}", filePath);
 
-            // Serialize the visual node tree to XSD XML
-            String xsdContent = serializer.serialize(rootNode);
-
-            // Save to file (with optional backup)
-            serializer.saveToFile(filePath, xsdContent, createBackup);
-
-            // Track backup path if created
-            if (createBackup) {
-                backupPath = filePath.getParent().resolve(
-                        filePath.getFileName().toString().replaceFirst(
-                                "(\\.[^.]+)$",
-                                "_backup_*$1" // Pattern for backup files
-                        )
-                );
+            // Create backup before saving if requested
+            if (createBackup && java.nio.file.Files.exists(filePath)) {
+                backupPath = serializer.createBackup(filePath);
+                logger.info("Created backup at: {}", backupPath);
             }
+
+            // Serialize the XSD schema model to XSD XML
+            String xsdContent = serializer.serialize(schema);
+
+            // Save to file (without backup since we already created it)
+            serializer.saveToFile(filePath, xsdContent, false);
 
             // Reset dirty flag on successful save
             editorContext.resetDirty();
 
             saveSuccessful = true;
-            logger.info("Successfully saved XSD to: {}", filePath);
+            logger.info("Successfully saved XSD schema to: {}", filePath);
             return true;
 
         } catch (IOException e) {

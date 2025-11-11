@@ -847,8 +847,12 @@ public class XsdNodeFactory {
 
     /**
      * Parses xs:annotation and extracts documentation and appinfo.
+     * If multiple documentation/appinfo elements exist, they are concatenated with newlines.
      */
     private void parseAnnotation(Element annotationElement, XsdNode target) {
+        StringBuilder documentationBuilder = new StringBuilder();
+        StringBuilder appinfoBuilder = new StringBuilder();
+
         NodeList children = annotationElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
@@ -861,14 +865,33 @@ public class XsdNodeFactory {
             if (isXsdElement(childElement, "documentation")) {
                 String documentation = childElement.getTextContent();
                 if (documentation != null && !documentation.trim().isEmpty()) {
-                    target.setDocumentation(documentation.trim());
+                    if (documentationBuilder.length() > 0) {
+                        documentationBuilder.append("\n\n"); // Separate multiple documentation elements
+                    }
+                    // Include language attribute if present
+                    String lang = childElement.getAttribute("xml:lang");
+                    if (lang != null && !lang.isEmpty()) {
+                        documentationBuilder.append("[").append(lang).append("] ");
+                    }
+                    documentationBuilder.append(documentation.trim());
                 }
             } else if (isXsdElement(childElement, "appinfo")) {
                 String appinfo = childElement.getTextContent();
                 if (appinfo != null && !appinfo.trim().isEmpty()) {
-                    target.setAppinfo(appinfo.trim());
+                    if (appinfoBuilder.length() > 0) {
+                        appinfoBuilder.append("\n\n"); // Separate multiple appinfo elements
+                    }
+                    appinfoBuilder.append(appinfo.trim());
                 }
             }
+        }
+
+        // Set the combined documentation and appinfo
+        if (documentationBuilder.length() > 0) {
+            target.setDocumentation(documentationBuilder.toString());
+        }
+        if (appinfoBuilder.length() > 0) {
+            target.setAppinfo(appinfoBuilder.toString());
         }
     }
 

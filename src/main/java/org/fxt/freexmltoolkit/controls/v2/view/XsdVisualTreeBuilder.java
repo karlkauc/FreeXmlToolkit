@@ -7,7 +7,9 @@ import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Builds a visual tree from the XsdNode-based model (XsdSchema).
@@ -74,7 +76,8 @@ public class XsdVisualTreeBuilder {
         if (globalElements.size() == 1) {
             // Single root element - use it directly as root node
             XsdElement rootElement = globalElements.get(0);
-            VisualNode rootNode = createElementNode(rootElement, null);
+            Set<String> visitedTypes = new HashSet<>();
+            VisualNode rootNode = createElementNode(rootElement, null, visitedTypes);
             rootNode.setExpanded(true);
             logger.debug("Visual tree built with single root element: {}", rootElement.getName());
             return rootNode;
@@ -93,8 +96,9 @@ public class XsdVisualTreeBuilder {
             rootNode.setExpanded(true);
 
             // Add global elements
+            Set<String> visitedTypes = new HashSet<>();
             for (XsdElement element : globalElements) {
-                VisualNode elementNode = createElementNode(element, rootNode);
+                VisualNode elementNode = createElementNode(element, rootNode, visitedTypes);
                 rootNode.addChild(elementNode);
             }
 
@@ -105,8 +109,13 @@ public class XsdVisualTreeBuilder {
 
     /**
      * Creates a visual node for an XsdElement.
+     *
+     * @param element the XSD element
+     * @param parent the parent visual node
+     * @param visitedTypes set of type names currently being processed (to prevent circular references)
+     * @return the created visual node
      */
-    private VisualNode createElementNode(XsdElement element, VisualNode parent) {
+    private VisualNode createElementNode(XsdElement element, VisualNode parent, Set<String> visitedTypes) {
         String label = element.getName() != null ? element.getName() : "(unnamed)";
         String detail = "";
 
@@ -128,10 +137,12 @@ public class XsdVisualTreeBuilder {
         // Add to nodeMap for later lookup
         nodeMap.put(element.getId(), node);
 
-        // Process children
+        // Process inline children (complexType, simpleType defined within this element)
+        boolean hasInlineComplexType = false;
         for (XsdNode child : element.getChildren()) {
             if (child instanceof XsdComplexType) {
-                processComplexType((XsdComplexType) child, node);
+                processComplexType((XsdComplexType) child, node, visitedTypes);
+                hasInlineComplexType = true;
             } else if (child instanceof XsdSimpleType) {
                 // Simple types typically don't have visual children
                 logger.trace("Element {} has inline simple type", element.getName());
@@ -139,13 +150,23 @@ public class XsdVisualTreeBuilder {
             // Note: XsdAnnotation handling would go here when that class is implemented
         }
 
+        // If no inline type definition and element has a type reference, try to resolve it
+        // This handles cases like <xs:element name="ControlData" type="ControlDataType"/>
+        if (!hasInlineComplexType && element.getType() != null && !element.getType().startsWith("xs:")) {
+            resolveTypeReference(element.getType(), node, element, visitedTypes);
+        }
+
         return node;
     }
 
     /**
      * Processes a complex type and adds its content to the parent node.
+     *
+     * @param complexType the complex type to process
+     * @param parentNode the parent visual node
+     * @param visitedTypes set of type names currently being processed (to prevent circular references)
      */
-    private void processComplexType(XsdComplexType complexType, VisualNode parentNode) {
+    private void processComplexType(XsdComplexType complexType, VisualNode parentNode, Set<String> visitedTypes) {
         logger.debug("Processing complexType with {} children", complexType.getChildren().size());
 
         // Process children to find compositors and attributes
@@ -153,15 +174,15 @@ public class XsdVisualTreeBuilder {
             logger.debug("ComplexType child: {} (type: {})", child.getClass().getSimpleName(), child.getClass().getName());
 
             if (child instanceof XsdSequence) {
-                VisualNode compositor = createCompositorNode(child, parentNode, "sequence");
+                VisualNode compositor = createCompositorNode(child, parentNode, "sequence", visitedTypes);
                 logger.debug("Created compositor node '{}' with {} visual children", compositor.getLabel(), compositor.getChildren().size());
                 parentNode.addChild(compositor);
                 logger.debug("Added compositor to parent '{}' which now has {} children", parentNode.getLabel(), parentNode.getChildren().size());
             } else if (child instanceof XsdChoice) {
-                VisualNode compositor = createCompositorNode(child, parentNode, "choice");
+                VisualNode compositor = createCompositorNode(child, parentNode, "choice", visitedTypes);
                 parentNode.addChild(compositor);
             } else if (child instanceof XsdAll) {
-                VisualNode compositor = createCompositorNode(child, parentNode, "all");
+                VisualNode compositor = createCompositorNode(child, parentNode, "all", visitedTypes);
                 parentNode.addChild(compositor);
             } else if (child instanceof XsdAttribute) {
                 VisualNode attributeNode = createAttributeNode((XsdAttribute) child, parentNode);
@@ -172,8 +193,14 @@ public class XsdVisualTreeBuilder {
 
     /**
      * Creates a visual node for a compositor (sequence, choice, all).
+     *
+     * @param compositorNode the compositor node
+     * @param parent the parent visual node
+     * @param compositorType the type of compositor ("sequence", "choice", "all")
+     * @param visitedTypes set of type names currently being processed (to prevent circular references)
+     * @return the created visual node
      */
-    private VisualNode createCompositorNode(XsdNode compositorNode, VisualNode parent, String compositorType) {
+    private VisualNode createCompositorNode(XsdNode compositorNode, VisualNode parent, String compositorType, Set<String> visitedTypes) {
         String label = compositorType;
         String detail = compositorNode.getChildren().size() + " items";
 
@@ -202,7 +229,7 @@ public class XsdVisualTreeBuilder {
 
             if (child instanceof XsdElement element) {
                 logger.debug("Creating element node for: {}", element.getName());
-                VisualNode elementNode = createElementNode(element, node);
+                VisualNode elementNode = createElementNode(element, node, visitedTypes);
                 logger.debug("Adding element {} to compositor {}", elementNode.getLabel(), node.getLabel());
                 node.addChild(elementNode);
                 logger.debug("Compositor {} now has {} children", node.getLabel(), node.getChildren().size());
@@ -210,7 +237,7 @@ public class XsdVisualTreeBuilder {
                 // Nested compositor
                 String nestedType = child instanceof XsdSequence ? "sequence" :
                         child instanceof XsdChoice ? "choice" : "all";
-                VisualNode nestedNode = createCompositorNode(child, node, nestedType);
+                VisualNode nestedNode = createCompositorNode(child, node, nestedType, visitedTypes);
                 node.addChild(nestedNode);
             }
         }
@@ -235,6 +262,74 @@ public class XsdVisualTreeBuilder {
         nodeMap.put(attribute.getId(), node);
 
         return node;
+    }
+
+    /**
+     * Resolves a type reference and adds its structure to the parent node.
+     * This method finds a global complexType definition and adds its content to the element.
+     * Prevents circular references by tracking visited types.
+     *
+     * @param typeRef      the type reference (e.g., "ControlDataType")
+     * @param parentNode   the visual node to add children to
+     * @param element      the element that references this type
+     * @param visitedTypes set of type names currently being processed (to prevent circular references)
+     */
+    private void resolveTypeReference(String typeRef, VisualNode parentNode, XsdElement element, Set<String> visitedTypes) {
+        if (typeRef == null || typeRef.isEmpty()) {
+            return;
+        }
+
+        // Skip built-in XML Schema types (they don't have children)
+        if (typeRef.startsWith("xs:") || typeRef.startsWith("xsd:")) {
+            return;
+        }
+
+        // Remove namespace prefix if present
+        String typeName = typeRef;
+        if (typeName.contains(":")) {
+            typeName = typeName.substring(typeName.indexOf(":") + 1);
+        }
+
+        // Check for circular reference - if this type is already being processed, skip it
+        if (visitedTypes.contains(typeName)) {
+            logger.warn("Circular reference detected: type '{}' is already being processed for element '{}'. Skipping to prevent infinite recursion.",
+                    typeName, element.getName());
+            return;
+        }
+
+        logger.debug("Resolving type reference '{}' for element '{}'", typeName, element.getName());
+
+        // Find the schema root
+        XsdNode current = element;
+        while (current != null && !(current instanceof XsdSchema)) {
+            current = current.getParent();
+        }
+
+        if (!(current instanceof XsdSchema schema)) {
+            logger.warn("Cannot resolve type '{}': schema root not found", typeName);
+            return;
+        }
+
+        // Add this type to the visited set before processing
+        visitedTypes.add(typeName);
+        try {
+            // Search for complexType with matching name in schema's children
+            for (XsdNode child : schema.getChildren()) {
+                if (child instanceof XsdComplexType complexType) {
+                    if (typeName.equals(complexType.getName())) {
+                        logger.debug("Found complexType '{}' for element '{}'", typeName, element.getName());
+                        processComplexType(complexType, parentNode, visitedTypes);
+                        return;
+                    }
+                }
+                // SimpleTypes don't have visual children, so we don't need to handle them
+            }
+
+            logger.debug("Type '{}' not found or is a simpleType (no children)", typeName);
+        } finally {
+            // Remove from visited set when done (backtracking) to allow this type to be used in other branches
+            visitedTypes.remove(typeName);
+        }
     }
 
     /**

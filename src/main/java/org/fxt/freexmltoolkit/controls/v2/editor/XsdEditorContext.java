@@ -33,13 +33,23 @@ public class XsdEditorContext {
      * @param model the XSD schema model
      */
     public XsdEditorContext(XsdSchemaModel model) {
+        this(model, null);
+    }
+
+    /**
+     * Creates a new editor context for the given schema model with a shared selection model.
+     *
+     * @param model          the XSD schema model
+     * @param selectionModel the selection model to use (if null, a new one will be created)
+     */
+    public XsdEditorContext(XsdSchemaModel model, SelectionModel selectionModel) {
         if (model == null) {
             throw new IllegalArgumentException("Model cannot be null");
         }
 
         this.model = model;
         this.commandManager = new CommandManager();
-        this.selectionModel = new SelectionModel();
+        this.selectionModel = selectionModel != null ? selectionModel : new SelectionModel();
 
         // Listen to command manager changes to update dirty flag
         commandManager.addPropertyChangeListener(evt -> {
