@@ -2,7 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaModel;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,10 +21,12 @@ class ChangeAppinfoCommandTest {
 
     @BeforeEach
     void setUp() {
+        // Create test schema
+        XsdSchema schema = new XsdSchema();
+        schema.setTargetNamespace("http://example.com/test");
+
         // Create editor context
-        XsdSchemaModel schemaModel = new XsdSchemaModel();
-        schemaModel.setTargetNamespace("http://example.com/test");
-        editorContext = new XsdEditorContext(schemaModel);
+        editorContext = new XsdEditorContext(schema);
 
         // Create test element
         element = new XsdElement("TestElement");
@@ -73,7 +75,7 @@ class ChangeAppinfoCommandTest {
 
         // Assert
         assertTrue(result, "execute() should return true");
-        assertEquals(newAppinfo, element.getAppinfo(), "Appinfo should be set");
+        assertEquals(newAppinfo, element.getAppinfoAsString(), "Appinfo should be set");
         assertTrue(editorContext.isDirty(), "Context should be marked dirty");
     }
 
@@ -81,7 +83,7 @@ class ChangeAppinfoCommandTest {
     @DisplayName("execute() should replace existing appinfo")
     void testExecuteReplacesExistingAppinfo() {
         // Arrange
-        element.setAppinfo("<old>data</old>");
+        element.setAppinfoFromString("<old>data</old>");
         String newAppinfo = "<new>data</new>";
         ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, newAppinfo);
 
@@ -90,14 +92,14 @@ class ChangeAppinfoCommandTest {
 
         // Assert
         assertTrue(result, "execute() should return true");
-        assertEquals(newAppinfo, element.getAppinfo(), "Appinfo should be replaced");
+        assertEquals(newAppinfo, element.getAppinfoAsString(), "Appinfo should be replaced");
     }
 
     @Test
     @DisplayName("execute() should remove appinfo with null value")
     void testExecuteRemovesAppinfoWithNull() {
         // Arrange
-        element.setAppinfo("<old>data</old>");
+        element.setAppinfoFromString("<old>data</old>");
         ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, null);
 
         // Act
@@ -105,14 +107,14 @@ class ChangeAppinfoCommandTest {
 
         // Assert
         assertTrue(result, "execute() should return true");
-        assertNull(element.getAppinfo(), "Appinfo should be removed");
+        assertEquals("", element.getAppinfoAsString(), "Appinfo should be removed (returns empty string)");
     }
 
     @Test
     @DisplayName("execute() should remove appinfo with empty string")
     void testExecuteRemovesAppinfoWithEmptyString() {
         // Arrange
-        element.setAppinfo("<old>data</old>");
+        element.setAppinfoFromString("<old>data</old>");
         ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, "");
 
         // Act
@@ -120,7 +122,7 @@ class ChangeAppinfoCommandTest {
 
         // Assert
         assertTrue(result, "execute() should return true");
-        assertEquals("", element.getAppinfo(), "Appinfo should be empty");
+        assertEquals("", element.getAppinfoAsString(), "Appinfo should be empty string");
     }
 
     // ========== Undo Tests ==========
@@ -130,7 +132,7 @@ class ChangeAppinfoCommandTest {
     void testUndoRestoresOldAppinfo() {
         // Arrange
         String oldAppinfo = "<old>data</old>";
-        element.setAppinfo(oldAppinfo);
+        element.setAppinfoFromString(oldAppinfo);
         ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, "<new>data</new>");
         command.execute();
 
@@ -139,7 +141,7 @@ class ChangeAppinfoCommandTest {
 
         // Assert
         assertTrue(result, "undo() should return true");
-        assertEquals(oldAppinfo, element.getAppinfo(), "Old appinfo should be restored");
+        assertEquals(oldAppinfo, element.getAppinfoAsString(), "Old appinfo should be restored");
         assertTrue(editorContext.isDirty(), "Context should still be marked dirty after undo");
     }
 
@@ -156,7 +158,7 @@ class ChangeAppinfoCommandTest {
 
         // Assert
         assertTrue(result, "undo() should return true");
-        assertNull(element.getAppinfo(), "Appinfo should be null after undo");
+        assertEquals("", element.getAppinfoAsString(), "Appinfo should be empty string after undo (null returns empty)");
     }
 
     @Test
@@ -190,7 +192,7 @@ class ChangeAppinfoCommandTest {
     @DisplayName("getDescription() should describe changing appinfo")
     void testGetDescriptionForChangingAppinfo() {
         // Arrange
-        element.setAppinfo("<old>data</old>");
+        element.setAppinfoFromString("<old>data</old>");
         ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, "<new>data</new>");
 
         // Act
@@ -205,7 +207,7 @@ class ChangeAppinfoCommandTest {
     @DisplayName("getDescription() should describe removing appinfo")
     void testGetDescriptionForRemovingAppinfo() {
         // Arrange
-        element.setAppinfo("<old>data</old>");
+        element.setAppinfoFromString("<old>data</old>");
         ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, null);
 
         // Act
@@ -269,11 +271,11 @@ class ChangeAppinfoCommandTest {
     void testGetOldAppinfoReturnsOldValue() {
         // Arrange
         String oldAppinfo = "<old>data</old>";
-        element.setAppinfo(oldAppinfo);
+        element.setAppinfoFromString(oldAppinfo);
         ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, "<new>data</new>");
 
         // Act & Assert
-        assertEquals(oldAppinfo, command.getOldAppinfo(), "getOldAppinfo() should return old value");
+        assertEquals(oldAppinfo, command.getOldAppinfo().toDisplayString(), "getOldAppinfo() should return old value");
     }
 
     @Test
@@ -284,6 +286,6 @@ class ChangeAppinfoCommandTest {
         ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, element, newAppinfo);
 
         // Act & Assert
-        assertEquals(newAppinfo, command.getNewAppinfo(), "getNewAppinfo() should return new value");
+        assertEquals(newAppinfo, command.getNewAppinfo().toDisplayString(), "getNewAppinfo() should return new value");
     }
 }
