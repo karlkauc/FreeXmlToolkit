@@ -148,7 +148,8 @@ public class XsltController {
                 renderText(output);
                 progressBar.setProgress(1);
 
-                String outputMethod = xmlService.getXsltOutputMethod().toLowerCase().trim();
+                String outputMethodRaw = xmlService.getXsltOutputMethod();
+                String outputMethod = (outputMethodRaw != null) ? outputMethodRaw.toLowerCase().trim() : "text";
                 switch (outputMethod) {
                     case "html", "xhtml" -> outputMethodSwitch.getSelectionModel().select(tabWeb);
                     default -> outputMethodSwitch.getSelectionModel().select(tabText);

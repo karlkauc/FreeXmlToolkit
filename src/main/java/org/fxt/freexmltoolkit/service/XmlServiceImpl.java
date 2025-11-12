@@ -249,11 +249,11 @@ public class XmlServiceImpl implements XmlService {
 
                 final String expression = "/stylesheet/output/@method";
                 final XPath xPath = XPathFactory.newInstance().newXPath();
-                final var nodeList = (NodeList) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODESET);
+                final var outputMethodeNode = (Node) xPath.compile(expression).evaluate(xmlDocument, XPathConstants.NODE);
 
-                if (nodeList != null && nodeList.getLength() != 0) {
-                    logger.debug("Output Method: {}", nodeList.item(0).getNodeValue());
-                    this.xsltOutputMethod = nodeList.item(0).getNodeValue();
+                if (outputMethodeNode != null && outputMethodeNode.getNodeValue() != null) {
+                    logger.debug("Output Method: {}", outputMethodeNode.getNodeValue());
+                    this.xsltOutputMethod = outputMethodeNode.getNodeValue().trim().toLowerCase();
                 } else {
                     this.xsltOutputMethod = null; // Reset if no method found
                 }
@@ -369,6 +369,7 @@ public class XmlServiceImpl implements XmlService {
 
             // Use the detected output method, default to "html" if not found
             if (this.xsltOutputMethod != null && !this.xsltOutputMethod.isEmpty()) {
+                logger.debug("Using output method: {}", this.xsltOutputMethod);
                 out.setOutputProperty(Serializer.Property.METHOD, this.xsltOutputMethod);
             } else {
                 out.setOutputProperty(Serializer.Property.METHOD, "html"); // Default to html
