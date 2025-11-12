@@ -12,6 +12,8 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.*;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
@@ -54,6 +56,9 @@ public class XsdPropertiesPanel extends VBox {
     private ComboBox<String> useComboBox;
     private TextField substitutionGroupField;
 
+    // Facets panel
+    private FacetsPanel facetsPanel;
+
     private boolean updating = false; // Prevent recursive updates
 
     /**
@@ -90,13 +95,17 @@ public class XsdPropertiesPanel extends VBox {
         Label titleLabel = new Label("Properties");
         titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
+        // Create Facets Panel
+        facetsPanel = new FacetsPanel(editorContext);
+
         // Create accordion with sections
         Accordion accordion = new Accordion();
         accordion.getPanes().addAll(
                 createGeneralSection(),
                 createDocumentationSection(),
                 createConstraintsSection(),
-                createAdvancedSection()
+                createAdvancedSection(),
+                createFacetsSection()
         );
 
         // Expand General section by default
@@ -232,6 +241,16 @@ public class XsdPropertiesPanel extends VBox {
         grid.add(substitutionGroupField, 1, row++);
 
         TitledPane pane = new TitledPane("Advanced", grid);
+        pane.setAnimated(false);
+        pane.setExpanded(false);
+        return pane;
+    }
+
+    /**
+     * Creates the Facets section.
+     */
+    private TitledPane createFacetsSection() {
+        TitledPane pane = new TitledPane("Facets (Restrictions)", facetsPanel);
         pane.setAnimated(false);
         pane.setExpanded(false);
         return pane;
@@ -378,16 +397,19 @@ public class XsdPropertiesPanel extends VBox {
             // Update General section
             nameField.setText(node.getLabel());
 
-            // Extract type from detail (if available)
-            String detail = node.getDetail();
-            if (detail != null && detail.contains("type:")) {
-                int typeIndex = detail.indexOf("type:");
-                int endIndex = detail.indexOf('\n', typeIndex);
-                if (endIndex < 0) endIndex = detail.length();
-                String type = detail.substring(typeIndex + 5, endIndex).trim();
-                typeField.setText(type);
+            // Extract type directly from model (more reliable than parsing detail string)
+            // Reuse modelObject from line 362
+            if (node.getModelObject() instanceof XsdElement element) {
+                String type = element.getType();
+                typeField.setText(type != null ? type : "");
+                logger.debug("Set type field from XsdElement.getType(): {}", type);
+            } else if (node.getModelObject() instanceof XsdAttribute attribute) {
+                String type = attribute.getType();
+                typeField.setText(type != null ? type : "");
+                logger.debug("Set type field from XsdAttribute.getType(): {}", type);
             } else {
                 typeField.setText("");
+                logger.debug("Node has no type property (not an element or attribute)");
             }
 
             // Update cardinality
@@ -448,11 +470,42 @@ public class XsdPropertiesPanel extends VBox {
             }
             substitutionGroupField.setText("");
 
+            // Update Facets Panel if the node is a SimpleType with a restriction
+            updateFacetsPanel(node);
+
             logger.debug("Updated properties panel for node: {}", node.getLabel());
 
         } finally {
             updating = false;
         }
+    }
+
+    /**
+     * Updates the facets panel based on the selected node.
+     *
+     * @param node the selected node
+     */
+    private void updateFacetsPanel(VisualNode node) {
+        // Check if the node's model object is a SimpleType with a Restriction
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof XsdSimpleType simpleType) {
+            // Look for a restriction in the children
+            XsdRestriction restriction = simpleType.getChildren().stream()
+                    .filter(child -> child instanceof XsdRestriction)
+                    .map(child -> (XsdRestriction) child)
+                    .findFirst()
+                    .orElse(null);
+
+            if (restriction != null) {
+                facetsPanel.setRestriction(restriction);
+                logger.debug("Found restriction with {} facets for SimpleType '{}'",
+                        restriction.getFacets().size(), simpleType.getName());
+                return;
+            }
+        }
+
+        // No restriction found or not a SimpleType - clear facets panel
+        facetsPanel.setRestriction(null);
     }
 
     /**
