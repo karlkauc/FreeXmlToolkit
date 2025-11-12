@@ -319,6 +319,6 @@ class XsdNodeFactoryTest {
 
         XsdElement element = (XsdElement) schema.getChildren().get(0);
         assertEquals("This is a test element", element.getDocumentation());
-        assertEquals("Some application info", element.getAppinfo());
+        assertEquals("Some application info", element.getAppinfoAsString());
     }
 }
