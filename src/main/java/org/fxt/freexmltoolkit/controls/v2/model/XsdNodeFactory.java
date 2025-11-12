@@ -126,8 +126,19 @@ public class XsdNodeFactory {
                 schema.addChild(attributeGroup);
             } else if (isXsdElement(childElement, "annotation")) {
                 parseAnnotation(childElement, schema);
+            } else if (isXsdElement(childElement, "import")) {
+                XsdImport xsdImport = parseImport(childElement);
+                schema.addChild(xsdImport);
+            } else if (isXsdElement(childElement, "include")) {
+                XsdInclude xsdInclude = parseInclude(childElement);
+                schema.addChild(xsdInclude);
+            } else if (isXsdElement(childElement, "redefine")) {
+                XsdRedefine xsdRedefine = parseRedefine(childElement);
+                schema.addChild(xsdRedefine);
+            } else if (isXsdElement(childElement, "override")) {
+                XsdOverride xsdOverride = parseOverride(childElement);
+                schema.addChild(xsdOverride);
             }
-            // TODO: import, include, redefine, override support
         }
 
         return schema;
@@ -917,6 +928,148 @@ public class XsdNodeFactory {
                 }
             }
         }
+    }
+
+    /**
+     * Parses an xs:import element.
+     */
+    private XsdImport parseImport(Element importElement) {
+        XsdImport xsdImport = new XsdImport();
+
+        // Parse namespace attribute
+        if (importElement.hasAttribute("namespace")) {
+            xsdImport.setNamespace(importElement.getAttribute("namespace"));
+        }
+
+        // Parse schemaLocation attribute
+        if (importElement.hasAttribute("schemaLocation")) {
+            xsdImport.setSchemaLocation(importElement.getAttribute("schemaLocation"));
+        }
+
+        // Parse annotation if present
+        NodeList children = importElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                Element childElement = (Element) child;
+                if (isXsdElement(childElement, "annotation")) {
+                    parseAnnotation(childElement, xsdImport);
+                }
+            }
+        }
+
+        return xsdImport;
+    }
+
+    /**
+     * Parses an xs:include element.
+     */
+    private XsdInclude parseInclude(Element includeElement) {
+        XsdInclude xsdInclude = new XsdInclude();
+
+        // Parse schemaLocation attribute
+        if (includeElement.hasAttribute("schemaLocation")) {
+            xsdInclude.setSchemaLocation(includeElement.getAttribute("schemaLocation"));
+        }
+
+        // Parse annotation if present
+        NodeList children = includeElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                Element childElement = (Element) child;
+                if (isXsdElement(childElement, "annotation")) {
+                    parseAnnotation(childElement, xsdInclude);
+                }
+            }
+        }
+
+        return xsdInclude;
+    }
+
+    /**
+     * Parses an xs:redefine element.
+     */
+    private XsdRedefine parseRedefine(Element redefineElement) {
+        XsdRedefine xsdRedefine = new XsdRedefine();
+
+        // Parse schemaLocation attribute
+        if (redefineElement.hasAttribute("schemaLocation")) {
+            xsdRedefine.setSchemaLocation(redefineElement.getAttribute("schemaLocation"));
+        }
+
+        // Parse child elements (simpleType, complexType, group, attributeGroup)
+        NodeList children = redefineElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element childElement = (Element) child;
+
+            if (isXsdElement(childElement, "annotation")) {
+                parseAnnotation(childElement, xsdRedefine);
+            } else if (isXsdElement(childElement, "simpleType")) {
+                XsdSimpleType simpleType = parseSimpleType(childElement);
+                xsdRedefine.addChild(simpleType);
+            } else if (isXsdElement(childElement, "complexType")) {
+                XsdComplexType complexType = parseComplexType(childElement);
+                xsdRedefine.addChild(complexType);
+            } else if (isXsdElement(childElement, "group")) {
+                XsdGroup group = parseGroup(childElement);
+                xsdRedefine.addChild(group);
+            } else if (isXsdElement(childElement, "attributeGroup")) {
+                XsdAttributeGroup attributeGroup = parseAttributeGroup(childElement);
+                xsdRedefine.addChild(attributeGroup);
+            }
+        }
+
+        return xsdRedefine;
+    }
+
+    /**
+     * Parses an xs:override element (XSD 1.1).
+     */
+    private XsdOverride parseOverride(Element overrideElement) {
+        XsdOverride xsdOverride = new XsdOverride();
+
+        // Parse schemaLocation attribute
+        if (overrideElement.hasAttribute("schemaLocation")) {
+            xsdOverride.setSchemaLocation(overrideElement.getAttribute("schemaLocation"));
+        }
+
+        // Parse child elements (simpleType, complexType, group, attributeGroup, element, attribute, notation)
+        NodeList children = overrideElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element childElement = (Element) child;
+
+            if (isXsdElement(childElement, "annotation")) {
+                parseAnnotation(childElement, xsdOverride);
+            } else if (isXsdElement(childElement, "simpleType")) {
+                XsdSimpleType simpleType = parseSimpleType(childElement);
+                xsdOverride.addChild(simpleType);
+            } else if (isXsdElement(childElement, "complexType")) {
+                XsdComplexType complexType = parseComplexType(childElement);
+                xsdOverride.addChild(complexType);
+            } else if (isXsdElement(childElement, "group")) {
+                XsdGroup group = parseGroup(childElement);
+                xsdOverride.addChild(group);
+            } else if (isXsdElement(childElement, "attributeGroup")) {
+                XsdAttributeGroup attributeGroup = parseAttributeGroup(childElement);
+                xsdOverride.addChild(attributeGroup);
+            } else if (isXsdElement(childElement, "element")) {
+                XsdElement element = parseElement(childElement);
+                xsdOverride.addChild(element);
+            }
+        }
+
+        return xsdOverride;
     }
 
     /**

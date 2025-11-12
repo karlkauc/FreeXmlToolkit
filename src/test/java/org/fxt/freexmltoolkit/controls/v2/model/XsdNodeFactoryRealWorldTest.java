@@ -208,4 +208,42 @@ class XsdNodeFactoryRealWorldTest {
 
         System.out.println("✅ Successfully parsed xmldsig-core-schema.xsd with " + schema.getChildren().size() + " top-level components");
     }
+
+    @Test
+    void testParseFundsXML4WithImport() throws Exception {
+        File xsdFile = XSD_DIR.resolve("FundsXML4.xsd").toFile();
+        assertTrue(xsdFile.exists(), "FundsXML4.xsd file not found");
+
+        XsdNodeFactory factory = new XsdNodeFactory();
+        XsdSchema schema = factory.fromFile(xsdFile);
+
+        assertNotNull(schema, "Schema should be parsed");
+        assertEquals("qualified", schema.getElementFormDefault());
+        assertEquals("unqualified", schema.getAttributeFormDefault());
+
+        // Find the xs:import statement
+        XsdImport xmldsigImport = (XsdImport) schema.getChildren().stream()
+                .filter(n -> n instanceof XsdImport)
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(xmldsigImport, "xs:import should be found in FundsXML4.xsd");
+        assertEquals("http://www.w3.org/2000/09/xmldsig#", xmldsigImport.getNamespace(),
+                    "Import namespace should be xmldsig");
+        assertEquals("xmldsig-core-schema.xsd", xmldsigImport.getSchemaLocation(),
+                    "Import schemaLocation should be xmldsig-core-schema.xsd");
+
+        // Find FundsXML4 root element
+        XsdElement fundsXml4Element = (XsdElement) schema.getChildren().stream()
+                .filter(n -> n instanceof XsdElement && "FundsXML4".equals(((XsdElement) n).getName()))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(fundsXml4Element, "FundsXML4 element should be found");
+
+        System.out.println("✅ Successfully parsed FundsXML4.xsd with import statement");
+        System.out.println("   - Import namespace: " + xmldsigImport.getNamespace());
+        System.out.println("   - Import schemaLocation: " + xmldsigImport.getSchemaLocation());
+        System.out.println("   - Total components: " + schema.getChildren().size());
+    }
 }
