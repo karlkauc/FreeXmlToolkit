@@ -10,56 +10,423 @@
                 <meta charset="UTF-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
                 <title>FundsXML - Business Rules Validation</title>
-                <script src="https://cdn.tailwindcss.com"></script>
+                <style>
+                    /* Reset und Basis-Styles */
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                        background: linear-gradient(to bottom right, #F9FAFB, #F3F4F6);
+                        min-height: 100vh;
+                        line-height: 1.5;
+                    }
+                    
+                    /* Container */
+                    .container {
+                        max-width: 1280px;
+                        margin: 0 auto;
+                        padding: 2rem 1rem;
+                    }
+                    
+                    /* Hauptkarte */
+                    .main-card {
+                        background: white;
+                        border-radius: 1rem;
+                        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                        overflow: hidden;
+                    }
+                    
+                    /* Header */
+                    .header {
+                        background: linear-gradient(to right, #4F46E5, #7C3AED);
+                        padding: 2rem;
+                        color: white;
+                    }
+                    
+                    .header h1 {
+                        font-size: 2.25rem;
+                        font-weight: bold;
+                        margin-bottom: 0.5rem;
+                    }
+                    
+                    .header p {
+                        color: #E0E7FF;
+                        font-size: 1.125rem;
+                    }
+                    
+                    /* Content */
+                    .content {
+                        padding: 2rem;
+                    }
+                    
+                    /* Summary Cards Grid */
+                    .summary-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                        gap: 1.5rem;
+                        margin-bottom: 2rem;
+                    }
+                    
+                    .summary-card {
+                        border-radius: 0.75rem;
+                        padding: 1.5rem;
+                        border: 1px solid;
+                    }
+                    
+                    .summary-card.blue {
+                        background: #EFF6FF;
+                        border-color: #BFDBFE;
+                    }
+                    
+                    .summary-card.green {
+                        background: #F0FDF4;
+                        border-color: #BBF7D0;
+                    }
+                    
+                    .summary-card.purple {
+                        background: #FAF5FF;
+                        border-color: #E9D5FF;
+                    }
+                    
+                    .summary-card-content {
+                        display: flex;
+                        align-items: center;
+                    }
+                    
+                    .icon-box {
+                        width: 3rem;
+                        height: 3rem;
+                        border-radius: 0.5rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.25rem;
+                        font-weight: bold;
+                        color: white;
+                    }
+                    
+                    .icon-box.blue { background: #3B82F6; }
+                    .icon-box.green { background: #10B981; }
+                    .icon-box.purple { background: #8B5CF6; }
+                    
+                    .card-info {
+                        margin-left: 1rem;
+                    }
+                    
+                    .card-title {
+                        font-weight: 600;
+                    }
+                    
+                    .summary-card.blue .card-title { color: #1E3A8A; }
+                    .summary-card.green .card-title { color: #14532D; }
+                    .summary-card.purple .card-title { color: #581C87; }
+                    
+                    .card-value {
+                        font-size: 0.875rem;
+                    }
+                    
+                    .summary-card.blue .card-value { color: #2563EB; }
+                    .summary-card.green .card-value { color: #16A34A; }
+                    .summary-card.purple .card-value { color: #7C3AED; }
+                    
+                    /* Validation Sections */
+                    .validation-section {
+                        background: white;
+                        border: 1px solid #E5E7EB;
+                        border-radius: 0.75rem;
+                        padding: 1.5rem;
+                        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+                        margin-bottom: 2rem;
+                    }
+                    
+                    .section-title {
+                        font-size: 1.5rem;
+                        font-weight: 600;
+                        color: #111827;
+                        margin-bottom: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                    }
+                    
+                    .section-number {
+                        width: 2.5rem;
+                        height: 2.5rem;
+                        border-radius: 0.75rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.125rem;
+                        font-weight: bold;
+                        color: white;
+                        margin-right: 1rem;
+                    }
+                    
+                    .section-number.orange { background: #F97316; }
+                    .section-number.green { background: #10B981; }
+                    .section-number.blue { background: #3B82F6; }
+                    .section-number.red { background: #EF4444; }
+                    
+                    /* Fund Box */
+                    .fund-box {
+                        margin-bottom: 1.5rem;
+                        padding: 1rem;
+                        border: 1px solid #E5E7EB;
+                        border-radius: 0.5rem;
+                    }
+                    
+                    .fund-title {
+                        font-size: 1.125rem;
+                        font-weight: 600;
+                        color: #1F2937;
+                        margin-bottom: 1rem;
+                    }
+                    
+                    /* Portfolio Box */
+                    .portfolio-box {
+                        background: #F9FAFB;
+                        border-radius: 0.5rem;
+                        padding: 1rem;
+                        margin-bottom: 0.75rem;
+                    }
+                    
+                    .portfolio-header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        flex-wrap: wrap;
+                        gap: 1rem;
+                    }
+                    
+                    .portfolio-info {
+                        flex: 1;
+                    }
+                    
+                    .label {
+                        font-weight: 500;
+                        color: #4B5563;
+                    }
+                    
+                    .value {
+                        color: #111827;
+                    }
+                    
+                    .portfolio-summary {
+                        text-align: right;
+                    }
+                    
+                    .summary-label {
+                        font-size: 0.75rem;
+                        color: #6B7280;
+                    }
+                    
+                    .summary-value {
+                        font-size: 1.25rem;
+                        font-weight: bold;
+                    }
+                    
+                    .percentage-ok {
+                        color: #16A34A;
+                    }
+                    
+                    .percentage-warning {
+                        color: #F59E0B;
+                    }
+                    
+                    .percentage-error {
+                        color: #DC2626;
+                    }
+                    
+                    /* Position Details */
+                    .position-details {
+                        margin-top: 0.75rem;
+                        padding-top: 0.75rem;
+                        border-top: 1px solid #E5E7EB;
+                    }
+                    
+                    .position-count {
+                        font-size: 0.875rem;
+                        color: #6B7280;
+                        margin-bottom: 0.5rem;
+                    }
+                    
+                    .position-list {
+                        display: grid;
+                        gap: 0.5rem;
+                    }
+                    
+                    .position-item {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 0.75rem;
+                        background: white;
+                        border-radius: 0.25rem;
+                        border: 1px solid #E5E7EB;
+                    }
+                    
+                    .position-info {
+                        flex: 1;
+                    }
+                    
+                    .position-id {
+                        font-size: 0.875rem;
+                        font-weight: 500;
+                        color: #4B5563;
+                    }
+                    
+                    .position-metrics {
+                        font-size: 0.75rem;
+                        color: #6B7280;
+                        margin-top: 0.25rem;
+                    }
+                    
+                    /* Status Badge */
+                    .status-badge {
+                        padding: 0.25rem 0.5rem;
+                        font-size: 0.75rem;
+                        border-radius: 0.25rem;
+                        font-weight: 500;
+                        white-space: nowrap;
+                    }
+                    
+                    .status-match {
+                        background: #DCFCE7;
+                        color: #16A34A;
+                    }
+                    
+                    .status-fx {
+                        background: #DBEAFE;
+                        color: #2563EB;
+                    }
+                    
+                    .status-consistent {
+                        background: #DCFCE7;
+                        color: #16A34A;
+                    }
+                    
+                    .status-inconsistent {
+                        background: #FEE2E2;
+                        color: #DC2626;
+                    }
+                    
+                    /* NAV Display Box */
+                    .nav-display {
+                        display: flex;
+                        gap: 1rem;
+                        margin-top: 0.75rem;
+                        flex-wrap: wrap;
+                    }
+                    
+                    .nav-item {
+                        padding: 0.5rem;
+                        background: white;
+                        border-radius: 0.375rem;
+                        border: 1px solid #E5E7EB;
+                        flex: 1;
+                        min-width: 120px;
+                    }
+                    
+                    .nav-label {
+                        font-size: 0.75rem;
+                        color: #6B7280;
+                        margin-bottom: 0.25rem;
+                    }
+                    
+                    .nav-value {
+                        font-size: 0.875rem;
+                        font-weight: 600;
+                        color: #111827;
+                    }
+                    
+                    /* Fund NAV Info */
+                    .fund-nav-info {
+                        font-size: 0.875rem;
+                        color: #6B7280;
+                        margin-top: 0.25rem;
+                    }
+                    
+                    /* Footer */
+                    .footer {
+                        background: #F3F4F6;
+                        padding: 1.5rem;
+                        text-align: center;
+                    }
+                    
+                    .footer p {
+                        font-size: 0.875rem;
+                        color: #6B7280;
+                    }
+                    
+                    /* Responsive Design */
+                    @media (max-width: 768px) {
+                        .summary-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        
+                        .portfolio-header {
+                            flex-direction: column;
+                            align-items: stretch;
+                        }
+                        
+                        .portfolio-summary {
+                            text-align: left;
+                            margin-top: 0.5rem;
+                            padding-top: 0.5rem;
+                            border-top: 1px solid #E5E7EB;
+                        }
+                    }
+                </style>
             </head>
-            <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-                <div class="container mx-auto px-4 py-8">
-                    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <body>
+                <div class="container">
+                    <div class="main-card">
                         <!-- Header -->
-                        <div class="bg-gradient-to-r from-indigo-600 to-purple-700 p-8 text-white">
-                            <h1 class="text-4xl font-bold mb-2">Business Rules Validation</h1>
-                            <p class="text-indigo-100 text-lg">
-                                Comprehensive fund data consistency and business logic checks
-                            </p>
+                        <div class="header">
+                            <h1>Business Rules Validation</h1>
+                            <p>Comprehensive fund data consistency and business logic checks</p>
                         </div>
 
-                        <div class="p-8">
+                        <div class="content">
                             <!-- Summary Cards -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                                    <div class="flex items-center">
-                                        <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                                            <span class="text-white font-bold text-xl">📊</span>
+                            <div class="summary-grid">
+                                <div class="summary-card blue">
+                                    <div class="summary-card-content">
+                                        <div class="icon-box blue">
+                                            <span>📊</span>
                                         </div>
-                                        <div class="ml-4">
-                                            <h3 class="font-semibold text-blue-900">Document</h3>
-                                            <p class="text-blue-700 text-sm">
+                                        <div class="card-info">
+                                            <h3 class="card-title">Document</h3>
+                                            <p class="card-value">
                                                 <xsl:value-of select="ControlData/UniqueDocumentID"/>
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="bg-green-50 border border-green-200 rounded-xl p-6">
-                                    <div class="flex items-center">
-                                        <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                                            <span class="text-white font-bold text-xl">💰</span>
+                                <div class="summary-card green">
+                                    <div class="summary-card-content">
+                                        <div class="icon-box green">
+                                            <span>💰</span>
                                         </div>
-                                        <div class="ml-4">
-                                            <h3 class="font-semibold text-green-900">Funds</h3>
-                                            <p class="text-green-700 text-sm">
+                                        <div class="card-info">
+                                            <h3 class="card-title">Funds</h3>
+                                            <p class="card-value">
                                                 <xsl:value-of select="count(Funds/Fund)"/> fund(s)
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="bg-purple-50 border border-purple-200 rounded-xl p-6">
-                                    <div class="flex items-center">
-                                        <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                                            <span class="text-white font-bold text-xl">📅</span>
+                                <div class="summary-card purple">
+                                    <div class="summary-card-content">
+                                        <div class="icon-box purple">
+                                            <span>📅</span>
                                         </div>
-                                        <div class="ml-4">
-                                            <h3 class="font-semibold text-purple-900">Date</h3>
-                                            <p class="text-purple-700 text-sm">
+                                        <div class="card-info">
+                                            <h3 class="card-title">Date</h3>
+                                            <p class="card-value">
                                                 <xsl:value-of select="ControlData/ContentDate"/>
                                             </p>
                                         </div>
@@ -67,276 +434,210 @@
                                 </div>
                             </div>
 
-                            <div class="space-y-8">
-                                <!-- Portfolio Percentage Sum Check -->
-                                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                                    <h2 class="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-                                        <div class="w-10 h-10 bg-orange-500 text-white rounded-xl flex items-center justify-center text-lg font-bold mr-4">
-                                            1
-                                        </div>
-                                        Portfolio Percentage Sum Check
-                                    </h2>
+                            <!-- Portfolio Percentage Sum Check -->
+                            <div class="validation-section">
+                                <h2 class="section-title">
+                                    <div class="section-number orange">1</div>
+                                    Portfolio Percentage Sum Check
+                                </h2>
 
-                                    <xsl:for-each select="Funds/Fund">
-                                        <div class="mb-6 p-4 border border-gray-200 rounded-lg">
-                                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                                                Fund:
-                                                <xsl:value-of select="Names/OfficialName"/>
-                                            </h3>
+                                <xsl:for-each select="Funds/Fund">
+                                    <div class="fund-box">
+                                        <h3 class="fund-title">
+                                            Fund: <xsl:value-of select="Names/OfficialName"/>
+                                        </h3>
 
-                                            <xsl:for-each select="FundDynamicData/Portfolios/Portfolio">
-                                                <xsl:variable name="totalPercentage"
-                                                              select="sum(Positions/Position/TotalPercentage)"/>
-                                                <div class="bg-gray-50 rounded-lg p-4 mb-3">
-                                                    <div class="flex items-center justify-between">
-                                                        <div>
-                                                            <span class="font-medium text-gray-700">Portfolio Date:
-                                                            </span>
-                                                            <span class="text-gray-900">
-                                                                <xsl:value-of select="NavDate"/>
-                                                            </span>
-                                                        </div>
-                                                        <div class="text-right">
-                                                            <div class="text-sm text-gray-600">Total Percentage Sum
-                                                            </div>
-                                                            <div class="text-xl font-bold">
-                                                                <xsl:choose>
-                                                                    <xsl:when
-                                                                            test="$totalPercentage &gt; 99.5 and $totalPercentage &lt; 100.5">
-                                                                        <span class="text-green-600"><xsl:value-of
-                                                                                select="format-number($totalPercentage, '0.00')"/>%
-                                                                        </span>
-                                                                    </xsl:when>
-                                                                    <xsl:otherwise>
-                                                                        <span class="text-red-600"><xsl:value-of
-                                                                                select="format-number($totalPercentage, '0.00')"/>%
-                                                                        </span>
-                                                                    </xsl:otherwise>
-                                                                </xsl:choose>
-                                                            </div>
+                                        <xsl:for-each select="FundDynamicData/Portfolios/Portfolio">
+                                            <xsl:variable name="totalPercentage"
+                                                          select="sum(Positions/Position/TotalPercentage)"/>
+                                            <div class="portfolio-box">
+                                                <div class="portfolio-header">
+                                                    <div class="portfolio-info">
+                                                        <span class="label">Portfolio Date: </span>
+                                                        <span class="value">
+                                                            <xsl:value-of select="NavDate"/>
+                                                        </span>
+                                                    </div>
+                                                    <div class="portfolio-summary">
+                                                        <div class="summary-label">Total Percentage Sum</div>
+                                                        <div class="summary-value">
+                                                            <xsl:choose>
+                                                                <xsl:when
+                                                                        test="$totalPercentage &gt; 99.5 and $totalPercentage &lt; 100.5">
+                                                                    <span class="percentage-ok">
+                                                                        <xsl:value-of select="format-number($totalPercentage, '0.00')"/>%
+                                                                    </span>
+                                                                </xsl:when>
+                                                                <xsl:otherwise>
+                                                                    <span class="percentage-error">
+                                                                        <xsl:value-of select="format-number($totalPercentage, '0.00')"/>%
+                                                                    </span>
+                                                                </xsl:otherwise>
+                                                            </xsl:choose>
                                                         </div>
                                                     </div>
-                                                    <div class="mt-3">
+                                                </div>
+
+                                                <div class="position-details">
+                                                    <div class="position-count">
+                                                        Positions: <xsl:value-of select="count(Positions/Position)"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </xsl:for-each>
+                                    </div>
+                                </xsl:for-each>
+                            </div>
+
+                            <!-- NAV Date Consistency Check -->
+                            <div class="validation-section">
+                                <h2 class="section-title">
+                                    <div class="section-number green">2</div>
+                                    NAV Date Consistency Check
+                                </h2>
+
+                                <xsl:for-each select="Funds/Fund">
+                                    <div class="fund-box">
+                                        <h3 class="fund-title">
+                                            Fund: <xsl:value-of select="Names/OfficialName"/>
+                                        </h3>
+
+                                        <div class="nav-display">
+                                            <div class="nav-item">
+                                                <div class="nav-label">Total NAV Date</div>
+                                                <div class="nav-value">
+                                                    <xsl:value-of select="FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Date"/>
+                                                </div>
+                                            </div>
+                                            <xsl:for-each select="FundDynamicData/Portfolios/Portfolio">
+                                                <div class="nav-item">
+                                                    <div class="nav-label">Portfolio NAV Date</div>
+                                                    <div class="nav-value">
+                                                        <xsl:value-of select="NavDate"/>
+                                                    </div>
+                                                </div>
+                                            </xsl:for-each>
+                                        </div>
+                                    </div>
+                                </xsl:for-each>
+                            </div>
+
+                            <!-- Currency Consistency Check -->
+                            <div class="validation-section">
+                                <h2 class="section-title">
+                                    <div class="section-number blue">3</div>
+                                    Currency Consistency Check
+                                </h2>
+
+                                <xsl:for-each select="Funds/Fund">
+                                    <div class="fund-box">
+                                        <h3 class="fund-title">
+                                            Fund: <xsl:value-of select="Names/OfficialName"/>
+                                            <span style="margin-left: 0.5rem; color: #6B7280;">
+                                                (Currency: <xsl:value-of select="Currency"/>)
+                                            </span>
+                                        </h3>
+
+                                        <div class="position-list">
+                                            <xsl:for-each
+                                                    select="FundDynamicData/Portfolios/Portfolio/Positions/Position[position() &lt;= 10]">
+                                                <div class="position-item">
+                                                    <div class="position-info">
+                                                        <div class="position-id">
+                                                            Position: <xsl:value-of select="UniqueID"/>
+                                                        </div>
+                                                        <div class="position-metrics">
+                                                            Currency: <xsl:value-of select="Currency"/>
+                                                        </div>
+                                                    </div>
+                                                    <div>
                                                         <xsl:choose>
-                                                            <xsl:when
-                                                                    test="$totalPercentage &gt; 99.5 and $totalPercentage &lt; 100.5">
-                                                                <div class="flex items-center text-green-700 bg-green-100 px-3 py-2 rounded">
-                                                                    <span class="text-lg mr-2">✓</span>
-                                                                    <span class="font-medium">Portfolio sum is within
-                                                                        acceptable range (99.5% - 100.5%)
-                                                                    </span>
-                                                                </div>
+                                                            <xsl:when test="Currency = ../../../../../../Currency">
+                                                                <span class="status-badge status-match">
+                                                                    ✓ Match
+                                                                </span>
                                                             </xsl:when>
                                                             <xsl:otherwise>
-                                                                <div class="flex items-center text-red-700 bg-red-100 px-3 py-2 rounded">
-                                                                    <span class="text-lg mr-2">⚠</span>
-                                                                    <span class="font-medium">Portfolio sum is outside
-                                                                        acceptable range (99.5% - 100.5%)
-                                                                    </span>
-                                                                </div>
+                                                                <span class="status-badge status-fx">
+                                                                    FX
+                                                                </span>
                                                             </xsl:otherwise>
                                                         </xsl:choose>
                                                     </div>
                                                 </div>
                                             </xsl:for-each>
                                         </div>
-                                    </xsl:for-each>
-                                </div>
+                                    </div>
+                                </xsl:for-each>
+                            </div>
 
-                                <!-- NAV Consistency Check -->
-                                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                                    <h2 class="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-                                        <div class="w-10 h-10 bg-blue-500 text-white rounded-xl flex items-center justify-center text-lg font-bold mr-4">
-                                            2
-                                        </div>
-                                        NAV Date Consistency Check
-                                    </h2>
+                            <!-- Position Value Consistency Check -->
+                            <div class="validation-section">
+                                <h2 class="section-title">
+                                    <div class="section-number red">4</div>
+                                    Position Value vs. Percentage Check
+                                </h2>
 
-                                    <xsl:for-each select="Funds/Fund">
-                                        <div class="mb-4 p-4 border border-gray-200 rounded-lg">
-                                            <h3 class="text-lg font-semibold text-gray-800 mb-3">
-                                                Fund:
-                                                <xsl:value-of select="Names/OfficialName"/>
-                                            </h3>
+                                <xsl:for-each select="Funds/Fund">
+                                    <xsl:variable name="totalNav"
+                                                  select="FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount"/>
 
-                                            <xsl:variable name="fundNavDate"
-                                                          select="FundDynamicData/TotalAssetValues/TotalAssetValue/NavDate"/>
-                                            <xsl:variable name="portfolioNavDate"
-                                                          select="FundDynamicData/Portfolios/Portfolio/NavDate"/>
+                                    <div class="fund-box">
+                                        <h3 class="fund-title">
+                                            Fund: <xsl:value-of select="Names/OfficialName"/>
+                                            <div class="fund-nav-info">
+                                                Total NAV: 
+                                                <xsl:value-of select="format-number($totalNav, '#,##0.00')"/>
+                                                <xsl:text> </xsl:text>
+                                                <xsl:value-of select="FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount/@ccy"/>
+                                            </div>
+                                        </h3>
 
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div class="bg-blue-50 p-3 rounded">
-                                                    <div class="text-sm text-blue-600 font-medium">Fund NAV Date</div>
-                                                    <div class="text-lg font-semibold text-blue-800">
-                                                        <xsl:value-of select="$fundNavDate"/>
+                                        <div class="position-list">
+                                            <xsl:for-each
+                                                    select="FundDynamicData/Portfolios/Portfolio/Positions/Position[position() &lt;= 5]">
+                                                <xsl:variable name="positionValue" select="TotalValue/Amount"/>
+                                                <xsl:variable name="positionPercentage" select="TotalPercentage"/>
+                                                <xsl:variable name="calculatedPercentage"
+                                                              select="($positionValue div $totalNav) * 100"/>
+                                                <xsl:variable name="percentageDiff"
+                                                              select="$positionPercentage - $calculatedPercentage"/>
+
+                                                <div class="position-item">
+                                                    <div class="position-info">
+                                                        <div class="position-id">
+                                                            Position: <xsl:value-of select="UniqueID"/>
+                                                        </div>
+                                                        <div class="position-metrics">
+                                                            Value: <xsl:value-of select="format-number($positionValue, '#,##0.00')"/>
+                                                            | Stated: <xsl:value-of select="format-number($positionPercentage, '0.00')"/>%
+                                                            | Calculated: <xsl:value-of select="format-number($calculatedPercentage, '0.00')"/>%
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <xsl:choose>
+                                                            <xsl:when test="$percentageDiff &gt;= -0.1 and $percentageDiff &lt;= 0.1">
+                                                                <span class="status-badge status-consistent">
+                                                                    ✓ Consistent
+                                                                </span>
+                                                            </xsl:when>
+                                                            <xsl:otherwise>
+                                                                <span class="status-badge status-inconsistent">
+                                                                    ⚠ Diff: <xsl:value-of select="format-number($percentageDiff, '0.00')"/>%
+                                                                </span>
+                                                            </xsl:otherwise>
+                                                        </xsl:choose>
                                                     </div>
                                                 </div>
-                                                <div class="bg-purple-50 p-3 rounded">
-                                                    <div class="text-sm text-purple-600 font-medium">Portfolio Date
-                                                    </div>
-                                                    <div class="text-lg font-semibold text-purple-800">
-                                                        <xsl:value-of select="$portfolioNavDate"/>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="mt-3">
-                                                <xsl:choose>
-                                                    <xsl:when test="$fundNavDate = $portfolioNavDate">
-                                                        <div class="flex items-center text-green-700 bg-green-100 px-3 py-2 rounded">
-                                                            <span class="text-lg mr-2">✓</span>
-                                                            <span class="font-medium">NAV dates are consistent</span>
-                                                        </div>
-                                                    </xsl:when>
-                                                    <xsl:otherwise>
-                                                        <div class="flex items-center text-red-700 bg-red-100 px-3 py-2 rounded">
-                                                            <span class="text-lg mr-2">⚠</span>
-                                                            <span class="font-medium">NAV dates are inconsistent</span>
-                                                        </div>
-                                                    </xsl:otherwise>
-                                                </xsl:choose>
-                                            </div>
+                                            </xsl:for-each>
                                         </div>
-                                    </xsl:for-each>
-                                </div>
-
-                                <!-- Currency Consistency Check -->
-                                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                                    <h2 class="text-2xl font-semibent text-gray-900 mb-6 flex items-center">
-                                        <div class="w-10 h-10 bg-green-500 text-white rounded-xl flex items-center justify-center text-lg font-bold mr-4">
-                                            3
-                                        </div>
-                                        Currency Consistency Check
-                                    </h2>
-
-                                    <xsl:for-each select="Funds/Fund">
-                                        <div class="mb-6 p-4 border border-gray-200 rounded-lg">
-                                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                                                Fund:
-                                                <xsl:value-of select="Names/OfficialName"/>
-                                                <span class="text-sm text-gray-600 ml-2">(Base: <xsl:value-of
-                                                        select="Currency"/>)
-                                                </span>
-                                            </h3>
-
-                                            <div class="space-y-2">
-                                                <xsl:for-each
-                                                        select="FundDynamicData/Portfolios/Portfolio/Positions/Position[position() &lt;= 10]">
-                                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded border">
-                                                        <div class="flex items-center">
-                                                            <span class="text-sm font-medium text-gray-700">Position:
-                                                            </span>
-                                                            <code class="text-xs bg-gray-200 px-2 py-1 rounded ml-2">
-                                                                <xsl:value-of select="UniqueID"/>
-                                                            </code>
-                                                        </div>
-                                                        <div class="flex items-center space-x-2">
-                                                            <span class="text-sm text-gray-600">Currency:</span>
-                                                            <span class="font-semibold">
-                                                                <xsl:value-of select="Currency"/>
-                                                            </span>
-                                                            <xsl:choose>
-                                                                <xsl:when test="Currency = ../../../../../../Currency">
-                                                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
-                                                                        ✓ Match
-                                                                    </span>
-                                                                </xsl:when>
-                                                                <xsl:otherwise>
-                                                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
-                                                                        FX
-                                                                    </span>
-                                                                </xsl:otherwise>
-                                                            </xsl:choose>
-                                                        </div>
-                                                    </div>
-                                                </xsl:for-each>
-                                            </div>
-                                        </div>
-                                    </xsl:for-each>
-                                </div>
-
-                                <!-- Position Value Consistency Check -->
-                                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                                    <h2 class="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-                                        <div class="w-10 h-10 bg-red-500 text-white rounded-xl flex items-center justify-center text-lg font-bold mr-4">
-                                            4
-                                        </div>
-                                        Position Value vs. Percentage Check
-                                    </h2>
-
-                                    <xsl:for-each select="Funds/Fund">
-                                        <xsl:variable name="totalNav"
-                                                      select="FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount"/>
-
-                                        <div class="mb-6 p-4 border border-gray-200 rounded-lg">
-                                            <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                                                Fund:
-                                                <xsl:value-of select="Names/OfficialName"/>
-                                                <div class="text-sm text-gray-600 mt-1">
-                                                    Total NAV:
-                                                    <xsl:value-of select="format-number($totalNav, '#,##0.00')"/>
-                                                    <xsl:value-of
-                                                            select="FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount/@ccy"/>
-                                                </div>
-                                            </h3>
-
-                                            <div class="space-y-2">
-                                                <xsl:for-each
-                                                        select="FundDynamicData/Portfolios/Portfolio/Positions/Position[position() &lt;= 5]">
-                                                    <xsl:variable name="positionValue" select="TotalValue/Amount"/>
-                                                    <xsl:variable name="positionPercentage" select="TotalPercentage"/>
-                                                    <xsl:variable name="calculatedPercentage"
-                                                                  select="($positionValue div $totalNav) * 100"/>
-                                                    <xsl:variable name="percentageDiff"
-                                                                  select="$positionPercentage - $calculatedPercentage"/>
-
-                                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded border">
-                                                        <div>
-                                                            <div class="text-sm font-medium text-gray-700">
-                                                                Position:
-                                                                <xsl:value-of select="UniqueID"/>
-                                                            </div>
-                                                            <div class="text-xs text-gray-500 mt-1">
-                                                                Value:
-                                                                <xsl:value-of
-                                                                        select="format-number($positionValue, '#,##0.00')"/>
-                                                                |
-                                                                Stated: <xsl:value-of
-                                                                    select="format-number($positionPercentage, '0.00')"/>%
-                                                                |
-                                                                Calculated: <xsl:value-of
-                                                                    select="format-number($calculatedPercentage, '0.00')"/>%
-                                                            </div>
-                                                        </div>
-                                                        <div class="text-right">
-                                                            <xsl:choose>
-                                                                <xsl:when
-                                                                        test="$percentageDiff &gt;= -0.1 and $percentageDiff &lt;= 0.1">
-                                                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-medium">
-                                                                        ✓ Consistent
-                                                                    </span>
-                                                                </xsl:when>
-                                                                <xsl:otherwise>
-                                                                    <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded font-medium">
-                                                                        ⚠ Diff: <xsl:value-of
-                                                                            select="format-number($percentageDiff, '0.00')"/>%
-                                                                    </span>
-                                                                </xsl:otherwise>
-                                                            </xsl:choose>
-                                                        </div>
-                                                    </div>
-                                                </xsl:for-each>
-                                            </div>
-                                        </div>
-                                    </xsl:for-each>
-                                </div>
+                                    </div>
+                                </xsl:for-each>
                             </div>
                         </div>
 
-                        <div class="bg-gray-100 p-6">
-                            <p class="text-sm text-gray-600 text-center">
-                                Generated with Tailwind CSS v4 • Business Rules Validation Report
-                            </p>
+                        <div class="footer">
+                            <p>Generated with embedded CSS • Business Rules Validation Report</p>
                         </div>
                     </div>
                 </div>

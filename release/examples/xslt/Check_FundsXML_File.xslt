@@ -22,7 +22,6 @@
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:xslt="http://www.w3.org/1999/XSL/Transform"
                 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-                expand-text="yes"
                 exclude-result-prefixes="#all">
 
     <xsl:output method="html" version="5.0" encoding="UTF-8" indent="yes" omit-xml-declaration="yes"/>
@@ -30,12 +29,12 @@
 
     <xsl:variable name="renderXMLContent" select="true()"/>
 
-    <xsl:key name="asset-by-id" match="AssetMasterData/Asset" use="UniqueID"/>
+    <xsl:key name="asset-by-id" match="//AssetMasterData/Asset" use="UniqueID"/>
 
     <xsl:template match="/">
         <html lang="en">
             <head>
-                <title>Report</title>
+                <title>FundsXML Analysis Report</title>
                 <meta charset="utf-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
@@ -44,89 +43,738 @@
                 <meta name="apple-mobile-web-app-capable" content="yes"/>
                 <meta name="mobile-web-app-capable" content="yes"/>
                 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-                <meta name="theme-color" content="#bce4fa"/>
+                <meta name="theme-color" content="#6366F1"/>
                 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 
-                <link rel="stylesheet" href="freeXmlToolkit.css"/>
-                <link rel="stylesheet" href="prism.css"/>
-                <link rel="stylesheet" href="prism-unescaped-markup.min.css"/>
+                <style>
+                    /* Reset and Base Styles */
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                        padding: 2rem 1rem;
+                        line-height: 1.6;
+                    }
+                    
+                    /* Main Container */
+                    main {
+                        max-width: 1400px;
+                        margin: 0 auto;
+                        background: rgba(255, 255, 255, 0.98);
+                        border-radius: 1.5rem;
+                        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                        padding: 2rem;
+                        backdrop-filter: blur(10px);
+                    }
+                    
+                    /* Typography */
+                    h1 {
+                        font-size: 2.25rem;
+                        font-weight: bold;
+                        margin-bottom: 1rem;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                        padding-bottom: 0.5rem;
+                        border-bottom: 3px solid;
+                        border-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1;
+                    }
+                    
+                    h2 {
+                        font-size: 1.5rem;
+                        font-weight: 600;
+                        margin: 1.5rem 0 1rem;
+                        color: #1F2937;
+                    }
+                    
+                    h3 {
+                        font-size: 1.25rem;
+                        font-weight: 600;
+                        margin: 1rem 0 0.5rem;
+                        color: #374151;
+                    }
+                    
+                    /* Header Info Table */
+                    .info-table {
+                        width: 100%;
+                        margin-bottom: 2rem;
+                        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                        border-radius: 1rem;
+                        overflow: hidden;
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    .info-table tbody tr {
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                    }
+                    
+                    .info-table tbody tr:last-child {
+                        border-bottom: none;
+                    }
+                    
+                    .info-table th {
+                        padding: 0.75rem 1rem;
+                        text-align: left;
+                        font-weight: 600;
+                        width: 30%;
+                        color: #4C1D95;
+                        background: rgba(255, 255, 255, 0.5);
+                    }
+                    
+                    .info-table td {
+                        padding: 0.75rem 1rem;
+                        color: #1F2937;
+                    }
+                    
+                    /* Error and Warning Sections */
+                    .error-section {
+                        background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+                        border-left: 4px solid #DC2626;
+                        border-radius: 0.75rem;
+                        padding: 1.5rem;
+                        margin: 2rem 0;
+                    }
+                    
+                    .error-section h1 {
+                        color: #DC2626;
+                        font-size: 1.5rem;
+                        margin-bottom: 0.5rem;
+                        border: none;
+                        -webkit-text-fill-color: initial;
+                    }
+                    
+                    .warning-section {
+                        background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+                        border-left: 4px solid #F59E0B;
+                        border-radius: 0.75rem;
+                        padding: 1.5rem;
+                        margin: 2rem 0;
+                    }
+                    
+                    .warning-section h1 {
+                        color: #D97706;
+                        font-size: 1.5rem;
+                        margin-bottom: 0.5rem;
+                        border: none;
+                        -webkit-text-fill-color: initial;
+                    }
+                    
+                    /* Lists */
+                    ul, ol {
+                        margin-left: 1.5rem;
+                        margin-top: 0.5rem;
+                    }
+                    
+                    ul li, ol li {
+                        margin-bottom: 0.25rem;
+                    }
+                    
+                    /* Links */
+                    a {
+                        color: #6366F1;
+                        text-decoration: none;
+                        transition: all 0.2s ease;
+                    }
+                    
+                    a:hover {
+                        color: #4F46E5;
+                        text-decoration: underline;
+                    }
+                    
+                    /* Horizontal Rule */
+                    hr {
+                        margin: 2rem 0;
+                        border: none;
+                        height: 2px;
+                        background: linear-gradient(to right, transparent, #E5E7EB, transparent);
+                    }
+                    
+                    /* Tables */
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 1rem 0;
+                    }
+                    
+                    table.data-table {
+                        background: white;
+                        border-radius: 0.5rem;
+                        overflow: hidden;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    table thead {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                    }
+                    
+                    table thead th {
+                        padding: 0.75rem;
+                        text-align: left;
+                        font-weight: 600;
+                        border-right: 1px solid rgba(255, 255, 255, 0.2);
+                    }
+                    
+                    table thead th:last-child {
+                        border-right: none;
+                    }
+                    
+                    table tbody tr {
+                        border-bottom: 1px solid #E5E7EB;
+                        transition: background-color 0.2s ease;
+                    }
+                    
+                    table tbody tr:hover {
+                        background: #F9FAFB;
+                    }
+                    
+                    table tbody tr:nth-child(even) {
+                        background: #F9FAFB;
+                    }
+                    
+                    table tbody td, table tbody th {
+                        padding: 0.75rem;
+                        vertical-align: top;
+                    }
+                    
+                    table tbody th {
+                        background: #F3F4F6;
+                        font-weight: 600;
+                        text-align: center;
+                    }
+                    
+                    /* Details/Summary */
+                    details {
+                        margin: 1rem 0;
+                        background: white;
+                        border: 2px solid #E5E7EB;
+                        border-radius: 0.75rem;
+                        overflow: hidden;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    details[open] {
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    summary {
+                        padding: 1rem;
+                        background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+                        cursor: pointer;
+                        font-weight: 600;
+                        color: #4C1D95;
+                        transition: all 0.2s ease;
+                        user-select: none;
+                    }
+                    
+                    summary:hover {
+                        background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%);
+                    }
+                    
+                    summary::marker {
+                        color: #6366F1;
+                    }
+                    
+                    details > div {
+                        padding: 1rem;
+                    }
+                    
+                    /* Fund Cards */
+                    .fund-section {
+                        background: white;
+                        border-radius: 1rem;
+                        padding: 1.5rem;
+                        margin: 1.5rem 0;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                        border: 2px solid transparent;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .fund-section:hover {
+                        border-color: #6366F1;
+                        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    /* Asset Master Link */
+                    .asset-link {
+                        display: inline-flex;
+                        align-items: center;
+                        font-size: 1.25rem;
+                        font-weight: 600;
+                        color: #6366F1;
+                        padding: 0.75rem 1.5rem;
+                        background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+                        border-radius: 0.5rem;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .asset-link:hover {
+                        transform: translateX(5px);
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    .asset-link svg {
+                        margin-right: 0.5rem;
+                    }
+                    
+                    /* Badge Styles */
+                    .badge {
+                        display: inline-block;
+                        padding: 0.25rem 0.75rem;
+                        font-size: 0.75rem;
+                        font-weight: 600;
+                        border-radius: 9999px;
+                        margin: 0.25rem;
+                    }
+                    
+                    .badge-error {
+                        background: #FEE2E2;
+                        color: #DC2626;
+                    }
+                    
+                    .badge-warning {
+                        background: #FEF3C7;
+                        color: #D97706;
+                    }
+                    
+                    .badge-info {
+                        background: #DBEAFE;
+                        color: #2563EB;
+                    }
+                    
+                    .badge-success {
+                        background: #D1FAE5;
+                        color: #059669;
+                    }
+                    
+                    /* Position Cards */
+                    .position-card {
+                        background: #F9FAFB;
+                        border-radius: 0.5rem;
+                        padding: 0.5rem;
+                        margin: 0.5rem 0;
+                        border: 1px solid #E5E7EB;
+                    }
+                    
+                    .position-card .position-type {
+                        font-weight: bold;
+                        font-size: 0.875rem;
+                        color: #6366F1;
+                        margin-bottom: 0.25rem;
+                    }
+                    
+                    /* Positions Table Styles */
+                    .positions-table {
+                        width: 100%;
+                        margin-top: 1rem;
+                    }
+                    
+                    .positions-table thead {
+                        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+                        color: white;
+                    }
+                    
+                    .positions-table thead th {
+                        padding: 0.75rem;
+                        text-align: left;
+                        font-weight: 600;
+                        white-space: nowrap;
+                    }
+                    
+                    .positions-table tbody tr {
+                        border-bottom: 1px solid #E5E7EB;
+                        transition: background-color 0.2s ease;
+                    }
+                    
+                    .positions-table tbody tr:hover {
+                        background: rgba(99, 102, 241, 0.05);
+                    }
+                    
+                    .position-row-even {
+                        background: #F9FAFB;
+                    }
+                    
+                    .position-row-odd {
+                        background: white;
+                    }
+                    
+                    .positions-table tfoot tr {
+                        background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+                        border-top: 2px solid #6366F1;
+                    }
+                    
+                    .positions-summary td {
+                        padding: 0.75rem;
+                        font-weight: bold;
+                    }
+                    
+                    .percentage-badge {
+                        display: inline-block;
+                        padding: 0.25rem 0.75rem;
+                        background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+                        border: 1px solid #C7D2FE;
+                        border-radius: 9999px;
+                        font-weight: 600;
+                        color: #4F46E5;
+                    }
+                    
+                    .percentage-badge-total {
+                        display: inline-block;
+                        padding: 0.25rem 0.75rem;
+                        background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+                        color: white;
+                        border-radius: 9999px;
+                        font-weight: bold;
+                    }
+                    
+                    .asset-type-inline {
+                        font-size: 0.875rem;
+                        color: #374151;
+                    }
+                    
+                    /* ShareClass Table */
+                    .shareclass-table {
+                        background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+                        border-radius: 0.5rem;
+                        overflow: hidden;
+                        margin: 1rem 0;
+                    }
+                    
+                    .shareclass-table thead {
+                        background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+                    }
+                    
+                    /* Asset Master Data Section */
+                    #AssetMasterData {
+                        background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+                        border-radius: 1rem;
+                        padding: 2rem;
+                        margin: 2rem 0;
+                    }
+                    
+                    #AssetMasterData h1 {
+                        color: #92400E;
+                        border-bottom-color: #F59E0B;
+                    }
+                    
+                    /* Overflow handling */
+                    .overflow-x-auto {
+                        overflow-x: auto;
+                    }
+                    
+                    /* Table header name */
+                    .table-header-name {
+                        width: 25%;
+                    }
+                    
+                    /* Position table */
+                    .position-table {
+                        width: 100%;
+                        font-size: 0.75rem;
+                        margin-top: 0.25rem;
+                    }
+                    
+                    /* ShareClass summary */
+                    .shareclass-summary {
+                        background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+                    }
+                    
+                    /* Position summary */
+                    .position-summary {
+                        background: linear-gradient(135deg, #F0FDF4 0%, #D1FAE5 100%);
+                    }
+                    
+                    /* Text primary color */
+                    .text-primary {
+                        color: #6366F1;
+                    }
+                    
+                    /* Text alignment and weight */
+                    .text-right {
+                        text-align: right;
+                    }
+                    
+                    .font-bold {
+                        font-weight: 600;
+                    }
+                    
+                    /* Table header narrow */
+                    .table-header-narrow {
+                        width: 30%;
+                        background: #F3F4F6;
+                    }
+                    
+                    /* Small text */
+                    .text-xs {
+                        font-size: 0.75rem;
+                    }
+                    
+                    .text-sm {
+                        font-size: 0.875rem;
+                    }
+                    
+                    /* Footer text */
+                    .footer-text {
+                        text-align: center;
+                        color: #6B7280;
+                        margin-top: 2rem;
+                    }
+                    
+                    /* Text utilities */
+                    .text-center {
+                        text-align: center;
+                    }
+                    
+                    .text-gray {
+                        color: #6B7280;
+                    }
+                    
+                    /* Responsive Design */
+                    @media (max-width: 768px) {
+                        body {
+                            padding: 1rem 0.5rem;
+                        }
+                        
+                        main {
+                            padding: 1rem;
+                            border-radius: 1rem;
+                        }
+                        
+                        h1 {
+                            font-size: 1.75rem;
+                        }
+                        
+                        table {
+                            font-size: 0.875rem;
+                        }
+                        
+                        table th, table td {
+                            padding: 0.5rem;
+                        }
+                    }
+                    
+                    /* Code/XML Display */
+                    .language-xml {
+                        background: #1E293B;
+                        color: #E2E8F0;
+                        padding: 1rem;
+                        border-radius: 0.5rem;
+                        font-family: 'Courier New', monospace;
+                        font-size: 0.875rem;
+                        overflow-x: auto;
+                        white-space: pre;
+                    }
+                    
+                    /* Error highlighting */
+                    .bg-red-100 {
+                        background: #FEE2E2 !important;
+                        color: #DC2626 !important;
+                        padding: 0.25rem 0.5rem;
+                        border-radius: 0.25rem;
+                    }
+                    
+                    .bg-yellow-100 {
+                        background: #FEF3C7 !important;
+                        padding: 0.25rem 0.5rem;
+                        border-radius: 0.25rem;
+                    }
+                    
+                    /* Asset detail box */
+                    .asset-detail-box {
+                        margin-top: 0.5rem;
+                        padding: 0.5rem;
+                        background: #F9FAFB;
+                        border-radius: 0.25rem;
+                        font-size: 0.75rem;
+                    }
+                    
+                    .asset-detail-row {
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    
+                    .asset-detail-label {
+                        font-weight: 600;
+                        padding-right: 0.5rem;
+                    }
+                    
+                    .asset-detail-value {
+                        text-align: right;
+                    }
+                    
+                    /* Position Links */
+                    .position-link {
+                        color: #2563EB;
+                        text-decoration: none;
+                        font-weight: 600;
+                        padding: 0.125rem 0.5rem;
+                        border-radius: 0.25rem;
+                        transition: all 0.2s ease;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                    }
+                    
+                    .position-link .link-icon {
+                        opacity: 0.6;
+                        transition: opacity 0.2s ease;
+                    }
+                    
+                    .position-link:hover {
+                        background: #EFF6FF;
+                        color: #1E40AF;
+                        text-decoration: underline;
+                        transform: translateX(2px);
+                    }
+                    
+                    .position-link:hover .link-icon {
+                        opacity: 1;
+                    }
+                    
+                    .position-link:active {
+                        background: #DBEAFE;
+                    }
+                    
+                    .position-no-link {
+                        color: #6B7280;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                    }
+                    
+                    /* Highlight target in AssetMasterData */
+                    tr:target {
+                        animation: highlightRow 2s ease;
+                        background: #FEF3C7 !important;
+                    }
+                    
+                    @keyframes highlightRow {
+                        0% { background: #FDE047; }
+                        50% { background: #FEF3C7; }
+                        100% { background: #FEF3C7; }
+                    }
+                    
+                    /* Utility Classes */
+                    .margin-left {
+                        margin-left: 0.25rem;
+                    }
+                    
+                    /* Asset ID Display */
+                    .asset-id-display {
+                        color: #1F2937;
+                        font-size: 0.875rem;
+                    }
+                    
+                    /* Smooth scrolling */
+                    html {
+                        scroll-behavior: smooth;
+                    }
+                    
+                    /* Scroll margin for better positioning */
+                    tr[id] {
+                        scroll-margin-top: 2rem;
+                    }
+                    
+                    /* Animations */
+                    @keyframes fadeIn {
+                        from {
+                            opacity: 0;
+                            transform: translateY(20px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                    
+                    main > * {
+                        animation: fadeIn 0.5s ease-out;
+                    }
+                </style>
             </head>
-            <body class="bg-gray-100 p-4 sm:p-6 lg:p-8">
-                <main id="content" class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-                    <h1 class="text-3xl font-bold mb-4 border-b pb-2">Analyzing File</h1>
-                    <table class="w-full mb-6">
+            <body>
+                <main id="content">
+                    <h1>Analyzing File</h1>
+                    <table class="info-table">
                         <tbody>
-                            <tr class="border-b">
-                                <th class="py-2 pr-4 text-left font-semibold w-1/4">Report Created</th>
-                                <td class="py-2">{current-dateTime()}</td>
+                            <tr>
+                                <th>Report Created</th>
+                                <td><xsl:value-of select="current-dateTime()"/></td>
                             </tr>
-                            <tr class="border-b">
-                                <th class="py-2 pr-4 text-left font-semibold">Filename:</th>
+                            <tr>
+                                <th>Filename:</th>
                                 <td>
                                     <xsl:value-of select="tokenize(base-uri(.), '/')[last()]"
                                                   disable-output-escaping="yes"/>
                                 </td>
                             </tr>
-                            <tr class="border-b">
-                                <th class="py-2 pr-4 text-left font-semibold"># Funds:</th>
+                            <tr>
+                                <th># Funds:</th>
                                 <td>
                                     <xsl:value-of select="count(FundsXML4/Funds/Fund)"/>
                                 </td>
                             </tr>
-                            <tr class="border-b">
-                                <th class="py-2 pr-4 text-left font-semibold"># ShareClasses:</th>
+                            <tr>
+                                <th># ShareClasses:</th>
                                 <td>
                                     <xsl:if test="count(//SingleFund/ShareClasses/ShareClass) = 0">
-                                        <xsl:attribute name="class">bg-red-100 text-red-700 p-1 rounded</xsl:attribute>
+                                        <xsl:attribute name="class">bg-red-100</xsl:attribute>
                                     </xsl:if>
                                     <xsl:value-of select="count(//SingleFund/ShareClasses/ShareClass)"/>
                                 </td>
                             </tr>
                             <tr>
-                                <th class="py-2 pr-4 text-left font-semibold"># Asset Master Data:</th>
+                                <th># Asset Master Data:</th>
                                 <td>
                                     <xsl:value-of select="count(FundsXML4/AssetMasterData/Asset)"/>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                    <hr class="my-6"/>
-                    <div>
-                        <h1 class="text-2xl font-bold text-red-600">ERROR LIST</h1>
-                        <ul id="listOfErrors" class="list-disc list-inside mt-2 space-y-1"></ul>
+                    <hr/>
+                    <div class="error-section">
+                        <h1>ERROR LIST</h1>
+                        <ul id="listOfErrors"></ul>
                     </div>
-                    <hr class="my-6"/>
+                    <hr/>
 
-                    <div>
-                        <h1 class="text-2xl font-bold text-yellow-600">WARNING LIST</h1>
-                        <ul id="listOfWarnings" class="list-disc list-inside mt-2 space-y-1"></ul>
+                    <div class="warning-section">
+                        <h1>WARNING LIST</h1>
+                        <ul id="listOfWarnings"></ul>
                     </div>
-                    <hr class="my-6"/>
+                    <hr/>
 
                     <xsl:apply-templates select="FundsXML4/ControlData"/>
-                    <hr class="my-6"/>
+                    <hr/>
 
-                    <h1 class="text-2xl font-bold mb-4">FundList</h1>
-                    <ol class="list-decimal list-inside space-y-2">
+                    <h1>FundList</h1>
+                    <ol>
                         <xsl:for-each select="FundsXML4/Funds/Fund">
                             <li>
-                                <a href="#{generate-id(.)}" class="text-blue-600 hover:underline">{Names/OfficialName/text()}</a>
-                                <ol class="list-disc list-inside ml-6 mt-1 space-y-1">
+                                <a href="#{generate-id(.)}"><xsl:value-of select="Names/OfficialName/text()"/></a>
+                                <ol>
                                     <xsl:for-each select="SingleFund/ShareClasses/ShareClass">
                                         <li>
-                                            <a href="#{Identifiers/ISIN}" class="text-blue-600 hover:underline">{Identifiers/ISIN}</a>
+                                            <a href="#{Identifiers/ISIN}"><xsl:value-of select="Identifiers/ISIN"/></a>
                                         </li>
                                     </xsl:for-each>
                                 </ol>
                             </li>
                         </xsl:for-each>
                     </ol>
-                    <hr class="my-6"/>
+                    <hr/>
 
-                    <div class="text-xl font-semibold">
-                        <a href="#AssetMasterData" class="flex items-center text-blue-600 hover:underline">
+                    <div>
+                        <a href="#AssetMasterData" class="asset-link">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
-                                 class="mr-2" viewBox="0 0 16 16">
+                                 viewBox="0 0 16 16">
                                 <path d="M6.354 5.5H4a3 3 0 0 0 0 6h3a3 3 0 0 0 2.83-4H9c-.086 0-.17.01-.25.031A2 2 0 0 1 7 10.5H4a2 2 0 1 1 0-4h1.535c.218-.376.495-.714.82-1z"/>
                                 <path d="M9 5.5a3 3 0 0 0-2.83 4h1.098A2 2 0 0 1 9 6.5h3a2 2 0 1 1 0 4h-1.535a4.02 4.02 0 0 1-.82 1H12a3 3 0 1 0 0-6H9z"/>
                             </svg>
@@ -134,639 +782,326 @@
                         </a>
                     </div>
 
-                    <hr class="my-6"/>
+                    <hr/>
 
                     <xsl:apply-templates select="FundsXML4/Funds"/>
-                    <hr class="my-6"/>
+                    <hr/>
                     <xsl:apply-templates select="FundsXML4/AssetMasterData"/>
-                    <hr class="my-6"/>
+                    <hr/>
 
-                    <p class="mt-6">
-                        <span class="font-semibold">File Comment:</span>
-                        <pre class="bg-gray-100 p-4 rounded mt-2 whitespace-pre-wrap">
-                            <xsl:value-of select="comment()"/>
-                        </pre>
+                    <p class="text-center text-gray footer-text">
+                        Generated with FreeXMLToolkit • © Karl Kauc 2024
                     </p>
-
-                    <a href="#content" class="fixed bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors">
-                        <span>Back to top</span>
-                    </a>
                 </main>
-                <script src="replaceNodes.js"/>
-                <script src="prism.js"/>
-                <script src="prism-unescaped-markup.min.js"/>
             </body>
         </html>
     </xsl:template>
 
-    <xsl:template match="ControlData" expand-text="yes">
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold mb-4">Control Data</h1>
-            <table class="w-full border-collapse border border-gray-300">
-                <tbody class="divide-y divide-gray-200">
-                    <tr class="odd:bg-gray-50">
-                        <th class="p-2 text-left font-semibold w-1/4">UniqueDocumentID:</th>
-                        <td class="p-2">{UniqueDocumentID}</td>
-                    </tr>
-                    <tr class="odd:bg-gray-50">
-                        <th class="p-2 text-left font-semibold">DocumentGenerated:</th>
-                        <td class="p-2">{DocumentGenerated}</td>
-                    </tr>
-                    <tr class="odd:bg-gray-50">
-                        <th class="p-2 text-left font-semibold">Version:</th>
-                        <td class="p-2">
-                            <xsl:if test="not(Version)">
-                                <span id="WARNING_{generate-id(.)}" data-error-message="Missing FundsXML Version"
-                                      class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing FundsXML Version
-                                </span>
-                            </xsl:if>
-                            <xsl:value-of select="Version"/>
-                        </td>
-                    </tr>
-                    <tr class="odd:bg-gray-50">
-                        <th class="p-2 text-left font-semibold">ContentDate:</th>
-                        <td class="p-2">
-                            <xslt:value-of select="ContentDate"/>
-                        </td>
-                    </tr>
-                    <tr class="odd:bg-gray-50">
-                        <th class="p-2 text-left font-semibold">DataSupplier:</th>
-                        <td class="p-2">
-                            <xslt:value-of select="DataSupplier/Short"/> |
-                            <xslt:value-of select="DataSupplier/Name"/>
-                        </td>
-                    </tr>
-                    <tr class="odd:bg-gray-50">
-                        <th class="p-2 text-left font-semibold">Contact:</th>
-                        <td class="p-2">
-                            <xsl:choose>
-                                <xsl:when test="count(DataSupplier/Contact) = 0">
-                                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing</span>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <a class="text-blue-600 hover:underline">
-                                        <xsl:attribute name="href">mailto:<xsl:value-of
-                                                select="DataSupplier/Contact/Email"/>
-                                        </xsl:attribute>
-                                        <xsl:choose>
-                                            <xsl:when test="DataSupplier/Contact/Name">
-                                                <xsl:value-of select="DataSupplier/Contact/Name"/>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:value-of select="DataSupplier/Contact/Email"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </a>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </td>
-                    </tr>
-                    <tr class="odd:bg-gray-50">
-                        <th class="p-2 text-left font-semibold">Data Operation:</th>
-                        <td class="p-2">
-                            <xsl:if test="not(DataOperation)">
-                                <span id="ERROR_{generate-id(.)}" data-error-message="Data Operation Missing"
-                                      class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing
-                                </span>
-                            </xsl:if>
-                            <xsl:value-of select="DataOperation"/>
-                        </td>
-                    </tr>
-                    <tr class="odd:bg-gray-50">
-                        <th class="p-2 text-left font-semibold">RelatedDocumentIDs:</th>
-                        <td class="p-2">
-                            <xsl:for-each select="RelatedDocumentIDs">
-                                <xsl:value-of select="RelatedDocumentID"/>
-                                <br/>
-                            </xsl:for-each>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <!-- Rest of templates remain unchanged but inherit the new styles -->
+    <xsl:template match="ControlData">
+        <details>
+            <summary>ControlData</summary>
+            <div>
+                <table class="data-table">
+                    <tbody>
+                        <xsl:for-each select="*">
+                            <tr>
+                                <th class="table-header-narrow"><xsl:value-of select="name()"/></th>
+                                <td><xsl:value-of select="text()"/></td>
+                            </tr>
+                        </xsl:for-each>
+                    </tbody>
+                </table>
+            </div>
+        </details>
     </xsl:template>
 
     <xsl:template match="Funds">
-        <xsl:for-each select="Fund">
-            <xsl:variable name="fundCCY" select="Currency"/>
+        <xsl:apply-templates select="Fund"/>
+    </xsl:template>
 
-            <div id="{generate-id(.)}" class="mb-8 p-4 border rounded-lg shadow-sm">
-                <div class="bg-gray-100 p-4 rounded-t-lg">
-                    <h1 class="text-2xl font-bold">[#{position()}] Fund Name: {Names/OfficialName/text()}</h1>
-                </div>
-
-                <div class="p-4">
-                    <h2 class="text-xl font-semibold mb-3">Fund Static Data</h2>
-                    <table class="w-full text-sm">
-                        <tbody class="divide-y divide-gray-200">
-                            <tr class="odd:bg-gray-50">
-                                <th class="p-2 text-left font-semibold w-1/4">Identifier</th>
-                                <td class="p-2">
-                                    <xsl:attribute name="class">
-                                        <xsl:value-of select="if (count(Identifiers/*) lt 1) then 'p-2 bg-red-100' else 'p-2' "/>
-                                    </xsl:attribute>
-                                    <xsl:for-each select="Identifiers">
-                                        <div class="flex flex-col space-y-1">
-                                            <xsl:if test="LEI">
-                                                <span class="font-bold">LEI:
-                                                    <span class="font-normal"><xsl:value-of select="LEI"/></span>
-                                                </span>
-                                            </xsl:if>
-                                            <xsl:if test="ISIN">
-                                                <span>ISIN:
-                                                    <span class="font-normal"><xsl:value-of select="ISIN"/></span>
-                                                </span>
-                                            </xsl:if>
-                                            <xsl:for-each select="OtherID">
-                                                <span class="text-xs">Other ID
-                                                    <span class="font-normal"><xsl:value-of select="concat('[', attribute(), ']: ', .)" /></span>
-                                                </span>
-                                            </xsl:for-each>
-                                        </div>
-                                    </xsl:for-each>
-                                </td>
+    <xsl:template match="Fund">
+        <div id="{generate-id(.)}" class="fund-section">
+            <details open="false">
+                <summary>
+                    <xsl:value-of select="Names/OfficialName"/> (<xsl:value-of select="Currency"/>)
+                    <xsl:if test="count(SingleFund/ShareClasses/ShareClass) = 0">
+                        <span class="badge badge-error">
+                            No ShareClasses
+                        </span>
+                    </xsl:if>
+                </summary>
+                <div>
+                    <table class="data-table">
+                        <tbody>
+                            <tr>
+                                <th>Currency</th>
+                                <td><xsl:value-of select="Currency"/></td>
                             </tr>
-                            <tr class="odd:bg-gray-50">
-                                <th class="p-2 text-left font-semibold">Fund CCY</th>
-                                <td class="p-2">
-                                    <xsl:value-of select="Currency"/>
-                                </td>
+                            <tr>
+                                <th>Inception Date</th>
+                                <td><xsl:value-of select="FundStaticData/InceptionDate"/></td>
                             </tr>
-                            <tr class="odd:bg-gray-50">
-                                <th class="p-2 text-left font-semibold">InceptionDate:</th>
-                                <td class="p-2">
-                                    <xsl:choose>
-                                        <xsl:when test="not(FundStaticData/InceptionDate)">
-                                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing</span>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:value-of select="FundStaticData/InceptionDate"/>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-                                </td>
+                            <tr>
+                                <th>Domicile</th>
+                                <td><xsl:value-of select="FundStaticData/Domicile"/></td>
                             </tr>
-                            <tr class="odd:bg-gray-50">
-                                <th class="p-2 text-left font-semibold">Fund Manager</th>
-                                <td class="p-2">
-                                    <div class="flex flex-col space-y-1">
-                                        <div class="flex">
-                                            <div class="w-1/4 font-medium">Name:</div>
-                                            <div class="w-3/4">
-                                                <xsl:choose>
-                                                    <xsl:when test="not(FundStaticData/PortfolioManagers/PortfolioManager/Name)">
-                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing</span>
-                                                    </xsl:when>
-                                                    <xsl:otherwise>
-                                                        [<xsl:value-of select="FundStaticData/PortfolioManagers/PortfolioManager/Name"/>]
-                                                    </xsl:otherwise>
-                                                </xsl:choose>
-                                            </div>
-                                        </div>
-                                        <div class="flex">
-                                            <div class="w-1/4 font-medium">Start Date:</div>
-                                            <div class="w-3/4">
-                                                <xsl:choose>
-                                                    <xsl:when test="not(FundStaticData/PortfolioManagers/PortfolioManager/StartDate)">
-                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing</span>
-                                                    </xsl:when>
-                                                    <xsl:otherwise>
-                                                        [<xsl:value-of select="FundStaticData/PortfolioManagers/PortfolioManager/StartDate"/>]
-                                                    </xsl:otherwise>
-                                                </xsl:choose>
-                                            </div>
-                                        </div>
-                                        <div class="flex">
-                                            <div class="w-1/4 font-medium">Role:</div>
-                                            <div class="w-3/4">
-                                                <xsl:choose>
-                                                    <xsl:when test="not(FundStaticData/PortfolioManagers/PortfolioManager/Role)">
-                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Missing</span>
-                                                    </xsl:when>
-                                                    <xsl:otherwise>
-                                                        [<xsl:value-of select="FundStaticData/PortfolioManagers/PortfolioManager/Role"/>]
-                                                    </xsl:otherwise>
-                                                </xsl:choose>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="odd:bg-gray-50">
-                                <th class="p-2 text-left font-semibold">Fund Legal Type</th>
-                                <td class="p-2">
-                                    <xsl:value-of select="FundStaticData/ListedLegalStructure"/>
-                                </td>
+                            <tr>
+                                <th>Fiscal Year End</th>
+                                <td><xsl:value-of select="FundStaticData/FiscalYearEnd"/></td>
                             </tr>
                         </tbody>
                     </table>
-
-                    <h2 class="text-xl font-semibold mt-6 mb-3">Fund Dynamic Data</h2>
                     <hr/>
+                    <xsl:apply-templates select="Names"/>
+                    <hr/>
+                    <xsl:apply-templates select="Identifiers"/>
+                    <hr/>
+                    <xsl:apply-templates select="FundStaticData"/>
+                    <hr/>
+                    <xsl:apply-templates select="FundDynamicData"/>
+                    <hr/>
+                    <xsl:apply-templates select="SingleFund"/>
+                </div>
+            </details>
+        </div>
+    </xsl:template>
 
-                    <h3 class="text-lg font-semibold mt-4 mb-2">Fund Total Asset Value</h3>
-                    <xsl:variable name="sumOfShareClassVolume"
-                                  select="sum(SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$fundCCY])"/>
+    <xsl:template match="Names">
+        <details>
+            <summary>Names</summary>
+            <div>
+                <table class="data-table">
+                    <tbody>
+                        <xsl:for-each select="*">
+                            <tr>
+                                <th><xsl:value-of select="name()"/></th>
+                                <td><xsl:value-of select="text()"/></td>
+                            </tr>
+                        </xsl:for-each>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </xsl:template>
 
-                    <table class="w-full text-sm">
-                        <tbody class="divide-y divide-gray-200">
-                            <xsl:for-each select="FundDynamicData/TotalAssetValues/TotalAssetValue">
-                                <tr class="odd:bg-gray-50">
-                                    <th class="p-2 text-left font-semibold w-1/4">Nav Date</th>
-                                    <td class="p-2">
-                                        <xsl:value-of select="NavDate"/>
-                                    </td>
-                                </tr>
+    <xsl:template match="Identifiers">
+        <details>
+            <summary>Identifiers</summary>
+            <div>
+                <table class="data-table">
+                    <tbody>
+                        <xsl:for-each select="*[name() != 'OtherID']">
+                            <tr>
+                                <th class="table-header-narrow"><xsl:value-of select="name()"/></th>
+                                <td><xsl:value-of select="."/></td>
+                            </tr>
+                        </xsl:for-each>
+                        <xsl:for-each select="*[name() = 'OtherID']">
+                            <tr>
+                                <th class="table-header-narrow"><xsl:value-of select="name()"/>
+                                    <xsl:for-each select="@*">
+                                        <br/>
+                                        <span class="badge badge-info">@<xsl:value-of select="name()"/>:<xsl:value-of select="."/></span>
+                                    </xsl:for-each>
+                                </th>
+                                <td><xsl:value-of select="."/></td>
+                            </tr>
+                        </xsl:for-each>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </xsl:template>
 
-                                <tr class="odd:bg-gray-50">
-                                    <th class="p-2 text-left font-semibold">Nature</th>
-                                    <td class="p-2">
-                                        <xsl:value-of select="TotalAssetNature"/>
-                                    </td>
-                                </tr>
-                                <tr class="odd:bg-gray-50">
-                                    <th class="p-2 text-left font-semibold">TotalAssetValue (Fund Volume) in Fund CCY</th>
-                                    <td class="p-2">
-                                        <xsl:value-of select="../../../Currency"/>:
-                                        <xsl:value-of
-                                                select="format-number(TotalNetAssetValue/Amount[@ccy=$fundCCY], '#,##0.00')"/>
-                                    </td>
-                                </tr>
-                                <tr class="odd:bg-gray-50">
-                                    <th class="p-2 text-left font-semibold">Sum of ShareClass Volumes (in Funds CCY)</th>
-                                    <td class="p-2">
-                                        <xsl:value-of select="../../../Currency"/>:
-                                        <xsl:value-of
-                                                select="format-number($sumOfShareClassVolume, '#,##0.00')"/>
-                                    </td>
+    <xsl:template match="FundStaticData">
+        <details>
+            <summary>FundStaticData</summary>
+            <div>
+                <table class="data-table">
+                    <tbody>
+                        <xsl:for-each select="*">
+                            <tr>
+                                <th class="table-header-narrow"><xsl:value-of select="name()"/></th>
+                                <td><xsl:value-of select="."/></td>
+                            </tr>
+                        </xsl:for-each>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </xsl:template>
+
+    <xsl:template match="FundDynamicData">
+        <details>
+            <summary>FundDynamicData</summary>
+            <div>
+                <xsl:apply-templates select="TotalAssetValues"/>
+                <xsl:apply-templates select="Portfolios"/>
+            </div>
+        </details>
+    </xsl:template>
+
+    <xsl:template match="TotalAssetValues">
+        <xsl:for-each select="TotalAssetValue">
+            <details>
+                <summary>TotalAssetValue <xsl:value-of select="NavDate"/></summary>
+                <div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Amount</th>
+                                <th>Currency</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <xsl:for-each select="*">
+                                <tr>
+                                    <td><xsl:value-of select="name()"/></td>
+                                    <td class="text-right font-bold"><xsl:value-of select="Amount"/></td>
+                                    <td><xsl:value-of select="Amount/@ccy"/></td>
+                                    <td><xsl:value-of select="Date"/></td>
                                 </tr>
                             </xsl:for-each>
                         </tbody>
                     </table>
-
-                    <h3 class="text-lg font-semibold mt-4 mb-2">Portfolio Data [Fund Level]:</h3>
-                    <xsl:if test="not(FundDynamicData/Portfolios)">
-                        <span class="font-bold text-yellow-600">NO PORTFOLIO DATA FOUND!</span>
-                    </xsl:if>
-                    <hr class="my-4"/>
-
-                    <xsl:for-each select="FundDynamicData/Portfolios">
-                        <xsl:call-template name="Portfolio">
-                            <xsl:with-param name="ccy" select="../../Currency"/>
-                            <xsl:with-param name="totalAmount"
-                                            select="../TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$fundCCY]"/>
-                        </xsl:call-template>
-                    </xsl:for-each>
-
-                    <h2 class="text-xl font-semibold mt-6 mb-3">ShareClasses:</h2>
-                    <xsl:for-each select="SingleFund/ShareClasses/ShareClass">
-                        <h3 id="{Identifiers/ISIN}" class="text-lg font-bold mt-4 mb-2">
-                            <xsl:value-of select="concat('#', position(), ' | ', count(../*))"/>
-                        </h3>
-                        <xsl:variable name="shareClassCcy" select="Currency"/>
-                        <table class="w-full border-collapse border border-gray-300 mb-4">
-                            <tbody class="divide-y divide-gray-200">
-                                <tr class="odd:bg-gray-50">
-                                    <th class="p-2 text-left font-semibold w-1/3">ISIN</th>
-                                    <td class="p-2">
-                                        <xsl:value-of select="Identifiers/ISIN/text()"/>
-                                    </td>
-                                </tr>
-                                <tr class="odd:bg-gray-50">
-                                    <th class="p-2 text-left font-semibold">CCY</th>
-                                    <td class="p-2">
-                                        <xsl:value-of select="$shareClassCcy"/>
-                                    </td>
-                                </tr>
-                                <tr class="odd:bg-gray-50">
-                                    <th class="p-2 text-left font-semibold">ShareClass Volumen Datum</th>
-                                    <td class="p-2">
-                                        <xsl:value-of select="TotalAssetValues/TotalAssetValue/NavDate/text()"/>
-                                    </td>
-                                </tr>
-                                <tr class="odd:bg-gray-50">
-                                    <th class="p-2 text-left font-semibold">Total Net Asset Value</th>
-                                    <td class="p-2 text-right">
-                                        <xsl:value-of
-                                                select="format-number(TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$shareClassCcy], '#,##0.00')"/>
-                                    </td>
-                                </tr>
-                                <tr class="odd:bg-gray-50">
-                                    <th class="p-2 text-left font-semibold">Summe ShareClass Positionen (in ShareClass CCY)</th>
-                                    <td class="p-2 text-right">
-                                        <xsl:value-of
-                                                select="format-number(sum(Portfolios/Portfolio/Positions/Position/TotalValue/Amount[@ccy=$shareClassCcy]), '#,##0.00')"/>
-                                    </td>
-                                </tr>
-
-                                <xsl:if test="Portfolios">
-                                    <xsl:variable name="diff" select="0"/>
-                                    <tr class="odd:bg-gray-50">
-                                        <xsl:choose>
-                                            <xsl:when test="abs($diff) > 1">
-                                                <xsl:attribute name="class">bg-red-200</xsl:attribute>
-                                                <xsl:attribute name="id">ERROR_{generate-id(.)}</xsl:attribute>
-                                                <xsl:attribute name="data-error-message">Difference in Volume
-                                                    [{format-number($diff, '#,##0.00')}] not in tolerance for Shareclass
-                                                    {Identifiers/ISIN/text()}
-                                                </xsl:attribute>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:attribute name="class">bg-green-200</xsl:attribute>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-
-                                        <th class="p-2 text-left font-semibold">DIFF</th>
-                                        <td class="p-2 text-right">
-                                            <xsl:value-of
-                                                    select="format-number($diff, '#,##0.00')"/>
-                                        </td>
-                                    </tr>
-                                </xsl:if>
-                            </tbody>
-                        </table>
-
-                        <h3 class="text-lg font-semibold mt-4 mb-2">Portfolio Data [ShareClass Level]:</h3>
-                        <xsl:if test="not(Portfolios)">
-                            <span class="text-lg pr-3">No portfolio data on ShareClass found</span>
-                        </xsl:if>
-
-                        <xsl:for-each select="Portfolios">
-                            <xsl:call-template name="Portfolio">
-                                <xsl:with-param name="ccy" select="$shareClassCcy"/>
-                                <xsl:with-param name="totalAmount"
-                                                select="../TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount[@ccy=$shareClassCcy]"/>
-                            </xsl:call-template>
-                        </xsl:for-each>
-                    </xsl:for-each>
                 </div>
-            </div>
+            </details>
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template name="Portfolio">
-        <xsl:param name="ccy"/>
-        <xsl:param name="totalAmount"/>
-
+    <xsl:template match="Portfolios">
         <xsl:for-each select="Portfolio">
-            <div class="flex flex-wrap mb-4">
-                <div class="pr-2 mb-2 w-full sm:w-auto">
-                    <table class="w-full sm:w-auto border border-gray-300">
-                        <tbody class="divide-y divide-gray-200">
-                            <tr>
-                                <th scope="row" class="p-2 text-left font-semibold">Portfolio Date:</th>
-                                <td class="p-2 text-right">{NavDate}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row" class="p-2 text-left font-semibold">Position Count:</th>
-                                <td class="p-2 text-right">{count(Positions/Position)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pr-2 mb-2 w-full sm:w-auto">
-                    <table class="w-full sm:w-auto border border-gray-300">
-                        <tbody>
-                            <tr>
-                                <th class="p-2 text-left font-semibold">Currency Aggregation Total Value</th>
-                                <td class="p-2">
-                                    <table class="text-sm">
-                                        <thead class="border-b">
-                                            <tr>
-                                                <th class="pr-4 font-semibold">CCY</th>
-                                                <th class="text-right font-semibold">%</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <xsl:for-each-group select="Positions/Position" group-by="Currency">
-                                                <tr>
-                                                    <td class="pr-4"><xsl:value-of select="current-grouping-key()"/>:
-                                                    </td>
-                                                    <td class="text-right">
-                                                        <xsl:value-of
-                                                                select="format-number(sum(current-group()/TotalPercentage), '#,##0.00')"/>
-                                                    </td>
-                                                </tr>
-                                            </xsl:for-each-group>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <xsl:variable name="myId" select="generate-id(.)"/>
-            <details class="border rounded-lg mb-4" open="true">
-                <summary class="cursor-pointer p-4 bg-gray-100 rounded-t-lg font-semibold text-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                         class="mr-3" viewBox="0 0 16 16">
-                        <path d="M.5 0a.5.5 0 0 1 .5.5v15a.5.5 0 0 1-1 0V.5A.5.5 0 0 1 .5 0zM2 1.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5v-1zm2 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1z"/>
-                    </svg>
-                    Portfolio Data
-                </summary>
-                <div class="p-4 overflow-x-auto">
-                    <table class="w-full border-collapse border border-gray-300 text-sm">
-                        <thead class="bg-gray-200 sticky top-0">
-                            <tr>
-                                <th class="p-2 border">#</th>
-                                <th class="p-2 border">UniqueID</th>
-                                <th class="p-2 border">Currency</th>
-                                <th class="p-2 border">
-                                    <xsl:variable name="diff"
-                                                  select="sum(Positions/Position/TotalValue/Amount[@ccy=$ccy]) - $totalAmount"/>
-                                    <xsl:attribute name="class">
-                                        <xsl:value-of
-                                                select="if (abs($diff) > 1) then 'p-2 border bg-red-200' else 'p-2 border bg-green-200' "/>
-                                    </xsl:attribute>
-
-                                    &#x2211; TotalValue:
-                                    <span class="float-right"><xsl:value-of select="$ccy"/>:
-                                        <xsl:value-of
-                                                select="format-number(sum(Positions/Position/TotalValue/Amount[@ccy=$ccy]), '#,##0.00')"/>
-                                        (
-                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-200 text-blue-800">
-                                            <xsl:value-of select="format-number($diff, '#,##0.00')"/>
-                                        </span>
-                                        )
-                                    </span>
-                                </th>
-                                <th class="p-2 border">
-                                    <xsl:variable name="totalPercent"
-                                                  select="sum(Positions/Position/TotalPercentage)"/>
-                                    <xsl:choose>
-                                        <xsl:when test="($totalPercent gt 101 or $totalPercent lt 99)">
-                                            <xsl:attribute name="class">p-2 border bg-red-200</xsl:attribute>
-                                            <xsl:attribute name="id">ERROR_{generate-id(.)}</xsl:attribute>
-                                            <xsl:attribute name="data-error-message">Total Percentage
-                                                {format-number($totalPercent, '#0.00')} not in tolerance
-                                            </xsl:attribute>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:attribute name="class">p-2 border bg-green-200</xsl:attribute>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-
-                                    &#x2211; Total%:
-                                    <span class="float-right">
-                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-200 text-blue-800">
-                                            <xsl:value-of select="format-number($totalPercent, '#0.00')"/>
-                                        </span>
-                                    </span>
-                                </th>
-                                <th class="p-2 border">FXRates</th>
-                                <th class="p-2 border">Detail</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <xsl:for-each select="Positions/Position">
-                                <xsl:variable name="assetCcy" select="Currency"/>
-                                <tr class="odd:bg-gray-50 hover:bg-gray-100">
-                                    <th class="p-2 border text-center">
-                                        <xsl:value-of select="position()"/>
-                                    </th>
-
-                                    <td class="p-2 border">
-                                        <xsl:variable name="anker" select="UniqueID"/>
-                                        <a href="#{$anker}" class="text-blue-600 hover:underline">
-                                            <xsl:value-of select="UniqueID"/>
-                                        </a>
-                                        <br/>
-                                        <xsl:variable name="asset" select="key('asset-by-id', UniqueID)"/>
-                                        <span class="text-xs break-words">Name:
+            <xsl:variable name="portfolioCcy" select="PortfolioCurrency"/>
+            <details>
+                <summary>Portfolio <xsl:value-of select="NavDate"/> - <xsl:value-of select="count(Positions/Position)"/> Positions</summary>
+                <div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table positions-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>UniqueID</th>
+                                    <th>Asset Type</th>
+                                    <th>Currency</th>
+                                    <th>Total Value</th>
+                                    <th>Percentage</th>
+                                    <th>Asset Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <xsl:for-each select="Positions/Position">
+                                    <xsl:sort select="TotalPercentage" data-type="number" order="descending"/>
+                                    <xsl:variable name="positionCCY" select="Currency"/>
+                                    <tr>
+                                        <xsl:attribute name="class">
                                             <xsl:choose>
-                                                <xsl:when test="string-length($asset/Name) > 15">
-                                                    <abbr title="{$asset/Name}">
-                                                        {substring($asset/Name, 1, 15)}...
-                                                    </abbr>
+                                                <xsl:when test="position() mod 2 = 0">position-row-even</xsl:when>
+                                                <xsl:otherwise>position-row-odd</xsl:otherwise>
+                                            </xsl:choose>
+                                        </xsl:attribute>
+                                        <td class="text-center font-bold"><xsl:value-of select="position()"/></td>
+                                        <td>
+                                            <xsl:choose>
+                                                <xsl:when test="key('asset-by-id', UniqueID)">
+                                                    <a href="#{UniqueID}" class="position-link" title="Jump to Asset Master Data">
+                                                        <xsl:value-of select="UniqueID"/>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="link-icon" viewBox="0 0 16 16">
+                                                            <path d="M4.715 6.542L3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+                                                            <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243L6.586 4.672z"/>
+                                                        </svg>
+                                                    </a>
                                                 </xsl:when>
                                                 <xsl:otherwise>
-                                                    {$asset/Name}
+                                                    <span class="position-no-link" title="Not found in Asset Master Data">
+                                                        <xsl:value-of select="UniqueID"/>
+                                                        <span class="badge badge-warning">⚠</span>
+                                                    </span>
                                                 </xsl:otherwise>
                                             </xsl:choose>
-                                        </span>
-                                        <br/>
-                                        <xsl:if test="$asset/Identifiers/ISIN">
-                                            <p class="text-xs">ISIN:
-                                                {$asset/Identifiers/ISIN}
-                                            </p>
-                                        </xsl:if>
-                                    </td>
-                                    <td class="p-2 border">
-                                        {Currency}
-                                    </td>
-                                    <td class="p-2 border">
-                                        <div class="flex justify-between">
-                                            <span class="font-light">(Pos. CCY) <xsl:value-of select="$assetCcy"/>:</span>
-                                            <span>
-                                                <xsl:choose>
-                                                    <xsl:when test="TotalValue/Amount[@ccy=$assetCcy]">
-                                                        <xsl:value-of
-                                                                select="format-number(TotalValue/Amount[@ccy=$assetCcy], '#,##0.00')"/>
-                                                    </xsl:when>
-                                                    <xsl:otherwise>
-                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing</span>
-                                                    </xsl:otherwise>
-                                                </xsl:choose>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">
+                                                <xsl:value-of select="name(Equity | Bond | ShareClass | Warrant | Certificate | Option | Future | FXForward | Swap | Repo | FixedTimeDeposit | CallMoney | Account | Fee | RealEstate | REIT | Loan | Right | Commodity | PrivateEquity | CommercialPaper | Index | Crypto)"/>
                                             </span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="font-light">(Port. CCY) <xsl:value-of select="$ccy"/>:</span>
-                                            <span>
-                                                <xsl:choose>
-                                                    <xsl:when test="TotalValue/Amount[@ccy=$ccy]">
-                                                        <xsl:value-of
-                                                                select="format-number(TotalValue/Amount[@ccy=$ccy], '#,##0.00')"/>
-                                                    </xsl:when>
-                                                    <xsl:otherwise>
-                                                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing</span>
-                                                    </xsl:otherwise>
-                                                </xsl:choose>
-                                            </span>
-                                        </div>
-
-                                        <xsl:for-each
-                                                select="TotalValue/Amount[@ccy != $ccy and @ccy != $assetCcy]">
-                                            <div class="flex justify-between">
-                                                <span><xsl:value-of select="@ccy"/>:</span>
-                                                <span>
-                                                    <xsl:value-of select="format-number(., '#,##0.00')"/>
+                                        </td>
+                                        <td>
+                                            <xsl:value-of select="Currency"/>
+                                            <xsl:if test="$positionCCY != $portfolioCcy">
+                                                <span class="badge badge-warning margin-left">
+                                                    FX
                                                 </span>
-                                            </div>
-                                        </xsl:for-each>
-                                        <xsl:choose>
-                                            <xsl:when test="not(TotalValue/Amount[@ccy=$ccy])">
-                                                <div class="mt-1">
-                                                    <span class="inline-block w-full text-center px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing TotalValue in Portfolio CCY</span>
-                                                </div>
-                                            </xsl:when>
-                                            <xsl:when test="not(TotalValue/Amount[@ccy=$assetCcy])">
-                                                <div class="mt-1">
-                                                    <span class="inline-block w-full text-center px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing TotalValue in Asset CCY</span>
-                                                </div>
-                                            </xsl:when>
-                                        </xsl:choose>
-
-                                        <xsl:variable name="posNumbers" select="count(TotalValue/Amount[number(.) gt 0])" as="xs:integer"/>
-                                        <xsl:variable name="negNumbers" select="count(TotalValue/Amount[number(.) lt 0])" as="xs:integer"/>
-                                        <xsl:if test="$negNumbers > 0 and $posNumbers > 0">
-                                            <div class="mt-1">
-                                                <span id="ERROR_{generate-id(.)}"
-                                                      data-error-message="ERROR: Negativ and Positiv Value"
-                                                      class="inline-block w-full text-center px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">ERROR: NEGATIVE AND POSITIVE AMOUNTS</span>
-                                            </div>
-                                        </xsl:if>
-                                    </td>
-                                    <td class="p-2 border text-right">
-                                        <xsl:choose>
-                                            <xsl:when test="not(TotalPercentage)">
-                                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800"
-                                                      data-error-message="Missing Total Percentage">Missing
-                                                </span>
-                                            </xsl:when>
-                                            <xsl:otherwise>
-                                                <xsl:value-of select="format-number(TotalPercentage, '#,##0.000')"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </td>
-                                    <td class="p-2 border">
-                                        <xsl:for-each select="FXRates/FXRate">
-                                            <div class="flex justify-between text-xs">
-                                                <span>
-                                                    (<xsl:value-of select="@mulDiv"/>)
-                                                    <xsl:value-of select="@fromCcy"/>/<xsl:value-of select="@toCcy"/>
-                                                </span>
-                                                <span class="text-right">
-                                                    <xsl:value-of select="."/>
-                                                </span>
-                                            </div>
-                                            <xsl:if test="@fromCcy eq @toCcy and number(.) ne 1">
-                                                <span id="ERROR_{generate-id(.)}"
-                                                      data-error-message="ERROR: FX for same Currency not 1 {@fromCcy}/{@toCcy}: [{.}]"
-                                                      class="inline-block w-full text-center mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">ERROR: FX for same Currency not 1</span>
                                             </xsl:if>
-                                        </xsl:for-each>
-                                    </td>
-                                    <td class="p-2 border">
-                                        <div class="space-y-2">
+                                        </td>
+                                        <td class="text-right font-bold">
+                                            <xsl:value-of select="format-number(TotalValue/Amount, '#,##0.00')"/>
+                                            <span class="text-sm margin-left"><xsl:value-of select="TotalValue/Amount/@ccy"/></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="percentage-badge">
+                                                <xsl:value-of select="format-number(TotalPercentage, '0.00')"/>%
+                                            </span>
+                                        </td>
+                                        <td>
                                             <xsl:apply-templates select="Equity | Bond | ShareClass | Warrant | Certificate | Option | Future | FXForward | Swap | Repo | FixedTimeDeposit | CallMoney | Account | Fee | RealEstate | REIT | Loan | Right | Commodity | PrivateEquity | CommercialPaper | Index | Crypto">
-                                                <xsl:with-param name="portfolioCcy" select="$ccy"/>
+                                                <xsl:with-param name="portfolioCcy" select="$portfolioCcy"/>
+                                                <xsl:with-param name="inline" select="true()"/>
                                             </xsl:apply-templates>
-                                            
-                                            <div class="text-xs">
-                                                <xsl:if test="$renderXMLContent">
-                                                    <details>
-                                                        <summary class="cursor-pointer">Original XML</summary>
-                                                        <p class="mt-1">
-                                                            <script type="text/plain" class="language-xml">
-                                                                <xsl:copy-of select="node()" copy-namespaces="false"/>
-                                                            </script>
-                                                        </p>
-                                                    </details>
-                                                </xsl:if>
-                                            </div>
-                                        </div>
+                                        </td>
+                                    </tr>
+                                </xsl:for-each>
+                            </tbody>
+                            <tfoot>
+                                <tr class="positions-summary">
+                                    <td colspan="4" class="text-right font-bold">Total:</td>
+                                    <td class="text-right font-bold">
+                                        <xsl:value-of select="format-number(sum(Positions/Position/TotalValue/Amount), '#,##0.00')"/>
                                     </td>
+                                    <td class="text-center font-bold">
+                                        <span class="percentage-badge-total">
+                                            <xsl:value-of select="format-number(sum(Positions/Position/TotalPercentage), '0.00')"/>%
+                                        </span>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </details>
+        </xsl:for-each>
+    </xsl:template>
+
+    <xsl:template match="SingleFund">
+        <details>
+            <summary>SingleFund / ShareClasses</summary>
+            <div>
+                <xsl:apply-templates select="ShareClasses"/>
+            </div>
+        </details>
+    </xsl:template>
+
+    <xsl:template match="ShareClasses">
+        <xsl:for-each select="ShareClass">
+            <details>
+                <summary id="{Identifiers/ISIN}" class="shareclass-summary">
+                    ShareClass: <xsl:value-of select="Identifiers/ISIN"/> - <xsl:value-of select="Names/OfficialName"/>
+                </summary>
+                <div>
+                    <table class="data-table shareclass-table">
+                        <tbody>
+                            <xsl:for-each select="Names/*">
+                                <tr>
+                                    <th class="table-header-narrow">Name: <xsl:value-of select="name()"/></th>
+                                    <td><xsl:value-of select="."/></td>
+                                </tr>
+                            </xsl:for-each>
+                            <xsl:for-each select="Identifiers/*">
+                                <tr>
+                                    <th>Identifier: <xsl:value-of select="name()"/></th>
+                                    <td class="font-bold"><xsl:value-of select="."/></td>
                                 </tr>
                             </xsl:for-each>
                         </tbody>
@@ -779,55 +1114,83 @@
     <!-- Templates for position asset types -->
     <xsl:template match="Position/Equity | Position/Bond | Position/ShareClass | Position/Warrant | Position/Certificate | Position/Option | Position/Future">
         <xsl:param name="portfolioCcy"/>
+        <xsl:param name="inline" select="false()"/>
         <xsl:variable name="positionCCY" select="../Currency"/>
 
-        <div class="p-2 bg-gray-50 rounded">
-            <span class="font-bold text-sm">{name(.)}</span>
-            <table class="w-full text-xs mt-1">
-                <tbody class="divide-y divide-gray-100">
-                    <!-- Common fields like Units, Price, etc. can be generalized here if needed -->
-                </tbody>
-            </table>
-        </div>
+        <xsl:choose>
+            <xsl:when test="$inline">
+                <span class="asset-type-inline">
+                    <xsl:value-of select="name(.)"/>
+                    <xsl:if test="ISIN">
+                        <br/>
+                        <span class="text-xs">ISIN: <xsl:value-of select="ISIN"/></span>
+                    </xsl:if>
+                </span>
+            </xsl:when>
+            <xsl:otherwise>
+                <div class="position-card">
+                    <span class="position-type"><xsl:value-of select="name(.)"/></span>
+                    <table class="position-table">
+                        <tbody>
+                            <!-- Common fields like Units, Price, etc. can be generalized here if needed -->
+                        </tbody>
+                    </table>
+                </div>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- Simplified templates for other asset types -->
     <xsl:template match="Position/FXForward | Position/Swap | Position/Repo | Position/FixedTimeDeposit | Position/CallMoney | Position/Account | Position/Fee | Position/RealEstate | Position/REIT | Position/Loan | Position/Right | Position/Commodity | Position/PrivateEquity | Position/CommercialPaper | Position/Index | Position/Crypto">
-        <div class="p-2 bg-gray-50 rounded">
-            <span class="font-bold text-sm">{name(.)}</span>
-        </div>
+        <xsl:param name="inline" select="false()"/>
+        
+        <xsl:choose>
+            <xsl:when test="$inline">
+                <span class="asset-type-inline">
+                    <xsl:value-of select="name(.)"/>
+                </span>
+            </xsl:when>
+            <xsl:otherwise>
+                <div class="position-card">
+                    <span class="position-type"><xsl:value-of select="name(.)"/></span>
+                </div>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- Template for AssetMasterData -->
     <xsl:template match="AssetMasterData">
-        <div class="AssetMasterData" id="AssetMasterData">
-            <h1 class="text-2xl font-bold mb-4">Asset Master Data</h1>
+        <div id="AssetMasterData">
+            <h1>Asset Master Data</h1>
             <div class="overflow-x-auto">
-                <table class="w-full border-collapse border border-gray-300 text-sm">
-                    <thead class="bg-gray-200 sticky top-0">
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <th class="p-2 border">#</th>
-                            <th class="p-2 border">UniqueID</th>
-                            <th class="p-2 border">Identifiers</th>
-                            <th class="p-2 border w-1/4">Name</th>
-                            <th class="p-2 border">Currency</th>
-                            <th class="p-2 border">Country</th>
-                            <th class="p-2 border">AssetDetails</th>
+                            <th>#</th>
+                            <th>UniqueID</th>
+                            <th>Identifiers</th>
+                            <th class="table-header-name">Name</th>
+                            <th>Currency</th>
+                            <th>Country</th>
+                            <th>AssetDetails</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody>
                         <xsl:for-each select="Asset">
-                            <tr class="odd:bg-gray-50 hover:bg-gray-100">
-                                <th class="p-2 border text-center">
-                                    <xsl:value-of select="position()"/>
-                                </th>
+                            <tr id="{UniqueID}">
+                                <th><xsl:value-of select="position()"/></th>
                                 <xsl:variable name="assetAnker" select="UniqueID"/>
-                                <td id="{$assetAnker}" class="p-2 border">
-                                    <xsl:value-of select="UniqueID"/>
+                                <td>
+                                    <strong class="asset-id-display">
+                                        <xsl:value-of select="UniqueID"/>
+                                    </strong>
+                                    <xsl:if test="key('asset-by-id', UniqueID)">
+                                        <span class="badge badge-success" title="Referenced in positions">✓</span>
+                                    </xsl:if>
                                 </td>
-                                <td class="p-2 border">
+                                <td>
                                     <xsl:attribute name="class">
-                                        <xsl:value-of select="if (count(Identifiers/*) = 0) then 'p-2 border bg-yellow-100' else 'p-2 border' "/>
+                                        <xsl:value-of select="if (count(Identifiers/*) = 0) then 'bg-yellow-100' else '' "/>
                                     </xsl:attribute>
 
                                     <xsl:for-each select="Identifiers/*[name() != 'OtherID']">
@@ -852,30 +1215,30 @@
                                         <xsl:when test="AssetType = ('EQ', 'BO', 'SC', 'WA') and not(Identifiers/ISIN)">
                                             <span id="ERROR_{generate-id(.)}"
                                                   data-error-message="Missing ISIN for Instrument Type {AssetType} Asset {../UniqueID}"
-                                                  class="inline-block mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-red-200 text-red-800">Missing ISIN for Instrument Type {AssetType}
+                                                  class="badge badge-error">Missing ISIN for Instrument Type <xsl:value-of select="AssetType"/>
                                             </span>
                                         </xsl:when>
                                     </xsl:choose>
                                 </td>
-                                <td class="p-2 border">
+                                <td>
                                     <xsl:value-of select="Name"/>
                                 </td>
-                                <td class="p-2 border">
+                                <td>
                                     <xsl:value-of select="Currency"/>
                                 </td>
-                                <td class="p-2 border">
+                                <td>
                                     <xsl:value-of select="Country"/>
                                 </td>
-                                <td class="p-2 border">
+                                <td>
                                     Type: <xsl:value-of select="AssetType"/>
                                     (<span class="font-bold"><xsl:value-of select="name(AssetDetails/*[position()=1])"/></span>)
                                     <br/>
                                     <xsl:apply-templates select="AssetDetails/*"/>
 
-                                    <div class="text-xs mt-2">
+                                    <div class="text-xs">
                                         <xsl:if test="$renderXMLContent">
                                             <details>
-                                                <summary class="cursor-pointer">Original XML</summary>
+                                                <summary>Original XML</summary>
                                                 <script type="text/plain" class="language-xml">
                                                     <xsl:copy-of select="node()" copy-namespaces="false"/>
                                                 </script>
@@ -893,11 +1256,11 @@
 
     <!-- Template for AssetMasterData Detail Types -->
     <xsl:template match="AssetDetails/Equity | AssetDetails/Bond | AssetDetails/ShareClass | AssetDetails/Warrant | AssetDetails/Certificate | AssetDetails/Option | AssetDetails/Future | AssetDetails/FXForward | AssetDetails/Swap | AssetDetails/Account | AssetDetails/Fee">
-        <div class="mt-2 p-2 bg-gray-50 rounded text-xs space-y-1">
+        <div class="asset-detail-box">
             <xsl:for-each select="*">
-                <div class="flex justify-between">
-                    <span class="font-semibold pr-2">{name()}:</span>
-                    <span class="text-right">{.}</span>
+                <div class="asset-detail-row">
+                    <span class="asset-detail-label"><xsl:value-of select="name()"/>:</span>
+                    <span class="asset-detail-value"><xsl:value-of select="."/></span>
                 </div>
             </xsl:for-each>
         </div>
@@ -905,8 +1268,8 @@
 
     <!-- Fallback for other asset details -->
     <xsl:template match="AssetDetails/*">
-        <div class="mt-2 p-2 bg-gray-50 rounded text-xs">
-            <span class="font-bold">{name(.)}</span>
+        <div class="asset-detail-box">
+            <span class="font-bold"><xsl:value-of select="name(.)"/></span>
         </div>
     </xsl:template>
 

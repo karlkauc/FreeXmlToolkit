@@ -10,95 +10,518 @@
                 <meta charset="UTF-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
                 <title>FundsXML - Performance &amp; Risk Analysis</title>
-                <script src="https://cdn.tailwindcss.com"></script>
-                <script>
-                    tailwind.config = {
-                        theme: {
-                            extend: {
-                                animation: {
-                                    'fade-in': 'fadeIn 0.5s ease-in-out',
-                                    'slide-in': 'slideIn 0.6s ease-out'
-                                }
-                            }
-                        }
-                    }
-                </script>
                 <style>
+                    /* Reset und Basis-Styles */
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                        background: linear-gradient(to bottom right, #0F172A, #581C87, #0F172A);
+                        min-height: 100vh;
+                        line-height: 1.5;
+                    }
+                    
+                    /* Container */
+                    .container {
+                        max-width: 1400px;
+                        margin: 0 auto;
+                        padding: 2rem 1rem;
+                    }
+                    
+                    /* Hauptkarte */
+                    .main-card {
+                        background: rgba(255, 255, 255, 0.95);
+                        backdrop-filter: blur(10px);
+                        border-radius: 1.5rem;
+                        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                        overflow: hidden;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                    }
+                    
+                    /* Hero Header */
+                    .hero-header {
+                        background: linear-gradient(to right, #7C3AED, #8B5CF6, #4C1D95);
+                        padding: 2.5rem;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    
+                    .hero-header::before {
+                        content: '';
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(to right, rgba(124, 58, 237, 0.2), transparent, rgba(76, 29, 149, 0.2));
+                        animation: pulse 2s ease-in-out infinite;
+                    }
+                    
+                    @keyframes pulse {
+                        0%, 100% { opacity: 0.5; }
+                        50% { opacity: 1; }
+                    }
+                    
                     @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
+                        from { opacity: 0; }
+                        to { opacity: 1; }
                     }
+                    
                     @keyframes slideIn {
-                    from { transform: translateY(20px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
+                        from { transform: translateY(20px); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
                     }
+                    
+                    .hero-content {
+                        position: relative;
+                        z-index: 10;
+                    }
+                    
+                    .hero-title {
+                        font-size: 3rem;
+                        font-weight: bold;
+                        color: white;
+                        margin-bottom: 1rem;
+                        animation: fadeIn 0.5s ease-in-out;
+                    }
+                    
+                    .hero-subtitle {
+                        color: #E9D5FF;
+                        font-size: 1.25rem;
+                        animation: slideIn 0.6s ease-out;
+                    }
+                    
+                    /* Content */
+                    .content {
+                        padding: 2.5rem;
+                    }
+                    
+                    /* Fund Overview Cards Grid */
+                    .fund-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                        gap: 2rem;
+                        margin-bottom: 3rem;
+                    }
+                    
+                    /* Metric Card */
                     .metric-card {
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                        background: linear-gradient(to bottom right, white, #F9FAFB);
+                        border: 1px solid #E5E7EB;
+                        border-radius: 1rem;
+                        padding: 2rem;
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     }
+                    
                     .metric-card:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                        transform: translateY(-4px);
+                        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    .metric-header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        margin-bottom: 1.5rem;
+                    }
+                    
+                    .fund-name {
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        color: #111827;
+                    }
+                    
+                    .metric-icon {
+                        width: 4rem;
+                        height: 4rem;
+                        background: linear-gradient(to bottom right, #3B82F6, #8B5CF6);
+                        border-radius: 1rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                    }
+                    
+                    .metric-list {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1rem;
+                    }
+                    
+                    .metric-item {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    
+                    .metric-label {
+                        color: #6B7280;
+                    }
+                    
+                    .metric-value {
+                        font-size: 1.125rem;
+                        font-weight: bold;
+                        color: #111827;
+                    }
+                    
+                    .metric-value.blue { color: #2563EB; }
+                    
+                    .currency-badge {
+                        padding: 0.25rem 0.75rem;
+                        background: #EDE9FE;
+                        color: #7C3AED;
+                        border-radius: 9999px;
+                        font-size: 0.875rem;
+                        font-weight: 500;
+                    }
+                    
+                    .metric-value-small {
+                        font-size: 0.875rem;
+                        color: #6B7280;
+                        margin-left: 0.25rem;
+                    }
+                    
+                    /* Analysis Section */
+                    .analysis-section {
+                        background: white;
+                        border: 1px solid #E5E7EB;
+                        border-radius: 1rem;
+                        padding: 2rem;
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                        margin-bottom: 3rem;
+                    }
+                    
+                    .section-title {
+                        font-size: 1.875rem;
+                        font-weight: bold;
+                        color: #111827;
+                        margin-bottom: 2rem;
+                        display: flex;
+                        align-items: center;
+                    }
+                    
+                    .section-icon {
+                        width: 3rem;
+                        height: 3rem;
+                        border-radius: 1rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1.25rem;
+                        font-weight: bold;
+                        color: white;
+                        margin-right: 1rem;
+                    }
+                    
+                    .section-icon.emerald {
+                        background: linear-gradient(to bottom right, #10B981, #14B8A6);
+                    }
+                    
+                    .section-icon.red {
+                        background: linear-gradient(to bottom right, #EF4444, #EC4899);
+                    }
+                    
+                    .section-icon.yellow {
+                        background: linear-gradient(to bottom right, #F59E0B, #FB923C);
+                    }
+                    
+                    /* Fund Analysis Box */
+                    .fund-analysis {
+                        margin-bottom: 2rem;
+                        padding-bottom: 2rem;
+                        border-bottom: 1px solid #E5E7EB;
+                    }
+                    
+                    .fund-analysis:last-child {
+                        border-bottom: none;
+                        padding-bottom: 0;
+                        margin-bottom: 0;
+                    }
+                    
+                    .fund-analysis-title {
+                        font-size: 1.25rem;
+                        font-weight: 600;
+                        color: #1F2937;
+                        margin-bottom: 1.5rem;
+                    }
+                    
+                    /* Top Holdings */
+                    .holdings-grid {
+                        display: grid;
+                        gap: 1rem;
+                    }
+                    
+                    .holding-card {
+                        background: linear-gradient(to bottom right, #F0FDF4, #DCFCE7);
+                        border: 1px solid #BBF7D0;
+                        border-radius: 0.75rem;
+                        padding: 1.5rem;
+                    }
+                    
+                    .holding-header {
+                        display: flex;
+                        align-items: flex-start;
+                        justify-content: space-between;
+                        margin-bottom: 1rem;
+                    }
+                    
+                    .holding-name {
+                        font-weight: 600;
+                        color: #14532D;
+                        margin-bottom: 0.25rem;
+                    }
+                    
+                    .holding-id {
+                        font-size: 0.75rem;
+                        color: #15803D;
+                    }
+                    
+                    .holding-percentage {
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        color: #16A34A;
+                    }
+                    
+                    .holding-details {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                        gap: 0.75rem;
+                    }
+                    
+                    .holding-metric {
+                        padding: 0.5rem;
+                        background: white;
+                        border-radius: 0.5rem;
+                        text-align: center;
+                    }
+                    
+                    .holding-metric-label {
+                        font-size: 0.75rem;
+                        color: #6B7280;
+                        margin-bottom: 0.25rem;
+                    }
+                    
+                    .holding-metric-value {
+                        font-size: 0.875rem;
+                        font-weight: 600;
+                        color: #111827;
+                    }
+                    
+                    /* Asset Class */
+                    .asset-class-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                        gap: 1rem;
+                    }
+                    
+                    .asset-class-item {
+                        text-align: center;
+                        padding: 1rem;
+                        background: linear-gradient(to bottom right, #EFF6FF, #DBEAFE);
+                        border: 1px solid #BFDBFE;
+                        border-radius: 0.75rem;
+                    }
+                    
+                    .asset-class-value {
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        color: #2563EB;
+                        margin-bottom: 0.5rem;
+                    }
+                    
+                    .asset-class-label {
+                        font-size: 0.875rem;
+                        color: #1E40AF;
+                        font-weight: 500;
+                    }
+                    
+                    /* Risk Metrics */
+                    .risk-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 1.5rem;
+                    }
+                    
+                    .risk-item {
+                        background: linear-gradient(to bottom right, #F9FAFB, #F3F4F6);
+                        border: 1px solid #E5E7EB;
+                        border-radius: 0.75rem;
+                        padding: 1.5rem;
+                        text-align: center;
+                    }
+                    
+                    .risk-value {
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        color: #374151;
+                        margin-bottom: 0.5rem;
+                    }
+                    
+                    .risk-label {
+                        color: #6B7280;
+                        font-weight: 500;
+                        font-size: 0.875rem;
+                    }
+                    
+                    /* No Data Warning */
+                    .no-data-warning {
+                        background: #FEF3C7;
+                        border: 1px solid #FDE68A;
+                        border-radius: 0.75rem;
+                        padding: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #D97706;
+                        font-weight: 500;
+                    }
+                    
+                    .warning-icon {
+                        font-size: 1.5rem;
+                        margin-right: 0.5rem;
+                    }
+                    
+                    /* Currency Exposure */
+                    .currency-exposure-box {
+                        margin-bottom: 2rem;
+                        padding: 1.5rem;
+                        background: linear-gradient(to right, #FEF3C7, #FED7AA);
+                        border: 1px solid #FDE68A;
+                        border-radius: 0.75rem;
+                    }
+                    
+                    .currency-exposure-title {
+                        font-size: 1.25rem;
+                        font-weight: 600;
+                        color: #1F2937;
+                        margin-bottom: 1rem;
+                    }
+                    
+                    .currency-exposure-subtitle {
+                        font-size: 0.875rem;
+                        color: #6B7280;
+                        margin-left: 0.5rem;
+                    }
+                    
+                    .currency-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                        gap: 1rem;
+                    }
+                    
+                    .currency-item {
+                        text-align: center;
+                        padding: 1rem;
+                        background: white;
+                        border: 1px solid #FCD34D;
+                        border-radius: 0.5rem;
+                    }
+                    
+                    .currency-count {
+                        font-size: 1.125rem;
+                        font-weight: bold;
+                        color: #D97706;
+                    }
+                    
+                    .currency-code {
+                        font-size: 0.875rem;
+                        color: #F59E0B;
+                    }
+                    
+                    /* Footer */
+                    .footer {
+                        background: linear-gradient(to right, #F1F5F9, #FAF5FF, #F1F5F9);
+                        padding: 1.5rem;
+                        text-align: center;
+                    }
+                    
+                    .footer p {
+                        font-size: 0.875rem;
+                        color: #64748B;
+                    }
+                    
+                    /* Responsive Design */
+                    @media (max-width: 768px) {
+                        .hero-title {
+                            font-size: 2rem;
+                        }
+                        
+                        .fund-grid {
+                            grid-template-columns: 1fr;
+                        }
+                        
+                        .holding-details {
+                            grid-template-columns: 1fr;
+                        }
+                        
+                        .asset-class-grid,
+                        .risk-grid {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
+                        
+                        .currency-grid {
+                            grid-template-columns: repeat(2, 1fr);
+                        }
                     }
                 </style>
             </head>
-            <body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen">
-                <div class="container mx-auto px-4 py-8">
-                    <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+            <body>
+                <div class="container">
+                    <div class="main-card">
                         <!-- Hero Header -->
-                        <div class="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 p-10 relative overflow-hidden">
-                            <div class="absolute inset-0">
-                                <div class="absolute inset-0 bg-gradient-to-r from-violet-600/20 via-transparent to-indigo-600/20 animate-pulse"></div>
-                            </div>
-                            <div class="relative z-10">
-                                <h1 class="text-5xl font-bold text-white mb-4 animate-fade-in">Performance Analysis</h1>
-                                <p class="text-violet-100 text-xl animate-slide-in">
+                        <div class="hero-header">
+                            <div class="hero-content">
+                                <h1 class="hero-title">Performance Analysis</h1>
+                                <p class="hero-subtitle">
                                     Fund performance metrics and risk assessment dashboard
                                 </p>
                             </div>
                         </div>
 
-                        <div class="p-10">
+                        <div class="content">
                             <!-- Fund Overview Cards -->
-                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                            <div class="fund-grid">
                                 <xsl:for-each select="Funds/Fund">
-                                    <div class="metric-card bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-2xl p-8 shadow-lg">
-                                        <div class="flex items-center justify-between mb-6">
-                                            <h2 class="text-2xl font-bold text-gray-900">
+                                    <div class="metric-card">
+                                        <div class="metric-header">
+                                            <h2 class="fund-name">
                                                 <xsl:value-of select="Names/OfficialName"/>
                                             </h2>
-                                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                                                <span class="text-white text-2xl font-bold">💼</span>
-                                            </div>
+                                            <div class="metric-icon">💼</div>
                                         </div>
 
-                                        <div class="space-y-4">
-                                            <div class="flex justify-between items-center">
-                                                <span class="text-gray-600">Total NAV</span>
-                                                <span class="text-xl font-bold text-gray-900">
+                                        <div class="metric-list">
+                                            <div class="metric-item">
+                                                <span class="metric-label">Total NAV</span>
+                                                <span class="metric-value">
                                                     <xsl:value-of
                                                             select="format-number(FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount, '#,##0.00')"/>
-                                                    <span class="text-sm text-gray-500 ml-1">
+                                                    <span class="metric-value-small">
                                                         <xsl:value-of
                                                                 select="FundDynamicData/TotalAssetValues/TotalAssetValue/TotalNetAssetValue/Amount/@ccy"/>
                                                     </span>
                                                 </span>
                                             </div>
-                                            <div class="flex justify-between items-center">
-                                                <span class="text-gray-600">Positions</span>
-                                                <span class="text-lg font-semibold text-blue-600">
+                                            <div class="metric-item">
+                                                <span class="metric-label">Positions</span>
+                                                <span class="metric-value blue">
                                                     <xsl:value-of
                                                             select="count(FundDynamicData/Portfolios/Portfolio/Positions/Position)"/>
                                                 </span>
                                             </div>
-                                            <div class="flex justify-between items-center">
-                                                <span class="text-gray-600">Currency</span>
-                                                <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                                            <div class="metric-item">
+                                                <span class="metric-label">Currency</span>
+                                                <span class="currency-badge">
                                                     <xsl:value-of select="Currency"/>
                                                 </span>
                                             </div>
-                                            <div class="flex justify-between items-center">
-                                                <span class="text-gray-600">Inception</span>
-                                                <span class="text-gray-900 font-medium">
+                                            <div class="metric-item">
+                                                <span class="metric-label">Inception</span>
+                                                <span class="metric-value">
                                                     <xsl:value-of select="FundStaticData/InceptionDate"/>
                                                 </span>
                                             </div>
@@ -107,261 +530,189 @@
                                 </xsl:for-each>
                             </div>
 
-                            <div class="space-y-12">
-                                <!-- Portfolio Concentration Analysis -->
-                                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
-                                    <h2 class="text-3xl font-bold text-gray-900 mb-8 flex items-center">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold mr-4">
-                                            📈
-                                        </div>
-                                        Portfolio Concentration Analysis
-                                    </h2>
+                            <!-- Portfolio Concentration Analysis -->
+                            <div class="analysis-section">
+                                <h2 class="section-title">
+                                    <div class="section-icon emerald">📈</div>
+                                    Portfolio Concentration Analysis
+                                </h2>
 
-                                    <xsl:for-each select="Funds/Fund">
-                                        <div class="mb-10 last:mb-0">
-                                            <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                                                <span class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-sm font-bold mr-3">
-                                                    <xsl:value-of select="position()"/>
-                                                </span>
-                                                <xsl:value-of select="Names/OfficialName"/>
-                                            </h3>
+                                <xsl:for-each select="Funds/Fund">
+                                    <div class="fund-analysis">
+                                        <h3 class="fund-analysis-title">
+                                            Top Holdings - <xsl:value-of select="Names/OfficialName"/>
+                                        </h3>
 
-                                            <!-- Top 10 Holdings Analysis -->
-                                            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6">
-                                                <h4 class="text-lg font-semibold text-indigo-900 mb-4">Top Holdings
-                                                    Distribution
-                                                </h4>
-                                                <div class="space-y-3">
-                                                    <xsl:for-each
-                                                            select="FundDynamicData/Portfolios/Portfolio/Positions/Position">
-                                                        <xsl:sort select="TotalPercentage" data-type="number"
-                                                                  order="descending"/>
-                                                        <xsl:if test="position() &lt;= 10">
-                                                            <xsl:variable name="percentage" select="TotalPercentage"/>
-                                                            <div class="flex items-center space-x-4">
-                                                                <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center text-xs font-bold">
-                                                                    <xsl:value-of select="position()"/>
+                                        <div class="holdings-grid">
+                                            <xsl:for-each
+                                                    select="FundDynamicData/Portfolios/Portfolio/Positions/Position">
+                                                <xsl:sort select="TotalPercentage" data-type="number" order="descending"/>
+                                                <xsl:if test="position() &lt;= 5">
+                                                    <div class="holding-card">
+                                                        <div class="holding-header">
+                                                            <div>
+                                                                <div class="holding-name">
+                                                                    Position #<xsl:value-of select="position()"/>
                                                                 </div>
-                                                                <div class="flex-1">
-                                                                    <div class="flex items-center justify-between mb-1">
-                                                                        <span class="text-sm font-medium text-gray-700 truncate">
-                                                                            Position ID:
-                                                                            <xsl:value-of select="UniqueID"/>
-                                                                        </span>
-                                                                        <span class="text-sm font-bold text-indigo-600">
-                                                                            <xsl:value-of
-                                                                                    select="format-number($percentage, '0.00')"/>%
-                                                                        </span>
-                                                                    </div>
-                                                                    <div class="w-full bg-gray-200 rounded-full h-2">
-                                                                        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-700"
-                                                                             style="width: {$percentage}%"></div>
-                                                                    </div>
+                                                                <div class="holding-id">
+                                                                    ID: <xsl:value-of select="UniqueID"/>
                                                                 </div>
                                                             </div>
-                                                        </xsl:if>
+                                                            <div class="holding-percentage">
+                                                                <xsl:value-of
+                                                                        select="format-number(TotalPercentage, '0.00')"/>%
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="holding-details">
+                                                            <div class="holding-metric">
+                                                                <div class="holding-metric-label">Value</div>
+                                                                <div class="holding-metric-value">
+                                                                    <xsl:value-of
+                                                                            select="format-number(TotalValue/Amount, '#,##0')"/>
+                                                                </div>
+                                                            </div>
+                                                            <div class="holding-metric">
+                                                                <div class="holding-metric-label">Currency</div>
+                                                                <div class="holding-metric-value">
+                                                                    <xsl:value-of select="Currency"/>
+                                                                </div>
+                                                            </div>
+                                                            <xsl:if test="AssetClass">
+                                                                <div class="holding-metric">
+                                                                    <div class="holding-metric-label">Class</div>
+                                                                    <div class="holding-metric-value">
+                                                                        <xsl:value-of select="AssetClass"/>
+                                                                    </div>
+                                                                </div>
+                                                            </xsl:if>
+                                                        </div>
+                                                    </div>
+                                                </xsl:if>
+                                            </xsl:for-each>
+                                        </div>
+                                    </div>
+                                </xsl:for-each>
+                            </div>
+
+                            <!-- Asset Class Distribution -->
+                            <div class="analysis-section">
+                                <h2 class="section-title">
+                                    <div class="section-icon emerald">📊</div>
+                                    Asset Class Distribution
+                                </h2>
+
+                                <xsl:for-each select="Funds/Fund">
+                                    <div class="fund-analysis">
+                                        <h3 class="fund-analysis-title">
+                                            <xsl:value-of select="Names/OfficialName"/>
+                                        </h3>
+
+                                        <div class="asset-class-grid">
+                                            <xsl:for-each
+                                                    select="FundDynamicData/Portfolios/Portfolio/Positions/Position/AssetClass[generate-id() = generate-id(key('asset-classes', .)[1])]">
+                                                <xsl:sort select="."/>
+                                                <div class="asset-class-item">
+                                                    <div class="asset-class-value">
+                                                        <xsl:value-of select="count(key('asset-classes', .))"/>
+                                                    </div>
+                                                    <div class="asset-class-label">
+                                                        <xsl:choose>
+                                                            <xsl:when test=". = 'Equity'">Equity</xsl:when>
+                                                            <xsl:when test=". = 'Bond'">Bonds</xsl:when>
+                                                            <xsl:when test=". = 'Cash'">Cash</xsl:when>
+                                                            <xsl:when test=". = 'Alternative'">Alternatives</xsl:when>
+                                                            <xsl:otherwise>
+                                                                <xsl:value-of select="."/>
+                                                            </xsl:otherwise>
+                                                        </xsl:choose>
+                                                    </div>
+                                                </div>
+                                            </xsl:for-each>
+                                        </div>
+                                    </div>
+                                </xsl:for-each>
+                            </div>
+
+                            <!-- Risk Metrics Dashboard -->
+                            <div class="analysis-section">
+                                <h2 class="section-title">
+                                    <div class="section-icon red">⚡</div>
+                                    Risk Metrics Dashboard
+                                </h2>
+
+                                <xsl:for-each select="Funds/Fund">
+                                    <div class="fund-analysis">
+                                        <h3 class="fund-analysis-title">
+                                            Risk Assessment: <xsl:value-of select="Names/OfficialName"/>
+                                        </h3>
+
+                                        <xsl:choose>
+                                            <xsl:when test="FundDynamicData/Portfolios/Portfolio/RiskCodes/RiskCode">
+                                                <div class="risk-grid">
+                                                    <xsl:for-each
+                                                            select="FundDynamicData/Portfolios/Portfolio/RiskCodes/RiskCode">
+                                                        <div class="risk-item">
+                                                            <div class="risk-value">
+                                                                <xsl:value-of select="format-number(Value, '0.0000')"/>
+                                                            </div>
+                                                            <div class="risk-label">
+                                                                <xsl:value-of select="ListedCode | UnlistedCode"/>
+                                                            </div>
+                                                        </div>
                                                     </xsl:for-each>
                                                 </div>
-                                            </div>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <div class="no-data-warning">
+                                                    <span class="warning-icon">⚠️</span>
+                                                    <span>No risk metrics available for this fund</span>
+                                                </div>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                    </div>
+                                </xsl:for-each>
+                            </div>
 
-                                            <!-- Concentration Metrics -->
-                                            <xsl:variable name="top5Sum"
-                                                          select="sum(FundDynamicData/Portfolios/Portfolio/Positions/Position[position() &lt;= 5]/TotalPercentage)"/>
-                                            <xsl:variable name="top10Sum"
-                                                          select="sum(FundDynamicData/Portfolios/Portfolio/Positions/Position[position() &lt;= 10]/TotalPercentage)"/>
+                            <!-- Currency Exposure Analysis -->
+                            <div class="analysis-section">
+                                <h2 class="section-title">
+                                    <div class="section-icon yellow">💱</div>
+                                    Currency Exposure Analysis
+                                </h2>
 
-                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                <!-- Top 5 Concentration -->
-                                                <div class="bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200 rounded-xl p-6">
-                                                    <div class="text-center">
-                                                        <div class="text-3xl font-bold text-orange-600 mb-2">
-                                                            <xsl:value-of select="format-number($top5Sum, '0.0')"/>%
-                                                        </div>
-                                                        <div class="text-orange-800 font-medium">Top 5 Holdings</div>
-                                                        <div class="mt-2">
-                                                            <xsl:choose>
-                                                                <xsl:when test="$top5Sum &gt; 50">
-                                                                    <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">
-                                                                        High Risk
-                                                                    </span>
-                                                                </xsl:when>
-                                                                <xsl:when test="$top5Sum &gt; 30">
-                                                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-                                                                        Medium Risk
-                                                                    </span>
-                                                                </xsl:when>
-                                                                <xsl:otherwise>
-                                                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                                                                        Low Risk
-                                                                    </span>
-                                                                </xsl:otherwise>
-                                                            </xsl:choose>
-                                                        </div>
+                                <xsl:for-each select="Funds/Fund">
+                                    <div class="currency-exposure-box">
+                                        <h3 class="currency-exposure-title">
+                                            <xsl:value-of select="Names/OfficialName"/>
+                                            <span class="currency-exposure-subtitle">(Base: <xsl:value-of
+                                                    select="Currency"/>)
+                                            </span>
+                                        </h3>
+
+                                        <div class="currency-grid">
+                                            <!-- Count different currencies -->
+                                            <xsl:for-each
+                                                    select="FundDynamicData/Portfolios/Portfolio/Positions/Position/Currency[generate-id() = generate-id(key('position-currencies', .)[1])]">
+                                                <xsl:sort select="."/>
+                                                <div class="currency-item">
+                                                    <div class="currency-count">
+                                                        <xsl:value-of select="count(key('position-currencies', .))"/>
+                                                    </div>
+                                                    <div class="currency-code">
+                                                        <xsl:value-of select="."/> positions
                                                     </div>
                                                 </div>
-
-                                                <!-- Top 10 Concentration -->
-                                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
-                                                    <div class="text-center">
-                                                        <div class="text-3xl font-bold text-blue-600 mb-2">
-                                                            <xsl:value-of select="format-number($top10Sum, '0.0')"/>%
-                                                        </div>
-                                                        <div class="text-blue-800 font-medium">Top 10 Holdings</div>
-                                                        <div class="mt-2">
-                                                            <xsl:choose>
-                                                                <xsl:when test="$top10Sum &gt; 70">
-                                                                    <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">
-                                                                        High Concentration
-                                                                    </span>
-                                                                </xsl:when>
-                                                                <xsl:when test="$top10Sum &gt; 50">
-                                                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-                                                                        Medium Concentration
-                                                                    </span>
-                                                                </xsl:when>
-                                                                <xsl:otherwise>
-                                                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                                                                        Well Diversified
-                                                                    </span>
-                                                                </xsl:otherwise>
-                                                            </xsl:choose>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Total Positions -->
-                                                <div class="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6">
-                                                    <div class="text-center">
-                                                        <div class="text-3xl font-bold text-purple-600 mb-2">
-                                                            <xsl:value-of
-                                                                    select="count(FundDynamicData/Portfolios/Portfolio/Positions/Position)"/>
-                                                        </div>
-                                                        <div class="text-purple-800 font-medium">Total Positions</div>
-                                                        <div class="mt-2">
-                                                            <xsl:choose>
-                                                                <xsl:when
-                                                                        test="count(FundDynamicData/Portfolios/Portfolio/Positions/Position) &gt; 100">
-                                                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                                                                        Highly Diversified
-                                                                    </span>
-                                                                </xsl:when>
-                                                                <xsl:when
-                                                                        test="count(FundDynamicData/Portfolios/Portfolio/Positions/Position) &gt; 50">
-                                                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                                                                        Well Diversified
-                                                                    </span>
-                                                                </xsl:when>
-                                                                <xsl:otherwise>
-                                                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-                                                                        Concentrated
-                                                                    </span>
-                                                                </xsl:otherwise>
-                                                            </xsl:choose>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            </xsl:for-each>
                                         </div>
-                                    </xsl:for-each>
-                                </div>
-
-                                <!-- Risk Metrics Dashboard -->
-                                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
-                                    <h2 class="text-3xl font-bold text-gray-900 mb-8 flex items-center">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold mr-4">
-                                            ⚡
-                                        </div>
-                                        Risk Metrics Dashboard
-                                    </h2>
-
-                                    <xsl:for-each select="Funds/Fund">
-                                        <div class="mb-10 last:mb-0">
-                                            <h3 class="text-xl font-semibold text-gray-800 mb-6">
-                                                Risk Assessment:
-                                                <xsl:value-of select="Names/OfficialName"/>
-                                            </h3>
-
-                                            <xsl:choose>
-                                                <xsl:when
-                                                        test="FundDynamicData/Portfolios/Portfolio/RiskCodes/RiskCode">
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                                        <xsl:for-each
-                                                                select="FundDynamicData/Portfolios/Portfolio/RiskCodes/RiskCode">
-                                                            <div class="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6">
-                                                                <div class="text-center">
-                                                                    <div class="text-2xl font-bold text-gray-700 mb-2">
-                                                                        <xsl:value-of
-                                                                                select="format-number(Value, '0.0000')"/>
-                                                                    </div>
-                                                                    <div class="text-gray-600 font-medium text-sm">
-                                                                        <xsl:value-of
-                                                                                select="ListedCode | UnlistedCode"/>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </xsl:for-each>
-                                                    </div>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-                                                        <div class="flex items-center justify-center text-yellow-700">
-                                                            <span class="text-2xl mr-2">⚠️</span>
-                                                            <span class="font-medium">No risk metrics available for this
-                                                                fund
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </xsl:otherwise>
-                                            </xsl:choose>
-                                        </div>
-                                    </xsl:for-each>
-                                </div>
-
-                                <!-- Currency Exposure Analysis -->
-                                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
-                                    <h2 class="text-3xl font-bold text-gray-900 mb-8 flex items-center">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold mr-4">
-                                            💱
-                                        </div>
-                                        Currency Exposure Analysis
-                                    </h2>
-
-                                    <xsl:for-each select="Funds/Fund">
-                                        <div class="mb-8 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl">
-                                            <h3 class="text-xl font-semibold text-gray-800 mb-4">
-                                                <xsl:value-of select="Names/OfficialName"/>
-                                                <span class="text-sm text-gray-600 ml-2">(Base: <xsl:value-of
-                                                        select="Currency"/>)
-                                                </span>
-                                            </h3>
-
-                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                <!-- Count different currencies -->
-                                                <xsl:for-each
-                                                        select="FundDynamicData/Portfolios/Portfolio/Positions/Position/Currency[generate-id() = generate-id(key('position-currencies', .)[1])]">
-                                                    <xsl:sort select="."/>
-                                                    <div class="text-center p-4 bg-white border border-yellow-300 rounded-lg">
-                                                        <div class="text-lg font-bold text-yellow-700">
-                                                            <xsl:value-of
-                                                                    select="count(key('position-currencies', .))"/>
-                                                        </div>
-                                                        <div class="text-sm text-yellow-600">
-                                                            <xsl:value-of select="."/> positions
-                                                        </div>
-                                                    </div>
-                                                </xsl:for-each>
-                                            </div>
-                                        </div>
-                                    </xsl:for-each>
-                                </div>
+                                    </div>
+                                </xsl:for-each>
                             </div>
                         </div>
 
                         <!-- Footer -->
-                        <div class="bg-gradient-to-r from-slate-100 via-purple-50 to-slate-100 p-6">
-                            <p class="text-sm text-slate-600 text-center">
-                                Generated with Tailwind CSS v4 • Performance &amp; Risk Analysis Dashboard
-                            </p>
+                        <div class="footer">
+                            <p>Generated with embedded CSS • Performance &amp; Risk Analysis Dashboard</p>
                         </div>
                     </div>
                 </div>
@@ -371,5 +722,6 @@
 
     <!-- Keys for grouping -->
     <xsl:key name="position-currencies" match="Position/Currency" use="."/>
+    <xsl:key name="asset-classes" match="Position/AssetClass" use="."/>
 
 </xsl:stylesheet>
