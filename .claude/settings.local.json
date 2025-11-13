@@ -39,5 +39,20 @@
       "Bash(git commit:*)"
     ],
     "deny": []
-  }
+  },
+  "proxy": {  
+    "http": "http://localhost:3128",  
+    "https": "http://localhost:3128"  
+  },  
+  "proxyStrictSSL": false,  
+  "rejectUnauthorized": false,  
+  "proxy": "http://localhost:3128",  
+  "httpsProxy": "http://localhost:3128",  
+  "httpProxy": "http://localhost:3128",  
+  "env": {  
+    "HTTP_PROXY": "http://localhost:3128",  
+    "HTTPS_PROXY": "http://localhost:3128",  
+    "ALL_PROXY": "http://localhost:3128",  
+    "NODE_TLS_REJECT_UNAUTHORIZED": "0"  
+  } 
 }
