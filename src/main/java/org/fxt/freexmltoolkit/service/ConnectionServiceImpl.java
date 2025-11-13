@@ -18,49 +18,33 @@
 
 package org.fxt.freexmltoolkit.service;
 
-import org.apache.hc.client5.http.auth.AuthScope;
-import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.util.Timeout;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.ConnectionResult;
-
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ProxySelector;
-import java.net.URI;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Properties;
-import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.ConnectionResult;
 
 /**
  * Implementation of the ConnectionService interface.
  * Provides methods for executing HTTP requests and retrieving text content from URLs.
+ * Uses native Java HttpsURLConnection for better corporate environment compatibility.
  */
 public class ConnectionServiceImpl implements ConnectionService {
 
-    private final static Logger logger = LogManager.getLogger(ConnectionService.class);
+    private final static Logger logger = LogManager.getLogger(ConnectionServiceImpl.class);
     private static final ConnectionServiceImpl instance = new ConnectionServiceImpl();
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
-    private static final String[] SUPPORTED_PROTOCOLS = {"TLSv1.3", "TLSv1.2"};
 
     private ConnectionServiceImpl() {
     }
@@ -82,211 +66,181 @@ public class ConnectionServiceImpl implements ConnectionService {
      */
     @Override
     public String getTextContentFromURL(URI uri) {
-        return executeHttpRequest(uri).resultBody();
+        ConnectionResult result = executeHttpRequest(uri);
+        if (result.httpStatus() >= 200 && result.httpStatus() < 400) {
+            return result.resultBody();
+        }
+        throw new RuntimeException("Failed to retrieve content: HTTP " + result.httpStatus() + " - " + result.resultBody());
     }
 
     /**
      * Executes an HTTP request to the specified URL using saved properties.
      *
-     * @param url the URI of the target URL
+     * @param uri the URI of the target URL
      * @return a ConnectionResult object containing the details of the HTTP response
      */
     @Override
-    public ConnectionResult executeHttpRequest(URI url) {
-        var props = propertiesService.loadProperties();
-        return buildConnectionWithProperties(url, props);
+    public ConnectionResult executeHttpRequest(URI uri) {
+        Properties properties = propertiesService.loadProperties();
+        return testHttpRequest(uri, properties);
     }
 
     /**
      * Executes an HTTP request using a transient set of properties, for testing purposes.
      *
-     * @param url            the URI of the target URL
+     * @param uri            the URI of the target URL
      * @param testProperties a Properties object containing the connection settings to test
      * @return a ConnectionResult object containing the details of the HTTP response
      */
     @Override
-    public ConnectionResult testHttpRequest(URI url, Properties testProperties) {
-        return buildConnectionWithProperties(url, testProperties);
-    }
-
-    /**
-     * Builds and executes an HTTP request based on a given set of properties.
-     *
-     * @param url   The target URL.
-     * @param props The properties to use for configuration (e.g., proxy settings).
-     * @return The result of the connection attempt.
-     */
-    private ConnectionResult buildConnectionWithProperties(URI url, Properties props) {
-        boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
-        String proxyHost = props.getProperty("http.proxy.host", "");
-        String proxyPortStr = props.getProperty("http.proxy.port", "");
-        String proxyUser = props.getProperty("http.proxy.user", "");
-        String proxyPass = props.getProperty("http.proxy.password", "");
-        String noProxyHosts = props.getProperty("noProxyHost", "");
-        boolean trustAllCerts = Boolean.parseBoolean(props.getProperty("ssl.trustAllCerts", "false"));
-
-        BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        HttpClientBuilder clientBuilder = HttpClients.custom()
-                .setDefaultCredentialsProvider(credentialsProvider);
-
-        try {
-            // Konfiguriere SSL/TLS mit den unterstützten Protokollen
-            SSLContext sslContext;
-            if (trustAllCerts) {
-                logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled. All certificates will be trusted.");
-                sslContext = createTrustAllSslContext();
-            } else {
-                sslContext = createSecureSslContext();
-            }
-
-            // Konfiguriere SSL mit den unterstützten Protokollen
-            configureSslProtocols();
-
-            BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager();
-            connectionManager.setSocketConfig(SocketConfig.custom()
-                    .setSoTimeout(Timeout.ofSeconds(30))
-                    .build());
-            clientBuilder.setConnectionManager(connectionManager);
-
-        } catch (Exception e) {
-            logger.error("Could not configure SSL with specific TLS versions. Falling back to default connection manager.", e);
-            clientBuilder.setConnectionManager(new BasicHttpClientConnectionManager());
-        }
-
-        // NEW LOGIC: Use manual proxy if enabled and valid, otherwise default to system proxy.
-        if (useManualProxy && !proxyHost.isBlank() && !proxyPortStr.isBlank()) {
-            logger.debug("Using manual proxy settings: {}:{}", proxyHost, proxyPortStr);
-
-            if (!noProxyHosts.isBlank()) {
-                logger.debug("Setting non-proxy hosts: {}", noProxyHosts);
-                System.setProperty("http.nonProxyHosts", noProxyHosts.replace(',', '|').replace(";", "|"));
-            } else {
-                System.clearProperty("http.nonProxyHosts");
-            }
-
-            try {
-                int proxyPort = Integer.parseInt(proxyPortStr);
-                HttpHost proxy = new HttpHost(proxyHost, proxyPort);
-                clientBuilder.setProxy(proxy);
-
-                if (!proxyUser.isBlank()) {
-                    logger.debug("... providing user credentials for proxy.");
-                    Credentials basicCredentials = new UsernamePasswordCredentials(proxyUser, proxyPass.toCharArray());
-                    credentialsProvider.setCredentials(new AuthScope(proxy), basicCredentials);
-                }
-            } catch (NumberFormatException e) {
-                logger.error("Invalid proxy port number provided: '{}'", proxyPortStr, e);
-                return new ConnectionResult(url, 0, 0L, new String[0], "Invalid proxy port: " + proxyPortStr);
-            }
-        } else {
-            logger.debug("Manual proxy not configured or incomplete. Defaulting to system proxy settings.");
-            // Use the default system proxy selector with modern approach
-            ProxySelector systemProxySelector = getSystemProxySelector();
-            clientBuilder.setRoutePlanner(new SystemDefaultRoutePlanner(systemProxySelector));
-        }
-
+    public ConnectionResult testHttpRequest(URI uri, Properties testProperties) {
         long start = System.currentTimeMillis();
-
-        try (CloseableHttpClient httpClient = clientBuilder.build()) {
-            HttpGet httpGet = new HttpGet(url);
-
-            return httpClient.execute(httpGet, response -> {
-                String[] headers = Arrays.stream(response.getHeaders())
-                        .map(header -> header.getName() + ":" + header.getValue())
-                        .toArray(String[]::new);
-
-                String text;
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))) {
-                    text = reader.lines().collect(Collectors.joining("\n"));
-                }
-
-                return new ConnectionResult(
-                        url,
-                        response.getCode(),
-                        System.currentTimeMillis() - start,
-                        headers,
-                        text);
-            });
-        } catch (IOException e) {
+        
+        try {
+            // Configure SSL bypass if enabled
+            boolean trustAllCerts = Boolean.parseBoolean(testProperties.getProperty("ssl.trustAllCerts", "false"));
+            if (trustAllCerts) {
+                configureTrustAllSSL();
+                logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled.");
+            }
+            
+            // Configure proxy
+            Proxy proxy = configureProxy(testProperties);
+            
+            // Create connection
+            URL url = uri.toURL();
+            HttpURLConnection connection;
+            
+            if (proxy != null) {
+                connection = (HttpURLConnection) url.openConnection(proxy);
+                logger.debug("Using proxy: {}", proxy);
+            } else {
+                connection = (HttpURLConnection) url.openConnection();
+                logger.debug("Using direct connection");
+            }
+            
+            // Configure connection
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
+            connection.setRequestProperty("User-Agent", "FreeXmlToolkit/2.0");
+            connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            
+            // Execute request
+            int responseCode = connection.getResponseCode();
+            String responseBody = readResponse(connection);
+            
+            logger.debug("HTTP request completed: {} - Status: {}, Response length: {}", 
+                    uri, responseCode, responseBody.length());
+            
+            return new ConnectionResult(
+                    uri,
+                    responseCode,
+                    System.currentTimeMillis() - start,
+                    getHeaders(connection),
+                    responseBody
+            );
+            
+        } catch (Exception e) {
             logger.error("HTTP request failed: {}", e.getMessage(), e);
-            return new ConnectionResult(url, 0, 0L, new String[0], e.getMessage());
-        } finally {
-            // Clean up the system property to avoid side effects
-            System.clearProperty("http.nonProxyHosts");
+            return new ConnectionResult(
+                    uri,
+                    0,
+                    System.currentTimeMillis() - start,
+                    new String[0],
+                    e.getMessage()
+            );
         }
     }
 
     /**
-     * Konfiguriert die SSL-Protokolle für HTTPS-Verbindungen
+     * Configures SSL to trust all certificates if enabled
      */
-    private void configureSslProtocols() {
-        // Setze die unterstützten TLS-Protokolle als System-Property
-        System.setProperty("https.protocols", String.join(",", SUPPORTED_PROTOCOLS));
-
-        // Zusätzliche Sicherheitseinstellungen
-        System.setProperty("jdk.tls.client.protocols", String.join(",", SUPPORTED_PROTOCOLS));
-
-        logger.debug("SSL protocols configured: {}", String.join(",", SUPPORTED_PROTOCOLS));
-    }
-
-    /**
-     * Creates a secure SSLContext with modern TLS configuration.
-     *
-     * @return An SSLContext configured with secure defaults.
-     */
-    private SSLContext createSecureSslContext() throws NoSuchAlgorithmException, KeyManagementException {
-        // Use TLS 1.3 as the default, falling back to TLS 1.2 if needed
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, null, new java.security.SecureRandom());
-        return sslContext;
-    }
-
-    /**
-     * Creates an SSLContext that trusts all certificates. This is insecure and should
-     * only be used for development or testing purposes.
-     *
-     * @return An SSLContext configured to bypass certificate validation.
-     */
-    private SSLContext createTrustAllSslContext() throws NoSuchAlgorithmException, KeyManagementException {
-        // Create a trust manager that does not validate certificate chains
+    private void configureTrustAllSSL() throws NoSuchAlgorithmException, KeyManagementException {
+        // Create trust-all manager
         TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
+                    @Override
                     public X509Certificate[] getAcceptedIssuers() {
-                        return new X509Certificate[0]; // Return empty array instead of null
+                        return new X509Certificate[0];
                     }
 
+                    @Override
                     public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                        // Trust all client certificates
+                        // Trust all
                     }
 
+                    @Override
                     public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                        // Trust all server certificates
+                        // Trust all
                     }
                 }
         };
+        
+        // Install trust-all SSL context
         SSLContext sc = SSLContext.getInstance("TLS");
         sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        return sc;
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
     }
 
     /**
-     * Gets the system proxy selector with proper error handling.
-     *
-     * @return The system proxy selector or a default one if not available.
+     * Configures proxy settings based on properties
      */
-    private ProxySelector getSystemProxySelector() {
-        try {
-            ProxySelector systemProxySelector = ProxySelector.getDefault();
-            if (systemProxySelector != null) {
-                return systemProxySelector;
-            } else {
-                logger.warn("System proxy selector is null, using default proxy selector");
-                return ProxySelector.getDefault();
+    private Proxy configureProxy(Properties props) {
+        boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
+        boolean useSystemProxy = Boolean.parseBoolean(props.getProperty("useSystemProxy", "false"));
+        
+        if (useManualProxy) {
+            String proxyHost = props.getProperty("http.proxy.host", "");
+            String proxyPortStr = props.getProperty("http.proxy.port", "");
+            
+            if (!proxyHost.isEmpty() && !proxyPortStr.isEmpty()) {
+                try {
+                    int proxyPort = Integer.parseInt(proxyPortStr);
+                    return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+                } catch (NumberFormatException e) {
+                    logger.error("Invalid proxy port: {}", proxyPortStr);
+                }
             }
-        } catch (SecurityException e) {
-            logger.warn("Security manager prevents access to system proxy selector: {}", e.getMessage());
-            return ProxySelector.getDefault();
         }
+        
+        if (useSystemProxy) {
+            // Use system proxy settings
+            System.setProperty("java.net.useSystemProxies", "true");
+            return null; // Let Java handle system proxy automatically
+        }
+        
+        return null; // No proxy
+    }
+    
+    /**
+     * Reads the response from an HTTP connection
+     */
+    private String readResponse(HttpURLConnection connection) throws IOException {
+        StringBuilder response = new StringBuilder();
+        
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(
+                        connection.getResponseCode() >= 400 ? 
+                                connection.getErrorStream() : connection.getInputStream(),
+                        StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line).append("\n");
+            }
+        }
+        
+        return response.toString();
+    }
+    
+    /**
+     * Extracts headers from an HTTP connection
+     */
+    private String[] getHeaders(HttpURLConnection connection) {
+        return connection.getHeaderFields().entrySet().stream()
+                .filter(entry -> entry.getKey() != null)
+                .map(entry -> entry.getKey() + ": " + String.join(", ", entry.getValue()))
+                .toArray(String[]::new);
     }
 }
