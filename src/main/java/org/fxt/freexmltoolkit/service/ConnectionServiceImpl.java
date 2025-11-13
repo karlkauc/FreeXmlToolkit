@@ -100,8 +100,12 @@ public class ConnectionServiceImpl implements ConnectionService {
             // Configure SSL bypass if enabled
             boolean trustAllCerts = Boolean.parseBoolean(testProperties.getProperty("ssl.trustAllCerts", "false"));
             if (trustAllCerts) {
-                configureTrustAllSSL();
-                logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled.");
+                try {
+                    configureTrustAllSSL();
+                    logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled.");
+                } catch (Exception sslEx) {
+                    logger.error("Failed to configure SSL bypass, proceeding with default SSL settings: {}", sslEx.getMessage());
+                }
             }
             
             // Configure proxy
@@ -125,6 +129,15 @@ public class ConnectionServiceImpl implements ConnectionService {
             connection.setReadTimeout(30000);
             connection.setRequestProperty("User-Agent", "FreeXmlToolkit/2.0");
             connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            
+            // Apply SSL settings to this specific connection if it's HTTPS
+            if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
+                try {
+                    applySslBypassToConnection(httpsConnection);
+                } catch (Exception sslEx) {
+                    logger.warn("Failed to apply SSL bypass to connection, using default SSL settings: {}", sslEx.getMessage());
+                }
+            }
             
             // Execute request
             int responseCode = connection.getResponseCode();
@@ -154,7 +167,7 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
     /**
-     * Configures SSL to trust all certificates if enabled
+     * Configures SSL to trust all certificates if enabled (global settings)
      */
     private void configureTrustAllSSL() throws NoSuchAlgorithmException, KeyManagementException {
         // Create trust-all manager
@@ -182,6 +195,41 @@ public class ConnectionServiceImpl implements ConnectionService {
         sc.init(null, trustAllCerts, new java.security.SecureRandom());
         HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
         HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
+    }
+
+    /**
+     * Applies SSL bypass settings to a specific HTTPS connection
+     */
+    private void applySslBypassToConnection(HttpsURLConnection httpsConnection) throws NoSuchAlgorithmException, KeyManagementException {
+        // Create trust-all manager for this specific connection
+        TrustManager[] trustAllCerts = new TrustManager[]{
+                new X509TrustManager() {
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                        // Trust all
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                        // Trust all
+                    }
+                }
+        };
+        
+        // Create SSL context for this connection
+        SSLContext sc = SSLContext.getInstance("TLS");
+        sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        
+        // Apply to this specific connection
+        httpsConnection.setSSLSocketFactory(sc.getSocketFactory());
+        httpsConnection.setHostnameVerifier((hostname, session) -> true);
+        
+        logger.debug("SSL bypass applied to connection for: {}", httpsConnection.getURL());
     }
 
     /**

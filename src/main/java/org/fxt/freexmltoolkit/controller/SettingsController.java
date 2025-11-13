@@ -67,6 +67,10 @@ public class SettingsController {
     @FXML
     CheckBox xsdAutoSaveEnabled, xsdBackupEnabled, xsdPrettyPrintOnSave;
 
+    // SSL Settings
+    @FXML
+    CheckBox trustAllCerts;
+
     @FXML
     Spinner<Integer> xsdAutoSaveInterval, xsdBackupVersions;
 
@@ -194,6 +198,12 @@ public class SettingsController {
         testProps.setProperty("http.proxy.port", portSpinner.getValue().toString());
         testProps.setProperty("http.proxy.user", httpProxyUser.getText());
         testProps.setProperty("http.proxy.password", httpProxyPass.getText());
+        testProps.setProperty("noProxyHost", noProxyHost.getText());
+        // Include SSL settings from current UI state
+        testProps.setProperty("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
+        
+        logger.debug("Connection test with settings: manualProxy={}, host={}, port={}, trustAllCerts={}", 
+                    manualProxy.isSelected(), httpProxyHost.getText(), portSpinner.getValue(), trustAllCerts.isSelected());
 
         try {
             var connectionResult = connectionService.testHttpRequest(new URI("https://www.github.com"), testProps);
@@ -253,6 +263,9 @@ public class SettingsController {
             props.setProperty("http.proxy.port", portSpinner.getValue().toString());
             props.setProperty("http.proxy.user", httpProxyUser.getText());
             props.setProperty("http.proxy.password", httpProxyPass.getText());
+            
+            // Save SSL settings
+            props.setProperty("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
             props.setProperty("xml.indent.spaces", xmlIndentSpaces.getValue().toString());
             props.setProperty("xml.autoformat.after.loading", String.valueOf(autoFormatXmlAfterLoading.isSelected()));
 
@@ -340,6 +353,10 @@ public class SettingsController {
             noProxy.setSelected(true);
             enableProxyFields(false);
         }
+
+        // Load SSL settings
+        boolean trustAllCertificates = Boolean.parseBoolean(props.getProperty("ssl.trustAllCerts", "false"));
+        trustAllCerts.setSelected(trustAllCertificates);
 
         // Load temp folder settings
         if (props.get("customTempFolder") != null && !props.getProperty("customTempFolder").isBlank()) {
