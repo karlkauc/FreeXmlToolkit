@@ -1,6 +1,3 @@
-import java.net.URI
-import java.util.*
-
 /*
  * FreeXMLToolkit - Universal Toolkit for XML
  * Copyright (c) Karl Kauc 2024.
@@ -23,7 +20,6 @@ plugins {
     java
     application
     idea
-    id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.github.ben-manes.versions") version "0.53.0"
 }
 
@@ -35,10 +31,7 @@ repositories {
     gradlePluginPortal()
 }
 
-javafx {
-    version = "21.0.8"
-    modules("javafx.controls", "javafx.fxml", "javafx.web", "javafx.swing")
-}
+// JavaFX is included in Liberica Full JDK - no separate configuration needed
 
 application {
     mainClass.set("org.fxt.freexmltoolkit.FxtGui")
@@ -132,6 +125,19 @@ dependencies {
     implementation("com.helger.schematron:ph-schematron-schxslt:9.0.1")
 }
 
+// Java Toolchain Configuration - Use JDK with JavaFX included
+// REQUIREMENTS for cross-platform builds:
+// - JDK must include JavaFX modules (Liberica Full JDK, Azul Zulu FX, etc.)
+// - For GitHub Actions: Configure JDK setup action with appropriate distribution
+// - For local development: Set JAVA_HOME to JDK with JavaFX or use toolchain auto-provisioning
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25) // Use Java 25 with JavaFX
+        vendor = JvmVendorSpec.BELLSOFT  // Use Liberica Full JDK with JavaFX
+    }
+}
+
+
 // Exclude old SLF4J bindings to avoid conflicts with SLF4J 2.x
 configurations.all {
     exclude(group = "org.slf4j", module = "slf4j-simple")
@@ -153,6 +159,11 @@ tasks {
     withType<JavaExec> {
         jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED", "--enable-native-access=javafx.graphics")
     }
+}
+
+// Exclude node_modules from resources processing
+tasks.processResources {
+    exclude("**/node_modules/**")
 }
 
 tasks.jar {
@@ -178,6 +189,7 @@ tasks.jar {
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     exclude("META-INF/*.RSA", "META-INF/*.DSA", "META-INF/*.SF")
+    exclude("**/node_modules/**")
 }
 
 tasks.test {
@@ -188,579 +200,6 @@ tasks.test {
     }
 }
 
-tasks.register("createImageDirectory") {
-    description = "Bereinigt und erstellt das image Verzeichnis"
-    doLast {
-        delete(layout.buildDirectory.dir("image"))
-        mkdir(layout.buildDirectory.dir("image"))
-    }
-}
-
-tasks.register("cleanDistDirectory") {
-    description = "Bereinigt das dist Verzeichnis"
-    doLast {
-        delete(layout.buildDirectory.dir("dist"))
-        mkdir(layout.buildDirectory.dir("dist"))
-    }
-}
-
-tasks.register<Copy>("copyDistributionFiles") {
-    dependsOn("jar", "createImageDirectory", "cleanDistDirectory")
-    description = "Kopiert zusätzliche Dateien für die Distribution"
-
-    // Zielverzeichnis fix als File
-    into(layout.buildDirectory.dir("image").get().asFile)
-
-    from(project.projectDir.resolve("release/examples"))
-    from(project.projectDir.resolve("release/log4j2.xml"))
-    from(project.projectDir.resolve("release/FreeXMLToolkit.properties"))
-
-    // Haupt-JAR umbenannt ablegen (liegt im image-Root)
-    from(tasks.jar) {
-        rename { "FreeXmlToolkit.jar" }
-    }
-
-    // Laufzeit-Abhängigkeiten (inkl. JavaFX) unter image/lib
-    from(configurations.runtimeClasspath) {
-        into("lib")
-    }
-}
-
-// JavaFX Konfiguration
-val javafxVersion = "25" // oder Ihre gewünschte Version
-val jmodsDir = file("${projectDir}/javafx-jmods")
-
-// Betriebssystem-Erkennung für JavaFX
-fun getJavafxPlatform(): String {
-    val os = org.gradle.internal.os.OperatingSystem.current()
-    val arch = System.getProperty("os.arch").lowercase(Locale.getDefault())
-
-    return when {
-        os.isWindows -> "windows-x64" // Nur x64 verfügbar
-        os.isMacOsX -> if (arch.contains("aarch64") || arch.contains("arm")) "osx-aarch64" else "osx-x64"
-        os.isLinux -> "linux-x64" // Nur x64 verfügbar
-        else -> throw GradleException("Unsupported operating system")
-    }
-}
-
-// Task zum Herunterladen der JavaFX JMODs
-tasks.register("downloadJavaFXJmods") {
-    description = "Lädt JavaFX JMODs für alle verfügbaren Plattformen herunter"
-
-    doLast {
-        // Nur die verfügbaren Plattformen von Gluon
-        val platforms = mapOf(
-            "linux-x64" to "linux-x64",
-            "osx-aarch64" to "osx-aarch64",
-            "osx-x64" to "osx-x64",
-            "windows-x64" to "windows-x64"
-        )
-
-        platforms.forEach { (platform, urlPlatform) ->
-            val platformDir = file("$jmodsDir/$platform")
-
-            if (!platformDir.exists() || platformDir.listFiles { it.name.endsWith(".jmod") }.isNullOrEmpty()) {
-                println("Downloading JavaFX JMODs for $platform...")
-                platformDir.mkdirs()
-
-                val jmodsUrl =
-                    "https://download2.gluonhq.com/openjfx/${javafxVersion}/openjfx-${javafxVersion}_${urlPlatform}_bin-jmods.zip"
-                val zipFile = file("$layout.buildDirectory/tmp/javafx-${platform}-jmods.zip")
-                zipFile.parentFile.mkdirs()
-
-                println("Downloading from: $jmodsUrl")
-
-                // Download mit Ant
-                try {
-                    ant.invokeMethod(
-                        "get", mapOf(
-                            "src" to jmodsUrl,
-                            "dest" to zipFile,
-                            "verbose" to true,
-                            "skipexisting" to false
-                        )
-                    )
-
-                    // Extract
-                    println("Extracting JavaFX JMODs to $platformDir...")
-                    copy {
-                        from(zipTree(zipFile))
-                        into(platformDir)
-                        // Die JMODs sind in javafx-jmods-{version}/ Unterverzeichnis
-                        eachFile {
-                            if (path.startsWith("javafx-jmods-${javafxVersion}/")) {
-                                relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
-                            }
-                        }
-                        includeEmptyDirs = false
-                    }
-
-                    // Cleanup ZIP file
-                    zipFile.delete()
-
-                    println("✅ JavaFX JMODs for $platform downloaded successfully")
-                } catch (e: Exception) {
-                    println("❌ Failed to download JavaFX JMODs for $platform: ${e.message}")
-                    platformDir.deleteRecursively()
-                    throw e
-                }
-            } else {
-                println("✅ JavaFX JMODs for $platform already exist in $platformDir")
-            }
-        }
-    }
-}
-
-// Alternative Download-Methode mit Gradle's download capabilities
-tasks.register("downloadJavaFXJmodsWithGradle") {
-    description = "Lädt JavaFX JMODs mit Gradle's eigenen Download-Mechanismen herunter"
-
-    doLast {
-        val platforms = listOf("linux-x64", "osx-aarch64", "osx-x64", "windows-x64")
-
-        platforms.forEach { platform ->
-            val platformDir = file("$jmodsDir/$platform")
-
-            if (!platformDir.exists() || platformDir.listFiles { it.name.endsWith(".jmod") }.isNullOrEmpty()) {
-                platformDir.mkdirs()
-
-                val jmodsUrl =
-                    "https://download2.gluonhq.com/openjfx/${javafxVersion}/openjfx-${javafxVersion}_${platform}_bin-jmods.zip"
-                val zipFile = file("$layout.buildDirectory/tmp/javafx-${platform}-jmods.zip")
-                zipFile.parentFile.mkdirs()
-
-                println("Downloading JavaFX JMODs for $platform from $jmodsUrl...")
-
-                // Download mit Java
-                val url = URI(jmodsUrl).toURL()
-                url.openStream().use { input ->
-                    zipFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-
-                // Extract
-                println("Extracting JavaFX JMODs...")
-                copy {
-                    from(zipTree(zipFile))
-                    into(platformDir)
-                    eachFile {
-                        if (path.startsWith("javafx-jmods-${javafxVersion}/")) {
-                            relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
-                        }
-                    }
-                    includeEmptyDirs = false
-                }
-
-                zipFile.delete()
-                println("✅ JavaFX JMODs for $platform installed")
-            }
-        }
-    }
-}
-
-// Modifizierter createRuntimeImage Task mit JavaFX JMODs
-tasks.register<Exec>("createRuntimeImage") {
-    dependsOn("downloadJavaFXJmods")
-    description = "Erstellt ein benutzerdefiniertes Runtime-Image mit JavaFX für alle Plattformen"
-
-    val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
-    val currentPlatform = getJavafxPlatform()
-    val javafxJmodsPath = file("$jmodsDir/$currentPlatform")
-
-    doFirst {
-        runtimeDir.deleteRecursively()
-
-        // Überprüfen, ob JMODs vorhanden sind
-        if (!javafxJmodsPath.exists() || javafxJmodsPath.listFiles { f -> f.name.endsWith(".jmod") }.isNullOrEmpty()) {
-            throw GradleException("JavaFX JMODs not found for platform $currentPlatform in $javafxJmodsPath. Run 'downloadJavaFXJmods' first.")
-        }
-
-        println("Using JavaFX JMODs from: $javafxJmodsPath")
-        println("Found JMODs: ${javafxJmodsPath.listFiles { it.name.endsWith(".jmod") }?.map { it.name }}")
-    }
-
-    workingDir = layout.buildDirectory.get().asFile
-
-    val modules = listOf(
-        "java.base",
-        "java.logging",
-        "java.xml",
-        "java.desktop",
-        "jdk.unsupported",
-        "jdk.crypto.ec",
-        "java.sql",
-        "java.naming",
-        "java.scripting",
-        "java.management",
-        "java.prefs",
-        "jdk.xml.dom",
-        "jdk.unsupported.desktop",
-        // JavaFX Module
-        "javafx.base",
-        "javafx.controls",
-        "javafx.fxml",
-        "javafx.graphics",
-        "javafx.media",
-        "javafx.web",
-        "javafx.swing"
-    ).joinToString(",")
-
-    val javaHome = System.getProperty("java.home")
-
-    // Erstelle den Module-Path mit System-JMODs und JavaFX-JMODs
-    val modulePath = listOf(
-        "$javaHome/jmods",
-        javafxJmodsPath.absolutePath
-    ).joinToString(File.pathSeparator)
-
-    println("Module path: $modulePath")
-
-    commandLine(
-        "jlink",
-        "--module-path", modulePath,
-        "--add-modules", modules,
-        "--strip-debug",
-        "--no-header-files",
-        "--no-man-pages",
-        "--compress", "zip-6",
-        "--output", runtimeDir.absolutePath
-    )
-}
-
-// Plattform-spezifische Runtime-Images erstellen
-tasks.register<Exec>("createRuntimeImageForWindows") {
-    dependsOn("downloadJavaFXJmods")
-    description = "Erstellt ein Runtime-Image speziell für Windows x64"
-
-    val runtimeDir = layout.buildDirectory.dir("image/runtime-windows-x64").get().asFile
-    val javafxJmodsPath = file("$jmodsDir/windows-x64")
-
-    doFirst {
-        runtimeDir.deleteRecursively()
-        if (!javafxJmodsPath.exists()) {
-            throw GradleException("JavaFX JMODs not found for Windows x64. Run 'downloadJavaFXJmods' first.")
-        }
-    }
-
-    workingDir = layout.buildDirectory.get().asFile
-
-    val modules = listOf(
-        "java.base",
-        "java.logging",
-        "java.xml",
-        "java.desktop",
-        "jdk.unsupported",
-        "jdk.crypto.ec",
-        "java.sql",
-        "java.naming",
-        "java.scripting",
-        "java.management",
-        "java.prefs",
-        "jdk.xml.dom",
-        "jdk.unsupported.desktop",
-        "javafx.base",
-        "javafx.controls",
-        "javafx.fxml",
-        "javafx.graphics",
-        "javafx.media",
-        "javafx.web",
-        "javafx.swing"
-    ).joinToString(",")
-
-    val javaHome = System.getProperty("java.home")
-    val modulePath = listOf(
-        "$javaHome/jmods",
-        javafxJmodsPath.absolutePath
-    ).joinToString(File.pathSeparator)
-
-    commandLine(
-        "jlink",
-        "--module-path", modulePath,
-        "--add-modules", modules,
-        "--strip-debug",
-        "--no-header-files",
-        "--no-man-pages",
-        "--compress", "zip-6",
-        "--output", runtimeDir.absolutePath
-    )
-}
-
-tasks.register<Exec>("createRuntimeImageForLinux") {
-    dependsOn("downloadJavaFXJmods")
-    description = "Erstellt ein Runtime-Image speziell für Linux x64"
-
-    val runtimeDir = layout.buildDirectory.dir("image/runtime-linux-x64").get().asFile
-    val javafxJmodsPath = file("$jmodsDir/linux-x64")
-
-    doFirst {
-        runtimeDir.deleteRecursively()
-        if (!javafxJmodsPath.exists()) {
-            throw GradleException("JavaFX JMODs not found for Linux x64. Run 'downloadJavaFXJmods' first.")
-        }
-    }
-
-    workingDir = layout.buildDirectory.get().asFile
-
-    val modules = listOf(
-        "java.base",
-        "java.logging",
-        "java.xml",
-        "java.desktop",
-        "jdk.unsupported",
-        "jdk.crypto.ec",
-        "java.sql",
-        "java.naming",
-        "java.scripting",
-        "java.management",
-        "java.prefs",
-        "jdk.xml.dom",
-        "jdk.unsupported.desktop",
-        "javafx.base",
-        "javafx.controls",
-        "javafx.fxml",
-        "javafx.graphics",
-        "javafx.media",
-        "javafx.web",
-        "javafx.swing"
-    ).joinToString(",")
-
-    val javaHome = System.getProperty("java.home")
-    val modulePath = listOf(
-        "$javaHome/jmods",
-        javafxJmodsPath.absolutePath
-    ).joinToString(File.pathSeparator)
-
-    commandLine(
-        "jlink",
-        "--module-path", modulePath,
-        "--add-modules", modules,
-        "--strip-debug",
-        "--no-header-files",
-        "--no-man-pages",
-        "--compress", "zip-6",
-        "--output", runtimeDir.absolutePath
-    )
-}
-
-tasks.register<Exec>("createRuntimeImageForMacOSX64") {
-    dependsOn("downloadJavaFXJmods")
-    description = "Erstellt ein Runtime-Image speziell für macOS Intel x64"
-
-    val runtimeDir = layout.buildDirectory.dir("image/runtime-osx-x64").get().asFile
-    val javafxJmodsPath = file("$jmodsDir/osx-x64")
-
-    doFirst {
-        runtimeDir.deleteRecursively()
-        if (!javafxJmodsPath.exists()) {
-            throw GradleException("JavaFX JMODs not found for macOS x64. Run 'downloadJavaFXJmods' first.")
-        }
-    }
-
-    workingDir = layout.buildDirectory.get().asFile
-
-    val modules = listOf(
-        "java.base",
-        "java.logging",
-        "java.xml",
-        "java.desktop",
-        "jdk.unsupported",
-        "jdk.crypto.ec",
-        "java.sql",
-        "java.naming",
-        "java.scripting",
-        "java.management",
-        "java.prefs",
-        "jdk.xml.dom",
-        "jdk.unsupported.desktop",
-        "javafx.base",
-        "javafx.controls",
-        "javafx.fxml",
-        "javafx.graphics",
-        "javafx.media",
-        "javafx.web",
-        "javafx.swing"
-    ).joinToString(",")
-
-    val javaHome = System.getProperty("java.home")
-    val modulePath = listOf(
-        "$javaHome/jmods",
-        javafxJmodsPath.absolutePath
-    ).joinToString(File.pathSeparator)
-
-    commandLine(
-        "jlink",
-        "--module-path", modulePath,
-        "--add-modules", modules,
-        "--strip-debug",
-        "--no-header-files",
-        "--no-man-pages",
-        "--compress", "zip-6",
-        "--output", runtimeDir.absolutePath
-    )
-}
-
-tasks.register<Exec>("createRuntimeImageForMacOSAArch64") {
-    dependsOn("downloadJavaFXJmods")
-    description = "Erstellt ein Runtime-Image speziell für macOS Apple Silicon"
-
-    val runtimeDir = layout.buildDirectory.dir("image/runtime-osx-aarch64").get().asFile
-    val javafxJmodsPath = file("$jmodsDir/osx-aarch64")
-
-    doFirst {
-        runtimeDir.deleteRecursively()
-        if (!javafxJmodsPath.exists()) {
-            throw GradleException("JavaFX JMODs not found for macOS AArch64. Run 'downloadJavaFXJmods' first.")
-        }
-    }
-
-    workingDir = layout.buildDirectory.get().asFile
-
-    val modules = listOf(
-        "java.base",
-        "java.logging",
-        "java.xml",
-        "java.desktop",
-        "jdk.unsupported",
-        "jdk.crypto.ec",
-        "java.sql",
-        "java.naming",
-        "java.scripting",
-        "java.management",
-        "java.prefs",
-        "jdk.xml.dom",
-        "jdk.unsupported.desktop",
-        "javafx.base",
-        "javafx.controls",
-        "javafx.fxml",
-        "javafx.graphics",
-        "javafx.media",
-        "javafx.web",
-        "javafx.swing"
-    ).joinToString(",")
-
-    val javaHome = System.getProperty("java.home")
-    val modulePath = listOf(
-        "$javaHome/jmods",
-        javafxJmodsPath.absolutePath
-    ).joinToString(File.pathSeparator)
-
-    commandLine(
-        "jlink",
-        "--module-path", modulePath,
-        "--add-modules", modules,
-        "--strip-debug",
-        "--no-header-files",
-        "--no-man-pages",
-        "--compress", "zip-6",
-        "--output", runtimeDir.absolutePath
-    )
-}
-
-// Task zum Bereinigen der JMODs
-tasks.register<Delete>("cleanJavaFXJmods") {
-    description = "Löscht heruntergeladene JavaFX JMODs"
-    delete(jmodsDir)
-}
-
-// Task zum Verifizieren der JMODs
-tasks.register("verifyJavaFXJmods") {
-    dependsOn("downloadJavaFXJmods")
-    description = "Überprüft, ob alle benötigten JavaFX JMODs vorhanden sind"
-
-    doLast {
-        val platforms = listOf("linux-x64", "osx-aarch64", "osx-x64", "windows-x64")
-        val requiredModules = listOf(
-            "javafx.base.jmod",
-            "javafx.controls.jmod",
-            "javafx.fxml.jmod",
-            "javafx.graphics.jmod",
-            "javafx.media.jmod",
-            "javafx.web.jmod",
-            "javafx.swing.jmod"
-        )
-
-        var allGood = true
-
-        platforms.forEach { platform ->
-            val platformDir = file("$jmodsDir/$platform")
-            println("\n📦 Checking JavaFX JMODs for $platform:")
-            println("   Directory: $platformDir")
-
-            if (!platformDir.exists()) {
-                println("   ❌ Directory not found!")
-                allGood = false
-            } else {
-                val missingModules = mutableListOf<String>()
-                requiredModules.forEach { module ->
-                    val moduleFile = file("$platformDir/$module")
-                    if (moduleFile.exists()) {
-                        val sizeMB = moduleFile.length() / 1024 / 1024
-                        println("   ✅ $module (${sizeMB} MB)")
-                    } else {
-                        println("   ❌ $module - MISSING!")
-                        missingModules.add(module)
-                        allGood = false
-                    }
-                }
-
-                if (missingModules.isEmpty()) {
-                    println("   ✅ All modules present for $platform")
-                } else {
-                    println("   ⚠️  Missing modules: ${missingModules.joinToString(", ")}")
-                }
-            }
-        }
-
-        if (allGood) {
-            println("\n✅ All JavaFX JMODs successfully verified!")
-        } else {
-            println("\n❌ Some JavaFX JMODs are missing. Run './gradlew downloadJavaFXJmods' to download them.")
-        }
-    }
-}
-
-// Info Task
-tasks.register("javaFXInfo") {
-    description = "Zeigt Informationen über die JavaFX-Konfiguration"
-
-    doLast {
-        println("\n╔════════════════════════════════════════════╗")
-        println("║          JavaFX JMODs Configuration        ║")
-        println("╚════════════════════════════════════════════╝")
-        println()
-        println("JavaFX Version: $javafxVersion")
-        println("JMODs Directory: $jmodsDir")
-        println("Current Platform: ${getJavafxPlatform()}")
-        println()
-        println("Available platforms:")
-        println("  • linux-x64    - Linux 64-bit")
-        println("  • osx-x64      - macOS Intel 64-bit")
-        println("  • osx-aarch64  - macOS Apple Silicon")
-        println("  • windows-x64  - Windows 64-bit")
-        println()
-        println("Download URLs:")
-        listOf("linux-x64", "osx-aarch64", "osx-x64", "windows-x64").forEach { platform ->
-            println("  • https://download2.gluonhq.com/openjfx/$javafxVersion/openjfx-${javafxVersion}_${platform}_bin-jmods.zip")
-        }
-        println()
-        println("Usage:")
-        println("  1. ./gradlew downloadJavaFXJmods    - Download JMODs")
-        println("  2. ./gradlew verifyJavaFXJmods      - Verify installation")
-        println("  3. ./gradlew createRuntimeImage     - Create runtime with JavaFX")
-        println()
-    }
-}
-
-
-tasks.register<Zip>("packageDistribution") {
-    dependsOn("createAllExecutables", "copyDistributionFiles")
-    archiveFileName.set("FreeXMLToolkit.zip")
-    destinationDirectory.set(layout.buildDirectory.get())
-    from(layout.buildDirectory.dir("dist"))
-    from(layout.buildDirectory.dir("image"))
-}
-
 idea {
     module {
         isDownloadJavadoc = true
@@ -768,732 +207,406 @@ idea {
     }
 }
 
-tasks.register("createAllExecutables") {
-    dependsOn("copyDistributionFiles")
-    description = "Erstellt native Executables für alle unterstützten Betriebssysteme"
+// Native packaging tasks using jpackage
+val jpackageTask = tasks.register("jpackage") {
+    group = "distribution"
+    description = "Base task for creating native packages"
+    dependsOn("jar")
 }
 
-tasks.register<Exec>("createRuntimeImageOLD") {
-    description = "Erstellt ein benutzerdefiniertes Runtime-Image für alle Plattformen"
-
-    val runtimeDir = layout.buildDirectory.dir("image/runtime").get().asFile
-
-    doFirst {
-        runtimeDir.deleteRecursively()
+// Helper function to create ZIP task for app-image
+fun createZipTask(jpackageTaskName: String, platform: String, arch: String): String {
+    val zipTaskName = "${jpackageTaskName}Zip"
+    
+    tasks.register<Zip>(zipTaskName) {
+        group = "distribution"
+        description = "Create ZIP archive for $platform-$arch app-image"
+        dependsOn(jpackageTaskName)
+        
+        val sourceDir = "build/dist/$platform-$arch-app-image"
+        val zipFileName = "FreeXmlToolkit-$platform-$arch-app-image-${project.version}.zip"
+        
+        from(sourceDir)
+        archiveFileName.set(zipFileName)
+        destinationDirectory.set(file("build/dist"))
+        
+        doFirst {
+            if (!file(sourceDir).exists()) {
+                throw GradleException("Source directory $sourceDir does not exist")
+            }
+            println("Creating ZIP: $zipFileName from $sourceDir")
+        }
+        
+        doLast {
+            val zipFile = archiveFile.get().asFile
+            if (zipFile.exists()) {
+                println("ZIP created successfully: ${zipFile.absolutePath} (${zipFile.length()} bytes)")
+                // Clean up the directory after successful zipping
+                delete(sourceDir)
+            } else {
+                throw GradleException("ZIP creation failed for $zipFileName")
+            }
+        }
     }
-
-    workingDir = layout.buildDirectory.get().asFile
-    val modules = listOf(
-        "java.base",
-        "java.logging",
-        "java.xml",
-        "java.desktop",
-        "jdk.unsupported",
-        "jdk.crypto.ec",
-        "java.sql",
-        "java.naming",
-        "java.scripting",
-        "javafx.controls",
-        "javafx.fxml",
-        "javafx.web",
-        "javafx.swing"
-    ).joinToString(",")
-
-    commandLine(
-        "jlink",
-        "--add-modules", modules,
-        "--strip-debug",
-        "--no-header-files",
-        "--no-man-pages",
-        "--compress", "zip-6",
-        "--output", runtimeDir.absolutePath
-    )
-}
-tasks.register<Exec>("createWindowsExecutableX64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt Windows Executable für x64 (benutzerbezogene Installation)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-x64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "exe",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
-        "--win-menu",
-        "--win-shortcut",
-        "--win-dir-chooser",
-        "--win-per-user-install",
-        "--win-menu-group", "FreeXmlToolkit",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
+    
+    return zipTaskName
 }
 
-tasks.register<Exec>("createWindowsExecutableArm64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt Windows Executable für ARM64 (benutzerbezogene Installation)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-arm64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "exe",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
-        "--win-menu",
-        "--win-shortcut",
-        "--win-dir-chooser",
-        "--win-per-user-install",
-        "--win-menu-group", "FreeXmlToolkit",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-tasks.register<Exec>("createMacOSExecutableX64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt macOS App Bundle für Intel x64 Macs"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-x64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "dmg",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.icns"),
-        "--mac-package-name", "FreeXmlToolkit-x64",
-        "--mac-package-identifier", "org.fxt.freexmltoolkit.x64",
-        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
-    )
-}
-
-tasks.register<Exec>("createMacOSExecutableArm64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt macOS App Bundle für Apple Silicon ARM64 Macs"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-arm64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "dmg",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.icns"),
-        "--mac-package-name", "FreeXmlToolkit-arm64",
-        "--mac-package-identifier", "org.fxt.freexmltoolkit.arm64",
-        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
-    )
-}
-
-tasks.register<Exec>("createLinuxDebX64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt ein .deb-Paket für Debian-basierte Linux-Distributionen (x64)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-x64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "deb",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
-        "--linux-package-name", "freexmltoolkit-x64",
-        "--linux-deb-maintainer", "karl.kauc@gmail.com",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-tasks.register<Exec>("createLinuxDebArm64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt ein .deb-Paket für Debian-basierte Linux-Distributionen (ARM64)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-arm64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "deb",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
-        "--linux-package-name", "freexmltoolkit-arm64",
-        "--linux-deb-maintainer", "karl.kauc@gmail.com",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-tasks.register<Exec>("createLinuxRpmX64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt ein .rpm-Paket für Red Hat-basierte Linux-Distributionen (x64)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-x64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "rpm",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
-        "--linux-package-name", "freexmltoolkit-x64",
-        "--linux-rpm-license-type", "Apache 2.0",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-tasks.register<Exec>("createLinuxRpmArm64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt ein .rpm-Paket für Red Hat-basierte Linux-Distributionen (ARM64)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-arm64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "rpm",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
-        "--linux-package-name", "freexmltoolkit-arm64",
-        "--linux-rpm-license-type", "Apache 2.0",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-tasks.register<Exec>("createLinuxAppImageX64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt ein AppImage für Linux-Distributionen (x64)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-x64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "app-image",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-tasks.register<Exec>("createLinuxAppImageArm64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt ein AppImage für Linux-Distributionen (ARM64)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-arm64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "app-image",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("src/main/resources/img/logo.png"),
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-
-tasks.register<Exec>("createMacOSPkgX64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt ein .pkg Installer für Intel x64 Macs"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-x64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "pkg",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.icns"),
-        "--mac-package-name", "FreeXmlToolkit-x64",
-        "--mac-package-identifier", "org.fxt.freexmltoolkit.x64",
-        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
-    )
-}
-
-tasks.register<Exec>("createMacOSPkgArm64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt ein .pkg Installer für Apple Silicon ARM64 Macs"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-arm64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "pkg",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.icns"),
-        "--mac-package-name", "FreeXmlToolkit-arm64",
-        "--mac-package-identifier", "org.fxt.freexmltoolkit.arm64",
-        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
-    )
-}
-
-tasks.register<Exec>("createMacOSAppImageX64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt ein App Bundle für Intel x64 Macs (ohne Installer)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-x64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "app-image",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.icns"),
-        "--mac-package-name", "FreeXmlToolkit-x64",
-        "--mac-package-identifier", "org.fxt.freexmltoolkit.x64",
-        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
-    )
-}
-
-tasks.register<Exec>("createMacOSAppImageArm64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt ein App Bundle für Apple Silicon ARM64 Macs (ohne Installer)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-arm64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "app-image",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.icns"),
-        "--mac-package-name", "FreeXmlToolkit-arm64",
-        "--mac-package-identifier", "org.fxt.freexmltoolkit.arm64",
-        "--java-options", "-Djavafx.css.dump.lookup.errors=true",
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath
-    )
-}
-
-tasks.register<Exec>("createWindowsMsiX64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt Windows MSI Installer für x64 (systemweite Installation)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-x64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "msi",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
-        "--win-menu",
-        "--win-shortcut",
-        "--win-dir-chooser",
-        "--win-menu-group", "FreeXmlToolkit",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-tasks.register<Exec>("createWindowsMsiArm64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt Windows MSI Installer für ARM64 (systemweite Installation)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-arm64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "msi",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
-        "--win-menu",
-        "--win-shortcut",
-        "--win-dir-chooser",
-        "--win-menu-group", "FreeXmlToolkit",
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-tasks.register<Exec>("createWindowsAppImageX64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt Windows App Image für x64 (ohne Installer)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-x64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "app-image",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-tasks.register<Exec>("createWindowsAppImageArm64") {
-    dependsOn("copyDistributionFiles", "createRuntimeImage")
-    description = "Erstellt Windows App Image für ARM64 (ohne Installer)"
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
-    workingDir = layout.buildDirectory.get().asFile
-    commandLine(
-        "jpackage",
-        "--input", "image",
-        "--name", "FreeXmlToolkit-arm64",
-        "--main-jar", "FreeXmlToolkit.jar",
-        "--main-class", "org.fxt.freexmltoolkit.FxtGui",
-        "--type", "app-image",
-        "--vendor", "Karl Kauc",
-        "--app-version", version,
-        "--icon", project.projectDir.resolve("release/logo.ico"),
-        "--dest", "dist",
-        "--runtime-image", layout.buildDirectory.dir("image/runtime").get().asFile.absolutePath,
-        "--java-options", "--enable-preview",
-        "--java-options", "--enable-native-access=ALL-UNNAMED",
-        "--java-options", "--enable-native-access=javafx.graphics"
-    )
-}
-
-tasks.register<Zip>("zipWindowsAppImageX64") {
-    description = "Zippt das erstellte Windows x64 App Image und löscht das Originalverzeichnis."
-    dependsOn(tasks.named("createWindowsAppImageX64"))
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
-
-    val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit-x64")
-    from(sourceDirProvider)
-    archiveFileName.set("FreeXmlToolkit-windows-x64-app-image-$version.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dist"))
-
-    // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows && sourceDirProvider.get().asFile.exists() }
-
-    // Nach dem Zippen das Originalverzeichnis löschen
-    doLast {
-        val sourceDir = sourceDirProvider.get().asFile
-        logger.lifecycle("Lösche originales x64 AppImage-Verzeichnis nach dem Zippen: ${sourceDir.path}")
-        sourceDir.deleteRecursively()
+// Helper function to create platform-specific jpackage tasks
+fun createJPackageTask(taskName: String, platform: String, arch: String, packageType: String) {
+    val runtimeTaskName = "create${platform.replaceFirstChar { it.uppercaseChar() }}Runtime${arch.replaceFirstChar { it.uppercaseChar() }}"
+    
+    tasks.register(taskName, Exec::class) {
+        group = "distribution"
+        description = "Create $packageType package for $platform-$arch with custom runtime"
+        dependsOn("jar", runtimeTaskName)
+        
+        doFirst {
+            delete("build/dist/$platform-$arch-$packageType")
+            mkdir("build/dist/$platform-$arch-$packageType")
+        }
+        
+        val jpackageCmd = if (System.getProperty("os.name").lowercase().contains("windows")) "jpackage.exe" else "jpackage"
+        
+        // Determine app name based on package type and platform
+        val appName = when {
+            packageType == "app-image" -> "FreeXmlToolkit"
+            platform == "linux" -> "freexmltoolkit"
+            else -> "FreeXmlToolkit"
+        }
+        
+        // Create arguments file to avoid command line length issues on Windows  
+        val argsFile = File(project.layout.buildDirectory.asFile.get(), "jpackage-args-$platform-$arch-$packageType.txt")
+        val iconPath = when (platform) {
+            "windows" -> "release/logo.ico"
+            "macos" -> "release/logo.icns"
+            else -> "release/logo.ico"  // Use ICO as fallback for Linux
+        }
+        
+        // Build platform-specific arguments
+        val platformArgs = when {
+            platform == "windows" && packageType == "app-image" -> ""
+            platform == "windows" && packageType != "app-image" -> """
+--icon """ + project.projectDir.resolve("release/logo.ico") + """
+--win-dir-chooser
+--win-menu
+--win-shortcut"""
+            platform == "macos" && packageType != "app-image" -> """
+--icon """ + project.projectDir.resolve("release/logo.icns") + """
+--mac-package-identifier
+org.fxt.freexmltoolkit
+--mac-package-name
+FreeXmlToolkit"""
+            platform == "linux" && packageType != "app-image" -> """
+--icon """ + project.projectDir.resolve("src/main/resources/img/logo.png") + """
+--linux-package-name
+freexmltoolkit
+--linux-app-category
+Development
+--linux-shortcut"""
+            else -> ""
+        }
+        
+        // Copy all runtime dependencies to libs directory and create argument file
+        doFirst {
+            copy {
+                from(configurations.runtimeClasspath.get())
+                into("build/libs/lib")
+            }
+            
+            // Check if icon exists before adding it to arguments
+            // For app-image, icon is embedded in the executable - use project relative path
+            val projectIconPath = File(project.rootDir, iconPath).absolutePath
+            val iconArg = if (File(project.rootDir, iconPath).exists()) "--icon\n$projectIconPath" else ""
+            
+            // Use custom runtime if it exists
+            val runtimePath = "build/runtime/$platform-$arch"
+            val runtimeArg = if (File(runtimePath).exists()) "--runtime-image\n$runtimePath" else ""
+            
+            argsFile.writeText("""--type
+$packageType
+--input
+build/libs
+--dest
+build/dist/$platform-$arch-$packageType
+--name
+$appName
+--main-jar
+FreeXmlToolkit.jar
+--main-class
+org.fxt.freexmltoolkit.FxtGui
+--app-version
+${project.version}
+--vendor
+"Karl Kauc"
+--copyright
+"Copyright (c) Karl Kauc 2024"
+--description
+"FreeXMLToolkit - Universal Toolkit for XML"
+$iconArg
+$runtimeArg
+--java-options
+--enable-preview
+--java-options
+--enable-native-access=ALL-UNNAMED
+--java-options
+--enable-native-access=javafx.graphics
+$platformArgs""".trimIndent())
+        }
+        
+        commandLine(jpackageCmd, "@${argsFile.absolutePath}")
+        isIgnoreExitValue = true
+        
+        // Post-processing for naming and packaging
+        doLast {
+            val sourceDir = "build/dist/$platform-$arch-$packageType"
+            val version = project.version.toString()
+            
+            when {
+                packageType == "app-image" -> {
+                    // Ensure source directory exists before processing
+                    if (file(sourceDir).exists()) {
+                        // Copy additional files from release directory to app root
+                        val appName = when (platform) {
+                            "linux" -> "freexmltoolkit"
+                            else -> "FreeXmlToolkit"
+                        }
+                        val appRootDir = File(sourceDir, appName)
+                        
+                        // Copy examples directory
+                        val examplesSource = File("release/examples")
+                        val examplesTarget = File(appRootDir, "examples")
+                        if (examplesSource.exists()) {
+                            copy {
+                                from(examplesSource)
+                                into(examplesTarget)
+                            }
+                            println("Copied examples directory to app root")
+                        }
+                        
+                        // Copy log4j2.xml
+                        val log4jSource = File("release/log4j2.xml")
+                        val log4jTarget = File(appRootDir, "log4j2.xml")
+                        if (log4jSource.exists()) {
+                            copy {
+                                from(log4jSource)
+                                into(appRootDir)
+                            }
+                            println("Copied log4j2.xml to app root")
+                        }
+                        println("App-image created successfully in: $sourceDir")
+                        println("Note: Use corresponding ZIP task to create archive")
+                    } else {
+                        println("Source directory $sourceDir does not exist")
+                    }
+                }
+                packageType == "exe" -> {
+                    // Rename exe files to match required naming convention
+                    val expectedName = "FreeXmlToolkit-$arch-$version.exe"
+                    fileTree(sourceDir).filter { it.name.endsWith(".exe") }.forEach { file ->
+                        file.renameTo(File(file.parent, expectedName))
+                    }
+                }
+                packageType == "msi" -> {
+                    // Rename msi files to match required naming convention
+                    val expectedName = "FreeXmlToolkit-$arch-$version.msi"
+                    fileTree(sourceDir).filter { it.name.endsWith(".msi") }.forEach { file ->
+                        file.renameTo(File(file.parent, expectedName))
+                    }
+                }
+                packageType == "dmg" -> {
+                    // Rename dmg files to match required naming convention
+                    val expectedName = "FreeXmlToolkit-$arch-$version.dmg"
+                    fileTree(sourceDir).filter { it.name.endsWith(".dmg") }.forEach { file ->
+                        file.renameTo(File(file.parent, expectedName))
+                    }
+                }
+                packageType == "pkg" -> {
+                    // Rename pkg files to match required naming convention
+                    val expectedName = "FreeXmlToolkit-$arch-$version.pkg"
+                    fileTree(sourceDir).filter { it.name.endsWith(".pkg") }.forEach { file ->
+                        file.renameTo(File(file.parent, expectedName))
+                    }
+                }
+                packageType == "deb" -> {
+                    // Rename deb files to match required naming convention
+                    val expectedName = "freexmltoolkit-${arch}_${version}_amd64.deb"
+                    fileTree(sourceDir).filter { it.name.endsWith(".deb") }.forEach { file ->
+                        file.renameTo(File(file.parent, expectedName))
+                    }
+                }
+                packageType == "rpm" -> {
+                    // Rename rpm files to match required naming convention
+                    val expectedName = "freexmltoolkit-$arch-$version-1.x86_64.rpm"
+                    fileTree(sourceDir).filter { it.name.endsWith(".rpm") }.forEach { file ->
+                        file.renameTo(File(file.parent, expectedName))
+                    }
+                }
+            }
+        }
     }
 }
 
-tasks.register<Zip>("zipWindowsAppImageArm64") {
-    description = "Zippt das erstellte Windows ARM64 App Image und löscht das Originalverzeichnis."
-    dependsOn(tasks.named("createWindowsAppImageArm64"))
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows }
+// Create all package types for all platform/architecture combinations with new naming convention
 
-    val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit-arm64")
-    from(sourceDirProvider)
-    archiveFileName.set("FreeXmlToolkit-windows-arm64-app-image-$version.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dist"))
+// Windows packages  
+createJPackageTask("createWindowsExecutableX64", "windows", "x64", "exe")
+createJPackageTask("createWindowsMsiX64", "windows", "x64", "msi")
+createJPackageTask("createWindowsAppImageX64", "windows", "x64", "app-image")
+val zipWindowsAppImageX64 = createZipTask("createWindowsAppImageX64", "windows", "x64")
+createJPackageTask("createWindowsExecutableArm64", "windows", "arm64", "exe")
+createJPackageTask("createWindowsMsiArm64", "windows", "arm64", "msi")
+createJPackageTask("createWindowsAppImageArm64", "windows", "arm64", "app-image")
+val zipWindowsAppImageArm64 = createZipTask("createWindowsAppImageArm64", "windows", "arm64")
 
-    // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows && sourceDirProvider.get().asFile.exists() }
+// macOS packages  
+createJPackageTask("createMacOSExecutableX64", "macos", "x64", "dmg")
+createJPackageTask("createMacOSPkgX64", "macos", "x64", "pkg")
+createJPackageTask("createMacOSAppImageX64", "macos", "x64", "app-image")
+val zipMacOSAppImageX64 = createZipTask("createMacOSAppImageX64", "macos", "x64")
+createJPackageTask("createMacOSExecutableArm64", "macos", "arm64", "dmg")
+createJPackageTask("createMacOSPkgArm64", "macos", "arm64", "pkg")
+createJPackageTask("createMacOSAppImageArm64", "macos", "arm64", "app-image")
+val zipMacOSAppImageArm64 = createZipTask("createMacOSAppImageArm64", "macos", "arm64")
 
-    // Nach dem Zippen das Originalverzeichnis löschen
-    doLast {
-        val sourceDir = sourceDirProvider.get().asFile
-        logger.lifecycle("Lösche originales ARM64 AppImage-Verzeichnis nach dem Zippen: ${sourceDir.path}")
-        sourceDir.deleteRecursively()
-    }
-}
+// Linux packages
+createJPackageTask("createLinuxDebX64", "linux", "x64", "deb")
+createJPackageTask("createLinuxRpmX64", "linux", "x64", "rpm")
+createJPackageTask("createLinuxAppImageX64", "linux", "x64", "app-image")
+val zipLinuxAppImageX64 = createZipTask("createLinuxAppImageX64", "linux", "x64")
+createJPackageTask("createLinuxDebArm64", "linux", "arm64", "deb")
+createJPackageTask("createLinuxRpmArm64", "linux", "arm64", "rpm")
+createJPackageTask("createLinuxAppImageArm64", "linux", "arm64", "app-image")
+val zipLinuxAppImageArm64 = createZipTask("createLinuxAppImageArm64", "linux", "arm64")
 
-tasks.register<Zip>("zipMacOSAppImageX64") {
-    description = "Zippt das erstellte macOS App Bundle für Intel x64 Macs."
-    dependsOn(tasks.named("createMacOSAppImageX64"))
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
-
-    val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit-x64.app")
-    val distDirProvider = layout.buildDirectory.dir("dist")
-
-    // Das komplette .app Bundle als einzelnen Eintrag ins Zip
-    from(distDirProvider) {
-        include("FreeXmlToolkit-x64.app/**")
-    }
-
-    archiveFileName.set("FreeXmlToolkit-macos-x64-app-image-$version.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dist"))
-
-    // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX && sourceDirProvider.get().asFile.exists() }
-
-    // Nach dem Zippen das Originalverzeichnis löschen
-    doLast {
-        val sourceDir = sourceDirProvider.get().asFile
-        logger.lifecycle("Lösche originales x64 App Bundle nach dem Zippen: ${sourceDir.path}")
-        sourceDir.deleteRecursively()
-    }
-}
-
-tasks.register<Zip>("zipMacOSAppImageArm64") {
-    description = "Zippt das erstellte macOS App Bundle für Apple Silicon ARM64 Macs."
-    dependsOn(tasks.named("createMacOSAppImageArm64"))
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX }
-
-    val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit-arm64.app")
-    val distDirProvider = layout.buildDirectory.dir("dist")
-
-    // Das komplette .app Bundle als einzelnen Eintrag ins Zip
-    from(distDirProvider) {
-        include("FreeXmlToolkit-arm64.app/**")
-    }
-
-    archiveFileName.set("FreeXmlToolkit-macos-arm64-app-image-$version.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dist"))
-
-    // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isMacOsX && sourceDirProvider.get().asFile.exists() }
-
-    // Nach dem Zippen das Originalverzeichnis löschen
-    doLast {
-        val sourceDir = sourceDirProvider.get().asFile
-        logger.lifecycle("Lösche originales ARM64 App Bundle nach dem Zippen: ${sourceDir.path}")
-        sourceDir.deleteRecursively()
-    }
-}
-
-tasks.register<Zip>("zipLinuxAppImageX64") {
-    description = "Zippt das erstellte Linux x64 App Image und löscht das Originalverzeichnis."
-    dependsOn(tasks.named("createLinuxAppImageX64"))
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
-
-    val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit-x64")
-    from(sourceDirProvider)
-    archiveFileName.set("FreeXmlToolkit-linux-x64-app-image-$version.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dist"))
-
-    // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux && sourceDirProvider.get().asFile.exists() }
-
-    // Nach dem Zippen das Originalverzeichnis löschen
-    doLast {
-        val sourceDir = sourceDirProvider.get().asFile
-        logger.lifecycle("Lösche originales Linux x64 AppImage-Verzeichnis nach dem Zippen: ${sourceDir.path}")
-        sourceDir.deleteRecursively()
-    }
-}
-
-tasks.register<Zip>("zipLinuxAppImageArm64") {
-    description = "Zippt das erstellte Linux ARM64 App Image und löscht das Originalverzeichnis."
-    dependsOn(tasks.named("createLinuxAppImageArm64"))
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux }
-
-    val sourceDirProvider = layout.buildDirectory.dir("dist/FreeXmlToolkit-arm64")
-    from(sourceDirProvider)
-    archiveFileName.set("FreeXmlToolkit-linux-arm64-app-image-$version.zip")
-    destinationDirectory.set(layout.buildDirectory.dir("dist"))
-
-    // Dieser Task sollte nur ausgeführt werden, wenn das Quellverzeichnis aus dem vorherigen Task existiert.
-    onlyIf { org.gradle.internal.os.OperatingSystem.current().isLinux && sourceDirProvider.get().asFile.exists() }
-
-    // Nach dem Zippen das Originalverzeichnis löschen
-    doLast {
-        val sourceDir = sourceDirProvider.get().asFile
-        logger.lifecycle("Lösche originales Linux ARM64 AppImage-Verzeichnis nach dem Zippen: ${sourceDir.path}")
-        sourceDir.deleteRecursively()
-    }
-}
-
-tasks.named("createAllExecutables") {
-    dependsOn(
-        "createWindowsExecutableX64",
-        "createWindowsExecutableArm64",
-        "createWindowsMsiX64",
-        "createWindowsMsiArm64",
-        "zipWindowsAppImageX64",
-        "zipWindowsAppImageArm64",
-        "createMacOSExecutableX64",
-        "createMacOSExecutableArm64",
-        "createMacOSPkgX64",
-        "createMacOSPkgArm64",
-        "zipMacOSAppImageX64",
-        "zipMacOSAppImageArm64",
-        "createLinuxDebX64",
-        "createLinuxDebArm64",
-        "createLinuxRpmX64",
-        "createLinuxRpmArm64",
-        "zipLinuxAppImageX64",
-        "zipLinuxAppImageArm64"
-    )
-}
-
-// Convenience tasks for platform-specific packages
+// Convenience tasks for creating all packages per platform
 tasks.register("createWindowsPackages") {
-    description = "Erstellt alle Windows-Pakete für beide Architekturen (exe, msi, app-image)"
+    group = "distribution"
+    description = "Create all Windows packages"
     dependsOn(
-        "createWindowsExecutableX64",
-        "createWindowsExecutableArm64",
-        "createWindowsMsiX64",
-        "createWindowsMsiArm64",
-        "zipWindowsAppImageX64",
-        "zipWindowsAppImageArm64"
+        "createWindowsExecutableX64", "createWindowsMsiX64", zipWindowsAppImageX64,
+        "createWindowsExecutableArm64", "createWindowsMsiArm64", zipWindowsAppImageArm64
     )
 }
 
 tasks.register("createMacOSPackages") {
-    description = "Erstellt alle macOS-Pakete für beide Architekturen (dmg, pkg, app-image)"
+    group = "distribution"
+    description = "Create all macOS packages"
     dependsOn(
-        "createMacOSExecutableX64",
-        "createMacOSExecutableArm64",
-        "createMacOSPkgX64",
-        "createMacOSPkgArm64",
-        "zipMacOSAppImageX64",
-        "zipMacOSAppImageArm64"
+        "createMacOSExecutableX64", "createMacOSPkgX64", zipMacOSAppImageX64,
+        "createMacOSExecutableArm64", "createMacOSPkgArm64", zipMacOSAppImageArm64
     )
 }
 
 tasks.register("createLinuxPackages") {
-    description = "Erstellt alle Linux-Pakete für beide Architekturen (deb, rpm, app-image)"
+    group = "distribution"
+    description = "Create all Linux packages"
     dependsOn(
-        "createLinuxDebX64",
-        "createLinuxDebArm64",
-        "createLinuxRpmX64",
-        "createLinuxRpmArm64",
-        "zipLinuxAppImageX64",
-        "zipLinuxAppImageArm64"
+        "createLinuxDebX64", "createLinuxRpmX64", zipLinuxAppImageX64,
+        "createLinuxDebArm64", "createLinuxRpmArm64", zipLinuxAppImageArm64
     )
 }
 
-// Task to create only installers (no app-images)
-tasks.register("createAllInstallers") {
-    description = "Erstellt alle Installer-Pakete für alle Architekturen (exe, msi, dmg, pkg, deb, rpm)"
+tasks.register("createAllExecutables") {
+    group = "distribution"
+    description = "Create native packages for all platforms and architectures"
+    dependsOn("createWindowsPackages", "createMacOSPackages", "createLinuxPackages")
+}
+
+// Task to create a distribution with all packages
+tasks.register<Zip>("packageDistribution") {
+    group = "distribution"
+    description = "Package all executables into a distribution archive"
+    dependsOn("createAllExecutables")
+    
+    from("build/dist")
+    archiveFileName.set("FreeXmlToolkit-${project.version}-all-platforms.zip")
+    destinationDirectory.set(file("build/distribution"))
+    
+    doFirst {
+        file("build/distribution").mkdirs()
+    }
+    
+    doLast {
+        val zipFile = archiveFile.get().asFile
+        println("Distribution ZIP created: ${zipFile.absolutePath} (${zipFile.length()} bytes)")
+    }
+}
+
+// ===============================
+// jlink Runtime Creation using configured JDK with JavaFX
+// ===============================
+
+// Helper function to create jlink runtime images using configured JDK
+fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
+    tasks.register(taskName, Exec::class) {
+        group = "runtime"
+        description = "Create jlink runtime image for $platform-$arch using configured JDK"
+        dependsOn("jar")
+        
+        val runtimeDir = "build/runtime/$platform-$arch"
+        
+        doFirst {
+            delete(runtimeDir)
+        }
+        
+        // Use configured JDK from toolchain (works with any JDK that includes JavaFX)
+        val currentJavaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
+        val jlinkCmd = if (System.getProperty("os.name").lowercase().contains("windows")) 
+            "$currentJavaHome/bin/jlink.exe" else "$currentJavaHome/bin/jlink"
+        val modulePath = "$currentJavaHome/jmods"
+        
+        // Required modules including JavaFX (works with any JDK that includes JavaFX)
+        val requiredModules = setOf(
+            "java.base",
+            "java.desktop", 
+            "java.xml",
+            "java.logging",
+            "java.prefs",
+            "java.sql",
+            "java.naming",
+            "jdk.crypto.ec",
+            "jdk.jsobject",
+            "javafx.base",
+            "javafx.controls",
+            "javafx.fxml", 
+            "javafx.graphics",
+            "javafx.media",
+            "javafx.web",
+            "javafx.swing"
+        )
+        
+        commandLine(
+            jlinkCmd,
+            "--module-path", modulePath,
+            "--add-modules", requiredModules.joinToString(","),
+            "--output", runtimeDir,
+            "--compress=zip-6",
+            "--no-header-files",
+            "--no-man-pages"
+        )
+        
+        doLast {
+            println("✅ Runtime image created for $platform-$arch in $runtimeDir")
+        }
+    }
+}
+
+// Create jlink runtime tasks for all platforms
+createJlinkRuntimeTask("createWindowsRuntimeX64", "windows", "x64")
+createJlinkRuntimeTask("createLinuxRuntimeX64", "linux", "x64") 
+createJlinkRuntimeTask("createMacOSRuntimeX64", "macos", "x64")
+createJlinkRuntimeTask("createMacOSRuntimeAarch64", "macos", "aarch64")
+
+// Convenience task to create all runtime images
+tasks.register("createAllRuntimes") {
+    group = "runtime"
+    description = "Create jlink runtime images for all platforms"
     dependsOn(
-        "createWindowsExecutableX64",
-        "createWindowsExecutableArm64",
-        "createWindowsMsiX64",
-        "createWindowsMsiArm64",
-        "createMacOSExecutableX64",
-        "createMacOSExecutableArm64",
-        "createMacOSPkgX64",
-        "createMacOSPkgArm64",
-        "createLinuxDebX64",
-        "createLinuxDebArm64",
-        "createLinuxRpmX64",
-        "createLinuxRpmArm64"
+        "createWindowsRuntimeX64",
+        "createLinuxRuntimeX64", 
+        "createMacOSRuntimeX64",
+        "createMacOSRuntimeAarch64"
     )
 }
 
-// Task to create only app-images (portable versions)
-tasks.register("createAllAppImages") {
-    description = "Erstellt alle App-Image-Pakete (portable Versionen) für alle Architekturen"
-    dependsOn(
-        "zipWindowsAppImageX64",
-        "zipWindowsAppImageArm64",
-        "zipMacOSAppImageX64",
-        "zipMacOSAppImageArm64",
-        "zipLinuxAppImageX64",
-        "zipLinuxAppImageArm64"
-    )
-}

@@ -8,6 +8,9 @@
 CLAUDE.md
 GEMINI.md
 
+# Backup Files
+*.bak*
+
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
@@ -87,6 +90,9 @@ settings.xml
 .gradle/
 logs
 gradle.properties
+*.iml
+*.ipr
+*.iws
 
 /**/config.properties*
 /src/main/resources/scss/node_modules/
