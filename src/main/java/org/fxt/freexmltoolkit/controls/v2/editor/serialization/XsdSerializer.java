@@ -168,6 +168,9 @@ public class XsdSerializer {
     }
 
     private void serializeElement(XsdElement element, StringBuilder sb, String indentation, int indent) {
+        // Synchronize constraint lists to facets before serialization
+        synchronizeConstraintsToFacets(element);
+
         sb.append(indentation).append("<xs:element name=\"").append(escapeXml(element.getName())).append("\"");
 
         // Add type if specified (for simple content elements)
@@ -204,6 +207,77 @@ public class XsdSerializer {
         } else {
             // Self-closing tag for simple elements without annotation
             sb.append("/>\n");
+        }
+    }
+
+    /**
+     * Synchronizes constraint lists (enumerations, patterns, assertions) from the element
+     * back to the XsdRestriction facets in the tree structure before serialization.
+     * This ensures that changes made via commands are reflected in the serialized XSD.
+     *
+     * @param element the element to synchronize
+     */
+    private void synchronizeConstraintsToFacets(XsdElement element) {
+        // Check if element has any constraints to synchronize
+        if (element.getEnumerations().isEmpty() &&
+            element.getPatterns().isEmpty() &&
+            element.getAssertions().isEmpty()) {
+            return; // Nothing to synchronize
+        }
+
+        // Find or create simpleType child
+        XsdSimpleType simpleType = null;
+        for (XsdNode child : element.getChildren()) {
+            if (child instanceof XsdSimpleType) {
+                simpleType = (XsdSimpleType) child;
+                break;
+            }
+        }
+
+        // If no simpleType exists, create one (without name for inline type)
+        if (simpleType == null) {
+            simpleType = new XsdSimpleType("");
+            element.addChild(simpleType);
+        }
+
+        // Find or create restriction child
+        XsdRestriction restriction = null;
+        for (XsdNode child : simpleType.getChildren()) {
+            if (child instanceof XsdRestriction) {
+                restriction = (XsdRestriction) child;
+                break;
+            }
+        }
+
+        // If no restriction exists, create one
+        if (restriction == null) {
+            restriction = new XsdRestriction("xs:string"); // Default base type
+            simpleType.addChild(restriction);
+        }
+
+        // Clear existing constraint facets from restriction
+        restriction.getFacets().removeIf(facet ->
+            facet.getFacetType() == XsdFacetType.ENUMERATION ||
+            facet.getFacetType() == XsdFacetType.PATTERN ||
+            facet.getFacetType() == XsdFacetType.ASSERTION
+        );
+
+        // Add enumerations as facets
+        for (String enumValue : element.getEnumerations()) {
+            XsdFacet facet = new XsdFacet(XsdFacetType.ENUMERATION, enumValue);
+            restriction.addFacet(facet);
+        }
+
+        // Add patterns as facets
+        for (String pattern : element.getPatterns()) {
+            XsdFacet facet = new XsdFacet(XsdFacetType.PATTERN, pattern);
+            restriction.addFacet(facet);
+        }
+
+        // Add assertions as facets
+        for (String assertion : element.getAssertions()) {
+            XsdFacet facet = new XsdFacet(XsdFacetType.ASSERTION, assertion);
+            restriction.addFacet(facet);
         }
     }
 

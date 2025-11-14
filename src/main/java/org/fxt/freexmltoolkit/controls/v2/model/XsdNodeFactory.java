@@ -217,6 +217,8 @@ public class XsdNodeFactory {
             } else if (isXsdElement(childElement, "simpleType")) {
                 XsdSimpleType simpleType = parseSimpleType(childElement);
                 element.addChild(simpleType);
+                // Extract enumerations, patterns, and assertions from the simpleType
+                extractConstraintsFromSimpleType(simpleType, element);
             } else if (isXsdElement(childElement, "key")) {
                 XsdKey key = parseKey(childElement);
                 element.addChild(key);
@@ -510,6 +512,44 @@ public class XsdNodeFactory {
         }
 
         return simpleType;
+    }
+
+    /**
+     * Extracts constraint facets (enumerations, patterns, assertions) from a simpleType
+     * and adds them to the parent element's constraint lists.
+     *
+     * @param simpleType The parsed simpleType node
+     * @param element The parent element to add constraints to
+     */
+    private void extractConstraintsFromSimpleType(XsdSimpleType simpleType, XsdElement element) {
+        // Traverse children to find restrictions
+        for (XsdNode child : simpleType.getChildren()) {
+            if (child instanceof XsdRestriction restriction) {
+                // Extract facets from the restriction
+                for (XsdFacet facet : restriction.getFacets()) {
+                    String facetValue = facet.getValue();
+                    if (facetValue == null || facetValue.isEmpty()) {
+                        continue;
+                    }
+
+                    // Add to appropriate constraint list based on facet type
+                    switch (facet.getFacetType()) {
+                        case ENUMERATION:
+                            element.addEnumeration(facetValue);
+                            break;
+                        case PATTERN:
+                            element.addPattern(facetValue);
+                            break;
+                        case ASSERTION:
+                            element.addAssertion(facetValue);
+                            break;
+                        default:
+                            // Other facets are not stored in constraint lists
+                            break;
+                    }
+                }
+            }
+        }
     }
 
     /**

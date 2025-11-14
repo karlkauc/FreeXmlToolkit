@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Represents an XSD element (xs:element).
  *
@@ -14,6 +18,11 @@ public class XsdElement extends XsdNode {
     private String defaultValue;
     private String substitutionGroup;
     private String form; // qualified, unqualified
+
+    // XSD constraints
+    private final List<String> patterns = new ArrayList<>();
+    private final List<String> enumerations = new ArrayList<>();
+    private final List<String> assertions = new ArrayList<>();
 
     /**
      * Creates a new XSD element.
@@ -164,6 +173,153 @@ public class XsdElement extends XsdNode {
         pcs.firePropertyChange("form", oldValue, form);
     }
 
+    /**
+     * Gets an unmodifiable list of regex patterns.
+     *
+     * @return the patterns list
+     */
+    public List<String> getPatterns() {
+        return Collections.unmodifiableList(patterns);
+    }
+
+    /**
+     * Adds a regex pattern constraint.
+     *
+     * @param pattern the regex pattern to add
+     */
+    public void addPattern(String pattern) {
+        if (pattern == null || pattern.trim().isEmpty()) {
+            return;
+        }
+        List<String> oldValue = new ArrayList<>(patterns);
+        patterns.add(pattern.trim());
+        pcs.firePropertyChange("patterns", oldValue, new ArrayList<>(patterns));
+    }
+
+    /**
+     * Removes a regex pattern constraint.
+     *
+     * @param pattern the pattern to remove
+     * @return true if the pattern was removed
+     */
+    public boolean removePattern(String pattern) {
+        List<String> oldValue = new ArrayList<>(patterns);
+        boolean removed = patterns.remove(pattern);
+        if (removed) {
+            pcs.firePropertyChange("patterns", oldValue, new ArrayList<>(patterns));
+        }
+        return removed;
+    }
+
+    /**
+     * Clears all regex pattern constraints.
+     */
+    public void clearPatterns() {
+        if (!patterns.isEmpty()) {
+            List<String> oldValue = new ArrayList<>(patterns);
+            patterns.clear();
+            pcs.firePropertyChange("patterns", oldValue, new ArrayList<>(patterns));
+        }
+    }
+
+    /**
+     * Gets an unmodifiable list of enumeration values.
+     *
+     * @return the enumerations list
+     */
+    public List<String> getEnumerations() {
+        return Collections.unmodifiableList(enumerations);
+    }
+
+    /**
+     * Adds an enumeration value.
+     *
+     * @param enumeration the enumeration value to add
+     */
+    public void addEnumeration(String enumeration) {
+        if (enumeration == null || enumeration.trim().isEmpty()) {
+            return;
+        }
+        List<String> oldValue = new ArrayList<>(enumerations);
+        enumerations.add(enumeration.trim());
+        pcs.firePropertyChange("enumerations", oldValue, new ArrayList<>(enumerations));
+    }
+
+    /**
+     * Removes an enumeration value.
+     *
+     * @param enumeration the enumeration to remove
+     * @return true if the enumeration was removed
+     */
+    public boolean removeEnumeration(String enumeration) {
+        List<String> oldValue = new ArrayList<>(enumerations);
+        boolean removed = enumerations.remove(enumeration);
+        if (removed) {
+            pcs.firePropertyChange("enumerations", oldValue, new ArrayList<>(enumerations));
+        }
+        return removed;
+    }
+
+    /**
+     * Clears all enumeration values.
+     */
+    public void clearEnumerations() {
+        if (!enumerations.isEmpty()) {
+            List<String> oldValue = new ArrayList<>(enumerations);
+            enumerations.clear();
+            pcs.firePropertyChange("enumerations", oldValue, new ArrayList<>(enumerations));
+        }
+    }
+
+    /**
+     * Gets an unmodifiable list of XSD 1.1 assertions.
+     *
+     * @return the assertions list
+     */
+    public List<String> getAssertions() {
+        return Collections.unmodifiableList(assertions);
+    }
+
+    /**
+     * Adds an XSD 1.1 assertion (XPath expression).
+     *
+     * @param assertion the assertion to add
+     */
+    public void addAssertion(String assertion) {
+        if (assertion == null || assertion.trim().isEmpty()) {
+            return;
+        }
+        List<String> oldValue = new ArrayList<>(assertions);
+        assertions.add(assertion.trim());
+        pcs.firePropertyChange("assertions", oldValue, new ArrayList<>(assertions));
+    }
+
+    /**
+     * Removes an assertion.
+     *
+     * @param assertion the assertion to remove
+     * @return true if the assertion was removed
+     */
+    public boolean removeAssertion(String assertion) {
+        List<String> oldValue = new ArrayList<>(assertions);
+        boolean removed = assertions.remove(assertion);
+        if (removed) {
+            pcs.firePropertyChange("assertions", oldValue, new ArrayList<>(assertions));
+        }
+        return removed;
+    }
+
+    /**
+     * Clears all assertions.
+     */
+    public void clearAssertions() {
+        if (!assertions.isEmpty()) {
+            List<String> oldValue = new ArrayList<>(assertions);
+            assertions.clear();
+            pcs.firePropertyChange("assertions", oldValue, new ArrayList<>(assertions));
+        }
+    }
+
     @Override
     public XsdNodeType getNodeType() {
         return XsdNodeType.ELEMENT;
@@ -183,6 +339,17 @@ public class XsdElement extends XsdNode {
         copy.setDefaultValue(this.defaultValue);
         copy.setSubstitutionGroup(this.substitutionGroup);
         copy.setForm(this.form);
+
+        // Copy constraint lists
+        for (String pattern : this.patterns) {
+            copy.addPattern(pattern);
+        }
+        for (String enumeration : this.enumerations) {
+            copy.addEnumeration(enumeration);
+        }
+        for (String assertion : this.assertions) {
+            copy.addAssertion(assertion);
+        }
 
         // Copy base properties and children
         copyBasicPropertiesTo(copy);

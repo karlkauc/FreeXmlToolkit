@@ -207,12 +207,23 @@ public class XsdPropertiesPanel extends VBox {
         Button removePatternBtn = new Button("Remove");
         removePatternBtn.setGraphic(new FontIcon("bi-trash"));
         removePatternBtn.setDisable(true);
-        
+
         // Enable/disable remove button based on selection
         patternsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             removePatternBtn.setDisable(newVal == null);
         });
-        
+
+        // Add button action
+        addPatternBtn.setOnAction(e -> handleAddPattern());
+
+        // Remove button action
+        removePatternBtn.setOnAction(e -> {
+            String selectedPattern = patternsListView.getSelectionModel().getSelectedItem();
+            if (selectedPattern != null) {
+                handleDeletePattern(selectedPattern);
+            }
+        });
+
         buttonBox.getChildren().addAll(addPatternBtn, removePatternBtn);
 
         vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), patternsListView, buttonBox);
@@ -248,12 +259,23 @@ public class XsdPropertiesPanel extends VBox {
         Button removeEnumBtn = new Button("Remove");
         removeEnumBtn.setGraphic(new FontIcon("bi-trash"));
         removeEnumBtn.setDisable(true);
-        
+
         // Enable/disable remove button based on selection
         enumerationsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             removeEnumBtn.setDisable(newVal == null);
         });
-        
+
+        // Add button action
+        addEnumBtn.setOnAction(e -> handleAddEnumeration());
+
+        // Remove button action
+        removeEnumBtn.setOnAction(e -> {
+            String selectedEnum = enumerationsListView.getSelectionModel().getSelectedItem();
+            if (selectedEnum != null) {
+                handleDeleteEnumeration(selectedEnum);
+            }
+        });
+
         buttonBox.getChildren().addAll(addEnumBtn, removeEnumBtn);
 
         vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), enumerationsListView, buttonBox);
@@ -289,12 +311,23 @@ public class XsdPropertiesPanel extends VBox {
         Button removeAssertBtn = new Button("Remove");
         removeAssertBtn.setGraphic(new FontIcon("bi-trash"));
         removeAssertBtn.setDisable(true);
-        
+
         // Enable/disable remove button based on selection
         assertionsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             removeAssertBtn.setDisable(newVal == null);
         });
-        
+
+        // Add button action
+        addAssertBtn.setOnAction(e -> handleAddAssertion());
+
+        // Remove button action
+        removeAssertBtn.setOnAction(e -> {
+            String selectedAssertion = assertionsListView.getSelectionModel().getSelectedItem();
+            if (selectedAssertion != null) {
+                handleDeleteAssertion(selectedAssertion);
+            }
+        });
+
         buttonBox.getChildren().addAll(addAssertBtn, removeAssertBtn);
 
         // Info note about XSD 1.1
@@ -314,8 +347,98 @@ public class XsdPropertiesPanel extends VBox {
      * Sets up change listeners for property controls.
      */
     private void setupListeners() {
-        // TODO: Add listeners back once handlers are implemented
-        // Currently disabled to allow compilation
+        // Name field - fire command when focus lost
+        nameField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
+                handleNameChange();
+            }
+        });
+
+        // Type field - fire command when focus lost
+        typeField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
+                handleTypeChange();
+            }
+        });
+
+        // Cardinality - minOccurs spinner
+        minOccursSpinner.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null && newValue != null) {
+                handleCardinalityChange();
+            }
+        });
+
+        // Cardinality - maxOccurs spinner
+        maxOccursSpinner.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null && newValue != null && !unboundedCheckBox.isSelected()) {
+                handleCardinalityChange();
+            }
+        });
+
+        // Cardinality - unbounded checkbox
+        unboundedCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                // Disable/enable maxOccurs spinner
+                maxOccursSpinner.setDisable(newValue);
+                handleCardinalityChange();
+            }
+        });
+
+        // Documentation - fire command when focus lost
+        documentationArea.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
+                handleDocumentationChange();
+            }
+        });
+
+        // AppInfo - fire command when focus lost
+        appinfoArea.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
+                handleAppinfoChange();
+            }
+        });
+
+        // Constraints - nillable checkbox
+        nillableCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                handleConstraintsChange();
+            }
+        });
+
+        // Constraints - abstract checkbox
+        abstractCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                handleConstraintsChange();
+            }
+        });
+
+        // Constraints - fixed checkbox (for now just stores boolean, later could add TextField for value)
+        fixedCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                handleConstraintsChange();
+            }
+        });
+
+        // Advanced - form ComboBox
+        formComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                handleFormChange();
+            }
+        });
+
+        // Advanced - use ComboBox
+        useComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
+                handleUseChange();
+            }
+        });
+
+        // Advanced - substitution group field
+        substitutionGroupField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
+                handleSubstitutionGroupChange();
+            }
+        });
     }
 
     /**
@@ -635,46 +758,28 @@ public class XsdPropertiesPanel extends VBox {
         enumerationsListView.getItems().clear();
         assertionsListView.getItems().clear();
 
-        if (!(modelObject instanceof XsdNode xsdNode)) {
-            logger.debug("Model object is not an XsdNode, cannot update constraint tabs");
+        if (!(modelObject instanceof XsdElement xsdElement)) {
+            logger.debug("Model object is not an XsdElement, cannot update constraint tabs");
             return;
         }
 
-        // TODO: Implement actual data extraction from XsdNode model
-        // For now, populate with placeholder data to demonstrate functionality
-        
-        // Facets - extract from XSD restrictions (minLength, maxLength, pattern, etc.)
-        if (xsdNode instanceof XsdElement xsdElement) {
-            // Example facets (in real implementation, these would come from the XSD model)
-            if (xsdElement.getType() != null && xsdElement.getType().contains("string")) {
-                facetsListView.getItems().addAll(
-                    "minLength: 1",
-                    "maxLength: 100"
-                );
-            }
-        }
+        // Load patterns from model
+        patternsListView.getItems().addAll(xsdElement.getPatterns());
+        logger.debug("Loaded {} patterns from element '{}'", xsdElement.getPatterns().size(), xsdElement.getName());
 
-        // Patterns - extract regex patterns from XSD
-        // Example: patterns would be extracted from xs:pattern facets
-        if (xsdNode.getName() != null && xsdNode.getName().toLowerCase().contains("email")) {
-            patternsListView.getItems().add("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
-        }
+        // Load enumerations from model
+        enumerationsListView.getItems().addAll(xsdElement.getEnumerations());
+        logger.debug("Loaded {} enumerations from element '{}'", xsdElement.getEnumerations().size(), xsdElement.getName());
 
-        // Enumerations - extract from xs:enumeration facets
-        if (xsdNode.getName() != null && xsdNode.getName().toLowerCase().contains("status")) {
-            enumerationsListView.getItems().addAll(
-                "active",
-                "inactive", 
-                "pending"
-            );
-        }
+        // Load assertions from model
+        assertionsListView.getItems().addAll(xsdElement.getAssertions());
+        logger.debug("Loaded {} assertions from element '{}'", xsdElement.getAssertions().size(), xsdElement.getName());
 
-        // Assertions - extract XSD 1.1 xs:assert elements
-        if (xsdNode.getName() != null && xsdNode.getName().toLowerCase().contains("price")) {
-            assertionsListView.getItems().add("@value > 0");
-        }
+        // TODO: Facets - currently not implemented in model
+        // Facets would need a proper model class (XsdFacet) with type and value
+        // For now, facets tab remains empty
 
-        logger.debug("Updated constraint tabs for node: {}", xsdNode.getName());
+        logger.debug("Updated constraint tabs for element: {}", xsdElement.getName());
     }
 
     /**
@@ -684,5 +789,341 @@ public class XsdPropertiesPanel extends VBox {
         if (currentNode != null) {
             updateProperties(currentNode);
         }
+    }
+
+    // ========== Event Handlers ==========
+
+    /**
+     * Handles changes to the name field.
+     */
+    private void handleNameChange() {
+        if (currentNode == null || currentNode.getModelObject() == null) {
+            return;
+        }
+
+        String newName = nameField.getText();
+        if (newName == null || newName.trim().isEmpty()) {
+            logger.warn("Cannot set empty name");
+            // Revert to current name
+            nameField.setText(currentNode.getLabel());
+            return;
+        }
+
+        // Only create command if value actually changed
+        if (!newName.equals(currentNode.getLabel())) {
+            XsdNode node = (XsdNode) currentNode.getModelObject();
+            RenameNodeCommand command = new RenameNodeCommand(node, newName);
+            editorContext.getCommandManager().executeCommand(command);
+            editorContext.setDirty(true);
+            logger.debug("Executed RenameNodeCommand: {} -> {}", currentNode.getLabel(), newName);
+        }
+    }
+
+    /**
+     * Handles changes to the type field.
+     */
+    private void handleTypeChange() {
+        if (currentNode == null || currentNode.getModelObject() == null) {
+            return;
+        }
+
+        String newType = typeField.getText();
+        Object modelObject = currentNode.getModelObject();
+
+        // Get current type from model
+        String currentType = null;
+        if (modelObject instanceof XsdElement element) {
+            currentType = element.getType();
+        } else if (modelObject instanceof XsdAttribute attribute) {
+            currentType = attribute.getType();
+        } else {
+            return; // Not an element or attribute
+        }
+
+        // Only create command if value actually changed
+        if (!java.util.Objects.equals(newType, currentType)) {
+            XsdNode node = (XsdNode) modelObject;
+            ChangeTypeCommand command = new ChangeTypeCommand(node, newType);
+            editorContext.getCommandManager().executeCommand(command);
+            editorContext.setDirty(true);
+            logger.debug("Executed ChangeTypeCommand: {} -> {}", currentType, newType);
+        }
+    }
+
+    /**
+     * Handles changes to cardinality (minOccurs/maxOccurs/unbounded).
+     */
+    private void handleCardinalityChange() {
+        if (currentNode == null || currentNode.getModelObject() == null) {
+            return;
+        }
+
+        int newMinOccurs = minOccursSpinner.getValue();
+        int newMaxOccurs = unboundedCheckBox.isSelected()
+                ? ChangeCardinalityCommand.UNBOUNDED
+                : maxOccursSpinner.getValue();
+
+        // Only create command if values actually changed
+        if (newMinOccurs != currentNode.getMinOccurs() || newMaxOccurs != currentNode.getMaxOccurs()) {
+            XsdNode node = (XsdNode) currentNode.getModelObject();
+            ChangeCardinalityCommand command = new ChangeCardinalityCommand(node, newMinOccurs, newMaxOccurs);
+            editorContext.getCommandManager().executeCommand(command);
+            editorContext.setDirty(true);
+            logger.debug("Executed ChangeCardinalityCommand: {},{} -> {},{}",
+                    currentNode.getMinOccurs(), currentNode.getMaxOccurs(), newMinOccurs, newMaxOccurs);
+        }
+    }
+
+    /**
+     * Handles changes to the documentation field.
+     */
+    private void handleDocumentationChange() {
+        if (currentNode == null || currentNode.getModelObject() == null) {
+            return;
+        }
+
+        String newDocumentation = documentationArea.getText();
+        XsdNode node = (XsdNode) currentNode.getModelObject();
+        String currentDocumentation = node.getDocumentation();
+
+        // Only create command if value actually changed
+        if (!java.util.Objects.equals(newDocumentation, currentDocumentation)) {
+            ChangeDocumentationCommand command = new ChangeDocumentationCommand(
+                    editorContext, node, newDocumentation);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.debug("Executed ChangeDocumentationCommand");
+        }
+    }
+
+    /**
+     * Handles changes to the appinfo field.
+     */
+    private void handleAppinfoChange() {
+        if (currentNode == null || currentNode.getModelObject() == null) {
+            return;
+        }
+
+        String newAppinfo = appinfoArea.getText();
+        XsdNode node = (XsdNode) currentNode.getModelObject();
+        String currentAppinfo = node.getAppinfoAsString();
+
+        // Only create command if value actually changed
+        if (!java.util.Objects.equals(newAppinfo, currentAppinfo)) {
+            ChangeAppinfoCommand command = new ChangeAppinfoCommand(editorContext, node, newAppinfo);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.debug("Executed ChangeAppinfoCommand");
+        }
+    }
+
+    /**
+     * Handles changes to constraint checkboxes (nillable, abstract, fixed).
+     */
+    private void handleConstraintsChange() {
+        if (currentNode == null || !(currentNode.getModelObject() instanceof XsdElement)) {
+            return;
+        }
+
+        XsdElement element = (XsdElement) currentNode.getModelObject();
+        boolean newNillable = nillableCheckBox.isSelected();
+        boolean newAbstract = abstractCheckBox.isSelected();
+        String newFixed = fixedCheckBox.isSelected() ? "" : null; // TODO: Add TextField for actual value
+
+        // Only create command if values actually changed
+        if (newNillable != element.isNillable()
+                || newAbstract != element.isAbstract()
+                || !java.util.Objects.equals(newFixed, element.getFixed())) {
+            ChangeConstraintsCommand command = new ChangeConstraintsCommand(
+                    editorContext, element, newNillable, newAbstract, newFixed);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.debug("Executed ChangeConstraintsCommand");
+        }
+    }
+
+    /**
+     * Handles changes to the form ComboBox.
+     */
+    private void handleFormChange() {
+        if (currentNode == null || currentNode.getModelObject() == null) {
+            return;
+        }
+
+        String newForm = formComboBox.getValue();
+        Object modelObject = currentNode.getModelObject();
+
+        // Get current form from model
+        String currentForm = null;
+        if (modelObject instanceof XsdElement element) {
+            currentForm = element.getForm();
+        } else if (modelObject instanceof XsdAttribute attribute) {
+            currentForm = attribute.getForm();
+        } else {
+            return; // Not an element or attribute
+        }
+
+        // Only create command if value actually changed
+        if (!java.util.Objects.equals(newForm, currentForm)) {
+            XsdNode node = (XsdNode) modelObject;
+            ChangeFormCommand command = new ChangeFormCommand(editorContext, node, newForm);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.debug("Executed ChangeFormCommand: {} -> {}", currentForm, newForm);
+        }
+    }
+
+    /**
+     * Handles changes to the use ComboBox (attributes only).
+     */
+    private void handleUseChange() {
+        if (currentNode == null || !(currentNode.getModelObject() instanceof XsdAttribute)) {
+            return;
+        }
+
+        XsdAttribute attribute = (XsdAttribute) currentNode.getModelObject();
+        String newUse = useComboBox.getValue();
+        String currentUse = attribute.getUse();
+
+        // Only create command if value actually changed
+        if (!java.util.Objects.equals(newUse, currentUse)) {
+            ChangeUseCommand command = new ChangeUseCommand(editorContext, attribute, newUse);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.debug("Executed ChangeUseCommand: {} -> {}", currentUse, newUse);
+        }
+    }
+
+    /**
+     * Handles changes to the substitution group field.
+     */
+    private void handleSubstitutionGroupChange() {
+        if (currentNode == null || !(currentNode.getModelObject() instanceof XsdElement)) {
+            return;
+        }
+
+        XsdElement element = (XsdElement) currentNode.getModelObject();
+        String newSubstitutionGroup = substitutionGroupField.getText();
+        String currentSubstitutionGroup = element.getSubstitutionGroup();
+
+        // Only create command if value actually changed
+        if (!java.util.Objects.equals(newSubstitutionGroup, currentSubstitutionGroup)) {
+            ChangeSubstitutionGroupCommand command = new ChangeSubstitutionGroupCommand(
+                    editorContext, element, newSubstitutionGroup);
+            editorContext.getCommandManager().executeCommand(command);
+            logger.debug("Executed ChangeSubstitutionGroupCommand: {} -> {}",
+                    currentSubstitutionGroup, newSubstitutionGroup);
+        }
+    }
+
+    // ========== Tab Button Handlers ==========
+
+    /**
+     * Handles adding a new pattern.
+     */
+    private void handleAddPattern() {
+        if (currentNode == null || !(currentNode.getModelObject() instanceof XsdElement)) {
+            return;
+        }
+
+        // Show input dialog for pattern
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add Pattern");
+        dialog.setHeaderText("Add Regex Pattern Constraint");
+        dialog.setContentText("Enter regex pattern:");
+
+        dialog.showAndWait().ifPresent(pattern -> {
+            if (pattern != null && !pattern.trim().isEmpty()) {
+                AddPatternCommand command = new AddPatternCommand(
+                        editorContext, (XsdNode) currentNode.getModelObject(), pattern);
+                editorContext.getCommandManager().executeCommand(command);
+                logger.debug("Executed AddPatternCommand");
+            }
+        });
+    }
+
+    /**
+     * Handles deleting a pattern.
+     */
+    private void handleDeletePattern(String pattern) {
+        if (currentNode == null || !(currentNode.getModelObject() instanceof XsdElement)) {
+            return;
+        }
+
+        DeletePatternCommand command = new DeletePatternCommand(
+                editorContext, (XsdNode) currentNode.getModelObject(), pattern);
+        editorContext.getCommandManager().executeCommand(command);
+        logger.debug("Executed DeletePatternCommand");
+    }
+
+    /**
+     * Handles adding a new enumeration value.
+     */
+    private void handleAddEnumeration() {
+        if (currentNode == null || !(currentNode.getModelObject() instanceof XsdElement)) {
+            return;
+        }
+
+        // Show input dialog for enumeration value
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add Enumeration");
+        dialog.setHeaderText("Add Enumeration Value");
+        dialog.setContentText("Enter value:");
+
+        dialog.showAndWait().ifPresent(enumValue -> {
+            if (enumValue != null && !enumValue.trim().isEmpty()) {
+                AddEnumerationCommand command = new AddEnumerationCommand(
+                        editorContext, (XsdNode) currentNode.getModelObject(), enumValue);
+                editorContext.getCommandManager().executeCommand(command);
+                logger.debug("Executed AddEnumerationCommand");
+            }
+        });
+    }
+
+    /**
+     * Handles deleting an enumeration value.
+     */
+    private void handleDeleteEnumeration(String enumValue) {
+        if (currentNode == null || !(currentNode.getModelObject() instanceof XsdElement)) {
+            return;
+        }
+
+        DeleteEnumerationCommand command = new DeleteEnumerationCommand(
+                editorContext, (XsdNode) currentNode.getModelObject(), enumValue);
+        editorContext.getCommandManager().executeCommand(command);
+        logger.debug("Executed DeleteEnumerationCommand");
+    }
+
+    /**
+     * Handles adding a new assertion.
+     */
+    private void handleAddAssertion() {
+        if (currentNode == null || !(currentNode.getModelObject() instanceof XsdElement)) {
+            return;
+        }
+
+        // Show input dialog for assertion XPath expression
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Add Assertion");
+        dialog.setHeaderText("Add XSD 1.1 Assertion");
+        dialog.setContentText("Enter XPath expression:");
+
+        dialog.showAndWait().ifPresent(assertion -> {
+            if (assertion != null && !assertion.trim().isEmpty()) {
+                AddAssertionCommand command = new AddAssertionCommand(
+                        editorContext, (XsdNode) currentNode.getModelObject(), assertion);
+                editorContext.getCommandManager().executeCommand(command);
+                logger.debug("Executed AddAssertionCommand");
+            }
+        });
+    }
+
+    /**
+     * Handles deleting an assertion.
+     */
+    private void handleDeleteAssertion(String assertion) {
+        if (currentNode == null || !(currentNode.getModelObject() instanceof XsdElement)) {
+            return;
+        }
+
+        DeleteAssertionCommand command = new DeleteAssertionCommand(
+                editorContext, (XsdNode) currentNode.getModelObject(), assertion);
+        editorContext.getCommandManager().executeCommand(command);
+        logger.debug("Executed DeleteAssertionCommand");
     }
 }
