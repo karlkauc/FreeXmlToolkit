@@ -101,6 +101,10 @@ jobs:
           ls -la build/dist/ || echo "build/dist/ directory not found"
           echo ""
           
+          echo "🔍 Searching for package files in subdirectories:"
+          find build/dist/ -name "*.exe" -o -name "*.msi" -o -name "*.zip" -o -name "*.dmg" -o -name "*.pkg" -o -name "*.deb" -o -name "*.rpm" 2>/dev/null || echo "No package files found with find"
+          echo ""
+          
           # Find and upload all created files (more robust approach)
           found_files=0
           
@@ -117,21 +121,40 @@ jobs:
             fi
           done
           
-          # Also try to upload any other files in build/dist/ that look like packages
-          for file in build/dist/*.{exe,msi,zip,dmg,pkg,deb,rpm} 2>/dev/null; do
-            if [ -f "$file" ]; then
-              filename=$(basename "$file")
-              # Check if we haven't already uploaded this file
-              if ! gh release view ${{ github.event.release.tag_name }} | grep -q "$filename"; then
-                echo "📦 Uploading additional file: $file ($(stat --format='%s' "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "unknown size") bytes)"
-                if gh release upload ${{ github.event.release.tag_name }} "$file"; then
-                  echo "✅ Successfully uploaded additional: $file"
-                  found_files=$((found_files + 1))
-                else
-                  echo "❌ Failed to upload additional: $file"
+          # Also try to upload any other files in build/dist/ and subdirectories that look like packages
+          shopt -s nullglob
+          for extension in exe msi zip dmg pkg deb rpm; do
+            # Search in build/dist/ directly
+            for file in build/dist/*.$extension; do
+              if [ -f "$file" ]; then
+                filename=$(basename "$file")
+                if ! gh release view ${{ github.event.release.tag_name }} | grep -q "$filename"; then
+                  echo "📦 Uploading file: $file ($(stat --format='%s' "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "unknown size") bytes)"
+                  if gh release upload ${{ github.event.release.tag_name }} "$file"; then
+                    echo "✅ Successfully uploaded: $file"
+                    found_files=$((found_files + 1))
+                  else
+                    echo "❌ Failed to upload: $file"
+                  fi
                 fi
               fi
-            fi
+            done
+            
+            # Search in build/dist/*/ subdirectories
+            for file in build/dist/*/*.$extension; do
+              if [ -f "$file" ]; then
+                filename=$(basename "$file")
+                if ! gh release view ${{ github.event.release.tag_name }} | grep -q "$filename"; then
+                  echo "📦 Uploading from subdirectory: $file ($(stat --format='%s' "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "unknown size") bytes)"
+                  if gh release upload ${{ github.event.release.tag_name }} "$file"; then
+                    echo "✅ Successfully uploaded: $file"
+                    found_files=$((found_files + 1))
+                  else
+                    echo "❌ Failed to upload: $file"
+                  fi
+                fi
+              fi
+            done
           done
           
           if [ $found_files -eq 0 ]; then
