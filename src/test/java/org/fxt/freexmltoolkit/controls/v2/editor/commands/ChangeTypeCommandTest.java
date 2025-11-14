@@ -1,8 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
+import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,11 +24,15 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class ChangeTypeCommandTest {
 
+    private XsdEditorContext editorContext;
     private XsdElement testElement;
     private XsdAttribute testAttribute;
 
     @BeforeEach
     void setUp() {
+        XsdSchema schema = new XsdSchema();
+        editorContext = new XsdEditorContext(schema);
+
         testElement = new XsdElement("testElement");
         testElement.setType("xs:string");
 
@@ -40,7 +46,7 @@ class ChangeTypeCommandTest {
     @DisplayName("execute() should change element type and return true")
     void testExecuteChangesElementType() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
 
         // Act
         boolean result = command.execute();
@@ -54,7 +60,7 @@ class ChangeTypeCommandTest {
     @DisplayName("undo() should restore old element type and return true")
     void testUndoRestoresOldElementType() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
         command.execute();
 
         // Act
@@ -70,7 +76,7 @@ class ChangeTypeCommandTest {
     void testExecuteChangesNullElementType() {
         // Arrange
         testElement.setType(null);
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:boolean");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:boolean");
 
         // Act
         command.execute();
@@ -84,7 +90,7 @@ class ChangeTypeCommandTest {
     void testUndoRestoresNullElementType() {
         // Arrange
         testElement.setType(null);
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:boolean");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:boolean");
         command.execute();
 
         // Act
@@ -100,7 +106,7 @@ class ChangeTypeCommandTest {
     @DisplayName("execute() should change attribute type and return true")
     void testExecuteChangesAttributeType() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testAttribute, "xs:string");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testAttribute, "xs:string");
 
         // Act
         boolean result = command.execute();
@@ -114,7 +120,7 @@ class ChangeTypeCommandTest {
     @DisplayName("undo() should restore old attribute type and return true")
     void testUndoRestoresOldAttributeType() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testAttribute, "xs:string");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testAttribute, "xs:string");
         command.execute();
 
         // Act
@@ -130,7 +136,7 @@ class ChangeTypeCommandTest {
     void testExecuteChangesNullAttributeType() {
         // Arrange
         testAttribute.setType(null);
-        ChangeTypeCommand command = new ChangeTypeCommand(testAttribute, "xs:date");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testAttribute, "xs:date");
 
         // Act
         command.execute();
@@ -144,7 +150,7 @@ class ChangeTypeCommandTest {
     void testUndoRestoresNullAttributeType() {
         // Arrange
         testAttribute.setType(null);
-        ChangeTypeCommand command = new ChangeTypeCommand(testAttribute, "xs:date");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testAttribute, "xs:date");
         command.execute();
 
         // Act
@@ -170,7 +176,7 @@ class ChangeTypeCommandTest {
             }
         });
 
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
 
         // Act
         command.execute();
@@ -187,7 +193,7 @@ class ChangeTypeCommandTest {
     @DisplayName("undo() should fire PropertyChangeEvent for 'type' property on element")
     void testUndoFiresPropertyChangeEventForElement() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
         command.execute();
 
         AtomicBoolean eventFired = new AtomicBoolean(false);
@@ -227,7 +233,7 @@ class ChangeTypeCommandTest {
             }
         });
 
-        ChangeTypeCommand command = new ChangeTypeCommand(testAttribute, "xs:string");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testAttribute, "xs:string");
 
         // Act
         command.execute();
@@ -244,7 +250,7 @@ class ChangeTypeCommandTest {
     @DisplayName("undo() should fire PropertyChangeEvent for 'type' property on attribute")
     void testUndoFiresPropertyChangeEventForAttribute() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testAttribute, "xs:string");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testAttribute, "xs:string");
         command.execute();
 
         AtomicBoolean eventFired = new AtomicBoolean(false);
@@ -271,39 +277,54 @@ class ChangeTypeCommandTest {
     // ========== Error Handling Tests ==========
 
     @Test
+    @DisplayName("Constructor should throw IllegalArgumentException when editorContext is null")
+    void testConstructorThrowsExceptionForNullEditorContext() {
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> {
+            new ChangeTypeCommand(null, testElement, "xs:string");
+        }, "Constructor should throw IllegalArgumentException for null editorContext");
+    }
+
+    @Test
     @DisplayName("Constructor should throw IllegalArgumentException when node is null")
     void testConstructorThrowsExceptionForNullNode() {
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> {
-            new ChangeTypeCommand(null, "xs:string");
+            new ChangeTypeCommand(editorContext, null, "xs:string");
         }, "Constructor should throw IllegalArgumentException for null node");
     }
 
     @Test
-    @DisplayName("Constructor should throw IllegalArgumentException when newType is null")
-    void testConstructorThrowsExceptionForNullNewType() {
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            new ChangeTypeCommand(testElement, null);
-        }, "Constructor should throw IllegalArgumentException for null newType");
+    @DisplayName("Constructor should accept null newType to remove type")
+    void testConstructorAcceptsNullNewType() {
+        // Arrange & Act
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, null);
+        command.execute();
+
+        // Assert
+        assertNull(testElement.getType(), "Type should be removed when newType is null");
     }
 
     @Test
-    @DisplayName("Constructor should throw IllegalArgumentException when newType is empty")
-    void testConstructorThrowsExceptionForEmptyNewType() {
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            new ChangeTypeCommand(testElement, "");
-        }, "Constructor should throw IllegalArgumentException for empty newType");
+    @DisplayName("Constructor should accept empty newType to remove type")
+    void testConstructorAcceptsEmptyNewType() {
+        // Arrange & Act
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "");
+        command.execute();
+
+        // Assert
+        assertNull(testElement.getType(), "Type should be removed when newType is empty");
     }
 
     @Test
-    @DisplayName("Constructor should throw IllegalArgumentException when newType is whitespace")
-    void testConstructorThrowsExceptionForWhitespaceNewType() {
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            new ChangeTypeCommand(testElement, "   ");
-        }, "Constructor should throw IllegalArgumentException for whitespace newType");
+    @DisplayName("Constructor should accept whitespace newType to remove type")
+    void testConstructorAcceptsWhitespaceNewType() {
+        // Arrange & Act
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "   ");
+        command.execute();
+
+        // Assert
+        assertNull(testElement.getType(), "Type should be removed when newType is whitespace");
     }
 
     @Test
@@ -316,11 +337,11 @@ class ChangeTypeCommandTest {
         // Since all XsdNode subclasses might support type, we'll test the validation logic
         // This test ensures only elements and attributes are allowed
         assertDoesNotThrow(() -> {
-            new ChangeTypeCommand(testElement, "xs:string");
+            new ChangeTypeCommand(editorContext, testElement, "xs:string");
         }, "Constructor should accept XsdElement");
 
         assertDoesNotThrow(() -> {
-            new ChangeTypeCommand(testAttribute, "xs:int");
+            new ChangeTypeCommand(editorContext, testAttribute, "xs:int");
         }, "Constructor should accept XsdAttribute");
     }
 
@@ -328,7 +349,7 @@ class ChangeTypeCommandTest {
     @DisplayName("Constructor should trim newType whitespace")
     void testConstructorTrimsNewType() {
         // Arrange & Act
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "  xs:decimal  ");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "  xs:decimal  ");
         command.execute();
 
         // Assert
@@ -341,7 +362,7 @@ class ChangeTypeCommandTest {
     @DisplayName("canUndo() should always return true")
     void testCanUndo() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
 
         // Assert
         assertTrue(command.canUndo(), "canUndo() should return true before execute");
@@ -357,7 +378,7 @@ class ChangeTypeCommandTest {
     @DisplayName("getDescription() should return descriptive text with old and new types")
     void testGetDescription() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
 
         // Act
         String description = command.getDescription();
@@ -374,24 +395,26 @@ class ChangeTypeCommandTest {
     void testGetDescriptionWithNullOldType() {
         // Arrange
         testElement.setType(null);
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
 
         // Act
         String description = command.getDescription();
 
         // Assert
         assertNotNull(description, "Description should not be null");
-        assertTrue(description.contains("?") || description.contains("null"),
-                "Description should indicate unknown old type");
+        assertTrue(description.contains("Set type"),
+                "Description should indicate setting type (not changing from unknown)");
+        assertTrue(description.contains("xs:decimal"),
+                "Description should contain new type");
     }
 
     @Test
     @DisplayName("canMergeWith() should return true for consecutive type changes on same node")
     void testCanMergeWithConsecutiveTypeChanges() {
         // Arrange
-        ChangeTypeCommand command1 = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command1 = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
         command1.execute();
-        ChangeTypeCommand command2 = new ChangeTypeCommand(testElement, "xs:integer");
+        ChangeTypeCommand command2 = new ChangeTypeCommand(editorContext, testElement, "xs:integer");
 
         // Act
         boolean canMerge = command1.canMergeWith(command2);
@@ -404,7 +427,7 @@ class ChangeTypeCommandTest {
     @DisplayName("canMergeWith() should return false for different command types")
     void testCanMergeWithDifferentCommandType() {
         // Arrange
-        ChangeTypeCommand typeCommand = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand typeCommand = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
         RenameNodeCommand renameCommand = new RenameNodeCommand(testElement, "newName");
 
         // Act
@@ -421,8 +444,8 @@ class ChangeTypeCommandTest {
         XsdElement otherElement = new XsdElement("otherElement");
         otherElement.setType("xs:string");
 
-        ChangeTypeCommand command1 = new ChangeTypeCommand(testElement, "xs:decimal");
-        ChangeTypeCommand command2 = new ChangeTypeCommand(otherElement, "xs:integer");
+        ChangeTypeCommand command1 = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
+        ChangeTypeCommand command2 = new ChangeTypeCommand(editorContext, otherElement, "xs:integer");
 
         // Act
         boolean canMerge = command1.canMergeWith(command2);
@@ -435,14 +458,14 @@ class ChangeTypeCommandTest {
     @DisplayName("canMergeWith() should return false when types don't chain correctly")
     void testCanMergeWithNonChainedTypeChanges() {
         // Arrange
-        ChangeTypeCommand command1 = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command1 = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
         command1.execute();
 
         // Change type directly on element (simulating another operation)
         testElement.setType("xs:integer");
 
         // Now create another command - this won't chain with command1
-        ChangeTypeCommand command2 = new ChangeTypeCommand(testElement, "xs:boolean");
+        ChangeTypeCommand command2 = new ChangeTypeCommand(editorContext, testElement, "xs:boolean");
 
         // Act
         boolean canMerge = command1.canMergeWith(command2);
@@ -457,7 +480,7 @@ class ChangeTypeCommandTest {
     @DisplayName("getNode() should return the correct node")
     void testGetNode() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
 
         // Act
         XsdNode node = command.getNode();
@@ -470,7 +493,7 @@ class ChangeTypeCommandTest {
     @DisplayName("getOldType() should return the correct old type for element")
     void testGetOldTypeForElement() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
 
         // Act
         String oldType = command.getOldType();
@@ -483,7 +506,7 @@ class ChangeTypeCommandTest {
     @DisplayName("getOldType() should return the correct old type for attribute")
     void testGetOldTypeForAttribute() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testAttribute, "xs:string");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testAttribute, "xs:string");
 
         // Act
         String oldType = command.getOldType();
@@ -496,7 +519,7 @@ class ChangeTypeCommandTest {
     @DisplayName("getNewType() should return the correct new type")
     void testGetNewType() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
 
         // Act
         String newType = command.getNewType();
@@ -511,7 +534,7 @@ class ChangeTypeCommandTest {
     @DisplayName("Multiple execute() calls should be idempotent")
     void testMultipleExecuteCalls() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
 
         // Act
         command.execute();
@@ -526,7 +549,7 @@ class ChangeTypeCommandTest {
     @DisplayName("Multiple undo() calls should be idempotent")
     void testMultipleUndoCalls() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
         command.execute();
 
         // Act
@@ -542,7 +565,7 @@ class ChangeTypeCommandTest {
     @DisplayName("Execute-undo-execute sequence should work correctly")
     void testExecuteUndoExecuteSequence() {
         // Arrange
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, "xs:decimal");
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
 
         // Act & Assert
         command.execute();
@@ -567,7 +590,7 @@ class ChangeTypeCommandTest {
         };
 
         for (String type : types) {
-            ChangeTypeCommand command = new ChangeTypeCommand(testElement, type);
+            ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, type);
             command.execute();
             assertEquals(type, testElement.getType(),
                     "Should handle type: " + type);
@@ -579,7 +602,7 @@ class ChangeTypeCommandTest {
     void testCustomTypeReferences() {
         // Arrange
         String customType = "MyCustomType";
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, customType);
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, customType);
 
         // Act
         command.execute();
@@ -599,7 +622,7 @@ class ChangeTypeCommandTest {
     void testNamespacedTypeReferences() {
         // Arrange
         String namespacedType = "ns:ComplexType";
-        ChangeTypeCommand command = new ChangeTypeCommand(testElement, namespacedType);
+        ChangeTypeCommand command = new ChangeTypeCommand(editorContext, testElement, namespacedType);
 
         // Act
         command.execute();
@@ -613,8 +636,8 @@ class ChangeTypeCommandTest {
     @DisplayName("Should handle type changes on both elements and attributes independently")
     void testElementAndAttributeIndependence() {
         // Arrange
-        ChangeTypeCommand elementCommand = new ChangeTypeCommand(testElement, "xs:decimal");
-        ChangeTypeCommand attributeCommand = new ChangeTypeCommand(testAttribute, "xs:boolean");
+        ChangeTypeCommand elementCommand = new ChangeTypeCommand(editorContext, testElement, "xs:decimal");
+        ChangeTypeCommand attributeCommand = new ChangeTypeCommand(editorContext, testAttribute, "xs:boolean");
 
         // Act
         elementCommand.execute();

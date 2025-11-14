@@ -16,6 +16,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.*;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
@@ -39,7 +40,7 @@ public class XsdPropertiesPanel extends VBox {
 
     // General section controls
     private TextField nameField;
-    private TextField typeField;
+    private ComboBox<String> typeComboBox;
     private Spinner<Integer> minOccursSpinner;
     private Spinner<Integer> maxOccursSpinner;
     private CheckBox unboundedCheckBox;
@@ -354,9 +355,9 @@ public class XsdPropertiesPanel extends VBox {
             }
         });
 
-        // Type field - fire command when focus lost
-        typeField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (!updating && wasFocused && !isNowFocused && currentNode != null) {
+        // Type combobox - fire command when value changes
+        typeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!updating && currentNode != null) {
                 handleTypeChange();
             }
         });
@@ -456,9 +457,11 @@ public class XsdPropertiesPanel extends VBox {
 
         // Type
         grid.add(new Label("Type:"), 0, row);
-        typeField = new TextField();
-        typeField.setPromptText("xs:string, MyCustomType");
-        grid.add(typeField, 1, row++);
+        typeComboBox = new ComboBox<>();
+        typeComboBox.setEditable(true);
+        typeComboBox.setPromptText("xs:string, MyCustomType");
+        typeComboBox.setMaxWidth(Double.MAX_VALUE);
+        grid.add(typeComboBox, 1, row++);
 
         // Cardinality section
         Label cardinalityLabel = new Label("Cardinality:");
@@ -594,7 +597,7 @@ public class XsdPropertiesPanel extends VBox {
 
             // Disable editing controls if not in edit mode
             nameField.setEditable(isEditMode);
-            typeField.setEditable(isEditMode);
+            typeComboBox.setDisable(!isEditMode);
             minOccursSpinner.setDisable(!isEditMode);
             maxOccursSpinner.setDisable(!isEditMode || unboundedCheckBox.isSelected());
             unboundedCheckBox.setDisable(!isEditMode);
@@ -621,17 +624,20 @@ public class XsdPropertiesPanel extends VBox {
             // Update General section
             nameField.setText(node.getLabel());
 
-            // Extract type from detail (if available)
-            String detail = node.getDetail();
-            if (detail != null && detail.contains("type:")) {
-                int typeIndex = detail.indexOf("type:");
-                int endIndex = detail.indexOf('\n', typeIndex);
-                if (endIndex < 0) endIndex = detail.length();
-                String type = detail.substring(typeIndex + 5, endIndex).trim();
-                typeField.setText(type);
-            } else {
-                typeField.setText("");
+            // Populate type combobox with available types
+            populateTypeComboBox();
+
+            // Get type directly from the model object
+            String currentType = null;
+            Object modelObject = node.getModelObject();
+            if (modelObject instanceof XsdElement element) {
+                currentType = element.getType();
+            } else if (modelObject instanceof XsdAttribute attribute) {
+                currentType = attribute.getType();
             }
+
+            // Set the current type in the combobox (pre-select it)
+            typeComboBox.setValue(currentType);
 
             // Update cardinality
             int minOccurs = node.getMinOccurs();
@@ -650,7 +656,7 @@ public class XsdPropertiesPanel extends VBox {
             }
 
             // Update Documentation section from model
-            Object modelObject = node.getModelObject();
+            // modelObject is already retrieved above for type lookup
             logger.debug("ModelObject type: {}", modelObject != null ? modelObject.getClass().getName() : "null");
             if (modelObject instanceof XsdNode xsdNode) {
                 String documentation = xsdNode.getDocumentation();
@@ -712,7 +718,7 @@ public class XsdPropertiesPanel extends VBox {
             setDisable(true);
 
             nameField.clear();
-            typeField.clear();
+            typeComboBox.setValue(null);
             minOccursSpinner.getValueFactory().setValue(1);
             maxOccursSpinner.getValueFactory().setValue(1);
             unboundedCheckBox.setSelected(false);
@@ -827,7 +833,7 @@ public class XsdPropertiesPanel extends VBox {
             return;
         }
 
-        String newType = typeField.getText();
+        String newType = typeComboBox.getValue();
         Object modelObject = currentNode.getModelObject();
 
         // Get current type from model
@@ -843,9 +849,8 @@ public class XsdPropertiesPanel extends VBox {
         // Only create command if value actually changed
         if (!java.util.Objects.equals(newType, currentType)) {
             XsdNode node = (XsdNode) modelObject;
-            ChangeTypeCommand command = new ChangeTypeCommand(node, newType);
+            ChangeTypeCommand command = new ChangeTypeCommand(editorContext, node, newType);
             editorContext.getCommandManager().executeCommand(command);
-            editorContext.setDirty(true);
             logger.debug("Executed ChangeTypeCommand: {} -> {}", currentType, newType);
         }
     }
@@ -1125,5 +1130,110 @@ public class XsdPropertiesPanel extends VBox {
                 editorContext, (XsdNode) currentNode.getModelObject(), assertion);
         editorContext.getCommandManager().executeCommand(command);
         logger.debug("Executed DeleteAssertionCommand");
+    }
+
+    /**
+     * Populates the type combobox with all available types:
+     * - Built-in XML Schema types (xs:string, xs:int, etc.)
+     * - User-defined types from the schema (simpleType, complexType)
+     */
+    private void populateTypeComboBox() {
+        if (typeComboBox == null) {
+            return;
+        }
+
+        // Collect all available types
+        java.util.List<String> availableTypes = new java.util.ArrayList<>();
+
+        // 1. Add Built-in XML Schema Types
+        availableTypes.add("xs:string");
+        availableTypes.add("xs:boolean");
+        availableTypes.add("xs:decimal");
+        availableTypes.add("xs:float");
+        availableTypes.add("xs:double");
+        availableTypes.add("xs:duration");
+        availableTypes.add("xs:dateTime");
+        availableTypes.add("xs:time");
+        availableTypes.add("xs:date");
+        availableTypes.add("xs:gYearMonth");
+        availableTypes.add("xs:gYear");
+        availableTypes.add("xs:gMonthDay");
+        availableTypes.add("xs:gDay");
+        availableTypes.add("xs:gMonth");
+        availableTypes.add("xs:hexBinary");
+        availableTypes.add("xs:base64Binary");
+        availableTypes.add("xs:anyURI");
+        availableTypes.add("xs:QName");
+        availableTypes.add("xs:NOTATION");
+        availableTypes.add("xs:normalizedString");
+        availableTypes.add("xs:token");
+        availableTypes.add("xs:language");
+        availableTypes.add("xs:NMTOKEN");
+        availableTypes.add("xs:NMTOKENS");
+        availableTypes.add("xs:Name");
+        availableTypes.add("xs:NCName");
+        availableTypes.add("xs:ID");
+        availableTypes.add("xs:IDREF");
+        availableTypes.add("xs:IDREFS");
+        availableTypes.add("xs:ENTITY");
+        availableTypes.add("xs:ENTITIES");
+        availableTypes.add("xs:integer");
+        availableTypes.add("xs:nonPositiveInteger");
+        availableTypes.add("xs:negativeInteger");
+        availableTypes.add("xs:long");
+        availableTypes.add("xs:int");
+        availableTypes.add("xs:short");
+        availableTypes.add("xs:byte");
+        availableTypes.add("xs:nonNegativeInteger");
+        availableTypes.add("xs:unsignedLong");
+        availableTypes.add("xs:unsignedInt");
+        availableTypes.add("xs:unsignedShort");
+        availableTypes.add("xs:unsignedByte");
+        availableTypes.add("xs:positiveInteger");
+
+        // 2. Add user-defined types from the schema
+        XsdSchema schema = editorContext.getSchema();
+        if (schema != null) {
+            collectUserDefinedTypes(schema, availableTypes);
+        }
+
+        // Sort the list alphabetically
+        java.util.Collections.sort(availableTypes);
+
+        // Update ComboBox items
+        typeComboBox.getItems().clear();
+        typeComboBox.getItems().addAll(availableTypes);
+
+        logger.debug("Populated type combobox with {} types", availableTypes.size());
+    }
+
+    /**
+     * Recursively collects user-defined type names from the schema.
+     *
+     * @param node           the node to search
+     * @param availableTypes the list to add type names to
+     */
+    private void collectUserDefinedTypes(XsdNode node, java.util.List<String> availableTypes) {
+        if (node == null) {
+            return;
+        }
+
+        // Check if this node is a named type definition
+        if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
+            String name = simpleType.getName();
+            if (name != null && !name.isEmpty() && !name.equals("simpleType")) {
+                availableTypes.add(name);
+            }
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+            String name = complexType.getName();
+            if (name != null && !name.isEmpty() && !name.equals("complexType")) {
+                availableTypes.add(name);
+            }
+        }
+
+        // Recursively search children
+        for (XsdNode child : node.getChildren()) {
+            collectUserDefinedTypes(child, availableTypes);
+        }
     }
 }

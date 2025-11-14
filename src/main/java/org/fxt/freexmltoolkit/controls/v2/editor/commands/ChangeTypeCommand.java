@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.commands;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
@@ -19,6 +20,7 @@ public class ChangeTypeCommand implements XsdCommand {
 
     private static final Logger logger = LogManager.getLogger(ChangeTypeCommand.class);
 
+    private final XsdEditorContext editorContext;
     private final XsdNode node;
     private final String oldType;
     private final String newType;
@@ -26,50 +28,78 @@ public class ChangeTypeCommand implements XsdCommand {
     /**
      * Creates a new change type command.
      *
-     * @param node    the node whose type to change (must be XsdElement or XsdAttribute)
-     * @param newType the new type reference (e.g., "xs:string", "MyCustomType")
+     * @param editorContext the editor context
+     * @param node          the node whose type to change (must be XsdElement or XsdAttribute)
+     * @param newType       the new type reference (e.g., "xs:string", "MyCustomType", or null/empty to remove)
      */
-    public ChangeTypeCommand(XsdNode node, String newType) {
+    public ChangeTypeCommand(XsdEditorContext editorContext, XsdNode node, String newType) {
+        if (editorContext == null) {
+            throw new IllegalArgumentException("Editor context cannot be null");
+        }
         if (node == null) {
             throw new IllegalArgumentException("Node cannot be null");
         }
         if (!(node instanceof XsdElement) && !(node instanceof XsdAttribute)) {
             throw new IllegalArgumentException("Node must be an element or attribute to have a type");
         }
-        if (newType == null || newType.trim().isEmpty()) {
-            throw new IllegalArgumentException("New type cannot be null or empty");
-        }
 
+        this.editorContext = editorContext;
         this.node = node;
         this.oldType = getTypeFromNode(node);
-        this.newType = newType.trim();
+        this.newType = (newType == null || newType.trim().isEmpty()) ? null : newType.trim();
     }
 
     @Override
     public boolean execute() {
-        // Update the model - this will fire PropertyChangeEvent
-        // which triggers automatic view refresh via VisualNode's listener
-        setTypeOnNode(node, newType);
+        try {
+            logger.debug("Changing type of {} '{}' from '{}' to '{}'",
+                    node.getClass().getSimpleName(), node.getName(), oldType, newType);
 
-        logger.info("Changed type of '{}' from '{}' to '{}'",
-                node.getName(), oldType, newType);
-        return true;
+            // Update the model - this will fire PropertyChangeEvent
+            // which triggers automatic view refresh via VisualNode's listener
+            setTypeOnNode(node, newType);
+            editorContext.setDirty(true);
+
+            logger.info("Successfully changed type of {} '{}'", node.getClass().getSimpleName(), node.getName());
+            return true;
+
+        } catch (Exception e) {
+            logger.error("Failed to change type of {} '{}'", node.getClass().getSimpleName(), node.getName(), e);
+            return false;
+        }
     }
 
     @Override
     public boolean undo() {
-        // Update the model - this will fire PropertyChangeEvent
-        setTypeOnNode(node, oldType);
+        try {
+            logger.debug("Undoing type change of {} '{}' back to '{}'",
+                    node.getClass().getSimpleName(), node.getName(), oldType);
 
-        logger.info("Restored type of '{}' from '{}' back to '{}'",
-                node.getName(), newType, oldType);
-        return true;
+            // Update the model - this will fire PropertyChangeEvent
+            setTypeOnNode(node, oldType);
+            editorContext.setDirty(true);
+
+            logger.info("Successfully undone type change of {} '{}'", node.getClass().getSimpleName(), node.getName());
+            return true;
+
+        } catch (Exception e) {
+            logger.error("Failed to undo type change of {} '{}'", node.getClass().getSimpleName(), node.getName(), e);
+            return false;
+        }
     }
 
     @Override
     public String getDescription() {
-        return "Change type of '" + node.getName() + "' from '" +
-                (oldType != null ? oldType : "?") + "' to '" + newType + "'";
+        String nodeName = node.getName() != null ? node.getName() : "(unnamed)";
+        String nodeType = node instanceof XsdElement ? "element" : "attribute";
+
+        if (newType == null || newType.isEmpty()) {
+            return "Remove type from " + nodeType + " " + nodeName;
+        } else if (oldType == null || oldType.isEmpty()) {
+            return "Set type of " + nodeType + " " + nodeName + " to " + newType;
+        } else {
+            return "Change type of " + nodeType + " " + nodeName + " from " + oldType + " to " + newType;
+        }
     }
 
     @Override

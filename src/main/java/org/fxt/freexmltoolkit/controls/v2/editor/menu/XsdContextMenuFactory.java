@@ -371,7 +371,7 @@ public class XsdContextMenuFactory {
                 // Extract XsdNode from VisualNode for the command
                 Object modelObject = node.getModelObject();
                 if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
-                    ChangeTypeCommand command = new ChangeTypeCommand(xsdNode, newType);
+                    ChangeTypeCommand command = new ChangeTypeCommand(editorContext, xsdNode, newType);
                     editorContext.getCommandManager().executeCommand(command);
                     logger.info("Executed change type command for node: {}", node.getLabel());
                 } else {

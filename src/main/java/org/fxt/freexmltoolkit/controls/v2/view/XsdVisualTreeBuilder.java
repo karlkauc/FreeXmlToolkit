@@ -77,7 +77,8 @@ public class XsdVisualTreeBuilder {
             // Single root element - use it directly as root node
             XsdElement rootElement = globalElements.get(0);
             Set<String> visitedTypes = new HashSet<>();
-            VisualNode rootNode = createElementNode(rootElement, null, visitedTypes);
+            Set<String> visitedElements = new HashSet<>();
+            VisualNode rootNode = createElementNode(rootElement, null, visitedTypes, visitedElements);
             rootNode.setExpanded(true);
             logger.debug("Visual tree built with single root element: {}", rootElement.getName());
             return rootNode;
@@ -97,8 +98,9 @@ public class XsdVisualTreeBuilder {
 
             // Add global elements
             Set<String> visitedTypes = new HashSet<>();
+            Set<String> visitedElements = new HashSet<>();
             for (XsdElement element : globalElements) {
-                VisualNode elementNode = createElementNode(element, rootNode, visitedTypes);
+                VisualNode elementNode = createElementNode(element, rootNode, visitedTypes, visitedElements);
                 rootNode.addChild(elementNode);
             }
 
@@ -113,9 +115,20 @@ public class XsdVisualTreeBuilder {
      * @param element the XSD element
      * @param parent the parent visual node
      * @param visitedTypes set of type names currently being processed (to prevent circular references)
+     * @param visitedElements set of element IDs currently being processed (to prevent circular references)
      * @return the created visual node
      */
-    private VisualNode createElementNode(XsdElement element, VisualNode parent, Set<String> visitedTypes) {
+    private VisualNode createElementNode(XsdElement element, VisualNode parent, Set<String> visitedTypes, Set<String> visitedElements) {
+        // Check for circular reference at element level
+        if (visitedElements.contains(element.getId())) {
+            logger.warn("Circular reference detected: element '{}' (ID: {}) is already being processed. Skipping to prevent infinite recursion.",
+                    element.getName(), element.getId());
+            // Return a placeholder node without children
+            String label = element.getName() != null ? element.getName() : "(unnamed)";
+            return new VisualNode(label + " (circular ref)", "", NodeWrapperType.ELEMENT, element, parent,
+                    element.getMinOccurs(), element.getMaxOccurs(), onModelChangeCallback);
+        }
+
         String label = element.getName() != null ? element.getName() : "(unnamed)";
         int minOccurs = element.getMinOccurs();
         int maxOccurs = element.getMaxOccurs();
@@ -127,23 +140,30 @@ public class XsdVisualTreeBuilder {
         // Add to nodeMap for later lookup
         nodeMap.put(element.getId(), node);
 
-        // Process inline children (complexType, simpleType defined within this element)
-        boolean hasInlineComplexType = false;
-        for (XsdNode child : element.getChildren()) {
-            if (child instanceof XsdComplexType) {
-                processComplexType((XsdComplexType) child, node, visitedTypes);
-                hasInlineComplexType = true;
-            } else if (child instanceof XsdSimpleType) {
-                // Simple types typically don't have visual children
-                logger.trace("Element {} has inline simple type", element.getName());
+        // Add to visited elements before processing
+        visitedElements.add(element.getId());
+        try {
+            // Process inline children (complexType, simpleType defined within this element)
+            boolean hasInlineComplexType = false;
+            for (XsdNode child : element.getChildren()) {
+                if (child instanceof XsdComplexType) {
+                    processComplexType((XsdComplexType) child, node, visitedTypes, visitedElements);
+                    hasInlineComplexType = true;
+                } else if (child instanceof XsdSimpleType) {
+                    // Simple types typically don't have visual children
+                    logger.trace("Element {} has inline simple type", element.getName());
+                }
+                // Note: XsdAnnotation handling would go here when that class is implemented
             }
-            // Note: XsdAnnotation handling would go here when that class is implemented
-        }
 
-        // If no inline type definition and element has a type reference, try to resolve it
-        // This handles cases like <xs:element name="ControlData" type="ControlDataType"/>
-        if (!hasInlineComplexType && element.getType() != null && !element.getType().startsWith("xs:")) {
-            resolveTypeReference(element.getType(), node, element, visitedTypes);
+            // If no inline type definition and element has a type reference, try to resolve it
+            // This handles cases like <xs:element name="ControlData" type="ControlDataType"/>
+            if (!hasInlineComplexType && element.getType() != null && !element.getType().startsWith("xs:")) {
+                resolveTypeReference(element.getType(), node, element, visitedTypes, visitedElements);
+            }
+        } finally {
+            // Remove from visited elements when done (backtracking)
+            visitedElements.remove(element.getId());
         }
 
         return node;
@@ -155,8 +175,9 @@ public class XsdVisualTreeBuilder {
      * @param complexType the complex type to process
      * @param parentNode the parent visual node
      * @param visitedTypes set of type names currently being processed (to prevent circular references)
+     * @param visitedElements set of element IDs currently being processed (to prevent circular references)
      */
-    private void processComplexType(XsdComplexType complexType, VisualNode parentNode, Set<String> visitedTypes) {
+    private void processComplexType(XsdComplexType complexType, VisualNode parentNode, Set<String> visitedTypes, Set<String> visitedElements) {
         logger.debug("Processing complexType with {} children", complexType.getChildren().size());
 
         // Process children to find compositors and attributes
@@ -164,15 +185,15 @@ public class XsdVisualTreeBuilder {
             logger.debug("ComplexType child: {} (type: {})", child.getClass().getSimpleName(), child.getClass().getName());
 
             if (child instanceof XsdSequence) {
-                VisualNode compositor = createCompositorNode(child, parentNode, "sequence", visitedTypes);
+                VisualNode compositor = createCompositorNode(child, parentNode, "sequence", visitedTypes, visitedElements);
                 logger.debug("Created compositor node '{}' with {} visual children", compositor.getLabel(), compositor.getChildren().size());
                 parentNode.addChild(compositor);
                 logger.debug("Added compositor to parent '{}' which now has {} children", parentNode.getLabel(), parentNode.getChildren().size());
             } else if (child instanceof XsdChoice) {
-                VisualNode compositor = createCompositorNode(child, parentNode, "choice", visitedTypes);
+                VisualNode compositor = createCompositorNode(child, parentNode, "choice", visitedTypes, visitedElements);
                 parentNode.addChild(compositor);
             } else if (child instanceof XsdAll) {
-                VisualNode compositor = createCompositorNode(child, parentNode, "all", visitedTypes);
+                VisualNode compositor = createCompositorNode(child, parentNode, "all", visitedTypes, visitedElements);
                 parentNode.addChild(compositor);
             } else if (child instanceof XsdAttribute) {
                 VisualNode attributeNode = createAttributeNode((XsdAttribute) child, parentNode);
@@ -188,9 +209,10 @@ public class XsdVisualTreeBuilder {
      * @param parent the parent visual node
      * @param compositorType the type of compositor ("sequence", "choice", "all")
      * @param visitedTypes set of type names currently being processed (to prevent circular references)
+     * @param visitedElements set of element IDs currently being processed (to prevent circular references)
      * @return the created visual node
      */
-    private VisualNode createCompositorNode(XsdNode compositorNode, VisualNode parent, String compositorType, Set<String> visitedTypes) {
+    private VisualNode createCompositorNode(XsdNode compositorNode, VisualNode parent, String compositorType, Set<String> visitedTypes, Set<String> visitedElements) {
         String label = compositorType;
         String detail = compositorNode.getChildren().size() + " items";
 
@@ -219,7 +241,7 @@ public class XsdVisualTreeBuilder {
 
             if (child instanceof XsdElement element) {
                 logger.debug("Creating element node for: {}", element.getName());
-                VisualNode elementNode = createElementNode(element, node, visitedTypes);
+                VisualNode elementNode = createElementNode(element, node, visitedTypes, visitedElements);
                 logger.debug("Adding element {} to compositor {}", elementNode.getLabel(), node.getLabel());
                 node.addChild(elementNode);
                 logger.debug("Compositor {} now has {} children", node.getLabel(), node.getChildren().size());
@@ -227,7 +249,7 @@ public class XsdVisualTreeBuilder {
                 // Nested compositor
                 String nestedType = child instanceof XsdSequence ? "sequence" :
                         child instanceof XsdChoice ? "choice" : "all";
-                VisualNode nestedNode = createCompositorNode(child, node, nestedType, visitedTypes);
+                VisualNode nestedNode = createCompositorNode(child, node, nestedType, visitedTypes, visitedElements);
                 node.addChild(nestedNode);
             }
         }
@@ -259,8 +281,9 @@ public class XsdVisualTreeBuilder {
      * @param parentNode   the visual node to add children to
      * @param element      the element that references this type
      * @param visitedTypes set of type names currently being processed (to prevent circular references)
+     * @param visitedElements set of element IDs currently being processed (to prevent circular references)
      */
-    private void resolveTypeReference(String typeRef, VisualNode parentNode, XsdElement element, Set<String> visitedTypes) {
+    private void resolveTypeReference(String typeRef, VisualNode parentNode, XsdElement element, Set<String> visitedTypes, Set<String> visitedElements) {
         if (typeRef == null || typeRef.isEmpty()) {
             return;
         }
@@ -304,7 +327,7 @@ public class XsdVisualTreeBuilder {
                 if (child instanceof XsdComplexType complexType) {
                     if (typeName.equals(complexType.getName())) {
                         logger.debug("Found complexType '{}' for element '{}'", typeName, element.getName());
-                        processComplexType(complexType, parentNode, visitedTypes);
+                        processComplexType(complexType, parentNode, visitedTypes, visitedElements);
                         return;
                     }
                 }
