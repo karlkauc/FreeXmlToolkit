@@ -216,7 +216,31 @@ val jpackageTask = tasks.register("jpackage") {
 
 // Helper function to create ZIP task for app-image
 fun createZipTask(jpackageTaskName: String, platform: String, arch: String): String {
+    val currentOs = when {
+        System.getProperty("os.name").lowercase().contains("windows") -> "windows"
+        System.getProperty("os.name").lowercase().contains("mac") -> "macos"
+        else -> "linux"
+    }
+    
+    val currentArch = when {
+        System.getProperty("os.arch").contains("aarch64") || System.getProperty("os.arch").contains("arm") -> "arm64"
+        else -> "x64"
+    }
+    
     val zipTaskName = "${jpackageTaskName}Zip"
+    
+    // Only create ZIP for host platform/architecture
+    if (platform != currentOs || arch != currentArch) {
+        tasks.register(zipTaskName) {
+            group = "distribution"
+            description = "Skip ZIP for $platform-$arch (can only create native packages on $currentOs-$currentArch)"
+            doFirst {
+                println("⚠️ Skipping $platform-$arch ZIP creation (cross-platform packaging not supported)")
+                println("💡 Current platform: $currentOs-$currentArch")
+            }
+        }
+        return zipTaskName
+    }
     
     tasks.register<Zip>(zipTaskName) {
         group = "distribution"
@@ -254,6 +278,30 @@ fun createZipTask(jpackageTaskName: String, platform: String, arch: String): Str
 
 // Helper function to create platform-specific jpackage tasks
 fun createJPackageTask(taskName: String, platform: String, arch: String, packageType: String) {
+    val currentOs = when {
+        System.getProperty("os.name").lowercase().contains("windows") -> "windows"
+        System.getProperty("os.name").lowercase().contains("mac") -> "macos"
+        else -> "linux"
+    }
+    
+    val currentArch = when {
+        System.getProperty("os.arch").contains("aarch64") || System.getProperty("os.arch").contains("arm") -> "arm64"
+        else -> "x64"
+    }
+    
+    // Only create packages for host platform/architecture
+    if (platform != currentOs || arch != currentArch) {
+        tasks.register(taskName) {
+            group = "distribution"
+            description = "Skip $platform-$arch $packageType (can only create native packages on $currentOs-$currentArch)"
+            doFirst {
+                println("⚠️ Skipping $platform-$arch $packageType creation (cross-platform packaging not supported)")
+                println("💡 Current platform: $currentOs-$currentArch")
+            }
+        }
+        return
+    }
+    
     val platformName = when(platform) {
         "macos" -> "MacOS"
         "windows" -> "Windows" 
@@ -550,21 +598,47 @@ tasks.register<Zip>("packageDistribution") {
 // ===============================
 
 // Helper function to create jlink runtime images using configured JDK
+// IMPORTANT: jlink can only create runtimes for the host platform
 fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
+    val currentOs = when {
+        System.getProperty("os.name").lowercase().contains("windows") -> "windows"
+        System.getProperty("os.name").lowercase().contains("mac") -> "macos"
+        else -> "linux"
+    }
+    
+    val currentArch = when {
+        System.getProperty("os.arch").contains("aarch64") || System.getProperty("os.arch").contains("arm") -> "arm64"
+        else -> "x64"
+    }
+    
+    // Only create runtime for host platform/architecture
+    if (platform != currentOs || arch != currentArch) {
+        tasks.register(taskName) {
+            group = "runtime"
+            description = "Skip $platform-$arch runtime (can only create native runtime on $currentOs-$currentArch)"
+            doFirst {
+                println("⚠️ Skipping $platform-$arch runtime creation (cross-platform runtimes not supported)")
+                println("💡 Current platform: $currentOs-$currentArch")
+            }
+        }
+        return
+    }
+    
     tasks.register(taskName, Exec::class) {
         group = "runtime"
-        description = "Create jlink runtime image for $platform-$arch using configured JDK"
+        description = "Create native jlink runtime image for $platform-$arch using configured JDK"
         dependsOn("jar")
         
         val runtimeDir = "build/runtime/$platform-$arch"
         
         doFirst {
             delete(runtimeDir)
+            println("🔨 Creating native runtime for $platform-$arch")
         }
         
         // Use configured JDK from toolchain (works with any JDK that includes JavaFX)
         val currentJavaHome = System.getenv("JAVA_HOME") ?: System.getProperty("java.home")
-        val jlinkCmd = if (System.getProperty("os.name").lowercase().contains("windows")) 
+        val jlinkCmd = if (currentOs == "windows") 
             "$currentJavaHome/bin/jlink.exe" else "$currentJavaHome/bin/jlink"
         val modulePath = "$currentJavaHome/jmods"
         
@@ -599,7 +673,7 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
         )
         
         doLast {
-            println("✅ Runtime image created for $platform-$arch in $runtimeDir")
+            println("✅ Native runtime image created for $platform-$arch in $runtimeDir")
         }
     }
 }

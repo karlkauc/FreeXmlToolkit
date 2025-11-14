@@ -95,6 +95,7 @@ jobs:
       - name: Upload Release Assets (${{ matrix.arch }})
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
           # Upload all files matching the expected pattern
           if ls build/dist/${{ matrix.artifact-pattern }} 1> /dev/null 2>&1; then
