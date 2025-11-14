@@ -128,10 +128,10 @@ public class XsdNodeRenderer {
         double lineWidth;
         if (node.isSelected()) {
             lineWidth = 4.0;  // Thicker border for selected nodes
-        } else if (node.getMaxOccurs() > 1 || node.getMaxOccurs() == Integer.MAX_VALUE) {
-            lineWidth = 3.5;  // Thicker border for multiple occurrences
+        } else if (node.getMaxOccurs() > 1 || node.getMaxOccurs() == Integer.MAX_VALUE || node.getMaxOccurs() == -1) {
+            lineWidth = 3.0;  // Thicker border for multiple occurrences (check for both Integer.MAX_VALUE and -1 for UNBOUNDED)
         } else {
-            lineWidth = 2;    // Normal border for single occurrence
+            lineWidth = 1.5;  // Normal border for single occurrence
         }
         gc.setLineWidth(lineWidth);
 
@@ -190,6 +190,22 @@ public class XsdNodeRenderer {
             String detailText = truncateText(node.getDetail(), availableWidth, detailFont);
             gc.fillText(detailText, x + 10, y + 28);
         }
+        
+        // Draw cardinality indicator in top-right corner (before edit mode badge)
+        String cardinality = getCardinalityString(node);
+        if (!cardinality.isEmpty()) {
+            gc.setFont(Font.font("Segoe UI", 9));
+            gc.setFill(Color.rgb(67, 56, 202));  // Indigo color for cardinality
+            gc.setTextAlign(TextAlignment.RIGHT);
+            gc.setTextBaseline(VPos.TOP);
+            
+            // Position in top-right, accounting for edit badge if present
+            double cardinalityX = x + width - 10 - (node.isInEditMode() ? 15 : 0);
+            gc.fillText(cardinality, cardinalityX, y + 4);
+            
+            // Reset text alignment
+            gc.setTextAlign(TextAlignment.LEFT);
+        }
 
         // Draw edit mode indicator (small badge in top-right corner)
         if (node.isInEditMode()) {
@@ -224,9 +240,19 @@ public class XsdNodeRenderer {
 
         Color borderColor = getXMLSpyBorderColor(node.getType());
 
+        // Apply same line width logic as regular nodes
+        double lineWidth;
+        if (node.isSelected()) {
+            lineWidth = 4.0;  // Thicker border for selected nodes
+        } else if (node.getMaxOccurs() > 1 || node.getMaxOccurs() == Integer.MAX_VALUE || node.getMaxOccurs() == -1) {
+            lineWidth = 3.0;  // Thicker border for multiple occurrences
+        } else {
+            lineWidth = 1.5;  // Normal border for single occurrence
+        }
+
         // Draw small filled circle/diamond based on type
         gc.setStroke(borderColor);
-        gc.setLineWidth(2);
+        gc.setLineWidth(lineWidth);
 
         switch (node.getType()) {
             case SEQUENCE -> {
@@ -235,12 +261,18 @@ public class XsdNodeRenderer {
                 gc.fillRoundRect(x, y, size, size, 4, 4);
                 gc.strokeRoundRect(x, y, size, size, 4, 4);
 
-                // Draw "SEQ" or lines symbol
+                // Draw "SEQ" or lines symbol with cardinality
                 gc.setFill(borderColor);
-                gc.setFont(Font.font("Segoe UI", 9));
+                gc.setFont(Font.font("Segoe UI", 7));  // Smaller font for cardinality
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setTextBaseline(VPos.CENTER);
-                gc.fillText("=", x + size / 2, y + size / 2);
+                
+                String cardinalityText = getCardinalityString(node);
+                if (!cardinalityText.isEmpty()) {
+                    gc.fillText(cardinalityText, x + size / 2, y + size / 2);
+                } else {
+                    gc.fillText("=", x + size / 2, y + size / 2);
+                }
             }
             case CHOICE -> {
                 // Draw diamond for choice
@@ -259,12 +291,18 @@ public class XsdNodeRenderer {
                         4
                 );
 
-                // Draw "?" symbol
+                // Draw "?" symbol with cardinality
                 gc.setFill(borderColor);
-                gc.setFont(Font.font("Segoe UI", 11));
+                gc.setFont(Font.font("Segoe UI", 7));  // Smaller font for cardinality
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setTextBaseline(VPos.CENTER);
-                gc.fillText("?", centerX, centerY);
+                
+                String cardinalityText = getCardinalityString(node);
+                if (!cardinalityText.isEmpty()) {
+                    gc.fillText(cardinalityText, centerX, centerY);
+                } else {
+                    gc.fillText("?", centerX, centerY);
+                }
             }
             case ALL -> {
                 // Draw circle for all
@@ -272,14 +310,22 @@ public class XsdNodeRenderer {
                 gc.fillOval(x, y, size, size);
                 gc.strokeOval(x, y, size, size);
 
-                // Draw "*" symbol
+                // Draw "*" symbol with cardinality
                 gc.setFill(borderColor);
-                gc.setFont(Font.font("Segoe UI", 11));
+                gc.setFont(Font.font("Segoe UI", 7));  // Smaller font for cardinality
                 gc.setTextAlign(TextAlignment.CENTER);
                 gc.setTextBaseline(VPos.CENTER);
-                gc.fillText("*", x + size / 2, y + size / 2);
+                
+                String cardinalityText = getCardinalityString(node);
+                if (!cardinalityText.isEmpty()) {
+                    gc.fillText(cardinalityText, x + size / 2, y + size / 2);
+                } else {
+                    gc.fillText("*", x + size / 2, y + size / 2);
+                }
             }
         }
+
+        // Draw cardinality indicator next to compositor symbol if it's not default (1..1)\n        String cardinality = getCardinalityString(node);\n        if (!cardinality.isEmpty() && cardinality.length() > 3) { // Only show if it doesn't fit in symbol\n            gc.setFont(Font.font(\"Segoe UI\", 8));\n            gc.setFill(Color.rgb(67, 56, 202));  // Indigo color for cardinality\n            gc.setTextAlign(TextAlignment.LEFT);\n            gc.setTextBaseline(VPos.CENTER);\n            \n            // Position to the right of the compositor symbol\n            double cardinalityX = x + size + 4;\n            double cardinalityY = y + size / 2;\n            gc.fillText(cardinality, cardinalityX, cardinalityY);\n        }\n        \n        // Apply selection highlight for compositor nodes\n        if (node.isSelected()) {\n            gc.setStroke(Color.rgb(59, 130, 246));  // Blue highlight\n            gc.setLineWidth(3);\n            switch (node.getType()) {\n                case SEQUENCE -> {\n                    gc.strokeRoundRect(x - 2, y - 2, size + 4, size + 4, 6, 6);\n                }\n                case CHOICE -> {\n                    double centerX = x + size / 2;\n                    double centerY = y + size / 2;\n                    double halfSize = (size + 4) / 2;\n                    gc.strokePolygon(\n                            new double[]{centerX, centerX + halfSize, centerX, centerX - halfSize},\n                            new double[]{centerY - halfSize, centerY, centerY + halfSize, centerY},\n                            4\n                    );\n                }\n                case ALL -> {\n                    gc.strokeOval(x - 2, y - 2, size + 4, size + 4);\n                }\n            }\n        }\n        \n        // Apply focus indicator for compositor nodes\n        if (node.isFocused()) {\n            gc.setStroke(Color.rgb(139, 92, 246));  // Purple for focus\n            gc.setLineWidth(2);\n            gc.setLineDashes(4, 4);\n            switch (node.getType()) {\n                case SEQUENCE -> {\n                    gc.strokeRoundRect(x - 3, y - 3, size + 6, size + 6, 7, 7);\n                }\n                case CHOICE -> {\n                    double centerX = x + size / 2;\n                    double centerY = y + size / 2;\n                    double halfSize = (size + 6) / 2;\n                    gc.strokePolygon(\n                            new double[]{centerX, centerX + halfSize, centerX, centerX - halfSize},\n                            new double[]{centerY - halfSize, centerY, centerY + halfSize, centerY},\n                            4\n                    );\n                }\n                case ALL -> {\n                    gc.strokeOval(x - 3, y - 3, size + 6, size + 6);\n                }\n            }\n            gc.setLineDashes(null);  // Reset to solid\n        }
 
         // No expand button for compositor symbols - they auto-expand
     }
@@ -487,6 +533,40 @@ public class XsdNodeRenderer {
 
     public double getCompositorSize() {
         return COMPOSITOR_SIZE;
+    }
+
+    /**
+     * Generates the cardinality string for display based on minOccurs and maxOccurs.
+     * 
+     * Examples:
+     * - minOccurs=1, maxOccurs=1 -> "" (no display, default)
+     * - minOccurs=0, maxOccurs=1 -> "0..1"
+     * - minOccurs=1, maxOccurs=unbounded -> "1..*"
+     * - minOccurs=0, maxOccurs=unbounded -> "0..*" 
+     * - minOccurs=2, maxOccurs=5 -> "2..5"
+     */
+    private String getCardinalityString(VisualNode node) {
+        int minOccurs = node.getMinOccurs();
+        int maxOccurs = node.getMaxOccurs();
+        
+        // Default case (1..1) - don't display
+        if (minOccurs == 1 && maxOccurs == 1) {
+            return "";
+        }
+        
+        // Build cardinality string
+        StringBuilder cardinality = new StringBuilder();
+        cardinality.append(minOccurs);
+        
+        // Handle unbounded (can be Integer.MAX_VALUE or -1)
+        if (maxOccurs == Integer.MAX_VALUE || maxOccurs == -1) {
+            cardinality.append("..*");
+        } else if (maxOccurs != minOccurs) {
+            cardinality.append("..").append(maxOccurs);
+        }
+        // If min equals max (and not 1..1), just show the number
+        
+        return cardinality.toString();
     }
 
     /**
