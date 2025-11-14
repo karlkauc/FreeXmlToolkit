@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         include:
-          # Windows builds - alle Formate für beide Architekturen
+          # Windows builds - nur x64 (GitHub Actions hat keine ARM64 Windows Runner)
           - os: windows-latest
             arch: x64
             gradle-tasks: createWindowsExecutableX64
@@ -24,46 +24,34 @@ jobs:
             arch: x64
             gradle-tasks: createWindowsAppImageX64Zip
             artifact-pattern: "*.zip"
-          - os: windows-latest
-            arch: arm64
-            gradle-tasks: createWindowsExecutableArm64
-            artifact-pattern: "*.exe"
-          - os: windows-latest
-            arch: arm64
-            gradle-tasks: createWindowsMsiArm64
-            artifact-pattern: "*.msi"
-          - os: windows-latest
-            arch: arm64
-            gradle-tasks: createWindowsAppImageArm64Zip
-            artifact-pattern: "*.zip"
           
-          # macOS builds - alle Formate für beide Architekturen
-          - os: macos-15  # ARM runner, cross-compiles for x64
-            arch: x64
-            gradle-tasks: createMacOSExecutableX64
-            artifact-pattern: "*.dmg"
-          - os: macos-15  # ARM runner, cross-compiles for x64
-            arch: x64
-            gradle-tasks: createMacOSPkgX64
-            artifact-pattern: "*.pkg"
-          - os: macos-15  # ARM runner, cross-compiles for x64
-            arch: x64
-            gradle-tasks: createMacOSAppImageX64Zip
-            artifact-pattern: "*.zip"
-          - os: macos-15  # ARM runner, native ARM build
+          # macOS builds - native builds only (jpackage cannot cross-compile with runtime)
+          - os: macos-15  # ARM runner for native ARM builds only
             arch: arm64
             gradle-tasks: createMacOSExecutableArm64
             artifact-pattern: "*.dmg"
-          - os: macos-15  # ARM runner, native ARM build
+          - os: macos-15  # ARM runner for native ARM builds only
             arch: arm64
             gradle-tasks: createMacOSPkgArm64
             artifact-pattern: "*.pkg"
-          - os: macos-15  # ARM runner, native ARM build
+          - os: macos-15  # ARM runner for native ARM builds only
             arch: arm64
             gradle-tasks: createMacOSAppImageArm64Zip
             artifact-pattern: "*.zip"
+          - os: macos-13  # Intel runner for native x64 builds
+            arch: x64
+            gradle-tasks: createMacOSExecutableX64
+            artifact-pattern: "*.dmg"
+          - os: macos-13  # Intel runner for native x64 builds
+            arch: x64
+            gradle-tasks: createMacOSPkgX64
+            artifact-pattern: "*.pkg"
+          - os: macos-13  # Intel runner for native x64 builds
+            arch: x64
+            gradle-tasks: createMacOSAppImageX64Zip
+            artifact-pattern: "*.zip"
           
-          # Linux builds - alle Formate für beide Architekturen
+          # Linux builds - nur x64 (GitHub Actions hat keine ARM64 Linux Runner)
           - os: ubuntu-latest
             arch: x64
             gradle-tasks: createLinuxDebX64
@@ -75,18 +63,6 @@ jobs:
           - os: ubuntu-latest
             arch: x64
             gradle-tasks: createLinuxAppImageX64Zip
-            artifact-pattern: "*.zip"
-          - os: ubuntu-latest
-            arch: arm64
-            gradle-tasks: createLinuxDebArm64
-            artifact-pattern: "*.deb"
-          - os: ubuntu-latest
-            arch: arm64
-            gradle-tasks: createLinuxRpmArm64
-            artifact-pattern: "*.rpm"
-          - os: ubuntu-latest
-            arch: arm64
-            gradle-tasks: createLinuxAppImageArm64Zip
             artifact-pattern: "*.zip"
 
     # Der Job wird auf dem in der Matrix definierten Betriebssystem ausgeführt
