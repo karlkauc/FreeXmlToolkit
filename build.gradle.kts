@@ -428,14 +428,8 @@ $runtimeArg
 --enable-native-access=javafx.graphics
 --verbose
 $platformArgs""".trimIndent())
-        }
-        
-        // Set up jpackage command with arguments file
-        val argsFileName = "jpackage-args-$platform-$arch-$packageType.txt"
-        
-        // Add debug output and run jpackage
-        doFirst {
-            val argsFile = File(project.layout.buildDirectory.asFile.get(), argsFileName)
+            
+            // Add debug output after creating the file
             println("🔧 jpackage command: $jpackageCmd")
             println("📋 Arguments file: ${argsFile.absolutePath}")
             println("📄 Arguments file contents:")
@@ -446,7 +440,7 @@ $platformArgs""".trimIndent())
             }
         }
         
-        val argsFilePath = File(project.layout.buildDirectory.asFile.get(), argsFileName).absolutePath
+        val argsFilePath = File(project.layout.buildDirectory.asFile.get(), "jpackage-args-$platform-$arch-$packageType.txt").absolutePath
         commandLine(jpackageCmd, "@$argsFilePath")
         isIgnoreExitValue = true
         
