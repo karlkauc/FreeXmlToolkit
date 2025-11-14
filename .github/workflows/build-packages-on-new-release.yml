@@ -49,7 +49,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           java-package: 'jdk+fx'
-          java-version: '24'
+          java-version: '25'
           distribution: 'liberica'
 
       # Schritt 3: Gradle Wrapper ausführbar machen (wichtig für Linux/macOS)
