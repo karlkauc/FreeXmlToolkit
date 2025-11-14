@@ -26,27 +26,27 @@ jobs:
             artifact-pattern: "FreeXmlToolkit-windows-x64-app-image-*.zip"
           
           # macOS builds - native builds only (jpackage cannot cross-compile with runtime)
-          - os: macos-15  # ARM runner for native ARM builds only
+          - os: macos-latest  # ARM runner for native ARM builds (macOS 15 ARM64)
             arch: arm64
             gradle-tasks: createMacOSExecutableArm64
             artifact-pattern: "FreeXmlToolkit-arm64-*.dmg"
-          - os: macos-15  # ARM runner for native ARM builds only
+          - os: macos-latest  # ARM runner for native ARM builds (macOS 15 ARM64)
             arch: arm64
             gradle-tasks: createMacOSPkgArm64
             artifact-pattern: "FreeXmlToolkit-arm64-*.pkg"
-          - os: macos-15  # ARM runner for native ARM builds only
+          - os: macos-latest  # ARM runner for native ARM builds (macOS 15 ARM64)
             arch: arm64
             gradle-tasks: createMacOSAppImageArm64Zip
             artifact-pattern: "FreeXmlToolkit-macos-arm64-app-image-*.zip"
-          - os: macos-13  # Intel runner for native x64 builds
+          - os: macos-15-intel  # Intel runner for native x64 builds (macOS 15 Intel)
             arch: x64
             gradle-tasks: createMacOSExecutableX64
             artifact-pattern: "FreeXmlToolkit-x64-*.dmg"
-          - os: macos-13  # Intel runner for native x64 builds
+          - os: macos-15-intel  # Intel runner for native x64 builds (macOS 15 Intel)
             arch: x64
             gradle-tasks: createMacOSPkgX64
             artifact-pattern: "FreeXmlToolkit-x64-*.pkg"
-          - os: macos-13  # Intel runner for native x64 builds
+          - os: macos-15-intel  # Intel runner for native x64 builds (macOS 15 Intel)
             arch: x64
             gradle-tasks: createMacOSAppImageX64Zip
             artifact-pattern: "FreeXmlToolkit-macos-x64-app-image-*.zip"
