@@ -322,8 +322,9 @@ fun createJPackageTask(taskName: String, platform: String, arch: String, package
         dependsOn("jar", runtimeTaskName)
         
         doFirst {
-            delete("build/dist/$platform-$arch-$packageType")
-            mkdir("build/dist/$platform-$arch-$packageType")
+            val outputDir = project.layout.buildDirectory.dir("dist/$platform-$arch-$packageType").get().asFile
+            delete(outputDir)
+            mkdir(outputDir)
         }
         
         val jpackageCmd = if (System.getProperty("os.name").lowercase().contains("windows")) "jpackage.exe" else "jpackage"
@@ -380,15 +381,27 @@ Development
             val iconArg = if (File(project.rootDir, iconPath).exists()) "--icon\n$projectIconPath" else ""
             
             // Use custom runtime if it exists
-            val runtimePath = "build/runtime/$platform-$arch"
-            val runtimeArg = if (File(runtimePath).exists()) "--runtime-image\n$runtimePath" else ""
+            val runtimePath = project.layout.buildDirectory.dir("runtime/$platform-$arch").get().asFile
+            val runtimeFile = runtimePath
+            val runtimeArg = if (runtimeFile.exists() && runtimeFile.isDirectory()) {
+                println("✅ Using custom runtime: ${runtimeFile.absolutePath}")
+                println("📁 Runtime path: ${runtimeFile.absolutePath}")
+                "--runtime-image\n${runtimeFile.absolutePath}"
+            } else {
+                println("⚠️ Runtime not found at: ${runtimeFile.absolutePath}")
+                ""
+            }
+            
+            // Use absolute paths for better compatibility
+            val inputDir = project.layout.buildDirectory.dir("libs").get().asFile.absolutePath
+            val destDir = project.layout.buildDirectory.dir("dist/$platform-$arch-$packageType").get().asFile.absolutePath
             
             argsFile.writeText("""--type
 $packageType
 --input
-build/libs
+$inputDir
 --dest
-build/dist/$platform-$arch-$packageType
+$destDir
 --name
 $appName
 --main-jar
@@ -411,7 +424,20 @@ $runtimeArg
 --enable-native-access=ALL-UNNAMED
 --java-options
 --enable-native-access=javafx.graphics
+--verbose
 $platformArgs""".trimIndent())
+        }
+        
+        // Add debug output before running jpackage
+        doFirst {
+            println("🔧 jpackage command: $jpackageCmd")
+            println("📋 Arguments file: ${argsFile.absolutePath}")
+            println("📄 Arguments file contents:")
+            println(argsFile.readText())
+            
+            if (platform == "linux" && packageType == "app-image") {
+                println("🐧 Running Linux app-image creation with runtime...")
+            }
         }
         
         commandLine(jpackageCmd, "@${argsFile.absolutePath}")
@@ -629,7 +655,7 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
         description = "Create native jlink runtime image for $platform-$arch using configured JDK"
         dependsOn("jar")
         
-        val runtimeDir = "build/runtime/$platform-$arch"
+        val runtimeDir = project.layout.buildDirectory.dir("runtime/$platform-$arch").get().asFile
         
         doFirst {
             delete(runtimeDir)
@@ -666,14 +692,14 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
             jlinkCmd,
             "--module-path", modulePath,
             "--add-modules", requiredModules.joinToString(","),
-            "--output", runtimeDir,
+            "--output", runtimeDir.absolutePath,
             "--compress=zip-6",
             "--no-header-files",
             "--no-man-pages"
         )
         
         doLast {
-            println("✅ Native runtime image created for $platform-$arch in $runtimeDir")
+            println("✅ Native runtime image created for $platform-$arch in ${runtimeDir.absolutePath}")
         }
     }
 }
