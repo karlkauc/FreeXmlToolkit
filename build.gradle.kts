@@ -336,8 +336,7 @@ fun createJPackageTask(taskName: String, platform: String, arch: String, package
             else -> "FreeXmlToolkit"
         }
         
-        // Create arguments file to avoid command line length issues on Windows  
-        val argsFile = File(project.layout.buildDirectory.asFile.get(), "jpackage-args-$platform-$arch-$packageType.txt")
+        // Arguments file will be created in doFirst block
         val iconPath = when (platform) {
             "windows" -> "release/logo.ico"
             "macos" -> "release/logo.icns"
@@ -374,6 +373,9 @@ Development
                 from(configurations.runtimeClasspath.get())
                 into("build/libs/lib")
             }
+            
+            // Create arguments file to avoid command line length issues on Windows  
+            val argsFile = File(project.layout.buildDirectory.asFile.get(), "jpackage-args-$platform-$arch-$packageType.txt")
             
             // Check if icon exists before adding it to arguments
             // For app-image, icon is embedded in the executable - use project relative path
@@ -428,8 +430,12 @@ $runtimeArg
 $platformArgs""".trimIndent())
         }
         
-        // Add debug output before running jpackage
+        // Set up jpackage command with arguments file
+        val argsFileName = "jpackage-args-$platform-$arch-$packageType.txt"
+        
+        // Add debug output and run jpackage
         doFirst {
+            val argsFile = File(project.layout.buildDirectory.asFile.get(), argsFileName)
             println("🔧 jpackage command: $jpackageCmd")
             println("📋 Arguments file: ${argsFile.absolutePath}")
             println("📄 Arguments file contents:")
@@ -440,7 +446,8 @@ $platformArgs""".trimIndent())
             }
         }
         
-        commandLine(jpackageCmd, "@${argsFile.absolutePath}")
+        val argsFilePath = File(project.layout.buildDirectory.asFile.get(), argsFileName).absolutePath
+        commandLine(jpackageCmd, "@$argsFilePath")
         isIgnoreExitValue = true
         
         // Post-processing for naming and packaging
