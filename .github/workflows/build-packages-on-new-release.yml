@@ -7,81 +7,33 @@ on:
 
 jobs:
   build:
-    # Definiere eine Build-Matrix für verschiedene Betriebssysteme und Architekturen
+    # Definiere eine Build-Matrix nur für gezippte App-Images
     strategy:
       matrix:
         include:
-          # Windows builds - EXE packages
+          # Windows builds - App Images (zipped only)
           - os: windows-latest
             arch: x64
-            gradle-tasks: createWindowsExecutableX64
+            gradle-tasks: createWindowsAppImageX64Zip
           - os: windows-latest
             arch: arm64
-            gradle-tasks: createWindowsExecutableArm64
+            gradle-tasks: createWindowsAppImageArm64Zip
           
-          # Windows builds - MSI packages
-          - os: windows-latest
-            arch: x64
-            gradle-tasks: createWindowsMsiX64
-          - os: windows-latest
-            arch: arm64
-            gradle-tasks: createWindowsMsiArm64
-          
-          # Windows builds - App Images
-          - os: windows-latest
-            arch: x64
-            gradle-tasks: zipWindowsAppImageX64
-          - os: windows-latest
-            arch: arm64
-            gradle-tasks: zipWindowsAppImageArm64
-          
-          # macOS builds - DMG packages
+          # macOS builds - App Images (zipped only)
           - os: macos-15  # ARM runner, cross-compiles for x64
             arch: x64
-            gradle-tasks: createMacOSExecutableX64
+            gradle-tasks: createMacOSAppImageX64Zip
           - os: macos-15  # ARM runner, native ARM build
             arch: arm64
-            gradle-tasks: createMacOSExecutableArm64
+            gradle-tasks: createMacOSAppImageArm64Zip
           
-          # macOS builds - PKG packages
-          - os: macos-15  # ARM runner, cross-compiles for x64
-            arch: x64
-            gradle-tasks: createMacOSPkgX64
-          - os: macos-15  # ARM runner, native ARM build
-            arch: arm64
-            gradle-tasks: createMacOSPkgArm64
-          
-          # macOS builds - App Images
-          - os: macos-15  # ARM runner, cross-compiles for x64
-            arch: x64
-            gradle-tasks: zipMacOSAppImageX64
-          - os: macos-15  # ARM runner, native ARM build
-            arch: arm64
-            gradle-tasks: zipMacOSAppImageArm64
-          
-          # Linux builds - DEB packages
+          # Linux builds - App Images (zipped only)
           - os: ubuntu-latest
             arch: x64
-            gradle-tasks: createLinuxDebX64
+            gradle-tasks: createLinuxAppImageX64Zip
           - os: ubuntu-latest
             arch: arm64
-            gradle-tasks: createLinuxDebArm64
-          
-          # Linux builds - RPM packages
-          - os: ubuntu-latest
-            arch: x64
-            gradle-tasks: createLinuxRpmX64
-          - os: ubuntu-latest
-            arch: arm64
-            gradle-tasks: createLinuxRpmArm64
-          
-          # Linux builds - App Images
-          - os: ubuntu-latest
-            arch: x64
-            gradle-tasks: zipLinuxAppImageX64
-          - os: ubuntu-latest
-            arch: arm64
-            gradle-tasks: zipLinuxAppImageArm64
+            gradle-tasks: createLinuxAppImageArm64Zip
 
     # Der Job wird auf dem in der Matrix definierten Betriebssystem ausgeführt
     runs-on: ${{ matrix.os }}

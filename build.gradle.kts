@@ -254,7 +254,19 @@ fun createZipTask(jpackageTaskName: String, platform: String, arch: String): Str
 
 // Helper function to create platform-specific jpackage tasks
 fun createJPackageTask(taskName: String, platform: String, arch: String, packageType: String) {
-    val runtimeTaskName = "create${platform.replaceFirstChar { it.uppercaseChar() }}Runtime${arch.replaceFirstChar { it.uppercaseChar() }}"
+    val platformName = when(platform) {
+        "macos" -> "MacOS"
+        "windows" -> "Windows" 
+        "linux" -> "Linux"
+        else -> platform.replaceFirstChar { it.uppercaseChar() }
+    }
+    val archName = when(arch) {
+        "x64" -> "X64"
+        "arm64" -> "Arm64"
+        "aarch64" -> "Arm64"
+        else -> arch.replaceFirstChar { it.uppercaseChar() }
+    }
+    val runtimeTaskName = "create${platformName}Runtime${archName}"
     
     tasks.register(taskName, Exec::class) {
         group = "distribution"
@@ -594,19 +606,20 @@ fun createJlinkRuntimeTask(taskName: String, platform: String, arch: String) {
 
 // Create jlink runtime tasks for all platforms
 createJlinkRuntimeTask("createWindowsRuntimeX64", "windows", "x64")
-createJlinkRuntimeTask("createLinuxRuntimeX64", "linux", "x64") 
+createJlinkRuntimeTask("createWindowsRuntimeArm64", "windows", "arm64")
+createJlinkRuntimeTask("createLinuxRuntimeX64", "linux", "x64")
+createJlinkRuntimeTask("createLinuxRuntimeArm64", "linux", "arm64")
 createJlinkRuntimeTask("createMacOSRuntimeX64", "macos", "x64")
-createJlinkRuntimeTask("createMacOSRuntimeAarch64", "macos", "aarch64")
+createJlinkRuntimeTask("createMacOSRuntimeArm64", "macos", "arm64")
 
 // Convenience task to create all runtime images
 tasks.register("createAllRuntimes") {
     group = "runtime"
     description = "Create jlink runtime images for all platforms"
     dependsOn(
-        "createWindowsRuntimeX64",
-        "createLinuxRuntimeX64", 
-        "createMacOSRuntimeX64",
-        "createMacOSRuntimeAarch64"
+        "createWindowsRuntimeX64", "createWindowsRuntimeArm64",
+        "createLinuxRuntimeX64", "createLinuxRuntimeArm64",
+        "createMacOSRuntimeX64", "createMacOSRuntimeArm64"
     )
 }
 
