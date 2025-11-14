@@ -15,55 +15,55 @@ jobs:
           - os: windows-latest
             arch: x64
             gradle-tasks: createWindowsExecutableX64
-            artifact-pattern: "*.exe"
+            artifact-pattern: "FreeXmlToolkit-x64-*.exe"
           - os: windows-latest
             arch: x64
             gradle-tasks: createWindowsMsiX64
-            artifact-pattern: "*.msi"
+            artifact-pattern: "FreeXmlToolkit-x64-*.msi"
           - os: windows-latest
             arch: x64
             gradle-tasks: createWindowsAppImageX64Zip
-            artifact-pattern: "*.zip"
+            artifact-pattern: "FreeXmlToolkit-windows-x64-app-image-*.zip"
           
           # macOS builds - native builds only (jpackage cannot cross-compile with runtime)
           - os: macos-15  # ARM runner for native ARM builds only
             arch: arm64
             gradle-tasks: createMacOSExecutableArm64
-            artifact-pattern: "*.dmg"
+            artifact-pattern: "FreeXmlToolkit-arm64-*.dmg"
           - os: macos-15  # ARM runner for native ARM builds only
             arch: arm64
             gradle-tasks: createMacOSPkgArm64
-            artifact-pattern: "*.pkg"
+            artifact-pattern: "FreeXmlToolkit-arm64-*.pkg"
           - os: macos-15  # ARM runner for native ARM builds only
             arch: arm64
             gradle-tasks: createMacOSAppImageArm64Zip
-            artifact-pattern: "*.zip"
+            artifact-pattern: "FreeXmlToolkit-macos-arm64-app-image-*.zip"
           - os: macos-13  # Intel runner for native x64 builds
             arch: x64
             gradle-tasks: createMacOSExecutableX64
-            artifact-pattern: "*.dmg"
+            artifact-pattern: "FreeXmlToolkit-x64-*.dmg"
           - os: macos-13  # Intel runner for native x64 builds
             arch: x64
             gradle-tasks: createMacOSPkgX64
-            artifact-pattern: "*.pkg"
+            artifact-pattern: "FreeXmlToolkit-x64-*.pkg"
           - os: macos-13  # Intel runner for native x64 builds
             arch: x64
             gradle-tasks: createMacOSAppImageX64Zip
-            artifact-pattern: "*.zip"
+            artifact-pattern: "FreeXmlToolkit-macos-x64-app-image-*.zip"
           
           # Linux builds - nur x64 (GitHub Actions hat keine ARM64 Linux Runner)
           - os: ubuntu-latest
             arch: x64
             gradle-tasks: createLinuxDebX64
-            artifact-pattern: "*.deb"
+            artifact-pattern: "freexmltoolkit-x64_*_amd64.deb"
           - os: ubuntu-latest
             arch: x64
             gradle-tasks: createLinuxRpmX64
-            artifact-pattern: "*.rpm"
+            artifact-pattern: "freexmltoolkit-x64-*-1.x86_64.rpm"
           - os: ubuntu-latest
             arch: x64
             gradle-tasks: createLinuxAppImageX64Zip
-            artifact-pattern: "*.zip"
+            artifact-pattern: "FreeXmlToolkit-linux-x64-app-image-*.zip"
 
     # Der Job wird auf dem in der Matrix definierten Betriebssystem ausgeführt
     runs-on: ${{ matrix.os }}
@@ -97,12 +97,47 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          # Upload all files matching the expected pattern
-          if ls build/dist/${{ matrix.artifact-pattern }} 1> /dev/null 2>&1; then
-            gh release upload ${{ github.event.release.tag_name }} build/dist/${{ matrix.artifact-pattern }}
-            echo "✅ Uploaded artifacts: build/dist/${{ matrix.artifact-pattern }}"
+          echo "📁 Contents of build/dist/ before upload:"
+          ls -la build/dist/ || echo "build/dist/ directory not found"
+          echo ""
+          
+          # Find and upload all created files (more robust approach)
+          found_files=0
+          
+          # Upload files matching the expected pattern
+          for file in build/dist/${{ matrix.artifact-pattern }}; do
+            if [ -f "$file" ]; then
+              echo "📦 Uploading: $file ($(stat --format='%s' "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "unknown size") bytes)"
+              if gh release upload ${{ github.event.release.tag_name }} "$file"; then
+                echo "✅ Successfully uploaded: $file"
+                found_files=$((found_files + 1))
+              else
+                echo "❌ Failed to upload: $file"
+              fi
+            fi
+          done
+          
+          # Also try to upload any other files in build/dist/ that look like packages
+          for file in build/dist/*.{exe,msi,zip,dmg,pkg,deb,rpm} 2>/dev/null; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              # Check if we haven't already uploaded this file
+              if ! gh release view ${{ github.event.release.tag_name }} | grep -q "$filename"; then
+                echo "📦 Uploading additional file: $file ($(stat --format='%s' "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "unknown size") bytes)"
+                if gh release upload ${{ github.event.release.tag_name }} "$file"; then
+                  echo "✅ Successfully uploaded additional: $file"
+                  found_files=$((found_files + 1))
+                else
+                  echo "❌ Failed to upload additional: $file"
+                fi
+              fi
+            fi
+          done
+          
+          if [ $found_files -eq 0 ]; then
+            echo "⚠️  No files were uploaded!"
+            echo "Expected pattern: ${{ matrix.artifact-pattern }}"
+            exit 1
           else
-            echo "⚠️  No artifacts found matching pattern: ${{ matrix.artifact-pattern }}"
-            echo "📁 Contents of build/dist/:"
-            ls -la build/dist/ || echo "build/dist/ directory not found"
+            echo "🎉 Successfully uploaded $found_files file(s)"
           fi
