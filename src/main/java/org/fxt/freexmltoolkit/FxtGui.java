@@ -29,12 +29,14 @@ import javafx.stage.Stage;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.fxt.freexmltoolkit.controller.MainController;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.ThreadPoolManager;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -58,20 +60,15 @@ import java.util.concurrent.TimeUnit;
  * and real-time validation feedback.
  *
  *
- * <p>Usage example:
- * <pre>{@code
- * // Launch the application
- * FxtGui.main(args);
- *
- * // Or programmatically
- * Application.launch(FxtGui.class, args);
- * }</pre>
- *
  * @author Karl Kauc
  * @version 1.0
  * @since 2024
  */
 public class FxtGui extends Application {
+
+    static {
+        configureLogging();
+    }
 
     private final static Logger logger = LogManager.getLogger(FxtGui.class);
 
@@ -84,6 +81,47 @@ public class FxtGui extends Application {
     MainController mainController;
 
     StopWatch startWatch = new StopWatch();
+
+    /**
+     * Configures Log4j2 to use external log4j2.xml file if available in app directory.
+     * 
+     * <p>This method checks for a log4j2.xml file in the application directory and
+     * reconfigures the LoggerContext to use it. This allows packaged applications
+     * to use a custom logging configuration outside the JAR file.
+     * 
+     * <p>Search order:
+     * <ol>
+     *   <li>log4j2.xml in current working directory</li>
+     *   <li>log4j2.xml in application jar directory (for jpackage apps)</li>
+     *   <li>Falls back to embedded log4j2.xml in resources</li>
+     * </ol>
+     */
+    private static void configureLogging() {
+        try {
+            // Try current working directory first
+            File externalConfigFile = new File("log4j2.xml");
+            
+            // If not found, try the directory where the application jar is located
+            if (!externalConfigFile.exists()) {
+                // Get the directory of the current jar/application
+                String jarPath = FxtGui.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+                File jarDir = new File(jarPath).getParentFile();
+                externalConfigFile = new File(jarDir, "log4j2.xml");
+            }
+            
+            if (externalConfigFile.exists()) {
+                LoggerContext context = (LoggerContext) LogManager.getContext(false);
+                context.setConfigLocation(externalConfigFile.toURI());
+                context.reconfigure();
+                System.out.println("Using external log4j2.xml configuration: " + externalConfigFile.getAbsolutePath());
+            } else {
+                System.out.println("External log4j2.xml not found, using embedded configuration");
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to configure external logging: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Initializes and starts the JavaFX application.

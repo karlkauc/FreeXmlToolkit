@@ -195,21 +195,9 @@
     -fx-stroke-dash-array: 1 1;
 }
 
-/* Auto-closing bracket animation */
-@keyframes bracket-flash {
-    0% {
-        -rtfx-background-color: rgba(0, 255, 0, 0);
-    }
-    50% {
-        -rtfx-background-color: rgba(0, 255, 0, 0.4);
-    }
-    100% {
-        -rtfx-background-color: rgba(0, 255, 0, 0);
-    }
-}
-
+/* Auto-closing bracket highlight (JavaFX CSS compatible) */
 .bracket-inserted {
-    animation: bracket-flash 0.3s ease-in-out;
+    -rtfx-background-color: rgba(0, 255, 0, 0.3);
 }
 
 /* Quick actions menu */

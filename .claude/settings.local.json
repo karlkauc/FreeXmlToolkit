@@ -1,4 +1,10 @@
 {
+  "env": {
+    "HTTP_PROXY": "http://localhost:3128",
+    "HTTPS_PROXY": "http://localhost:3128",
+    "ALL_PROXY": "http://localhost:3128",
+    "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+  },
   "permissions": {
     "allow": [
       "Bash(./gradlew:*)",
@@ -36,23 +42,31 @@
       "Bash(fi)",
       "Bash(git add:*)",
       "Bash(git restore:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(jpackage.exe:*)",
+      "Bash(zip:*)",
+      "Bash(build/dist/windows-x64-app-image/FreeXmlToolkit/FreeXmlToolkit.exe)",
+      "Bash(where javac)",
+      "Bash(C:DataAppsScoopappsopenjdk21currentbinjava.exe -version)",
+      "Bash(\"C:\\Data\\Apps\\Scoop\\apps\\openjdk21\\current\\bin\\java.exe\" -version)",
+      "Bash(export JAVA_HOME=\"C:\\Data\\Apps\\Scoop\\apps\\openjdk21\\current\")",
+      "Bash(\"/mnt/c/Data/Apps/Scoop/apps/liberica-full-jdk/25.0.1-11/bin/java.exe\" -version)",
+      "Bash(\"C:\\Data\\Apps\\Scoop\\apps\\liberica-full-jdk\\25.0.1-11\\bin\\java.exe\" -version)",
+      "Read(C:\\Data\\Apps\\Scoop\\apps\\liberica-full-jdk\\25.0.1-11\\jmods/**)",
+      "Read(C:\\Data\\Apps\\Scoop\\apps\\liberica-full-jdk\\25.0.1-11\\jmods/**)",
+      "Bash(export JAVA_HOME=\"C:\\Data\\Apps\\Scoop\\apps\\liberica-full-jdk\\25.0.1-11\")",
+      "Bash(powershell -Command \"Get-ItemProperty ''build/dist/windows-x64-app-image/FreeXmlToolkit/FreeXmlToolkit.exe'' | Select-Object Name, Length, LastWriteTime\")",
+      "Bash(powershell:*)",
+      "Bash(export:*)",
+      "Bash(build/dist/windows-x64-app-image/FreeXmlToolkit/runtime/bin/java.exe -version)",
+      "Bash(build/dist/windows-x64-app-image/FreeXmlToolkit/FreeXmlToolkit.exe --version)",
+      "Bash(./FreeXmlToolkit.exe)"
     ],
     "deny": []
   },
-  "proxy": {  
-    "http": "http://localhost:3128",  
-    "https": "http://localhost:3128"  
-  },  
-  "proxyStrictSSL": false,  
-  "rejectUnauthorized": false,  
-  "proxy": "http://localhost:3128",  
-  "httpsProxy": "http://localhost:3128",  
-  "httpProxy": "http://localhost:3128",  
-  "env": {  
-    "HTTP_PROXY": "http://localhost:3128",  
-    "HTTPS_PROXY": "http://localhost:3128",  
-    "ALL_PROXY": "http://localhost:3128",  
-    "NODE_TLS_REJECT_UNAUTHORIZED": "0"  
-  } 
+  "proxy": "http://localhost:3128",
+  "proxyStrictSSL": false,
+  "rejectUnauthorized": false,
+  "httpsProxy": "http://localhost:3128",
+  "httpProxy": "http://localhost:3128"
 }
