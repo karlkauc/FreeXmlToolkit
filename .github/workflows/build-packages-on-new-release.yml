@@ -7,33 +7,87 @@ on:
 
 jobs:
   build:
-    # Definiere eine Build-Matrix nur für gezippte App-Images
+    # Definiere eine Build-Matrix für alle jpackage Kombinationen
     strategy:
       matrix:
         include:
-          # Windows builds - App Images (zipped only)
+          # Windows builds - alle Formate für beide Architekturen
+          - os: windows-latest
+            arch: x64
+            gradle-tasks: createWindowsExecutableX64
+            artifact-pattern: "*.exe"
+          - os: windows-latest
+            arch: x64
+            gradle-tasks: createWindowsMsiX64
+            artifact-pattern: "*.msi"
           - os: windows-latest
             arch: x64
             gradle-tasks: createWindowsAppImageX64Zip
+            artifact-pattern: "*.zip"
+          - os: windows-latest
+            arch: arm64
+            gradle-tasks: createWindowsExecutableArm64
+            artifact-pattern: "*.exe"
+          - os: windows-latest
+            arch: arm64
+            gradle-tasks: createWindowsMsiArm64
+            artifact-pattern: "*.msi"
           - os: windows-latest
             arch: arm64
             gradle-tasks: createWindowsAppImageArm64Zip
+            artifact-pattern: "*.zip"
           
-          # macOS builds - App Images (zipped only)
+          # macOS builds - alle Formate für beide Architekturen
+          - os: macos-15  # ARM runner, cross-compiles for x64
+            arch: x64
+            gradle-tasks: createMacOSExecutableX64
+            artifact-pattern: "*.dmg"
+          - os: macos-15  # ARM runner, cross-compiles for x64
+            arch: x64
+            gradle-tasks: createMacOSPkgX64
+            artifact-pattern: "*.pkg"
           - os: macos-15  # ARM runner, cross-compiles for x64
             arch: x64
             gradle-tasks: createMacOSAppImageX64Zip
+            artifact-pattern: "*.zip"
+          - os: macos-15  # ARM runner, native ARM build
+            arch: arm64
+            gradle-tasks: createMacOSExecutableArm64
+            artifact-pattern: "*.dmg"
+          - os: macos-15  # ARM runner, native ARM build
+            arch: arm64
+            gradle-tasks: createMacOSPkgArm64
+            artifact-pattern: "*.pkg"
           - os: macos-15  # ARM runner, native ARM build
             arch: arm64
             gradle-tasks: createMacOSAppImageArm64Zip
+            artifact-pattern: "*.zip"
           
-          # Linux builds - App Images (zipped only)
+          # Linux builds - alle Formate für beide Architekturen
+          - os: ubuntu-latest
+            arch: x64
+            gradle-tasks: createLinuxDebX64
+            artifact-pattern: "*.deb"
+          - os: ubuntu-latest
+            arch: x64
+            gradle-tasks: createLinuxRpmX64
+            artifact-pattern: "*.rpm"
           - os: ubuntu-latest
             arch: x64
             gradle-tasks: createLinuxAppImageX64Zip
+            artifact-pattern: "*.zip"
+          - os: ubuntu-latest
+            arch: arm64
+            gradle-tasks: createLinuxDebArm64
+            artifact-pattern: "*.deb"
+          - os: ubuntu-latest
+            arch: arm64
+            gradle-tasks: createLinuxRpmArm64
+            artifact-pattern: "*.rpm"
           - os: ubuntu-latest
             arch: arm64
             gradle-tasks: createLinuxAppImageArm64Zip
+            artifact-pattern: "*.zip"
 
     # Der Job wird auf dem in der Matrix definierten Betriebssystem ausgeführt
     runs-on: ${{ matrix.os }}
@@ -62,7 +116,16 @@ jobs:
         run: ./gradlew ${{ matrix.gradle-tasks }}
 
       # Schritt 5: Lade alle erstellten Artefakte mit dem GitHub CLI hoch
-      - name: Upload Release Assets
+      - name: Upload Release Assets (${{ matrix.arch }})
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.release.tag_name }} build/dist/*
+        run: |
+          # Upload all files matching the expected pattern
+          if ls build/dist/${{ matrix.artifact-pattern }} 1> /dev/null 2>&1; then
+            gh release upload ${{ github.event.release.tag_name }} build/dist/${{ matrix.artifact-pattern }}
+            echo "✅ Uploaded artifacts: build/dist/${{ matrix.artifact-pattern }}"
+          else
+            echo "⚠️  No artifacts found matching pattern: ${{ matrix.artifact-pattern }}"
+            echo "📁 Contents of build/dist/:"
+            ls -la build/dist/ || echo "build/dist/ directory not found"
+          fi
