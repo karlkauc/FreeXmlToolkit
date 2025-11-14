@@ -18,15 +18,15 @@ import javafx.scene.text.TextAlignment;
  */
 public class XsdNodeRenderer {
 
-    private static final double MIN_NODE_WIDTH = 120;
-    private static final double MAX_NODE_WIDTH = 300;
+    private static final double MIN_NODE_WIDTH = 150;
+    private static final double MAX_NODE_WIDTH = 500;  // Increased for longer text
     private static final double NODE_HEIGHT = 50;
     private static final double COMPOSITOR_SIZE = 28;  // Small square for compositors
     private static final double EXPAND_BUTTON_SIZE = 16;
     private static final double HORIZONTAL_SPACING = 40;
     private static final double VERTICAL_SPACING = 20;
     private static final double CORNER_RADIUS = 4;  // XMLSpy uses 4px radius
-    private static final double PADDING = 20; // Padding inside node
+    private static final double PADDING = 30; // Increased padding for better text spacing
 
     private final XsdNodeStyler styler;
     private final Font nodeFont;
@@ -49,24 +49,24 @@ public class XsdNodeRenderer {
             return COMPOSITOR_SIZE;
         }
 
-        // Measure label text
+        // Measure label text with proper font
         textMeasurer.setFont(nodeFont);
-        textMeasurer.setText(node.getLabel());
-        double labelWidth = textMeasurer.getLayoutBounds().getWidth();
+        textMeasurer.setText(node.getLabel() != null ? node.getLabel() : "");
+        double labelWidth = textMeasurer.getBoundsInLocal().getWidth();
 
-        // Measure detail text
+        // Measure detail text with proper font
         double detailWidth = 0;
         if (node.getDetail() != null && !node.getDetail().isEmpty()) {
             textMeasurer.setFont(detailFont);
             textMeasurer.setText(node.getDetail());
-            detailWidth = textMeasurer.getLayoutBounds().getWidth();
+            detailWidth = textMeasurer.getBoundsInLocal().getWidth();
         }
 
-        // Take maximum of both, add padding and button space
+        // Take maximum of both, add padding and expand button space
         double maxTextWidth = Math.max(labelWidth, detailWidth);
-        double requiredWidth = maxTextWidth + PADDING + EXPAND_BUTTON_SIZE + 20;
+        double requiredWidth = maxTextWidth + PADDING + (node.hasChildren() ? EXPAND_BUTTON_SIZE + 10 : 0) + 20;
 
-        // Clamp to min/max bounds
+        // Use minimum width but allow expansion for longer text
         return Math.max(MIN_NODE_WIDTH, Math.min(MAX_NODE_WIDTH, requiredWidth));
     }
 
@@ -178,14 +178,16 @@ public class XsdNodeRenderer {
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setTextBaseline(VPos.TOP);
 
-        String displayText = truncateText(node.getLabel(), width - 40);
+        // Calculate available text width (node width minus padding and expand button)
+        double availableWidth = width - 20 - (node.hasChildren() ? EXPAND_BUTTON_SIZE + 10 : 0);
+        String displayText = truncateText(node.getLabel(), availableWidth, nodeFont);
         gc.fillText(displayText, x + 10, y + 10);
 
         // Draw detail text (type, cardinality)
         if (node.getDetail() != null && !node.getDetail().isEmpty()) {
             gc.setFont(detailFont);
             gc.setFill(Color.rgb(108, 117, 125));  // #6c757d - XMLSpy secondary text
-            String detailText = truncateText(node.getDetail(), width - 40);
+            String detailText = truncateText(node.getDetail(), availableWidth, detailFont);
             gc.fillText(detailText, x + 10, y + 28);
         }
 
@@ -420,18 +422,51 @@ public class XsdNodeRenderer {
     }
 
     /**
-     * Truncates text to fit within the specified width.
+     * Truncates text to fit within the specified width using accurate text measurement.
      */
-    private String truncateText(String text, double maxWidth) {
-        if (text == null) return "";
-
-        // Simple truncation based on character count
-        // A more sophisticated version would measure actual text width
-        int maxChars = (int) (maxWidth / 7); // Approximation
-        if (text.length() > maxChars) {
-            return text.substring(0, Math.max(0, maxChars - 3)) + "...";
+    private String truncateText(String text, double maxWidth, Font font) {
+        if (text == null || text.isEmpty()) return "";
+        
+        // Measure actual text width
+        textMeasurer.setFont(font);
+        textMeasurer.setText(text);
+        double textWidth = textMeasurer.getBoundsInLocal().getWidth();
+        
+        // If text fits, return as is
+        if (textWidth <= maxWidth) {
+            return text;
         }
-        return text;
+        
+        // Text doesn't fit, truncate with ellipsis
+        String ellipsis = "...";
+        textMeasurer.setText(ellipsis);
+        double ellipsisWidth = textMeasurer.getBoundsInLocal().getWidth();
+        double availableWidth = maxWidth - ellipsisWidth;
+        
+        if (availableWidth <= 0) {
+            return ellipsis;
+        }
+        
+        // Binary search for the right length
+        int left = 0;
+        int right = text.length();
+        String bestFit = "";
+        
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            String candidate = text.substring(0, mid);
+            textMeasurer.setText(candidate);
+            double candidateWidth = textMeasurer.getBoundsInLocal().getWidth();
+            
+            if (candidateWidth <= availableWidth) {
+                bestFit = candidate;
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return bestFit.isEmpty() ? ellipsis : bestFit + ellipsis;
     }
 
     public double getNodeWidth() {
