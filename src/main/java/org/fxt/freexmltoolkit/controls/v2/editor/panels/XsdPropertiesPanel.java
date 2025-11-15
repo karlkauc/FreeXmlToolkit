@@ -1599,6 +1599,7 @@ public class XsdPropertiesPanel extends VBox {
      * Updates the facets tab with applicable facets based on the element's datatype.
      * Creates UI controls (label + textfield) for each applicable facet.
      * Phase 1: LENGTH, MIN_LENGTH, MAX_LENGTH
+     * Phase 2: TOTAL_DIGITS, FRACTION_DIGITS, MIN_INCLUSIVE, MAX_INCLUSIVE, MIN_EXCLUSIVE, MAX_EXCLUSIVE
      *
      * @param element the XSD element
      */
@@ -1618,15 +1619,26 @@ public class XsdPropertiesPanel extends VBox {
         // Load effective facets (from element or referenced type)
         java.util.Map<XsdFacetType, String> effectiveFacets = getEffectiveFacets(element);
 
-        // Filter to Phase 1 facets only (length-related)
-        java.util.Set<XsdFacetType> phase1Facets = java.util.Set.of(
+        // Define implemented facets (Phase 1 + Phase 2)
+        // Ordered logically: length constraints, numeric constraints, range constraints
+        java.util.List<XsdFacetType> implementedFacets = java.util.List.of(
+                // Phase 1: String length constraints
                 XsdFacetType.LENGTH,
                 XsdFacetType.MIN_LENGTH,
-                XsdFacetType.MAX_LENGTH
+                XsdFacetType.MAX_LENGTH,
+                // Phase 2: Numeric constraints
+                XsdFacetType.TOTAL_DIGITS,
+                XsdFacetType.FRACTION_DIGITS,
+                // Phase 2: Range constraints (inclusive)
+                XsdFacetType.MIN_INCLUSIVE,
+                XsdFacetType.MAX_INCLUSIVE,
+                // Phase 2: Range constraints (exclusive)
+                XsdFacetType.MIN_EXCLUSIVE,
+                XsdFacetType.MAX_EXCLUSIVE
         );
 
         int row = 0;
-        for (XsdFacetType facetType : phase1Facets) {
+        for (XsdFacetType facetType : implementedFacets) {
             if (!applicableFacets.contains(facetType)) {
                 continue; // Skip facets not applicable to this datatype
             }

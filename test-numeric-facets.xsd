@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+    <!-- Example 1: Decimal with totalDigits and fractionDigits -->
+    <xs:element name="Price">
+        <xs:annotation>
+            <xs:documentation>Product price with 2 decimal places (max 8 digits total)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:decimal">
+                <xs:totalDigits value="8"/>
+                <xs:fractionDigits value="2"/>
+                <xs:minInclusive value="0.01"/>
+                <xs:maxInclusive value="999999.99"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 2: Integer with range constraints -->
+    <xs:element name="Age">
+        <xs:annotation>
+            <xs:documentation>Person age (0-150 years)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:integer">
+                <xs:minInclusive value="0"/>
+                <xs:maxInclusive value="150"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 3: Positive integer with exclusive bounds -->
+    <xs:element name="Quantity">
+        <xs:annotation>
+            <xs:documentation>Order quantity (greater than 0, less than 10000)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:integer">
+                <xs:minExclusive value="0"/>
+                <xs:maxExclusive value="10000"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 4: Referenced type with numeric constraints -->
+    <xs:simpleType name="PercentageType">
+        <xs:annotation>
+            <xs:documentation>Percentage value (0.00 to 100.00)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:decimal">
+            <xs:totalDigits value="5"/>
+            <xs:fractionDigits value="2"/>
+            <xs:minInclusive value="0.00"/>
+            <xs:maxInclusive value="100.00"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="DiscountRate" type="PercentageType">
+        <xs:annotation>
+            <xs:documentation>Discount rate as percentage (referenced type)</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- Example 5: Temperature with negative values -->
+    <xs:element name="Temperature">
+        <xs:annotation>
+            <xs:documentation>Temperature in Celsius (-273.15 to 1000.0)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:decimal">
+                <xs:fractionDigits value="2"/>
+                <xs:minInclusive value="-273.15"/>
+                <xs:maxInclusive value="1000.0"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 6: Score with totalDigits only -->
+    <xs:element name="Score">
+        <xs:annotation>
+            <xs:documentation>Test score (max 3 digits, 0-100)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:integer">
+                <xs:totalDigits value="3"/>
+                <xs:minInclusive value="0"/>
+                <xs:maxInclusive value="100"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 7: Plain decimal type for comparison -->
+    <xs:element name="Amount" type="xs:decimal">
+        <xs:annotation>
+            <xs:documentation>Amount without constraints</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- Example 8: Float with range -->
+    <xs:element name="Latitude">
+        <xs:annotation>
+            <xs:documentation>Latitude coordinate (-90.0 to 90.0)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:float">
+                <xs:minInclusive value="-90.0"/>
+                <xs:maxInclusive value="90.0"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 9: Referenced type with range only -->
+    <xs:simpleType name="MonthType">
+        <xs:annotation>
+            <xs:documentation>Month number (1-12)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:integer">
+            <xs:minInclusive value="1"/>
+            <xs:maxInclusive value="12"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Month" type="MonthType">
+        <xs:annotation>
+            <xs:documentation>Month field (referenced type)</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+</xs:schema>
