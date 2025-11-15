@@ -995,6 +995,14 @@ public class XsdController {
 
             statusText.setText("XSD loaded successfully.");
             applyEditorSettings();
+
+            // Enable save buttons after successful load
+            if (saveXsdButton != null) {
+                saveXsdButton.setDisable(false);
+            }
+            if (saveXsdButtonGraphic != null) {
+                saveXsdButtonGraphic.setDisable(false);
+            }
         });
 
         task.setOnFailed(event -> {
@@ -1296,6 +1304,14 @@ public class XsdController {
                         schema.getChildren().stream()
                                 .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement)
                                 .count());
+
+                // Enable save buttons after successful V2 editor load
+                if (saveXsdButton != null) {
+                    saveXsdButton.setDisable(false);
+                }
+                if (saveXsdButtonGraphic != null) {
+                    saveXsdButtonGraphic.setDisable(false);
+                }
             } else {
                 javafx.scene.control.Label errorLabel = new javafx.scene.control.Label("Failed to parse XSD schema");
                 xsdStackPaneV2.getChildren().add(errorLabel);
@@ -1359,11 +1375,12 @@ public class XsdController {
                     }
                     // Enable unsaved changes tracking
                     hasUnsavedChanges = true;
+                    // Keep all save buttons enabled for convenience
                     if (saveXsdButton != null) {
-                        saveXsdButton.setDisable(true); // Disable regular save (only Save As works for new files)
+                        saveXsdButton.setDisable(false);
                     }
                     if (saveXsdButtonGraphic != null) {
-                        saveXsdButtonGraphic.setDisable(true);
+                        saveXsdButtonGraphic.setDisable(false);
                     }
                     if (saveAsXsdButton != null) {
                         saveAsXsdButton.setDisable(false);
@@ -1799,24 +1816,16 @@ public class XsdController {
 
     @FXML
     private void saveXsdFile() {
-        // Check if there are unsaved changes
-        boolean hasChanges = hasUnsavedChanges;
-
-        // Also check V2 editor dirty flag
-        if (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null) {
-            hasChanges = hasChanges || currentGraphViewV2.getEditorContext().isDirty();
-        }
-
         // Require either currentDomManipulator OR currentGraphViewV2
         boolean hasEditor = (currentDomManipulator != null) ||
                            (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null);
 
-        if (!hasChanges || !hasEditor || currentXsdFile == null) {
-            logger.debug("Cannot save: hasChanges={}, hasEditor={}, currentXsdFile={}",
-                        hasChanges, hasEditor, currentXsdFile);
+        if (!hasEditor || currentXsdFile == null) {
+            logger.debug("Cannot save: hasEditor={}, currentXsdFile={}", hasEditor, currentXsdFile);
             return;
         }
 
+        // Always allow save (don't check for unsaved changes)
         saveXsdToFile(currentXsdFile);
     }
 
@@ -1914,10 +1923,11 @@ public class XsdController {
                     if (success) {
                         // Update UI - V2 editor already resets dirty flag via editorContext.resetDirty()
                         hasUnsavedChanges = false;
-                        saveXsdButton.setDisable(true);
-                        if (saveXsdButtonGraphic != null) {
-                            saveXsdButtonGraphic.setDisable(true);
-                        }
+                        // Keep save buttons enabled for convenience
+                        // saveXsdButton.setDisable(true);
+                        // if (saveXsdButtonGraphic != null) {
+                        //     saveXsdButtonGraphic.setDisable(true);
+                        // }
                         statusText.setText("XSD saved successfully: " + file.getName());
 
                         // Clean up auto-save file after successful save
@@ -1977,10 +1987,11 @@ public class XsdController {
 
             // Update UI
             hasUnsavedChanges = false;
-            saveXsdButton.setDisable(true);
-            if (saveXsdButtonGraphic != null) {
-                saveXsdButtonGraphic.setDisable(true);
-            }
+            // Keep save buttons enabled for convenience
+            // saveXsdButton.setDisable(true);
+            // if (saveXsdButtonGraphic != null) {
+            //     saveXsdButtonGraphic.setDisable(true);
+            // }
             statusText.setText("XSD saved successfully: " + file.getName());
 
             // Clean up auto-save file after successful save

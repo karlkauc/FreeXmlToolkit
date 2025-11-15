@@ -187,7 +187,7 @@
                             <!-- Save Button -->
                             <Button fx:id="saveXsdButton" onAction="#saveXsdFile"
                                     style="-fx-font-size: 11px; -fx-font-weight: bold;"
-                                    text="Save XSD" disable="true">
+                                    text="Save XSD" disable="false">
                                 <graphic>
                                     <FontIcon iconLiteral="bi-save" iconColor="#28a745"/>
                                 </graphic>
@@ -354,7 +354,7 @@
                                     <!-- Save Button for Graphic Tab -->
                                     <Button fx:id="saveXsdButtonGraphic" onAction="#saveXsdFile"
                                             style="-fx-font-size: 11px; -fx-font-weight: bold;"
-                                            text="Save XSD" disable="true">
+                                            text="Save XSD" disable="false">
                                         <graphic>
                                             <FontIcon iconLiteral="bi-save" iconColor="#28a745"/>
                                         </graphic>
