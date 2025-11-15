@@ -17,6 +17,8 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
@@ -627,14 +629,12 @@ public class XsdPropertiesPanel extends VBox {
             // Populate type combobox with available types
             populateTypeComboBox();
 
-            // Get type directly from the model object
-            String currentType = null;
+            // Get model object for property access
             Object modelObject = node.getModelObject();
-            if (modelObject instanceof XsdElement element) {
-                currentType = element.getType();
-            } else if (modelObject instanceof XsdAttribute attribute) {
-                currentType = attribute.getType();
-            }
+
+            // Get effective type from the model object
+            // This handles both explicit type references and inline simpleTypes with restrictions
+            String currentType = getEffectiveType(modelObject);
 
             // Set the current type in the combobox (pre-select it)
             typeComboBox.setValue(currentType);
@@ -656,7 +656,6 @@ public class XsdPropertiesPanel extends VBox {
             }
 
             // Update Documentation section from model
-            // modelObject is already retrieved above for type lookup
             logger.debug("ModelObject type: {}", modelObject != null ? modelObject.getClass().getName() : "null");
             if (modelObject instanceof XsdNode xsdNode) {
                 String documentation = xsdNode.getDocumentation();
@@ -1235,5 +1234,43 @@ public class XsdPropertiesPanel extends VBox {
         for (XsdNode child : node.getChildren()) {
             collectUserDefinedTypes(child, availableTypes);
         }
+    }
+
+    /**
+     * Gets the effective type of an element or attribute.
+     * For elements/attributes with explicit type reference, returns that type.
+     * For elements with inline simpleType and restriction, returns the base type from the restriction.
+     *
+     * @param modelObject the model object (XsdElement or XsdAttribute)
+     * @return the effective type, or null if not found
+     */
+    private String getEffectiveType(Object modelObject) {
+        if (modelObject instanceof XsdElement element) {
+            // First check for explicit type reference
+            String explicitType = element.getType();
+            if (explicitType != null && !explicitType.isEmpty()) {
+                return explicitType;
+            }
+
+            // Check for inline simpleType with restriction
+            for (XsdNode child : element.getChildren()) {
+                if (child instanceof XsdSimpleType simpleType) {
+                    // Look for restriction in simpleType children
+                    for (XsdNode restrictionChild : simpleType.getChildren()) {
+                        if (restrictionChild instanceof XsdRestriction restriction) {
+                            String base = restriction.getBase();
+                            if (base != null && !base.isEmpty()) {
+                                return base;
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (modelObject instanceof XsdAttribute attribute) {
+            // Attributes typically only have explicit type references
+            return attribute.getType();
+        }
+
+        return null;
     }
 }

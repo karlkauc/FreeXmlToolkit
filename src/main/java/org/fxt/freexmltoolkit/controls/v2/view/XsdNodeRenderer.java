@@ -706,9 +706,10 @@ public class XsdNodeRenderer {
 
             // Handle XsdElement - show type and constraints
             if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
-                // Add type
-                if (element.getType() != null) {
-                    detail.append(element.getType());
+                // Add type (either explicit type or base type from inline simpleType restriction)
+                String effectiveType = getEffectiveType(element);
+                if (effectiveType != null) {
+                    detail.append(effectiveType);
                 }
 
                 // Add constraint flags
@@ -763,6 +764,39 @@ public class XsdNodeRenderer {
 
             // Default: empty detail
             return "";
+        }
+
+        /**
+         * Gets the effective type of an element.
+         * For elements with explicit type reference, returns that type.
+         * For elements with inline simpleType and restriction, returns the base type from the restriction.
+         *
+         * @param element the XSD element
+         * @return the effective type, or null if not found
+         */
+        private String getEffectiveType(org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+            // First check for explicit type reference
+            String explicitType = element.getType();
+            if (explicitType != null && !explicitType.isEmpty()) {
+                return explicitType;
+            }
+
+            // Check for inline simpleType with restriction
+            for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : element.getChildren()) {
+                if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
+                    // Look for restriction in simpleType children
+                    for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode restrictionChild : simpleType.getChildren()) {
+                        if (restrictionChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction) {
+                            String base = restriction.getBase();
+                            if (base != null && !base.isEmpty()) {
+                                return base;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
 
         public void addChild(VisualNode child) {
