@@ -115,6 +115,25 @@ public class XsdDatatypeFacets {
             return "dateTimeStamp".equals(typeName);
         }
 
+        // Check for fixed minInclusive/maxInclusive values for built-in numeric types
+        if (facetType == XsdFacetType.MIN_INCLUSIVE) {
+            return switch (typeName) {
+                case "long", "int", "short", "byte",
+                     "nonNegativeInteger", "unsignedLong", "unsignedInt", "unsignedShort", "unsignedByte",
+                     "positiveInteger" -> true;
+                default -> false;
+            };
+        }
+
+        if (facetType == XsdFacetType.MAX_INCLUSIVE) {
+            return switch (typeName) {
+                case "nonPositiveInteger", "negativeInteger",
+                     "long", "int", "short", "byte",
+                     "unsignedLong", "unsignedInt", "unsignedShort", "unsignedByte" -> true;
+                default -> false;
+            };
+        }
+
         return false;
     }
 
@@ -147,6 +166,36 @@ public class XsdDatatypeFacets {
             return "required";
         }
 
+        // Fixed minInclusive values for built-in numeric types
+        if (facetType == XsdFacetType.MIN_INCLUSIVE) {
+            return switch (typeName) {
+                case "long" -> "-9223372036854775808";
+                case "int" -> "-2147483648";
+                case "short" -> "-32768";
+                case "byte" -> "-128";
+                case "nonNegativeInteger", "unsignedLong", "unsignedInt", "unsignedShort", "unsignedByte" -> "0";
+                case "positiveInteger" -> "1";
+                default -> null;
+            };
+        }
+
+        // Fixed maxInclusive values for built-in numeric types
+        if (facetType == XsdFacetType.MAX_INCLUSIVE) {
+            return switch (typeName) {
+                case "nonPositiveInteger" -> "0";
+                case "negativeInteger" -> "-1";
+                case "long" -> "9223372036854775807";
+                case "int" -> "2147483647";
+                case "short" -> "32767";
+                case "byte" -> "127";
+                case "unsignedLong" -> "18446744073709551615";
+                case "unsignedInt" -> "4294967295";
+                case "unsignedShort" -> "65535";
+                case "unsignedByte" -> "255";
+                default -> null;
+            };
+        }
+
         return null;
     }
 
@@ -171,7 +220,8 @@ public class XsdDatatypeFacets {
             XsdFacetType.MAX_LENGTH,
             XsdFacetType.PATTERN,
             XsdFacetType.ENUMERATION,
-            XsdFacetType.WHITE_SPACE
+            XsdFacetType.WHITE_SPACE,
+            XsdFacetType.ASSERTION
     );
 
     private static final Set<XsdFacetType> DECIMAL_FACETS = Set.of(
@@ -183,7 +233,8 @@ public class XsdDatatypeFacets {
             XsdFacetType.MAX_INCLUSIVE,
             XsdFacetType.MAX_EXCLUSIVE,
             XsdFacetType.MIN_INCLUSIVE,
-            XsdFacetType.MIN_EXCLUSIVE
+            XsdFacetType.MIN_EXCLUSIVE,
+            XsdFacetType.ASSERTION
     );
 
     private static final Set<XsdFacetType> INTEGER_FACETS = Set.of(
@@ -195,7 +246,8 @@ public class XsdDatatypeFacets {
             XsdFacetType.MAX_INCLUSIVE,
             XsdFacetType.MAX_EXCLUSIVE,
             XsdFacetType.MIN_INCLUSIVE,
-            XsdFacetType.MIN_EXCLUSIVE
+            XsdFacetType.MIN_EXCLUSIVE,
+            XsdFacetType.ASSERTION
     );
 
     private static final Set<XsdFacetType> FLOAT_FACETS = Set.of(
@@ -205,7 +257,8 @@ public class XsdDatatypeFacets {
             XsdFacetType.MAX_INCLUSIVE,
             XsdFacetType.MAX_EXCLUSIVE,
             XsdFacetType.MIN_INCLUSIVE,
-            XsdFacetType.MIN_EXCLUSIVE
+            XsdFacetType.MIN_EXCLUSIVE,
+            XsdFacetType.ASSERTION
     );
 
     private static final Set<XsdFacetType> DATETIME_FACETS = Set.of(
@@ -216,7 +269,8 @@ public class XsdDatatypeFacets {
             XsdFacetType.MAX_EXCLUSIVE,
             XsdFacetType.MIN_INCLUSIVE,
             XsdFacetType.MIN_EXCLUSIVE,
-            XsdFacetType.EXPLICIT_TIMEZONE
+            XsdFacetType.EXPLICIT_TIMEZONE,
+            XsdFacetType.ASSERTION
     );
 
     private static final Set<XsdFacetType> DURATION_FACETS = Set.of(
@@ -226,7 +280,8 @@ public class XsdDatatypeFacets {
             XsdFacetType.MAX_INCLUSIVE,
             XsdFacetType.MAX_EXCLUSIVE,
             XsdFacetType.MIN_INCLUSIVE,
-            XsdFacetType.MIN_EXCLUSIVE
+            XsdFacetType.MIN_EXCLUSIVE,
+            XsdFacetType.ASSERTION
     );
 
     private static final Set<XsdFacetType> BINARY_FACETS = Set.of(
@@ -235,12 +290,14 @@ public class XsdDatatypeFacets {
             XsdFacetType.MAX_LENGTH,
             XsdFacetType.PATTERN,
             XsdFacetType.ENUMERATION,
-            XsdFacetType.WHITE_SPACE
+            XsdFacetType.WHITE_SPACE,
+            XsdFacetType.ASSERTION
     );
 
     private static final Set<XsdFacetType> BOOLEAN_FACETS = Set.of(
             XsdFacetType.PATTERN,
-            XsdFacetType.WHITE_SPACE
+            XsdFacetType.WHITE_SPACE,
+            XsdFacetType.ASSERTION
     );
 
     private static final Set<XsdFacetType> URI_FACETS = Set.of(
@@ -249,7 +306,8 @@ public class XsdDatatypeFacets {
             XsdFacetType.MAX_LENGTH,
             XsdFacetType.PATTERN,
             XsdFacetType.ENUMERATION,
-            XsdFacetType.WHITE_SPACE
+            XsdFacetType.WHITE_SPACE,
+            XsdFacetType.ASSERTION
     );
 
     private static final Set<XsdFacetType> QNAME_FACETS = Set.of(
@@ -258,6 +316,7 @@ public class XsdDatatypeFacets {
             XsdFacetType.MAX_LENGTH,
             XsdFacetType.PATTERN,
             XsdFacetType.ENUMERATION,
-            XsdFacetType.WHITE_SPACE
+            XsdFacetType.WHITE_SPACE,
+            XsdFacetType.ASSERTION
     );
 }

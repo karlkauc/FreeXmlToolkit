@@ -1,0 +1,715 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           version="1.1">
+
+    <xs:annotation>
+        <xs:documentation>
+            Comprehensive XSD 1.1 Facets Demo
+            ===================================
+
+            This schema demonstrates:
+            1. Direct XSD built-in types (without restrictions)
+            2. XSD built-in types with inline restrictions
+            3. Custom SimpleTypes with restrictions
+            4. Elements referencing custom types (inherited facets)
+            5. All XSD 1.1 facet types
+            6. Fixed facets for built-in types
+        </xs:documentation>
+    </xs:annotation>
+
+    <!-- ========================================== -->
+    <!-- SECTION 1: DIRECT XSD BUILT-IN TYPES      -->
+    <!-- (No restrictions, no custom types)         -->
+    <!-- ========================================== -->
+
+    <xs:element name="DirectBuiltInTypes">
+        <xs:annotation>
+            <xs:documentation>Elements using built-in types directly without any restrictions</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <!-- String types -->
+                <xs:element name="SimpleString" type="xs:string"/>
+                <xs:element name="NormalizedString" type="xs:normalizedString"/>
+                <xs:element name="Token" type="xs:token"/>
+                <xs:element name="Language" type="xs:language"/>
+                <xs:element name="Name" type="xs:Name"/>
+                <xs:element name="NCName" type="xs:NCName"/>
+                <xs:element name="ID" type="xs:ID"/>
+                <xs:element name="IDREF" type="xs:IDREF"/>
+
+                <!-- Numeric types -->
+                <xs:element name="Decimal" type="xs:decimal"/>
+                <xs:element name="Integer" type="xs:integer"/>
+                <xs:element name="Long" type="xs:long"/>
+                <xs:element name="Int" type="xs:int"/>
+                <xs:element name="Short" type="xs:short"/>
+                <xs:element name="Byte" type="xs:byte"/>
+                <xs:element name="Float" type="xs:float"/>
+                <xs:element name="Double" type="xs:double"/>
+                <xs:element name="PositiveInteger" type="xs:positiveInteger"/>
+                <xs:element name="NonNegativeInteger" type="xs:nonNegativeInteger"/>
+                <xs:element name="UnsignedInt" type="xs:unsignedInt"/>
+
+                <!-- DateTime types -->
+                <xs:element name="DateTime" type="xs:dateTime"/>
+                <xs:element name="Date" type="xs:date"/>
+                <xs:element name="Time" type="xs:time"/>
+                <xs:element name="Duration" type="xs:duration"/>
+                <xs:element name="GYear" type="xs:gYear"/>
+
+                <!-- Other types -->
+                <xs:element name="Boolean" type="xs:boolean"/>
+                <xs:element name="HexBinary" type="xs:hexBinary"/>
+                <xs:element name="Base64Binary" type="xs:base64Binary"/>
+                <xs:element name="AnyURI" type="xs:anyURI"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========================================== -->
+    <!-- SECTION 2: INLINE RESTRICTIONS            -->
+    <!-- (Built-in types with inline restrictions)  -->
+    <!-- ========================================== -->
+
+    <xs:element name="InlineRestrictions">
+        <xs:annotation>
+            <xs:documentation>Elements with inline restrictions on built-in types</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+
+                <!-- String type with restrictions -->
+                <xs:element name="Username">
+                    <xs:annotation>
+                        <xs:documentation>Username: 3-20 characters, alphanumeric only</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:minLength value="3"/>
+                            <xs:maxLength value="20"/>
+                            <xs:pattern value="[a-zA-Z0-9]+"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- Integer with range restrictions -->
+                <xs:element name="Age">
+                    <xs:annotation>
+                        <xs:documentation>Age: 0-150 years</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:int">
+                            <xs:minInclusive value="0"/>
+                            <xs:maxInclusive value="150"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- Decimal with precision restrictions -->
+                <xs:element name="Price">
+                    <xs:annotation>
+                        <xs:documentation>Price: max 10 digits, 2 decimal places</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                            <xs:totalDigits value="10"/>
+                            <xs:fractionDigits value="2"/>
+                            <xs:minInclusive value="0"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- Enumeration -->
+                <xs:element name="Status">
+                    <xs:annotation>
+                        <xs:documentation>Status enumeration</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="ACTIVE"/>
+                            <xs:enumeration value="INACTIVE"/>
+                            <xs:enumeration value="PENDING"/>
+                            <xs:enumeration value="SUSPENDED"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- DateTime with range and timezone -->
+                <xs:element name="AppointmentTime">
+                    <xs:annotation>
+                        <xs:documentation>XSD 1.1: DateTime with explicit timezone required</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:dateTime">
+                            <xs:minInclusive value="2024-01-01T00:00:00Z"/>
+                            <xs:maxInclusive value="2025-12-31T23:59:59Z"/>
+                            <xs:explicitTimezone value="required"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- XSD 1.1: Assertion -->
+                <xs:element name="EvenNumber">
+                    <xs:annotation>
+                        <xs:documentation>XSD 1.1: Integer with assertion (must be even)</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:integer">
+                            <xs:assertion test="$value mod 2 = 0"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========================================== -->
+    <!-- SECTION 3: CUSTOM SIMPLE TYPES            -->
+    <!-- (Named types with restrictions)            -->
+    <!-- ========================================== -->
+
+    <!-- ISIN Type (from your original example) -->
+    <xs:simpleType name="ISINType">
+        <xs:annotation>
+            <xs:documentation>International Securities Identification Number (according to ISO 6166)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:length value="12"/>
+            <xs:pattern value="[A-Z]{2}[A-Z0-9]{9}[0-9]{1}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Email Type -->
+    <xs:simpleType name="EmailType">
+        <xs:annotation>
+            <xs:documentation>Email address with pattern validation</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:minLength value="5"/>
+            <xs:maxLength value="254"/>
+            <xs:pattern value="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Phone Number Type -->
+    <xs:simpleType name="PhoneNumberType">
+        <xs:annotation>
+            <xs:documentation>International phone number (E.164 format)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\+[1-9][0-9]{1,14}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- ZIP Code Type -->
+    <xs:simpleType name="ZIPCodeType">
+        <xs:annotation>
+            <xs:documentation>US ZIP code (5 or 9 digits)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{5}(-[0-9]{4})?"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Percentage Type -->
+    <xs:simpleType name="PercentageType">
+        <xs:annotation>
+            <xs:documentation>Percentage: 0.00 - 100.00</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="0.00"/>
+            <xs:maxInclusive value="100.00"/>
+            <xs:fractionDigits value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Product Code Type -->
+    <xs:simpleType name="ProductCodeType">
+        <xs:annotation>
+            <xs:documentation>Product code: uppercase letters and digits, 5-15 chars</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:minLength value="5"/>
+            <xs:maxLength value="15"/>
+            <xs:pattern value="[A-Z0-9]+"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Currency Code Type -->
+    <xs:simpleType name="CurrencyCodeType">
+        <xs:annotation>
+            <xs:documentation>ISO 4217 currency code (3 letters)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:length value="3"/>
+            <xs:pattern value="[A-Z]{3}"/>
+            <xs:enumeration value="USD"/>
+            <xs:enumeration value="EUR"/>
+            <xs:enumeration value="GBP"/>
+            <xs:enumeration value="JPY"/>
+            <xs:enumeration value="CHF"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Amount Type -->
+    <xs:simpleType name="AmountType">
+        <xs:annotation>
+            <xs:documentation>Monetary amount: positive, max 12 digits, 2 decimal places</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:decimal">
+            <xs:totalDigits value="12"/>
+            <xs:fractionDigits value="2"/>
+            <xs:minExclusive value="0"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Year Type -->
+    <xs:simpleType name="YearType">
+        <xs:annotation>
+            <xs:documentation>Year: 1900-2100</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:int">
+            <xs:minInclusive value="1900"/>
+            <xs:maxInclusive value="2100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Priority Type (Enumeration) -->
+    <xs:simpleType name="PriorityType">
+        <xs:annotation>
+            <xs:documentation>Priority levels</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="LOW"/>
+            <xs:enumeration value="MEDIUM"/>
+            <xs:enumeration value="HIGH"/>
+            <xs:enumeration value="CRITICAL"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Working Hours Type (XSD 1.1 with assertion) -->
+    <xs:simpleType name="WorkingHoursType">
+        <xs:annotation>
+            <xs:documentation>XSD 1.1: DateTime for working hours (8 AM - 6 PM)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:dateTime">
+            <xs:assertion test="hours-from-dateTime($value) ge 8 and hours-from-dateTime($value) le 18"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Business Day Type (XSD 1.1 with assertion) -->
+    <xs:simpleType name="BusinessDayType">
+        <xs:annotation>
+            <xs:documentation>XSD 1.1: Date that must be Monday-Friday</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:date">
+            <xs:assertion test="let $day := ( days-from-duration(xs:date($value) - xs:date('2000-01-03')) mod 7 ) + 1
+                                return $day ge 1 and $day le 5"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- ========================================== -->
+    <!-- SECTION 4: ELEMENTS WITH CUSTOM TYPES     -->
+    <!-- (Demonstrates inherited facets feature)    -->
+    <!-- ========================================== -->
+
+    <xs:element name="ElementsWithCustomTypes">
+        <xs:annotation>
+            <xs:documentation>
+                Elements referencing custom SimpleTypes.
+                When selected in the UI, these elements will show the facets
+                from their referenced type (read-only, inherited facets).
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+
+                <!-- Using ISINType -->
+                <xs:element name="ISIN" type="ISINType" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>
+                            International Securities Identification Number (12 chars)
+                            UI will show: length=12, pattern=[A-Z]{2}... (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using EmailType -->
+                <xs:element name="ContactEmail" type="EmailType">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Contact email address
+                            UI will show: minLength=5, maxLength=254, pattern=... (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using PhoneNumberType -->
+                <xs:element name="MobilePhone" type="PhoneNumberType" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Mobile phone number
+                            UI will show: pattern=\+[1-9]... (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using ZIPCodeType -->
+                <xs:element name="PostalCode" type="ZIPCodeType">
+                    <xs:annotation>
+                        <xs:documentation>
+                            ZIP/Postal code
+                            UI will show: pattern=[0-9]{5}... (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using PercentageType -->
+                <xs:element name="DiscountRate" type="PercentageType" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Discount percentage
+                            UI will show: minInclusive=0.00, maxInclusive=100.00, fractionDigits=2 (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using ProductCodeType -->
+                <xs:element name="ProductID" type="ProductCodeType">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Product identifier
+                            UI will show: minLength=5, maxLength=15, pattern=[A-Z0-9]+ (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using CurrencyCodeType -->
+                <xs:element name="Currency" type="CurrencyCodeType">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Currency code
+                            UI will show: length=3, pattern=[A-Z]{3}, enum values (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using AmountType -->
+                <xs:element name="TotalAmount" type="AmountType">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Total amount
+                            UI will show: totalDigits=12, fractionDigits=2, minExclusive=0 (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using YearType -->
+                <xs:element name="ManufactureYear" type="YearType" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Manufacturing year
+                            UI will show: minInclusive=1900, maxInclusive=2100 (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using PriorityType -->
+                <xs:element name="Priority" type="PriorityType">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Task priority
+                            UI will show: enumeration values (LOW, MEDIUM, HIGH, CRITICAL) (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using WorkingHoursType (XSD 1.1) -->
+                <xs:element name="MeetingTime" type="WorkingHoursType" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>
+                            XSD 1.1: Meeting time during working hours
+                            UI will show: assertion (hours 8-18) (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <!-- Using BusinessDayType (XSD 1.1) -->
+                <xs:element name="DeliveryDate" type="BusinessDayType" minOccurs="0">
+                    <xs:annotation>
+                        <xs:documentation>
+                            XSD 1.1: Delivery date (must be business day)
+                            UI will show: assertion (Monday-Friday) (inherited, read-only)
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========================================== -->
+    <!-- SECTION 5: ALL FACET TYPES SHOWCASE       -->
+    <!-- (Demonstrates every possible facet)        -->
+    <!-- ========================================== -->
+
+    <xs:element name="AllFacetsShowcase">
+        <xs:annotation>
+            <xs:documentation>Showcase of all XSD 1.1 facet types</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+
+                <!-- LENGTH facet -->
+                <xs:element name="ExactLengthString">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:length value="10"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- MIN_LENGTH facet -->
+                <xs:element name="MinLengthString">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:minLength value="5"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- MAX_LENGTH facet -->
+                <xs:element name="MaxLengthString">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:maxLength value="100"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- PATTERN facet -->
+                <xs:element name="PatternString">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:pattern value="[A-Z][a-z]+"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- ENUMERATION facet -->
+                <xs:element name="EnumerationString">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="Option1"/>
+                            <xs:enumeration value="Option2"/>
+                            <xs:enumeration value="Option3"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- WHITESPACE facet -->
+                <xs:element name="WhitespaceString">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:whiteSpace value="collapse"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- MAX_INCLUSIVE facet -->
+                <xs:element name="MaxInclusiveNumber">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:int">
+                            <xs:maxInclusive value="100"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- MAX_EXCLUSIVE facet -->
+                <xs:element name="MaxExclusiveNumber">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:int">
+                            <xs:maxExclusive value="100"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- MIN_INCLUSIVE facet -->
+                <xs:element name="MinInclusiveNumber">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:int">
+                            <xs:minInclusive value="1"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- MIN_EXCLUSIVE facet -->
+                <xs:element name="MinExclusiveNumber">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:int">
+                            <xs:minExclusive value="0"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- TOTAL_DIGITS facet -->
+                <xs:element name="TotalDigitsNumber">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                            <xs:totalDigits value="8"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- FRACTION_DIGITS facet -->
+                <xs:element name="FractionDigitsNumber">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                            <xs:fractionDigits value="2"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- ASSERTION facet (XSD 1.1) -->
+                <xs:element name="AssertionNumber">
+                    <xs:annotation>
+                        <xs:documentation>XSD 1.1: Number must be divisible by 5</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:integer">
+                            <xs:assertion test="$value mod 5 = 0"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- EXPLICIT_TIMEZONE facet (XSD 1.1) -->
+                <xs:element name="ExplicitTimezoneDateTime">
+                    <xs:annotation>
+                        <xs:documentation>XSD 1.1: DateTime must include timezone</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:dateTime">
+                            <xs:explicitTimezone value="required"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========================================== -->
+    <!-- SECTION 6: FIXED FACETS DEMONSTRATION     -->
+    <!-- (Shows XSD spec fixed facet values)        -->
+    <!-- ========================================== -->
+
+    <xs:element name="FixedFacetsDemo">
+        <xs:annotation>
+            <xs:documentation>
+                Demonstrates fixed facets that are defined by XSD specification.
+                These will be shown with yellow background in the UI.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+
+                <!-- Integer with fixed fractionDigits=0 -->
+                <xs:element name="IntegerNumber">
+                    <xs:annotation>
+                        <xs:documentation>
+                            xs:integer has fixed: fractionDigits=0, whiteSpace=collapse
+                        </xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:integer">
+                            <xs:minInclusive value="1"/>
+                            <xs:maxInclusive value="1000"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- Int with fixed min/max values -->
+                <xs:element name="IntNumber">
+                    <xs:annotation>
+                        <xs:documentation>
+                            xs:int has fixed: minInclusive=-2147483648, maxInclusive=2147483647
+                        </xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:int">
+                            <xs:totalDigits value="8"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- UnsignedInt with fixed min=0 -->
+                <xs:element name="UnsignedIntNumber">
+                    <xs:annotation>
+                        <xs:documentation>
+                            xs:unsignedInt has fixed: minInclusive=0, maxInclusive=4294967295
+                        </xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:unsignedInt">
+                            <xs:maxInclusive value="1000000"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- NormalizedString with fixed whiteSpace=replace -->
+                <xs:element name="NormalizedText">
+                    <xs:annotation>
+                        <xs:documentation>
+                            xs:normalizedString has fixed: whiteSpace=replace
+                        </xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:normalizedString">
+                            <xs:maxLength value="255"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+                <!-- Token with fixed whiteSpace=collapse -->
+                <xs:element name="TokenText">
+                    <xs:annotation>
+                        <xs:documentation>
+                            xs:token has fixed: whiteSpace=collapse
+                        </xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                        <xs:restriction base="xs:token">
+                            <xs:minLength value="1"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:element>
+
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ========================================== -->
+    <!-- ROOT ELEMENT                               -->
+    <!-- ========================================== -->
+
+    <xs:element name="ComprehensiveFacetsDemo">
+        <xs:annotation>
+            <xs:documentation>
+                Root element containing all demonstration sections
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="DirectBuiltInTypes" minOccurs="0"/>
+                <xs:element ref="InlineRestrictions" minOccurs="0"/>
+                <xs:element ref="ElementsWithCustomTypes" minOccurs="0"/>
+                <xs:element ref="AllFacetsShowcase" minOccurs="0"/>
+                <xs:element ref="FixedFacetsDemo" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
