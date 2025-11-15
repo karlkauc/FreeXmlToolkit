@@ -1600,6 +1600,7 @@ public class XsdPropertiesPanel extends VBox {
      * Creates UI controls (label + textfield) for each applicable facet.
      * Phase 1: LENGTH, MIN_LENGTH, MAX_LENGTH
      * Phase 2: TOTAL_DIGITS, FRACTION_DIGITS, MIN_INCLUSIVE, MAX_INCLUSIVE, MIN_EXCLUSIVE, MAX_EXCLUSIVE
+     * Phase 3: WHITE_SPACE, EXPLICIT_TIMEZONE
      *
      * @param element the XSD element
      */
@@ -1619,8 +1620,8 @@ public class XsdPropertiesPanel extends VBox {
         // Load effective facets (from element or referenced type)
         java.util.Map<XsdFacetType, String> effectiveFacets = getEffectiveFacets(element);
 
-        // Define implemented facets (Phase 1 + Phase 2)
-        // Ordered logically: length constraints, numeric constraints, range constraints
+        // Define implemented facets (Phase 1 + Phase 2 + Phase 3)
+        // Ordered logically: length constraints, numeric constraints, range constraints, other
         java.util.List<XsdFacetType> implementedFacets = java.util.List.of(
                 // Phase 1: String length constraints
                 XsdFacetType.LENGTH,
@@ -1634,7 +1635,10 @@ public class XsdPropertiesPanel extends VBox {
                 XsdFacetType.MAX_INCLUSIVE,
                 // Phase 2: Range constraints (exclusive)
                 XsdFacetType.MIN_EXCLUSIVE,
-                XsdFacetType.MAX_EXCLUSIVE
+                XsdFacetType.MAX_EXCLUSIVE,
+                // Phase 3: Whitespace and timezone
+                XsdFacetType.WHITE_SPACE,
+                XsdFacetType.EXPLICIT_TIMEZONE
         );
 
         int row = 0;

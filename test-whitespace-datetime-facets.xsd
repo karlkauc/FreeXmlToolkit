@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+    <!-- ============================================ -->
+    <!-- WhiteSpace Facet Examples                    -->
+    <!-- ============================================ -->
+
+    <!-- Example 1: String with preserve whitespace (default for xs:string) -->
+    <xs:element name="PreservedText">
+        <xs:annotation>
+            <xs:documentation>Text with preserved whitespace (keeps all spaces, tabs, newlines)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:whiteSpace value="preserve"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 2: String with replace whitespace -->
+    <xs:element name="ReplacedText">
+        <xs:annotation>
+            <xs:documentation>Text with replaced whitespace (tabs and newlines become spaces)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:whiteSpace value="replace"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 3: String with collapse whitespace -->
+    <xs:element name="CollapsedText">
+        <xs:annotation>
+            <xs:documentation>Text with collapsed whitespace (replace + trim + collapse consecutive spaces)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:whiteSpace value="collapse"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 4: Token type (whiteSpace fixed to "collapse") -->
+    <xs:element name="TokenValue" type="xs:token">
+        <xs:annotation>
+            <xs:documentation>Token type has whiteSpace fixed to "collapse" (grayed out)</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- Example 5: normalizedString type (whiteSpace fixed to "replace") -->
+    <xs:element name="NormalizedValue" type="xs:normalizedString">
+        <xs:annotation>
+            <xs:documentation>normalizedString has whiteSpace fixed to "replace" (grayed out)</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- ============================================ -->
+    <!-- ExplicitTimezone Facet Examples (XSD 1.1)    -->
+    <!-- ============================================ -->
+
+    <!-- Example 6: DateTime with required timezone -->
+    <xs:element name="EventTimeRequired">
+        <xs:annotation>
+            <xs:documentation>DateTime that must include timezone (e.g., 2024-01-15T10:30:00+01:00)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:dateTime">
+                <xs:explicitTimezone value="required"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 7: DateTime with optional timezone -->
+    <xs:element name="EventTimeOptional">
+        <xs:annotation>
+            <xs:documentation>DateTime with optional timezone (both 2024-01-15T10:30:00 and 2024-01-15T10:30:00Z allowed)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:dateTime">
+                <xs:explicitTimezone value="optional"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 8: DateTime with prohibited timezone -->
+    <xs:element name="LocalTimeOnly">
+        <xs:annotation>
+            <xs:documentation>DateTime without timezone (e.g., 2024-01-15T10:30:00, timezone not allowed)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:dateTime">
+                <xs:explicitTimezone value="prohibited"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 9: dateTimeStamp type (explicitTimezone fixed to "required") -->
+    <xs:element name="Timestamp" type="xs:dateTimeStamp">
+        <xs:annotation>
+            <xs:documentation>dateTimeStamp has explicitTimezone fixed to "required" (grayed out)</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- Example 10: Date with required timezone -->
+    <xs:element name="EventDate">
+        <xs:annotation>
+            <xs:documentation>Date that must include timezone (e.g., 2024-01-15Z)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:date">
+                <xs:explicitTimezone value="required"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 11: Time with prohibited timezone -->
+    <xs:element name="LocalTime">
+        <xs:annotation>
+            <xs:documentation>Time without timezone (e.g., 10:30:00, timezone not allowed)</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:time">
+                <xs:explicitTimezone value="prohibited"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Example 12: Referenced type with whiteSpace -->
+    <xs:simpleType name="TrimmedStringType">
+        <xs:annotation>
+            <xs:documentation>String type with collapsed whitespace (referenced type)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:whiteSpace value="collapse"/>
+            <xs:minLength value="1"/>
+            <xs:maxLength value="100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="TrimmedString" type="TrimmedStringType">
+        <xs:annotation>
+            <xs:documentation>Uses TrimmedStringType (whiteSpace is read-only)</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- Example 13: Referenced type with explicitTimezone -->
+    <xs:simpleType name="UTCTimestampType">
+        <xs:annotation>
+            <xs:documentation>DateTime type that requires timezone</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:dateTime">
+            <xs:explicitTimezone value="required"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="UTCTimestamp" type="UTCTimestampType">
+        <xs:annotation>
+            <xs:documentation>Uses UTCTimestampType (explicitTimezone is read-only)</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+</xs:schema>
