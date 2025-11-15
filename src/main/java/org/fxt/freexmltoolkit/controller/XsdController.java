@@ -1799,9 +1799,24 @@ public class XsdController {
 
     @FXML
     private void saveXsdFile() {
-        if (!hasUnsavedChanges || currentDomManipulator == null || currentXsdFile == null) {
+        // Check if there are unsaved changes
+        boolean hasChanges = hasUnsavedChanges;
+
+        // Also check V2 editor dirty flag
+        if (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null) {
+            hasChanges = hasChanges || currentGraphViewV2.getEditorContext().isDirty();
+        }
+
+        // Require either currentDomManipulator OR currentGraphViewV2
+        boolean hasEditor = (currentDomManipulator != null) ||
+                           (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null);
+
+        if (!hasChanges || !hasEditor || currentXsdFile == null) {
+            logger.debug("Cannot save: hasChanges={}, hasEditor={}, currentXsdFile={}",
+                        hasChanges, hasEditor, currentXsdFile);
             return;
         }
+
         saveXsdToFile(currentXsdFile);
     }
 
@@ -1810,7 +1825,29 @@ public class XsdController {
      */
     @FXML
     private void saveXsdFileAs() {
-        if (currentDomManipulator == null && (sourceCodeEditor == null || sourceCodeEditor.getCodeArea().getText().isEmpty())) {
+        // Check if we have any XSD content to save
+        boolean hasContent = false;
+
+        // Check V2 editor
+        if (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null &&
+            currentGraphViewV2.getEditorContext().getSchema() != null) {
+            hasContent = true;
+        }
+
+        // Check DOM manipulator
+        if (!hasContent && currentDomManipulator != null) {
+            hasContent = true;
+        }
+
+        // Check text editor
+        if (!hasContent && sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
+            String textContent = sourceCodeEditor.getCodeArea().getText();
+            if (textContent != null && !textContent.trim().isEmpty()) {
+                hasContent = true;
+            }
+        }
+
+        if (!hasContent) {
             showError("No XSD Content", "There is no XSD content to save.");
             return;
         }
@@ -1857,10 +1894,58 @@ public class XsdController {
      */
     private void saveXsdToFile(File file) {
         try {
+            // Priority 1: Use V2 editor if available (visual graph editor)
+            if (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null) {
+                org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext =
+                    currentGraphViewV2.getEditorContext();
+
+                // Get the XSD schema model from editor context
+                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = editorContext.getSchema();
+
+                if (schema != null) {
+                    // Create and execute SaveCommand
+                    boolean createBackup = propertiesService.isXsdBackupEnabled();
+                    org.fxt.freexmltoolkit.controls.v2.editor.commands.SaveCommand saveCommand =
+                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.SaveCommand(
+                            editorContext, schema, file.toPath(), createBackup);
+
+                    boolean success = saveCommand.execute();
+
+                    if (success) {
+                        // Update UI - V2 editor already resets dirty flag via editorContext.resetDirty()
+                        hasUnsavedChanges = false;
+                        saveXsdButton.setDisable(true);
+                        if (saveXsdButtonGraphic != null) {
+                            saveXsdButtonGraphic.setDisable(true);
+                        }
+                        statusText.setText("XSD saved successfully: " + file.getName());
+
+                        // Clean up auto-save file after successful save
+                        cleanupAutoSave();
+
+                        // Show success notification
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Save Successful");
+                        alert.setHeaderText(null);
+                        alert.setContentText("XSD file saved successfully!");
+                        alert.showAndWait();
+
+                        logger.info("Successfully saved XSD using V2 editor SaveCommand");
+                        return;
+                    } else {
+                        showError("Save Failed", "Failed to save XSD file using V2 editor.");
+                        return;
+                    }
+                } else {
+                    logger.warn("V2 editor context has no schema model, falling back to text editor");
+                }
+            }
+
+            // Priority 2: Use text editor if it has content
             // Create backup if enabled
             createBackupIfEnabled(file);
 
-            // Get the XSD content - ALWAYS prioritize the text editor if it has content
+            // Get the XSD content - prioritize the text editor if it has content
             // This ensures that what the user sees in the text tab is what gets saved
             String updatedXsd = null;
             if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
@@ -1871,7 +1956,7 @@ public class XsdController {
                 }
             }
 
-            // Fallback to DOM manipulator only if text editor is empty
+            // Priority 3: Fallback to DOM manipulator only if text editor is empty
             if (updatedXsd == null && currentDomManipulator != null) {
                 updatedXsd = currentDomManipulator.getXsdAsString();
                 logger.debug("Saving XSD from DOM manipulator (fallback)");
