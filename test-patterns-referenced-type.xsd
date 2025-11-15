@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+    <!-- Example 1: Element with referenced type that has pattern -->
+    <xs:element name="ISIN" type="ISINType" minOccurs="0">
+        <xs:annotation>
+            <xs:documentation>International Securities Identification Number (12 chars)</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- Example 2: Another element with same type -->
+    <xs:element name="AlternativeISIN" type="ISINType" minOccurs="0">
+        <xs:annotation>
+            <xs:documentation>Alternative ISIN</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- Example 3: Element with inline pattern (for comparison) -->
+    <xs:element name="PostalCode" minOccurs="0">
+        <xs:annotation>
+            <xs:documentation>Postal code with inline pattern</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="\d{5}"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Type definition with pattern -->
+    <xs:simpleType name="ISINType">
+        <xs:annotation>
+            <xs:documentation>International Securities Identification Number (according to ISO 6166)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:length value="12"/>
+            <xs:pattern value="[A-Z]{2}[A-Z0-9]{9}[0-9]{1}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Example 4: Email type with pattern -->
+    <xs:simpleType name="EmailType">
+        <xs:annotation>
+            <xs:documentation>Email address validation</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Email" type="EmailType">
+        <xs:annotation>
+            <xs:documentation>Email address field</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <!-- Example 5: Type with multiple patterns -->
+    <xs:simpleType name="PhoneType">
+        <xs:annotation>
+            <xs:documentation>Phone number (multiple formats)</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\+\d{1,3}\s?\d{1,4}\s?\d{1,4}\s?\d{1,9}"/>
+            <xs:pattern value="\d{3}-\d{3}-\d{4}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Phone" type="PhoneType">
+        <xs:annotation>
+            <xs:documentation>Phone number field</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+</xs:schema>

@@ -68,7 +68,12 @@ public class XsdPropertiesPanel extends VBox {
     private ListView<String> assertionsListView;
     private TabPane tabPane;
 
+    // Buttons for pattern editing
+    private Button addPatternBtn;
+    private Button removePatternBtn;
+
     private boolean updating = false; // Prevent recursive updates
+    private boolean patternsFromReferencedType = false; // Track if patterns come from referenced type (read-only)
 
     /**
      * Creates a new properties panel.
@@ -203,17 +208,43 @@ public class XsdPropertiesPanel extends VBox {
         patternsListView.setPrefHeight(150);
         patternsListView.setPlaceholder(new Label("No patterns defined for this element"));
 
+        // Custom cell factory to show read-only indicator
+        patternsListView.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    if (patternsFromReferencedType) {
+                        // Add lock icon and gray out text for read-only patterns
+                        FontIcon lockIcon = new FontIcon("bi-lock-fill");
+                        lockIcon.setIconSize(12);
+                        lockIcon.setStyle("-fx-icon-color: #999999;");
+                        setGraphic(lockIcon);
+                        setStyle("-fx-text-fill: #666666;");
+                    } else {
+                        setGraphic(null);
+                        setStyle("");
+                    }
+                }
+            }
+        });
+
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
-        Button addPatternBtn = new Button("Add");
+        addPatternBtn = new Button("Add");
         addPatternBtn.setGraphic(new FontIcon("bi-plus-circle"));
-        Button removePatternBtn = new Button("Remove");
+        removePatternBtn = new Button("Remove");
         removePatternBtn.setGraphic(new FontIcon("bi-trash"));
         removePatternBtn.setDisable(true);
 
-        // Enable/disable remove button based on selection
+        // Enable/disable remove button based on selection and whether patterns are from referenced type
         patternsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            removePatternBtn.setDisable(newVal == null);
+            removePatternBtn.setDisable(newVal == null || patternsFromReferencedType);
         });
 
         // Add button action
@@ -768,9 +799,23 @@ public class XsdPropertiesPanel extends VBox {
             return;
         }
 
-        // Load patterns from model
-        patternsListView.getItems().addAll(xsdElement.getPatterns());
-        logger.debug("Loaded {} patterns from element '{}'", xsdElement.getPatterns().size(), xsdElement.getName());
+        // Load patterns from model (including patterns from referenced types)
+        java.util.List<String> effectivePatterns = getEffectivePatterns(xsdElement);
+        patternsListView.getItems().addAll(effectivePatterns);
+
+        // Update button states based on whether patterns are from referenced type
+        addPatternBtn.setDisable(patternsFromReferencedType);
+        removePatternBtn.setDisable(true); // Will be enabled by selection listener if not from referenced type
+
+        // Update placeholder text if patterns are from referenced type
+        if (patternsFromReferencedType && !effectivePatterns.isEmpty()) {
+            patternsListView.setPlaceholder(new Label("Patterns from referenced type (read-only)"));
+        } else {
+            patternsListView.setPlaceholder(new Label("No patterns defined for this element"));
+        }
+
+        logger.debug("Loaded {} patterns from element '{}' (from referenced type: {})",
+                effectivePatterns.size(), xsdElement.getName(), patternsFromReferencedType);
 
         // Load enumerations from model
         enumerationsListView.getItems().addAll(xsdElement.getEnumerations());
@@ -1234,6 +1279,91 @@ public class XsdPropertiesPanel extends VBox {
         for (XsdNode child : node.getChildren()) {
             collectUserDefinedTypes(child, availableTypes);
         }
+    }
+
+    /**
+     * Gets the effective patterns of an element.
+     * Patterns can come from:
+     * 1. Inline simpleType with restriction in the element itself (editable)
+     * 2. Referenced type (e.g., element type="ISINType" where ISINType has patterns) (read-only)
+     *
+     * This method also sets the patternsFromReferencedType flag to indicate whether
+     * the patterns are editable or read-only.
+     *
+     * @param element the XSD element
+     * @return list of effective patterns (from element or referenced type)
+     */
+    private java.util.List<String> getEffectivePatterns(XsdElement element) {
+        java.util.List<String> patterns = new java.util.ArrayList<>();
+        patternsFromReferencedType = false; // Reset flag
+
+        // First, check for patterns directly on the element (inline simpleType)
+        if (!element.getPatterns().isEmpty()) {
+            patterns.addAll(element.getPatterns());
+            patternsFromReferencedType = false; // Inline patterns are editable
+            logger.debug("Found {} inline patterns on element '{}'", patterns.size(), element.getName());
+            return patterns;
+        }
+
+        // If no direct patterns, check for patterns in referenced type
+        String typeRef = element.getType();
+        if (typeRef != null && !typeRef.isEmpty() && !typeRef.startsWith("xs:")) {
+            // Remove namespace prefix if present
+            String typeName = typeRef;
+            if (typeName.contains(":")) {
+                typeName = typeName.substring(typeName.indexOf(":") + 1);
+            }
+
+            logger.debug("Element '{}' references type '{}', searching for patterns", element.getName(), typeName);
+
+            // Find the schema root
+            XsdNode current = element;
+            while (current != null && !(current instanceof XsdSchema)) {
+                current = current.getParent();
+            }
+
+            if (current instanceof XsdSchema schema) {
+                // Search for the type definition
+                patterns.addAll(findPatternsInType(schema, typeName));
+                if (!patterns.isEmpty()) {
+                    patternsFromReferencedType = true; // Referenced type patterns are read-only
+                    logger.debug("Found {} patterns in referenced type '{}' (read-only)", patterns.size(), typeName);
+                }
+            }
+        }
+
+        return patterns;
+    }
+
+    /**
+     * Finds patterns in a named type definition within the schema.
+     *
+     * @param schema the schema to search
+     * @param typeName the name of the type to find
+     * @return list of patterns found in the type
+     */
+    private java.util.List<String> findPatternsInType(XsdSchema schema, String typeName) {
+        java.util.List<String> patterns = new java.util.ArrayList<>();
+
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof XsdSimpleType simpleType) {
+                if (typeName.equals(simpleType.getName())) {
+                    // Found the type, now extract patterns from restriction
+                    for (XsdNode typeChild : simpleType.getChildren()) {
+                        if (typeChild instanceof XsdRestriction restriction) {
+                            for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+                                if (facet.getFacetType() == org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.PATTERN) {
+                                    patterns.add(facet.getValue());
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        return patterns;
     }
 
     /**
