@@ -19,6 +19,9 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdDatatypeFacets;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
@@ -62,7 +65,7 @@ public class XsdPropertiesPanel extends VBox {
     private TextField substitutionGroupField;
 
     // New tabs for XSD constraints
-    private ListView<String> facetsListView;
+    private GridPane facetsGridPane; // Grid for facet name/value pairs
     private ListView<String> patternsListView;
     private ListView<String> enumerationsListView;
     private ListView<String> assertionsListView;
@@ -72,8 +75,13 @@ public class XsdPropertiesPanel extends VBox {
     private Button addPatternBtn;
     private Button removePatternBtn;
 
+    // Facet controls (will be created dynamically based on datatype)
+    private final java.util.Map<XsdFacetType, TextField> facetFields = new java.util.HashMap<>();
+    private final java.util.Map<XsdFacetType, Label> facetLabels = new java.util.HashMap<>();
+
     private boolean updating = false; // Prevent recursive updates
     private boolean patternsFromReferencedType = false; // Track if patterns come from referenced type (read-only)
+    private boolean facetsFromReferencedType = false; // Track if facets come from referenced type (read-only)
 
     /**
      * Creates a new properties panel.
@@ -162,27 +170,19 @@ public class XsdPropertiesPanel extends VBox {
         descLabel.setWrapText(true);
         descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
 
-        // Facets list
-        facetsListView = new ListView<>();
-        facetsListView.setPrefHeight(150);
-        facetsListView.setPlaceholder(new Label("No facets defined for this element"));
+        // Grid for facet name/value pairs
+        facetsGridPane = new GridPane();
+        facetsGridPane.setHgap(10);
+        facetsGridPane.setVgap(8);
+        facetsGridPane.setPadding(new Insets(10));
 
-        // Add/Remove buttons
-        HBox buttonBox = new HBox(10);
-        Button addFacetBtn = new Button("Add");
-        addFacetBtn.setGraphic(new FontIcon("bi-plus-circle"));
-        Button removeFacetBtn = new Button("Remove");
-        removeFacetBtn.setGraphic(new FontIcon("bi-trash"));
-        removeFacetBtn.setDisable(true);
-        
-        // Enable/disable remove button based on selection
-        facetsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            removeFacetBtn.setDisable(newVal == null);
-        });
-        
-        buttonBox.getChildren().addAll(addFacetBtn, removeFacetBtn);
+        // Wrap grid in ScrollPane for long lists of facets
+        ScrollPane scrollPane = new ScrollPane(facetsGridPane);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-        vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), facetsListView, buttonBox);
+        vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), scrollPane);
         
         Tab tab = new Tab("Facets", vbox);
         tab.setGraphic(new FontIcon("bi-funnel"));
@@ -766,7 +766,9 @@ public class XsdPropertiesPanel extends VBox {
             substitutionGroupField.clear();
 
             // Clear constraint tabs
-            facetsListView.getItems().clear();
+            facetsGridPane.getChildren().clear();
+            facetFields.clear();
+            facetLabels.clear();
             patternsListView.getItems().clear();
             enumerationsListView.getItems().clear();
             assertionsListView.getItems().clear();
@@ -789,7 +791,9 @@ public class XsdPropertiesPanel extends VBox {
      */
     private void updateConstraintTabs(Object modelObject) {
         // Clear all lists first
-        facetsListView.getItems().clear();
+        facetsGridPane.getChildren().clear();
+        facetFields.clear();
+        facetLabels.clear();
         patternsListView.getItems().clear();
         enumerationsListView.getItems().clear();
         assertionsListView.getItems().clear();
@@ -798,6 +802,9 @@ public class XsdPropertiesPanel extends VBox {
             logger.debug("Model object is not an XsdElement, cannot update constraint tabs");
             return;
         }
+
+        // Update facets based on element's datatype
+        updateFacets(xsdElement);
 
         // Load patterns from model (including patterns from referenced types)
         java.util.List<String> effectivePatterns = getEffectivePatterns(xsdElement);
@@ -1364,6 +1371,340 @@ public class XsdPropertiesPanel extends VBox {
         }
 
         return patterns;
+    }
+
+    /**
+     * Gets the effective facets of an element.
+     * Facets can come from:
+     * 1. Inline simpleType with restriction in the element itself (editable)
+     * 2. Referenced type (e.g., element type="PostalCodeType" where PostalCodeType has facets) (read-only)
+     *
+     * This method also sets the facetsFromReferencedType flag.
+     *
+     * @param element the XSD element
+     * @return map of facet types to their values
+     */
+    private java.util.Map<XsdFacetType, String> getEffectiveFacets(XsdElement element) {
+        java.util.Map<XsdFacetType, String> facets = new java.util.HashMap<>();
+        facetsFromReferencedType = false; // Reset flag
+
+        // First, check for inline simpleType with restriction
+        for (XsdNode child : element.getChildren()) {
+            if (child instanceof XsdSimpleType simpleType) {
+                for (XsdNode typeChild : simpleType.getChildren()) {
+                    if (typeChild instanceof XsdRestriction restriction) {
+                        for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+                            facets.put(facet.getFacetType(), facet.getValue());
+                        }
+                    }
+                }
+                if (!facets.isEmpty()) {
+                    facetsFromReferencedType = false; // Inline facets are editable
+                    logger.debug("Found {} inline facets on element '{}'", facets.size(), element.getName());
+                    return facets;
+                }
+            }
+        }
+
+        // If no inline facets, check for facets in referenced type
+        String typeRef = element.getType();
+        if (typeRef != null && !typeRef.isEmpty() && !typeRef.startsWith("xs:")) {
+            // Remove namespace prefix if present
+            String typeName = typeRef;
+            if (typeName.contains(":")) {
+                typeName = typeName.substring(typeName.indexOf(":") + 1);
+            }
+
+            logger.debug("Element '{}' references type '{}', searching for facets", element.getName(), typeName);
+
+            // Find the schema root
+            XsdNode current = element;
+            while (current != null && !(current instanceof XsdSchema)) {
+                current = current.getParent();
+            }
+
+            if (current instanceof XsdSchema schema) {
+                // Search for the type definition
+                facets.putAll(findFacetsInType(schema, typeName));
+                if (!facets.isEmpty()) {
+                    facetsFromReferencedType = true; // Referenced type facets are read-only
+                    logger.debug("Found {} facets in referenced type '{}' (read-only)", facets.size(), typeName);
+                }
+            }
+        }
+
+        return facets;
+    }
+
+    /**
+     * Finds facets in a named type definition within the schema.
+     *
+     * @param schema the schema to search
+     * @param typeName the name of the type to find
+     * @return map of facets found in the type
+     */
+    private java.util.Map<XsdFacetType, String> findFacetsInType(XsdSchema schema, String typeName) {
+        java.util.Map<XsdFacetType, String> facets = new java.util.HashMap<>();
+
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof XsdSimpleType simpleType) {
+                if (typeName.equals(simpleType.getName())) {
+                    // Found the type, now extract facets from restriction
+                    for (XsdNode typeChild : simpleType.getChildren()) {
+                        if (typeChild instanceof XsdRestriction restriction) {
+                            for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+                                facets.put(facet.getFacetType(), facet.getValue());
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        return facets;
+    }
+
+    /**
+     * Handles facet value changes (when user edits a facet value).
+     *
+     * @param element the element being edited
+     * @param facetType the facet type being changed
+     * @param newValue the new value (may be empty to delete facet)
+     */
+    private void handleFacetValueChange(XsdElement element, XsdFacetType facetType, String newValue) {
+        if (facetsFromReferencedType) {
+            logger.warn("Cannot edit facets from referenced type");
+            return;
+        }
+
+        logger.debug("Facet {} changed to '{}' for element '{}'",
+                     facetType.getXmlName(), newValue, element.getName());
+
+        // Get or create inline restriction
+        XsdRestriction restriction = getOrCreateInlineRestriction(element);
+        if (restriction == null) {
+            logger.error("Failed to get or create inline restriction for element '{}'", element.getName());
+            return;
+        }
+
+        // Find existing facet with this type
+        org.fxt.freexmltoolkit.controls.v2.model.XsdFacet existingFacet = null;
+        for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
+            if (facet.getFacetType() == facetType) {
+                existingFacet = facet;
+                break;
+            }
+        }
+
+        // Determine which command to execute
+        if (newValue == null || newValue.trim().isEmpty()) {
+            // Delete facet if it exists
+            if (existingFacet != null) {
+                DeleteFacetCommand command = new DeleteFacetCommand(restriction, existingFacet);
+                editorContext.getCommandManager().executeCommand(command);
+                editorContext.setDirty(true);
+                logger.info("Deleted {} facet from element '{}'", facetType.getXmlName(), element.getName());
+            }
+        } else {
+            // Add or edit facet
+            if (existingFacet != null) {
+                // Edit existing facet
+                if (!newValue.equals(existingFacet.getValue())) {
+                    EditFacetCommand command = new EditFacetCommand(existingFacet, newValue);
+                    editorContext.getCommandManager().executeCommand(command);
+                    editorContext.setDirty(true);
+                    logger.info("Edited {} facet to '{}' for element '{}'",
+                               facetType.getXmlName(), newValue, element.getName());
+                }
+            } else {
+                // Add new facet
+                AddFacetCommand command = new AddFacetCommand(restriction, facetType, newValue);
+                editorContext.getCommandManager().executeCommand(command);
+                editorContext.setDirty(true);
+                logger.info("Added {} facet with value '{}' to element '{}'",
+                           facetType.getXmlName(), newValue, element.getName());
+            }
+        }
+    }
+
+    /**
+     * Gets or creates the inline simpleType/restriction structure for an element.
+     * Creates the structure: Element -> SimpleType -> Restriction
+     *
+     * @param element the element
+     * @return the restriction, or null if it cannot be created
+     */
+    private XsdRestriction getOrCreateInlineRestriction(XsdElement element) {
+        // Check for existing inline simpleType with restriction
+        for (XsdNode child : element.getChildren()) {
+            if (child instanceof XsdSimpleType simpleType) {
+                for (XsdNode typeChild : simpleType.getChildren()) {
+                    if (typeChild instanceof XsdRestriction restriction) {
+                        return restriction;
+                    }
+                }
+                // SimpleType exists but no restriction - create one
+                XsdRestriction newRestriction = createRestrictionForElement(element);
+                simpleType.addChild(newRestriction);
+                return newRestriction;
+            }
+        }
+
+        // No inline simpleType - create the full structure
+        // Determine base type
+        String baseType = element.getType();
+        if (baseType == null || baseType.isEmpty()) {
+            baseType = "xs:string"; // Default to string if no type specified
+        }
+
+        // Create simpleType
+        XsdSimpleType simpleType = new XsdSimpleType(null);
+
+        // Create restriction with base type
+        XsdRestriction restriction = new XsdRestriction();
+        restriction.setBase(baseType);
+
+        // Build hierarchy
+        simpleType.addChild(restriction);
+        element.addChild(simpleType);
+
+        // Clear the type attribute since we're using inline type now
+        element.setType(null);
+
+        logger.debug("Created inline simpleType/restriction for element '{}' with base type '{}'",
+                    element.getName(), baseType);
+
+        return restriction;
+    }
+
+    /**
+     * Creates a new restriction based on the element's current type.
+     *
+     * @param element the element
+     * @return a new XsdRestriction with appropriate base type
+     */
+    private XsdRestriction createRestrictionForElement(XsdElement element) {
+        String baseType = element.getType();
+        if (baseType == null || baseType.isEmpty()) {
+            baseType = "xs:string";
+        }
+
+        XsdRestriction restriction = new XsdRestriction();
+        restriction.setBase(baseType);
+        return restriction;
+    }
+
+    /**
+     * Updates the facets tab with applicable facets based on the element's datatype.
+     * Creates UI controls (label + textfield) for each applicable facet.
+     * Phase 1: LENGTH, MIN_LENGTH, MAX_LENGTH
+     *
+     * @param element the XSD element
+     */
+    private void updateFacets(XsdElement element) {
+        // Get effective type
+        String datatype = getEffectiveType(element);
+        if (datatype == null || datatype.isEmpty()) {
+            logger.debug("No datatype for element '{}'", element.getName());
+            return;
+        }
+
+        logger.debug("Loading facets for element '{}' with datatype '{}'", element.getName(), datatype);
+
+        // Get applicable facets for this datatype
+        java.util.Set<XsdFacetType> applicableFacets = XsdDatatypeFacets.getApplicableFacets(datatype);
+
+        // Load effective facets (from element or referenced type)
+        java.util.Map<XsdFacetType, String> effectiveFacets = getEffectiveFacets(element);
+
+        // Filter to Phase 1 facets only (length-related)
+        java.util.Set<XsdFacetType> phase1Facets = java.util.Set.of(
+                XsdFacetType.LENGTH,
+                XsdFacetType.MIN_LENGTH,
+                XsdFacetType.MAX_LENGTH
+        );
+
+        int row = 0;
+        for (XsdFacetType facetType : phase1Facets) {
+            if (!applicableFacets.contains(facetType)) {
+                continue; // Skip facets not applicable to this datatype
+            }
+
+            // Create label
+            Label label = new Label(facetType.getXmlName() + ":");
+            label.setMinWidth(100);
+            facetLabels.put(facetType, label);
+
+            // Create text field
+            TextField textField = new TextField();
+            textField.setPromptText("Enter " + facetType.getXmlName() + " value");
+            HBox.setHgrow(textField, Priority.ALWAYS);
+
+            // Check if facet is fixed
+            boolean isFixed = XsdDatatypeFacets.isFacetFixed(datatype, facetType);
+            if (isFixed) {
+                String fixedValue = XsdDatatypeFacets.getFixedFacetValue(datatype, facetType);
+                textField.setText(fixedValue);
+                textField.setDisable(true);
+                textField.setStyle("-fx-opacity: 0.6;");
+                label.setStyle("-fx-text-fill: #999999;");
+                logger.debug("Facet {} is fixed to '{}' for datatype '{}'", facetType.getXmlName(), fixedValue, datatype);
+            } else {
+                // Load current facet value from model
+                String currentValue = effectiveFacets.get(facetType);
+                if (currentValue != null) {
+                    textField.setText(currentValue);
+                }
+
+                // Check if facet is from referenced type (read-only)
+                if (facetsFromReferencedType) {
+                    textField.setDisable(true);
+                    textField.setStyle("-fx-opacity: 0.7;");
+                    label.setStyle("-fx-text-fill: #666666;");
+                    // Add lock icon to indicate read-only
+                    FontIcon lockIcon = new FontIcon("bi-lock-fill");
+                    lockIcon.setIconSize(12);
+                    lockIcon.setStyle("-fx-icon-color: #999999;");
+                    Label labelWithIcon = new Label(facetType.getXmlName() + ":", lockIcon);
+                    labelWithIcon.setMinWidth(100);
+                    labelWithIcon.setStyle("-fx-text-fill: #666666;");
+                    facetLabels.put(facetType, labelWithIcon);
+                    facetsGridPane.add(labelWithIcon, 0, row);
+                    facetsGridPane.add(textField, 1, row);
+                } else {
+                    // Add listener for value changes (editable facets only)
+                    textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                        if (!newVal && !updating) { // Lost focus
+                            handleFacetValueChange(element, facetType, textField.getText());
+                        }
+                    });
+                    facetsGridPane.add(label, 0, row);
+                    facetsGridPane.add(textField, 1, row);
+                }
+            }
+
+            facetFields.put(facetType, textField);
+
+            // Add to grid (if not already added above)
+            if (!isFixed && !facetsFromReferencedType) {
+                // Already added in the else branch above
+            } else if (isFixed) {
+                facetsGridPane.add(label, 0, row);
+                facetsGridPane.add(textField, 1, row);
+            }
+
+            row++;
+        }
+
+        if (row == 0) {
+            Label noFacetsLabel = new Label("No applicable facets for datatype: " + datatype);
+            noFacetsLabel.setStyle("-fx-text-fill: #999999;");
+            facetsGridPane.add(noFacetsLabel, 0, 0, 2, 1);
+        }
+
+        logger.debug("Created {} facet controls for element '{}' (from referenced type: {})",
+                row, element.getName(), facetsFromReferencedType);
     }
 
     /**
