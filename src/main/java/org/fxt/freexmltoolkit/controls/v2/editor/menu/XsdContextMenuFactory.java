@@ -135,8 +135,9 @@ public class XsdContextMenuFactory {
                 createMenuItem("All", "bi-grid-3x3", "#6c757d", () -> logger.info("Add all to {}", node.getLabel()))
         );
 
-        // Check if element has a ComplexType reference - if so, add "Edit Type in Editor" option
+        // Check if element has a ComplexType or SimpleType reference - if so, add "Edit Type in Editor" option
         boolean hasComplexTypeReference = hasComplexTypeReference(node);
+        boolean hasSimpleTypeReference = hasSimpleTypeReference(node);
 
         if (hasComplexTypeReference) {
             menu.getItems().addAll(
@@ -144,6 +145,19 @@ public class XsdContextMenuFactory {
                             () -> handleEditReferencedComplexType(node)),
                     new SeparatorMenuItem(),
                     addMenu,
+                    new SeparatorMenuItem(),
+                    createMenuItem("Change Type", "bi-arrow-left-right", "#007bff", () -> handleChangeType(node)),
+                    createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
+                    createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1", () -> handleChangeCardinality(node)),
+                    new SeparatorMenuItem(),
+                    createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
+                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
+            );
+        } else if (hasSimpleTypeReference) {
+            // Element references a SimpleType - show Edit Type option without Add submenu
+            menu.getItems().addAll(
+                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", "#17a2b8",
+                            () -> handleEditReferencedSimpleType(node)),
                     new SeparatorMenuItem(),
                     createMenuItem("Change Type", "bi-arrow-left-right", "#007bff", () -> handleChangeType(node)),
                     createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
@@ -635,6 +649,25 @@ public class XsdContextMenuFactory {
     }
 
     /**
+     * Checks if an element node references a SimpleType.
+     *
+     * @param node the element node to check
+     * @return true if element references a SimpleType
+     */
+    private boolean hasSimpleTypeReference(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+            String typeName = element.getType();
+            if (typeName != null && !typeName.isEmpty() && !typeName.startsWith("xs:")) {
+                // Element references a custom type - check if it's a SimpleType
+                XsdSimpleType simpleType = findSimpleTypeInSchema(typeName);
+                return simpleType != null;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Handles opening the ComplexType that an element references.
      *
      * @param node the element node
@@ -664,6 +697,35 @@ public class XsdContextMenuFactory {
     }
 
     /**
+     * Handles opening the SimpleType that an element references.
+     *
+     * @param node the element node
+     */
+    private void handleEditReferencedSimpleType(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+            String typeName = element.getType();
+            if (typeName != null && !typeName.isEmpty()) {
+                logger.info("Element '{}' references type '{}'", node.getLabel(), typeName);
+
+                // Find the SimpleType in the schema
+                XsdSimpleType simpleType = findSimpleTypeInSchema(typeName);
+
+                if (simpleType != null) {
+                    if (openSimpleTypeEditorCallback != null) {
+                        logger.info("Opening referenced SimpleType '{}' in Type Editor", typeName);
+                        openSimpleTypeEditorCallback.accept(simpleType);
+                    } else {
+                        logger.warn("Cannot open Type Editor - callback not set");
+                    }
+                } else {
+                    logger.warn("Referenced type '{}' not found or is not a SimpleType", typeName);
+                }
+            }
+        }
+    }
+
+    /**
      * Finds a ComplexType by name in the schema.
      *
      * @param typeName the name of the type to find
@@ -685,6 +747,31 @@ public class XsdContextMenuFactory {
         }
 
         logger.debug("ComplexType '{}' not found in schema", typeName);
+        return null;
+    }
+
+    /**
+     * Finds a SimpleType by name in the schema.
+     *
+     * @param typeName the name of the type to find
+     * @return the SimpleType, or null if not found
+     */
+    private XsdSimpleType findSimpleTypeInSchema(String typeName) {
+        if (editorContext == null || editorContext.getSchema() == null) {
+            return null;
+        }
+
+        // Search for SimpleType in schema's children
+        for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : editorContext.getSchema().getChildren()) {
+            if (child instanceof XsdSimpleType simpleType) {
+                if (typeName.equals(simpleType.getName())) {
+                    logger.debug("Found SimpleType '{}' in schema", typeName);
+                    return simpleType;
+                }
+            }
+        }
+
+        logger.debug("SimpleType '{}' not found in schema", typeName);
         return null;
     }
 

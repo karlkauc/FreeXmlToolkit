@@ -723,19 +723,3 @@ tasks.register("createAllRuntimes") {
         "createMacOSRuntimeX64", "createMacOSRuntimeArm64"
     )
 }
-
-// Task to run the Type Editor Dummy UI Demo
-tasks.register<JavaExec>("runTypeEditorDemo") {
-    group = "demo"
-    description = "Run the Type Editor Dummy UI Demo (Phase 0)"
-
-    mainClass.set("org.fxt.freexmltoolkit.demo.TypeEditorDummyDemo")
-    classpath = sourceSets["main"].runtimeClasspath
-
-    // JavaFX options (if needed)
-    jvmArgs = listOf(
-        "--add-opens", "javafx.graphics/javafx.scene=ALL-UNNAMED",
-        "--add-opens", "javafx.controls/javafx.scene.control=ALL-UNNAMED"
-    )
-}
-

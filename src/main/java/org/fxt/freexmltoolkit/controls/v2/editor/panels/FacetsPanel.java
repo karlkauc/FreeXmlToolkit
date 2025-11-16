@@ -264,12 +264,25 @@ public class FacetsPanel extends VBox {
 
     /**
      * Refreshes the facets from the current restriction.
+     * Updates the table view to reflect changes in the model.
      */
     public void refresh() {
         if (currentRestriction != null) {
-            ObservableList<XsdFacet> facets = FXCollections.observableArrayList(currentRestriction.getFacets());
-            facetsTable.setItems(facets);
-            logger.debug("Refreshed facets panel with {} facets", facets.size());
+            // Instead of replacing the entire observable list (which breaks cell bindings),
+            // we update the existing list and force table refresh
+            ObservableList<XsdFacet> currentItems = facetsTable.getItems();
+            List<XsdFacet> newFacets = currentRestriction.getFacets();
+
+            // Check if we need to update the list
+            if (currentItems.size() != newFacets.size() || !currentItems.containsAll(newFacets)) {
+                // List structure changed (add/delete) - replace the list
+                facetsTable.setItems(FXCollections.observableArrayList(newFacets));
+                logger.debug("Replaced facets list with {} facets", newFacets.size());
+            } else {
+                // Same facets, just values changed - force table refresh
+                facetsTable.refresh();
+                logger.debug("Refreshed facets table view (values updated)");
+            }
         }
     }
 
