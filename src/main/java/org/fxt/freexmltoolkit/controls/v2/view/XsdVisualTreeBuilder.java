@@ -141,29 +141,27 @@ public class XsdVisualTreeBuilder {
         nodeMap.put(element.getId(), node);
 
         // Add to visited elements before processing
+        // NOTE: We do NOT remove it afterwards - once an element is processed in this tree path,
+        // it should not be processed again to prevent infinite recursion
         visitedElements.add(element.getId());
-        try {
-            // Process inline children (complexType, simpleType defined within this element)
-            boolean hasInlineComplexType = false;
-            for (XsdNode child : element.getChildren()) {
-                if (child instanceof XsdComplexType) {
-                    processComplexType((XsdComplexType) child, node, visitedTypes, visitedElements);
-                    hasInlineComplexType = true;
-                } else if (child instanceof XsdSimpleType) {
-                    // Simple types typically don't have visual children
-                    logger.trace("Element {} has inline simple type", element.getName());
-                }
-                // Note: XsdAnnotation handling would go here when that class is implemented
-            }
 
-            // If no inline type definition and element has a type reference, try to resolve it
-            // This handles cases like <xs:element name="ControlData" type="ControlDataType"/>
-            if (!hasInlineComplexType && element.getType() != null && !element.getType().startsWith("xs:")) {
-                resolveTypeReference(element.getType(), node, element, visitedTypes, visitedElements);
+        // Process inline children (complexType, simpleType defined within this element)
+        boolean hasInlineComplexType = false;
+        for (XsdNode child : element.getChildren()) {
+            if (child instanceof XsdComplexType) {
+                processComplexType((XsdComplexType) child, node, visitedTypes, visitedElements);
+                hasInlineComplexType = true;
+            } else if (child instanceof XsdSimpleType) {
+                // Simple types typically don't have visual children
+                logger.trace("Element {} has inline simple type", element.getName());
             }
-        } finally {
-            // Remove from visited elements when done (backtracking)
-            visitedElements.remove(element.getId());
+            // Note: XsdAnnotation handling would go here when that class is implemented
+        }
+
+        // If no inline type definition and element has a type reference, try to resolve it
+        // This handles cases like <xs:element name="ControlData" type="ControlDataType"/>
+        if (!hasInlineComplexType && element.getType() != null && !element.getType().startsWith("xs:")) {
+            resolveTypeReference(element.getType(), node, element, visitedTypes, visitedElements);
         }
 
         return node;
@@ -320,25 +318,23 @@ public class XsdVisualTreeBuilder {
         }
 
         // Add this type to the visited set before processing
+        // NOTE: We do NOT remove it in finally - once a type is processed in this tree path,
+        // it should not be processed again to prevent infinite recursion
         visitedTypes.add(typeName);
-        try {
-            // Search for complexType with matching name in schema's children
-            for (XsdNode child : schema.getChildren()) {
-                if (child instanceof XsdComplexType complexType) {
-                    if (typeName.equals(complexType.getName())) {
-                        logger.debug("Found complexType '{}' for element '{}'", typeName, element.getName());
-                        processComplexType(complexType, parentNode, visitedTypes, visitedElements);
-                        return;
-                    }
-                }
-                // SimpleTypes don't have visual children, so we don't need to handle them
-            }
 
-            logger.debug("Type '{}' not found or is a simpleType (no children)", typeName);
-        } finally {
-            // Remove from visited set when done (backtracking) to allow this type to be used in other branches
-            visitedTypes.remove(typeName);
+        // Search for complexType with matching name in schema's children
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof XsdComplexType complexType) {
+                if (typeName.equals(complexType.getName())) {
+                    logger.debug("Found complexType '{}' for element '{}'", typeName, element.getName());
+                    processComplexType(complexType, parentNode, visitedTypes, visitedElements);
+                    return;
+                }
+            }
+            // SimpleTypes don't have visual children, so we don't need to handle them
         }
+
+        logger.debug("Type '{}' not found or is a simpleType (no children)", typeName);
     }
 
     /**

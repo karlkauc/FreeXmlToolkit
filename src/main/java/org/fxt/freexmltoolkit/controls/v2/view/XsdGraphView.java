@@ -925,6 +925,30 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener {
     }
 
     /**
+     * Sets the callback for opening a ComplexType in the Type Editor.
+     * This is invoked when the user selects "Edit Type in Editor" from the context menu.
+     *
+     * @param callback the callback to open ComplexType editor
+     */
+    public void setOpenComplexTypeEditorCallback(java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType> callback) {
+        if (contextMenuFactory != null) {
+            contextMenuFactory.setOpenComplexTypeEditorCallback(callback);
+        }
+    }
+
+    /**
+     * Sets the callback for opening a SimpleType in the Type Editor.
+     * This is invoked when the user selects "Edit Type in Editor" from the context menu.
+     *
+     * @param callback the callback to open SimpleType editor
+     */
+    public void setOpenSimpleTypeEditorCallback(java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType> callback) {
+        if (contextMenuFactory != null) {
+            contextMenuFactory.setOpenSimpleTypeEditorCallback(callback);
+        }
+    }
+
+    /**
      * Updates the enabled/disabled state of the Save button.
      * Button is enabled only when:
      * - A save callback is set

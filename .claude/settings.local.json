@@ -1,10 +1,4 @@
 {
-  "env": {
-    "HTTP_PROXY": "http://localhost:3128",
-    "HTTPS_PROXY": "http://localhost:3128",
-    "ALL_PROXY": "http://localhost:3128",
-    "NODE_TLS_REJECT_UNAUTHORIZED": "0"
-  },
   "permissions": {
     "allow": [
       "Bash(./gradlew:*)",
@@ -60,13 +54,9 @@
       "Bash(export:*)",
       "Bash(build/dist/windows-x64-app-image/FreeXmlToolkit/runtime/bin/java.exe -version)",
       "Bash(build/dist/windows-x64-app-image/FreeXmlToolkit/FreeXmlToolkit.exe --version)",
-      "Bash(./FreeXmlToolkit.exe)"
+      "Bash(./FreeXmlToolkit.exe)",
+      "Bash(git push)"
     ],
     "deny": []
-  },
-  "proxy": "http://localhost:3128",
-  "proxyStrictSSL": false,
-  "rejectUnauthorized": false,
-  "httpsProxy": "http://localhost:3128",
-  "httpProxy": "http://localhost:3128"
+  }
 }

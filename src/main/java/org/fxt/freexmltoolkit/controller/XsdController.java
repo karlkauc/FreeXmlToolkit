@@ -62,6 +62,11 @@ public class XsdController {
     private XsdDiagramView currentDiagramView;
     private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView currentGraphViewV2;
 
+    // Type Editor integration
+    private org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager typeEditorTabManager;
+    private Tab typeEditorTab;
+    private TabPane typeEditorTabPane;
+
     @FXML
     private TabPane tabPane;
     @FXML
@@ -376,7 +381,10 @@ public class XsdController {
 
         // Initialize type library
         initializeTypeLibrary();
-        
+
+        // Initialize type editor
+        initializeTypeEditor();
+
         xsdTab.setOnSelectionChanged(event -> {
             if (xsdTab.isSelected()) {
                 if (xmlService.getCurrentXsdFile() == null) {
@@ -1295,8 +1303,16 @@ public class XsdController {
                 editorContext.setEditMode(true);
                 currentGraphViewV2.setEditorContext(editorContext);
 
+                // IMPORTANT: Set callbacks AFTER setEditorContext (which recreates contextMenuFactory)
                 // Set save callback for Save button in toolbar
                 currentGraphViewV2.setOnSaveCallback(this::handleSaveV2Editor);
+
+                // Set Type Editor callbacks for context menu
+                currentGraphViewV2.setOpenComplexTypeEditorCallback(this::openComplexTypeEditor);
+                currentGraphViewV2.setOpenSimpleTypeEditorCallback(this::openSimpleTypeEditor);
+
+                // Update TypeEditorTabManager with loaded schema
+                updateTypeEditorWithSchema(schema);
 
                 xsdStackPaneV2.getChildren().add(currentGraphViewV2);
 
@@ -3942,6 +3958,156 @@ public class XsdController {
                 docPreviewTab.getContent().setFocusTraversable(true);
             }
         });
+    }
+
+    // ======================================================================
+    // Type Editor Methods
+    // ======================================================================
+
+    /**
+     * Initialize the type editor tab and manager.
+     * Creates a new tab with embedded TabPane for managing type editor subtabs.
+     */
+    private void initializeTypeEditor() {
+        try {
+            // Create TabPane for type editor subtabs
+            typeEditorTabPane = new TabPane();
+            typeEditorTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
+
+            // Get schema from current graph view, or create empty schema
+            org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema;
+            if (currentGraphViewV2 != null && currentGraphViewV2.getXsdSchema() != null) {
+                schema = currentGraphViewV2.getXsdSchema();
+                logger.debug("Using schema from currentGraphViewV2");
+            } else {
+                // Create temporary empty schema - will be replaced when actual schema is loaded
+                schema = new org.fxt.freexmltoolkit.controls.v2.model.XsdSchema();
+                schema.setTargetNamespace("http://temp.placeholder");
+                logger.debug("Created temporary placeholder schema");
+            }
+
+            // Initialize TypeEditorTabManager
+            typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
+
+            // Create main Type Editor tab
+            typeEditorTab = new Tab("Type Editor");
+            typeEditorTab.setContent(typeEditorTabPane);
+            typeEditorTab.setClosable(false); // Main tab should not be closable
+
+            // Add to main TabPane
+            if (tabPane != null) {
+                tabPane.getTabs().add(typeEditorTab);
+                logger.info("Type Editor tab initialized successfully");
+            } else {
+                logger.warn("Main TabPane is not initialized - cannot add Type Editor tab");
+            }
+
+        } catch (Exception e) {
+            logger.error("Error initializing Type Editor", e);
+        }
+    }
+
+    /**
+     * Updates the Type Editor with a newly loaded schema.
+     * Re-creates the TypeEditorTabManager with the new schema.
+     *
+     * @param schema the loaded XSD schema
+     */
+    private void updateTypeEditorWithSchema(org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema) {
+        if (typeEditorTabPane != null && schema != null) {
+            try {
+                // Close all existing type editor tabs first
+                if (typeEditorTabManager != null) {
+                    typeEditorTabManager.closeAllTypeTabs();
+                }
+
+                // Re-create TypeEditorTabManager with new schema
+                typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
+                logger.info("Type Editor updated with loaded schema: {}", schema.getTargetNamespace());
+
+            } catch (Exception e) {
+                logger.error("Error updating Type Editor with schema", e);
+            }
+        }
+    }
+
+    /**
+     * Opens a ComplexType in the Type Editor.
+     *
+     * @param complexType The ComplexType to open
+     */
+    public void openComplexTypeEditor(org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
+        if (typeEditorTabManager == null) {
+            logger.error("Type Editor not initialized");
+            return;
+        }
+
+        try {
+            typeEditorTabManager.openComplexTypeTab(complexType);
+
+            // Switch to Type Editor tab
+            if (tabPane != null && typeEditorTab != null) {
+                tabPane.getSelectionModel().select(typeEditorTab);
+            }
+
+            logger.info("Opened ComplexType: {}", complexType.getName());
+
+        } catch (Exception e) {
+            logger.error("Error opening ComplexType editor", e);
+            showError("Error", "Could not open ComplexType editor: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Opens a SimpleType in the Type Editor.
+     *
+     * @param simpleType The SimpleType to open
+     */
+    public void openSimpleTypeEditor(org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
+        if (typeEditorTabManager == null) {
+            logger.error("Type Editor not initialized");
+            return;
+        }
+
+        try {
+            typeEditorTabManager.openSimpleTypeTab(simpleType);
+
+            // Switch to Type Editor tab
+            if (tabPane != null && typeEditorTab != null) {
+                tabPane.getSelectionModel().select(typeEditorTab);
+            }
+
+            logger.info("Opened SimpleType: {}", simpleType.getName());
+
+        } catch (Exception e) {
+            logger.error("Error opening SimpleType editor", e);
+            showError("Error", "Could not open SimpleType editor: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Opens the SimpleTypes List view.
+     */
+    public void openSimpleTypesList() {
+        if (typeEditorTabManager == null) {
+            logger.error("Type Editor not initialized");
+            return;
+        }
+
+        try {
+            typeEditorTabManager.openSimpleTypesListTab();
+
+            // Switch to Type Editor tab
+            if (tabPane != null && typeEditorTab != null) {
+                tabPane.getSelectionModel().select(typeEditorTab);
+            }
+
+            logger.info("Opened SimpleTypes List");
+
+        } catch (Exception e) {
+            logger.error("Error opening SimpleTypes List", e);
+            showError("Error", "Could not open SimpleTypes List: " + e.getMessage());
+        }
     }
 
 }

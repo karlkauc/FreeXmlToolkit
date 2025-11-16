@@ -1,84 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
 
     <!-- Example 1: Element with inline simpleType and length facets -->
-    <xs:element name="Username">
-        <xs:annotation>
-            <xs:documentation>Username with length constraints (5-20 chars)</xs:documentation>
-        </xs:annotation>
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:minLength value="5"/>
-                <xs:maxLength value="20"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <!-- Example 2: Element with exact length -->
-    <xs:element name="CountryCode">
-        <xs:annotation>
-            <xs:documentation>ISO 3166-1 alpha-2 country code (exactly 2 chars)</xs:documentation>
-        </xs:annotation>
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:length value="2"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <!-- Example 3: Element referencing type with length facets -->
-    <xs:element name="PostalCode" type="PostalCodeType">
-        <xs:annotation>
-            <xs:documentation>5-digit postal code (referenced type)</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-
-    <!-- Type definition with length facet -->
-    <xs:simpleType name="PostalCodeType">
-        <xs:annotation>
-            <xs:documentation>5-digit US postal code</xs:documentation>
-        </xs:annotation>
-        <xs:restriction base="xs:string">
-            <xs:length value="5"/>
-            <xs:pattern value="\d{5}"/>
-        </xs:restriction>
-    </xs:simpleType>
-
-    <!-- Example 4: Element with explicit xs:string type (no length constraints) -->
-    <xs:element name="Description" type="xs:string">
-        <xs:annotation>
-            <xs:documentation>Free text description (no length limit)</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-
-    <!-- Example 5: Element with hexBinary (also supports length facets) -->
-    <xs:element name="Hash">
-        <xs:annotation>
-            <xs:documentation>SHA-256 hash (exactly 32 bytes)</xs:documentation>
-        </xs:annotation>
-        <xs:simpleType>
-            <xs:restriction base="xs:hexBinary">
-                <xs:length value="32"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <!-- Example 6: Referenced type with min/max length -->
-    <xs:simpleType name="PasswordType">
-        <xs:annotation>
-            <xs:documentation>Password with length requirements</xs:documentation>
-        </xs:annotation>
-        <xs:restriction base="xs:string">
-            <xs:minLength value="8"/>
-            <xs:maxLength value="128"/>
-        </xs:restriction>
-    </xs:simpleType>
-
-    <xs:element name="Password" type="PasswordType">
-        <xs:annotation>
-            <xs:documentation>User password</xs:documentation>
-        </xs:annotation>
-    </xs:element>
-
+   <xs:element name="Username">
+      <xs:annotation>
+         <xs:documentation>Username with length constraints (5-20 chars)</xs:documentation>
+      </xs:annotation>
+      <xs:simpleType>
+         <xs:restriction base="xs:string">
+            <xs:minLength value="5"/>
+            <xs:maxLength value="20"/>
+         </xs:restriction>
+      </xs:simpleType>
+   </xs:element>
+   <!-- Example 2: Element with exact length -->
+   <xs:element name="CountryCode">
+      <xs:annotation>
+         <xs:documentation>ISO 3166-1 alpha-2 country code (exactly 2 chars)</xs:documentation>
+      </xs:annotation>
+      <xs:simpleType>
+         <xs:restriction base="xs:string">
+            <xs:length value="2"/>
+         </xs:restriction>
+      </xs:simpleType>
+   </xs:element>
+   <!-- Example 3: Element referencing type with length facets -->
+   <xs:element name="PostalCode" type="PostalCodeType">
+      <xs:annotation>
+         <xs:documentation>5-digit postal code (referenced type)</xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   <!-- Type definition with length facet -->
+   <xs:simpleType name="PostalCodeType">
+      <xs:annotation>
+         <xs:documentation>5-digit US postal code</xs:documentation>
+      </xs:annotation>
+      <xs:restriction base="xs:string">
+         <xs:length value="5"/>
+         <xs:pattern value="\d{5}"/>
+      </xs:restriction>
+   </xs:simpleType>
+   <!-- Example 4: Element with explicit xs:string type (no length constraints) -->
+   <xs:element name="Description" type="xs:string">
+      <xs:annotation>
+         <xs:documentation>Free text description (no length limit)</xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   <!-- Example 5: Element with hexBinary (also supports length facets) -->
+   <xs:element name="Hash">
+      <xs:annotation>
+         <xs:documentation>SHA-256 hash (exactly 32 bytes)</xs:documentation>
+      </xs:annotation>
+      <xs:simpleType>
+         <xs:restriction base="xs:hexBinary">
+            <xs:length value="32"/>
+         </xs:restriction>
+      </xs:simpleType>
+   </xs:element>
+   <!-- Example 6: Referenced type with min/max length -->
+   <xs:simpleType name="PasswordType">
+      <xs:annotation>
+         <xs:documentation>Password with length requirements</xs:documentation>
+      </xs:annotation>
+      <xs:restriction base="xs:string">
+         <xs:minLength value="8"/>
+         <xs:maxLength value="128"/>
+      </xs:restriction>
+   </xs:simpleType>
+   <xs:element name="Password" type="PasswordType">
+      <xs:annotation>
+         <xs:documentation>User password</xs:documentation>
+      </xs:annotation>
+   </xs:element>
 </xs:schema>

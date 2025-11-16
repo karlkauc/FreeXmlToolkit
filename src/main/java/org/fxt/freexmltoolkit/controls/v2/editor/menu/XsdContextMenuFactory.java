@@ -1,22 +1,27 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.menu;
 
 import javafx.scene.control.*;
+import javafx.scene.paint.Color;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.*;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Factory for creating context-sensitive context menus for XSD editor nodes.
  * <p>
  * Creates appropriate menu items based on node type and context:
  * - Element nodes: Add child elements, attributes, change type, delete, duplicate
- * - ComplexType nodes: Add elements, attributes, compositors, convert to SimpleType
- * - SimpleType nodes: Edit restrictions, facets, convert to ComplexType
+ * - ComplexType nodes: Add elements, attributes, compositors, convert to SimpleType, edit in Type Editor
+ * - SimpleType nodes: Edit restrictions, facets, convert to ComplexType, edit in Type Editor
  * - Attribute nodes: Change type, make required/optional, delete
  * - Compositor nodes: Change type (sequence/choice/all), add elements
  *
@@ -27,6 +32,8 @@ public class XsdContextMenuFactory {
     private static final Logger logger = LogManager.getLogger(XsdContextMenuFactory.class);
 
     private final XsdEditorContext editorContext;
+    private Consumer<XsdComplexType> openComplexTypeEditorCallback;
+    private Consumer<XsdSimpleType> openSimpleTypeEditorCallback;
 
     /**
      * Creates a new context menu factory.
@@ -35,6 +42,24 @@ public class XsdContextMenuFactory {
      */
     public XsdContextMenuFactory(XsdEditorContext editorContext) {
         this.editorContext = editorContext;
+    }
+
+    /**
+     * Sets the callback for opening ComplexType in Type Editor.
+     *
+     * @param callback the callback to invoke when "Edit Type" is selected
+     */
+    public void setOpenComplexTypeEditorCallback(Consumer<XsdComplexType> callback) {
+        this.openComplexTypeEditorCallback = callback;
+    }
+
+    /**
+     * Sets the callback for opening SimpleType in Type Editor.
+     *
+     * @param callback the callback to invoke when "Edit Type" is selected
+     */
+    public void setOpenSimpleTypeEditorCallback(Consumer<XsdSimpleType> callback) {
+        this.openSimpleTypeEditorCallback = callback;
     }
 
     /**
@@ -48,7 +73,20 @@ public class XsdContextMenuFactory {
             return createEmptyCanvasMenu();
         }
 
-        return switch (node.getType()) {
+        // DIAGNOSTIC LOGGING
+        Object modelObj = node.getModelObject();
+        logger.info("═══════════════════════════════════════════════════════════");
+        logger.info("Creating context menu for node: '{}'", node.getLabel());
+        logger.info("  → VisualNode.getType() = {}", node.getType());
+        logger.info("  → ModelObject class = {}", modelObj != null ? modelObj.getClass().getSimpleName() : "null");
+        if (modelObj instanceof XsdComplexType) {
+            logger.info("  → ✅ ModelObject IS XsdComplexType!");
+        } else if (modelObj instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement) {
+            logger.info("  → ⚠️ ModelObject is XsdElement");
+        }
+        logger.info("═══════════════════════════════════════════════════════════");
+
+        ContextMenu menu = switch (node.getType()) {
             case ELEMENT -> createElementMenu(node);
             case ATTRIBUTE -> createAttributeMenu(node);
             case COMPLEX_TYPE -> createComplexTypeMenu(node);
@@ -59,6 +97,11 @@ public class XsdContextMenuFactory {
             case ENUMERATION -> createEnumerationMenu(node);
             default -> createDefaultMenu(node);
         };
+
+        // Apply uniform font styling to match XML Editor
+        menu.setStyle("-fx-font-family: 'Segoe UI', Arial, sans-serif;");
+
+        return menu;
     }
 
     /**
@@ -80,27 +123,47 @@ public class XsdContextMenuFactory {
     private ContextMenu createElementMenu(VisualNode node) {
         ContextMenu menu = new ContextMenu();
 
-        // Add submenu
+        // Add submenu with icon
         Menu addMenu = new Menu("Add");
+        addMenu.setGraphic(createColoredIcon("bi-plus-circle", "#28a745"));
         addMenu.getItems().addAll(
-                createMenuItem("Child Element", () -> handleAddChildElement(node)),
-                createMenuItem("Attribute", () -> logger.info("Add attribute to {}", node.getLabel())),
+                createMenuItem("Child Element", "bi-plus", "#28a745", () -> handleAddChildElement(node)),
+                createMenuItem("Attribute", "bi-at", "#ffc107", () -> logger.info("Add attribute to {}", node.getLabel())),
                 new SeparatorMenuItem(),
-                createMenuItem("Sequence", () -> logger.info("Add sequence to {}", node.getLabel())),
-                createMenuItem("Choice", () -> logger.info("Add choice to {}", node.getLabel())),
-                createMenuItem("All", () -> logger.info("Add all to {}", node.getLabel()))
+                createMenuItem("Sequence", "bi-list-ol", "#6c757d", () -> logger.info("Add sequence to {}", node.getLabel())),
+                createMenuItem("Choice", "bi-card-list", "#6c757d", () -> logger.info("Add choice to {}", node.getLabel())),
+                createMenuItem("All", "bi-grid-3x3", "#6c757d", () -> logger.info("Add all to {}", node.getLabel()))
         );
 
-        menu.getItems().addAll(
-                addMenu,
-                new SeparatorMenuItem(),
-                createMenuItem("Change Type", () -> handleChangeType(node)),
-                createMenuItem("Rename", () -> handleRename(node)),
-                createMenuItem("Edit Cardinality", () -> handleChangeCardinality(node)),
-                new SeparatorMenuItem(),
-                createMenuItem("Duplicate", () -> handleDuplicate(node)),
-                createMenuItem("Delete", () -> handleDelete(node))
-        );
+        // Check if element has a ComplexType reference - if so, add "Edit Type in Editor" option
+        boolean hasComplexTypeReference = hasComplexTypeReference(node);
+
+        if (hasComplexTypeReference) {
+            menu.getItems().addAll(
+                    createMenuItemAlwaysEnabled("Edit Referenced Type in Editor", "bi-box-arrow-up-right", "#17a2b8",
+                            () -> handleEditReferencedComplexType(node)),
+                    new SeparatorMenuItem(),
+                    addMenu,
+                    new SeparatorMenuItem(),
+                    createMenuItem("Change Type", "bi-arrow-left-right", "#007bff", () -> handleChangeType(node)),
+                    createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
+                    createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1", () -> handleChangeCardinality(node)),
+                    new SeparatorMenuItem(),
+                    createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
+                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
+            );
+        } else {
+            menu.getItems().addAll(
+                    addMenu,
+                    new SeparatorMenuItem(),
+                    createMenuItem("Change Type", "bi-arrow-left-right", "#007bff", () -> handleChangeType(node)),
+                    createMenuItem("Rename", "bi-pencil", "#fd7e14", () -> handleRename(node)),
+                    createMenuItem("Edit Cardinality", "bi-hash", "#6f42c1", () -> handleChangeCardinality(node)),
+                    new SeparatorMenuItem(),
+                    createMenuItem("Duplicate", "bi-files", "#20c997", () -> handleDuplicate(node)),
+                    createMenuItem("Delete", "bi-trash", "#dc3545", () -> handleDelete(node))
+            );
+        }
 
         return menu;
     }
@@ -140,6 +203,8 @@ public class XsdContextMenuFactory {
         );
 
         menu.getItems().addAll(
+                createMenuItemAlwaysEnabled("Edit Type in Editor", () -> handleEditComplexType(node)),
+                new SeparatorMenuItem(),
                 addMenu,
                 new SeparatorMenuItem(),
                 createMenuItem("Rename", () -> handleRename(node)),
@@ -158,6 +223,8 @@ public class XsdContextMenuFactory {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
+                createMenuItemAlwaysEnabled("Edit Type in Editor", () -> handleEditSimpleType(node)),
+                new SeparatorMenuItem(),
                 createMenuItem("Edit Restrictions", () -> logger.info("Edit restrictions for {}", node.getLabel())),
                 createMenuItem("Edit Facets", () -> logger.info("Edit facets for {}", node.getLabel())),
                 new SeparatorMenuItem(),
@@ -287,6 +354,51 @@ public class XsdContextMenuFactory {
         // Disable menu items when not in edit mode
         item.setDisable(!editorContext.isEditMode());
 
+        return item;
+    }
+
+    /**
+     * Creates a menu item with icon and action.
+     *
+     * @param text        the menu item text
+     * @param iconLiteral the icon literal (e.g., "bi-plus-circle")
+     * @param iconColor   the icon color (e.g., "#28a745")
+     * @param action      the action to execute
+     * @return the menu item
+     */
+    private MenuItem createMenuItem(String text, String iconLiteral, String iconColor, Runnable action) {
+        MenuItem item = createMenuItem(text, action);
+        item.setGraphic(createColoredIcon(iconLiteral, iconColor));
+        return item;
+    }
+
+    /**
+     * Creates a menu item that is always enabled (regardless of edit mode).
+     * Used for navigation actions like "Edit Type in Editor".
+     *
+     * @param text   the menu item text
+     * @param action the action to execute
+     * @return the menu item
+     */
+    private MenuItem createMenuItemAlwaysEnabled(String text, Runnable action) {
+        MenuItem item = new MenuItem(text);
+        item.setOnAction(e -> action.run());
+        return item;
+    }
+
+    /**
+     * Creates a menu item with icon that is always enabled (regardless of edit mode).
+     * Used for navigation actions like "Edit Type in Editor".
+     *
+     * @param text        the menu item text
+     * @param iconLiteral the icon literal (e.g., "bi-box-arrow-up-right")
+     * @param iconColor   the icon color (e.g., "#17a2b8")
+     * @param action      the action to execute
+     * @return the menu item
+     */
+    private MenuItem createMenuItemAlwaysEnabled(String text, String iconLiteral, String iconColor, Runnable action) {
+        MenuItem item = createMenuItemAlwaysEnabled(text, action);
+        item.setGraphic(createColoredIcon(iconLiteral, iconColor));
         return item;
     }
 
@@ -461,5 +573,133 @@ public class XsdContextMenuFactory {
                 }
             }
         });
+    }
+
+    /**
+     * Handles opening a ComplexType in the Type Editor.
+     *
+     * @param node the ComplexType node to edit
+     */
+    private void handleEditComplexType(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof XsdComplexType complexType) {
+            if (openComplexTypeEditorCallback != null) {
+                logger.info("Opening ComplexType '{}' in Type Editor", node.getLabel());
+                openComplexTypeEditorCallback.accept(complexType);
+            } else {
+                logger.warn("Cannot open Type Editor - callback not set");
+            }
+        } else {
+            logger.warn("Cannot edit type - model object is not a ComplexType: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Handles opening a SimpleType in the Type Editor.
+     *
+     * @param node the SimpleType node to edit
+     */
+    private void handleEditSimpleType(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof XsdSimpleType simpleType) {
+            if (openSimpleTypeEditorCallback != null) {
+                logger.info("Opening SimpleType '{}' in Type Editor", node.getLabel());
+                openSimpleTypeEditorCallback.accept(simpleType);
+            } else {
+                logger.warn("Cannot open Type Editor - callback not set");
+            }
+        } else {
+            logger.warn("Cannot edit type - model object is not a SimpleType: {}",
+                    modelObject != null ? modelObject.getClass() : "null");
+        }
+    }
+
+    /**
+     * Checks if an element node references a ComplexType.
+     *
+     * @param node the element node to check
+     * @return true if element references a ComplexType
+     */
+    private boolean hasComplexTypeReference(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+            String typeName = element.getType();
+            if (typeName != null && !typeName.isEmpty() && !typeName.startsWith("xs:")) {
+                // Element references a custom type - check if it's a ComplexType
+                XsdComplexType complexType = findComplexTypeInSchema(typeName);
+                return complexType != null;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Handles opening the ComplexType that an element references.
+     *
+     * @param node the element node
+     */
+    private void handleEditReferencedComplexType(VisualNode node) {
+        Object modelObject = node.getModelObject();
+        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+            String typeName = element.getType();
+            if (typeName != null && !typeName.isEmpty()) {
+                logger.info("Element '{}' references type '{}'", node.getLabel(), typeName);
+
+                // Find the ComplexType in the schema
+                XsdComplexType complexType = findComplexTypeInSchema(typeName);
+
+                if (complexType != null) {
+                    if (openComplexTypeEditorCallback != null) {
+                        logger.info("Opening referenced ComplexType '{}' in Type Editor", typeName);
+                        openComplexTypeEditorCallback.accept(complexType);
+                    } else {
+                        logger.warn("Cannot open Type Editor - callback not set");
+                    }
+                } else {
+                    logger.warn("Referenced type '{}' not found or is not a ComplexType", typeName);
+                }
+            }
+        }
+    }
+
+    /**
+     * Finds a ComplexType by name in the schema.
+     *
+     * @param typeName the name of the type to find
+     * @return the ComplexType, or null if not found
+     */
+    private XsdComplexType findComplexTypeInSchema(String typeName) {
+        if (editorContext == null || editorContext.getSchema() == null) {
+            return null;
+        }
+
+        // Search for ComplexType in schema's children
+        for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : editorContext.getSchema().getChildren()) {
+            if (child instanceof XsdComplexType complexType) {
+                if (typeName.equals(complexType.getName())) {
+                    logger.debug("Found ComplexType '{}' in schema", typeName);
+                    return complexType;
+                }
+            }
+        }
+
+        logger.debug("ComplexType '{}' not found in schema", typeName);
+        return null;
+    }
+
+    /**
+     * Creates a colored FontIcon for menu items.
+     * Matches the style from XmlGraphicEditor for consistent look & feel.
+     *
+     * @param iconLiteral the icon literal (e.g., "bi-plus-circle")
+     * @param color the hex color code (e.g., "#28a745")
+     * @return the configured FontIcon
+     */
+    private FontIcon createColoredIcon(String iconLiteral, String color) {
+        FontIcon icon = new FontIcon(iconLiteral);
+        icon.setIconColor(Color.web(color));
+        icon.setIconSize(12);
+        return icon;
     }
 }

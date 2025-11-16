@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- Element with enumeration facets -->
+    <xs:element name="Status">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="active"/>
+                <xs:enumeration value="inactive"/>
+                <xs:enumeration value="pending"/>
+                <xs:enumeration value="completed"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Element with pattern facet -->
+    <xs:element name="ZipCode">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[0-9]{5}"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <!-- Element with both enumerations and pattern -->
+    <xs:element name="ProductCode">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="PROD-001"/>
+                <xs:enumeration value="PROD-002"/>
+                <xs:enumeration value="PROD-003"/>
+                <xs:pattern value="PROD-[0-9]{3}"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+</xs:schema>
