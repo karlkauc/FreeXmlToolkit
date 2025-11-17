@@ -802,7 +802,18 @@ public class XsdController {
             xsdForSampleDataPath.setText(absolutePath);
             xsdToFlattenPath.setText(absolutePath); // Also set for the Flatten tab
 
-            // V1 diagram setup removed - V2 editor loads on demand
+            // Load the XSD content into all relevant tabs
+            try {
+                String xsdContent = Files.readString(file.toPath());
+                loadXsdContent(xsdContent);
+
+                // Also load into V2 graphic view
+                loadXsdIntoGraphicViewV2(xsdContent);
+            } catch (IOException ioEx) {
+                logger.error("Error reading XSD file: {}", file.getAbsolutePath(), ioEx);
+                showXsdLoadingError(file, "Could not read XSD file: " + ioEx.getMessage());
+                return;
+            }
 
         } catch (Exception e) {
             // Handle any unexpected exceptions
@@ -1018,6 +1029,33 @@ public class XsdController {
                 updateTypeEditorWithSchema(schema);
 
                 xsdStackPaneV2.getChildren().add(currentGraphViewV2);
+
+                // Update UI visibility for graphic tab
+                if (noFileLoadedPane != null) {
+                    noFileLoadedPane.setVisible(false);
+                    noFileLoadedPane.setManaged(false);
+                }
+                if (xsdStackPaneV2 != null) {
+                    xsdStackPaneV2.setVisible(true);
+                    xsdStackPaneV2.setManaged(true);
+                }
+                if (xsdInfoPane != null) {
+                    xsdInfoPane.setVisible(true);
+                    xsdInfoPane.setManaged(true);
+
+                    // Update info labels
+                    if (xsdInfoPathLabel != null && currentXsdFile != null) {
+                        xsdInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
+                    }
+                    if (xsdInfoNamespaceLabel != null) {
+                        xsdInfoNamespaceLabel.setText(schema.getTargetNamespace() != null ?
+                            schema.getTargetNamespace() : "No target namespace");
+                    }
+                    if (xsdInfoVersionLabel != null) {
+                        // XSD 1.1 if assertions present, otherwise XSD 1.0
+                        xsdInfoVersionLabel.setText("XSD 1.0/1.1");
+                    }
+                }
 
                 logger.info("XSD loaded into V2 editor with edit mode enabled: {} global elements",
                         schema.getChildren().stream()
@@ -1442,7 +1480,21 @@ public class XsdController {
             sourceCodeEditor.setVisible(true);
             sourceCodeEditor.setManaged(true);
         }
-        // V1 DOM manipulator and diagram loading removed - V2 editor loads on demand
+
+        // Update UI visibility for text tab
+        if (noFileLoadedPaneText != null) {
+            noFileLoadedPaneText.setVisible(false);
+            noFileLoadedPaneText.setManaged(false);
+        }
+        if (textInfoPane != null) {
+            textInfoPane.setVisible(true);
+            textInfoPane.setManaged(true);
+        }
+
+        // Update file path label
+        if (textInfoPathLabel != null && currentXsdFile != null) {
+            textInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
+        }
     }
 
     @FXML
