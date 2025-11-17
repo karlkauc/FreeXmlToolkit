@@ -1,0 +1,29 @@
+Keystore Alias: signerkey
+Keystore Password: storepass
+Alias Password: keypass
+
+Certificate Details:
+  [0]         Version: 3
+         SerialNumber: 1763416996444
+             IssuerDN: CN=Signer,O=FreeXmlToolkit,C=AT
+           Start Date: Mon Nov 17 23:03:16 CET 2025
+           Final Date: Tue Nov 17 23:03:16 CET 2026
+            SubjectDN: CN=Signer,O=FreeXmlToolkit,C=AT
+           Public Key: RSA Public Key [d2:ef:5f:df:1d:73:7e:97:15:f7:45:3f:ee:00:51:62:12:87:0c:bc],[56:66:d1:a4]
+        modulus: a6a98eea579a0130bb1525fb4bc4d667d3acdd336b9e6668f5747dde6486ba5f674e8e3bf260d420ae98c1eff16808fff0ca4727e735053057bf1a2cd546a99589d98761a7d8aade3b9fbec9bac1e8a0d8ea239c9538250286fd209e5a5e7eb8a1198d1282f2896cd88d7d014dd7432ec70612fcce318f2bc29134b991ce6f6bb59fc461c776965e0cc1808a5afbe16ed8ebc044f7d9ac67d830d1c5894adc1325427fe185a2a83569a917a9b3f440cb584f6ef44fd83785e99a54d10cb5d7fdb15dd7ae889a0e0c292ce7d823b7a72361c43d89eb9303fd0b0166803f9f2f477a8dacddc33802f3161bafae2549127a0e83be099f8908508c3d120aed30eb2d
+public exponent: 10001
+
+  Signature Algorithm: SHA256WITHRSA
+            Signature: 2fa0f8624031078c1cce37ca0199d50903f21f8d
+                       eee25582d884688ecbf7c844bc030a81f6ee2940
+                       96b17b40c72cd8491b91d9ce8bc6b256b75b538b
+                       cb9be75cc176a72b48b6388dce4535c843249608
+                       03cf70096518e0087f86c747c441001902f4218e
+                       ddd980164107a053cb7fc8c426fe1d6f4d17dd6d
+                       b5cb54534c47cfa053e919ecfbccaa677c75f022
+                       0b5ac8afbfe44169e0ff9f2f873dc37ac74ee170
+                       d830943266a9207954b9fd8592cc1c61ed89cd75
+                       48db4365bebff88eaf5c83d65b7ec9b6a1fcdcce
+                       cca4b88ca1836b59fb7f63c699a400b4a1d5cb97
+                       6b3b7a6a470f2147b914f45354348aecc7e12255
+                       082ebc4479a725d02f7d204e6d94c4f0

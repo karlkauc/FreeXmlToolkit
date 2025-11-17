@@ -59,7 +59,6 @@ import java.util.concurrent.TimeUnit;
 
 public class XsdController {
 
-    private XsdDiagramView currentDiagramView;
     private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView currentGraphViewV2;
 
     // Type Editor integration
@@ -107,7 +106,6 @@ public class XsdController {
     private final XmlService xmlService = new XmlServiceImpl();
     private final PropertiesService propertiesService = PropertiesServiceImpl.getInstance();
     private final FavoritesService favoritesService = FavoritesService.getInstance();
-    private XsdDomManipulator currentDomManipulator;
 
     private MainController parentController;
     private boolean hasUnsavedChanges = false;
@@ -152,7 +150,6 @@ public class XsdController {
     private Tab typeLibraryTab;
     @FXML
     private StackPane typeLibraryStackPane;
-    private XsdTypeLibraryPanel typeLibraryPanel;
 
 
 
@@ -172,49 +169,22 @@ public class XsdController {
     }
 
     /**
-     * Perform undo operation on current XSD diagram
+     * Perform undo operation (V1 removed, stub for compatibility)
      */
     public void performUndo() {
-        if (currentDiagramView != null && currentDiagramView.getUndoManager() != null) {
-            if (currentDiagramView.getUndoManager().undo()) {
-                // The diagram view will handle the refresh internally
-                logger.debug("Undo operation performed in XSD editor");
-            }
-        }
+        logger.debug("performUndo called - V1 editor removed, no action taken");
     }
 
     /**
-     * Perform redo operation on current XSD diagram
+     * Perform redo operation (V1 removed, stub for compatibility)
      */
     public void performRedo() {
-        if (currentDiagramView != null && currentDiagramView.getUndoManager() != null) {
-            if (currentDiagramView.getUndoManager().redo()) {
-                // The diagram view will handle the refresh internally
-                logger.debug("Redo operation performed in XSD editor");
-            }
-        }
-    }
-
-    /**
-     * Adds a command to the undo stack if undo functionality is available
-     *
-     * @param command The command to add to the undo stack
-     */
-    public void addCommandToUndoStack(org.fxt.freexmltoolkit.controls.XsdCommand command) {
-        if (currentDiagramView != null && currentDiagramView.getUndoManager() != null && command.canUndo()) {
-            currentDiagramView.getUndoManager().addExecutedCommand(command);
-            logger.debug("Command added to undo stack: {}", command.getDescription());
-        } else {
-            logger.debug("Undo stack not available or command doesn't support undo: {}",
-                    command != null ? command.getDescription() : "null command");
-        }
+        logger.debug("performRedo called - V1 editor removed, no action taken");
     }
 
     // ======================================================================
     // Felder und Methoden für den "Graphic" Tab (XSD)
     // ======================================================================
-    @FXML
-    private StackPane xsdStackPane;
     @FXML
     private StackPane xsdStackPaneV2;
     @FXML
@@ -379,9 +349,6 @@ public class XsdController {
             graphicTabSplitPane.getItems().remove(favoritesPanelGraphic);
         }
 
-        // Initialize type library
-        initializeTypeLibrary();
-
         // Initialize type editor
         initializeTypeEditor();
 
@@ -484,10 +451,7 @@ public class XsdController {
             if (oldTab == textTab && newTab == xsdTab) {
                 syncTextToGraphic();
             }
-            // When switching FROM graphic tab TO text tab
-            else if (oldTab == xsdTab && newTab == textTab) {
-                syncGraphicToText();
-            }
+            // V1 syncGraphicToText removed - V2 updates text directly when needed
         });
 
         logger.debug("Bidirectional text-graphic synchronization setup completed");
@@ -508,67 +472,25 @@ public class XsdController {
         }
 
         try {
-            // Update DOM manipulator with current text
-            if (currentDomManipulator == null) {
-                currentDomManipulator = new XsdDomManipulator();
-            }
-            currentDomManipulator.loadXsd(currentText);
-
-            // Reload graphic view without triggering text update
-            // Check which editor version is active
+            // Reload V2 graphic view without triggering text update
             if (editorVersionToggle != null && editorVersionToggle.isSelected()) {
                 loadXsdIntoGraphicViewV2(currentText);
                 logger.debug("Synchronized text content to V2 graphic view");
-            } else {
-                loadXsdIntoGraphicView(currentText);
-                logger.debug("Synchronized text content to V1 graphic view");
             }
         } catch (Exception e) {
             logger.error("Failed to synchronize text to graphic view", e);
         }
     }
 
-    /**
-     * Synchronizes the graphic view content to the text editor.
-     * This is called when switching from graphic tab to text tab.
-     */
-    private void syncGraphicToText() {
-        if (sourceCodeEditor == null || sourceCodeEditor.getCodeArea() == null) {
-            return;
-        }
-
-        if (currentDomManipulator == null) {
-            return;
-        }
-
-        try {
-            String xsdContent = currentDomManipulator.getXsdAsString();
-            if (xsdContent == null || xsdContent.trim().isEmpty()) {
-                return;
-            }
-
-            // Only update if content has changed to avoid unnecessary updates
-            String currentText = sourceCodeEditor.getCodeArea().getText();
-            if (!xsdContent.equals(currentText)) {
-                sourceCodeEditor.getCodeArea().replaceText(xsdContent);
-                logger.debug("Synchronized graphic content to text editor");
-            }
-        } catch (Exception e) {
-            logger.error("Failed to synchronize graphic to text view", e);
-        }
-    }
 
     /**
-     * Toggles between V1 (stable) and V2 (beta) XSD editor.
+     * Toggles the XSD editor V2 visibility.
      * This method is called when the user clicks the editor version toggle button.
+     * Note: V1 editor has been removed, this now only controls V2 visibility.
      */
     @FXML
     private void toggleEditorVersion() {
         boolean useV2 = editorVersionToggle.isSelected();
-
-        // Toggle visibility of V1 editor
-        xsdStackPane.setVisible(!useV2);
-        xsdStackPane.setManaged(!useV2);
 
         // Toggle visibility of V2 editor
         if (xsdStackPaneV2 != null) {
@@ -576,7 +498,7 @@ public class XsdController {
             xsdStackPaneV2.setManaged(useV2);
         }
 
-        // If switching to V2 and we have content but V2 is not loaded yet, load it
+        // If showing V2 and we have content but V2 is not loaded yet, load it
         if (useV2 && currentGraphViewV2 == null && sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
             String xsdContent = sourceCodeEditor.getCodeArea().getText();
             if (xsdContent != null && !xsdContent.trim().isEmpty()) {
@@ -584,7 +506,7 @@ public class XsdController {
             }
         }
 
-        logger.info("Switched to XSD Editor {}", useV2 ? "V2 (Beta)" : "V1 (Stable)");
+        logger.info("XSD Editor V2 visibility: {}", useV2 ? "visible" : "hidden");
     }
 
     /**
@@ -880,7 +802,18 @@ public class XsdController {
             xsdForSampleDataPath.setText(absolutePath);
             xsdToFlattenPath.setText(absolutePath); // Also set for the Flatten tab
 
-            setupXsdDiagram();
+            // Load the XSD content into all relevant tabs
+            try {
+                String xsdContent = Files.readString(file.toPath());
+                loadXsdContent(xsdContent);
+
+                // Also load into V2 graphic view
+                loadXsdIntoGraphicViewV2(xsdContent);
+            } catch (IOException ioEx) {
+                logger.error("Error reading XSD file: {}", file.getAbsolutePath(), ioEx);
+                showXsdLoadingError(file, "Could not read XSD file: " + ioEx.getMessage());
+                return;
+            }
 
         } catch (Exception e) {
             // Handle any unexpected exceptions
@@ -889,141 +822,7 @@ public class XsdController {
         }
     }
 
-    /**
-     * Sets up the diagram view for the currently loaded XSD file.
-     * This method creates a background task to parse the XSD file and build the tree. This is
-     * executed to avoid blocking the user interface.
-     */
-    private void setupXsdDiagram() {
-        currentXsdFile = xmlService.getCurrentXsdFile();
-        if (currentXsdFile == null) {
-            // Show the "No file loaded" placeholder
-            noFileLoadedPane.setVisible(true);
-            noFileLoadedPane.setManaged(true);
-            xsdInfoPane.setVisible(false);
-            xsdInfoPane.setManaged(false);
-            return;
-        }
-        // Show the loading indicator and hide the placeholder
-        xsdDiagramProgress.setVisible(true);
-        textProgress.setVisible(true);
-        noFileLoadedPane.setVisible(false);
-        noFileLoadedPane.setManaged(false);
-        noFileLoadedPaneText.setVisible(false);
-        noFileLoadedPaneText.setManaged(false);
-        xsdStackPane.getChildren().clear(); // Remove old view
-
-        Task<DiagramData> task = new Task<>() {
-            @Override
-            protected DiagramData call() throws Exception {
-                updateMessage("Parsing XSD and building diagram...");
-
-                String fileContent = Files.readString(currentXsdFile.toPath());
-
-                // 1. Use service for tree and documentation (new implementation)
-                XsdViewService viewService = new XsdViewService();
-                XsdNodeInfo rootNode = viewService.buildLightweightTree(fileContent);
-                XsdViewService.DocumentationParts docParts = viewService.extractDocumentationParts(fileContent);
-
-                // 2. Read metadata (targetNamespace, version) with JAXP/DOM
-                String targetNamespace = "Not defined";
-                String version = "Not specified";
-
-                try {
-                    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                    // Secure processing is important
-                    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-                    factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-                    factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                    factory.setXIncludeAware(false);
-                    factory.setExpandEntityReferences(false);
-
-                    DocumentBuilder builder = factory.newDocumentBuilder();
-                    // Important: Use InputSource with StringReader to parse from string
-                    Document doc = builder.parse(new InputSource(new StringReader(fileContent)));
-
-                    org.w3c.dom.Element schemaElement = doc.getDocumentElement();
-                    if (schemaElement != null && "schema".equals(schemaElement.getLocalName())) {
-                        if (schemaElement.hasAttribute("targetNamespace")) {
-                            targetNamespace = schemaElement.getAttribute("targetNamespace");
-                        }
-                        if (schemaElement.hasAttribute("version")) {
-                            version = schemaElement.getAttribute("version");
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.warn("Could not read metadata (targetNamespace, version).", e);
-                    // Default values are retained
-                }
-
-                return new DiagramData(rootNode, targetNamespace, version, docParts.mainDocumentation(), docParts.javadocContent(), fileContent);
-            }
-        };
-
-        task.setOnSucceeded(event -> {
-            DiagramData result = task.getValue();
-            xsdInfoPane.setVisible(true);
-            xsdInfoPane.setManaged(true);
-            xsdInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
-            xsdInfoNamespaceLabel.setText(result.targetNamespace());
-            xsdInfoVersionLabel.setText(result.version());
-
-            if (result.rootNode() != null) {
-                XsdDiagramView diagramView = new XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc());
-                diagramView.setXsdContent(result.fileContent());
-
-                // Store the manipulator reference
-                currentDomManipulator = diagramView.getDomManipulator();
-                currentDiagramView = diagramView;
-                
-                logger.debug("lade diagramm...");
-                xsdStackPane.getChildren().add(diagramView.build());
-
-                // Show XSD info pane now that content is loaded
-                xsdInfoPane.setVisible(true);
-                xsdInfoPane.setManaged(true);
-
-            } else {
-                Label infoLabel = new Label("No root element found in schema.");
-                xsdStackPane.getChildren().add(infoLabel);
-            }
-            xsdDiagramProgress.setVisible(false);
-
-            // Update text tab UI
-            textInfoPane.setVisible(true);
-            textInfoPane.setManaged(true);
-            textInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
-
-            ensureSourceCodeEditorInitialized();
-            sourceCodeEditor.getCodeArea().replaceText(result.fileContent());
-            sourceCodeEditor.setVisible(true);
-            sourceCodeEditor.setManaged(true);
-
-            textProgress.setVisible(false);
-
-            statusText.setText("XSD loaded successfully.");
-            applyEditorSettings();
-
-            // Enable save buttons after successful load
-            if (saveXsdButton != null) {
-                saveXsdButton.setDisable(false);
-            }
-            if (saveXsdButtonGraphic != null) {
-                saveXsdButtonGraphic.setDisable(false);
-            }
-        });
-
-        task.setOnFailed(event -> {
-            xsdDiagramProgress.setVisible(false);
-            textProgress.setVisible(false);
-            Throwable e = task.getException();
-            logger.error("Error creating the diagram view in the background.", e);
-            statusText.setText("Error: " + e.getMessage());
-            xsdStackPane.getChildren().add(new Label("Failed to load XSD: " + e.getMessage()));
-        });
-
-        executeTask(task);
-    }
+    // V1 setupXsdDiagram() method removed - V2 editor loads on demand when user switches to XSD tab
 
     public void saveDocumentation(String mainDoc, String javadoc) {
         File currentXsdFile = xmlService.getCurrentXsdFile();
@@ -1048,9 +847,7 @@ public class XsdController {
 
         saveTask.setOnSucceeded(event -> {
             statusText.setText("Documentation saved successfully.");
-            // After a successful save, reload the diagram view to reflect the changes
-            // and reset the "dirty" state of the editor.
-            setupXsdDiagram();
+            // V1 diagram reload removed - V2 editor updates automatically
         });
 
         saveTask.setOnFailed(event -> {
@@ -1085,8 +882,7 @@ public class XsdController {
 
         saveDocTask.setOnSucceeded(event -> {
             statusText.setText("Element documentation saved successfully.");
-            // Reload the view to reflect the changes
-            setupXsdDiagram();
+            // V1 diagram reload removed - V2 editor updates automatically
         });
 
         saveDocTask.setOnFailed(event -> {
@@ -1120,8 +916,7 @@ public class XsdController {
 
         saveExamplesTask.setOnSucceeded(event -> {
             statusText.setText("Example values saved successfully.");
-            // Reload the view to reflect the changes
-            setupXsdDiagram();
+            // V1 diagram reload removed - V2 editor updates automatically
         });
 
         saveExamplesTask.setOnFailed(event -> {
@@ -1159,9 +954,9 @@ public class XsdController {
             // Update the text editor
             sourceCodeEditor.getCodeArea().replaceText(updatedXsd);
 
-            // Rebuild the diagram view only if requested
-            if (rebuildDiagram) {
-                loadXsdIntoGraphicView(updatedXsd);
+            // Rebuild the V2 diagram view only if requested
+            if (rebuildDiagram && editorVersionToggle != null && editorVersionToggle.isSelected()) {
+                loadXsdIntoGraphicViewV2(updatedXsd);
             }
 
             // Mark as modified
@@ -1175,105 +970,11 @@ public class XsdController {
             if (saveXsdButtonGraphic != null) {
                 saveXsdButtonGraphic.setDisable(false);
             }
-
-            // Always update the DOM manipulator with the latest content
-            // This ensures that changes from graphic view are reflected in the manipulator
-            try {
-                if (currentDomManipulator == null) {
-                    currentDomManipulator = new XsdDomManipulator();
-                }
-                currentDomManipulator.loadXsd(updatedXsd);
-                logger.debug("Updated DOM manipulator with latest XSD content");
-            } catch (Exception e) {
-                logger.error("Failed to load XSD into manipulator", e);
-            }
+            // V1 DOM manipulator update removed - V2 handles updates automatically
         }
     }
 
-    /**
-     * Analyzes XSD content and extracts structure and metadata
-     */
-    public DiagramData analyzeXsdContent(String xsdContent) throws Exception {
-        // Use service for tree and documentation
-        XsdViewService viewService = new XsdViewService();
-        XsdNodeInfo rootNode = viewService.buildLightweightTree(xsdContent);
-        XsdViewService.DocumentationParts docParts = viewService.extractDocumentationParts(xsdContent);
-
-        // Read metadata (targetNamespace, version) with JAXP/DOM
-        String targetNamespace = "Not defined";
-        String version = "Not specified";
-
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-            factory.setXIncludeAware(false);
-            factory.setExpandEntityReferences(false);
-
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new StringReader(xsdContent)));
-
-            org.w3c.dom.Element schemaElement = doc.getDocumentElement();
-            if (schemaElement != null && "schema".equals(schemaElement.getLocalName())) {
-                if (schemaElement.hasAttribute("targetNamespace")) {
-                    targetNamespace = schemaElement.getAttribute("targetNamespace");
-                }
-                if (schemaElement.hasAttribute("version")) {
-                    version = schemaElement.getAttribute("version");
-                }
-            }
-        } catch (Exception e) {
-            logger.warn("Could not read metadata (targetNamespace, version).", e);
-        }
-
-        return new DiagramData(rootNode, targetNamespace, version, docParts.mainDocumentation(), docParts.javadocContent(), xsdContent);
-    }
-
-    /**
-     * Reloads the XSD diagram view with updated content
-     */
-    private void loadXsdIntoGraphicView(String xsdContent) {
-        Task<DiagramData> task = new Task<>() {
-            @Override
-            protected DiagramData call() throws Exception {
-                return analyzeXsdContent(xsdContent);
-            }
-        };
-
-        task.setOnSucceeded(event -> {
-            DiagramData result = task.getValue();
-            xsdStackPane.getChildren().clear();
-
-            if (result.rootNode() != null) {
-                XsdDiagramView diagramView = new XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc(), currentDomManipulator);
-                diagramView.setXsdContent(xsdContent);
-
-                // Keep the existing manipulator reference (don't overwrite it)
-                if (currentDomManipulator == null) {
-                    currentDomManipulator = diagramView.getDomManipulator();
-                }
-                currentDiagramView = diagramView;
-
-                xsdStackPane.getChildren().add(diagramView.build());
-
-                // Show XSD info pane now that content is loaded
-                xsdInfoPane.setVisible(true);
-                xsdInfoPane.setManaged(true);
-
-            } else {
-                Label infoLabel = new Label("No root element found in schema.");
-                xsdStackPane.getChildren().add(infoLabel);
-            }
-        });
-
-        task.setOnFailed(event -> {
-            logger.error("Failed to reload XSD diagram", task.getException());
-            statusText.setText("Error reloading XSD diagram");
-        });
-
-        executorService.submit(task);
-    }
+    // V1 analyzeXsdContent() method removed - V2 uses XsdNodeFactory
 
     /**
      * Loads XSD content into the V2 graphical view using the new model-based architecture.
@@ -1328,6 +1029,33 @@ public class XsdController {
                 updateTypeEditorWithSchema(schema);
 
                 xsdStackPaneV2.getChildren().add(currentGraphViewV2);
+
+                // Update UI visibility for graphic tab
+                if (noFileLoadedPane != null) {
+                    noFileLoadedPane.setVisible(false);
+                    noFileLoadedPane.setManaged(false);
+                }
+                if (xsdStackPaneV2 != null) {
+                    xsdStackPaneV2.setVisible(true);
+                    xsdStackPaneV2.setManaged(true);
+                }
+                if (xsdInfoPane != null) {
+                    xsdInfoPane.setVisible(true);
+                    xsdInfoPane.setManaged(true);
+
+                    // Update info labels
+                    if (xsdInfoPathLabel != null && currentXsdFile != null) {
+                        xsdInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
+                    }
+                    if (xsdInfoNamespaceLabel != null) {
+                        xsdInfoNamespaceLabel.setText(schema.getTargetNamespace() != null ?
+                            schema.getTargetNamespace() : "No target namespace");
+                    }
+                    if (xsdInfoVersionLabel != null) {
+                        // XSD 1.1 if assertions present, otherwise XSD 1.0
+                        xsdInfoVersionLabel.setText("XSD 1.0/1.1");
+                    }
+                }
 
                 logger.info("XSD loaded into V2 editor with edit mode enabled: {} global elements",
                         schema.getChildren().stream()
@@ -1720,69 +1448,7 @@ public class XsdController {
         xsd.append("    <xs:element name=\"").append(xsdInfo.rootElement()).append("\" type=\"xs:string\"/>\n\n");
     }
 
-    /**
-     * Sets up XSD diagram from content without requiring a physical file
-     */
-    private void setupXsdDiagramFromContent(String xsdContent) {
-        logger.debug("Setting up XSD diagram from content");
-
-        // Show the info pane instead of no file loaded pane
-        noFileLoadedPane.setVisible(false);
-        noFileLoadedPane.setManaged(false);
-        xsdInfoPane.setVisible(true);
-        xsdInfoPane.setManaged(true);
-
-        // Show loading indicator
-        xsdDiagramProgress.setVisible(true);
-        xsdStackPane.getChildren().clear();
-
-        Task<DiagramData> parseTask = new Task<>() {
-            @Override
-            protected DiagramData call() throws Exception {
-                return analyzeXsdContent(xsdContent);
-            }
-        };
-
-        parseTask.setOnSucceeded(e -> {
-            DiagramData result = parseTask.getValue();
-
-            // Update UI labels for new file
-            xsdInfoPathLabel.setText("New XSD Schema");
-            xsdInfoNamespaceLabel.setText(result.targetNamespace());
-            xsdInfoVersionLabel.setText(result.version());
-
-            if (result.rootNode() != null) {
-                XsdDiagramView diagramView = new XsdDiagramView(result.rootNode(), this, result.documentation(), result.javadoc());
-                diagramView.setXsdContent(xsdContent);
-
-                // Store the manipulator reference
-                currentDomManipulator = diagramView.getDomManipulator();
-                currentDiagramView = diagramView;
-
-                logger.debug("Loading diagram for new XSD...");
-                xsdStackPane.getChildren().add(diagramView.build());
-            } else {
-                Label infoLabel = new Label("No root element found in schema.");
-                infoLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #888;");
-                xsdStackPane.getChildren().add(infoLabel);
-            }
-
-            xsdDiagramProgress.setVisible(false);
-        });
-
-        parseTask.setOnFailed(e -> {
-            logger.error("Failed to parse new XSD content", parseTask.getException());
-            xsdDiagramProgress.setVisible(false);
-
-            Label errorLabel = new Label("Failed to parse XSD content: " + parseTask.getException().getMessage());
-            errorLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #d32f2f;");
-            xsdStackPane.getChildren().add(errorLabel);
-        });
-
-        Thread thread = new Thread(parseTask);
-        thread.setDaemon(true);
-        thread.start();
-    }
+    // V1 setupXsdDiagramFromContent() method removed - V2 loads on demand
 
     /**
      * Updates file information in the UI
@@ -1815,39 +1481,26 @@ public class XsdController {
             sourceCodeEditor.setManaged(true);
         }
 
-        // Load into DOM manipulator for graphic view
-        try {
-            currentDomManipulator = new XsdDomManipulator();
-            currentDomManipulator.loadXsd(xsdContent);
+        // Update UI visibility for text tab
+        if (noFileLoadedPaneText != null) {
+            noFileLoadedPaneText.setVisible(false);
+            noFileLoadedPaneText.setManaged(false);
+        }
+        if (textInfoPane != null) {
+            textInfoPane.setVisible(true);
+            textInfoPane.setManaged(true);
+        }
 
-            logger.info("Loading XSD content into DOM manipulator");
-            logger.info("XSD content length: {}", xsdContent.length());
-            logger.info("XSD loaded successfully into DOM manipulator");
-
-
-            // Update the graphic view immediately
-            Platform.runLater(() -> {
-                try {
-                    setupXsdDiagramFromContent(xsdContent);
-                    logger.info("Graphic view updated for new XSD content");
-
-                } catch (Exception ex) {
-                    logger.error("Error updating graphic view", ex);
-                }
-            });
-
-        } catch (Exception e) {
-            logger.error("Error loading XSD content into DOM manipulator", e);
-            showAlertDialog(Alert.AlertType.ERROR, "Error",
-                    "Failed to load XSD content:\n" + e.getMessage());
+        // Update file path label
+        if (textInfoPathLabel != null && currentXsdFile != null) {
+            textInfoPathLabel.setText(currentXsdFile.getAbsolutePath());
         }
     }
 
     @FXML
     private void saveXsdFile() {
-        // Require either currentDomManipulator OR currentGraphViewV2
-        boolean hasEditor = (currentDomManipulator != null) ||
-                           (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null);
+        // Require V2 editor or text content
+        boolean hasEditor = (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null);
 
         if (!hasEditor || currentXsdFile == null) {
             logger.debug("Cannot save: hasEditor={}, currentXsdFile={}", hasEditor, currentXsdFile);
@@ -1869,11 +1522,6 @@ public class XsdController {
         // Check V2 editor
         if (currentGraphViewV2 != null && currentGraphViewV2.getEditorContext() != null &&
             currentGraphViewV2.getEditorContext().getSchema() != null) {
-            hasContent = true;
-        }
-
-        // Check DOM manipulator
-        if (!hasContent && currentDomManipulator != null) {
             hasContent = true;
         }
 
@@ -1995,12 +1643,6 @@ public class XsdController {
                 }
             }
 
-            // Priority 3: Fallback to DOM manipulator only if text editor is empty
-            if (updatedXsd == null && currentDomManipulator != null) {
-                updatedXsd = currentDomManipulator.getXsdAsString();
-                logger.debug("Saving XSD from DOM manipulator (fallback)");
-            }
-
             if (updatedXsd == null || updatedXsd.trim().isEmpty()) {
                 showError("Failed to get XSD content", "Could not retrieve the XSD content.");
                 return;
@@ -2094,11 +1736,9 @@ public class XsdController {
         try {
             String xsdContent = null;
 
-            // Get content from the appropriate source
-            if (tabPane.getSelectionModel().getSelectedItem() == textTab && sourceCodeEditor != null) {
+            // Get content from text editor
+            if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
                 xsdContent = sourceCodeEditor.getCodeArea().getText();
-            } else if (currentDomManipulator != null) {
-                xsdContent = currentDomManipulator.getXsdAsString();
             }
 
             if (xsdContent == null || xsdContent.trim().isEmpty()) {
@@ -2221,11 +1861,9 @@ public class XsdController {
         }
 
         try {
-            // Get the XSD content
+            // Get the XSD content from text editor
             String xsdContent;
-            if (currentDomManipulator != null) {
-                xsdContent = currentDomManipulator.getXsdAsString();
-            } else if (sourceCodeEditor != null) {
+            if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
                 xsdContent = sourceCodeEditor.getCodeArea().getText();
             } else {
                 return;
@@ -3536,7 +3174,7 @@ public class XsdController {
 
     /**
      * Updates the validation status in the UI.
-     * Called by XsdDiagramView when live validation results are available.
+     * Called when live validation results are available.
      */
     public void updateValidationStatus(String statusMessage, boolean hasErrors) {
         Platform.runLater(() -> {
@@ -3574,157 +3212,10 @@ public class XsdController {
         if (typeLibraryTab != null) {
             typeLibraryTab.setOnSelectionChanged(event -> {
                 if (typeLibraryTab.isSelected()) {
-                    refreshTypeLibrary();
+                    logger.debug("Type library tab selected");
+                    // Type library is now automatically populated via TypeEditorTabManager
+                    // when a schema is loaded via updateTypeEditorWithSchema()
                 }
-            });
-        }
-    }
-
-    /**
-     * Create or refresh the type library panel
-     */
-    private void refreshTypeLibrary() {
-        if (typeLibraryStackPane == null) {
-            logger.warn("Type library stack pane is not initialized");
-            return;
-        }
-
-        try {
-            // Clear existing content
-            typeLibraryStackPane.getChildren().clear();
-
-            if (currentDomManipulator != null) {
-                // Create type library panel with command executor and refresh callback
-                typeLibraryPanel = new XsdTypeLibraryPanel(
-                        currentDomManipulator,
-                        this::executeTypeCommand,
-                        this::refreshTypeLibrary
-                );
-
-                // Add CSS styling
-                typeLibraryPanel.getStylesheets().add(
-                        getClass().getResource("/css/xsd-type-library.css").toExternalForm()
-                );
-
-                typeLibraryStackPane.getChildren().add(typeLibraryPanel);
-                logger.info("Type library panel initialized successfully");
-            } else {
-                // Show message when no XSD is loaded
-                Label noDataLabel = new Label("No XSD file loaded. Please open an XSD file to view type definitions.");
-                noDataLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 14px;");
-                StackPane.setAlignment(noDataLabel, javafx.geometry.Pos.CENTER);
-                typeLibraryStackPane.getChildren().add(noDataLabel);
-            }
-
-        } catch (Exception e) {
-            logger.error("Error initializing type library panel", e);
-            Label errorLabel = new Label("Error loading type library: " + e.getMessage());
-            errorLabel.setStyle("-fx-text-fill: #dc3545; -fx-font-size: 14px;");
-            StackPane.setAlignment(errorLabel, javafx.geometry.Pos.CENTER);
-            typeLibraryStackPane.getChildren().add(errorLabel);
-        }
-    }
-
-    /**
-     * Execute a type-related command with proper undo support
-     */
-    private void executeTypeCommand(XsdCommand command) {
-        try {
-            logger.info("Executing type command: {}", command.getDescription());
-
-            boolean success = command.execute();
-            if (success) {
-                // Handle specific command types that need result display
-                if (command instanceof org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand findCommand) {
-                    displayTypeUsageResults(findCommand);
-                }
-                
-                // Add to undo stack if the command supports it
-                if (command.canUndo()) {
-                    addCommandToUndoStack(command);
-                }
-
-                // Refresh UI components that depend on the schema
-                Platform.runLater(() -> {
-                    try {
-                        // Refresh the XSD diagram if it exists
-                        String updatedContent = currentDomManipulator.getXmlContent();
-                        if (updatedContent != null) {
-                            // Update the text editor with the modified content
-                            if (sourceCodeEditor != null && sourceCodeEditor.getCodeArea() != null) {
-                                sourceCodeEditor.getCodeArea().replaceText(updatedContent);
-                                logger.debug("Text editor updated with modified XSD content after type command");
-                            }
-
-                            // Refresh the graphic view without rebuilding (false parameter)
-                            updateXsdContent(updatedContent, false);
-
-                            // Refresh the type library
-                            if (typeLibraryPanel != null) {
-                                typeLibraryPanel.loadTypes();
-                            }
-
-                            // Mark as modified
-                            markAsModified();
-                        }
-                    } catch (Exception e) {
-                        logger.error("Error refreshing UI after command execution", e);
-                    }
-                });
-
-                logger.info("Type command executed successfully: {}", command.getDescription());
-            } else {
-                logger.error("Type command execution failed: {}", command.getDescription());
-            }
-
-        } catch (Exception e) {
-            logger.error("Error executing type command: " + command.getDescription(), e);
-        }
-    }
-
-    /**
-     * Opens a specific XSD type (simple or complex) in a dedicated graphic editor tab
-     */
-    public void openTypeInGraphicEditor(Element typeElement) {
-        try {
-            String typeName = typeElement.getAttribute("name");
-            boolean isSimpleType = "simpleType".equals(typeElement.getLocalName());
-
-            logger.info("Opening {} type '{}' in dedicated graphic editor",
-                    isSimpleType ? "simple" : "complex", typeName);
-
-            // Create the type editor tab
-            XsdTypeEditor typeEditor = new XsdTypeEditor(typeElement, this);
-
-            // Add to the main tab pane
-            if (tabPane != null) {
-                Platform.runLater(() -> {
-                    tabPane.getTabs().add(typeEditor);
-                    tabPane.getSelectionModel().select(typeEditor);
-                });
-
-                logger.info("Type editor tab created and selected for type: {}", typeName);
-            } else {
-                logger.error("TabPane not available for adding type editor");
-
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("UI Error");
-                    alert.setHeaderText("Cannot Open Type Editor");
-                    alert.setContentText("The tab panel is not available to open the type editor.");
-                    alert.showAndWait();
-                });
-            }
-
-        } catch (Exception e) {
-            logger.error("Failed to open type in graphic editor", e);
-
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Type Editor Error");
-                alert.setHeaderText("Failed to Open Type Editor");
-                alert.setContentText("Error: " + e.getMessage());
-                alert.showAndWait();
             });
         }
     }
@@ -3758,86 +3249,6 @@ public class XsdController {
 
             logger.debug("UI updated to reflect modified state");
         });
-    }
-
-    /**
-     * Refreshes the main diagram view
-     */
-    public void refreshDiagramView() {
-        if (currentDiagramView != null) {
-            Platform.runLater(() -> {
-                try {
-                    // Trigger a refresh of the diagram
-                    currentDiagramView.refreshView();
-                    logger.debug("Diagram view refreshed");
-                } catch (Exception e) {
-                    logger.error("Failed to refresh diagram view", e);
-                }
-            });
-        }
-    }
-
-    /**
-     * Display the results of a find type usages command
-     */
-    private void displayTypeUsageResults(org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand findCommand) {
-        List<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage> usages = findCommand.getFoundUsages();
-
-        if (usages.isEmpty()) {
-            // Show info dialog when no usages found
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Find Type Usages");
-            alert.setHeaderText("No usages found");
-            alert.setContentText("Type '" + findCommand.getTypeInfo().name() + "' is not used anywhere in the schema.");
-            alert.showAndWait();
-            return;
-        }
-
-        // Create dialog to display usage results
-        Dialog<Void> dialog = new Dialog<>();
-        dialog.setTitle("Find Type Usages - " + findCommand.getTypeInfo().name());
-        dialog.setHeaderText("Found " + usages.size() + " usage(s) of type '" + findCommand.getTypeInfo().name() + "'");
-
-        // Create table to display usage results
-        TableView<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage> usageTable = new TableView<>();
-        usageTable.setPrefSize(600, 300);
-
-        // Create columns
-        TableColumn<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage, String> elementColumn = new TableColumn<>("Element");
-        elementColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getElementName()));
-        elementColumn.setPrefWidth(120);
-
-        TableColumn<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage, String> usageTypeColumn = new TableColumn<>("Usage Type");
-        usageTypeColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getUsageType().getDescription()));
-        usageTypeColumn.setPrefWidth(120);
-
-        TableColumn<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage, String> contextColumn = new TableColumn<>("Context");
-        contextColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getUsageContext()));
-        contextColumn.setPrefWidth(150);
-
-        TableColumn<org.fxt.freexmltoolkit.controls.commands.FindTypeUsagesCommand.TypeUsage, String> xpathColumn = new TableColumn<>("XPath");
-        xpathColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getXPath()));
-        xpathColumn.setPrefWidth(200);
-
-        usageTable.getColumns().addAll(elementColumn, usageTypeColumn, contextColumn, xpathColumn);
-
-        // Add data to table
-        usageTable.getItems().addAll(usages);
-
-        // Create content for dialog
-        VBox content = new VBox(10);
-        content.getChildren().addAll(
-                new Label("Click on a row to see more details:"),
-                usageTable
-        );
-
-        dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-
-        // Show the dialog
-        dialog.showAndWait();
-
-        logger.info("Displayed {} type usages for '{}'", usages.size(), findCommand.getTypeInfo().name());
     }
 
     /**
@@ -3983,7 +3394,7 @@ public class XsdController {
      */
     private void initializeTypeEditor() {
         try {
-            // Create TabPane for type editor subtabs
+            // Create TabPane for type editor subtabs (used when editing individual types)
             typeEditorTabPane = new TabPane();
             typeEditorTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
 
@@ -4002,17 +3413,15 @@ public class XsdController {
             // Initialize TypeEditorTabManager
             typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
 
-            // Create main Type Editor tab
-            typeEditorTab = new Tab("Type Editor");
-            typeEditorTab.setContent(typeEditorTabPane);
-            typeEditorTab.setClosable(false); // Main tab should not be closable
-
-            // Add to main TabPane
-            if (tabPane != null) {
-                tabPane.getTabs().add(typeEditorTab);
-                logger.info("Type Editor tab initialized successfully");
+            // Initialize Type Library View (shows all types with usage info)
+            if (typeLibraryStackPane != null) {
+                typeLibraryStackPane.getChildren().clear();
+                org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
+                    new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(schema);
+                typeLibraryStackPane.getChildren().add(typeLibraryView);
+                logger.info("Type Library tab initialized with TypeLibraryView");
             } else {
-                logger.warn("Main TabPane is not initialized - cannot add Type Editor tab");
+                logger.warn("Type Library StackPane is not initialized");
             }
 
         } catch (Exception e) {
@@ -4037,6 +3446,15 @@ public class XsdController {
                 // Re-create TypeEditorTabManager with new schema
                 typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
                 logger.info("Type Editor updated with loaded schema: {}", schema.getTargetNamespace());
+
+                // Update Type Library View with new schema
+                if (typeLibraryStackPane != null) {
+                    typeLibraryStackPane.getChildren().clear();
+                    org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
+                        new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(schema);
+                    typeLibraryStackPane.getChildren().add(typeLibraryView);
+                    logger.info("Type Library view updated with new schema");
+                }
 
             } catch (Exception e) {
                 logger.error("Error updating Type Editor with schema", e);

@@ -85,7 +85,6 @@ public class XmlCodeEditor extends VBox {
 
     // Specialized Auto-Completion (will be managed by IntelliSenseManager in future)
     private SchematronAutoComplete schematronAutoComplete;
-    private XsdAutoComplete xsdAutoComplete;
     private XsltAutoComplete xsltAutoComplete;
     private XslFoAutoComplete xslFoAutoComplete;
 
@@ -479,12 +478,8 @@ public class XmlCodeEditor extends VBox {
                 }
             }
             case XSD -> {
-                if (xsdAutoComplete != null) {
-                    xsdAutoComplete.setEnabled(true);
-                    logger.debug("Switched to XSD mode - XSD auto-completion active");
-                } else {
-                    logger.warn("Cannot enable XSD mode: XsdAutoComplete not initialized");
-                }
+                // XSD auto-completion removed - V1 feature
+                logger.debug("XSD mode selected (V1 auto-completion removed)");
             }
             case XSLT -> {
                 if (xsltAutoComplete != null) {
@@ -1232,11 +1227,6 @@ public class XmlCodeEditor extends VBox {
 
     private void initializeSpecializedAutoComplete() {
         try {
-            // Initialize XSD auto-completion
-            xsdAutoComplete = new XsdAutoComplete(codeArea);
-            xsdAutoComplete.setEnabled(false); // Initially disabled
-            logger.debug("XSD auto-completion initialized");
-
             // Initialize XSLT auto-completion
             xsltAutoComplete = new XsltAutoComplete(codeArea);
             xsltAutoComplete.setEnabled(false); // Initially disabled
@@ -2212,7 +2202,6 @@ public class XmlCodeEditor extends VBox {
 
     private void disableAllAutoCompletion() {
         if (schematronAutoComplete != null) schematronAutoComplete.setEnabled(false);
-        if (xsdAutoComplete != null) xsdAutoComplete.setEnabled(false);
         if (xsltAutoComplete != null) xsltAutoComplete.setEnabled(false);
         if (xslFoAutoComplete != null) xslFoAutoComplete.setEnabled(false);
     }

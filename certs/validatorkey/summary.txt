@@ -1,0 +1,29 @@
+Keystore Alias: validatorkey
+Keystore Password: pass123
+Alias Password: keypass123
+
+Certificate Details:
+  [0]         Version: 3
+         SerialNumber: 1763416995704
+             IssuerDN: CN=Validator Test,O=Test Org
+           Start Date: Mon Nov 17 23:03:15 CET 2025
+           Final Date: Tue Nov 17 23:03:15 CET 2026
+            SubjectDN: CN=Validator Test,O=Test Org
+           Public Key: RSA Public Key [af:20:f8:f0:81:a6:9c:af:fc:d0:07:c9:8d:38:ce:59:f6:4b:e4:a4],[56:66:d1:a4]
+        modulus: a1af8291d06853ed82e591738eb446acf7a2d40da50a75a06d1fe35e52fca94f7b0b61392b42b47a4a09c6b90450b62cc9a0d8c84571f91fc75891d9bc8858634bd62ce0d9ce3035f534417f81660a1dbea81ae5cf999787f6715a778aa3604b09d29cdc895050576076981adfce2701a8bd11d4315d90e3594417f8c9b96a14e0a730d773fea145ac707a566a32514119412cec0ce6f48cb54aa191368882d2458576b950412b18158d4dd494ee2757025db6e792b96e21394b5d01b4839e024d842c850706885166798e3db083fa0287aae2c305107625a874feda1389f031f9aa0309045d75f7192d2af0c8f0368b329ccf33de589ffca4dc6f75120a522b
+public exponent: 10001
+
+  Signature Algorithm: SHA256WITHRSA
+            Signature: 8b73abcfba7d17da56a9abf82a324b1c072f226c
+                       fff27edf6cd92240edb9cca06c1f06925b382113
+                       664ebb6592cc1be387a065d14b2712b09be05241
+                       631784649899608535a0e8192f12510516b50eec
+                       c40403c667f75ad3018fbb6c480ca78481767d69
+                       9035cb7025b16ba4c6705e307a3a2ea7e4839e30
+                       2dddb6001ddcf64c798e75813245650091683e4d
+                       1f7a528d720af77aa90891de3cad2bdc02d57f4b
+                       106f602296db6ce247377676e406b3d4e0fd053b
+                       8a873721257aa5f7649bcd7e9b2d6b9c6d1de560
+                       ee567ba5995b892dd0c358d2e96721fb6f157079
+                       12f4e32d9ef52cc42588db378f85a0cbe8eb4029
+                       c06f88fe495b0e369dfc947c917ad613

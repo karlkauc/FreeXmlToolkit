@@ -1,0 +1,29 @@
+Keystore Alias: testkey
+Keystore Password: password123
+Alias Password: keypass123
+
+Certificate Details:
+  [0]         Version: 3
+         SerialNumber: 1763416996626
+             IssuerDN: CN=Test User,O=Test Organization,C=AT
+           Start Date: Mon Nov 17 23:03:16 CET 2025
+           Final Date: Tue Nov 17 23:03:16 CET 2026
+            SubjectDN: CN=Test User,O=Test Organization,C=AT
+           Public Key: RSA Public Key [0d:a3:95:47:78:c6:d8:14:97:e2:68:a2:59:48:37:17:79:10:42:81],[56:66:d1:a4]
+        modulus: bcaf99134a7cba394b0bc4799041df910a1f04a38011b9671d0f1efc9de58425f0c3a76a15a13b62aa1e7f7d8e01fa89427fadb72072932425a3d49571b907bff03cd0c29616c27e3e8a2daa77b62af393a1c021a6a680d344441e6100df4b992ad1112b8e548eafd51bd156d5b0ffabdf5d9d9efbfeaebaa92e4963a9316197a9e06d61c3a03bf2505bb7e2940e0a50d6c7f77887c60a81bde873836e887684c8bf0925d41fd7e3f041028f72f6506d9e283bb1b3d9ee0f1a14b8b5f7273747d73edfe8511cd96cecddb63c2aea028ba32d829ff86169d865abb72b1ddab3fa124e1186828abfb7599b3949948ef042c1c7712d8c620a5148a09a8e59f2b537
+public exponent: 10001
+
+  Signature Algorithm: SHA256WITHRSA
+            Signature: ab9c190e6432ce1834b3810ea34a2857cc87a2be
+                       88ba38c42a2bde2007efd7bfa624577dffef70bd
+                       bdfb5cb8b867ef0e7373e688423d26c35a44d546
+                       bd70ceb20a185dd0d5d0dba66d97c7641e31c110
+                       c0df8b73b08e02e6bd825247399f7bc0d03d1948
+                       3b027a6031f5bb6e8ec0750a3287a6c0f9d91199
+                       6efc1029b8848a62d32377ce2cb314ce014e8fe3
+                       c0ba935e26d1f8ecb4160b2539c5aee3b813b075
+                       ea3d441737f198ac3711ea2f4abb5423865a57d1
+                       29d5b76759d3f9a5dc12b2392f4352144fcca9ba
+                       ef953a382f52db1053069352b8482234e48c518e
+                       db09d515fbca2293b761790d12207940ca13205c
+                       b865ca911cd75dd7ea62327068db3b88
