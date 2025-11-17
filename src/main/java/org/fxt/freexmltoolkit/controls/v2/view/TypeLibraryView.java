@@ -512,10 +512,7 @@ public class TypeLibraryView extends BorderPane {
     private MenuButton createExportButton() {
         MenuButton exportButton = new MenuButton("Export");
 
-        // Style the button
-        FontIcon exportIcon = new FontIcon("mdi2f-file-export");
-        exportIcon.setIconSize(16);
-        exportButton.setGraphic(exportIcon);
+        // Style the button - XMLSpy blue styling
         exportButton.setStyle(
             "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
             "-fx-font-size: 11px;" +
@@ -527,33 +524,27 @@ public class TypeLibraryView extends BorderPane {
         );
 
         // CSV MenuItem
-        MenuItem csvItem = new MenuItem("Export to CSV");
-        csvItem.setGraphic(new FontIcon("mdi2f-file-delimited"));
+        MenuItem csvItem = new MenuItem("CSV - Comma Separated Values");
         csvItem.setOnAction(e -> exportTo("CSV"));
 
         // Excel MenuItem
-        MenuItem excelItem = new MenuItem("Export to Excel (XLSX)");
-        excelItem.setGraphic(new FontIcon("mdi2f-file-excel"));
+        MenuItem excelItem = new MenuItem("Excel - XLSX (with multiple sheets)");
         excelItem.setOnAction(e -> exportTo("XLSX"));
 
         // HTML MenuItem
-        MenuItem htmlItem = new MenuItem("Export to HTML");
-        htmlItem.setGraphic(new FontIcon("mdi2f-file-code"));
+        MenuItem htmlItem = new MenuItem("HTML - Web Page");
         htmlItem.setOnAction(e -> exportTo("HTML"));
 
         // JSON MenuItem
-        MenuItem jsonItem = new MenuItem("Export to JSON");
-        jsonItem.setGraphic(new FontIcon("mdi2f-code-json"));
+        MenuItem jsonItem = new MenuItem("JSON - JavaScript Object Notation");
         jsonItem.setOnAction(e -> exportTo("JSON"));
 
         // XML MenuItem
-        MenuItem xmlItem = new MenuItem("Export to XML");
-        xmlItem.setGraphic(new FontIcon("mdi2f-file-xml"));
+        MenuItem xmlItem = new MenuItem("XML - Extensible Markup Language");
         xmlItem.setOnAction(e -> exportTo("XML"));
 
         // Markdown MenuItem
-        MenuItem markdownItem = new MenuItem("Export to Markdown");
-        markdownItem.setGraphic(new FontIcon("mdi2f-file-document"));
+        MenuItem markdownItem = new MenuItem("Markdown - GitHub/GitLab");
         markdownItem.setOnAction(e -> exportTo("MARKDOWN"));
 
         exportButton.getItems().addAll(
