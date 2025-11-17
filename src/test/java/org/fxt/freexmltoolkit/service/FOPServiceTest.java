@@ -454,4 +454,240 @@ class FOPServiceTest {
         assertTrue(result.exists());
         assertTrue(result.length() > 100, "Complex PDF should have substantial size");
     }
+
+    // ===== FAILURE SCENARIO TESTS =====
+
+    @Test
+    @DisplayName("Should throw exception for non-existent XML file")
+    void testNonExistentXmlFile() {
+        // Arrange
+        File nonExistentXml = new File(tempDir.resolve("non-existent.xml").toString());
+        File xslFile = new File(tempDir.resolve("test.xsl").toString());
+        File pdfFile = new File(tempDir.resolve("output.pdf").toString());
+        PDFSettings settings = new PDFSettings(new HashMap<>(), "", "", "", "", "", "");
+
+        // Act & Assert
+        FOPServiceException exception = assertThrows(FOPServiceException.class, () -> {
+            fopService.createPdfFile(nonExistentXml, xslFile, pdfFile, settings);
+        });
+
+        assertTrue(exception.getMessage().contains("XML file does not exist"),
+                "Exception message should indicate XML file not found");
+    }
+
+    @Test
+    @DisplayName("Should throw exception for non-existent XSL file")
+    void testNonExistentXslFile() throws Exception {
+        // Arrange
+        String xmlContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <document><content>Test</content></document>
+            """;
+
+        Path xmlFile = tempDir.resolve("test.xml");
+        Files.writeString(xmlFile, xmlContent);
+
+        File nonExistentXsl = new File(tempDir.resolve("non-existent.xsl").toString());
+        File pdfFile = new File(tempDir.resolve("output.pdf").toString());
+        PDFSettings settings = new PDFSettings(new HashMap<>(), "", "", "", "", "", "");
+
+        // Act & Assert
+        FOPServiceException exception = assertThrows(FOPServiceException.class, () -> {
+            fopService.createPdfFile(xmlFile.toFile(), nonExistentXsl, pdfFile, settings);
+        });
+
+        assertTrue(exception.getMessage().contains("XSL file does not exist"),
+                "Exception message should indicate XSL file not found");
+    }
+
+    @Test
+    @DisplayName("Should throw exception for malformed XSL")
+    void testMalformedXsl() throws Exception {
+        // Arrange
+        String xmlContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <document><content>Test</content></document>
+            """;
+
+        String malformedXslContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xsl:stylesheet version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+            <!-- Missing closing tag and malformed structure -->
+            """;
+
+        Path xmlFile = tempDir.resolve("test.xml");
+        Path xslFile = tempDir.resolve("malformed.xsl");
+        Path pdfFile = tempDir.resolve("output.pdf");
+
+        Files.writeString(xmlFile, xmlContent);
+        Files.writeString(xslFile, malformedXslContent);
+
+        PDFSettings settings = new PDFSettings(new HashMap<>(), "", "", "", "", "", "");
+
+        // Act & Assert
+        FOPServiceException exception = assertThrows(FOPServiceException.class, () -> {
+            fopService.createPdfFile(xmlFile.toFile(), xslFile.toFile(), pdfFile.toFile(), settings);
+        });
+
+        assertTrue(exception.getMessage().contains("Failed to transform XML using XSL stylesheet"),
+                "Exception message should indicate transformation failure: " + exception.getMessage());
+        assertNotNull(exception.getCause(), "Exception should have a cause");
+    }
+
+    @Test
+    @DisplayName("Should throw exception for malformed XML")
+    void testMalformedXml() throws Exception {
+        // Arrange
+        String malformedXmlContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <document>
+                <content>Test
+                <!-- Missing closing tags -->
+            """;
+
+        String xslContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xsl:stylesheet version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:fo="http://www.w3.org/1999/XSL/Format">
+                <xsl:template match="/">
+                    <fo:root>
+                        <fo:layout-master-set>
+                            <fo:simple-page-master master-name="A4"
+                                page-height="297mm" page-width="210mm" margin="20mm">
+                                <fo:region-body/>
+                            </fo:simple-page-master>
+                        </fo:layout-master-set>
+                        <fo:page-sequence master-reference="A4">
+                            <fo:flow flow-name="xsl-region-body">
+                                <fo:block><xsl:value-of select="document/content"/></fo:block>
+                            </fo:flow>
+                        </fo:page-sequence>
+                    </fo:root>
+                </xsl:template>
+            </xsl:stylesheet>
+            """;
+
+        Path xmlFile = tempDir.resolve("malformed.xml");
+        Path xslFile = tempDir.resolve("test.xsl");
+        Path pdfFile = tempDir.resolve("output.pdf");
+
+        Files.writeString(xmlFile, malformedXmlContent);
+        Files.writeString(xslFile, xslContent);
+
+        PDFSettings settings = new PDFSettings(new HashMap<>(), "", "", "", "", "", "");
+
+        // Act & Assert
+        FOPServiceException exception = assertThrows(FOPServiceException.class, () -> {
+            fopService.createPdfFile(xmlFile.toFile(), xslFile.toFile(), pdfFile.toFile(), settings);
+        });
+
+        assertTrue(exception.getMessage().contains("Failed to transform XML"),
+                "Exception message should indicate transformation failure: " + exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception for invalid XSL-FO content")
+    void testInvalidXslFoContent() throws Exception {
+        // Arrange
+        String xmlContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <document><content>Test</content></document>
+            """;
+
+        // XSL that produces invalid FO (missing required elements)
+        String invalidFoXslContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xsl:stylesheet version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:fo="http://www.w3.org/1999/XSL/Format">
+                <xsl:template match="/">
+                    <fo:root>
+                        <!-- Missing layout-master-set - this is invalid FO -->
+                        <fo:page-sequence master-reference="NonExistent">
+                            <fo:flow flow-name="xsl-region-body">
+                                <fo:block>Content</fo:block>
+                            </fo:flow>
+                        </fo:page-sequence>
+                    </fo:root>
+                </xsl:template>
+            </xsl:stylesheet>
+            """;
+
+        Path xmlFile = tempDir.resolve("test.xml");
+        Path xslFile = tempDir.resolve("invalid-fo.xsl");
+        Path pdfFile = tempDir.resolve("output.pdf");
+
+        Files.writeString(xmlFile, xmlContent);
+        Files.writeString(xslFile, invalidFoXslContent);
+
+        PDFSettings settings = new PDFSettings(new HashMap<>(), "", "", "", "", "", "");
+
+        // Act & Assert
+        FOPServiceException exception = assertThrows(FOPServiceException.class, () -> {
+            fopService.createPdfFile(xmlFile.toFile(), xslFile.toFile(), pdfFile.toFile(), settings);
+        });
+
+        assertTrue(exception.getMessage().contains("FOP processing error") ||
+                        exception.getMessage().contains("Failed to transform"),
+                "Exception message should indicate FOP or transformation error: " + exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw exception for XSL with runtime transformation error")
+    void testXslRuntimeError() throws Exception {
+        // Arrange
+        String xmlContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <document><content>Test</content></document>
+            """;
+
+        // XSL that references non-existent elements, causing runtime error
+        String errorXslContent = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xsl:stylesheet version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:fo="http://www.w3.org/1999/XSL/Format">
+                <xsl:template match="/">
+                    <fo:root>
+                        <fo:layout-master-set>
+                            <fo:simple-page-master master-name="A4"
+                                page-height="297mm" page-width="210mm" margin="20mm">
+                                <fo:region-body/>
+                            </fo:simple-page-master>
+                        </fo:layout-master-set>
+                        <fo:page-sequence master-reference="A4">
+                            <fo:flow flow-name="xsl-region-body">
+                                <!-- This will cause error: invalid property value -->
+                                <fo:block font-size="invalid-size">
+                                    <xsl:value-of select="document/content"/>
+                                </fo:block>
+                            </fo:flow>
+                        </fo:page-sequence>
+                    </fo:root>
+                </xsl:template>
+            </xsl:stylesheet>
+            """;
+
+        Path xmlFile = tempDir.resolve("test.xml");
+        Path xslFile = tempDir.resolve("error.xsl");
+        Path pdfFile = tempDir.resolve("output.pdf");
+
+        Files.writeString(xmlFile, xmlContent);
+        Files.writeString(xslFile, errorXslContent);
+
+        PDFSettings settings = new PDFSettings(new HashMap<>(), "", "", "", "", "", "");
+
+        // Act & Assert
+        FOPServiceException exception = assertThrows(FOPServiceException.class, () -> {
+            fopService.createPdfFile(xmlFile.toFile(), xslFile.toFile(), pdfFile.toFile(), settings);
+        });
+
+        assertNotNull(exception.getMessage(), "Exception should have a message");
+        assertTrue(exception.getMessage().contains("FOP processing error") ||
+                        exception.getMessage().contains("Failed to transform") ||
+                        exception.getMessage().contains("error"),
+                "Exception message should indicate an error: " + exception.getMessage());
+    }
 }
