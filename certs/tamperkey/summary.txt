@@ -1,0 +1,29 @@
+Keystore Alias: tamperkey
+Keystore Password: pass
+Alias Password: keypass
+
+Certificate Details:
+  [0]         Version: 3
+         SerialNumber: 1763416995968
+             IssuerDN: CN=Tampering Test
+           Start Date: Mon Nov 17 23:03:15 CET 2025
+           Final Date: Tue Nov 17 23:03:15 CET 2026
+            SubjectDN: CN=Tampering Test
+           Public Key: RSA Public Key [11:88:2f:ef:7a:ef:8b:c2:e3:4b:55:64:a6:94:2d:64:9f:b0:cb:b5],[56:66:d1:a4]
+        modulus: f1cdd8383c6a41917f102758b97f3b86385afe0b1e678dd4a71973f2a690cd90608647d9002ef1d0f133df23062940c111bc4a78599d8ec42b4d09c11f2fead476b02c14a665553f8516c8243ff128cd2183f510010610b327acd091653047736e1a2de8cf282e7603f91d6ba9b0c64cdc120945f116aa1017c57d1bdb358c841b335740be029222d32fbd92b44ec48ed307e188336285fb16275022d155f869c442c38dd4454d988dbec1f9016cc5e88ed11f49dd90f0c4c972ed4ea991a5c0d6ed227d475ed9f66c3202a5cd48f0aac684e9f44bfae398a4fdf049ea8bb8c2b8b3e2741583fccc69ce0fe1b065245474fa877e64b821292c52a1073ead6c11
+public exponent: 10001
+
+  Signature Algorithm: SHA256WITHRSA
+            Signature: 691ac6e85fe1c28f1c88a4132b7c1d178b6b91eb
+                       1fe84d742ad8138bce773239f38129d89d20c493
+                       a43df892a61b000907ad3410eb8e3202a0aadc62
+                       a093930dd8fa532b1cc8062ba9a3482b1be22c39
+                       7f3ec1612fa24dadeb0d7e12d5f75ecf8672bd3b
+                       540f6605f2ba9f8fc1862799218d8039bc38be3b
+                       a49d07e2471536b7b3e6fe055e7a3cdb66b51274
+                       8010a22f1f5daf4a1cadcabc940a9278a5108703
+                       e01ef82d8a6bce33ef14c25fb51a3419def675cf
+                       2b4360571fb0e38fe6266e6f1d4e40955c0f735b
+                       f5717c0f08e5fb560c745832dfc4a4c6fe74809e
+                       7082754a9ac096f33f9be5965a1d5f644181f791
+                       e5f21c96360051d654e70696e3ddca22

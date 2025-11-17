@@ -1,0 +1,29 @@
+Keystore Alias: correctalias
+Keystore Password: pass
+Alias Password: keypass
+
+Certificate Details:
+  [0]         Version: 3
+         SerialNumber: 1763416995872
+             IssuerDN: CN=Alias Test
+           Start Date: Mon Nov 17 23:03:15 CET 2025
+           Final Date: Tue Nov 17 23:03:15 CET 2026
+            SubjectDN: CN=Alias Test
+           Public Key: RSA Public Key [2c:2c:f9:38:87:5f:e8:7b:49:83:9b:9b:18:93:e6:84:2c:1a:3a:98],[56:66:d1:a4]
+        modulus: d13659afeea3bd2baa1a5325de435b169de04e9409d2c1fe77577a468a60eb1e0933eaadee6c8f9725b82f2021d02f33945029c4bf038a76f6870f424cf1e5f98b0e0163498133cd070c2e0f5f5d7a7957be444a175761557e504be1616429ab394fd9047e1aada11aac4c5ade903a870f2d9d25f550324e4ab64e3448e5d1bb8636beb516f73683873dfb4796e379e6de774937e1988881e86dd35dc4be6c317aba9ff193d9c11332ccb1d85924a24dfb2d7365b6cadcda678c8d0bce3c8e867bfb75e79de491ffc001daa6b3b70d3d196408548645cff0b8541ec67089f56a1bfb1ae85e0175589787b633cef61b4021cf589958486592be914a05232bed13
+public exponent: 10001
+
+  Signature Algorithm: SHA256WITHRSA
+            Signature: b5147f65f6728f5d96063bb567e680b7b0a9f145
+                       b119b63d484e5f8fdde5c154d01e981b827e2299
+                       97d1fecb1c7edcb45dad0d067c573690635f22f5
+                       01c205fdf7a2102606d88211a3c6d2b9eb52168e
+                       e577bfdde0e79a21544d4292aa70af1785dec3b5
+                       806448e4d89e7c5baeee5da7b72eb5e70156d438
+                       c29c6f690e4fff0ed5b94304dfa7e5a0735dff45
+                       88e2e7a3611b592428d7abea7a28e57c2aaf1b0e
+                       9348d61a8a6a6af8978259bc1dead408f65406f5
+                       800187a594479742fa3895824c1dcd1ff7b3dc9e
+                       77f2ef3739361f3c11e5ef83c421e66d250d9912
+                       e3581c06310206f7b3d83d5c93aafdb85eddfb59
+                       1c1bd30c0e00fc7bf6e5f9493159be58

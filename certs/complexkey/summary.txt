@@ -1,0 +1,29 @@
+Keystore Alias: complexkey
+Keystore Password: complex123
+Alias Password: keycomplex123
+
+Certificate Details:
+  [0]         Version: 3
+         SerialNumber: 1763416996857
+             IssuerDN: CN=Complex XML Test,O=Test Organization,OU=Development,L=Vienna,ST=Vienna,C=AT
+           Start Date: Mon Nov 17 23:03:16 CET 2025
+           Final Date: Tue Nov 17 23:03:16 CET 2026
+            SubjectDN: CN=Complex XML Test,O=Test Organization,OU=Development,L=Vienna,ST=Vienna,C=AT
+           Public Key: RSA Public Key [24:71:61:8d:46:eb:1e:2f:83:68:99:f3:2c:c0:63:e9:50:6d:7f:0f],[56:66:d1:a4]
+        modulus: 9d9589dde57ccc12bf3dc49b9c44f1459a5a1e736b602ec23d6f867b33802e82b2d7f1eb36c9487a6e9fd5cfcce64a55495b8dab1dc7e770c2ce2b59ed59a3c00d378628aa22f932568c245acfcdf8fc8f8515e37c46e7b5656689779efa29b2c2e5f3b501eb22f6a204f7660133dfecae3ae32941e67ae10c0c8c63cc11d33503556e8326e7f83f1f372b0652db99f5a0a6297f627691f0528c9d444e664f51a0540dd66943761f84d41c01e0ba955723670c78716994f53a8e03ef50d599bb59acb090ffbd38cd34cd8f9a56bef68c8a9c8a86a57aae629dc460961ed4fb21f3dd284365c28b3bb22a6ee751c013615996331662b8e0212a1825bd36013cd3
+public exponent: 10001
+
+  Signature Algorithm: SHA256WITHRSA
+            Signature: 63d3568716654c32499286cf1deca6c18feeeea0
+                       ebdc65f27a2ea790443937f2dbfe7bf3b86f1962
+                       1fd47c2472fc33d11529c3adc28aa4408114a4b8
+                       cbb4677c62681f5acd4a212ea10d5105fc7d134d
+                       a2aaaee74cf56435aa652bb8ffc74fb64bb2f431
+                       95d8788ea35110b77ee8824706a970bca2f43f92
+                       a1d54c5dbf1de1a1df11d41bd44282456757763b
+                       f9e5649da41778fe5a5a9ee959ceb89b51050a49
+                       ee54edad610fc4ee0b4568b5c06f8ea17fee4eab
+                       cfdc1f9182fb60850bd9a59eba4bc9950cf27c3c
+                       fc674e65a0c6c66f912e6ff0337f15e35a47c0ad
+                       ebc5369d4a4811aff7632c7efd41f1c1588427ff
+                       9daf8271934bbcf54e23ce5433b57968
