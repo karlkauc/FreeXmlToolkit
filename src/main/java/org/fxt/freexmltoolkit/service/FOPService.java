@@ -85,26 +85,26 @@ public class FOPService {
 
             Files.createDirectories(pdfOutput.toPath().getParent());
 
-            OutputStream out = new FileOutputStream(pdfOutput);
-            out = new BufferedOutputStream(out);
-            Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
+            // Use try-with-resources to ensure OutputStream is always closed
+            try (OutputStream out = new BufferedOutputStream(new FileOutputStream(pdfOutput))) {
+                Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
 
-            TransformerFactory factory = TransformerFactory.newInstance();
-            Transformer transformer = factory.newTransformer(new StreamSource(xslFile));
+                TransformerFactory factory = TransformerFactory.newInstance();
+                Transformer transformer = factory.newTransformer(new StreamSource(xslFile));
 
-            for (String key : defaultParameter.keySet()) {
-                logger.debug("Set default parameter: '{}' - '{}'", key, defaultParameter.get(key));
-                transformer.setParameter(key, defaultParameter.get(key));
-            }
+                for (String key : defaultParameter.keySet()) {
+                    logger.debug("Set default parameter: '{}' - '{}'", key, defaultParameter.get(key));
+                    transformer.setParameter(key, defaultParameter.get(key));
+                }
 
-            for (String key : pdfSettings.customParameter().keySet()) {
-                logger.debug("Set individual parameter: '{}' - '{}'", key, pdfSettings.customParameter().get(key));
-                transformer.setParameter(key, pdfSettings.customParameter().get(key));
-            }
-            Source src = new StreamSource(xmlFile);
-            Result res = new SAXResult(fop.getDefaultHandler());
-            transformer.transform(src, res);
-            out.close();
+                for (String key : pdfSettings.customParameter().keySet()) {
+                    logger.debug("Set individual parameter: '{}' - '{}'", key, pdfSettings.customParameter().get(key));
+                    transformer.setParameter(key, pdfSettings.customParameter().get(key));
+                }
+                Source src = new StreamSource(xmlFile);
+                Result res = new SAXResult(fop.getDefaultHandler());
+                transformer.transform(src, res);
+            } // OutputStream is automatically closed here, even if exception occurs
 
             logger.debug("PDF generation completed successfully: {}", pdfOutput);
         } catch (javax.xml.transform.TransformerException e) {
