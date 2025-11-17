@@ -186,34 +186,14 @@ controls/intellisense/
 
 ---
 
-### 6. Domain Commands (12 Commands - 0% Coverage)
+### 6. Domain Commands (REMOVED - V1 Architecture)
 
-**Alle Domain-Commands ohne Tests:**
+**Status:** ❌ Deleted in commit 8109fd3 (V1 XSD editor removal)
 
-```java
-domain/command/
-├── ❌ AddImportCommand
-├── ❌ AddIncludeCommand
-├── ❌ CloneTypeCommand
-├── ❌ ConvertAttributeToElementCommand
-├── ❌ ConvertElementToAttributeCommand
-├── ❌ ExtractComplexTypeCommand
-├── ❌ ImportTypesCommand
-├── ❌ InlineTypeCommand
-├── ❌ InlineTypeDefinitionCommand
-├── ❌ RemoveImportCommand
-├── ❌ RemoveIncludeCommand
-└── ❌ RemoveUnusedTypesCommand
-```
+All 12 Domain Command implementations were removed as part of V1 architecture deprecation.
+V2 architecture uses commands in `controls/v2/editor/commands/` instead (24 commands).
 
-**Test-Pattern:** V2 Command-Test-Pattern folgen
-- execute() Verhalten
-- undo() Verhalten
-- Model-State-Verifikation
-- Edge-Cases
-
-**Geschätzte Zeit:** 6-9 Stunden (30-45min pro Command)
-**ROI:** ⭐⭐⭐⭐
+**No action needed** - V1 commands are deprecated.
 
 ---
 
@@ -324,12 +304,12 @@ controller/controls/
 | Controller Layer (MainController, XmlUltimateController, etc.) | 12 Controller | ⭐⭐⭐⭐ | 12-24h |
 | FacetsPanel | 1 Klasse | ⭐⭐⭐⭐⭐ | 4h |
 
-### PRIORITY 2 - HOCH (19-26 Stunden):
+### PRIORITY 2 - HOCH (13-17 Stunden):
 | Bereich | Tests fehlen | ROI | Zeit |
 |---------|--------------|-----|------|
 | IntelliSense System | 26 Dateien | ⭐⭐⭐⭐⭐ | 9-12h |
 | V2 Model Tests (Element, Attribute, Sequence) | 6 Klassen | ⭐⭐⭐⭐ | 4-5h |
-| Domain Commands | 12 Commands | ⭐⭐⭐⭐ | 6-9h |
+| ~~Domain Commands~~ | ~~12 Commands~~ | ~~Deprecated~~ | ~~N/A~~ |
 
 ### PRIORITY 3 - MITTEL (35-56 Stunden):
 | Bereich | Tests fehlen | ROI | Zeit |
@@ -370,13 +350,13 @@ controller/controls/
 
 **Total: ~12h | Impact: Schützt Auto-Completion**
 
-### Sprint 4: Model + Commands (1 Woche)
+### Sprint 4: Model Tests (1 Woche)
 14. ✅ XsdElementTest (2h)
 15. ✅ XsdAttributeTest (1h)
 16. ✅ XsdSequenceTest (1h)
-17. ✅ Domain Command Tests (9h)
+17. ~~Domain Command Tests~~ (Deprecated - V1 removed)
 
-**Total: ~13h | Impact: Schützt XSD-Modell**
+**Total: ~4h | Impact: Schützt XSD-Modell**
 
 ---
 
