@@ -629,3 +629,4 @@ Platform.runLater(() -> {
     - split classes that are too big automatically into smaller classes
     - delete unused code automatically. make sure no production code breaks.
     - avoid reflections if possible
+- in einem XSD Schema können Kind Knoten den Type des Eltern Knoten haben. Stelle bei der Verarbeitung von XSD immer sicher, dass es zu keiner Endlosschleife kommt.

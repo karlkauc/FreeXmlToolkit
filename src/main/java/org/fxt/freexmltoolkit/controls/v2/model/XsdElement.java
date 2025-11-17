@@ -12,6 +12,7 @@ import java.util.List;
 public class XsdElement extends XsdNode {
 
     private String type;
+    private String ref;  // Reference to a global element
     private boolean nillable;
     private boolean abstractElement;
     private String fixed;
@@ -51,6 +52,28 @@ public class XsdElement extends XsdNode {
         String oldValue = this.type;
         this.type = type;
         pcs.firePropertyChange("type", oldValue, type);
+    }
+
+    /**
+     * Gets the element reference (ref attribute).
+     * When set, this element references a global element definition.
+     *
+     * @return the element reference (e.g., "ds:Signature"), or null
+     */
+    public String getRef() {
+        return ref;
+    }
+
+    /**
+     * Sets the element reference (ref attribute).
+     * When set, this element references a global element definition.
+     *
+     * @param ref the element reference
+     */
+    public void setRef(String ref) {
+        String oldValue = this.ref;
+        this.ref = ref;
+        pcs.firePropertyChange("ref", oldValue, ref);
     }
 
     /**

@@ -1279,13 +1279,19 @@ public class XsdController {
      * Loads XSD content into the V2 graphical view using the new model-based architecture.
      */
     private void loadXsdIntoGraphicViewV2(String xsdContent) {
+        // Store factory reference to get imported schemas after parsing
+        final org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory[] factoryRef =
+                new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory[1];
+
         Task<org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> task = new Task<>() {
             @Override
             protected org.fxt.freexmltoolkit.controls.v2.model.XsdSchema call() throws Exception {
                 // Use new XsdNodeFactory to parse the schema
                 org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory factory =
                         new org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory();
-                return factory.fromString(xsdContent);
+                factoryRef[0] = factory;  // Store factory reference
+                java.nio.file.Path baseDir = currentXsdFile != null ? currentXsdFile.toPath().getParent() : null;
+                return factory.fromString(xsdContent, baseDir);
             }
         };
 
@@ -1296,6 +1302,13 @@ public class XsdController {
             if (schema != null) {
                 // Use XsdSchema-based constructor
                 currentGraphViewV2 = new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(schema);
+
+                // Set imported schemas from factory (for ref resolution to imported elements)
+                if (factoryRef[0] != null) {
+                    java.util.Map<String, org.fxt.freexmltoolkit.controls.v2.model.XsdSchema> importedSchemas =
+                            factoryRef[0].getImportedSchemas();
+                    currentGraphViewV2.setImportedSchemas(importedSchemas);
+                }
 
                 // Enable edit mode by creating and setting up an editor context
                 org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext =

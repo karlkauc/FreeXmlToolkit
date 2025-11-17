@@ -24,6 +24,8 @@ public class XsdVisualTreeBuilder {
 
     private final Map<String, VisualNode> nodeMap = new HashMap<>();
     private final Map<String, XsdComplexType> typeIndex = new HashMap<>();
+    private final Map<String, XsdElement> globalElementIndex = new HashMap<>();
+    private Map<String, XsdSchema> importedSchemas = new HashMap<>(); // Imported schemas from XsdNodeFactory
     private Runnable onModelChangeCallback;
 
     /**
@@ -33,7 +35,7 @@ public class XsdVisualTreeBuilder {
      * @return the root VisualNode
      */
     public VisualNode buildFromSchema(XsdSchema schema) {
-        return buildFromSchema(schema, null);
+        return buildFromSchema(schema, null, null);
     }
 
     /**
@@ -44,10 +46,24 @@ public class XsdVisualTreeBuilder {
      * @return the root VisualNode
      */
     public VisualNode buildFromSchema(XsdSchema schema, Runnable onModelChangeCallback) {
+        return buildFromSchema(schema, onModelChangeCallback, null);
+    }
+
+    /**
+     * Builds a visual tree directly from an XsdSchema with imported schemas.
+     *
+     * @param schema                the XSD schema to visualize
+     * @param onModelChangeCallback callback to invoke when model changes (for triggering redraw)
+     * @param importedSchemas       map of imported schemas (from XsdNodeFactory)
+     * @return the root VisualNode
+     */
+    public VisualNode buildFromSchema(XsdSchema schema, Runnable onModelChangeCallback, Map<String, XsdSchema> importedSchemas) {
         logger.info("========== buildFromSchema CALLED ==========");
         this.onModelChangeCallback = onModelChangeCallback;
+        this.importedSchemas = importedSchemas != null ? importedSchemas : new HashMap<>();
         nodeMap.clear();
         typeIndex.clear();
+        globalElementIndex.clear();
 
         if (schema == null) {
             logger.warn("Cannot build visual tree from null schema");
@@ -55,10 +71,25 @@ public class XsdVisualTreeBuilder {
         }
 
         logger.info("Schema has {} children", schema.getChildren().size());
+        logger.info("Imported schemas: {}", this.importedSchemas.size());
 
-        // Build type index for fast lookups
+        // Build type index for fast lookups (main schema)
         buildTypeIndex(schema);
-        logger.info("Built type index with {} types", typeIndex.size());
+        logger.info("Built type index with {} types from main schema", typeIndex.size());
+
+        // Build global element index for fast ref lookups (main schema)
+        buildGlobalElementIndex(schema);
+        logger.info("Built global element index with {} elements from main schema", globalElementIndex.size());
+
+        // Index types and elements from imported schemas
+        for (Map.Entry<String, XsdSchema> entry : this.importedSchemas.entrySet()) {
+            String namespace = entry.getKey();
+            XsdSchema importedSchema = entry.getValue();
+            logger.info("Indexing imported schema: namespace='{}'", namespace);
+            buildTypeIndex(importedSchema);
+            buildGlobalElementIndex(importedSchema);
+        }
+        logger.info("Total indexed types: {}, Total indexed elements: {}", typeIndex.size(), globalElementIndex.size());
 
         // Find global elements (direct children of schema that are elements)
         java.util.List<XsdElement> globalElements = schema.getChildren().stream()
@@ -154,6 +185,15 @@ public class XsdVisualTreeBuilder {
 
         // Add to visited elements before processing to prevent circular references
         visitedElements.add(element.getId());
+
+        // Check if this is an element reference (ref attribute)
+        // If so, resolve it to the global element and use its structure
+        if (element.getRef() != null && !element.getRef().isEmpty()) {
+            logger.info("Element '{}' has ref='{}', resolving reference", element.getName(), element.getRef());
+            resolveElementReference(element.getRef(), node, element, visitedTypes, visitedElements);
+            logger.info("After resolving ref, element '{}' node has {} children", element.getName(), node.getChildren().size());
+            return node;
+        }
 
         // Process inline children (complexType, simpleType defined within this element)
         boolean hasInlineComplexType = false;
@@ -394,6 +434,88 @@ public class XsdVisualTreeBuilder {
                     typeIndex.put(complexType.getName(), complexType);
                 }
             }
+        }
+    }
+
+    /**
+     * Builds an index of global elements for fast ref lookup.
+     *
+     * @param schema the schema to index
+     */
+    private void buildGlobalElementIndex(XsdSchema schema) {
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof XsdElement element) {
+                if (element.getName() != null && !element.getName().isEmpty() && element.getRef() == null) {
+                    // Only index elements with name (not refs)
+                    globalElementIndex.put(element.getName(), element);
+                    logger.debug("Indexed global element: {}", element.getName());
+                }
+            }
+        }
+    }
+
+    /**
+     * Resolves an element reference and adds its structure to the parent node.
+     * This method finds a global element definition and adds its content to the referring element.
+     *
+     * @param ref              the element reference (e.g., "ds:Signature")
+     * @param parentNode       the visual node to add children to
+     * @param referencingElement the element that contains the ref attribute
+     * @param visitedTypes     set of type names currently being processed (to prevent circular references)
+     * @param visitedElements  set of element IDs currently being processed (to prevent circular references)
+     */
+    private void resolveElementReference(String ref, VisualNode parentNode, XsdElement referencingElement,
+                                        Set<String> visitedTypes, Set<String> visitedElements) {
+        logger.debug("resolveElementReference called: ref='{}', element='{}'", ref, referencingElement.getName());
+
+        if (ref == null || ref.isEmpty()) {
+            logger.debug("Element reference is null or empty, skipping");
+            return;
+        }
+
+        // Remove namespace prefix if present (e.g., "ds:Signature" -> "Signature")
+        String elementName = ref;
+        if (elementName.contains(":")) {
+            elementName = elementName.substring(elementName.indexOf(":") + 1);
+        }
+        logger.debug("Element name after prefix removal: '{}'", elementName);
+
+        // Look up the global element in the index
+        XsdElement referencedElement = globalElementIndex.get(elementName);
+        if (referencedElement != null) {
+            logger.info("Found global element '{}' for ref='{}', processing structure", elementName, ref);
+
+            // Check for circular reference
+            if (visitedElements.contains(referencedElement.getId())) {
+                logger.warn("Circular element reference detected: element '{}' is already being processed. Skipping.",
+                        elementName);
+                return;
+            }
+
+            // Create a new visitedElements set for this branch
+            Set<String> localVisitedElements = new HashSet<>(visitedElements);
+            localVisitedElements.add(referencedElement.getId());
+
+            // Process the referenced element's type if it has one
+            String referencedType = referencedElement.getType();
+            if (referencedType != null && !referencedType.isEmpty() && !referencedType.startsWith("xs:")) {
+                logger.info("Referenced element '{}' has type='{}', resolving", elementName, referencedType);
+                resolveTypeReference(referencedType, parentNode, referencedElement, visitedTypes, localVisitedElements);
+            }
+
+            // Process the referenced element's inline children (complexType, etc.)
+            for (XsdNode child : referencedElement.getChildren()) {
+                if (child instanceof XsdComplexType) {
+                    processComplexType((XsdComplexType) child, parentNode, visitedTypes, localVisitedElements);
+                }
+            }
+
+            logger.info("After resolving ref, parentNode '{}' has {} children",
+                    parentNode.getLabel(), parentNode.getChildren().size());
+        } else {
+            logger.warn("Referenced element '{}' not found in global element index (has {} elements). " +
+                    "This may be because the element is defined in an imported schema that hasn't been loaded.",
+                    elementName, globalElementIndex.size());
         }
     }
 
