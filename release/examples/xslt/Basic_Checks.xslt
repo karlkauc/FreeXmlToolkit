@@ -155,8 +155,8 @@
             <h3>Portfolio-Übersicht</h3>
             <p>Anzahl Positionen: <xsl:value-of select="count(FundDynamicData/Portfolios/Portfolio/Positions/Position)"/></p>
             <p>Davon Private Equity: <xsl:value-of select="count(FundDynamicData/Portfolios/Portfolio/Positions/Position[PrivateEquity])"/></p>
-            <p>Cash-Position: <xsl:value-of select="format-number(FundDynamicData/Portfolios/Portfolio/Positions/Position[Account]/TotalValue/Amount, '#,##0.00')"/> EUR</p>
-            <p>Gebühren: <xsl:value-of select="format-number(FundDynamicData/Portfolios/Portfolio/Positions/Position[Fee]/TotalValue/Amount, '#,##0.00')"/> EUR</p>
+            <p>Cash-Position: <xsl:value-of select="format-number(sum(FundDynamicData/Portfolios/Portfolio/Positions/Position[Account]/TotalValue/Amount), '#,##0.00')"/> EUR</p>
+            <p>Gebühren: <xsl:value-of select="format-number(sum(FundDynamicData/Portfolios/Portfolio/Positions/Position[Fee]/TotalValue/Amount), '#,##0.00')"/> EUR</p>
             <p>Short Term Bridge Loan: <xsl:value-of select="format-number(FundDynamicData/Portfolios/Portfolio/Positions/Position[UniqueID='ID_00016']/TotalValue/Amount, '#,##0.00')"/> EUR</p>
         </div>
     </xsl:template>

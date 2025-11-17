@@ -682,6 +682,40 @@
                         scroll-margin-top: 2rem;
                     }
                     
+                    /* Fund Header - Always Visible */
+                    .fund-header {
+                        background: linear-gradient(135deg, #f5f7fa 0%, #e3e9f3 100%);
+                        border-radius: 1rem;
+                        padding: 1.5rem;
+                        margin-bottom: 2rem;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    .fund-header h2 {
+                        margin-top: 0;
+                        margin-bottom: 1.5rem;
+                        color: #4C1D95;
+                        font-size: 1.75rem;
+                        padding-bottom: 0.75rem;
+                        border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+                    }
+                    
+                    /* Section Headers in Tables */
+                    .section-header th {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                        color: white !important;
+                        font-weight: 700 !important;
+                        text-align: center !important;
+                        font-size: 1.1rem;
+                        padding: 0.875rem !important;
+                        letter-spacing: 0.05em;
+                        text-transform: uppercase;
+                    }
+                    
+                    .section-header:hover {
+                        background: none !important;
+                    }
+                    
                     /* Animations */
                     @keyframes fadeIn {
                         from {
@@ -804,12 +838,55 @@
             <div>
                 <table class="data-table">
                     <tbody>
-                        <xsl:for-each select="*">
+                        <xsl:for-each select="*[name() != 'DataSupplier']">
                             <tr>
                                 <th class="table-header-narrow"><xsl:value-of select="name()"/></th>
                                 <td><xsl:value-of select="text()"/></td>
                             </tr>
                         </xsl:for-each>
+                        
+                        <!-- DataSupplier Section -->
+                        <xsl:if test="DataSupplier">
+                            <tr class="section-header">
+                                <th colspan="2">Data Supplier</th>
+                            </tr>
+                            
+                            <!-- Name with fallback to Short -->
+                            <tr>
+                                <th class="table-header-narrow">Name</th>
+                                <td>
+                                    <xsl:choose>
+                                        <xsl:when test="DataSupplier/n and DataSupplier/n != ''">
+                                            <xsl:value-of select="DataSupplier/n"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:value-of select="DataSupplier/Short"/>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </td>
+                            </tr>
+                            
+                            <!-- Other DataSupplier fields except 'n', 'Short' and 'Contact' -->
+                            <xsl:for-each select="DataSupplier/*[name() != 'n' and name() != 'Short' and name() != 'Contact']">
+                                <tr>
+                                    <th class="table-header-narrow"><xsl:value-of select="name()"/></th>
+                                    <td><xsl:value-of select="."/></td>
+                                </tr>
+                            </xsl:for-each>
+                            
+                            <!-- Contact Section -->
+                            <xsl:if test="DataSupplier/Contact">
+                                <tr class="section-header">
+                                    <th colspan="2">Contact</th>
+                                </tr>
+                                <xsl:for-each select="DataSupplier/Contact/*">
+                                    <tr>
+                                        <th class="table-header-narrow"><xsl:value-of select="name()"/></th>
+                                        <td><xsl:value-of select="."/></td>
+                                    </tr>
+                                </xsl:for-each>
+                            </xsl:if>
+                        </xsl:if>
                     </tbody>
                 </table>
             </div>
@@ -821,49 +898,88 @@
     </xsl:template>
 
     <xsl:template match="Fund">
+        <xsl:variable name="fundCurrency" select="Currency"/>
         <div id="{generate-id(.)}" class="fund-section">
-            <details open="false">
-                <summary>
+            <!-- Always visible header section with basic data, Names and Identifiers -->
+            <div class="fund-header">
+                <h2>
                     <xsl:value-of select="Names/OfficialName"/> (<xsl:value-of select="Currency"/>)
                     <xsl:if test="count(SingleFund/ShareClasses/ShareClass) = 0">
                         <span class="badge badge-error">
                             No ShareClasses
                         </span>
                     </xsl:if>
-                </summary>
-                <div>
-                    <table class="data-table">
-                        <tbody>
+                </h2>
+                
+                <!-- Combined table with Basic Data, Names and Identifiers -->
+                <table class="data-table">
+                    <tbody>
+                        <!-- Basic Data Section -->
+                        <tr class="section-header">
+                            <th colspan="2">Basic Data</th>
+                        </tr>
+                        <tr>
+                            <th>Currency</th>
+                            <td><xsl:value-of select="Currency"/></td>
+                        </tr>
+                        <tr>
+                            <th>Inception Date</th>
+                            <td><xsl:value-of select="FundStaticData/InceptionDate"/></td>
+                        </tr>
+                        <tr>
+                            <th>Domicile</th>
+                            <td><xsl:value-of select="FundStaticData/Domicile"/></td>
+                        </tr>
+                        <tr>
+                            <th>Fiscal Year End</th>
+                            <td><xsl:value-of select="FundStaticData/FiscalYearEnd"/></td>
+                        </tr>
+                        
+                        <!-- Names Section -->
+                        <tr class="section-header">
+                            <th colspan="2">Names</th>
+                        </tr>
+                        <xsl:for-each select="Names/*">
                             <tr>
-                                <th>Currency</th>
-                                <td><xsl:value-of select="Currency"/></td>
+                                <th><xsl:value-of select="name()"/></th>
+                                <td><xsl:value-of select="text()"/></td>
                             </tr>
+                        </xsl:for-each>
+                        
+                        <!-- Identifiers Section -->
+                        <tr class="section-header">
+                            <th colspan="2">Identifiers</th>
+                        </tr>
+                        <xsl:for-each select="Identifiers/*[name() != 'OtherID']">
                             <tr>
-                                <th>Inception Date</th>
-                                <td><xsl:value-of select="FundStaticData/InceptionDate"/></td>
+                                <th class="table-header-narrow"><xsl:value-of select="name()"/></th>
+                                <td><xsl:value-of select="."/></td>
                             </tr>
+                        </xsl:for-each>
+                        <xsl:for-each select="Identifiers/*[name() = 'OtherID']">
                             <tr>
-                                <th>Domicile</th>
-                                <td><xsl:value-of select="FundStaticData/Domicile"/></td>
+                                <th class="table-header-narrow"><xsl:value-of select="name()"/>
+                                    <xsl:for-each select="@*">
+                                        <br/>
+                                        <span class="badge badge-info">@<xsl:value-of select="name()"/>:<xsl:value-of select="."/></span>
+                                    </xsl:for-each>
+                                </th>
+                                <td><xsl:value-of select="."/></td>
                             </tr>
-                            <tr>
-                                <th>Fiscal Year End</th>
-                                <td><xsl:value-of select="FundStaticData/FiscalYearEnd"/></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <hr/>
-                    <xsl:apply-templates select="Names"/>
-                    <hr/>
-                    <xsl:apply-templates select="Identifiers"/>
-                    <hr/>
-                    <xsl:apply-templates select="FundStaticData"/>
-                    <hr/>
-                    <xsl:apply-templates select="FundDynamicData"/>
-                    <hr/>
-                    <xsl:apply-templates select="SingleFund"/>
-                </div>
-            </details>
+                        </xsl:for-each>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Collapsible sections below -->
+            <hr/>
+            <xsl:apply-templates select="FundStaticData"/>
+            <hr/>
+            <xsl:apply-templates select="FundDynamicData">
+                <xsl:with-param name="fundCurrency" select="$fundCurrency"/>
+            </xsl:apply-templates>
+            <hr/>
+            <xsl:apply-templates select="SingleFund"/>
         </div>
     </xsl:template>
 
@@ -933,11 +1049,14 @@
     </xsl:template>
 
     <xsl:template match="FundDynamicData">
+        <xsl:param name="fundCurrency"/>
         <details>
             <summary>FundDynamicData</summary>
             <div>
                 <xsl:apply-templates select="TotalAssetValues"/>
-                <xsl:apply-templates select="Portfolios"/>
+                <xsl:apply-templates select="Portfolios">
+                    <xsl:with-param name="fundCurrency" select="$fundCurrency"/>
+                </xsl:apply-templates>
             </div>
         </details>
     </xsl:template>
@@ -973,6 +1092,7 @@
     </xsl:template>
 
     <xsl:template match="Portfolios">
+        <xsl:param name="fundCurrency"/>
         <xsl:for-each select="Portfolio">
             <xsl:variable name="portfolioCcy" select="PortfolioCurrency"/>
             <details>
@@ -1036,8 +1156,8 @@
                                             </xsl:if>
                                         </td>
                                         <td class="text-right font-bold">
-                                            <xsl:value-of select="format-number(TotalValue/Amount, '#,##0.00')"/>
-                                            <span class="text-sm margin-left"><xsl:value-of select="TotalValue/Amount/@ccy"/></span>
+                                            <xsl:value-of select="format-number((TotalValue/Amount[@ccy=$fundCurrency], TotalValue/Amount)[1], '#,##0.00')"/>
+                                            <span class="text-sm margin-left"><xsl:value-of select="(TotalValue/Amount[@ccy=$fundCurrency], TotalValue/Amount)[1]/@ccy"/></span>
                                         </td>
                                         <td class="text-center">
                                             <span class="percentage-badge">
@@ -1057,7 +1177,7 @@
                                 <tr class="positions-summary">
                                     <td colspan="4" class="text-right font-bold">Total:</td>
                                     <td class="text-right font-bold">
-                                        <xsl:value-of select="format-number(sum(Positions/Position/TotalValue/Amount), '#,##0.00')"/>
+                                        <xsl:value-of select="format-number(sum(Positions/Position/TotalValue/Amount[@ccy=$fundCurrency]), '#,##0.00')"/>
                                     </td>
                                     <td class="text-center font-bold">
                                         <span class="percentage-badge-total">
@@ -1255,7 +1375,7 @@
     </xsl:template>
 
     <!-- Template for AssetMasterData Detail Types -->
-    <xsl:template match="AssetDetails/Equity | AssetDetails/Bond | AssetDetails/ShareClass | AssetDetails/Warrant | AssetDetails/Certificate | AssetDetails/Option | AssetDetails/Future | AssetDetails/FXForward | AssetDetails/Swap | AssetDetails/Account | AssetDetails/Fee">
+    <xsl:template match="AssetDetails/Equity | AssetDetails/Bond | AssetDetails/ShareClass | AssetDetails/Warrant | AssetDetails/Certificate | AssetDetails/Option | AssetDetails/Future | AssetDetails/FXForward | AssetDetails/Swap | AssetDetails/Account | AssetDetails/Fee" priority="10">
         <div class="asset-detail-box">
             <xsl:for-each select="*">
                 <div class="asset-detail-row">
@@ -1267,7 +1387,7 @@
     </xsl:template>
 
     <!-- Fallback for other asset details -->
-    <xsl:template match="AssetDetails/*">
+    <xsl:template match="AssetDetails/*" priority="1">
         <div class="asset-detail-box">
             <span class="font-bold"><xsl:value-of select="name(.)"/></span>
         </div>
