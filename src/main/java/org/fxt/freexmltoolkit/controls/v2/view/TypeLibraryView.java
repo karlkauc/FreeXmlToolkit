@@ -173,8 +173,24 @@ public class TypeLibraryView extends BorderPane {
         info.kind = "Simple";
         info.name = simpleType.getName() != null ? simpleType.getName() : "(anonymous)";
 
-        // Get base type
-        info.baseType = simpleType.getBase() != null ? simpleType.getBase() : "";
+        // Get base type - check both direct base and restriction/list/union children
+        String baseType = simpleType.getBase();
+        if (baseType == null || baseType.isEmpty()) {
+            // Check for restriction child
+            for (XsdNode child : simpleType.getChildren()) {
+                if (child instanceof XsdRestriction restriction) {
+                    baseType = restriction.getBase();
+                    break;
+                } else if (child instanceof XsdList list) {
+                    baseType = "list of " + (list.getItemType() != null ? list.getItemType() : "?");
+                    break;
+                } else if (child instanceof XsdUnion union) {
+                    baseType = "union";
+                    break;
+                }
+            }
+        }
+        info.baseType = baseType != null ? baseType : "";
 
         info.documentation = simpleType.getDocumentation() != null ? simpleType.getDocumentation() : "";
         info.node = simpleType;
