@@ -142,131 +142,252 @@ public class TypeLibraryView extends BorderPane {
         TableView<TypeInfo> table = new TableView<>();
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
-        // Apply XMLSpy table styling
+        // Professional table styling with subtle shadow
         table.setStyle(
             "-fx-background-color: white;" +
-            "-fx-border-color: #c0c0c0;" +
+            "-fx-border-color: #d0d0d0;" +
             "-fx-border-width: 1px;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 1, 1);" +
+            "-fx-border-radius: 4px;" +
+            "-fx-background-radius: 4px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 2);" +
             "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
             "-fx-font-size: 11px;"
         );
 
-        // Type column
+        // Type column with colored badges
         TableColumn<TypeInfo, String> typeCol = new TableColumn<>("Type");
         typeCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().kind));
-        typeCol.setPrefWidth(80);
-        typeCol.setStyle(
-            "-fx-alignment: CENTER;" +
-            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
-            "-fx-font-size: 11px;"
-        );
-        applyHeaderStyle(typeCol);
+        typeCol.setPrefWidth(100);
+        typeCol.setCellFactory(col -> new TableCell<TypeInfo, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    // Color-coded badges for type kinds
+                    if ("Simple".equals(item)) {
+                        setStyle(
+                            "-fx-background-color: #e3f2fd;" +
+                            "-fx-text-fill: #1976d2;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-alignment: CENTER;" +
+                            "-fx-padding: 4px 8px;" +
+                            "-fx-background-radius: 3px;"
+                        );
+                    } else if ("Complex".equals(item)) {
+                        setStyle(
+                            "-fx-background-color: #f3e5f5;" +
+                            "-fx-text-fill: #7b1fa2;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-alignment: CENTER;" +
+                            "-fx-padding: 4px 8px;" +
+                            "-fx-background-radius: 3px;"
+                        );
+                    }
+                }
+            }
+        });
 
-        // Name column
+        // Name column with bold styling
         TableColumn<TypeInfo, String> nameCol = new TableColumn<>("Name");
         nameCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().name));
-        nameCol.setPrefWidth(200);
-        nameCol.setStyle(
-            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
-            "-fx-font-size: 11px;"
-        );
-        applyHeaderStyle(nameCol);
+        nameCol.setPrefWidth(220);
+        nameCol.setCellFactory(col -> new TableCell<TypeInfo, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    setStyle(
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: #2c3e50;" +
+                        "-fx-font-size: 12px;"
+                    );
+                }
+            }
+        });
 
         // Base Type column
         TableColumn<TypeInfo, String> baseCol = new TableColumn<>("Base Type");
         baseCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().baseType));
         baseCol.setPrefWidth(150);
-        baseCol.setStyle(
-            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
-            "-fx-font-size: 11px;"
-        );
-        applyHeaderStyle(baseCol);
+        baseCol.setCellFactory(col -> new TableCell<TypeInfo, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isEmpty()) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    setStyle(
+                        "-fx-text-fill: #546e7a;" +
+                        "-fx-font-style: italic;"
+                    );
+                }
+            }
+        });
 
         // Documentation column
         TableColumn<TypeInfo, String> docCol = new TableColumn<>("Documentation");
         docCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().documentation));
-        docCol.setPrefWidth(250);
-        docCol.setStyle(
-            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
-            "-fx-font-size: 11px;"
-        );
-        applyHeaderStyle(docCol);
+        docCol.setPrefWidth(280);
+        docCol.setCellFactory(col -> new TableCell<TypeInfo, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isEmpty()) {
+                    setText("—");
+                    setStyle("-fx-text-fill: #bdbdbd;");
+                } else {
+                    setText(item);
+                    setStyle(
+                        "-fx-text-fill: #607d8b;" +
+                        "-fx-font-size: 10px;"
+                    );
+                }
+            }
+        });
 
-        // Usage Count column
+        // Usage Count column with color indicators
         TableColumn<TypeInfo, String> usageCol = new TableColumn<>("Usage");
         usageCol.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().usageCount)));
-        usageCol.setPrefWidth(60);
-        usageCol.setStyle(
-            "-fx-alignment: CENTER;" +
-            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
-            "-fx-font-size: 11px;"
-        );
-        applyHeaderStyle(usageCol);
+        usageCol.setPrefWidth(80);
+        usageCol.setCellFactory(col -> new TableCell<TypeInfo, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("");
+                } else {
+                    int count = Integer.parseInt(item);
+                    setText(item);
 
-        // Usage Locations column
+                    // Traffic light color system
+                    if (count == 0) {
+                        // Red - Unused
+                        setStyle(
+                            "-fx-background-color: #ffebee;" +
+                            "-fx-text-fill: #c62828;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-alignment: CENTER;" +
+                            "-fx-padding: 4px;" +
+                            "-fx-background-radius: 3px;"
+                        );
+                    } else if (count <= 3) {
+                        // Orange - Low usage
+                        setStyle(
+                            "-fx-background-color: #fff3e0;" +
+                            "-fx-text-fill: #e65100;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-alignment: CENTER;" +
+                            "-fx-padding: 4px;" +
+                            "-fx-background-radius: 3px;"
+                        );
+                    } else {
+                        // Green - Good usage
+                        setStyle(
+                            "-fx-background-color: #e8f5e9;" +
+                            "-fx-text-fill: #2e7d32;" +
+                            "-fx-font-weight: bold;" +
+                            "-fx-alignment: CENTER;" +
+                            "-fx-padding: 4px;" +
+                            "-fx-background-radius: 3px;"
+                        );
+                    }
+                }
+            }
+        });
+
+        // Usage Locations column with monospace font
         TableColumn<TypeInfo, String> locationsCol = new TableColumn<>("Used In (XPath)");
         locationsCol.setCellValueFactory(data -> new SimpleStringProperty(
-            data.getValue().usageLocations.isEmpty() ? "Not used" :
-            String.join(", ", data.getValue().usageLocations)
+            data.getValue().usageLocations.isEmpty() ? "—" :
+            String.join("\n", data.getValue().usageLocations)
         ));
-        locationsCol.setPrefWidth(300);
-        locationsCol.setStyle(
-            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
-            "-fx-font-size: 11px;"
-        );
-        applyHeaderStyle(locationsCol);
+        locationsCol.setPrefWidth(400);
+        locationsCol.setCellFactory(col -> new TableCell<TypeInfo, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    if ("—".equals(item)) {
+                        setStyle(
+                            "-fx-text-fill: #bdbdbd;" +
+                            "-fx-font-style: italic;"
+                        );
+                    } else {
+                        setStyle(
+                            "-fx-text-fill: #37474f;" +
+                            "-fx-font-family: 'Courier New', monospace;" +
+                            "-fx-font-size: 10px;" +
+                            "-fx-wrap-text: true;"
+                        );
+                    }
+                }
+            }
+        });
 
-        // Row factory for alternating colors and unused types styling
+        // Professional row factory with hover effects
         table.setRowFactory(tv -> new TableRow<TypeInfo>() {
             @Override
             protected void updateItem(TypeInfo item, boolean empty) {
                 super.updateItem(item, empty);
                 if (item == null || empty) {
                     setStyle("");
-                } else if (item.usageCount == 0) {
-                    // Yellow for unused types - XMLSpy warning style
-                    setStyle(
-                        "-fx-background-color: #fff3cd;" +
-                        "-fx-border-color: #e0e0e0;" +
-                        "-fx-border-width: 0 0 1 0;" +
-                        "-fx-padding: 4px 8px;" +
-                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
-                        "-fx-font-size: 11px;"
-                    );
                 } else {
-                    // Alternating row colors - XMLSpy style
-                    String bgColor = (getIndex() % 2 == 0) ? "#ffffff" : "#f8f8f8";
+                    // Subtle alternating rows with hover effect
+                    String baseColor = (getIndex() % 2 == 0) ? "#ffffff" : "#fafafa";
+
                     setStyle(
-                        "-fx-background-color: " + bgColor + ";" +
-                        "-fx-border-color: #e0e0e0;" +
+                        "-fx-background-color: " + baseColor + ";" +
+                        "-fx-border-color: #eeeeee;" +
                         "-fx-border-width: 0 0 1 0;" +
-                        "-fx-padding: 4px 8px;" +
-                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
-                        "-fx-font-size: 11px;"
+                        "-fx-padding: 8px 4px;"
                     );
+
+                    // Hover effect
+                    setOnMouseEntered(e -> {
+                        if (!isEmpty()) {
+                            setStyle(
+                                "-fx-background-color: #e3f2fd;" +
+                                "-fx-border-color: #90caf9;" +
+                                "-fx-border-width: 1px 0;" +
+                                "-fx-padding: 7px 4px;" +
+                                "-fx-cursor: hand;"
+                            );
+                        }
+                    });
+
+                    setOnMouseExited(e -> {
+                        if (!isEmpty()) {
+                            setStyle(
+                                "-fx-background-color: " + baseColor + ";" +
+                                "-fx-border-color: #eeeeee;" +
+                                "-fx-border-width: 0 0 1 0;" +
+                                "-fx-padding: 8px 4px;"
+                            );
+                        }
+                    });
                 }
             }
         });
 
         table.getColumns().addAll(typeCol, nameCol, baseCol, docCol, usageCol, locationsCol);
         return table;
-    }
-
-    /**
-     * Apply XMLSpy-style header styling to a table column
-     */
-    private void applyHeaderStyle(TableColumn<?, ?> column) {
-        column.setStyle(
-            column.getStyle() +
-            "-fx-background-color: linear-gradient(to bottom, #f5f5f5, #e8e8e8);" +
-            "-fx-text-fill: #333333;" +
-            "-fx-font-weight: bold;" +
-            "-fx-border-color: #c0c0c0;" +
-            "-fx-border-width: 0 1px 1px 0;" +
-            "-fx-padding: 4px 8px;" +
-            "-fx-alignment: CENTER_LEFT;"
-        );
     }
 
     private void populateTypes() {
