@@ -3394,7 +3394,7 @@ public class XsdController {
      */
     private void initializeTypeEditor() {
         try {
-            // Create TabPane for type editor subtabs
+            // Create TabPane for type editor subtabs (used when editing individual types)
             typeEditorTabPane = new TabPane();
             typeEditorTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
 
@@ -3413,11 +3413,13 @@ public class XsdController {
             // Initialize TypeEditorTabManager
             typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
 
-            // Place the typeEditorTabPane into the Type Library tab's StackPane
+            // Initialize Type Library View (shows all types with usage info)
             if (typeLibraryStackPane != null) {
                 typeLibraryStackPane.getChildren().clear();
-                typeLibraryStackPane.getChildren().add(typeEditorTabPane);
-                logger.info("Type Library tab initialized with TypeEditorTabManager");
+                org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
+                    new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(schema);
+                typeLibraryStackPane.getChildren().add(typeLibraryView);
+                logger.info("Type Library tab initialized with TypeLibraryView");
             } else {
                 logger.warn("Type Library StackPane is not initialized");
             }
@@ -3444,6 +3446,15 @@ public class XsdController {
                 // Re-create TypeEditorTabManager with new schema
                 typeEditorTabManager = new org.fxt.freexmltoolkit.controls.v2.editor.TypeEditorTabManager(typeEditorTabPane, schema);
                 logger.info("Type Editor updated with loaded schema: {}", schema.getTargetNamespace());
+
+                // Update Type Library View with new schema
+                if (typeLibraryStackPane != null) {
+                    typeLibraryStackPane.getChildren().clear();
+                    org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView typeLibraryView =
+                        new org.fxt.freexmltoolkit.controls.v2.view.TypeLibraryView(schema);
+                    typeLibraryStackPane.getChildren().add(typeLibraryView);
+                    logger.info("Type Library view updated with new schema");
+                }
 
             } catch (Exception e) {
                 logger.error("Error updating Type Editor with schema", e);
