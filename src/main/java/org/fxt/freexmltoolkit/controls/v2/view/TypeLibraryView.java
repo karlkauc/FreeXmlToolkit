@@ -43,31 +43,69 @@ public class TypeLibraryView extends BorderPane {
     }
 
     private void initializeUI() {
-        // Top toolbar
+        // Top toolbar - XMLSpy style
         HBox toolbar = new HBox(10);
-        toolbar.setPadding(new Insets(10));
-        toolbar.setStyle("-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-width: 0 0 1 0;");
+        toolbar.setPadding(new Insets(8));
+        toolbar.setStyle(
+            "-fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef);" +
+            "-fx-border-color: #dee2e6;" +
+            "-fx-border-width: 0 0 1 0;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 2, 0, 1, 1);"
+        );
 
         // Search field
         searchField = new TextField();
         searchField.setPromptText("Search types...");
         searchField.setPrefWidth(250);
+        searchField.setStyle(
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;" +
+            "-fx-border-color: #c0c0c0;" +
+            "-fx-border-radius: 3px;" +
+            "-fx-background-radius: 3px;"
+        );
         searchField.textProperty().addListener((obs, old, newVal) -> filterTypes());
 
         // Filter choice
         filterChoice = new ChoiceBox<>();
         filterChoice.setItems(FXCollections.observableArrayList("All Types", "Simple Types", "Complex Types", "Unused Types"));
         filterChoice.setValue("All Types");
+        filterChoice.setStyle(
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;"
+        );
         filterChoice.valueProperty().addListener((obs, old, newVal) -> filterTypes());
+
+        // Labels with XMLSpy styling
+        Label searchLabel = new Label("Search:");
+        searchLabel.setStyle(
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: #333333;"
+        );
+
+        Label filterLabel = new Label("Filter:");
+        filterLabel.setStyle(
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: #333333;"
+        );
 
         // Stats label
         statsLabel = new Label();
-        statsLabel.setStyle("-fx-font-weight: bold;");
+        statsLabel.setStyle(
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-text-fill: #2c5aa0;"
+        );
 
         HBox.setHgrow(searchField, Priority.NEVER);
         toolbar.getChildren().addAll(
-            new Label("Search:"), searchField,
-            new Label("Filter:"), filterChoice,
+            searchLabel, searchField,
+            filterLabel, filterChoice,
             createSpacer(),
             statsLabel
         );
@@ -83,32 +121,67 @@ public class TypeLibraryView extends BorderPane {
         TableView<TypeInfo> table = new TableView<>();
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
+        // Apply XMLSpy table styling
+        table.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-border-color: #c0c0c0;" +
+            "-fx-border-width: 1px;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 1, 1);" +
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;"
+        );
+
         // Type column
         TableColumn<TypeInfo, String> typeCol = new TableColumn<>("Type");
         typeCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().kind));
         typeCol.setPrefWidth(80);
-        typeCol.setStyle("-fx-alignment: CENTER;");
+        typeCol.setStyle(
+            "-fx-alignment: CENTER;" +
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;"
+        );
+        applyHeaderStyle(typeCol);
 
         // Name column
         TableColumn<TypeInfo, String> nameCol = new TableColumn<>("Name");
         nameCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().name));
         nameCol.setPrefWidth(200);
+        nameCol.setStyle(
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;"
+        );
+        applyHeaderStyle(nameCol);
 
         // Base Type column
         TableColumn<TypeInfo, String> baseCol = new TableColumn<>("Base Type");
         baseCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().baseType));
         baseCol.setPrefWidth(150);
+        baseCol.setStyle(
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;"
+        );
+        applyHeaderStyle(baseCol);
 
         // Documentation column
         TableColumn<TypeInfo, String> docCol = new TableColumn<>("Documentation");
         docCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().documentation));
         docCol.setPrefWidth(250);
+        docCol.setStyle(
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;"
+        );
+        applyHeaderStyle(docCol);
 
         // Usage Count column
         TableColumn<TypeInfo, String> usageCol = new TableColumn<>("Usage");
         usageCol.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().usageCount)));
         usageCol.setPrefWidth(60);
-        usageCol.setStyle("-fx-alignment: CENTER;");
+        usageCol.setStyle(
+            "-fx-alignment: CENTER;" +
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;"
+        );
+        applyHeaderStyle(usageCol);
 
         // Usage Locations column
         TableColumn<TypeInfo, String> locationsCol = new TableColumn<>("Used In (XPath)");
@@ -117,8 +190,13 @@ public class TypeLibraryView extends BorderPane {
             String.join(", ", data.getValue().usageLocations)
         ));
         locationsCol.setPrefWidth(300);
+        locationsCol.setStyle(
+            "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+            "-fx-font-size: 11px;"
+        );
+        applyHeaderStyle(locationsCol);
 
-        // Row factory for unused types styling
+        // Row factory for alternating colors and unused types styling
         table.setRowFactory(tv -> new TableRow<TypeInfo>() {
             @Override
             protected void updateItem(TypeInfo item, boolean empty) {
@@ -126,15 +204,48 @@ public class TypeLibraryView extends BorderPane {
                 if (item == null || empty) {
                     setStyle("");
                 } else if (item.usageCount == 0) {
-                    setStyle("-fx-background-color: #fff3cd;"); // Yellow for unused
+                    // Yellow for unused types - XMLSpy warning style
+                    setStyle(
+                        "-fx-background-color: #fff3cd;" +
+                        "-fx-border-color: #e0e0e0;" +
+                        "-fx-border-width: 0 0 1 0;" +
+                        "-fx-padding: 4px 8px;" +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+                        "-fx-font-size: 11px;"
+                    );
                 } else {
-                    setStyle("");
+                    // Alternating row colors - XMLSpy style
+                    String bgColor = (getIndex() % 2 == 0) ? "#ffffff" : "#f8f8f8";
+                    setStyle(
+                        "-fx-background-color: " + bgColor + ";" +
+                        "-fx-border-color: #e0e0e0;" +
+                        "-fx-border-width: 0 0 1 0;" +
+                        "-fx-padding: 4px 8px;" +
+                        "-fx-font-family: 'Segoe UI', Arial, sans-serif;" +
+                        "-fx-font-size: 11px;"
+                    );
                 }
             }
         });
 
         table.getColumns().addAll(typeCol, nameCol, baseCol, docCol, usageCol, locationsCol);
         return table;
+    }
+
+    /**
+     * Apply XMLSpy-style header styling to a table column
+     */
+    private void applyHeaderStyle(TableColumn<?, ?> column) {
+        column.setStyle(
+            column.getStyle() +
+            "-fx-background-color: linear-gradient(to bottom, #f5f5f5, #e8e8e8);" +
+            "-fx-text-fill: #333333;" +
+            "-fx-font-weight: bold;" +
+            "-fx-border-color: #c0c0c0;" +
+            "-fx-border-width: 0 1px 1px 0;" +
+            "-fx-padding: 4px 8px;" +
+            "-fx-alignment: CENTER_LEFT;"
+        );
     }
 
     private void populateTypes() {
